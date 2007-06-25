@@ -9,6 +9,7 @@
 #include "basetypes.h"
 #include "basebooltype.h"
 #include "baseobjects.h"
+#include "basenew.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_BEGIN(basics)
@@ -82,29 +83,39 @@ inline int intern_cmp(const T* a, const T* b, size_t cnt, bool_true)
 template<typename T>
 inline T* intern_move(T* target, const T* source, size_t cnt, bool_false)
 {	
+	T* epp=target+cnt;
 	if(target>source)
 	{	// last to first run
-		T* epp=target;
 		target+=cnt-1;
 		source+=cnt-1;
-		while( target>=epp ) *target-- = *source--;
-		return epp+cnt;
+		for(; cnt; --cnt, --target, --source )
+		{
+//## experimental replacements to use copy contruction instead of assignments [Marc]
+			target->~T();
+			new (target) T(*source);
+		}
 	}
 	else if(target<source)
 	{	// first to last run
-		T* epp=target+cnt;
-		while( target< epp ) *target++ = *source++;
-		return epp;
+		for(; cnt; --cnt, ++target, ++source )
+		{
+			target->~T();
+			new (target) T(*source);
+		}
 	}
-	else
-		// identical; no move necessary
-		return target+cnt;
+	// else identical; no move necessary
+	return epp;
 }
 template<typename T>
 inline T*  intern_copy(T* target, const T* source, size_t cnt, bool_false)
 {	
 	T* epp=target+cnt;
-	while( target<epp ) *target++ = *source++;
+	for(; cnt; --cnt, ++target, ++source )
+	{
+//## experimental replacements to use copy contruction instead of assignments [Marc]
+		target->~T();
+		new (target) T(*source);
+	}
 	return epp;
 }
 template<typename T>

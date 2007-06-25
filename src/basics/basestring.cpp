@@ -791,7 +791,7 @@ template sint64 stringtoie<wchar_t>(const wchar_t* str);
 
 ///////////////////////////////////////////////////////////////////////////////
 /// string to signed number conversion.
-/// base 10, strips signs, individual overflow check
+/// base detection, strips signs for base 10, individual overflow check
 template <typename T>
 sint64 stringtoi(T const *str, T const**run)
 {
@@ -802,34 +802,43 @@ sint64 stringtoi(T const *str, T const**run)
 		// skip leading whitespace
 		while( stringcheck::isspace(*str) ) ++str;
 
-		bool sign = (*str=='-');
-		if(sign || *str=='+')
+		if(str[0]=='0' && locase(str[1]) == 'b')
+			return stringtoib(str, run);
+		else if(str[0]=='0' && locase(str[1]) == 'o')
+			return stringtoio(str, run);
+		else if(str[0]=='0' && locase(str[1]) == 'x')
+			return stringtoix(str, run);
+		else
 		{
-			str++;
-			// allow whitespace between sign and number
-			while( stringcheck::isspace(*str) ) ++str;
+			bool sign = (*str=='-');
+			if(sign || *str=='+')
+			{
+				str++;
+				// allow whitespace between sign and number
+				while( stringcheck::isspace(*str) ) ++str;
+			}
+			do
+			{
+				const char c = *str;
+				if (c < '0' || c > '9')	// invalid character
+					break;
+				t = r * 10;
+				if (t < r)	// overflow
+				{
+					if(run) *run = str;
+					return (sign)?INT64_MIN:INT64_MAX;
+				}
+				t += c - '0';
+				if (t < r)	// overflow
+				{
+					if(run) *run = str;
+					return (sign)?INT64_MIN:INT64_MAX;
+				}
+				r = t;
+				++str;
+			} while (*str != 0);
+			if(sign) r=-r;
 		}
-		do
-		{
-			const char c = *str;
-			if (c < '0' || c > '9')	// invalid character
-				break;
-			t = r * 10;
-			if (t < r)	// overflow
-			{
-				if(run) *run = str;
-				return (sign)?INT64_MIN:INT64_MAX;
-			}
-			t += c - '0';
-			if (t < r)	// overflow
-			{
-				if(run) *run = str;
-				return (sign)?INT64_MIN:INT64_MAX;
-			}
-			r = t;
-			++str;
-		} while (*str != 0);
-		if(sign) r=-r;
 	}
 	if(run) *run = str;
 	return r;

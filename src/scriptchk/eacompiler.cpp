@@ -244,34 +244,46 @@ bool eacompiler::compile_vardecl(const parse_node &node, uint scope, unsigned lo
 }
 
 bool eacompiler::compile_variable(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
-{	// <Variable>  ::= <Op Pointer> <VarAssign>
+{	// <Variable>  ::= <ScopeVar> <VarRange> <VarAssign>
+	// <VarRange>  ::= '[' <Op Assign> ']' <VarRange> or empty
 	// <VarAssign> ::= '=' <Expr> or empty
-	const parse_node varname = node[0];
-	const parse_node &varassign = node[1];
+	const parse_node& varname = node[0];
+	parse_node vararray = node[1];
+	const parse_node& varassign = node[2];
 	const bool has_assign = 0!=varassign.childs();
+	const bool has_array  = vararray.childs()==4;
 	bool accept = false;
 	
-	// <Array> := <Op Pointer> '[' <Range> ']'
-//	if( varname.symbol() == PT_ARRAY )
-//	{
-//	}
-// ignore the array for the moment
-
-	if( varname.symbol() != PT_SCOPEVAR && varname.symbol() != PT_ARRAY &&varname.symbol() != PT_IDENTIFIER )
+	if( varname.symbol() != PT_SCOPEVAR && varname.symbol() != PT_IDENTIFIER )
 	{
 		this->warning("variable type '%s' is not allowed (line %u)\n", varname.name(), node.line());
 	}
 	else
 	{
 		// varassign not empty -> '=' <Expr>
-		const int varflags = (flags&~(CFLAG_RVALUE|CFLAG_ASSIGN))|CFLAG_VARCREATE|(has_assign?(CFLAG_ASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
-		accept= (!has_assign || compile_main(varassign[1], scope, (flags&~CFLAG_LVALUE)|CFLAG_RVALUE, uservalue)) &&
-				compile_main(varname, scope, varflags, uservalue);
-		if( accept && has_assign )
-		{	//## TODO: add check for proper dimensions of assignment values
-			this->put_command( (varname.symbol()!=PT_ARRAY)?OP_ASSIGN:OP_ARRAY_ASSIGN );
-			this->put_command(OP_POP);
+		const int varflags = (flags&~(CFLAG_RVALUE|CFLAG_ASSIGN))|CFLAG_VARCREATE|((has_assign||has_array)?(CFLAG_ASSIGN|CFLAG_LVALUE):(CFLAG_NOASSIGN|CFLAG_VARSILENT));
+
+		// put the assignment value
+		accept= !has_assign || compile_main(varassign[1], scope, (flags&~CFLAG_LVALUE)|CFLAG_RVALUE, uservalue);
+		// put the variable
+		if( accept )
+			accept = compile_main(varname, scope, varflags, uservalue);		
+		if( accept && has_array )
+		{	// walk through the array definition
+			int dimension = 0;
+			for( ; accept && vararray.childs()==4; vararray = vararray[3], ++dimension)
+			{
+				accept = compile_main(vararray[1], scope, (flags&~CFLAG_LVALUE)|CFLAG_RVALUE, uservalue);
+			}
+			if(accept && dimension)
+				this->put_intcommand(OP_CREATEARRAY,dimension);
 		}
+		if( accept && has_assign )
+		{	// put the assignment
+			this->put_command( has_array?OP_ARRAY_ASSIGN:OP_ASSIGN );
+		}
+		if( accept && (has_assign || has_array) )
+			this->put_command(OP_POP);
 	}
 	return accept;
 }
@@ -311,7 +323,7 @@ bool eacompiler::compare_declarations(const parse_node &namenode, const scriptde
 				if( a1->cValue != a2->cValue )
 				{
 					this->warning("function '%s' redefined with different default value (line %u)\n", (const char*)namenode.string(), namenode.line());
-					this->warning("was %s, redefined as %s\n", a1->cValue.get_arraystring().c_str(), a2->cValue.get_arraystring().c_str());
+					this->warning("was %s, redefined as %s\n", basics::tostring(a1->cValue).c_str(), basics::tostring(a2->cValue).c_str());
 					return false;
 				}
 			}
@@ -368,7 +380,7 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 	{	// create new
 		prog->cHeader[main_node].cName = main_node;
 		this->funcdecl = prog->cHeader.search(main_node);
-		this->funcdecl->cScript = &(*prog);
+		this->funcdecl->cScriptName = prog->cName;
 	}
 	this->funcdecl->cReturn = basics::variant::name2type(node[0].string());
 
@@ -400,8 +412,18 @@ bool eacompiler::compile_funcdecl(const parse_node &node, uint scope, unsigned l
 		// compile
 		accept = compile_main(body[1], scope, 0, uservalue) &&
 				 check_labels() && check_variable(scope);
+		if( accept && prog->cProgramm.last() != OP_RETURN )
+		{
+			if( this->funcdecl && this->funcdecl->cReturn!=basics::VAR_NONE )
+			{
+				this->warning("missing 'return' statement (line %u)\n", body[2].line());
+				accept = false;
+			}
+			this->put_command(OP_PUSH_NONE);
+			this->put_command(OP_RETURN);
+		}
 		// cleanup
-		if( prog->cProgramm.last() != OP_END )
+		if( accept && prog->cProgramm.last() != OP_END )
 			this->put_command(OP_END);
 		prog->replaceInt(prog->getCurrentPosition(), sizepos);
 	}
@@ -460,7 +482,7 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 	{	// create new
 		prog->cHeader[name.string()].cName = name.string();
 		this->funcdecl = prog->cHeader.search(name.string());
-		this->funcdecl->cScript = &(*prog);
+		this->funcdecl->cScriptName = prog->cName;
 	}
 	else if( name.string()=="main" || declare_only || this->funcdecl->cEntry )
 	{	// redeclaration
@@ -497,8 +519,17 @@ bool eacompiler::compile_subfuncdecl(const parse_node &node, uint scope, unsigne
 
 		accept = compile_main(body[1], scope, 0, uservalue);
 
-		if( prog->cProgramm.last() != OP_RETURN )
+		if( accept && prog->cProgramm.last() != OP_RETURN )
+		{
+			if( this->funcdecl && this->funcdecl->cReturn!=basics::VAR_NONE )
+			{
+				this->warning("missing 'return' statement (line %u)\n", body[2].line());
+				accept = false;
+			}
+
+			this->put_command(OP_PUSH_NONE);
 			this->put_command(OP_RETURN);
+		}
 		prog->replaceAddr( prog->getCurrentPosition() ,inspos1);
 	}
 	if(save)
@@ -529,7 +560,8 @@ bool eacompiler::compile_parameter(const parse_node &node, uint scope, unsigned 
 		basics::variant paramvalue;
 		const bool isconst = (node[0].symbol()==PT_CONST);
 		const basics::var_t type = basics::variant::name2type(node[1].string());
-		if(isconst) paramvalue.make_value(); else paramvalue.make_reference();
+		if(isconst)
+			paramvalue.make_value();
 		if( node.childs() == 5 )
 		{	// do the assignment
 			if( !compile_main(node[4], scope, CFLAG_CONST, uservalue) )
@@ -558,45 +590,48 @@ bool eacompiler::build_function_parameter(const scriptdecl& decl, const parse_no
 	parse_node worknode;
 	size_t count=0;
 	bool run=true;
-	for(;accept&&run ; ++count)
-	{	
-		if( parameter.symbol() == PT_EXPRLIST )
-		{	// <ExprList> = <Expr> ',' <ExprList>
-			worknode  = parameter[0];
-			parameter = parameter[2];
-		}
-		else
-		{
-			worknode = parameter;
-			run = false;
-		}
-		
-		const bool has_param = (count < decl.cParam.size());
-		basics::var_t t = has_param ? decl.cParam[count].cType : basics::VAR_AUTO;
-		if( worknode.symbol() == PT_EXPR )
-		{	// empty, put default value
-			this->put_value( has_param ? decl.cParam[count].cValue : basics::variant() );
-		}
-		else
-		{	// something else, compile it
-			const unsigned long myflags = (!has_param || decl.cParam[count].cConst)?CFLAG_LVALUE|CFLAG_RVALUE:CFLAG_RVALUE;
-			int uservalue=0;
-			accept = compile_main(worknode, scope, myflags, uservalue);
-		}
-		// do a cast when asked
-		if(t==basics::VAR_FLOAT)
-		{
-			this->put_command(OP_CAST_FLOAT);
-		}
-		else if(t==basics::VAR_INTEGER)
-		{
-			this->put_command(OP_CAST_INTEGER);
-		}
-		else if(t==basics::VAR_STRING)
-		{
-			this->put_command(OP_CAST_STRING);
-		}
-	};
+	if( parameter.symbol() != PT_EXPR )
+	{
+		for(;accept&&run ; ++count)
+		{	
+			if( parameter.symbol() == PT_EXPRLIST )
+			{	// <ExprList> = <Expr> ',' <ExprList>
+				worknode  = parameter[0];
+				parameter = parameter[2];
+			}
+			else
+			{
+				worknode = parameter;
+				run = false;
+			}
+			
+			const bool has_param = (count < decl.cParam.size());
+			basics::var_t t = has_param ? decl.cParam[count].cType : basics::VAR_AUTO;
+			if( worknode.symbol() == PT_EXPR )
+			{	// empty, put default value
+				this->put_value( has_param ? decl.cParam[count].cValue : basics::variant() );
+			}
+			else
+			{	// something else, compile it
+				const unsigned long myflags = (!has_param || decl.cParam[count].cConst)?CFLAG_LVALUE|CFLAG_RVALUE:CFLAG_RVALUE;
+				int uservalue=0;
+				accept = compile_main(worknode, scope, myflags, uservalue);
+			}
+			// do a cast when asked
+			if(t==basics::VAR_FLOAT)
+			{
+				this->put_command(OP_CAST_FLOAT);
+			}
+			else if(t==basics::VAR_INTEGER)
+			{
+				this->put_command(OP_CAST_INTEGER);
+			}
+			else if(t==basics::VAR_STRING)
+			{
+				this->put_command(OP_CAST_STRING);
+			}
+		};
+	}
 	// fill remaining parameter
 	for(; accept && count<decl.cParam.size(); ++count)
 	{	
@@ -629,7 +664,7 @@ bool eacompiler::put_function_call(const parse_node &node, uint scope, const bas
 	if( !global )
 	{	//check for local subfunction
 		decl = prog->get_declaration(name);
-		if( !decl.cScript )
+		if( !decl.cScriptName.size() )
 			global = true;
 	}
 
@@ -747,7 +782,7 @@ bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const 
 		else
 		{
 			decl = scr->get_declaration(name);
-			if( !decl.cScript )
+			if( !decl.cScriptName.size() )
 			{	// subfunction name not found
 				this->warning("subfunction '%s' in script '%s' is not defined (line %u)\n", name.c_str(), host.c_str(), node.line());
 			}
@@ -763,51 +798,6 @@ bool eacompiler::put_subfunction_call(const parse_node &node, uint scope, const 
 		}
 	}
 	return false;
-
-/*
-	this->put_nonconst();
-	if( host == "buildin" )
-	{	// forced usage of buildin's
-		if( !buildin::exists(name) )
-		{	// function name not found
-			this->warning("buildin function '%s' not defined (line %u)\n", name.c_str(), node.line());
-		}
-		else
-		{
-			this->put_intcommand(OP_PUSH_INT, paramcnt);
-			this->put_strcommand(OP_BLDFUNCTION, name);
-			return true;
-		}
-	}
-	else if( host == "player" )
-	{	// some player member function, which actually is a readonly variable access
-		return put_knownvariable(node, name, CFLAG_RVALUE|CFLAG_VARCREATE|CFLAG_NOASSIGN, scope, CFLAG_PERM|CFLAG_PLY);
-	}
-	else
-	{	// call subfunction in another script
-		scriptprog::script scr = scriptprog::get_script(host);
-		if( !scr.exists() )
-		{
-			this->warning("script '%s' is not defined (line %u)\n", (const char*)host, node.line());
-		}
-		else
-		{
-			scriptdecl decl = scr->get_declaration(name);
-			if( !decl.cScript )
-			{	// subfunction name not found
-				this->warning("subfunction '%s' in script '%s' is not defined (line %u)\n", name.c_str(), host.c_str(), node.line());
-			}
-			else
-			{	
-				this->put_intcommand(OP_PUSH_INT, paramcnt);
-				this->put_strcommand(OP_PUSH_STRING, host);
-				this->put_strcommand(OP_SUBFUNCTION, name);
-				return true;
-			}
-		}
-	}
-	return false;
-	*/
 }
 
 bool eacompiler::compile_function_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
@@ -829,7 +819,7 @@ bool eacompiler::compile_globalfunction_call(const parse_node &node, uint scope,
 	return put_function_call(node, scope, name, ((flags&CFLAG_MEMBER)!=0), true);
 }
 bool eacompiler::compile_subfunction_call(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
-{	// <Op Pointer> '::'  <Func Call>
+{	// <ScopeVar>  '::'  <Func Call>
 	if( node[0].symbol() != PT_IDENTIFIER )
 	{	// otherwise the scope variable is invalid
 		this->warning("invalid scope function (line %u)\n", node.line());
@@ -933,7 +923,7 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 			{	// create new
 				prog->cHeader[mainlabel].cName = mainlabel;
 				this->funcdecl = prog->cHeader.search(mainlabel);
-				this->funcdecl->cScript = &(*prog);
+				this->funcdecl->cScriptName = prog->cName;
 			}
 			// else warn that declaration already exists
 			///////////////////////////////////////////////////////////////////
@@ -1010,7 +1000,7 @@ bool eacompiler::compile_object(const parse_node &node, uint scope, unsigned lon
 			{	// create new
 				prog->cHeader[mainlabel].cName = mainlabel;
 				this->funcdecl = prog->cHeader.search(mainlabel);
-				this->funcdecl->cScript = &(*prog);
+				this->funcdecl->cScriptName = prog->cName;
 			}
 			///////////////////////////////////////////////////////////////////
 			prog->appendCommand(OP_START);
@@ -1411,13 +1401,14 @@ bool eacompiler::is_const() const
 void eacompiler::put_value_unchecked(double d)
 {
 //	printf("push float '%f'\n", d);
+	prog->appendCommand( OP_PUSH_FLOAT );
 	prog->appendInt( prog->float2int(d) );
 }
 void eacompiler::put_value_unchecked(int64 i)
 {
 //	printf("push int '%i'\n", (int)i);
-	if( i==0 || i==1 )
-		prog->appendCommand( i?OP_PUSH_ONE:OP_PUSH_ZERO );
+	if( i>=0 && i<=10 )
+		prog->appendCommand( OP_PUSH_ZERO+i );
 	else
 		prog->appendVarCommand(OP_PUSH_INT, i);
 }
@@ -1668,19 +1659,20 @@ void eacompiler::put_command(command_t command)
 			{	// nothing
 				return;
 			}
-			else if( command==OP_RETURN )
-			{
-				if(this->funcdecl)
-				{	// do a cast when asked
-					const basics::var_t t = this->funcdecl->cReturn;
-					switch(t)
-					{ 
-					case basics::VAR_FLOAT: this->put_command(OP_CAST_FLOAT); break;
-					case basics::VAR_INTEGER: this->put_command(OP_CAST_INTEGER); break;
-					case basics::VAR_STRING: this->put_command(OP_CAST_STRING); break;
-					default: break;
-					}
-				}
+		}
+	}
+	// for return, do a cast to the return type
+	if( command==OP_RETURN )
+	{
+		if(this->funcdecl)
+		{	// do a cast when asked
+			const basics::var_t t = this->funcdecl->cReturn;
+			switch(t)
+			{ 
+			case basics::VAR_FLOAT: this->put_command(OP_CAST_FLOAT); break;
+			case basics::VAR_INTEGER: this->put_command(OP_CAST_INTEGER); break;
+			case basics::VAR_STRING: this->put_command(OP_CAST_STRING); break;
+			default: break;
 			}
 		}
 	}
@@ -1913,33 +1905,33 @@ const char* eacompiler::variable_getaccess(uint access)
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==CFLAG_TEMP)
 		return "temp";
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_PLY))
-		return "player::temp";
+		return "temp::player";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_PLY))
-		return "player::perm";
+		return "perm::player";
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_ACC))
-		return "account::temp";
+		return "temp::account";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_ACC))
-		return "account::perm";	
+		return "perm::account";	
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_LOG))
-		return "login::temp";
+		return "temp::login";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_LOG))
-		return "login::perm";	
+		return "perm::login";	
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_NPC))
-		return "npc::temp";
+		return "temp::npc";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_NPC))
-		return "npc::perm";	
+		return "perm::npc";	
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_GLB))
-		return "global::temp";
+		return "temp::global";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_GLB))
-		return "global::perm";
+		return "perm::global";
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_PRT))
-		return "party::temp";
+		return "temp::party";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_PRT))
-		return "party::perm";
+		return "perm::party";
 	else if((access&(CFLAG_TEMP|CFLAG_STORMASK))==(CFLAG_TEMP|CFLAG_GLD))
-		return "guild::temp";
+		return "temp::guild";
 	else if((access&(CFLAG_PERM|CFLAG_STORMASK))==(CFLAG_PERM|CFLAG_GLD))
-		return "guild::perm";
+		return "perm::guild";
 	return "<invalid>";
 }
 
@@ -2703,7 +2695,8 @@ bool eacompiler::compile_lctrlstm(const parse_node &node, uint scope, unsigned l
 	}
 	else if( (node.childs()>0 && node[0].symbol() == PT_BREAK) )
 	{	// accept break as synonym for "return <nothing>"
-		this->put_value(basics::variant());
+		this->warning("'break' at top level is used as synonym for 'return <nothing>'(line %u)\n", node[0].line());
+		this->put_command(OP_PUSH_NONE);
 		this->put_command(OP_RETURN);
 	}
 	else
@@ -2717,15 +2710,26 @@ bool eacompiler::compile_lctrlstm(const parse_node &node, uint scope, unsigned l
 bool eacompiler::compile_returnstm(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
 {	// 'return' <Expr List> ';'
 	// 'end' ';'
-	bool accept;
+	bool accept=true;
 	if( node[0].is_terminal(PT_RETURN) )
 	{
-		accept = compile_main(node[1], scope, flags | CFLAG_RVALUE | CFLAG_LVALUE, uservalue);
+		if( node[1].symbol()==PT_EXPR )
+		{
+			this->put_command(OP_PUSH_NONE);
+			if( this->funcdecl && this->funcdecl->cReturn!=basics::VAR_NONE )
+			{
+				this->warning("'return' used without return value (line %u)\n", node[0].line());
+				accept = false;
+			}
+		}
+		else
+		{
+			accept = compile_main(node[1], scope, flags | CFLAG_RVALUE | CFLAG_LVALUE, uservalue);
+		}
 		this->put_command(OP_RETURN);
 	}
 	else
 	{
-		accept = true;
 		this->put_command(OP_END);
 	}
 	return accept;
@@ -2750,7 +2754,7 @@ bool eacompiler::compile_regexpr(const parse_node &node, uint scope, unsigned lo
 		{
 			this->put_command(OP_EMPTY);
 
-			this->put_intcommand(OP_PUSH_INT, 2);
+			this->put_intcommand(OP_PUSH_INT, 3);
 			this->put_strcommand(OP_FUNCTION, "regex");
 			return true;
 		}
@@ -3107,7 +3111,7 @@ bool eacompiler::compile_opsizeof(const parse_node &node, uint scope, unsigned l
 		this->put_value((int64)0);
 	default:
 	{	// compile the node
-		accept  = compile_main(node[0], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
+		accept  = compile_main(node[2], scope, (flags & ~CFLAG_LVALUE) | CFLAG_RVALUE, uservalue);
 		if( is_const() )
 		{	// evaluate the expression here
 			int64 val = this->cConstvalues.last().size();
@@ -3143,7 +3147,7 @@ bool eacompiler::compile_membervariable(const parse_node &node, uint scope, unsi
 }
 
 bool eacompiler::compile_scopevariable(const parse_node &node, uint scope, unsigned long flags, int& uservalue)
-{	// <Op Pointer> '::' identifier
+{	// <ScopeVar>  '::' identifier
 	bool accept = false;
 	int usertemp = 0;
 	const parse_node &childnode = node[0];
@@ -3838,7 +3842,7 @@ bool eacompiler::compile_main(const parse_node &node, uint scope, unsigned long 
 			break;
 		}
 		case PT_SCOPEFUNC:
-		{	// <Op Pointer> '::'  <Func Call>
+		{	// <ScopeVar>  '::'  <Func Call>
 			accept = compile_subfunction_call(node, scope, flags, uservalue);
 
 //			this->logging("PT_MEMBERFUNC - ");
@@ -3868,7 +3872,7 @@ bool eacompiler::compile_main(const parse_node &node, uint scope, unsigned long 
 			break;
 		}
 		case PT_SCOPEVAR:
-		{	// <Op Pointer> '::' identifier
+		{	// <ScopeVar> '::' identifier
 			accept = compile_scopevariable(node, scope, flags, uservalue); 
 
 //			this->logging("PT_SCOPEVAR - ");

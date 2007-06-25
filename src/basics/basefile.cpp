@@ -127,7 +127,24 @@ ssize_t CFile::writeline(const string<>& str)
 	}
 	return -1;
 }
-
+ssize_t CFile::write(const char* str)
+{
+	if(!cFile)
+	{
+		return -1;
+	}
+	else if(!str)
+	{
+		return 0;
+	}
+	else
+	{
+		const char* p=str;
+		while( *p )
+			putc(uchar(*p++), this->cFile);
+		return p-str;
+	}
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////

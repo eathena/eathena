@@ -17,7 +17,6 @@ struct scriptdefines
 	~scriptdefines()	{}
 
 	// default copy/assignment
-
 	bool exists(const basics::string<>& name) const
 	{
 		return this->table.exists(name);

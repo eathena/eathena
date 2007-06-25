@@ -1,12 +1,71 @@
 #include "basetypes.h"
 #include "baseobjects.h"
 #include "basesync.h"
+#include "basealgo.h"
 
 NAMESPACE_BEGIN(basics)
 
 
 #ifdef COUNT_GLOBALS
 int global::sGlobalCount=0;
+#ifdef STORE_GLOBALS
+typedef global* globalptr;
+static globalptr* globalobj=NULL;
+static size_t globalcnt=0;
+static size_t globalmax=0;
+
+void global::globaladd(globalptr ptr)
+{
+	// find position
+	size_t pos;
+	if( BinarySearch(ptr, globalobj, globalcnt, 0, pos) )
+	{
+		printf("failed");
+		return;
+	}
+
+	if( globalmax<=globalcnt )
+	{	// realloc+insert
+		globalmax+=1024;
+		globalptr* tmp = new globalptr[globalmax];
+		if(globalobj)
+		{
+			memcpy(tmp, globalobj, (pos)*sizeof(*globalobj));
+			globalobj[pos] = ptr;
+			memcpy(tmp+pos+1, globalobj+pos, (globalcnt-pos)*sizeof(*globalobj));
+			delete[] globalobj;
+			globalobj = tmp;
+		}
+		else
+		{
+			globalobj = tmp;
+			globalobj[0]=ptr;
+		}
+	}
+	else
+	{	// move+insert
+		memmove(globalobj+pos+1, globalobj+pos, (globalcnt-pos)*sizeof(*globalobj));
+		globalobj[pos] = ptr;
+	}
+	++globalcnt;
+}
+void global::globaldel(global*ptr)
+{
+	if(globalcnt)
+	{
+		// find position
+		size_t pos;
+		if( BinarySearch(ptr, globalobj, globalcnt, 0, pos) )
+		{
+			memmove(globalobj+pos, globalobj+pos+1, (globalcnt-pos-1)*sizeof(*globalobj));
+			--globalcnt;
+		}
+		else
+			printf("failed");
+		
+	}
+}
+#endif//STORE_GLOBALS
 #ifdef DEBUG
 global::_globalcount global::gc;
 static bool _globalfinished=false;
@@ -19,7 +78,7 @@ global::_globalcount::~_globalcount()
 	fprintf(stderr, "\nterminating global objects.\n");
 #ifndef SINGLETHREAD
 	sleep(1000); //give some time to clean up
-#endif
+#endif//SINGLETHREAD
 	if( global::getcount() > 0 )
 	{
 		fprintf(stderr, "still not dealloced everything, may be leaky or just static/global objects.\n");
@@ -34,18 +93,24 @@ global::_globalcount::~_globalcount()
 }
 void global::_globalcount::finalcheck()
 {
-	if(_globalfinished && global::sGlobalCount==0)
-		fprintf(stderr, "final check done, everything clear\n");
-	else if( global::sGlobalCount==-1)
-		fprintf(stderr, "error, global counter underflow\n");
+	if( _globalfinished)
+	{
+		if( global::sGlobalCount==-1 )
+			fprintf(stderr, "error, global counter underflow\n");
+#if defined(STORE_GLOBALS)
+		else if( global::sGlobalCount> 0 )
+			fprintf(stderr, "%lu-", (unsigned long)global::sGlobalCount);
+#endif// defined(STORE_GLOBALS)
+		else if( global::sGlobalCount==0 )
+			fprintf(stderr, "final check done, everything clear\n");
+	}
 }
-#endif
 void global::debugprint()
 {
 	fprintf(stderr, "global object count: %i\n", global::sGlobalCount);
 }
-#endif
-
+#endif//DEBUG
+#endif//COUNT_GLOBALS
 
 
 

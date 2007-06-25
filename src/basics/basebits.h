@@ -299,6 +299,30 @@ extern inline unsigned long log2t(unsigned long v)
 }
 
 //////////////////////////////////////////////////////////////////////////
+/// Find the msb of an N-bit integer
+extern inline unsigned long get_msb(unsigned long v)
+{
+	return log2(v);
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Find the lsb of an N-bit integer in O(lg(N)) operations
+// in this case for 32bit input it would be 11 operations
+extern inline unsigned long get_lsb(unsigned long v)
+{
+	register uint32 c = 0; 
+#if defined(_LP64) || defined(_ILP64) || defined(__LP64__) || defined(__ppc64__)
+	if (0==(v & ULLCONST(0x00000000FFFFFFFF))) { v >>= 0x20; c |= 0x20; } 
+#endif
+	if (0==(v & 0x0000FFFF)) { v >>= 0x10; c |= 0x10; } 
+	if (0==(v & 0x000000FF)) { v >>= 0x08; c |= 0x08; }
+	if (0==(v & 0x0000000F)) { v >>= 0x04; c |= 0x04; }
+	if (0==(v & 0x00000003)) { v >>= 0x02; c |= 0x02; }
+	if (0==(v & 0x00000001)) { v >>= 0x01; c |= 0x01; }
+	return c;
+}
+
+//////////////////////////////////////////////////////////////////////////
 /// Counting bits set, in parallel.
 inline unsigned long bit_count(unsigned long v)
 {

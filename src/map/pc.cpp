@@ -300,11 +300,13 @@ void map_session_data::map_quit()
 		{
 			intif_delete_petdata(sd.status.pet_id);
 			sd.status.pet_id = 0;
-			sd.pd = NULL;
 		}
 		else
+		{
 			intif_save_petdata(sd.status.account_id,sd.pd->pet);
+		}
 		sd.pd->freeblock();
+		sd.pd = NULL;
 	}
 	if( sd.is_dead() )
 		pc_setrestartvalue(sd,2);
@@ -1373,7 +1375,7 @@ int pc_authok(uint32 charid, uint32 login_id2, time_t connect_until_time, unsign
 		}
 	}
 
-	if(daynight_flag && !maps[sd->block_list::m].flag.indoors)
+	if(maps.is_night() && !maps[sd->block_list::m].flag.indoors)
 	{
 		const char *str = msg_txt(MSG_CURRENTLY_ITS_THE_NIGHT); // Currently, it's the night...
 		clif_wis_message(sd->fd, wisp_server_name, str, strlen(str)+1);

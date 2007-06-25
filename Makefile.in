@@ -1,6 +1,7 @@
-CCC = g++ -pipe @OPT@
-CPPFLAGS = -Wall -g -O3 -ffast-math -D_REENTRANT @CPPFLAGS@
-LIBS = @LIBS@
+CCC      = g++ -pipe @OPT@
+CPPFLAGS = -ffast-math -D_REENTRANT -Wall -Wno-long-long @CPPFLAGS@
+LIBS     = @LIBS@
+LDFLAGS  = @LDFLAGS@
 
 ##########################################################
 PLATFORM = $(shell uname)
@@ -66,7 +67,7 @@ endif
 endif
 
 
-MKDEF = CCC="$(CCC)" CPPFLAGS="$(CPPFLAGS) $(MYSQL_INCLUDE)" LIBS="$(MYSQL_LIB) $(LIBS)" RETURN_PATH="$(RETURN_PATH)" BASICS_PATH="$(BASICS_PATH)" COMMON_PATH="$(COMMON_PATH)"
+MKDEF = CCC="$(CCC)" CPPFLAGS="$(CPPFLAGS) $(MYSQL_INCLUDE)" LIBS="$(MYSQL_LIB) $(LDFLAGS) $(LIBS)" RETURN_PATH="$(RETURN_PATH)" BASICS_PATH="$(BASICS_PATH)" COMMON_PATH="$(COMMON_PATH)"
 
 
 all: conf basics common login char map ladmin scriptchk scriptconv

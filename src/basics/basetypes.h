@@ -20,6 +20,7 @@
 // some global switches
 //////////////////////////////////////////////////////////////////////////
 #define COUNT_GLOBALS		///< enables countage of created objects
+//#define STORE_GLOBALS		///< enables storing of created objects
 #define CHECK_BOUNDS		///< enables boundary check for arrays and lists
 #define CHECK_EXCEPTIONS	///< use exceptions for "exception" handling
 #define CHECK_LOCKS			///< enables check of locking/unlocking sync objects
@@ -606,27 +607,6 @@ typedef int bool;
  #endif
 #endif
 
-////////////////////////////////////////////////////////////////////////////////
-/// Problems with templated copy/assignment.
-////////////////////////////////////////////////////////////////////////////////
-// microsoft does not understand templated copy/assign together with default copy/assign
-// but gnu needs them both seperated
-// otherwise generates an own default copy/assignment which causes trouble then
-// so could add all constructors and seperate the standard one with
-// #if defined(__GNU__) or #if !defined(_MSC_VER) / #endif
-// another workaround is to have a baseclass to derive the hierarchy from 
-// and have templated copy/assignment refering the baseclass beside standard copy/assignment
-#if defined(__GNUC__)
- // gcc compiler variants
-#elif defined(_MSC_VER)
- // Microsoft Visual Studio variants
- #if _MSC_VER < 1300
-  // Visual Studio version 6 and below
-  #define NO_TEMPLATED_COPY_ASSIGN
- #else
-  // Visual Studio .NET
- #endif
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -883,8 +863,10 @@ typedef unsigned long long	uint64;
 
 #if defined(_WIN32)
 char * strndup (const char *s, size_t n);
-size_t strnlen (const char *string, size_t maxlen);
 #endif//defined(_WIN32)
+#if defined(_MSC_VER) && _MSC_VER < 1400	// MSVC8 apperently has this
+size_t strnlen (const char *string, size_t maxlen);
+#endif//defined(_MSC_VER) && _MSC_VER < 1400
 
 
 //////////////////////////////////////////////////////////////////////////

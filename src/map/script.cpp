@@ -2612,10 +2612,12 @@ int CScriptEngine::run(const char*rootscript, size_t pos, uint32 rid, uint32 oid
 					// so we need to queue in the complete stack and run parameters
 
 					// will be queued automatically
+
+					const ushort sdid = engine.sd?engine.sd->id:0; // workarround for broken VC7 parser
+					const ushort ndid = engine.nd?engine.nd->id:0;
+					
 					new CScriptEngine::CCallStack(engine.sd->ScriptEngine.queue,				// target queue
-						engine.script, engine.pos, 
-						engine.sd?engine.sd->block_list::id:0, 
-						engine.nd?engine.nd->block_list::id:0,									// script data
+						engine.script, engine.pos, sdid, ndid,									// script data
 						engine.defsp, engine.stack_ptr, engine.stack_max, engine.stack_data);	// the stack
 					// clear this stack, it has been moved
 					engine.stack_ptr = 0;
@@ -8415,13 +8417,13 @@ int buildin_summon(CScriptEngine &st)
  */
 int buildin_isnight(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, (daynight_flag == 1));
+	st.push_val(CScriptEngine::C_INT, maps.is_night());
 	return 0;
 }
 
 int buildin_isday(CScriptEngine &st)
 {
-	st.push_val(CScriptEngine::C_INT, (daynight_flag == 0));
+	st.push_val(CScriptEngine::C_INT, maps.is_day());
 	return 0;
 }
 
@@ -8675,14 +8677,12 @@ int buildin_adopt(CScriptEngine &st)
  */
 int buildin_night(CScriptEngine &st)
 {
-	if(!daynight_flag)
-		map_daynight_timer(-1, 0, 0, 1);
+	maps.set_night();
 	return 0;
 }
 int buildin_day(CScriptEngine &st)
 {
-	if(daynight_flag)
-		map_daynight_timer(-1, 0, 0, 0);
+	maps.set_day();
 	return 0;
 }
 

@@ -9117,7 +9117,7 @@ int clif_parse_LoadEndAck(int fd, map_session_data &sd)
 	if(config.muting_players && sd.status.manner < 0)
 		status_change_start(&sd,SC_NOCHAT,0,0,0,0,0,0);
 
-	if (daynight_flag && !maps[sd.block_list::m].flag.indoors)
+	if( maps.is_night() && !maps[sd.block_list::m].flag.indoors )
 		clif_seteffect(sd, sd.block_list::id, 474 + config.night_darkness_level);
 
 
@@ -9231,7 +9231,7 @@ int clif_parse_QuitGame(int fd, map_session_data &sd)
 		return 0;
 
 	WFIFOW(fd,0) = 0x18b;
-	if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
+	if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(maps.is_night() && sd.opt2 == STATE_BLIND)))) ||
 	    sd.skilltimer != -1 ||
 	    (DIFF_TICK(tick, sd.canact_tick) < 0) ||
 	    (sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.get_statusvalue2(SC_DANCING).pointer()) && sg->src_id == sd.block_list::id) ||
@@ -9599,7 +9599,7 @@ int clif_parse_Restart(int fd, map_session_data &sd)
 	{
 		struct skill_unit_group* sg;
 		unsigned long tick = gettick();
-		if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(daynight_flag && sd.opt2 == STATE_BLIND)))) ||
+		if( (!sd.is_dead() && (sd.opt1 || (sd.opt2 && !(maps.is_night() && sd.opt2 == STATE_BLIND)))) ||
 			sd.skilltimer != -1 ||
 			(DIFF_TICK(tick, sd.canact_tick) < 0) ||
 			(sd.has_status(SC_DANCING) && (sg=(struct skill_unit_group *)sd.get_statusvalue2(SC_DANCING).pointer()) && sg->src_id == sd.block_list::id) ||

@@ -1,3 +1,4 @@
+/* src/basics/configure.h.in.  Generated from configure.in by autoheader.  */
 
 /* Define to 1 if you have the `acosf' function. */
 #undef HAVE_ACOSF
@@ -40,6 +41,9 @@
 
 /* Define to 1 if you have the `cosl' function. */
 #undef HAVE_COSL
+
+/* has abi::__cxa_demangle */
+#undef HAVE_CXA_DEMANGLE
 
 /* Define to 1 if you have the declaration of `acosf', and to 0 if you don't.
    */
@@ -225,12 +229,21 @@
    */
 #undef HAVE_DECL_TANL
 
+/* Define to 1 if you have the <demangle.h> header file. */
+#undef HAVE_DEMANGLE_H
+
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
    */
 #undef HAVE_DIRENT_H
 
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
 #undef HAVE_DOPRNT
+
+/* Define to 1 if you have the <execinfo.h> header file. */
+#undef HAVE_EXECINFO_H
 
 /* Define to 1 if you have the `expf' function. */
 #undef HAVE_EXPF
@@ -280,11 +293,17 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
+/* If the host operating system understands IPv6 */
+#undef HAVE_IPV6
+
 /* Define to 1 if you have the `ldexpf' function. */
 #undef HAVE_LDEXPF
 
 /* Define to 1 if you have the `ldexpl' function. */
 #undef HAVE_LDEXPL
+
+/* Define to 1 if you have the `pthread' library (-lpthread). */
+#undef HAVE_LIBPTHREAD
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
@@ -350,7 +369,7 @@
 /* Define to 1 if you have the `socket' function. */
 #undef HAVE_SOCKET
 
-/* "has socklen_t" */
+/* has socklen_t */
 #undef HAVE_SOCKLEN_T
 
 /* Define to 1 if you have the `sqrtf' function. */
@@ -382,6 +401,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strnlen' function. */
+#undef HAVE_STRNLEN
 
 /* Define to 1 if you have the `strstr' function. */
 #undef HAVE_STRSTR
@@ -430,11 +452,35 @@
 /* Define to 1 if you have the `tanl' function. */
 #undef HAVE_TANL
 
+/* Define to 1 if you have the <ucontext.h> header file. */
+#undef HAVE_UCONTEXT_H
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
 /* Define to 1 if you have the `vprintf' function. */
 #undef HAVE_VPRINTF
+
+/* If your OS is so broken that it needs an additional prototype */
+#undef NEED_INET_NTOP_PROTO
+
+/* If POSIX typedefs need to be defined */
+#undef NEED_POSIX_TYPEDEF
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #undef RETSIGTYPE

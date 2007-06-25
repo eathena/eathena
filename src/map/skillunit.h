@@ -24,7 +24,8 @@ struct skill_unit_group
 	long group_id;
 	long unit_count;
 	long alive_count;
-	struct skill_unit *unit;
+	typedef skill_unit* skill_unit_ptr;
+	skill_unit_ptr *units;
 
 	skill_unit_group() :
 		src_id(0),
@@ -44,8 +45,19 @@ struct skill_unit_group
 		group_id(0),
 		unit_count(0),
 		alive_count(0),
-		unit(NULL)
+		units(NULL)
 	{}
+	~skill_unit_group()
+	{
+		if(this->units)
+		{
+			// also clear the content
+			//..
+
+			delete[] this->units;
+			this->units = NULL;
+		}
+	}
 };
 
 ///////////////////////////////////////////////////////////////////////////////

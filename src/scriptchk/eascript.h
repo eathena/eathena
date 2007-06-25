@@ -167,6 +167,7 @@
 #define PT_VARASSIGN     166 /* <VarAssign> */
 #define PT_VARIABLE      167 /* <Variable> */
 #define PT_VARLIST       168 /* <VarList> */
-#define PT_VARTYPE       169 /* <VarType> */
-#define PT_VARTYPEOPT    170 /* <VarTypeopt> */
-#define PT_WHILESTM      171 /* <While Stm> */
+#define PT_VARRANGE      169 /* <VarRange> */
+#define PT_VARTYPE       170 /* <VarType> */
+#define PT_VARTYPEOPT    171 /* <VarTypeopt> */
+#define PT_WHILESTM      172 /* <While Stm> */

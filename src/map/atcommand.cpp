@@ -1195,16 +1195,12 @@ bool command_fireworks(int fd, map_session_data& sd, const char* command, const 
 ///
 bool command_night(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	if(!daynight_flag)
-	{
-		map_daynight_timer(-1, 0, 0, 1);
-		return true;
-	}
-	else
+	if( !maps.set_night() )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_ALREADY_NIGHT)); // Sorry, it's already the night. Impossible to execute the command.
 		return false;
 	}
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -1212,16 +1208,12 @@ bool command_night(int fd, map_session_data& sd, const char* command, const basi
 ///
 bool command_day(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	if(daynight_flag)
-	{
-		map_daynight_timer(-1, 0, 0, 0);
-		return true;
-	}
-	else
+	if( !maps.set_day() )
 	{
 		clif_displaymessage(fd, msg_txt(MSG_ALREADY_DAY)); // Sorry, it's already the day. Impossible to execute the command.
 		return false;
 	}
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -5581,7 +5573,7 @@ const char* txt_time(char* buffer, size_t sz, unsigned long duration)
 ///
 bool command_servertime(int fd, map_session_data& sd, const char* command, const basics::CParameterList& param)
 {
-	struct TimerData * timer_data;
+	basics::pair<int,ulong> daynight_status = maps.get_daynight();
 	time_t time_server;  // variable for number of seconds (used with time() function)
 	struct tm *datetime; // variable for time in structure ->tm_mday, ->tm_sec, ...
 	char temp[256]="", temp2[256];
@@ -5595,16 +5587,15 @@ bool command_servertime(int fd, map_session_data& sd, const char* command, const
 
 	if (config.night_duration == 0 && config.day_duration == 0)
 	{
-		clif_displaymessage(fd, msg_txt((daynight_flag == 0)?MSG_PERMANENT_DAYLIGHT:MSG_PERMANENT_NIGHT)); 
+		clif_displaymessage(fd, msg_txt((daynight_status.first == 0)?MSG_PERMANENT_DAYLIGHT:MSG_PERMANENT_NIGHT)); 
 		// Game time: The game is in permanent daylight.
 		// Game time: The game is in permanent night.
 	}
 	else if (config.night_duration == 0)
 	{
-		if (daynight_flag == 1)
+		if( daynight_status.first == 1 )
 		{	// we have night
-			timer_data = get_timer(daynight_timer_tid);
-			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), daynight_status.second / 1000)); // Game time: The game is actualy in night for %s.
 			clif_displaymessage(fd, temp);
 			clif_displaymessage(fd, msg_txt(MSG_AFTER_PERMANENT_DAYLIGHT)); // Game time: After, the game will be in permanent daylight.
 		}
@@ -5613,21 +5604,20 @@ bool command_servertime(int fd, map_session_data& sd, const char* command, const
 	}
 	else if (config.day_duration == 0)
 	{
-		if (daynight_flag == 0)
+		if( daynight_status.first == 0 )
 		{	// we have day
-			timer_data = get_timer(daynight_timer_tid);
-			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), daynight_status.second / 1000)); // Game time: The game is actualy in daylight for %s.
 			clif_displaymessage(fd, temp);
 			clif_displaymessage(fd, msg_txt(MSG_AFTER_PERMANENT_NIGHT)); // Game time: After, the game will be in permanent night.
-		} else
+		}
+		else
 			clif_displaymessage(fd, msg_txt(MSG_PERMANENT_NIGHT)); // Game time: The game is in permanent night.
 	}
 	else
 	{
-		timer_data = get_timer(daynight_timer_tid);
-		if (daynight_flag == 0)
+		if( daynight_status.first == 0 )
 		{	// we have day
-			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in daylight for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), daynight_status.second / 1000)); // Game time: The game is actualy in daylight for %s.
 			clif_displaymessage(fd, temp);
 			snprintf(temp, sizeof(temp), msg_txt(MSG_AFTER_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), config.night_duration / 1000)); // Game time: After, the game will be in night for %s.
 			clif_displaymessage(fd, temp);
@@ -5636,7 +5626,7 @@ bool command_servertime(int fd, map_session_data& sd, const char* command, const
 		}
 		else
 		{
-			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), (timer_data->tick - gettick()) / 1000)); // Game time: The game is actualy in night for %s.
+			snprintf(temp, sizeof(temp), msg_txt(MSG_CURRENTLY_IN_NIGHT_FOR_S), txt_time(temp2, sizeof(temp2), daynight_status.second / 1000)); // Game time: The game is actualy in night for %s.
 			clif_displaymessage(fd, temp);
 			snprintf(temp, sizeof(temp), msg_txt(MSG_AFTER_DAYLIGHT_FOR_S), txt_time(temp2, sizeof(temp2), config.day_duration / 1000)); // Game time: After, the game will be in daylight for %s.
 			clif_displaymessage(fd, temp);

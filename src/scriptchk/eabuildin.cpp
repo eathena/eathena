@@ -5,7 +5,7 @@
 //## <unmanaged code>
 ///////////////////////////////////////////////////////////////////////////////
 
-
+#include "baseregex.h"
 #include "eabuildin.h"
 #include "eaengine.h"
 
@@ -25,6 +25,11 @@ static struct _delete_notify
 		deleted=true;
 	}
 } delete_notify;
+
+const buildin::declaration* buildin::get(const basics::string<>& name)
+{
+	return  buildin::table.search(name);
+}
 
 bool buildin::exists(const basics::string<>& name)
 {
@@ -56,6 +61,7 @@ bool buildin::create(const basics::string<>& name, buildin_function f, size_t pa
 		return true;
 	}
 }
+
 bool buildin::create(const basics::string<>& name, scriptdecl* o)
 {
 	declaration &obj = buildin::table[name];
@@ -70,6 +76,7 @@ bool buildin::create(const basics::string<>& name, scriptdecl* o)
 		return true;
 	}
 }
+
 bool buildin::erase(const basics::string<>& name)
 {
 	declaration *ptr = 	( delete_notify.deleted )?NULL:buildin::table.search(name);
@@ -88,53 +95,244 @@ bool buildin::erase(const basics::string<>& name)
 }
 
 
+
 ///////////////////////////////////////////////////////////////////////////////
-/// 
+/// buildin system functions.
 struct buildin_system : public buildin
 {
-	static basics::variant myfunction(CStackEngine& st)
-	{
-		printf("calling %s\n", "myfunction");
-		return basics::variant();
-	}
-	static basics::variant yourfunction(CStackEngine& st)
-	{
-		printf("calling %s\n", "yourfunction");
-		return basics::variant();
-	}
-	
-
-	static basics::variant buildin_debugmes(CStackEngine& st) { return 0; }
-	static basics::variant buildin_getarg(CStackEngine& st) { return 0; }
-	static basics::variant buildin_rand(CStackEngine& st) { return 0; }
-	static basics::variant buildin_regex(CStackEngine& st) { return 0; }
-	static basics::variant buildin_strlen(CStackEngine& st) { return 0; }
+	static basics::variant buildin_debugmes(const buildin::callparameter& st);
+	static basics::variant buildin_getarg(const buildin::callparameter& st);
+	static basics::variant buildin_rand(const buildin::callparameter& st);
+	static basics::variant buildin_regex(const buildin::callparameter& st);
+	static basics::variant buildin_strlen(const buildin::callparameter& st);
+	static basics::variant buildin_size(const buildin::callparameter& st);
 
 	buildin_system()
 	{
-		buildin::create("myfunction", myfunction);
-		buildin::create("yourfunction", yourfunction);
-
 		buildin::create("debugmes", buildin_debugmes);
 		buildin::create("getarg", buildin_getarg);
 		buildin::create("rand", buildin_rand);
 		buildin::create("regex", buildin_regex);
 		buildin::create("strlen", buildin_strlen);
+		buildin::create("size", buildin_size);
 	}
 } buildin_system_i;
+
+///////////////////////////////////////////////////////////////////////////////
+/// prints message to console.
+/// arbitrary number of parameters, attach linefeed.
+/// returns always zero
+basics::variant buildin_system::buildin_debugmes(const buildin::callparameter& st)
+{
+	const size_t sz=st.size();
+	size_t i;
+	for(i=0; i<sz; ++i)
+		printf( st[i].get_string().c_str() );
+	printf("\n");
+	return 0;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// get argument by number.
+/// returns the parameter corresponding to the number in the first parameter.
+basics::variant buildin_system::buildin_getarg(const buildin::callparameter& st)
+{
+	const CStackEngine::callframe* fp = st.engine.get_frame(0);
+	return fp?fp->get_parameter(st[0].get_int()):basics::variant();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// random number.
+/// with no parameter, returns random integer
+/// with one parameter N1, returns half-open interval with 0..N1-1
+/// with two parameters N1&N2, returns random number with N1..N2
+basics::variant buildin_system::buildin_rand(const buildin::callparameter& st)
+{
+	sint64 a = rand();
+	a *= rand();
+	a *= rand();
+	a *= rand();
+	if(a<0)
+		a = -a;
+	if(st.size()==1)
+	{	// 0...(st[0]-1)
+		const sint64 v = st[0].get_int();
+		if(v<0)
+		{
+			a %= -v;
+			a = -a;
+		}
+		else
+		{
+			a %= v;
+		}
+	}
+	else if(st.size()>=1)
+	{	// (st[0])...(st[1])
+		const sint64 v0 = st[0].get_int();
+		const sint64 v1 = st[1].get_int();
+		const sint64 d  = v1-v0;
+		if(d<0)
+		{
+			a %= (1-d);
+			a = -a;
+		}
+		else
+		{
+			a %= (1+d);
+		}
+		a += v0;
+	}
+	return a;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// regular expression.
+/// executes regex on first parameter with match string on parameter 2
+/// stores results in parameter 3, when existing, 
+/// returns true or false depending on the match
+basics::variant buildin_system::buildin_regex(const buildin::callparameter& st)
+{
+	basics::CRegExp rx(st[0].get_string());
+	int ret = rx.match(st[1].get_string());
+	if( ret && st.size()>2 )
+	{	// fill the variables
+		basics::variant &var = st[2];
+		const size_t sz = rx.sub_count();
+		size_t i;
+		var.create_array( 1+sz );
+		for(i=0; i<=sz; ++i)
+			var[i] = rx[i];
+	}
+	return ret;
+}
+///////////////////////////////////////////////////////////////////////////////
+/// string length.
+/// return length of the string
+basics::variant buildin_system::buildin_strlen(const buildin::callparameter& st)
+{
+	return st[0].get_string().length();
+}
+///////////////////////////////////////////////////////////////////////////////
+/// size of value.
+/// same as sizeof(parameter1)
+basics::variant buildin_system::buildin_size(const buildin::callparameter& st)
+{
+	return st[0].size();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// 
+struct buildin_variable : public buildin
+{
+	static basics::variant buildin_player(const buildin::callparameter& st);
+	static basics::variant buildin_account(const buildin::callparameter& st);
+	static basics::variant buildin_login(const buildin::callparameter& st);
+	static basics::variant buildin_party(const buildin::callparameter& st);
+	static basics::variant buildin_guild(const buildin::callparameter& st);
+	static basics::variant buildin_npc(const buildin::callparameter& st);
+	static basics::variant buildin_map(const buildin::callparameter& st);
+
+	buildin_variable()
+	{
+		buildin::create("player", buildin_player);
+		buildin::create("account",buildin_account);
+		buildin::create("login",  buildin_login);
+		buildin::create("party",  buildin_party);
+		buildin::create("guild",  buildin_guild);
+		buildin::create("npc",    buildin_npc);
+		buildin::create("map",    buildin_map);
+	}
+} buildin_variable_i;
+
+
+basics::variant buildin_variable::buildin_player(const buildin::callparameter& st)
+{
+	// check current player
+	// return none when invalid
+
+	// return player as named variable
+	basics::string<> name;
+	name << "player::perm::" << 0;
+	
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+basics::variant buildin_variable::buildin_account(const buildin::callparameter& st)
+{
+	// check current account
+	// return none when invalid
+
+	// return account as named variable
+	basics::string<> name;
+	name << "account::perm::" << 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+basics::variant buildin_variable::buildin_login(const buildin::callparameter& st)
+{
+	// check current login
+	// return none when invalid
+
+	// return login as named variable
+	basics::string<> name;
+	name << "login::perm::" << 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+basics::variant buildin_variable::buildin_party(const buildin::callparameter& st)
+{
+	// check current player's party
+	// return none when invalid
+
+	// return party as named variable
+	basics::string<> name;
+	name << "party::perm::" << 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+basics::variant buildin_variable::buildin_guild(const buildin::callparameter& st)
+{
+	// check current player's guild
+	// return none when invalid
+
+	// return party as named variable
+	basics::string<> name;
+	name << "party::perm::" << 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+basics::variant buildin_variable::buildin_npc(const buildin::callparameter& st)
+{
+	// check current player's guild
+	// return none when invalid
+
+	// return party as named variable
+	basics::string<> name;
+	name << "npc::perm::"<< 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+
+}
+basics::variant buildin_variable::buildin_map(const buildin::callparameter& st)
+{
+	// check current player's guild
+	// return none when invalid
+
+	// return party as named variable
+	basics::string<> name;
+	name << "map::perm::" << 0;
+	return st.engine.sGlobalVariables.get_variable(name);
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 struct buildin_gui : public buildin
 {
-	static basics::variant buildin_close(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_dialog(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_inputnumber(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_inputstring(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_menu(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_mes(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_next(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_select(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_close(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_dialog(const buildin::callparameter& st);
+	static basics::variant buildin_inputnumber(const buildin::callparameter& st);
+	static basics::variant buildin_inputstring(const buildin::callparameter& st);
+	static basics::variant buildin_menu(const buildin::callparameter& st);
+	static basics::variant buildin_mes(const buildin::callparameter& st) { return buildin_dialog(st); } 
+	static basics::variant buildin_next(const buildin::callparameter& st);
+	static basics::variant buildin_select(const buildin::callparameter& st);
 	buildin_gui()
 	{
 		buildin::create("close", buildin_close);
@@ -148,230 +346,300 @@ struct buildin_gui : public buildin
 	}
 } buildin_gui_i;
 
+
+basics::variant buildin_gui::buildin_dialog(const buildin::callparameter& st)
+{
+	const size_t sz=st.size();
+	size_t i;
+	for(i=0; i<sz; ++i)
+		printf( st[i].get_string().c_str() );
+	printf("\n");
+	return 0;
+}
+basics::variant buildin_gui::buildin_inputnumber(const buildin::callparameter& st)
+{
+	char buffer[128];
+	size_t i;
+	int ch;
+	printf( "Enter a number: " );
+	for(i=0; (i<sizeof(buffer)-1) &&  ((ch = getchar()) != EOF) && (ch != '\n'); ++i)
+		buffer[i] = (char)ch;
+	return basics::variant( basics::stringtoi(buffer) );
+}
+basics::variant buildin_gui::buildin_inputstring(const buildin::callparameter& st)
+{
+	char buffer[128];
+	size_t i;
+	int ch;
+	printf( "Enter a string: " );
+	for(i=0; (i<sizeof(buffer)-1) &&  ((ch = getchar()) != EOF) && (ch != '\n'); ++i)
+		buffer[i] = (char)ch;
+	buffer[i] = '\0';
+	return basics::variant( basics::stringtoi(buffer) );
+}
+basics::variant buildin_gui::buildin_menu(const buildin::callparameter& st)
+{
+	printf("choose from:\n");
+	size_t i, k, c=0;
+	for(i=0; i<st.size(); ++i)
+	{
+		const basics::variant& elem = st[i];
+		if( elem.is_array() )
+		{
+			for(k=0; k<elem.size(); ++k)
+			{
+				++c;
+				printf("%i: '%s'\n", (int)c, basics::tostring(elem[k]).c_str());
+			}
+		}
+		else
+		{
+			++c;
+			printf("%i: '%s'\n", (int)c, basics::tostring(elem).c_str());
+		}
+	}
+	return buildin_gui::buildin_inputnumber(st);
+}
+basics::variant buildin_gui::buildin_next(const buildin::callparameter& st)
+{
+	int ch;
+	do
+	{
+		printf("\r<next>");
+	}
+	while( ((ch = getchar()) != EOF) && (ch != '\n') );
+	return 0;
+}
+basics::variant buildin_gui::buildin_select(const buildin::callparameter& st)
+{
+	return buildin_gui::buildin_menu(st);
+}
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 struct buildin_specific : public buildin
 {
-	static basics::variant buildin_activatepset(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_addtimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_addtimercount(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_addtoskill(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_adopt(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_agitcheck(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_agitend(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_agitstart(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_announce(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_areaannounce(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_areamonster(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_areawarp(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_attachnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_attachrid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_basicskillcheck(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_birthpet(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_bonus(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_bonus2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_bonus3(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_bonus4(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_callshop(CStackEngine& st) { return 0; }
-	static basics::variant buildin_cardscnt(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_catchpet(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_changebase(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_changesex(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkcart(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkequipedcard(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkfalcon(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkoption(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkoption1(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkoption2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkriding(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_checkweight(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_classchange(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_clearitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_cmdothernpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_countitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_cutin(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_cutincard(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_day(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_deactivatepset(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_defpattern(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_deletepset(CStackEngine& st) { return 0; }
-	static basics::variant buildin_delitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_deltimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_delwaitingroom(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_detachnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_detachrid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_disablearena(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_disablenpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_disablewaitingroomevent(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_dispbottom(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_divorce(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_doevent(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_donpcevent(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_emotion(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_enablearena(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_enablenpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_enablewaitingroomevent(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_end(CStackEngine& st) { return 0; }
-	static basics::variant buildin_failedrefitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_failedremovecards(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_fakenpcname(CStackEngine& st) { return 0; }
-	static basics::variant buildin_flagemblem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getareadropitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getareausers(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getbrokenid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getcastledata(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getcastlename(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getcharid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getchildid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipcardcnt(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipisenableref(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipisequiped(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipisidentify(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipname(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequippercentrefinery(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequiprefinerycnt(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getequipweaponlv(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getexp(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getgdskilllv(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getgmlevel(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getguildmaster(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getguildmasterid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getguildname(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getinventorylist(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getitem2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getiteminfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getitemname(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getlook(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getmapmobs(CStackEngine& st) { return 0; }
-	static basics::variant buildin_getmapusers(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getmapxy(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getnameditem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getpartnerid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getpartymember(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getpartyname(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getpetinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getrefine(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getsavepoint(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getscrate(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getskilllist(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getskilllv(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gettime(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gettimestr(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gettimetick(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getusers(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getusersname(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_getwaitingroomstate(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_globalmes(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gmcommand(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_guardian(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_guardianinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_guildgetexp(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_guildopenstorage(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_guildskill(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gvgoff(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_gvgon(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_hasitems(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_heal(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_hideoffnpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_hideonnpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_initnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_inittimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_isday(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_isequipped(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_isequippedcnt(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_isloggedin(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_isnight(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_ispartneron(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_itemheal(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_itemskill(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_jobchange(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_killmonster(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_killmonsterall(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_logmes(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_makeitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_makepet(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_mapannounce(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_maprespawnguildid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_mapwarp(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_marriage(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_message(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_misceffect(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_mobcount(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_monster(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_movenpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_night(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_npcskilleffect(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_npcspeed(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_npcstop(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_npctalk(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_npcwalkto(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_nude(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_openstorage(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_pc_emotion(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_pcstrcharinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_percentheal(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petheal(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petloot(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petrecovery(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petskillattack(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petskillattack2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petskillbonus(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_petskillsupport(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_produce(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_pvpoff(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_pvpon(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_readparam(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_recovery(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_removemapflag(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_repair(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_requestguildinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_resetlvl(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_resetskill(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_resetstatus(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_savepoint(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_sc_end(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_sc_start(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_sc_start2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_sc_start4(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setcart(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setcastledata(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setfalcon(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setlook(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setmapflag(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setmapflagnosave(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setoption(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_setriding(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_skill(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_skilleffect(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_skilluseid(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_skillusepos(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_soundeffect(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_soundeffectall(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_specialeffect(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_specialeffect2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_startnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_statusup(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_statusup2(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_stopnpctimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_stoptimer(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_strcharinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_strmobinfo(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_successrefitem(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_successremovecards(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_summon(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_unequip(CStackEngine& st) { return 0; }
-	static basics::variant buildin_viewpoint(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_waitingroom(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_warp(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_warpguild(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_warppartner(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_warpparty(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_warpwaitingpc(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_wedding_effect(CStackEngine& st) { return 0; } 
+	static basics::variant buildin_activatepset(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_addtimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_addtimercount(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_addtoskill(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_adopt(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_agitcheck(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_agitend(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_agitstart(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_announce(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_areaannounce(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_areamonster(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_areawarp(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_attachnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_attachrid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_basicskillcheck(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_birthpet(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_bonus(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_bonus2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_bonus3(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_bonus4(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_callshop(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_cardscnt(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_catchpet(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_changebase(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_changesex(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkcart(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkequipedcard(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkfalcon(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkoption(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkoption1(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkoption2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkriding(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_checkweight(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_classchange(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_clearitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_cmdothernpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_countitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_cutin(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_cutincard(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_day(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_deactivatepset(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_defpattern(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_deletepset(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_delitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_deltimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_delwaitingroom(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_detachnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_detachrid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_disablearena(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_disablenpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_disablewaitingroomevent(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_dispbottom(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_divorce(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_doevent(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_donpcevent(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_emotion(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_enablearena(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_enablenpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_enablewaitingroomevent(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_end(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_failedrefitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_failedremovecards(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_fakenpcname(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_flagemblem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getareadropitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getareausers(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getbrokenid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getcastledata(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getcastlename(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getcharid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getchildid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipcardcnt(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipisenableref(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipisequiped(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipisidentify(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipname(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequippercentrefinery(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequiprefinerycnt(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getequipweaponlv(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getexp(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getgdskilllv(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getgmlevel(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getguildmaster(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getguildmasterid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getguildname(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getinventorylist(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getitem2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getiteminfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getitemname(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getlook(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getmapmobs(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_getmapusers(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getmapxy(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getnameditem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getpartnerid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getpartymember(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getpartyname(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getpetinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getrefine(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getsavepoint(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getscrate(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getskilllist(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getskilllv(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gettime(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gettimestr(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gettimetick(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getusers(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getusersname(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_getwaitingroomstate(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_globalmes(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gmcommand(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_guardian(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_guardianinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_guildgetexp(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_guildopenstorage(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_guildskill(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gvgoff(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_gvgon(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_hasitems(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_heal(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_hideoffnpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_hideonnpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_initnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_inittimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_isday(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_isequipped(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_isequippedcnt(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_isloggedin(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_isnight(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_ispartneron(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_itemheal(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_itemskill(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_jobchange(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_killmonster(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_killmonsterall(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_logmes(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_makeitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_makepet(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_mapannounce(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_maprespawnguildid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_mapwarp(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_marriage(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_message(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_misceffect(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_mobcount(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_monster(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_movenpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_night(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_npcskilleffect(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_npcspeed(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_npcstop(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_npctalk(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_npcwalkto(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_nude(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_openstorage(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_pc_emotion(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_pcstrcharinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_percentheal(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petheal(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petloot(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petrecovery(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petskillattack(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petskillattack2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petskillbonus(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_petskillsupport(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_produce(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_pvpoff(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_pvpon(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_readparam(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_recovery(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_removemapflag(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_repair(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_requestguildinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_resetlvl(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_resetskill(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_resetstatus(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_savepoint(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_sc_end(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_sc_start(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_sc_start2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_sc_start4(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setcart(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setcastledata(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setfalcon(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setlook(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setmapflag(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setmapflagnosave(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setoption(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_setriding(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_skill(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_skilleffect(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_skilluseid(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_skillusepos(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_soundeffect(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_soundeffectall(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_specialeffect(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_specialeffect2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_startnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_statusup(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_statusup2(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_stopnpctimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_stoptimer(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_strcharinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_strmobinfo(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_successrefitem(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_successremovecards(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_summon(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_unequip(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_viewpoint(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_waitingroom(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_warp(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_warpguild(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_warppartner(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_warpparty(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_warpwaitingpc(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_wedding_effect(const buildin::callparameter& st) { return 0; } 
 
 	buildin_specific()
 	{
@@ -602,14 +870,14 @@ struct buildin_specific : public buildin
 /// 
 struct buildin_obsolete : public buildin
 {
-	static basics::variant buildin_cleararray(CStackEngine& st) { return 0; }
-	static basics::variant buildin_compare(CStackEngine& st) { return 0; } 
-	static basics::variant buildin_copyarray(CStackEngine& st) { return 0; }
-	static basics::variant buildin_deletearray(CStackEngine& st) { return 0; }
-	static basics::variant buildin_getarraysize(CStackEngine& st) { return 0; }
-	static basics::variant buildin_getelementofarray(CStackEngine& st) { return 0; }
-	static basics::variant buildin_set(CStackEngine& st) { return 0; }
-	static basics::variant buildin_setarray(CStackEngine& st) { return 0; }
+	static basics::variant buildin_cleararray(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_compare(const buildin::callparameter& st) { return 0; } 
+	static basics::variant buildin_copyarray(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_deletearray(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_getarraysize(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_getelementofarray(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_set(const buildin::callparameter& st) { return 0; }
+	static basics::variant buildin_setarray(const buildin::callparameter& st) { return 0; }
 
 	buildin_obsolete()
 	{

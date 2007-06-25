@@ -259,7 +259,6 @@ binstream& operator>>(binstream& s, T& v)		{ s.get(v); return s; }
 //## did not copy the specialization for standard types, added partially as put implements
 
 
-
 struct binmemory : public binstream
 {
 	vector<unsigned char> mem;

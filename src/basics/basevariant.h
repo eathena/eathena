@@ -7,10 +7,7 @@
 #include "basesafeptr.h"
 #include "basestring.h"
 #include "basemath.h"
-
-//#include "basenew.h"
-#include <new>	//##TODO: prepare a workaround when conflicts on windows
-				// remember that global namespace is poisoned from here
+#include "basenew.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 NAMESPACE_BEGIN(basics)
@@ -222,6 +219,7 @@ public:
 	virtual inline void clear()				{}
 	virtual inline void invalidate();
 	virtual inline void make_empty();
+	virtual inline void evaluate()			{}
 
 	///////////////////////////////////////////////////////////////////////////
 	virtual inline bool is_valid() const		{ return true; }
@@ -252,7 +250,10 @@ public:
 	}
 	///////////////////////////////////////////////////////////////////////////
 	virtual inline bool resize_array(size_t cnt)	{ return false; }
-	virtual inline bool append_array(size_t cnt)	{ return false; }
+	virtual inline bool append_array(size_t cnt)
+	{
+		return false;
+	}
 	///////////////////////////////////////////////////////////////////////////
 	// Access to array elements
 	virtual inline const variant* operator[](size_t inx) const	{ return NULL; }
@@ -272,8 +273,6 @@ public:
 	virtual int64 get_int() const		{ return 0; }
 	virtual double get_float() const	{ return 0.0; }
 	virtual string<> get_string() const	{ return string<>(); }
-	virtual string<> get_arraystring() const { return this->get_string(); }
-	virtual const char* get_cstring() const	{ return ""; }
 
 	operator bool() const				{ return this->get_bool(); }
 	operator int() const				{ return (int)this->get_int(); }
@@ -707,7 +706,6 @@ public:
 	virtual int64 get_int() const		{ const double d=stringtod(this->value.c_str()); return (int64)floor(d+((d>=0)?+0.5:-0.5)); }
 	virtual double get_float() const	{ return stringtod(this->value.c_str()); }
 	virtual string<> get_string() const	{ return this->value; }
-	virtual const char* get_cstring() const	{ return this->value.c_str(); }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -780,7 +778,6 @@ public:
 	virtual int64 get_int() const		{ const double d=stringtod(this->value); return (int64)floor(d+((d>=0)?+0.5:-0.5)); }
 	virtual double get_float() const	{ return stringtod(this->value); }
 	virtual string<> get_string() const	{ return value; }
-	virtual const char* get_cstring() const	{ return value; }
 
 
 	///////////////////////////////////////////////////////////////////////////
@@ -863,7 +860,7 @@ public:
 	virtual int64 get_int() const;
 	virtual double get_float() const;
 	virtual string<> get_string() const;
-	virtual string<> get_arraystring() const;
+
 
 	///////////////////////////////////////////////////////////////////////////
 	// unary operations
@@ -947,7 +944,7 @@ public:
 	{
 		this->parent_ref = v;
 	}
-
+	virtual void assign(const variant &v);
 	///////////////////////////////////////////////////////////////////////////
 	virtual variant_host::reference get_parent() const
 	{
@@ -1091,6 +1088,20 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	//
 	virtual void clear()				{ value_empty::convert(*this); }
+	virtual void evaluate()
+	{
+		if( this->value )
+		{	// 
+			T v(*this->value);
+			value_empty::convert(*this);
+			this->assign(v);
+		}
+		else
+		{	// clear this
+			value_empty::convert(*this);
+			
+		}
+	}
 	///////////////////////////////////////////////////////////////////////////
 	virtual bool is_valid() const		{ return (this->parent_ref.exists() && *this->parent_ref); }
 	virtual bool is_empty() const		{ return false; }
@@ -1158,7 +1169,7 @@ protected:
 	string<> name;
 	variant* value;
 
-	bool get_value();
+	bool get_value() const;
 	bool set_value();
 public:
 	///////////////////////////////////////////////////////////////////////////
@@ -1185,12 +1196,10 @@ public:
 	virtual void assign(const string<>& v);
 	virtual void assign(const vector<variant>& v);
 	virtual void assign(const variant_host& v);
+	virtual void assign(const variant &v);
 
 	///////////////////////////////////////////////////////////////////////////
-	virtual bool access_member(const string<>& n)
-	{
-		return this->value_empty::access_member(name);
-	}
+	virtual bool access_member(const string<>& n);
 
 	///////////////////////////////////////////////////////////////////////////
 	//
@@ -1203,6 +1212,7 @@ public:
 	///////////////////////////////////////////////////////////////////////////
 	//
 	virtual void clear();
+	virtual void evaluate();
 	///////////////////////////////////////////////////////////////////////////
 	virtual bool is_valid() const;
 	virtual bool is_empty() const;
@@ -1210,8 +1220,27 @@ public:
 	virtual bool is_float() const;
 	virtual bool is_number() const;
 	virtual bool is_string() const;
+	virtual bool is_array() const;
 	virtual bool is_extern() const		{ return (this->parent_ref.exists() && *this->parent_ref); }
+	virtual size_t size() const;
 	virtual var_t type() const;
+
+
+	///////////////////////////////////////////////////////////////////////////
+	virtual bool resize_array(size_t cnt);
+	virtual bool append_array(size_t cnt);
+	///////////////////////////////////////////////////////////////////////////
+	// Access to array elements
+	virtual const variant* operator[](size_t inx) const;
+	virtual       variant* operator[](size_t inx);
+
+	///////////////////////////////////////////////////////////////////////////
+	// local conversions
+	virtual void convert2string();
+	virtual void convert2float();
+	virtual void convert2int();
+	virtual void convert2number();
+	virtual void numeric_cast(const variant& v);
 
 	///////////////////////////////////////////////////////////////////////////
 	// access conversion 
@@ -1232,6 +1261,7 @@ public:
 	virtual const value_empty& operator--();
 	///////////////////////////////////////////////////////////////////////////
 	// arithmetic operations
+	virtual const value_empty& operator_assign(const variant& v);
 	virtual const value_empty& operator+=(const variant& v);
 	virtual const value_empty& operator-=(const variant& v);
 	virtual const value_empty& operator*=(const variant& v);
@@ -1343,21 +1373,111 @@ public:
 };
 
 
+
+
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////////
 /// variant.
-/// implements a smart pointer to a value_union object 
-/// which provides both call-by-value and call-by-reference schemes
+/// implements smart pointers to a value_union object 
+/// which provides both call-by-value and call-by-reference schemes.
+/// the operator* is used to aquire a value to allow different assignments,
+/// so for variants A and B, and other_type C:
+///  A =  B; A will become a reference to B, previous value of A is released
+///  A = *B; A takes the value of B without referencing B, previous value of A is released
+///  A =  C; A taked the value and type of C, previous value of A is released
+/// *A =  B; value of A is overwritten by the value of B
+/// *A = *B; value of A is overwritten by the value of B (same as above)
+/// *A =  C; value of A is overwritten by C
+///
+/// issues with array_type:
+/// create_array/append_array creates array from existing values,
+/// which is copying them as references, so creating an array and 
+/// writing values to one dimension does also alter the other dimensions
 struct variant : public global
 {
 private:
 	friend struct value_empty;
 	friend struct value_array;
+	friend struct value_extern;
 	friend struct value_named;
-	TObjPtrCommon<value_union> value;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// conversion helper.
+	struct variant_conversion
+	{
+		const variant& parent;
+		variant_conversion(const variant& p) : parent(p)
+		{}
+		operator bool() const		{ return this->parent.get_bool(); }
+		operator int() const		{ return (int)this->parent.get_int(); }
+		operator int64() const		{ return this->parent.get_int(); }
+		operator double() const		{ return this->parent.get_float(); }
+		operator string<>() const	{ return this->parent.get_string(); }
+	};
+	///////////////////////////////////////////////////////////////////////////
+	/// variant reference.
+	struct variant_value
+	{
+		TObjPtr<value_union> value;
+
+		variant_value()
+			: value()
+		{}
+		variant_value(const variant&v)
+			: value()
+		{
+			if( v.exists() )
+				this->value = v.value->value;
+			// stay empty otherwise
+		}
+		variant_value(const variant_value& v)
+			: value(v.value)
+		{}
+		///////////////////////////////////////////////////////////////////////////
+		/// assign template.
+		/// doing *A = B;
+		/// so value of A is overwritten
+		template<typename T>
+		const variant_value& operator=(const T &v)
+		{
+			this->value.create(v);
+			return *this;
+		}
+		/// variant assignment.
+		/// doing *A = B; (value of A is reference of B)
+		/// so value of A is overwritten
+		const variant_value& operator=(const variant& v)
+		{
+			if( v.exists() )
+				this->value = v.value->value;
+			else
+				this->value.clear();
+			return *this;
+		}
+		/// value assignment.
+		/// doing *A = *B; (value of A is value of B)
+		/// so value of A is overwritten
+		const variant_value& operator=(const variant_value& v)
+		{
+			if( this != &v )
+				this->value = v.value;
+			return *this;
+		}
+	};
+	friend struct variant_value;
+
+	///////////////////////////////////////////////////////////////////////////
+	/// variant pointer.
+	TObjPtrCount<variant_value,true> value;
+
+	///////////////////////////////////////////////////////////////////////////
 	// only use this to cast to the basetype 
 	// to force calls from the virtual function table
-	value_empty& access()				{ return value->access(); }
-	const value_empty& access() const	{ return value->access(); }
+	value_empty& access()				{ return this->value->value->access(); }
+	const value_empty& access() const	{ return this->value->value->access(); }
 public:
 	///////////////////////////////////////////////////////////////////////////
 	/// default constructor. creates an empty element
@@ -1370,27 +1490,22 @@ public:
 	/// type create construction template.
 	/// gives the type creation down to the pointer type
 	template<typename T>
-	variant(const T& v) : global()				{ this->value.create(v); }
+	variant(const T& v) : global()				{ this->value->value.create(v); }
 	///////////////////////////////////////////////////////////////////////////
-	/// copy constructor. 
-	/// set the access behaviour to copy-on-write
-	variant(const variant& v) : global(), value(v.value)	{ this->make_value(); }
-
+	/// copy constructor.
+	/// creates a reference
+	variant(const variant& v) : global(), value(v.value)	{}
 	///////////////////////////////////////////////////////////////////////////
-	/// assignment template.
-	template<typename T>
-	const variant& operator=(const T& v)		{ this->assign(v); return *this; }
-	///////////////////////////////////////////////////////////////////////////
-	/// copy assignment.
-	/// set the access behaviour to copy-on-write
-	const variant& operator=(const variant& v)	{ this->assign(v); return *this; }
+	/// create from value.
+	/// doing A = *B; (A is a new value with the value of B)
+	variant(const variant_value& v) : global()	{ this->value->value = v.value; }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// constructor for direct access to externals
 	template <typename P, typename T>
-	explicit variant(const P& v, const T P::*t) : global()	{ this->value.create(v, t); }
-	explicit variant(const variant_host& v, const string<>& n) : global() { this->value.create(v, n); }
-	explicit variant(const variant_host& v, const char* n) : global() { this->value.create(v, string<>(n)); }
+	explicit variant(const P& v, const T P::*t) : global()	{ this->value->value.create(v, t); }
+	explicit variant(const variant_host& v, const string<>& n) : global() { this->value->value.create(v, n); }
+	explicit variant(const variant_host& v, const char* n) : global() { this->value->value.create(v, string<>(n)); }
 
 	///////////////////////////////////////////////////////////////////////////
 	/// constructor with specifying access behaviour
@@ -1401,128 +1516,162 @@ public:
 	}
 
 	///////////////////////////////////////////////////////////////////////////
-	/// query the type of variant
-	bool is_reference() const	{ return this->value.isAutoCreate(); }
+	/// assignment template.
+	template<typename T>
+	const variant& operator=(const T& v)		{ this->assign(v); return *this; }
 	///////////////////////////////////////////////////////////////////////////
-	/// enable copy-on-write
-	void make_value() const		{ this->value.setCopyonWrite(); }
-	///////////////////////////////////////////////////////////////////////////
-	/// disable copy-on-write
-	void make_reference() const	{ this->value.setAutoCreate(); }
+	/// copy assignment.
+	const variant& operator=(const variant& v)	{ this->assign(v); return *this; }
+	const variant& operator=(const variant_value& v) { this->assign(v); return *this; }
 
+	
 	///////////////////////////////////////////////////////////////////////////
-	//
+	/// assign template.
+	/// assigns a new value
 	template<typename T>
 	void assign(const T &v)
 	{
-		if( this->value.exists() )
-			this->access().assign(v);
-		else
-			this->value.create(v);
+		if( !this->value.is_unique() )
+			this->value.clear();
+		this->value->value.create(v);
 	}
+	///////////////////////////////////////////////////////////////////////////
+	/// assign a variant.
+	/// decide on behaviour:
+	///  A =  B; A take over the link of B, A is a reference to B
+	///  A = *B; A take over the value of B, A is a new value with the value of B
+	/// *A =  B; value of A is B, current value of A is overwritten with value of B
+	/// *A = *B; value of A is (value of) B, current value of A is overwritten with value of B
 	void assign(const variant &v)
 	{
-		if( this->is_reference() )
-		{	// copy the content
-			if( this->value.pointer() != v.value.pointer() )
-				this->access() = v.access();
-		}
-		else
-		{	// share the pointers
+		if( this != &v )
+		{	// share the link pointer
 			this->value = v.value;
-			this->make_value();
 		}
 	}
+	///////////////////////////////////////////////////////////////////////////
+	/// assign a value.
+	/// doing A = *B; (A is a new value with the value of B)
+	void assign(const variant_value& v)
+	{	// share the reference pointers
+		if( !this->value.is_unique() )
+			this->value.clear();
+		this->value->value = v.value;
+	}
+	///////////////////////////////////////////////////////////////////////////
+	/// assign a variant.
+	/// set the access mode
 	void assign(const variant &v, bool set_reference)
-	{	// just share the pointer
-		this->value = v.value;
+	{
 		if(set_reference)
-			this->make_reference();
+		{	// copy as reference
+			this->assign(v);		
+		}
 		else
-			this->make_value();
+		{	// copy as value
+			this->assign(*v);
+		}
+	}
+
+	///////////////////////////////////////////////////////////////////////////
+	/// access a variant value.
+	const variant_value& operator*() const	{ return *this->value; }
+	variant_value& operator*()				{ return *this->value; }
+	
+
+	///////////////////////////////////////////////////////////////////////////
+	/// create own copy of first pointer.
+	void make_value()			{ this->value.make_unique(); }
+	bool is_reference() const	{ return this->value.getRefCount()>1; }
+	///////////////////////////////////////////////////////////////////////////
+	/// evaluate named/unnamed variables
+	void evaluate()
+	{
+		this->make_value();
+		if( this->is_extern() )
+		{
+			this->access().evaluate();
+		}
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// clear the variant.
-	void clear()				{ this->value.clear(); this->make_value(); }
-	void make_empty()			{ if(this->value.exists()) this->access().make_empty(); }
-	void invalidate()			{ if(this->value.exists()) this->access().invalidate(); }
+	void clear()				{ this->value.clear(); }
 	///////////////////////////////////////////////////////////////////////////
-	bool is_valid() const		{ return !this->value.exists() || this->access().is_valid(); }
-	bool is_empty() const		{ return !this->value.exists() || this->access().is_empty(); }
-	bool is_int() const			{ return this->value.exists() && this->access().is_int(); }
-	bool is_float() const		{ return this->value.exists() && this->access().is_float(); }
-	bool is_number() const		{ return this->value.exists() && this->access().is_number(); }
-	bool is_string() const		{ return this->value.exists() && this->access().is_string(); }
-	bool is_array() const		{ return this->value.exists() && this->access().is_array(); }
-	bool is_extern() const		{ return this->value.exists() && this->access().is_extern(); }
-	size_t size() const			{ return this->value.exists() ? this->access().size() : 0; }
+	/// clear the value.
+	void make_empty()			{ if(this->exists()) this->access().make_empty(); }
 	///////////////////////////////////////////////////////////////////////////
-	variant_host::reference get_parent() const	{ return this->value.exists() ? this->access().get_parent() : variant_host::reference(); }
+	/// invalidate the value.
+	void invalidate()			{ this->access().invalidate(); }
+	///////////////////////////////////////////////////////////////////////////
+	bool exists() const			{ return this->value.exists() && this->value->value.exists(); }
+	bool is_valid() const		{ return !this->exists() || this->access().is_valid(); }
+	bool is_empty() const		{ return !this->exists() || this->access().is_empty(); }
+	bool is_int() const			{ return this->exists() && this->access().is_int(); }
+	bool is_float() const		{ return this->exists() && this->access().is_float(); }
+	bool is_number() const		{ return this->exists() && this->access().is_number(); }
+	bool is_string() const		{ return this->exists() && this->access().is_string(); }
+	bool is_array() const		{ return this->exists() && this->access().is_array(); }
+	bool is_extern() const		{ return this->exists() && this->access().is_extern(); }
+	size_t size() const			{ return this->exists() ? this->access().size() : 1; }
+	///////////////////////////////////////////////////////////////////////////
+	variant_host::reference get_parent() const	{ return this->exists() ? this->access().get_parent() : variant_host::reference(); }
 	bool access_member(const string<>& name)	{ return this->access().access_member(name); }
 	///////////////////////////////////////////////////////////////////////////
 	/// add a dimension at the front. expand the content to all array elements
 	void create_array(size_t cnt)
 	{	// add a dimension at the front
-		variant tmp(*this);			// make a copy of the current element
-		this->value.clear();		// clear the current pointer
-		value_array::convert(this->access(), cnt, tmp);	// create a new pointer and build the array there
+		// make a unique copy of the current element
+		variant tmp(*this);
+		tmp.make_value();
+		// create an array out of the copy
+		value_array::convert(this->access(), cnt, tmp);	
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// change size of an array or create an array if not yet exists
-	void resize_array(size_t cnt)
+	bool resize_array(size_t cnt)
 	{	// create an array if resize does not exist
-		if( !this->access().resize_array(cnt) )
+		const bool ret = this->access().resize_array(cnt);
+		if( !ret )
 			this->create_array(cnt);
+		return ret;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// add a dimension at the end. expand the content to all array elements,
 	/// create an array if append does not exist
-	void append_array(size_t cnt)
+	bool append_array(size_t cnt)
 	{	
-		if( !this->access().append_array(cnt) )
+		const bool ret = this->access().append_array(cnt);
+		if( !ret )
 			this->create_array(cnt);
+		return ret;
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// access to array elements
 	const variant& operator[](size_t inx) const	
 	{
-		const variant*ptr = this->access()[inx];
+		const variant*ptr = this->exists()?this->access()[inx]:NULL;
 		return ptr?*ptr:*this;
 	}
 	variant& operator[](size_t inx)
 	{
-		variant*ptr = this->access()[inx];
+		variant*ptr = this->exists()?this->access()[inx]:NULL;
 		return ptr?*ptr:*this;
 	}
+
 	///////////////////////////////////////////////////////////////////////////
 	/// access conversion 
-	bool get_bool() const		{ return this->value.exists() ? this->access().get_bool() : false; }
-	int64 get_int() const		{ return this->value.exists() ? this->access().get_int() : 0; }
-	double get_float() const	{ return this->value.exists() ? this->access().get_float() : 0.0; }
-	string<> get_string() const	{ return this->value.exists() ? this->access().get_string() : string<>(); }
-	string<> get_arraystring() const	{ return this->value.exists() ? this->access().get_arraystring() : string<>(); }
-	const char* get_cstring() const	{ return this->value.exists() ? this->access().get_cstring() : ""; }
+	bool get_bool() const		{ return this->exists() ? this->access().get_bool() : false; }
+	int64 get_int() const		{ return this->exists() ? this->access().get_int() : 0; }
+	double get_float() const	{ return this->exists() ? this->access().get_float() : 0.0; }
+	string<> get_string() const	{ return this->exists() ? this->access().get_string() : string<>(); }
 
-private:
-	struct variant_conversion
-	{
-		const variant& parent;
-		variant_conversion(const variant& p) : parent(p)
-		{}
-		operator bool() const		{ return this->parent.get_bool(); }
-		operator int() const		{ return (int)this->parent.get_int(); }
-		operator int64() const		{ return this->parent.get_int(); }
-		operator double() const		{ return this->parent.get_float(); }
-		operator string<>() const	{ return this->parent.get_string(); }
-	};
-public:
 	variant_conversion operator()() const	{ return variant_conversion(*this); }
 	variant_conversion operator()()			{ return variant_conversion(*this); }
 
 	template<typename T>
 	void get_value(T& v) const
 	{
-		if( this->value.exists() )
+		if( this->exists() )
 			this->access().get_value(v);
 		else
 			v = T();
@@ -1551,9 +1700,9 @@ public:
 	static const char* type2name(var_t type);
 	///////////////////////////////////////////////////////////////////////////
 	/// unary operations
-	void negate()	{ if( this->value.exists() ) this->access().negate(); }
-	void invert()	{ if( this->value.exists() ) this->access().invert(); }
-	void lognot()	{ if( this->value.exists() ) this->access().lognot(); }
+	void negate()	{ if( this->exists() ) this->access().negate(); }
+	void invert()	{ if( this->exists() ) this->access().invert(); }
+	void lognot()	{ if( this->exists() ) this->access().lognot(); }
 
 	const variant operator-() const;
 	const variant operator~() const;
@@ -1593,63 +1742,64 @@ public:
 
 inline variant operator+(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp += vb;
 	return temp;
 }
 inline variant operator-(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
+
 	temp -= vb;
 	return temp;
 
 }
 inline variant operator*(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp *= vb;
 	return temp;
 
 }
 inline variant operator/(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp /= vb;
 	return temp;
 }
 inline variant operator%(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp %= vb;
 	return temp;
 }
 inline variant operator&(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp &= vb;
 	return temp;
 }
 inline variant operator| (const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp |= vb;
 	return temp;
 }
 inline variant operator^ (const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp ^= vb;
 	return temp;
 }
 inline variant operator>>(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp >>= vb;
 	return temp;
 }
 inline variant operator<<(const variant& va, const variant& vb)
 {
-	variant temp(va);
+	variant temp(*va);
 	temp <<= vb;
 	return temp;
 }
@@ -1672,13 +1822,6 @@ inline bool operator< (const variant& a, const variant& b)	{ return 0> compare(a
 inline bool operator<=(const variant& a, const variant& b)	{ return 0>=compare(a,b); }
 inline bool operator> (const variant& a, const variant& b)	{ return 0< compare(a,b); }
 inline bool operator>=(const variant& a, const variant& b)	{ return 0<=compare(a,b); }
-
-
-
-
-
-
-
 
 
 
@@ -1895,7 +2038,15 @@ inline double value_array::get_float() const
 }
 inline string<> value_array::get_string() const
 {
-	return this->value.size()?this->value[0].get_string():"";
+	string<> str;
+	if( this->value.size() )
+	{
+		size_t i;
+		str << this->value[0].get_string();
+		for(i=1; i<this->value.size(); ++i)
+			str << ", " << this->value[i].get_string();
+	}
+	return str;
 }
 inline const value_empty& value_array::operator_assign(const variant& v)
 {
@@ -1955,6 +2106,12 @@ inline const value_empty& value_array::operator<<=(const variant& v)
 
 
 
+inline void value_extern::assign(const variant &v)
+{
+	this->assign(v.access());
+}
+
+
 template<typename T> 
 void value_unnamed<T>::assign(const value_empty &v)
 {
@@ -2007,6 +2164,7 @@ void value_unnamed<T>::assign(const vector<variant>& v)
 		v[0].get_value(*value);
 	}
 }
+
 template<typename T> 
 bool value_unnamed<T>::get_bool() const
 {

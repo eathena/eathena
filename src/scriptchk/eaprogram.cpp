@@ -652,25 +652,29 @@ void scriptprog::printCommand(size_t &pos) const
 	CCommand ccmd;
 	if( getCommand(pos, ccmd) )
 	{
-		const COpcode& op = scriptprog::cOpcodeTable[ccmd.cCommand];
-		if( op.type )
-		{	// 1 param first string
-			this->logging(op.desc, ccmd.cString);
-		}
-		else if( op.size )
-		{	// 1 param first integer
-			if( op.code==OP_PUSH_FLOAT )
-				this->logging(op.desc, int2float(ccmd.cParam));
-			else
-				this->logging(op.desc, (int)ccmd.cParam);
-		}
-		else
-		{	// no param
-			this->logging(op.desc);
-		}
+		printCommand(ccmd);
 	}
 }
 
+void scriptprog::printCommand(const CCommand& ccmd) const
+{
+	const COpcode& op = scriptprog::cOpcodeTable[ccmd.cCommand];
+	if( op.type )
+	{	// 1 param first string
+		this->logging(op.desc, ccmd.cString);
+	}
+	else if( op.size )
+	{	// 1 param first integer
+		if( op.code==OP_PUSH_FLOAT )
+			this->logging(op.desc, int2float(ccmd.cParam));
+		else
+			this->logging(op.desc, (int)ccmd.cParam);
+	}
+	else
+	{	// no param
+		this->logging(op.desc);
+	}
+}
 
 
 

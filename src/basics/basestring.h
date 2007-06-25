@@ -527,7 +527,7 @@ class TString : public stringoperator<T>, public A
 #endif//!defined(__GNUC__) || __GNUC__ >= 3
 
 public:
-	using stringinterface<T>::npos;
+	using stringoperator<T>::npos;
 
 protected:
 	///////////////////////////////////////////////////////////////////////////

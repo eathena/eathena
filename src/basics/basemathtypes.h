@@ -300,6 +300,29 @@ struct is_signed<sint64>
 	typedef bool_true Type;
 	typedef bool_true issigned;
 };
+template<>
+struct is_signed<float>
+{
+	enum _dummy { Result = true };
+	typedef bool_true Type;
+	typedef bool_true issigned;
+};
+
+template<>
+struct is_signed<double>
+{
+	enum _dummy { Result = true };
+	typedef bool_true Type;
+	typedef bool_true issigned;
+};
+
+template<>
+struct is_signed<long double>
+{
+	enum _dummy { Result = true };
+	typedef bool_true Type;
+	typedef bool_true issigned;
+};
 //@}
 
 ///////////////////////////////////////////////////////////////////////////////

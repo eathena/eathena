@@ -6,9 +6,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "basebinstream.h"
-
 #include "eastorage.h"
-
 #include "eaparser.h"
 #include "eacompiler.h"
 #include "eaprogram.h"
@@ -201,7 +199,6 @@ bool scriptfile::to_binary(const scriptfile_ptr& file)
 	if( !ff.is_open() )
 		return false;
 
-
 	ff << file->c_str();
 	{
 		ff << TAG_TIME << file->modtime;
@@ -346,6 +343,7 @@ bool scriptfile::loader::from_binary(const basics::string<>& name, int option)
 			}
 			ff >> scr->cName;
 			file->scripts.push_back(scr->cName);
+
 			break;
 		}
 		case TAG_HEADER:
@@ -357,6 +355,7 @@ bool scriptfile::loader::from_binary(const basics::string<>& name, int option)
 			ff >>  decl->cReturn >> c >> e;
 			decl->cVarCnt = c;
 			decl->cEntry  = e;
+			decl->cScriptName = scr->cName;
 			break;
 		}
 		case TAG_PARAM:
@@ -442,27 +441,63 @@ bool scriptfile::loader::from_binary(const basics::string<>& name, int option)
 /// load a single file.
 bool scriptfile::loader::load_file(const basics::string<>& filename, int option)
 {
+	basics::string<> srcname = filename;
+	basics::string<> binname = filename;
+	size_t ppos = filename.find_last_of('.');
+	bool scr=true;
+	bool bin=true;
+	// prepare names
+	if( ppos == basics::string<>::npos )
+	{	// no point in name
+		ppos = srcname.length();
+		srcname << ".ea";
+		binname << ".eab";
+	}
+	else
 	{
-		basics::string<> name = filename;
-		// try loading from binary first
-		if( !basics::match_wildcard("*.eab", name) )
-		{	// build binary extension
-			const size_t p = name.find_last_of('.');
-			if( p!=name.npos )
-				name.truncate(p);
-			name+=".eab";
+		const char *ip = filename.c_str()+ppos;
+		scr = 0==strcasecmp(".ea",ip);
+		bin = !scr && 0==strcasecmp(".eab", ip);
+
+		if( bin )
+		{
+			srcname.strip(1); // *.eab -> *.ea
 		}
-		if( !basics::file_exists(name) ||
-			basics::file_modified(name)<basics::file_modified(filename) ||
-			!this->from_binary(name, option) )
-		{	
-			// parse and compile when binary has failed
-			if( !basics::match_wildcard("*.ea",filename) )
-			{
-				fprintf(stderr, "file does not use default extension\n");
-			}
-			if( !this->compile_file(filename,option) )
-				return false;
+		else if( scr )
+		{
+			binname << 'b'; // *.ea -> *.eab
+		}
+		else
+		{	// neither binary nor script extension, try reading as script wen binary fails
+			binname.truncate(ppos);
+			binname << ".eab"; // *.* -> *.eab
+		}
+	}
+	// check names
+	if( !basics::file_exists(binname) && !basics::file_exists(srcname) )
+	{	// neither binary nor script exists
+		fprintf(stderr, "script file '%s' does not exist\n", filename.c_str());
+		return false;
+	}
+	// try loading from binary first, fall back to script
+	else if( !basics::file_exists(binname) ||
+		basics::file_modified(binname)<basics::file_modified(srcname) ||
+		!this->from_binary(binname, option) )
+	{	
+		// parse and compile when binary has failed
+		if( !basics::file_exists(srcname) )
+		{
+			fprintf(stderr, "cannot compile script from '%s', does not exist\n", srcname.c_str());
+			return false;
+		}
+		else if( !scr )
+		{	// just warn and go on
+			fprintf(stderr, "file '%s' does not use default extension\n", srcname.c_str());
+		}
+		if( !this->compile_file(srcname,option) )
+		{	// delete binary when failed
+			basics::file_delete(binname);
+			return false;
 		}
 	}
 	return true;
@@ -476,29 +511,8 @@ bool scriptfile::loader::load_file(const basics::vector< basics::string<> >& nam
 	basics::vector< basics::string<> >::iterator iter(namelist);
 	for(; iter; ++iter)
 	{
-		const basics::string<>&filename = *iter;
-
-		basics::string<> name = filename;
-		// try loading from binary first
-		if( !basics::match_wildcard("*.eab", name) )
-		{	// build binary extension
-			const size_t p = name.find_last_of('.');
-			if( p!=name.npos )
-				name.truncate(p);
-			name+=".eab";
-		}
-		if( !basics::file_exists(name) ||
-			basics::file_modified(name)<basics::file_modified(filename) ||
-			!this->from_binary(name, option) )
-		{	
-			// parse and compile when binary has failed
-			if( !basics::match_wildcard("*.ea",filename) )
-			{
-				fprintf(stderr, "file does not use default extension\n");
-			}
-			if( !this->compile_file(filename,option) )
-				return false;
-		}
+		if( !this->load_file(*iter, option) )
+			return false;
 	}
 	return true;
 }
@@ -525,33 +539,21 @@ bool scriptfile::loader::load_folder(const char* startfolder, int option)
 	uint cnts=0;
 	for(; iter; ++iter)
 	{
-		if( basics::is_file(*iter) )
+		const basics::string<>& filename = *iter;
+
+		if( basics::is_file(filename) )
 		{
-			if( basics::match_wildcard("*.ea",*iter) )
+			const size_t ppos = filename.find_last_of('.');
+			if( ppos != basics::string<>::npos )
 			{
-				basics::string<> name = *iter;
-				name+='b';
-				if( basics::file_exists(name) && 
-					basics::file_modified(name)>basics::file_modified(*iter) &&
-					this->from_binary(name,option) )
+				const char *ip = filename.c_str()+ppos;
+				const bool scr = 0==strcasecmp(".ea",ip);
+				const bool bin = !scr && 0==strcasecmp(".eab", ip);
+				if( scr || bin )
 				{
-					//
-				}
-				else if( this->compile_file(*iter,option) )
-				{
-					++cnts;
-				}
-				else
-				{
-					return false;
-				}
-				
-			}
-			else if( basics::match_wildcard("*.eab",*iter) )
-			{
-				if( !this->from_binary(*iter, option) )
-				{
-					return false;
+					if( !this->load_file(filename, option) )
+						return false;
+					if(bin) ++cnts;
 				}
 			}
 		}

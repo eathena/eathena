@@ -215,7 +215,7 @@ void value_empty::numeric_cast(const variant& v)
 	{
 		const double f = this->get_float();
 		const int64 i = (int64)((f<0)?f-0.5:f+0.5);
-		if( 1e-24<fabs(f-(double)i) || ((f>=0 || f<=INT64_MIN) && (f<=0 || f>=INT64_MAX)) )
+		if( fabs(f-(double)i)>1e-24 || f<=INT64_MIN || f>=INT64_MAX )
 		{
 			this->convert2float();
 			return;
@@ -225,7 +225,7 @@ void value_empty::numeric_cast(const variant& v)
 	{
 		const double f = this->get_float();
 		const int64 i = (int64)((f<0)?f-0.5:f+0.5);
-		if( 1e-24<fabs(f-(double)i) || ((f>=0 || f<=INT64_MIN) && (f<=0 || f>=INT64_MAX)) )
+		if( fabs(f-(double)i)>1e-24 || f<=INT64_MIN || f>=INT64_MAX )
 		{
 			this->convert2float();
 			return;
@@ -404,14 +404,12 @@ const value_empty& value_string::operator+=(const variant& v)
 	this->value += v.get_string();
 	return *this;
 }
+
 const value_empty& value_string::operator&=(const variant& v)
 {
 	this->value += v.get_string();
 	return *this;
 }
-
-
-
 
 value_array::value_array(const vector<variant>& v)
 	: value_empty(), value(v)
@@ -422,14 +420,11 @@ const value_array& value_array::convert(value_empty& convertee, const size_t sz,
 	value_array& arr = *new (&convertee) value_array();
 	arr.value.resize(sz);
 	if(sz)
-	{	// have the old content at element 0 only 
-		// arr.value[0] = elem;
-
-		// expand the skalar to a vector
+	{	// expand the given skalar to a vector
 		vector<variant>::iterator iter(arr.value);
 		for(; iter; ++iter)
 		{
-			*iter = elem;
+			*iter = *elem;
 		}
 	}
 	return arr;
@@ -505,20 +500,6 @@ void value_array::numeric_cast(const variant& v)
 	}
 }
 
-string<> value_array::get_arraystring() const
-{
-	string<> ret;
-	ret << '{';
-	vector<variant>::iterator iter(this->value);
-	if(iter)
-	{
-		ret << iter->get_arraystring();
-		for(++iter; iter; ++iter)
-			ret << ',' << iter->get_arraystring();
-	}
-	ret << '}';
-	return (ret);
-}
 
 void value_array::negate()
 {
@@ -605,12 +586,26 @@ value_named::value_named()
 {}
 ///////////////////////////////////////////////////////////////////////////
 // type constructors
+value_named::value_named(const variant_host& parent, const string<>& n)
+	: value_extern(parent.access()), name(n), value(new variant())
+{
+	this->get_value();
+}
 value_named::value_named(const variant_host& parent, const string<>& n, const variant& v)
 	: value_extern(parent.access()), name(n), value(new variant(v))
-{}
+{
+	this->set_value();
+}
 value_named::value_named(const variant_host::reference& parent, const string<>& n, const variant& v)
 	: value_extern(parent), name(n), value(new variant(v))
-{}
+{
+	this->set_value();
+}
+value_named::value_named(const variant_host::reference& parent, const string<>& n)
+	: value_extern(parent), name(n), value(new variant())
+{
+	this->get_value();
+}
 
 value_named::~value_named()
 {
@@ -619,6 +614,10 @@ value_named::~value_named()
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+bool value_named::get_value() const
+{
+	return this->parent_ref.exists() && *this->parent_ref && this->name.size() && (*this->parent_ref)->get_member(this->name, this->value->access());
+}
 bool value_named::set_value()
 {
 	return this->parent_ref.exists() && *this->parent_ref && this->name.size() && (*this->parent_ref)->set_member(this->name, this->value->access());
@@ -633,22 +632,37 @@ void value_named::assign(const char* v)				{ this->value->assign(v); this->set_v
 void value_named::assign(const string<>& v)			{ this->value->assign(v); this->set_value(); }
 void value_named::assign(const vector<variant>& v)	{ this->value->assign(v); this->set_value(); }
 void value_named::assign(const variant_host& v)		{ this->value->assign(v); this->set_value(); }
-
-
+void value_named::assign(const variant &v)			{ this->value->assign(v,false); this->set_value(); }
 
 ///////////////////////////////////////////////////////////////////////////
 //
+bool value_named::access_member(const string<>& n)
+{	
+	//return this->value_empty::access_member(n);
+	if( n.size() )
+	{
+		this->name << "::" << n;
+		return this->get_value();
+	}
+	return false;
+}
+///////////////////////////////////////////////////////////////////////////
+//
 const value_empty& value_named::duplicate(value_empty& convertee) const
-{	// only duplicate the content
+{
+/*	// only duplicate the content
 	if(this->parent_ref.exists() && *this->parent_ref)
 		convertee = *value;
 	else
 		convertee.clear();
 	return convertee;
+*/
+	convertee.~value_empty();
+	return *new (&convertee) value_named(this->parent_ref, this->name, *this->value);
 }
 const value_empty& value_named::duplicate(void* p) const
 {
-	return *new (p) value_named(this->parent_ref, this->value->access(), *this->value);
+	return *new (p) value_named(this->parent_ref, this->name, *this->value);
 }
 const value_named& value_named::convert(value_empty& convertee, const variant_host& parent, const string<>& n, const variant& v)
 {
@@ -663,13 +677,23 @@ const value_named& value_named::convert(value_named& convertee, const string<>& 
 }
 const value_empty& value_named::construct(void* p, const variant_host& parent, const string<>& n)
 {
-	value_empty * tmp = new (p) value_empty();
-	const_cast<variant_host&>(parent).get_member(n, *tmp);
-	return *tmp;
+	return *new (p) value_named(parent, n);
 }
 ///////////////////////////////////////////////////////////////////////////
 //
-void value_named::clear()				{ this->value->clear(); }
+void value_named::clear()	{ this->value->clear(); this->set_value(); }
+void value_named::evaluate()
+{
+	if( this->value )
+	{	// 
+		variant v(*this->value);
+		v.access().duplicate(*this);
+	}
+	else
+	{	// clear this
+		value_empty::convert(*this);
+	}
+}
 ///////////////////////////////////////////////////////////////////////////
 bool value_named::is_valid() const		{ return this->value->is_valid(); }
 bool value_named::is_empty() const		{ return this->value->is_empty(); }
@@ -677,7 +701,30 @@ bool value_named::is_int() const		{ return this->value->is_int(); }
 bool value_named::is_float() const		{ return this->value->is_float(); }
 bool value_named::is_number() const		{ return this->value->is_number(); }
 bool value_named::is_string() const		{ return this->value->is_string(); }
+bool value_named::is_array() const		{ return this->value->is_array(); }
+size_t value_named::size() const		{ return this->value->size(); }
 var_t value_named::type() const			{ return this->value->type(); }
+
+///////////////////////////////////////////////////////////////////////////
+bool value_named::resize_array(size_t cnt)		{ this->value->resize_array(cnt); this->set_value(); return true; }
+bool value_named::append_array(size_t cnt)
+{
+	this->value->append_array(cnt);
+	this->set_value();
+	return true;
+ }
+///////////////////////////////////////////////////////////////////////////
+// Access to array elements
+const variant* value_named::operator[](size_t inx) const	{ return &this->value->operator[](inx); }
+      variant* value_named::operator[](size_t inx)			{ return &this->value->operator[](inx); }
+
+///////////////////////////////////////////////////////////////////////////
+// local conversions
+void value_named::convert2string()					{ this->value->convert2string(); this->set_value(); }
+void value_named::convert2float()					{ this->value->convert2float(); this->set_value(); }
+void value_named::convert2int()						{ this->value->convert2int(); this->set_value(); }
+void value_named::convert2number()					{ this->value->convert2number(); this->set_value(); }
+void value_named::numeric_cast(const variant& v)	{ this->value->numeric_cast(v); this->set_value(); }
 
 ///////////////////////////////////////////////////////////////////////////
 // access conversion 
@@ -698,6 +745,7 @@ const value_empty& value_named::operator++()	{ this->value->operator++(); this->
 const value_empty& value_named::operator--()	{ this->value->operator--(); this->set_value(); return *this; }
 ///////////////////////////////////////////////////////////////////////////
 // arithmetic operations
+const value_empty& value_named::operator_assign(const variant& v){ this->value->operator_assign(v); this->set_value(); return *this; }
 const value_empty& value_named::operator+=(const variant& v)	{ this->value->operator+=(v); this->set_value(); return *this; }
 const value_empty& value_named::operator-=(const variant& v)	{ this->value->operator-=(v); this->set_value(); return *this; }
 const value_empty& value_named::operator*=(const variant& v)	{ this->value->operator*=(v); this->set_value(); return *this; }
@@ -725,7 +773,8 @@ void variant::cast(var_t type)
 	switch(type)
 	{
 	case VAR_NONE:
-		if( this->is_valid() ) value_empty::convert(this->access());
+		if( this->is_valid() )
+			this->clear();
 		break;
 	case VAR_INTEGER:
 		this->access().convert2int();
@@ -737,7 +786,8 @@ void variant::cast(var_t type)
 		this->access().convert2string();
 		break;
 	case VAR_ARRAY:
-		if( !this->is_array() ) this->create_array(1);
+		if( !this->is_array() )
+			this->create_array(1);
 		break;
 	// nothing for VAR_AUTO/VAR_DEFAULT, they keep the type
 	default:
@@ -751,7 +801,7 @@ const variant variant::operator-() const
 {
 	if( this->is_valid() )
 	{
-		variant temp(*this);
+		variant temp(**this);
 		temp.negate();
 		return temp;
 	}
@@ -761,7 +811,7 @@ const variant variant::operator~() const
 {
 	if( this->is_valid() )
 	{
-		variant temp(*this);
+		variant temp(**this);
 		temp.invert();
 		return temp;
 	}
@@ -771,7 +821,7 @@ const variant variant::operator!() const
 {
 	if( this->is_valid() )
 	{
-		variant temp(*this);
+		variant temp(**this);
 		temp.lognot();
 		return temp;
 	}
@@ -782,7 +832,7 @@ const variant variant::operator!() const
 // Define postfix increment operator.
 variant variant::operator++(int)
 {
-	variant temp(*this);
+	variant temp(**this);
 	if( this->is_valid() )
 	{
 		this->access().convert2number();
@@ -792,7 +842,7 @@ variant variant::operator++(int)
 }
 variant variant::operator--(int)
 {
-	variant temp(*this);
+	variant temp(**this);
 	if( this->is_valid() )
 	{
 		this->access().convert2number();
@@ -844,21 +894,22 @@ const variant& variant::operator+=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at least one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
-		else if( this->is_string() || v.is_string() )
+		else if( this->is_string() || temp.is_string() )
 			this->convert2string();
-		else if( this->is_float() || v.is_float() )
+		else if( this->is_float() || temp.is_float() )
 			this->convert2float();
 		else
 			this->convert2int();
 
-		this->access() += v;
+		this->access() += temp;
 	}
 	return *this;
 }
@@ -871,17 +922,18 @@ const variant& variant::operator-=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
-			this->numeric_cast(v);
+			this->numeric_cast(temp);
 
-		this->access() -= v;
+		this->access() -= temp;
 	}
 	return *this;
 }
@@ -894,17 +946,18 @@ const variant& variant::operator*=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
-			this->numeric_cast(v);
+			this->numeric_cast(temp);
 
-		this->access() *= v;
+		this->access() *= temp;
 	}
 
 	return *this;
@@ -918,17 +971,18 @@ const variant& variant::operator/=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
-			this->numeric_cast(v);
+			this->numeric_cast(temp);
 
-		this->access() /= v;
+		this->access() /= temp;
 	}
 	return *this;
 }
@@ -940,17 +994,18 @@ const variant& variant::operator%=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
-			this->numeric_cast(v);
+			this->numeric_cast(temp);
 
-		this->access() %= v;
+		this->access() %= temp;
 	}
 	return *this;
 }
@@ -967,14 +1022,15 @@ const variant& variant::operator&=(const variant& v)
 	}
 	else
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
-		else if( this->is_string() || v.is_string() )
+		else if( this->is_string() || temp.is_string() )
 		{
 			this->convert2string();
 		}
@@ -982,7 +1038,7 @@ const variant& variant::operator&=(const variant& v)
 		{
 			this->convert2int();
 		}
-		this->access() &= v;
+		this->access() &= temp;
 	}
 	return *this;
 }
@@ -995,16 +1051,17 @@ const variant& variant::operator|=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
 			this->convert2int();
-		this->access() |= v;
+		this->access() |= temp;
 	}
 	return *this;
 }
@@ -1017,16 +1074,17 @@ const variant& variant::operator^=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
 			this->convert2int();
-		this->access() ^= v;
+		this->access() ^= temp;
 	}
 	return *this;
 }
@@ -1039,16 +1097,17 @@ const variant& variant::operator>>=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
 			this->convert2int();
-		this->access() >>= v;
+		this->access() >>= temp;
 	}
 	return *this;
 }
@@ -1061,16 +1120,17 @@ const variant& variant::operator<<=(const variant& v)
 	}
 	else 
 	{
-		if( this->is_array() || v.is_array() )
+		const variant temp(*v);
+		if( this->is_array() || temp.is_array() )
 		{	// at leat one array
 			if( !this->is_array() )
 			{	// local skalar with given array
-				this->create_array(v.size());
+				this->create_array(temp.size());
 			}
 		}
 		else
 			this->convert2int();
-		this->access() <<= v;
+		this->access() <<= temp;
 	}
 	return *this;
 }
@@ -1090,7 +1150,7 @@ int compare(const variant& va, const variant& vb)
 	}
 	else if( !va.is_valid() || !vb.is_valid() )
 	{	// only one invalud
-		return (!va.is_valid()) ? 1 : -1;
+		return (va.is_valid()) ? 1 : -1;
 	}
 	////////////////////////////
 	// simple types at the end
@@ -1157,8 +1217,7 @@ const char* variant::type2name(var_t type)
 
 
 
-
-
+#if defined(DEBUG)
 
 
 struct ttt1 : public variant_host
@@ -1183,9 +1242,6 @@ struct ttt1 : public variant_host
 struct ttt2 : public variant_host
 {
 	string<> val;
-
-	ttt2() : val("")
-	{}
 
 	virtual bool get_member(const string<>& name, value_empty& target)
 	{
@@ -1234,6 +1290,8 @@ variant_host::reference variant_defaults<bool>::get_variable(const string<>& nam
 	return variant_host::reference();
 }
 */
+
+#endif// defined(DEBUG)
 
 void test_variant()
 {
@@ -1311,7 +1369,7 @@ void test_variant()
 
 		tmp.append_array(5);
 		tmp[3] = 1;
-		
+		printf("%s\n", tostring(tmp).c_str());
 	}
 
 	{
@@ -1481,18 +1539,15 @@ void test_variant()
 		0 >  b;
 		0 >= b;
 
-
-
 		variant ref(a,true);
 		ref += 2;
-
 
 		printf("%s (10.6)\n", (const char*)a.get_string());
 		printf("%s (10.6)\n", (const char*)ref.get_string());
 
 		b = "hallo";
 
-		ref = a+b;
+		*ref = a+b;
 
 		printf("%s (10.6hallo)\n", (const char*)a.get_string());
 		printf("%s (10.6hallo)\n", (const char*)ref.get_string());

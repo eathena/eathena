@@ -6,17 +6,16 @@
 
 #include "basevariant.h"
 #include "eaprogram.h"
-
+#include "eaengine.h"
 ///////////////////////////////////////////////////////////////////////////////
-class CStackEngine;
 
 
 ///////////////////////////////////////////////////////////////////////////////
 /// 
 struct buildin
 {
-
-	typedef basics::variant (*buildin_function)(CStackEngine& st);
+	typedef CStackEngine::callparameter callparameter;
+	typedef basics::variant (*buildin_function)(const callparameter& st);
 
 	///////////////////////////////////////////////////////////////////////////
 	/// 
@@ -38,6 +37,7 @@ struct buildin
 	~buildin()
 	{}
 public:
+	static const declaration* get(const basics::string<>& name);
 	static bool exists(const basics::string<>& name);
 	static size_t parameter_count(const basics::string<>& name);
 	static bool create(const basics::string<>& name, buildin_function f, size_t param=0);

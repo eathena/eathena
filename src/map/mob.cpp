@@ -1619,7 +1619,8 @@ public:
 		// It will attack, if the candidate for an attack is.
 		if (md.target_id > 0)
 		{
-			if ((tbl = block_list::from_blid(md.target_id)))
+			tbl = block_list::from_blid(md.target_id);
+			if( tbl )
 			{
 				tsd = tbl->get_sd();
 				tmd = tbl->get_md();
@@ -1647,6 +1648,7 @@ public:
 					else if( tsd && !(mode & 0x20) &&
 						(tsd->has_status(SC_TRICKDEAD) ||
 						tsd->has_status(SC_BASILICA) ||
+						tsd->status.option & OPTION_HIDE ||
 						((tsd->is_hiding() || tsd->state.gangsterparadise) &&
 						!((race == 4 || race == 6 || mode&0x100) && !tsd->state.perfect_hiding))))
 					{
@@ -1750,10 +1752,11 @@ public:
 					}
 					else
 					{	// アイテムまでたどり着いた
-						if( md.is_attacking() )
+						fitem = tbl->get_fd();
+						if( !fitem || md.is_attacking() )
 							return 0; // 攻撃中
 						md.stop_walking(1);	// 歩行中なら停止
-						fitem = (flooritem_data *)tbl;
+						
 						if(md.lootitem_count < LOOTITEM_SIZE)
 						{
 							md.lootitem[md.lootitem_count++] = fitem->item_data;

@@ -363,6 +363,7 @@ public:
 	ssize_t getline(string<>& str);
 	ssize_t writeline(const char *buf, size_t maxlen=0);
 	ssize_t writeline(const string<>& str);
+	ssize_t write(const char* str);
 	
 	long getpos()			
 	{
@@ -378,17 +379,6 @@ public:
 	}
 	long tellg()			{ return getpos(); }
 	bool seekg(long pos)	{ return setpos(pos); }
-
-
-	friend CFile& operator <<( CFile& cf, const char* str)
-	{
-		if( cf.is_open() && str )
-		{
-			while( *str ) putc(uchar(*str++), cf.cFile);
-		}
-		return cf;
-	}
-
 };
 
 

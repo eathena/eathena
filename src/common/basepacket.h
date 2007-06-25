@@ -374,7 +374,7 @@ CFixBuffer<SZ>::CFixBuffer()
 
 template<size_t SZ>
 CFixBuffer<SZ>::CFixBuffer(const uint8* buf, size_t sz)
-:	_len(basics::min<size_t>(sz, SZ))
+:	_len(((sz<SZ)?sz:SZ))
 {
 	if( buf )
 		memcpy(this->_buf, buf, _len);
@@ -1223,7 +1223,7 @@ protected:
 	:	APacket<NFieldHandler::COffFieldHandler<NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
 	{
 		if( buf )
-			memcpy(this->_h.data(), buf, basics::min<size_t>(sz, SZ));
+			memcpy(this->_h.data(), buf, ((sz<SZ)?sz:SZ));
 	}
 };
 
@@ -1281,7 +1281,7 @@ protected:
 	:	APacket<NFieldHandler::CIdxFieldHandler<NFieldHandler::CFixPosSet<NUM>,NFieldHandler::CFixBuffer<SZ> > >(NULL, SZ)
 	{
 		if( buf )
-			memcpy(this->_h.data(), buf, basics::min<size_t>(sz, SZ));
+			memcpy(this->_h.data(), buf, ((sz<SZ)?sz:SZ));
 	}
 };
 
@@ -1748,7 +1748,7 @@ CFieldFixString<SZ>& CFieldFixString<SZ>::assign(const char* str, size_t sz)
 	{
 		if( str == NULL )
 			str = "";
-		size_t len = strnlen(str, basics::min<size_t>(sz, SZ));
+		size_t len = strnlen(str, ((sz<SZ)?sz:SZ));
 		char* buf = (char*)this->_h->data(this->_id);
 		memcpy(buf, str, len);
 		if( len < SZ )

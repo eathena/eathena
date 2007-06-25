@@ -795,7 +795,7 @@ int connect_client(int listen_fd)
 		return -1;
 
 	sock = accept(SessionGetSocket(listen_fd),(struct sockaddr*)&client_address,&len);
-	if( sock==INVALID_SOCKET )
+	if(sock==INVALID_SOCKET) 
 	{	// same here, app might have passed away
 		ShowError("accept: %s\n",
 			basics::sockerrmsg(basics::sockerrno()));

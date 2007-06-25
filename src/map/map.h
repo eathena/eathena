@@ -3,7 +3,7 @@
 
 #ifndef _MAP_H_
 #define _MAP_H_
-
+#include "basepair.h"
 #include "script.h"
 #include "config.h"
 #include "mapobj.h"
@@ -463,43 +463,43 @@ struct map_intern : public map_base
 	size_t users;
 	struct mapflags
 	{
-		unsigned nomemo : 1;					//  0
-		unsigned noteleport : 1;				//  1
-		unsigned noreturn : 1;					//  2
-		unsigned monster_noteleport : 1;		//  3
-		unsigned nosave : 1;					//  4
-		unsigned nobranch : 1;					//  5
-		unsigned nopenalty : 1;					//  6
-		unsigned pvp : 1;						//  7 (byte 1)
-		unsigned pvp_noparty : 1;				//  8
-		unsigned pvp_noguild : 1;				//  9
-		unsigned pvp_nightmaredrop :1;			// 10
-		unsigned pvp_nocalcrank : 1;			// 11
-		unsigned gvg : 1;						// 12
-		unsigned gvg_noparty : 1;				// 13
-		unsigned gvg_dungeon : 1;				// 14
-		unsigned nozenypenalty : 1;				// 15 (byte 2)
-		unsigned notrade : 1;					// 16
-		unsigned noskill : 1;					// 17
-		unsigned nowarp : 1;					// 18
-		unsigned nowarpto : 1;					// 19
-		unsigned nopvp : 1;						// 20
-		unsigned noicewall : 1;					// 21
-		unsigned snow : 1;						// 22
-		unsigned rain : 1;						// 23 (byte 3)
-		unsigned sakura : 1;					// 24
-		unsigned leaves : 1;					// 25
-		unsigned clouds : 1;					// 26
-		unsigned clouds2 : 1;					// 27
-		unsigned fog : 1;						// 28
-		unsigned fireworks : 1;					// 29
-		unsigned indoors : 1;					// 30
-		unsigned nogo : 1;						// 31 (byte 4)
-		unsigned nobaseexp	: 1;				// 32
-		unsigned nojobexp	: 1;				// 33
-		unsigned nomobloot	: 1;				// 34
-		unsigned nomvploot	: 1;				// 35
-		unsigned _unused : 4;					// 36-39 (byte 5)
+		unsigned char nomemo : 1;					//  0
+		unsigned char noteleport : 1;				//  1
+		unsigned char noreturn : 1;					//  2
+		unsigned char monster_noteleport : 1;		//  3
+		unsigned char nosave : 1;					//  4
+		unsigned char nobranch : 1;					//  5
+		unsigned char nopenalty : 1;				//  6
+		unsigned char pvp : 1;						//  7 (byte 1)
+		unsigned char pvp_noparty : 1;				//  8
+		unsigned char pvp_noguild : 1;				//  9
+		unsigned char pvp_nightmaredrop :1;			// 10
+		unsigned char pvp_nocalcrank : 1;			// 11
+		unsigned char gvg : 1;						// 12
+		unsigned char gvg_noparty : 1;				// 13
+		unsigned char gvg_dungeon : 1;				// 14
+		unsigned char nozenypenalty : 1;			// 15 (byte 2)
+		unsigned char notrade : 1;					// 16
+		unsigned char noskill : 1;					// 17
+		unsigned char nowarp : 1;					// 18
+		unsigned char nowarpto : 1;					// 19
+		unsigned char nopvp : 1;					// 20
+		unsigned char noicewall : 1;				// 21
+		unsigned char snow : 1;						// 22
+		unsigned char rain : 1;						// 23 (byte 3)
+		unsigned char sakura : 1;					// 24
+		unsigned char leaves : 1;					// 25
+		unsigned char clouds : 1;					// 26
+		unsigned char clouds2 : 1;					// 27
+		unsigned char fog : 1;						// 28
+		unsigned char fireworks : 1;				// 29
+		unsigned char indoors : 1;					// 30
+		unsigned char nogo : 1;						// 31 (byte 4)
+		unsigned char nobaseexp	: 1;				// 32
+		unsigned char nojobexp	: 1;				// 33
+		unsigned char nomobloot	: 1;				// 34
+		unsigned char nomvploot	: 1;				// 35
+		unsigned char _unused : 2;					// 36-39 (byte 5)
 
 		mapflags()
 			: nomemo(0)
@@ -790,6 +790,13 @@ public:
 	int delmap(const char *mapname);
 
 	void loadallmaps();
+
+	///////////////////////////////////////////////////////////////////////////
+	bool is_night() const;
+	bool is_day() const;
+	basics::pair<int,ulong> get_daynight() const;
+	bool set_day();
+	bool set_night();
 };
 
 extern _map maps;
@@ -848,12 +855,6 @@ extern const char *GRF_PATH_FILENAME;
 
 
 
-///////////////////////////////////////////////////////////////////////////////
-// day-night cycle
-extern int daynight_flag;		// 0=day, 1=night
-extern int daynight_timer_tid;	// timer for night.day
-int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data);
-///////////////////////////////////////////////////////////////////////////////
 
 
 

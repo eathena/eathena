@@ -127,6 +127,10 @@ class global
 private:
 #ifdef COUNT_GLOBALS
 	static int sGlobalCount;
+#ifdef STORE_GLOBALS
+	static void globaladd(global* ptr);
+	static void globaldel(global* ptr);
+#endif//STORE_GLOBALS
 #ifdef DEBUG
 	class _globalcount
 	{
@@ -138,30 +142,42 @@ private:
 	};
 	static _globalcount gc;
 	friend class _globalcount;
-#endif
-#endif
+#endif//DEBUG
+#endif//COUNT_GLOBALS
 
 #ifdef COUNT_GLOBALS
 protected:
-	global()				{ atomicincrement(&sGlobalCount); }
-public:
-	virtual ~global()
+	global()
 	{
-		atomicdecrement(&sGlobalCount);	
+		atomicincrement(&sGlobalCount);
+#ifdef STORE_GLOBALS
+		globaladd(this);
+#endif//STORE_GLOBALS
+	}
+public:
+#ifdef STORE_GLOBALS
+	virtual
+#endif//STORE_GLOBALS
+	~global()
+	{
+		atomicdecrement(&sGlobalCount);
+#ifdef STORE_GLOBALS
+		globaldel(this);
+#endif//STORE_GLOBALS
 #ifdef DEBUG
 		_globalcount::finalcheck();
-#endif
+#endif//DEBUG
 	}
 	static int getcount()	{ return sGlobalCount; }
 	static void debugprint();
-#else
+#else//!COUNT_GLOBALS
 protected:
 	global()				{ }
 public:
-	virtual ~global()		{ }
+	~global()				{ }
 	static int getcount()	{ return 0; }
 	static void debugprint(){}
-#endif
+#endif//!COUNT_GLOBALS
 };
 
 

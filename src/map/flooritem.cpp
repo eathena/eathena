@@ -101,6 +101,5 @@ flooritem_data::~flooritem_data()
 		intif_delete_petdata( basics::MakeDWord(this->item_data.card[1],this->item_data.card[2]) );
 
 	clif_clearflooritem(*this);
-	this->freeblock();
 }
 

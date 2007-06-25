@@ -41,9 +41,9 @@ struct scriptdecl
 	basics::var_t						cReturn;	///< return value type
 	size_t								cVarCnt;	///< number of temporary variables
 	size_t								cEntry;		///< start position
-	scriptprog*							cScript;	///< the script itself
+	basics::string<>					cScriptName;///< the script name
 
-	scriptdecl() : cReturn(basics::VAR_NONE), cVarCnt(0), cEntry(0), cScript(NULL)
+	scriptdecl() : cReturn(basics::VAR_NONE), cVarCnt(0), cEntry(0)
 	{}
 };
 
@@ -97,12 +97,17 @@ struct scriptprog
 	///////////////////////////////////////////////////////////////////////////
 	// get  script by name
 	static script get_script(const basics::string<>& name);
+	///////////////////////////////////////////////////////////////////////////
+	// get  script by declaration
+	static script get_script(const scriptdecl& decl)
+	{
+		return get_script(decl.cScriptName);
+	}
 
 	///////////////////////////////////////////////////////////////////////////
 	// compares
 	bool operator==(const scriptprog& a) const	{ return this==&a; }
 	bool operator< (const scriptprog& a) const	{ return this< &a; }
-
 
 	///////////////////////////////////////////////////////////////////////////
 	// 
@@ -160,6 +165,7 @@ struct scriptprog
 	size_t appendVarCommand(unsigned char cmd, int64 val);
 	void dump() const;
 	void printCommand(size_t &pos) const;
+	void printCommand(const CCommand& ccmd) const;
 
 	int64 getNumber(size_t &inx, unsigned char sz) const;
 

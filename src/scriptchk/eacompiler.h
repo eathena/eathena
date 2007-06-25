@@ -231,6 +231,7 @@ struct eacompiler
 		CContBreak(size_t cnt) : continue_target(cnt),break_target(0),has_continue(true)
 		{}
 	};
+	typedef basics::TObjPtrCount<scriptfile> scriptfile_ptr;
 
 	CVariableScope								cVariable;		///< current variable set
 	scriptdefines								cDefines_;		///< current define set
@@ -242,7 +243,7 @@ struct eacompiler
 	scriptprog::script							prog;			///< current programm
 	basics::vector<scriptinstance::instance>	inst;			///< current instances
 	scriptdecl*									funcdecl;		///< current declaration
-	basics::TObjPtrCount<scriptfile>			cFile;			///< current file
+	scriptfile_ptr								cFile;			///< current file
 
 	basics::slist< basics::string<> >			loadingfiles;
 	basics::CParseConfig						cParseConfig;

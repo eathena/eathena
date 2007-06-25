@@ -9,6 +9,7 @@
 #include "eaparser.h"
 #include "eacompiler.h"
 #include "eastorage.h"
+#include "eaengine.h"
 
 void usage(const char*p)
 {
@@ -46,7 +47,6 @@ int get_option(const char* p)
 	return option;
 }
 
-
 int main(int argc, char *argv[])
 {
 //	buildEngine();
@@ -54,13 +54,25 @@ int main(int argc, char *argv[])
 	bool ok=false;
 
 	// parse commandline
-	int i, c, option=OPT_PARSE;    
+	int i, c, option=OPT_PARSE;
+	const char* run_name=NULL;
+	bool run_debug=false;
 
 	for(c=0, i=1; i<argc; ++i)
 	{
 		if( basics::is_file(argv[i]) || basics::is_folder(argv[i]) )
 		{
 			++c;
+		}
+		else if( argv[i][0]=='-' && argv[i][1]=='r' )
+		{
+			++i;
+			if(i<argc)
+				run_name = argv[i];
+		}
+		else if( 0==strcmp(argv[i], "-debug") )
+		{
+			run_debug=true;
 		}
 		else
 		{	// test for option or overwrite
@@ -91,6 +103,8 @@ int main(int argc, char *argv[])
 	}
 
 	if(ok && (option&OPT_INFO)!=0) scriptfile::info();
+
+	if(ok && run_name) CStackEngine::self_test(run_name, run_debug);
 
 	fprintf(stderr, "\nready (%i)\n", ok);
 	fprintf(stderr, "elapsed time: %lu\n", (unsigned long)(GetTickCount()-tick));

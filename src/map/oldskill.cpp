@@ -9222,7 +9222,7 @@ struct skill_unit *skill_initunit(struct skill_unit_group *group,int idx,int x,i
 	struct skill_unit *unit;
 
 	nullpo_retr(NULL, group);
-	nullpo_retr(NULL, unit=&group->unit[idx]);
+	nullpo_retr(NULL, unit = group->units[idx]);
 
 	if(!unit->alive)
 		group->alive_count++;
@@ -9339,7 +9339,9 @@ struct skill_unit_group *skill_initunitgroup(block_list *src,int count,unsigned 
 	if(skill_unit_group_newid<=0)
 		skill_unit_group_newid = MAX_SKILL_DB;
 	
-	group->unit= new skill_unit[count];
+	group->units= new skill_unit_group::skill_unit_ptr[count];
+	for(i=0; i<count; ++i)
+		group->units[i] = new skill_unit;
 
 	group->unit_count=count;
 	group->val1=group->val2=0;
@@ -9394,16 +9396,16 @@ int skill_delunitgroup(struct skill_unit_group &group)
 			}
 		}
 		group.alive_count=0;
-		if( group.unit!=NULL )
+		if( group.units!=NULL )
 		{
 			int i;
 			for(i=0; i<group.unit_count; ++i)
 			{
-				if(group.unit[i].alive)
-					skill_delunit(&group.unit[i]);
+				if(group.units[i]->alive)
+					skill_delunit(group.units[i]);
 			}
-			delete[] group.unit;
-			group.unit = NULL;
+			delete[] group.units;
+			group.units = NULL;
 		}
 		group.valstring.clear();
 		group.src_id=0;
@@ -9534,7 +9536,7 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 
 	if(group.unit_count<=0)
 		return 0;
-	if(group.unit==NULL)
+	if(group.units==NULL)
 		return 0;
 
 	// 移動可能なスキルはダンス系と、ブラストマイン、クレイモアートラップのみ
@@ -9554,13 +9556,13 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 	//      3: 残留
 	for(i=0;i<group.unit_count;++i)
 	{
-			struct skill_unit &unit1 = group.unit[i];
+		struct skill_unit &unit1 = *group.units[i];
 	
 		if (!unit1.alive || unit1.block_list::m!=m)
 			continue;
 		for(j=0;j<group.unit_count;++j)
 		{
-			struct skill_unit &unit2=group.unit[j];
+			struct skill_unit &unit2 = *group.units[j];
 			if (!unit2.alive)
 				continue;
 			if( unit1.block_list::x+dx==unit2.block_list::x && unit1.block_list::y+dy==unit2.block_list::y )
@@ -9578,7 +9580,7 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 	j = 0;
 	for (i=0;i<group.unit_count;++i)
 	{
-		struct skill_unit &unit1 = group.unit[i];
+		struct skill_unit &unit1 = *group.units[i];
 		if( !unit1.alive )
 			continue;
 		if( !(m_flag[i]&0x2) )
@@ -9602,7 +9604,7 @@ int skill_unit_move_unit_group(struct skill_unit_group& group, unsigned short m,
 			{
 				if (m_flag[j]==2)
 				{	// 継承移動
-					struct skill_unit &unit2 = group.unit[j];
+					struct skill_unit &unit2 = *group.units[j];
 					if (!unit2.alive)
 						continue;
 					unit1.delblock();

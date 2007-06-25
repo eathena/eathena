@@ -37,8 +37,10 @@ public:
 	virtual X* operator->() =0;
 	virtual operator const X&() const =0;
 
-	virtual bool operator ==(void *p) const			{ return p==(void*)this->get(); }
-	virtual bool operator !=(void *p) const			{ return p==(void*)this->get(); }
+	virtual bool eq_to(const void *p) const	{ return p==(const void*)this->get(); }
+	virtual bool ne_to(const void *p) const	{ return p!=(const void*)this->get(); }
+	virtual bool eq_to(const X *p) const	{ return p==this->get(); }
+	virtual bool ne_to(const X *p) const	{ return p!=this->get(); }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +57,44 @@ bool operator==(const TPtr<T>& left, const TPtr<T>& right)
 	return  (*left == *right);
 }
 template<typename T>
+bool operator==(const TPtr<T>& left, const T& right)
+{
+	// a null is not equal to a non-null
+	if(!left) return false;
+	// otherwise compare the objects themselves
+	return  (*left == right);
+}
+template<typename T>
+inline bool operator==(const TPtr<T>& left, const void* right)
+{
+	return left.eq_to(right);
+}
+template<typename T>
+inline bool operator==(const TPtr<T>& left, const T* right)
+{
+	return left.eq_to(right);
+}
+template<typename T>
+bool operator==(const T& left, const TPtr<T>& right)
+{
+	// a null is not equal to a non-null
+	if(!right) return false;
+	// otherwise compare the objects themselves
+	return  (left == *right);
+}
+template<typename T>
+bool operator==(const void* left, const TPtr<T>& right)
+{
+	return right.eq_to(left);
+}
+template<typename T>
+bool operator==(const T* left, const TPtr<T>& right)
+{
+	return right.eq_to(left);
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
 bool operator!=(const TPtr<T>& left, const TPtr<T>& right)
 {
 	// a null is not equal to a non-null but equal to another null
@@ -65,7 +105,46 @@ bool operator!=(const TPtr<T>& left, const TPtr<T>& right)
 	return !(*left == *right);
 //	return  (*left != *right);
 }
+template<typename T>
+bool operator!=(const TPtr<T>& left, const T& right)
+{
+	// a null is not equal to a non-null
+	if(!left) return true;
+	// otherwise compare the objects themselves
+	return !(*left == right);
+//	return  (*left != right);
+}
+template<typename T>
+inline bool operator!=(const TPtr<T>& left, const void* right)
+{
+	return left.ne_to(right);
+}
+template<typename T>
+inline bool operator!=(const TPtr<T>& left, const T* right)
+{
+	return left.ne_to(right);
+}
+template<typename T>
+bool operator!=(const T& left, const TPtr<T>& right)
+{
+	// a null is not equal to a non-null
+	if(!right) return true;
+	// otherwise compare the objects themselves
+	return !(left == *right);
+//	return  (left != *right);
+}
+template<typename T>
+bool operator!=(const void* left, const TPtr<T>& right)
+{
+	return right.ne_to(left);
+}
+template<typename T>
+bool operator!=(const T* left, const TPtr<T>& right)
+{
+	return right.ne_to(left);
+}
 
+/////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 bool operator< (const TPtr<T>& left, const TPtr<T>& right)
 {
@@ -77,6 +156,23 @@ bool operator< (const TPtr<T>& left, const TPtr<T>& right)
 	return (*left < *right);
 }
 template<typename T>
+bool operator< (const TPtr<T>& left, const T& right)
+{
+	// a null pointer is less than a non-null
+	if(!left) return true;
+	// otherwise, compare the objects
+	return (*left < right);
+}
+template<typename T>
+bool operator< (const T& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null
+	if(!right) return false;
+	// otherwise, compare the objects
+	return (left < *right);
+}
+/////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
 bool operator<=(const TPtr<T>& left, const TPtr<T>& right)
 {
 	// a null pointer is less than a non-null but equal to another null
@@ -84,9 +180,31 @@ bool operator<=(const TPtr<T>& left, const TPtr<T>& right)
 	// shortcut - if the two pointers are equal then the comparison must be false
 	if (left.pointer() == right.pointer()) return true;
 	// otherwise, compare the objects
-	return (*left < *right) || (*left == *right);
-//	return (*left <=*right);
+	return !(*right < *left);
+//	return (*left <= *right);
 }
+template<typename T>
+bool operator<=(const TPtr<T>& left, const T& right)
+{
+	// a null pointer is less than a non-null
+	if(!left) return true;
+	// otherwise, compare the objects
+	return !(right < *left);
+//	return (*left <= right);
+}
+template<typename T>
+bool operator<=(const T& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null
+	if(!right) return false;
+	// otherwise, compare the objects
+	return !(*right < left);
+//	return (left <= *right);
+}
+
+//template<typename T> inline bool operator>=(const T& x, const T& y)	{ return !(x <  y); }
+
+/////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 bool operator> (const TPtr<T>& left, const TPtr<T>& right)
 {
@@ -95,9 +213,28 @@ bool operator> (const TPtr<T>& left, const TPtr<T>& right)
 	// shortcut - if the two pointers are equal then the comparison must be false
 	if (left.pointer() == right.pointer()) return false;
 	// otherwise, compare the objects
-	return !(*left < *right) && !(*left == *right);
-//	return  (*left > *right);
+	return (*right < *left);
+//	return (*left > *right);
 }
+template<typename T>
+bool operator> (const TPtr<T>& left, const T& right)
+{
+	// a null pointer is less than a non-null
+	if(!left) return false;
+	// otherwise, compare the objects
+	return (right < *left);
+//	return (*left > right);
+}
+template<typename T>
+bool operator> (const T& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null
+	if(!right) return true;
+	// otherwise, compare the objects
+	return (right < *left);
+//	return (*left > right);
+}
+/////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 bool operator>=(const TPtr<T>& left, const TPtr<T>& right)
 {
@@ -107,7 +244,27 @@ bool operator>=(const TPtr<T>& left, const TPtr<T>& right)
 	if (left.pointer() == right.pointer()) return true;
 	// otherwise, compare the objects
 	return !(*left < *right);
+	//return (*left >= *right);
 }
+template<typename T>
+bool operator>=(const TPtr<T>& left, const T& right)
+{
+	// a null pointer is less than a non-null
+	if(!left) return false;
+	// otherwise, compare the objects
+	return !(*left < right);
+	//return (*left >= right);
+}
+template<typename T>
+bool operator>=(const T& left, const TPtr<T>& right)
+{
+	// a null pointer is less than a non-null
+	if(!right) return true;
+	// otherwise, compare the objects
+	return !(left < *right);
+	//return (left >= *right);
+}
+/////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -150,15 +307,17 @@ public:
 
 	virtual const X& readaccess() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual X& writeaccess()					{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
-	virtual const X* get() const				{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
+	virtual const X* get() const				{ return  this->itsPtr; }
 	virtual const X& operator*() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual const X* operator->() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
 	virtual X& operator*()						{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 	virtual X* operator->()						{ const_cast<TPtrAuto<X>*>(this)->create(); return  this->itsPtr; }
 	virtual operator const X&() const			{ const_cast<TPtrAuto<X>*>(this)->create(); return *this->itsPtr; }
 
-	virtual bool operator ==(void *p) const { return this->itsPtr==p; }
-	virtual bool operator !=(void *p) const { return this->itsPtr!=p; }
+	virtual bool eq_to(const void *p) const	{ return p==(const void*)this->itsPtr; }
+	virtual bool ne_to(const void *p) const	{ return p!=(const void*)this->itsPtr; }
+	virtual bool eq_to(const X *p) const	{ return p==this->itsPtr; }
+	virtual bool ne_to(const X *p) const	{ return p!=this->itsPtr; }
 };
 
 
@@ -174,7 +333,7 @@ struct CPtrCounter : public noncopyable
 
 	template <typename P1>
 	CPtrCounter(const P1& p1)
-		: ptr(new T(p1)), count(1)
+		: noncopyable(), ptr(new T(p1)), count(1)
 	{}
 private:
 	// (re)forbid copy construction
@@ -182,32 +341,31 @@ private:
 public:
 	template <typename P1, typename P2>
 	CPtrCounter(const P1& p1, const P2& p2)
-		: ptr(new T(p1,p2)), count(1)
+		: noncopyable(), ptr(new T(p1,p2)), count(1)
 	{}
 	template <typename P1, typename P2, typename P3>
 	CPtrCounter(const P1& p1, const P2& p2, const P3& p3)
-		: ptr(new T(p1,p2,p3)), count(1)
+		: noncopyable(), ptr(new T(p1,p2,p3)), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4>
 	CPtrCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-		: ptr(new T(p1,p2,p3,p4)), count(1)
+		: noncopyable(), ptr(new T(p1,p2,p3,p4)), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	CPtrCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-		: ptr(new T(p1,p2,p3,p4,p5)), count(1)
+		: noncopyable(), ptr(new T(p1,p2,p3,p4,p5)), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	CPtrCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6)
-		: ptr(new T(p1,p2,p3,p4,p5,p6)), count(1)
+		: noncopyable(), ptr(new T(p1,p2,p3,p4,p5,p6)), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	CPtrCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6, const P7& p7)
-		: ptr(new T(p1,p2,p3,p4,p5,p6,p7)), count(1)
+		: noncopyable(), ptr(new T(p1,p2,p3,p4,p5,p6,p7)), count(1)
 	{}
 
-	CPtrCounter() : ptr(NULL), count(1) {}
-	//explicit CCounter(T* p) : ptr(p), count(1) {}
-	//explicit CCounter(const T& p) : ptr(new T(p)), count(1) {}
+	CPtrCounter() : noncopyable(), ptr(NULL), count(1) {}
+
 	~CPtrCounter()	{ if(ptr) delete ptr; }
 
 	const CPtrCounter& operator=(T* p)
@@ -364,8 +522,11 @@ public:
 	virtual X* operator->()						{ return this->cCntObj ?  this->cCntObj->ptr : 0; }
 	virtual operator const X&() const			{ return *this->cCntObj->ptr; }
 
-	virtual bool operator ==(void *p) const		{ return (this->cCntObj) ? (this->cCntObj->ptr==p) : (this->cCntObj==p); }
-	virtual bool operator !=(void *p) const		{ return (this->cCntObj) ? (this->cCntObj->ptr!=p) : (this->cCntObj!=p); }
+	virtual bool eq_to(const void *p) const	{ return p==(const void*)(this->cCntObj ? this->cCntObj->ptr : NULL); }
+	virtual bool ne_to(const void *p) const	{ return p!=(const void*)(this->cCntObj ? this->cCntObj->ptr : NULL); }
+	virtual bool eq_to(const X *p) const	{ return p==(this->cCntObj ? this->cCntObj->ptr : NULL); }
+	virtual bool ne_to(const X *p) const	{ return p!=(this->cCntObj ? this->cCntObj->ptr : NULL); }
+
 
 	const TPtrCount<X>& create ()
 	{
@@ -473,12 +634,13 @@ public:
 
 	virtual const X& readaccess() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 	virtual X& writeaccess()					{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
-	virtual const X* get() const				{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual const X* get() const				{ return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual const X& operator*() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 	virtual const X* operator->() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual X& operator*()						{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
 	virtual X* operator->()						{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual operator const X&() const			{ const_cast<TPtrAutoCount<X>*>(this)->checkobject(); return *this->cCntObj->ptr; }
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -541,7 +703,7 @@ public:
 		// no need to aquire, is done on reference creation
 		return *this->cCntObj->ptr;
 	}
-	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
+	virtual const X* get() const					{ return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual const X& operator*() const				{ return this->readaccess(); }
 	virtual const X* operator->() const				{ this->readaccess(); return this->cCntObj ? this->cCntObj->ptr : NULL; }
 	virtual X& operator*()							{ return this->writeaccess();}
@@ -637,7 +799,7 @@ struct CObjCounter : public noncopyable
 	X				obj;
 	unsigned int	count;
 
-	CObjCounter() : count(1)
+	CObjCounter() : noncopyable(), count(1)
 	{}
 	template <typename P1>
 	CObjCounter(const P1& p1)
@@ -648,31 +810,31 @@ private:
 	CObjCounter(const CObjCounter& p1);
 public:
 	CObjCounter(const X& x)
-		: obj(x), count(1)
+		: noncopyable(), obj(x), count(1)
 	{}
 	template <typename P1, typename P2>
 	CObjCounter(const P1& p1, const P2& p2)
-		: obj(p1,p2), count(1)
+		: noncopyable(), obj(p1,p2), count(1)
 	{}
 	template <typename P1, typename P2, typename P3>
 	CObjCounter(const P1& p1, const P2& p2, const P3& p3)
-		: obj(p1,p2,p3), count(1)
+		: noncopyable(), obj(p1,p2,p3), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4>
 	CObjCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-		: obj(p1,p2,p3,p4), count(1)
+		: noncopyable(), obj(p1,p2,p3,p4), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	CObjCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-		: obj(p1,p2,p3,p4,p5), count(1)
+		: noncopyable(), obj(p1,p2,p3,p4,p5), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	CObjCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6)
-		: obj(p1,p2,p3,p4,p5,p6), count(1)
+		: noncopyable(), obj(p1,p2,p3,p4,p5,p6), count(1)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	CObjCounter(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6, const P7& p7)
-		: obj(p1,p2,p3,p4,p5,p6,p7), count(1)
+		: noncopyable(), obj(p1,p2,p3,p4,p5,p6,p7), count(1)
 	{}
 
 	~CObjCounter()
@@ -703,7 +865,9 @@ public:
 /// TObjPtrCount implements autocreate.
 /// TObjPtrCommon is switchable.
 ///
-template <typename X>
+/// @parameter AutoLink switches between automatically linking
+/// two empty pointers, which also creates a default object
+template <typename X, bool AutoLink=false>
 class TObjPtr : public TPtr<X>
 {
 protected:
@@ -719,11 +883,14 @@ protected:
 			// release the old thing
 			if(old) old->release();
 		}
-		if( NULL==this->cCntObj )
-		{	// new empty counter to link the pointers
-			this->cCntObj = new CObjCounter<X>();
-			const_cast<TObjPtr&>(r).cCntObj = this->cCntObj;
-			this->cCntObj->aquire();
+		if( AutoLink )
+		{
+			if( NULL==this->cCntObj )
+			{	// new empty counter to link the pointers
+				this->cCntObj = new CObjCounter<X>();
+				const_cast<TObjPtr&>(r).cCntObj = this->cCntObj;
+				this->cCntObj->aquire();
+			}
 		}
 	}
 	void release()
@@ -753,10 +920,13 @@ protected:
 
 public:
 	TObjPtr()
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{}
 //	template <typename P1>
-//	TObjPtr(const P1& p1) : cCntObj(NULL)
+//	TObjPtr(const P1& p1)
+//		: TPtr<X>()
+//		, cCntObj(NULL)
 //	{
 //		this->cCntObj=new CObjCounter<X>(p1);
 //	}
@@ -766,43 +936,51 @@ public:
 	{
 		this->acquire(r);
 	}
-	TObjPtr(const X& x) : cCntObj(NULL)
+	TObjPtr(const X& x)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(x);
 	}
 	template <typename P1, typename P2>
 	TObjPtr(const P1& p1, const P2& p2)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2);
 	}
 	template <typename P1, typename P2, typename P3>
 	TObjPtr(const P1& p1, const P2& p2, const P3& p3)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2,p3);
 	}
 	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtr(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2,p3,p4);
 	}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtr(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2,p3,p4,p5);
 	}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtr(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2,p3,p4,p5,p6);
 	}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtr(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6, const P7& p7)
-		: cCntObj(NULL)
+		: TPtr<X>()
+		, cCntObj(NULL)
 	{
 		this->cCntObj=new CObjCounter<X>(p1,p2,p3,p4,p5,p6,p7);
 	}
@@ -850,15 +1028,17 @@ public:
 	virtual X& writeaccess()						{ return this->copyonwrite(); }
 
 	virtual bool exists() const						{ return NULL!=this->cCntObj; }
-	virtual const X* get() const					{ this->readaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual const X& operator*() const				{ return this->readaccess(); }
-	virtual const X* operator->() const				{ this->readaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual X& operator*()							{ return this->writeaccess();}
-	virtual X* operator->()							{ this->writeaccess(); return this->cCntObj ? &this->cCntObj->obj : NULL; }
-	virtual operator const X&() const				{ return this->readaccess(); }
+	virtual const X* get() const					{ return this->cCntObj?&this->cCntObj->obj:NULL; }
+	virtual const X& operator*() const				{ return  this->readaccess(); }
+	virtual const X* operator->() const				{ return &this->readaccess(); }
+	virtual X& operator*()							{ return  this->writeaccess(); }
+	virtual X* operator->()							{ return &this->writeaccess(); }
+	virtual operator const X&() const				{ return  this->readaccess(); }
 
-	virtual bool operator ==(void *p) const			{ return this->cCntObj==p; }
-	virtual bool operator !=(void *p) const			{ return this->cCntObj!=p; }
+	virtual bool eq_to(const void *p) const	{ return p==(const void*)(this->cCntObj ? &this->cCntObj->obj : NULL); }
+	virtual bool ne_to(const void *p) const	{ return p!=(const void*)(this->cCntObj ? &this->cCntObj->obj : NULL); }
+	virtual bool eq_to(const X *p) const	{ return p==(this->cCntObj ? &this->cCntObj->obj : NULL); }
+	virtual bool ne_to(const X *p) const	{ return p!=(this->cCntObj ? &this->cCntObj->obj : NULL); }
 
 	const TObjPtr& create ()
 	{
@@ -918,50 +1098,53 @@ public:
 };
 
 
-template <typename X>
-class TObjPtrCount : public TObjPtr<X>
+template <typename X, bool AutoLink=false>
+class TObjPtrCount : public TObjPtr<X,AutoLink>
 {
 public:
 	TObjPtrCount()
+		: TObjPtr<X,AutoLink>()
 	{}
 //	template <typename P1>
 //	TObjPtrCount(const P1& p1)
-//		: TObjPtr<X>(p1)
+//		: TObjPtr<X,AutoLink>(p1)
 //	{}
 	TObjPtrCount(const TObjPtrCount& r)
-		: TObjPtr<X>()
+		: TObjPtr<X,AutoLink>()
 	{
 		this->acquire(r);
 	}
 	TObjPtrCount(const TObjPtr<X>& r)
+		: TObjPtr<X,AutoLink>()
 	{
 		this->acquire(r);
 	}
-	TObjPtrCount(const X& p) : TObjPtr<X>(p)
+	TObjPtrCount(const X& p)
+		: TObjPtr<X,AutoLink>(p)
 	{}
 	template <typename P1, typename P2>
 	TObjPtrCount(const P1& p1, const P2& p2)
-		: TObjPtr<X>(p1,p2)
+		: TObjPtr<X,AutoLink>(p1,p2)
 	{}
 	template <typename P1, typename P2, typename P3>
 	TObjPtrCount(const P1& p1, const P2& p2, const P3& p3)
-		: TObjPtr<X>(p1,p2,p3)
+		: TObjPtr<X,AutoLink>(p1,p2,p3)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtrCount(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-		: TObjPtr<X>(p1,p2,p3,p4)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtrCount(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-		: TObjPtr<X>(p1,p2,p3,p4,p5)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtrCount(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5,p6)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtrCount(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6, const P7& p7)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5,p6,p7)
 	{}
 
 	virtual ~TObjPtrCount()	
@@ -988,81 +1171,94 @@ public:
 	virtual void setCopyonWrite() const	{  }
 	virtual void setAutoCreate() const	{  }
 
-	virtual const X& readaccess() const	{ return this->TObjPtrCount<X>::autocreate(); }
-	virtual X& writeaccess()			{ return this->TObjPtrCount<X>::autocreate(); }
+	virtual const X& readaccess() const	{ return this->autocreate(); }
+	virtual X& writeaccess()			{ return this->autocreate(); }
 };
 
 
 
-template <typename X>
-class TObjPtrCommon : public TObjPtr<X>
+template <typename X, bool AutoLink=false>
+class TObjPtrCommon : public TObjPtr<X,AutoLink>
 {
 protected:
-	mutable X& (TObjPtr<X>::*fAccess)(void) const;
+	mutable X& (TObjPtr<X,AutoLink>::*fAccess)(void) const;
 
 public:
 		
 	TObjPtrCommon()
-		: fAccess(&TObjPtrCommon<X>::copyonwrite)	// access protected function through TObjPtrCommon
+		: TObjPtr<X,AutoLink>()
+		, fAccess(&TObjPtrCommon::copyonwrite)	// access protected function through TObjPtrCommon
 	{}
 //	template <typename P1>
 //	TObjPtrCommon(const P1& p1)
-//		: TObjPtr<X>(p1), fAccess(&TObjPtr<X>::copyonwrite)
+//		: TObjPtr<X,AutoLink>(p1), fAccess(&TObjPtr<X>::copyonwrite)
 //	{}
 	TObjPtrCommon(const TObjPtrCommon& r)
-		: TObjPtr<X>()
+		: TObjPtr<X,AutoLink>()
 		, fAccess(r.fAccess)
 	{
 		this->acquire(r);
 	}
-	TObjPtrCommon(const TObjPtr<X>& r)
-		: fAccess(&TObjPtr<X>::copyonwrite)
+	TObjPtrCommon(const TObjPtr<X,AutoLink>& r)
+		: TObjPtr<X,AutoLink>()
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{
 		this->acquire(r);
 	}
-	TObjPtrCommon(const TObjPtrCount<X>& r)
-		: fAccess(&TObjPtr<X>::autocreate)
+	TObjPtrCommon(const TObjPtrCount<X,AutoLink>& r)
+		: TObjPtr<X,AutoLink>()
+		, fAccess(&TObjPtr<X,AutoLink>::autocreate)
 	{
 		this->acquire(r);
 	}
 	TObjPtrCommon(const X& x)
-		: TObjPtr<X>(x), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(x)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2>
 	TObjPtrCommon(const P1& p1, const P2& p2)
-		: TObjPtr<X>(p1,p2), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2, typename P3>
 	TObjPtrCommon(const P1& p1, const P2& p2, const P3& p3)
-		: TObjPtr<X>(p1,p2,p3), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2,p3)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4>
 	TObjPtrCommon(const P1& p1, const P2& p2, const P3& p3, const P4& p4)
-		: TObjPtr<X>(p1,p2,p3,p4), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5>
 	TObjPtrCommon(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5)
-		: TObjPtr<X>(p1,p2,p3,p4,p5), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6>
 	TObjPtrCommon(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5,p6)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 	template <typename P1, typename P2, typename P3, typename P4, typename P5, typename P6, typename P7>
 	TObjPtrCommon(const P1& p1, const P2& p2, const P3& p3, const P4& p4, const P5& p5, const P6& p6, const P7& p7)
-		: TObjPtr<X>(p1,p2,p3,p4,p5,p6,p7), fAccess(&TObjPtr<X>::copyonwrite)
+		: TObjPtr<X,AutoLink>(p1,p2,p3,p4,p5,p6,p7)
+		, fAccess(&TObjPtr<X,AutoLink>::copyonwrite)
 	{}
 
 	explicit TObjPtrCommon(bool cpwr)
-		: fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon<X>::autocreate)
+		: TObjPtr<X,AutoLink>()
+		, fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon::autocreate)
 	{}
 	explicit TObjPtrCommon(const TObjPtr<X>& r, bool cpwr)
-		: fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon<X>::autocreate)
+		: TObjPtr<X,AutoLink>()
+		, fAccess(cpwr?&TObjPtrCommon<X>::copyonwrite:&TObjPtrCommon::autocreate)
 	{
 		this->acquire(r);
 	}
 	TObjPtrCommon(const X& p, bool cpwr)
-		: TObjPtr<X>(p), fAccess(cpwr?&TObjPtrCommon::copyonwrite:&TObjPtrCommon::autocreate)
+		: TObjPtr<X,AutoLink>(p)
+		, fAccess(cpwr?&TObjPtrCommon::copyonwrite:&TObjPtrCommon::autocreate)
 	{}
 
 	virtual ~TObjPtrCommon()	
@@ -1074,13 +1270,13 @@ public:
 		this->acquire(r);
 		return *this;
 	}
-	const TObjPtrCommon& operator=(const TObjPtr<X>& r)
+	const TObjPtrCommon& operator=(const TObjPtr<X,AutoLink>& r)
 	{
 		this->fAccess = &TObjPtrCommon<X>::copyonwrite;
 		this->acquire(r);
 		return *this;
 	}
-	const TObjPtrCommon& operator=(const TObjPtrCount<X>& r)
+	const TObjPtrCommon& operator=(const TObjPtrCount<X,AutoLink>& r)
 	{
 		this->fAccess = &TObjPtrCommon<X>::autocreate;
 		this->acquire(r);
@@ -1092,10 +1288,10 @@ public:
 		return *this;
 	}
 
-	virtual bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtrCommon<X>::copyonwrite); }
-	virtual bool isAutoCreate() const	{ return (this->fAccess == &TObjPtrCommon<X>::autocreate); }
-	virtual void setCopyonWrite() const	{ this->fAccess = &TObjPtrCommon<X>::copyonwrite; }
-	virtual void setAutoCreate() const	{ this->fAccess = &TObjPtrCommon<X>::autocreate; }
+	virtual bool isCopyonWrite() const	{ return (this->fAccess == &TObjPtrCommon::copyonwrite); }
+	virtual bool isAutoCreate() const	{ return (this->fAccess == &TObjPtrCommon::autocreate); }
+	virtual void setCopyonWrite() const	{ this->fAccess = &TObjPtrCommon::copyonwrite; }
+	virtual void setAutoCreate() const	{ this->fAccess = &TObjPtrCommon::autocreate; }
 
 	virtual const X& readaccess() const	{ return this->autocreate(); }
 	virtual X& writeaccess()			{ return (this->*fAccess)(); }

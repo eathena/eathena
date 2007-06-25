@@ -189,8 +189,8 @@ bool map_intern::initialize()
 	ShowMessage("Loading Map '%s', size (%dx%d), from %s"CL_CLL"\r", this->mapname, this->xs, this->ys, str_from);
 
 	// initialize block storage
-	this->bxs= ((this->xs+BLOCK_SIZE-1)/BLOCK_SIZE);
-	this->bys= ((this->ys+BLOCK_SIZE-1)/BLOCK_SIZE);
+	this->bxs= (ushort)((this->xs+BLOCK_SIZE-1)/BLOCK_SIZE);
+	this->bys= (ushort)((this->ys+BLOCK_SIZE-1)/BLOCK_SIZE);
 	if(this->objects)
 	{
 		delete[] this->objects;
@@ -256,7 +256,7 @@ int map_intern::addnpc(npc_data *nd)
 	}
 	nullpo_retr(0, nd);
 	this->npc[i]=nd;
-	nd->n = i;
+	nd->n = (ushort)i;
 	return i;
 }
 ///////////////////////////////////////////////////////////////////////////////
@@ -326,7 +326,7 @@ public:
 int map_intern::moblist_timer(int tid, unsigned long tick, int id, basics::numptr data)
 {
 	int k;
-	unsigned short m = id;
+	unsigned short m = (unsigned short)id;
 	map_intern* md = (map_intern*)data.pointer();
 	if( m >= maps.size() || &maps[m]!=md )
 	{	//Incorrect map id!
@@ -1076,6 +1076,29 @@ int map_daynight_timer(int tid, unsigned long tick, int id, basics::numptr data)
 	return 0;
 }
 
+///////////////////////////////////////////////////////////////////////////
+bool _map::is_night() const
+{
+	return (daynight_flag==1);		// 0=day, 1=night
+}
+bool _map::is_day() const
+{
+	return (daynight_flag==0);		// 0=day, 1=night
+}
+basics::pair<int,ulong> _map::get_daynight() const
+{
+	struct TimerData * timer_data = get_timer(daynight_timer_tid);
+	return basics::pair<int,ulong>(daynight_flag, timer_data?(timer_data->tick - gettick()):0);
+}
+
+bool _map::set_day()
+{
+	return this->is_night() && (0==map_daynight_timer(-1, 0, 0, 1));
+}
+bool _map::set_night()
+{
+	return this->is_day() && (0==map_daynight_timer(-1, 0, 0, 0));
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 // day night cycle
@@ -1180,130 +1203,102 @@ int parse_console(const char *buf)
  * Ý’èƒtƒ@ƒCƒ‹‚ð?‚Ý?‚Þ
  *------------------------------------------
  */
-int map_config_read(const char *cfgName)
+bool map_paramentrproc(const char* name, const char* value)
 {
-	char line[1024], w1[1024], w2[1024];
-	FILE *fp;
-//	struct hostent *h = NULL;
-
-	fp = basics::safefopen(cfgName,"r");
-	if (fp == NULL)
+	if (strcasecmp(name, "userid")==0)
 	{
-		ShowError("Map configuration '"CL_WHITE"%s"CL_RESET"' not found.\n", cfgName);
+		chrif_setuserid(value);
 	}
-	else
+	else if (strcasecmp(name, "passwd") == 0)
 	{
-		while(fgets(line, sizeof(line), fp))
-		{
-			if( prepare_line(line) && 
-				2==sscanf(line, "%1024[^:=]%*[:=]%1024[^\r\n]", w1, w2) )
-			{
-				basics::itrim(w1);
-				if(!*w1) continue;
-				basics::itrim(w2);
-
-				if (strcasecmp(w1, "userid")==0)
-				{
-					chrif_setuserid(w2);
-				}
-				else if (strcasecmp(w1, "passwd") == 0)
-				{
-					chrif_setpasswd(w2);
-				}
-				else if (strcasecmp(w1, "char_ip") == 0)
-				{
-					getcharaddress() = w2;
-					ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getcharaddress().tostring(NULL));
-				} 
-				else if (strcasecmp(w1, "char_port") == 0)
-				{
-					getcharaddress().port() = atoi(w2);
-				}
-				else if (strcasecmp(w1, "map_ip") == 0)
-				{
-					getmapaddress() = w2;
-					ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", w2, getmapaddress().tostring(NULL));
-				}
-				else if (strcasecmp(w1, "map_port") == 0)
-				{
-					getmapaddress().LANPort() = atoi(w2);
-				}
-				else if (strcasecmp(w1, "water_height") == 0)
-				{
-					map_waterlist_open(w2);
-				}
-				else if (strcasecmp(w1, "map") == 0)
-				{
-					maps.addmap(w2);
-				}
-				else if (strcasecmp(w1, "delmap") == 0)
-				{
-					maps.delmap(w2);
-				}
-				else if (strcasecmp(w1, "npc") == 0)
-				{
-					npc_addsrcfile(w2);
-				}
-				else if (strcasecmp(w1, "path") == 0)
-				{
-					////////////////////////////////////////
-					// add all .txt files recursive from ./npc folder to npc source tree
-					basics::findFiles(w2, "*.txt", npc_addsrcfile );
-					////////////////////////////////////////
-				}
-				else if (strcasecmp(w1, "delnpc") == 0)
-				{
-					npc_delsrcfile(w2);
-				}
-				else if (strcasecmp(w1, "autosave_time") == 0)
-				{
-					autosave_interval = atoi(w2) * 1000;
-					if (autosave_interval <= 0)
-						autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
-				}
-				else if (strcasecmp(w1, "motd_txt") == 0)
-				{
-					safestrcpy(motd_txt, sizeof(motd_txt), w2);
-				}
-				else if (strcasecmp(w1, "help_txt") == 0)
-				{
-					safestrcpy(help_txt, sizeof(help_txt), w2);
-				}
-				else if (strcasecmp(w1, "mapreg_txt") == 0)
-				{
-					safestrcpy(mapreg_txt, sizeof(mapreg_txt), w2);
-				}
-				else if(strcasecmp(w1,"read_map_from_cache")==0)
-				{
-					if (atoi(w2) == 2)
-						map_read_flag = READ_FROM_BITMAP_COMPRESSED;
-					else if (atoi(w2) == 1)
-						map_read_flag = READ_FROM_BITMAP;
-					else
-						map_read_flag = READ_FROM_GAT;
-				}
-				else if(strcasecmp(w1,"map_cache_file")==0)
-				{
-					safestrcpy(map_cache_file,sizeof(map_cache_file),w2);
-				}
-				else if(strcasecmp(w1,"afm_dir") == 0)
-				{
-					safestrcpy(afm_dir,sizeof(afm_dir), w2);
-				}
-				else if (strcasecmp(w1, "import") == 0)
-				{
-					map_config_read(w2);
-				}
-				else if (strcasecmp(w1, "console") == 0)
-				{
-					console = basics::config_switch<bool>(w2);
-				}
-			}
-		}
-		fclose(fp);
-		ShowStatus("Done reading Map configuration '"CL_WHITE"%s"CL_RESET"'\n", cfgName);
+		chrif_setpasswd(value);
 	}
-	return 0;
+	else if (strcasecmp(name, "char_ip") == 0)
+	{
+		getcharaddress() = value;
+		ShowInfo("Char Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", value, getcharaddress().tostring(NULL));
+	} 
+	else if (strcasecmp(name, "char_port") == 0)
+	{
+		getcharaddress().port() = atoi(value);
+	}
+	else if (strcasecmp(name, "map_ip") == 0)
+	{
+		getmapaddress() = value;
+		ShowInfo("Map Server IP Address : '"CL_WHITE"%s"CL_RESET"' -> '"CL_WHITE"%s"CL_RESET"'.\n", value, getmapaddress().tostring(NULL));
+	}
+	else if (strcasecmp(name, "map_port") == 0)
+	{
+		getmapaddress().LANPort() = atoi(value);
+	}
+	else if (strcasecmp(name, "water_height") == 0)
+	{
+		map_waterlist_open(value);
+	}
+	else if (strcasecmp(name, "map") == 0)
+	{
+		maps.addmap(value);
+	}
+	else if (strcasecmp(name, "delmap") == 0)
+	{
+		maps.delmap(value);
+	}
+	else if (strcasecmp(name, "npc") == 0)
+	{
+		npc_addsrcfile(value);
+	}
+	else if (strcasecmp(name, "path") == 0)
+	{
+		////////////////////////////////////////
+		// add all .txt files recursive from ./npc folder to npc source tree
+		basics::findFiles(value, "*.txt", npc_addsrcfile );
+		////////////////////////////////////////
+	}
+	else if (strcasecmp(name, "delnpc") == 0)
+	{
+		npc_delsrcfile(value);
+	}
+	else if (strcasecmp(name, "autosave_time") == 0)
+	{
+		autosave_interval = atoi(value) * 1000;
+		if (autosave_interval <= 0)
+			autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
+	}
+	else if (strcasecmp(name, "motd_txt") == 0)
+	{
+		safestrcpy(motd_txt, sizeof(motd_txt), value);
+	}
+	else if (strcasecmp(name, "help_txt") == 0)
+	{
+		safestrcpy(help_txt, sizeof(help_txt), value);
+	}
+	else if (strcasecmp(name, "mapreg_txt") == 0)
+	{
+		safestrcpy(mapreg_txt, sizeof(mapreg_txt), value);
+	}
+	else if(strcasecmp(name,"read_map_from_cache")==0)
+	{
+		if (atoi(value) == 2)
+			map_read_flag = READ_FROM_BITMAP_COMPRESSED;
+		else if (atoi(value) == 1)
+			map_read_flag = READ_FROM_BITMAP;
+		else
+			map_read_flag = READ_FROM_GAT;
+	}
+	else if(strcasecmp(name,"map_cache_file")==0)
+	{
+		safestrcpy(map_cache_file,sizeof(map_cache_file),value);
+	}
+	else if(strcasecmp(name,"afm_dir") == 0)
+	{
+		safestrcpy(afm_dir,sizeof(afm_dir), value);
+	}
+	else if (strcasecmp(name, "console") == 0)
+	{
+		console = basics::config_switch<bool>(value);
+	}
+	basics::createParam(name, value);
+	return true;
 }
 
 
@@ -1495,10 +1490,9 @@ int do_init(int argc, char *argv[])
 			core_stoprunning();
 	}
 
-	basics::CParamBase::loadFile(MAP_CONF_NAME);
-	
 	maps.initialize();
-	map_config_read(MAP_CONF_NAME);
+	basics::CParamBase::loadFile(MAP_CONF_NAME, map_paramentrproc);
+	//map_config_read(MAP_CONF_NAME);
 	grfio_init(GRF_PATH_FILENAME);
 	config.read(BATTLE_CONF_FILENAME);
 	msg_txt.read(MSG_CONF_NAME);

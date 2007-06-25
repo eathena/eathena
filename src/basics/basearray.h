@@ -564,8 +564,8 @@ public:
 		else if( this->cWpp+array.size() <= this->cEnd || this->checkwrite( array.size() ) )
 		{	
 			typename AA::iterator iter(array);
-			for( ; iter; ++iter)
-				*this->cWpp++ = *iter;
+			for( ; iter; ++iter, ++this->cWpp)
+				*this->cWpp = *iter;
 			return true;
 		}
 		else
@@ -577,9 +577,8 @@ public:
 			return true;
 		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite( cnt ) )
 		{	
-			const TT* eptr = elem+cnt;
-			while(elem < eptr)
-				*this->cWpp++ = *elem++;
+			for(; cnt; --cnt, ++this->cWpp, ++elem)
+				*this->cWpp = *elem;
 			return true;
 		}
 		else
@@ -589,7 +588,7 @@ public:
 	{
 		if( this->cWpp < this->cEnd || this->checkwrite(1) )
 		{
-			*this->cWpp++ = elem;
+			*this->cWpp++ = T(elem);
 			return true;
 		}
 		else
@@ -603,8 +602,8 @@ public:
 			return true;
 		else if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{
-			while(cnt--)
-				*this->cWpp++ = elem;
+			for(; cnt; --cnt, ++this->cWpp)
+				*this->cWpp = T(elem);
 			return true;
 		}
 		else
@@ -639,8 +638,8 @@ public:
 			T* ptr = this->ptrRpp()+pos;
 
 			typename AA::iterator iter(array);
-			for( ; iter; ++iter)
-				*ptr++ = *iter;
+			for( ; iter; ++iter, ++ptr)
+				*ptr = *iter;
 			return true;
 		}
 		else
@@ -659,9 +658,9 @@ public:
 			// move the end pointer
 			this->cWpp+=cnt;
 			// fill the hole
-			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
-			while(ptr < eptr)
-				*ptr++ = *elem++;
+			T* ptr = this->ptrRpp()+pos;
+			for(; cnt; --cnt, ++ptr, ++elem)
+				*ptr = *elem;
 			return true;
 		}
 		else
@@ -682,9 +681,9 @@ public:
 			// move the end pointer
 			this->cWpp+=cnt;
 			// fill the hole
-			
-			for(T* ptr = this->ptrRpp()+pos; cnt; --cnt)
-				*ptr++ = elem;
+			T* ptr = this->ptrRpp()+pos;
+			for(; cnt; --cnt, ++ptr)
+				*ptr = elem;
 			return true;
 		}
 		else
@@ -714,10 +713,9 @@ public:
 		else if( this->size()-pos > array.size() || this->checkwrite( array.size()-this->size()+pos) )
 		{	
 			T*ptr = this->ptrRpp()+pos;
-
 			typename AA::iterator iter(array);
-			for( ; iter; ++iter)
-				*ptr++ = *iter;
+			for( ; iter; ++iter, ++ptr)
+				*ptr = *iter;
 
 			// set new write pointer if expanded
 			if(ptr>this->cWpp)
@@ -736,10 +734,9 @@ public:
 		}
 		else if( this->size()-pos > cnt || this->checkwrite( cnt-this->size()+pos) )
 		{	
-			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
-			
-			while( ptr < eptr )
-				*ptr++ = *elem++;
+			T* ptr = this->ptrRpp()+pos;
+			for(; cnt; --cnt, ++ptr, ++elem )
+				*ptr = *elem;
 			// set new write pointer if expanded
 			if(ptr>this->cWpp)
 				this->cWpp=ptr;
@@ -783,8 +780,8 @@ public:
 			T* ptr = this->ptrRpp()+pos;
 
 			typename AA::iterator iter(array);
-			for( ; iter; ++iter)
-				*ptr++ = *iter;
+			for( ; iter; ++iter, ++ptr)
+				*ptr = *iter;
 			return true;
 		}
 		else
@@ -815,9 +812,9 @@ public:
 			// set new write pointer
 			this->cWpp = this->cWpp+cnt-poscnt;
 			// fill the hole with the array elements
-			T* ptr = this->ptrRpp()+pos, *eptr=ptr+cnt;
-			while( ptr<eptr )
-				*ptr++ = *elem++;
+			T* ptr = this->ptrRpp()+pos;
+			for( ; cnt; --cnt, ++ptr, ++elem)
+				*ptr = *elem;
 			return true;
 		}
 		else
@@ -1364,12 +1361,12 @@ public:
 		{}
     } config;
 private:
-	//template<typename T1, typename T2>
-	struct compare
+	template <typename T1, typename T2>
+	struct internal_compare
 	{
 		int asc;
-		compare(bool a=true) : asc(a?1:-1)	{}
-		int operator()(T const & a, T const & b) const
+		internal_compare(bool a=true) : asc(a?1:-1)	{}
+		int operator()(T1 const & a, T2 const & b) const
 		{
 			if(a==b)
 				return 0;
@@ -1379,6 +1376,7 @@ private:
 				return +asc;
 		}
 	};
+	typedef internal_compare<T,T> compare;
 public:
 	///////////////////////////////////////////////////////////////////////////
 	// standard constructor / destructor
@@ -1569,7 +1567,7 @@ public:
 		{	
 			typename AA::iterator iter(array);
 			size_t pos;
-			compare cmp(this->config.ascending);
+			internal_compare<T,TT> cmp(this->config.ascending);
 			for( ; iter; ++iter )
 			{
 				if( !BinarySearch( *iter, this->begin(), this->size(), 0, pos, cmp) || this->config.duplicates )
@@ -1592,7 +1590,7 @@ public:
 		{	
 			size_t pos;
 			const TT* ptr = elem, *eptr = ptr+cnt;
-			compare cmp(this->config.ascending);
+			internal_compare<T,TT> cmp(this->config.ascending);
 			while( ptr<eptr)
 			{
 				if( !BinarySearch( *ptr, this->begin(), this->size(), 0, pos, cmp) || this->config.duplicates )
@@ -1615,7 +1613,7 @@ public:
 		if( this->cWpp < this->cEnd || this->checkwrite(1) )
 		{	
 			size_t pos;
-			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, compare(this->config.ascending)) || this->config.duplicates )
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, internal_compare<T,TT>(this->config.ascending)) || this->config.duplicates )
 			{	
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+1;
 				elaborator::intern_move(xeptr, xptr, this->cWpp-this->ptrRpp()-pos);
@@ -1635,7 +1633,7 @@ public:
 		if( this->cWpp+cnt <= this->cEnd || this->checkwrite(cnt) )
 		{	
 			size_t pos;
-			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, compare(this->config.ascending)) || this->config.duplicates )
+			if( !BinarySearch( elem, this->begin(), this->size(), 0, pos, internal_compare<T,TT>(this->config.ascending)) || this->config.duplicates )
 			{
 				if( !this->config.duplicates ) cnt = 1;
 				T* xptr = this->ptrRpp()+pos, *xeptr=xptr+cnt;
@@ -1814,21 +1812,21 @@ public:
 	template<typename TT>
 	bool find(const TT& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending));
+		return BinarySearch(elem, this->begin(), this->size(), start, pos, internal_compare<T,TT>(this->config.ascending));
 	}
 	template<typename TT>
 	bool find(const TT& elem) const
 	{
 		size_t start=0;
 		size_t pos;
-		return BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending));
+		return BinarySearch(elem, this->begin(), this->size(), start, pos, internal_compare<T,TT>(this->config.ascending));
 	}
 	template<typename TT>
 	const T* search(const TT& elem) const
 	{
 		size_t start=0;
 		size_t pos;
-		if( BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending)) )
+		if( BinarySearch(elem, this->begin(), this->size(), start, pos, internal_compare<T,TT>(this->config.ascending)) )
 			return this->begin()+pos;
 		return NULL;
 	}
@@ -1837,7 +1835,7 @@ public:
 	{
 		size_t start=0;
 		size_t pos;
-		if( BinarySearch(elem, this->begin(), this->size(), start, pos, compare(this->config.ascending)) )
+		if( BinarySearch(elem, this->begin(), this->size(), start, pos, internal_compare<T,TT>(this->config.ascending)) )
 			return this->begin()+pos;
 		return NULL;
 	}
@@ -1846,6 +1844,53 @@ public:
 		if(this->size()>1)
 			QuickSortClassic(this->begin(), this->size(), compare(this->config.ascending)); 
 	}
+
+	template<typename TT>
+	const T* lower_bound(const TT& elem) const
+	{
+		internal_compare<T,TT> comp(this->config.ascending);
+		size_t len = this->size();
+		size_t half_len;
+		const T* a = this->begin();
+		const T* c;
+		while( len > 0 )
+		{
+			half_len = len >> 1;
+			c = a+half_len;
+			if( *c < elem )
+			{
+				a=c+1;
+				len -= (half_len+1);
+			}
+			else
+				len = half_len;
+		}
+		return a;
+
+	}
+	template<typename TT>
+	const T* upper_bound(const TT& elem) const
+	{
+		internal_compare<T,TT> comp(this->config.ascending);
+		size_t len = this->size();
+		size_t half_len;
+		const T* a = this->begin();
+		const T* c;
+		while (len > 0)
+		{
+			half_len = len >> 1;
+			c = a + half_len;
+			if( !(*c < elem) )
+				len = half_len;
+			else
+			{
+				a = c+1;
+				len -= (half_len+1);
+			}
+		}
+		return a;
+	}
+
 };
 
 
@@ -2461,21 +2506,21 @@ public:
 	/// search within the field
 	bool find(T*const& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearch((void*)elem, (const void**)(this->cVect.begin()), this->cVect.size(), start, pos, compare(this->config.ascending));
+		return BinarySearch((void*)elem, (const void**)(this->cVect.begin()), this->cVect.size(), start, pos, internal_compare(this->config.ascending));
 	}
 	///////////////////////////////////////////////////////////////////////////
 	/// sort the array
 	void sort()
 	{
 		if(this->size()>1)
-			QuickSortClassic( this->cVect.begin(), this->cVect.size(), compare(this->config.ascending)); 
+			QuickSortClassic( this->cVect.begin(), this->cVect.size(), internal_compare(this->config.ascending)); 
 	}
 private:
 	///////////////////////////////////////////////////////////////////////////
-	struct compare
+	struct internal_compare
 	{
 		bool asc;
-		compare(bool a) : asc(a)	{}
+		internal_compare(bool a) : asc(a)	{}
 		int operator()(const void* listelem, const void* elem) const
 		{
 			if( elem == listelem || *((const T*)elem)==*((const T*)listelem) )
@@ -2758,9 +2803,8 @@ public:
 		this->cVect.resize( this->cVect.size()+cnt);
 		this->cVect.move(pos+cnt, pos, cnt);
 		T** ptr = (T**)this->cVect.begin()+pos;
-		T** end = ptr+cnt;
-		while(ptr<end)
-			*ptr++ = new T(*elem++);
+		for(; cnt; --cnt, ++ptr, ++elem)
+			*ptr = new T(*elem);
 		return true;
 	}
 	virtual bool insert(const T& elem, size_t cnt=1, size_t pos=~0)
@@ -2769,9 +2813,8 @@ public:
 		this->cVect.resize(sz+cnt);
 		this->cVect.move(pos, sz, cnt);
 		T** ptr = (T**)this->cVect.begin()+pos;
-		T** end = ptr+cnt;
-		while(ptr<end)
-			*ptr++ = new T(elem);
+		for(; cnt; --cnt, ++ptr)
+			*ptr = new T(elem);
 		return true;
 	}
 	///////////////////////////////////////////////////////////////////////////
@@ -3084,20 +3127,20 @@ public:
 
 	bool find(const T& elem, size_t start, size_t& pos) const
 	{
-		return BinarySearch((void*)&elem, (const void**)this->cVect.begin(), this->cVect.size(), start, pos, compare(this->config.ascending));
+		return BinarySearch((void*)&elem, (const void**)this->cVect.begin(), this->cVect.size(), start, pos, internal_compare(this->config.ascending));
 	}
 
 	void sort()
 	{
 		if(this->size()>1)
-			QuickSortClassic( (const void**)this->cVect.begin(), 0, this->cVect.size()-1, compare(this->config.ascending));
+			QuickSortClassic( (const void**)this->cVect.begin(), 0, this->cVect.size()-1, internal_compare(this->config.ascending));
 	}
 
 private:
-	struct compare
+	struct internal_compare
 	{
 		bool asc;
-		compare(bool a) : asc(a) {}
+		internal_compare(bool a) : asc(a) {}
 
 		int operator()(const void* listelem, const void* elem) const
 		{
@@ -3125,13 +3168,17 @@ template<typename K, typename D>
 class map
 {
 private:
-	typedef struct _node
+	struct node
 	{
 		K key;
 		D data;
-		_node(const K& k) : key(k), data(D())			{}
-		_node(const K& k, const D& d) : key(k), data(d)	{}
-	} node ;
+		node(const K& k) : key(k), data(D())			{}
+		node(const K& k, const D& d) : key(k), data(d)	{}
+	private:
+		node();
+		node(const node& n);
+		const node& operator=(const node& n);
+	};
 	ptrvector<node>	cVect;
 
 public:
@@ -3159,7 +3206,7 @@ public:
 	bool empty() const						{ return this->size()==0; }
 
 private:
-	struct compare
+	struct internal_compare
 	{
 		int operator()(node* const & n, const K& k) const
 		{
@@ -3175,7 +3222,7 @@ private:
 	};
 	bool find(const K& key, size_t& pos) const
 	{
-		return BinarySearch(key, cVect, cVect.size(), 0, pos, compare());
+		return BinarySearch(key, cVect, cVect.size(), 0, pos, internal_compare());
 	}
 
 public:
@@ -3277,6 +3324,35 @@ public:
 	{
 		return const_cast<map<K,D>*>(this)->operator[](key);
 	}
+
+	bool change_key(const K& oldkey, const K& newkey)
+	{
+		if( oldkey != newkey )
+		{
+			size_t oldpos, newpos;
+			if( this->find(oldkey, oldpos) )
+			{	
+				if( this->find(newkey, newpos) )
+				{
+					cVect[newpos]->data = cVect[oldpos]->data;
+
+					delete cVect[oldpos];
+					cVect.removeindex(oldpos);
+				}
+				else
+				{
+					node* n = cVect[oldpos];
+					cVect.removeindex(oldpos);
+					n->key = newkey;
+					cVect.insert(n, 1, newpos);
+				}
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3287,18 +3363,19 @@ template<typename K, typename D>
 class smap
 {
 private:
-	typedef struct _node
+	struct node
 	{
 		K key;
 		D data;
-		_node() : key(K()), data(D())	{}
-		_node(const K& k, const D& d) : key(k), data(d)	{}
+		node() : key(K()), data(D())	{}
+		node(const K& k) : key(k), data(D())	{}
+		node(const K& k, const D& d) : key(k), data(d)	{}
 		// array compares
-		bool operator==(const _node& n) const	{ return key==n.key; }
-		bool operator< (const _node& n) const	{ return key< n.key; }
+		bool operator==(const node& n) const	{ return key==n.key; }
+		bool operator< (const node& n) const	{ return key< n.key; }
 		bool operator==(const K& k) const		{ return key==k; }
 		bool operator< (const K& k) const		{ return key< k; }
-	} node ;
+	};
 
 	vector<node>	cVect;
 public:
@@ -3396,6 +3473,23 @@ public:
 	{
 		return const_cast<smap<K,D>*>(this)->operator[](key);
 	}
+
+	bool change_key(const K& oldkey, const K& newkey)
+	{
+		if( oldkey != newkey )
+		{
+			size_t oldpos;
+			if( this->find(oldkey, oldpos) )
+			{
+				this->insert(newkey, cVect[oldpos]->data);
+				cVect.removeindex(oldpos);
+				return true;
+			}
+			return false;
+		}
+		return true;
+	}
+
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3438,7 +3532,7 @@ public:
 	virtual size_t length() const			{ return this->cVect1.size(); }
 
 private:
-	struct compare
+	struct internal_compare
 	{
 		int operator()(node* const & n, const K1& k) const
 		{
@@ -3466,11 +3560,11 @@ private:
 
 	bool find(const K1& key, size_t& pos)
 	{
-		return BinarySearch(key, cVect1.begin(), cVect1.size(), 0, pos, compare());
+		return BinarySearch(key, cVect1.begin(), cVect1.size(), 0, pos, internal_compare());
 	}
 	bool find(const K2& key, size_t& pos)
 	{
-		return BinarySearch(key, cVect2.begin(), cVect2.size(), 0, pos, compare());
+		return BinarySearch(key, cVect2.begin(), cVect2.size(), 0, pos, internal_compare());
 	}
 public:
 	bimap()

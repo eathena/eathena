@@ -606,7 +606,15 @@ inline T to_radians(T degrees) { return degrees*((T)0.01745329251994329576923690
 ///////////////////////////////////////////////////////////////////////////////
 /// templates for absolute value.
 /// use existing functions, otherwise do comparison and negation
-template<typename T> inline T abs(const T& x)							{ return (x<T()) ? -x : x; }
+namespace detail {
+template<typename T> inline       T  abs(const T& x, const bool_false&)	{ return (x<T()) ? -x : x; }
+template<typename T> inline const T& abs(const T& x, const bool_true&)	{ return x; }
+} // end namespace detail
+template<typename T> inline T abs(const T& x)
+{
+	typedef typename is_unsigned<T>::Type isunsigned;
+	return detail::abs(x,isunsigned());
+}
 template<> inline int abs<int>(const int& x)							{ return ::abs(x); }
 template<> inline long abs<long>(const long& x)							{ return ::labs(x); }
 template<> inline float abs<float>(const float& x)						{ return ::fabsf(x); }
@@ -850,11 +858,11 @@ T gcd(T a, T b)
 
 
 ///////////////////////////////////////////////////////////////////////////////
-/// Least Common Multiple (SCM).
-/// SCM of P(x) and Q(x) is defined by the relation
+/// Least Common Multiple (or Smallest Common Multiple - SCM).
+/// LCM of P(x) and Q(x) is defined by the relation
 /// P(x)*Q(x) = GCD(P,Q)*SCM(P,Q).
 template<typename T>
-T scm(T a, T b)
+T lcm(T a, T b)
 {
 	return a*b/gcd(a,b);
 }
@@ -870,6 +878,126 @@ inline T lg(T sz)
 		++k;
 	return k;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+/// try to invert over binary field.
+template <typename T>
+bool xgcd(const T& a, const T& b, T& g, T& x, T& y)
+{
+	if( b == 0 )
+		return false;
+
+	T gx(1);
+	T xc(a);
+	T yc(b);
+
+	while( (xc&0x01)==0 && (yc&0x01)==0 )
+	{
+		xc/=2;
+		yc/=2;
+		gx*=2;
+	}
+	T A(1), B(0), C(1), D(0);
+	T u(xc);
+	T v(yc);
+
+	// binary GCD algorithm
+	for(;;)
+	{
+		while( (u&0x01)==0 )
+		{
+			u/=2;
+			if( (A&0x01)==0 && (B&0x01)==0 )
+			{
+				A/=2;
+				B/=2;
+			}
+			else
+			{
+				A += yc;
+				A /= 2;
+				B -= xc;
+				B /= 2;
+			}
+		}
+
+		while( (v&0x01)==0 )
+		{
+			v/=2;
+			if( (C&0x01)==0 && (D&0x01)==0 )
+			{
+				C/=2;
+				D/=2;
+			}
+			else
+			{
+				C += yc;
+				C /= 2;
+				D -= xc;
+				D /= 2;
+			}
+		}
+
+		if( u >= v )
+		{
+			u -= v;
+			A -= C;
+			B -= D;
+		}
+		else
+		{
+			v -= u;
+			C -= A;
+			D -= B;
+		}
+
+		if( u == 0 )
+		{
+			swap(x,C);
+			swap(y,D);
+			swap(g,gx);
+			g *= v;
+			break;
+		}
+	}
+	return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Compute c = a^-1 (mod m), if there is an inverse for a (mod m).
+/// This is equivalent to the question of whether (a, m) = 1.  
+/// If not, there is no inverse and false is returned.
+template <typename T>
+bool invmod(const T& a, const T& m, T& c)
+{
+	if( a !=0  && m != 0 )
+	{
+		T g,y;
+		if( xgcd(a, m, g, c, y) && g == 1 )
+		{
+			c %= m;
+			return true;
+		}
+	}
+	return false;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/// Compute y = (x^n) mod m
+template<typename T>
+T powmod(T x, unsigned int n, T modulus)
+{
+	T y = (n%2)?x:1;
+	while ( n>>=1 )
+	{
+		x = (x * x) % modulus;
+		if( n%2 )
+			y = (y * x) % modulus;
+	}
+	return y;
+}
+
 
 ///////////////////////////////////////
 }// end namespace math

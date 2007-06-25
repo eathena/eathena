@@ -3,6 +3,7 @@
 
 #include "baseparam.h"
 #include "baseipfilter.h"
+#include "basepacket.h"
 
 #include "login.h"
 #include "admin.h"

@@ -1216,7 +1216,10 @@ int block_list::freeblock()
 				ShowWarning("map_freeblock: too many free block! %d %d\n",
 					block_free_count, block_free_lock);
 		}
-		else block_free[block_free_count++] = this;
+		else
+		{
+			block_free[block_free_count++] = this;
+		}
 	}
 	return block_free_lock;
 }
