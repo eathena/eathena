@@ -139,7 +139,6 @@ struct {
 } auth_fifo[AUTH_FIFO_SIZE];
 int auth_fifo_pos = 0;
 
-struct mmo_charstatus char_dat;
 int char_num,char_max;
 int max_connect_user = 0;
 int gm_allow_level = 99;
@@ -614,7 +613,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 			{
 				if( count )
 					StringBuf_AppendStr(&buf, ",");
-				Sql_EscapeString(sql_handle, esc_mapname, (char*)mapindex_id2name(p->memo_point[i].map));
+				Sql_EscapeString(sql_handle, esc_mapname, mapindex_id2name(p->memo_point[i].map));
 				StringBuf_Printf(&buf, "('%d', '%s', '%d', '%d'),", char_id, esc_mapname, p->memo_point[i].x, p->memo_point[i].y);
 				++count;
 			}
@@ -733,22 +732,10 @@ int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tabl
 	struct SqlStmt* stmt;
 
 	switch (tableswitch) {
-	case TABLE_INVENTORY:
-		tablename = inventory_db; // no need for sprintf here as *_db are char*.
-		selectoption = "char_id";
-		break;
-	case TABLE_CART:
-		tablename = cart_db;
-		selectoption = "char_id";
-		break;
-	case TABLE_STORAGE:
-		tablename = storage_db;
-		selectoption = "account_id";
-		break;
-	case TABLE_GUILD_STORAGE:
-		tablename = guild_storage_db;
-		selectoption = "guild_id";
-		break;
+	case TABLE_INVENTORY:     tablename = inventory_db;     selectoption = "char_id";    break;
+	case TABLE_CART:          tablename = cart_db;          selectoption = "char_id";    break;
+	case TABLE_STORAGE:       tablename = storage_db;       selectoption = "account_id"; break;
+	case TABLE_GUILD_STORAGE: tablename = guild_storage_db; selectoption = "guild_id";   break;
 	default:
 		ShowError("Invalid table name!\n");
 		return 1;
@@ -877,7 +864,7 @@ int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tabl
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything)
 {
-	int i,j, n;
+	int i,j;
 	char t_msg[128] = "";
 	struct mmo_charstatus* cp;
 	struct StringBuf buf;
@@ -909,147 +896,54 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	}
 
 	p->char_id = char_id;
-	// account_id
-	Sql_GetData(sql_handle, 1, &data, NULL);
-	p->account_id = atoi(data);
-	// char_num
-	Sql_GetData(sql_handle, 2, &data, NULL);
-	p->char_num = atoi(data);
-	// name
-	Sql_GetData(sql_handle, 3, &data, &len);
-	memcpy(p->name, data, min(len, NAME_LENGTH));
-	// class_
-	Sql_GetData(sql_handle, 4, &data, NULL);
-	p->class_ = atoi(data);
-	// base_level
-	Sql_GetData(sql_handle, 5, &data, NULL);
-	p->base_level = atoi(data);
-	// job_level
-	Sql_GetData(sql_handle, 6, &data, NULL);
-	p->job_level = atoi(data);
-	// base_exp
-	Sql_GetData(sql_handle, 7, &data, NULL);
-	p->base_exp = (unsigned int)cap_value(strtoul(data,NULL,10), 0, UINT_MAX);
-	// job_exp
-	Sql_GetData(sql_handle, 8, &data, NULL);
-	p->job_exp = (unsigned int)cap_value(strtoul(data,NULL,10), 0, UINT_MAX);
-	// zeny
-	Sql_GetData(sql_handle, 9, &data, NULL);
-	p->zeny = atoi(data);
-	// str
-	Sql_GetData(sql_handle, 10, &data, NULL);
-	p->str = atoi(data);
-	// agi
-	Sql_GetData(sql_handle, 11, &data, NULL);
-	p->agi = atoi(data);
-	// vit
-	Sql_GetData(sql_handle, 12, &data, NULL);
-	p->vit = atoi(data);
-	// int_
-	Sql_GetData(sql_handle, 13, &data, NULL);
-	p->int_ = atoi(data);
-	// dex
-	Sql_GetData(sql_handle, 14, &data, NULL);
-	p->dex = atoi(data);
-	// luk
-	Sql_GetData(sql_handle, 15, &data, NULL);
-	p->luk = atoi(data);
-	// max_hp
-	Sql_GetData(sql_handle, 16, &data, NULL);
-	p->max_hp = atoi(data);
-	// hp
-	Sql_GetData(sql_handle, 17, &data, NULL);
-	p->hp = atoi(data);
-	// max_sp
-	Sql_GetData(sql_handle, 18, &data, NULL);
-	p->max_sp = atoi(data);
-	// sp
-	Sql_GetData(sql_handle, 19, &data, NULL);
-	p->sp = atoi(data);
-	// status_point
-	Sql_GetData(sql_handle, 20, &data, NULL);
-	p->status_point = (unsigned short)cap_value(atoi(data), 0, USHRT_MAX);
-	// skill_point
-	Sql_GetData(sql_handle, 21, &data, NULL);
-	p->skill_point = (unsigned short)cap_value(atoi(data), 0, USHRT_MAX);
-	// option
-	Sql_GetData(sql_handle, 22, &data, NULL);
-	p->option = atoi(data);
-	// karma
-	Sql_GetData(sql_handle, 23, &data, NULL);
-	p->karma = atoi(data);
-	// manner
-	Sql_GetData(sql_handle, 24, &data, NULL);
-	p->manner = atoi(data);
-	// party_id
-	Sql_GetData(sql_handle, 25, &data, NULL);
-	p->party_id = atoi(data);
-	// guild_id
-	Sql_GetData(sql_handle, 26, &data, NULL);
-	p->guild_id = atoi(data);
-	// pet_id
-	Sql_GetData(sql_handle, 27, &data, NULL);
-	p->pet_id = atoi(data);
-	// hom_id
-	Sql_GetData(sql_handle, 28, &data, NULL);
-	p->hom_id = atoi(data);
-	// hair
-	Sql_GetData(sql_handle, 29, &data, NULL);
-	p->hair = atoi(data);
-	// hair_color
-	Sql_GetData(sql_handle, 30, &data, NULL);
-	p->hair_color = atoi(data);
-	// clothes_color
-	Sql_GetData(sql_handle, 31, &data, NULL);
-	p->clothes_color = atoi(data);
-	// weapon
-	Sql_GetData(sql_handle, 32, &data, NULL);
-	p->weapon = atoi(data);
-	// shield
-	Sql_GetData(sql_handle, 33, &data, NULL);
-	p->shield = atoi(data);
-	// head_top
-	Sql_GetData(sql_handle, 34, &data, NULL);
-	p->head_top = atoi(data);
-	// head_mid
-	Sql_GetData(sql_handle, 35, &data, NULL);
-	p->head_mid = atoi(data);
-	// head_bottom
-	Sql_GetData(sql_handle, 36, &data, NULL);
-	p->head_bottom = atoi(data);
-	// last_map
-	Sql_GetData(sql_handle, 37, &data, NULL);
-	p->last_point.map = mapindex_name2id(data);
-	// last_x
-	Sql_GetData(sql_handle, 38, &data, NULL);
-	p->last_point.x = atoi(data);
-	// last_y
-	Sql_GetData(sql_handle, 39, &data, NULL);
-	p->last_point.y = atoi(data);
-	// save_map
-	Sql_GetData(sql_handle, 40, &data, NULL);
-	p->save_point.map = mapindex_name2id(data);
-	// save_x
-	Sql_GetData(sql_handle, 41, &data, NULL);
-	p->save_point.x = atoi(data);
-	// save_y
-	Sql_GetData(sql_handle, 42, &data, NULL);
-	p->save_point.y = atoi(data);
-	// partner_id
-	Sql_GetData(sql_handle, 43, &data, NULL);
-	p->partner_id = atoi(data);
-	// father
-	Sql_GetData(sql_handle, 44, &data, NULL);
-	p->father = atoi(data);
-	// mother
-	Sql_GetData(sql_handle, 45, &data, NULL);
-	p->mother = atoi(data);
-	// child
-	Sql_GetData(sql_handle, 46, &data, NULL);
-	p->child = atoi(data);
-	// fame
-	Sql_GetData(sql_handle, 47, &data, NULL);
-	p->fame = atoi(data);
+	//TODO: prepared statement goes here >_>
+	Sql_GetData(sql_handle,  1, &data, NULL); p->account_id = atoi(data);
+	Sql_GetData(sql_handle,  2, &data, NULL); p->char_num = atoi(data);
+	Sql_GetData(sql_handle,  3, &data, &len); memcpy(p->name, data, min(len, NAME_LENGTH));
+	Sql_GetData(sql_handle,  4, &data, NULL); p->class_ = atoi(data);
+	Sql_GetData(sql_handle,  5, &data, NULL); p->base_level = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); p->job_level = atoi(data);
+	Sql_GetData(sql_handle,  7, &data, NULL); p->base_exp = (unsigned int)cap_value(strtoul(data,NULL,10), 0, UINT_MAX);
+	Sql_GetData(sql_handle,  8, &data, NULL); p->job_exp = (unsigned int)cap_value(strtoul(data,NULL,10), 0, UINT_MAX);
+	Sql_GetData(sql_handle,  9, &data, NULL); p->zeny = atoi(data);
+	Sql_GetData(sql_handle, 10, &data, NULL); p->str = atoi(data);
+	Sql_GetData(sql_handle, 11, &data, NULL); p->agi = atoi(data);
+	Sql_GetData(sql_handle, 12, &data, NULL); p->vit = atoi(data);
+	Sql_GetData(sql_handle, 13, &data, NULL); p->int_ = atoi(data);
+	Sql_GetData(sql_handle, 14, &data, NULL); p->dex = atoi(data);
+	Sql_GetData(sql_handle, 15, &data, NULL); p->luk = atoi(data);
+	Sql_GetData(sql_handle, 16, &data, NULL); p->max_hp = atoi(data);
+	Sql_GetData(sql_handle, 17, &data, NULL); p->hp = atoi(data);
+	Sql_GetData(sql_handle, 18, &data, NULL); p->max_sp = atoi(data);
+	Sql_GetData(sql_handle, 19, &data, NULL); p->sp = atoi(data);
+	Sql_GetData(sql_handle, 20, &data, NULL); p->status_point = (unsigned short)cap_value(atoi(data), 0, USHRT_MAX);
+	Sql_GetData(sql_handle, 21, &data, NULL); p->skill_point = (unsigned short)cap_value(atoi(data), 0, USHRT_MAX);
+	Sql_GetData(sql_handle, 22, &data, NULL); p->option = atoi(data);
+	Sql_GetData(sql_handle, 23, &data, NULL); p->karma = atoi(data);
+	Sql_GetData(sql_handle, 24, &data, NULL); p->manner = atoi(data);
+	Sql_GetData(sql_handle, 25, &data, NULL); p->party_id = atoi(data);
+	Sql_GetData(sql_handle, 26, &data, NULL); p->guild_id = atoi(data);
+	Sql_GetData(sql_handle, 27, &data, NULL); p->pet_id = atoi(data);
+	Sql_GetData(sql_handle, 28, &data, NULL); p->hom_id = atoi(data);
+	Sql_GetData(sql_handle, 29, &data, NULL); p->hair = atoi(data);
+	Sql_GetData(sql_handle, 30, &data, NULL); p->hair_color = atoi(data);
+	Sql_GetData(sql_handle, 31, &data, NULL); p->clothes_color = atoi(data);
+	Sql_GetData(sql_handle, 32, &data, NULL); p->weapon = atoi(data);
+	Sql_GetData(sql_handle, 33, &data, NULL); p->shield = atoi(data);
+	Sql_GetData(sql_handle, 34, &data, NULL); p->head_top = atoi(data);
+	Sql_GetData(sql_handle, 35, &data, NULL); p->head_mid = atoi(data);
+	Sql_GetData(sql_handle, 36, &data, NULL); p->head_bottom = atoi(data);
+	Sql_GetData(sql_handle, 37, &data, NULL); p->last_point.map = mapindex_name2id(data);
+	Sql_GetData(sql_handle, 38, &data, NULL); p->last_point.x = atoi(data);
+	Sql_GetData(sql_handle, 39, &data, NULL); p->last_point.y = atoi(data);
+	Sql_GetData(sql_handle, 40, &data, NULL); p->save_point.map = mapindex_name2id(data);
+	Sql_GetData(sql_handle, 41, &data, NULL); p->save_point.x = atoi(data);
+	Sql_GetData(sql_handle, 42, &data, NULL); p->save_point.y = atoi(data);
+	Sql_GetData(sql_handle, 43, &data, NULL); p->partner_id = atoi(data);
+	Sql_GetData(sql_handle, 44, &data, NULL); p->father = atoi(data);
+	Sql_GetData(sql_handle, 45, &data, NULL); p->mother = atoi(data);
+	Sql_GetData(sql_handle, 46, &data, NULL); p->child = atoi(data);
+	Sql_GetData(sql_handle, 47, &data, NULL); p->fame = atoi(data);
 
 	//free mysql result.
 	Sql_FreeResult(sql_handle);
@@ -1065,15 +959,9 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 
 	for( i = 0; i < MAX_MEMOPOINTS && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		// map
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		p->memo_point[i].map = mapindex_name2id(data);
-		// x
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		p->memo_point[i].x = atoi(data);
-		// y
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		p->memo_point[i].y = atoi(data);
+		Sql_GetData(sql_handle, 0, &data, NULL); p->memo_point[i].map = mapindex_name2id(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); p->memo_point[i].x = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); p->memo_point[i].y = atoi(data);
 	}
 	strcat(t_msg, " memo");
 
@@ -1089,32 +977,16 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < MAX_INVENTORY && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		// id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		p->inventory[i].id = atoi(data);
-		// nameid
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		p->inventory[i].nameid = atoi(data);
-		// amount
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		p->inventory[i].amount = atoi(data);
-		// equip
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		p->inventory[i].equip = atoi(data);
-		// identify
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		p->inventory[i].identify = atoi(data);
-		// refine
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		p->inventory[i].refine = atoi(data);
-		// attribute
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		p->inventory[i].attribute = atoi(data);
-		// cards
+		Sql_GetData(sql_handle, 0, &data, NULL); p->inventory[i].id = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); p->inventory[i].nameid = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); p->inventory[i].amount = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, NULL); p->inventory[i].equip = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); p->inventory[i].identify = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); p->inventory[i].refine = atoi(data);
+		Sql_GetData(sql_handle, 6, &data, NULL); p->inventory[i].attribute = atoi(data);
 		for( j = 0; j < MAX_SLOTS; ++j )
 		{
-			Sql_GetData(sql_handle, 7 + j, &data, NULL);
-			p->inventory[i].card[j] = atoi(data);
+			Sql_GetData(sql_handle, 7 + j, &data, NULL); p->inventory[i].card[j] = atoi(data);
 		}
 	}
 	strcat(t_msg, " inventory");
@@ -1131,32 +1003,16 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < MAX_CART && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		// id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		p->cart[i].id = atoi(data);
-		// nameid
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		p->cart[i].nameid = atoi(data);
-		// amount
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		p->cart[i].amount = atoi(data);
-		// equip
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		p->cart[i].equip = atoi(data);
-		// identify
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		p->cart[i].identify = atoi(data);
-		// refine
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		p->cart[i].refine = atoi(data);
-		// attribute
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		p->cart[i].attribute = atoi(data);
-		// cards
+		Sql_GetData(sql_handle, 0, &data, NULL); p->cart[i].id = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); p->cart[i].nameid = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); p->cart[i].amount = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, NULL); p->cart[i].equip = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); p->cart[i].identify = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); p->cart[i].refine = atoi(data);
+		Sql_GetData(sql_handle, 6, &data, NULL); p->cart[i].attribute = atoi(data);
 		for( j = 0; j < MAX_SLOTS; ++j )
 		{
-			Sql_GetData(sql_handle, 7 + j, &data, NULL);
-			p->cart[i].card[j] = atoi(data);
+			Sql_GetData(sql_handle, 7 + j, &data, NULL); p->cart[i].card[j] = atoi(data);
 		}
 	}
 	strcat(t_msg, " cart");
@@ -1167,11 +1023,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < MAX_SKILL && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		// id
+		int n;
 		Sql_GetData(sql_handle, 0, &data, NULL);
 		n = atoi(data);
-		p->skill[n].id = n; //memory!? shit!.
-		// lv
+		p->skill[n].id = n; //FIXME: why not use a boolean?
 		Sql_GetData(sql_handle, 1, &data, NULL);
 		p->skill[n].lv = atoi(data);
 	}
@@ -1188,12 +1043,8 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		if( *data != '\0' )
 		{
 			memcpy(p->friends[i].name, data, min(len, NAME_LENGTH));
-			// account_id
-			Sql_GetData(sql_handle, 1, &data, NULL);
-			p->friends[i].account_id = atoi(data);
-			// char_id
-			Sql_GetData(sql_handle, 2, &data, NULL);
-			p->friends[i].char_id = atoi(data);
+			Sql_GetData(sql_handle, 1, &data, NULL); p->friends[i].account_id = atoi(data);
+			Sql_GetData(sql_handle, 2, &data, NULL); p->friends[i].char_id = atoi(data);
 		}
 	}
 	strcat(t_msg, " friends");
@@ -1212,8 +1063,7 @@ int mmo_char_sql_init(void)
 {
 	ShowInfo("Begin Initializing.......\n");
 	char_db_= db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA, sizeof(int));
-	// memory initialize
-	memset(&char_dat, 0, sizeof(struct mmo_charstatus));
+
 	if(char_per_account == 0){
 	  ShowStatus("Chars per Account: 'Unlimited'.......\n");
 	}else{
@@ -1672,6 +1522,7 @@ int mmo_char_send006b(int fd, struct char_session_data *sd)
 		memset(WFIFOP(fd,4), 0, 20);// unknown bytes
 		for(i = 0; i < found_num; i++)
 		{
+			struct mmo_charstatus char_dat;
 			mmo_char_fromsql(sd->found_char[i], &char_dat, false);
 			j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat);
 		}
@@ -2548,6 +2399,7 @@ int parse_frommap(int fd)
 				(character = idb_get(online_char_db, aid)) != NULL &&
 				character->char_id == cid))
 			{
+				struct mmo_charstatus char_dat;
 				memcpy(&char_dat, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
 				mmo_char_tosql(cid, &char_dat);
 			} else {	//This may be valid on char-server reconnection, when re-sending characters that already logged off.
@@ -2599,6 +2451,7 @@ int parse_frommap(int fd)
 			int map_id, map_fd = -1;
 			struct online_char_data* data;
 			struct mmo_charstatus* char_data;
+			struct mmo_charstatus char_dat;
 
 			name = RFIFOW(fd,18);
 			map_id = search_mapserver(name, ntohl(RFIFOL(fd,24)), ntohs(RFIFOW(fd,28))); //Locate mapserver by ip and port.
@@ -2629,7 +2482,8 @@ int parse_frommap(int fd)
 				WFIFOL(map_fd,12) = (unsigned long)0; //TODO: connect_until_time, how do I figure it out right now?
 				memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
 				WFIFOSET(map_fd, WFIFOW(map_fd,2));
-				data = idb_ensure(online_char_db, RFIFOL(fd, 2), create_online_char_data);
+
+				data = idb_ensure(online_char_db, RFIFOL(fd,2), create_online_char_data);
 				data->char_id = char_data->char_id;
 				data->server = map_id; //Update server where char is.
 				
@@ -3129,30 +2983,27 @@ int parse_char(int fd)
 		case 0x66: // char select
 			FIFOSD_CHECK(3);
 
-			RFIFOSKIP(fd, 3);
+		do // TODO: poor code structure
+		{
+			struct mmo_charstatus char_dat;
+			char* data;
+			int char_id;
 
-			if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, sd->account_id, RFIFOB(fd, 2)) )
+			if ( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, sd->account_id, RFIFOB(fd,2))
+			  || SQL_SUCCESS != Sql_NextRow(sql_handle)
+			  || SQL_SUCCESS != Sql_GetData(sql_handle, 0, &data, NULL) )
 			{
+				//Not found?? May be forged packet.
 				Sql_ShowDebug(sql_handle);
-				break;
-			}
-			else if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-			{
 				Sql_FreeResult(sql_handle);
+				//TODO: perhaps add some reply? (otherwise it hangs the client)
 				break;
 			}
-			else
-			{
-				char* data;
-				int char_id;
 
-				// char_id
-				Sql_GetData(sql_handle, 0, &data, NULL);
-				char_id = atoi(data);
-				Sql_FreeResult(sql_handle);
-				mmo_char_fromsql(char_id, &char_dat, true);
-				char_dat.sex = sd->sex;
-			}
+			char_id = atoi(data);
+			Sql_FreeResult(sql_handle);
+			mmo_char_fromsql(char_id, &char_dat, true);
+			char_dat.sex = sd->sex;
 
 			if (log_char) {
 				char esc_name[NAME_LENGTH*2+1];
@@ -3211,22 +3062,22 @@ int parse_char(int fd)
 				ShowWarning("Unable to find map-server for '%s', sending to major city '%s'.\n", mapindex_id2name(char_dat.last_point.map), mapindex_id2name(j));
 				char_dat.last_point.map = j;
 			}
-			{
-				//Send player to map
-				uint32 subnet_map_ip;
-				char map_name[MAP_NAME_LENGTH_EXT];
-				snprintf(map_name, MAP_NAME_LENGTH_EXT, "%s.gat", mapindex_id2name(char_dat.last_point.map));	
-				WFIFOHEAD(fd,28);
-				WFIFOW(fd,0) = 0x71;
-				WFIFOL(fd,2) = char_dat.char_id;
-				memcpy(WFIFOP(fd,6), map_name, MAP_NAME_LENGTH_EXT);
-
-				// Advanced subnet check [LuzZza]
-				subnet_map_ip = lan_subnetcheck(ipl);
-				WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
-				WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
-				WFIFOSET(fd,28);
-			}
+		{
+			//Send player to map
+			uint32 subnet_map_ip;
+			char map_name[MAP_NAME_LENGTH_EXT];
+			snprintf(map_name, MAP_NAME_LENGTH_EXT, "%s.gat", mapindex_id2name(char_dat.last_point.map));	
+			WFIFOHEAD(fd,28);
+			WFIFOW(fd,0) = 0x71;
+			WFIFOL(fd,2) = char_dat.char_id;
+			memcpy(WFIFOP(fd,6), map_name, MAP_NAME_LENGTH_EXT);
+			
+			// Advanced subnet check [LuzZza]
+			subnet_map_ip = lan_subnetcheck(ipl);
+			WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
+			WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
+			WFIFOSET(fd,28);
+		}
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 				auth_fifo_pos = 0;
 			auth_fifo[auth_fifo_pos].account_id = sd->account_id;
@@ -3250,21 +3101,23 @@ int parse_char(int fd)
 				WFIFOB(fd,2) = 1; // 01 = Server closed
 				WFIFOSET(fd,3);
 				break;
-			}	
-			{	//Send auth ok to map server
-				WFIFOHEAD(map_fd,20 + sizeof(struct mmo_charstatus));
-				WFIFOW(map_fd,0) = 0x2afd;
-				WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
-				WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
-				WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
-				WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
-				WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
-				memcpy(WFIFOP(map_fd,20), &char_dat, sizeof(struct mmo_charstatus));
-				WFIFOSET(map_fd, WFIFOW(map_fd,2));
 			}
+
+			//Send auth ok to map server
+			WFIFOHEAD(map_fd,20 + sizeof(struct mmo_charstatus));
+			WFIFOW(map_fd,0) = 0x2afd;
+			WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
+			WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
+			WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
+			WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
+			WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].connect_until_time;
+			memcpy(WFIFOP(map_fd,20), &char_dat, sizeof(struct mmo_charstatus));
+			WFIFOSET(map_fd, WFIFOW(map_fd,2));
 
 			set_char_online(i, auth_fifo[auth_fifo_pos].char_id, auth_fifo[auth_fifo_pos].account_id);
 			auth_fifo_pos++;
+		} while(0);
+			RFIFOSKIP(fd,3);
 		break;
 
 		case 0x67:	// make new
@@ -3291,14 +3144,13 @@ int parse_char(int fd)
 			}
 		{	//Send to player.
 			int len;
+			struct mmo_charstatus char_dat;
 			WFIFOHEAD(fd,110);
 			WFIFOW(fd,0) = 0x6d;
 			mmo_char_fromsql(i, &char_dat, false); //Only the short data is needed.
 			len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat);
 			WFIFOSET(fd,len);
 
-			RFIFOSKIP(fd,37);
-		}	
 			//to do
 			for(ch = 0; ch < MAX_CHARS; ch++) {
 				if (sd->found_char[ch] == -1) {
@@ -3306,6 +3158,9 @@ int parse_char(int fd)
 					break;
 				}
 			}
+
+			RFIFOSKIP(fd,37);
+		}	
 		break;
 
 		case 0x68:	// delete char

@@ -76,10 +76,10 @@ int Sql_SetEncoding(struct Sql* self, const char* encoding);
 int Sql_Ping(struct Sql* self);
 
 /// Escapes a string. out_to must be strlen(from)*2+1 in size
-size_t Sql_EscapeString(struct Sql*, char *out_to, const char *from);
+size_t Sql_EscapeString(struct Sql* self, char* out_to, const char* from);
 
 /// Escapes a string. out_to must be from_len*2+1 in size
-size_t Sql_EscapeStringLen(struct Sql*, char *out_to, const char *from, size_t from_len);
+size_t Sql_EscapeStringLen(struct Sql* self, char* out_to, const char* from, size_t from_len);
 
 /// Executes a query.
 int Sql_Query(struct Sql* self, const char* query, ...);

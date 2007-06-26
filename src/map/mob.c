@@ -3182,7 +3182,10 @@ static unsigned int mob_drop_adjust(int rate, int rate_adjust, unsigned short ra
 	return cap_value(rate,rate_min,rate_max);
 }
 
-int mob_parse_dbrow(char** str)
+/*==========================================
+ * processes one mobdb entry
+ *------------------------------------------*/
+static bool mob_parse_dbrow(char** str)
 {
 	struct mob_db *db;
 	struct status_data *status;
@@ -3192,15 +3195,15 @@ int mob_parse_dbrow(char** str)
 	
 	class_ = str[0] ? atoi(str[0]) : 0;
 	if (class_ == 0)
-		return 0; //Leave blank lines alone... [Skotlex]
+		return false; //Leave blank lines alone... [Skotlex]
 	
 	if (class_ <= 1000 || class_ > MAX_MOB_DB) {
 		ShowWarning("Mob with ID: %d not loaded. ID must be in range [%d-%d]\n", class_, 1000, MAX_MOB_DB);
-		return 0;
+		return false;
 	}
 	if (pcdb_checkid(class_)) {
 		ShowWarning("Mob with ID: %d not loaded. That ID is reserved for player classes.\n");
-		return 0;
+		return false;
 	}
 	
 	if (mob_db_data[class_] == NULL)
@@ -3404,7 +3407,7 @@ int mob_parse_dbrow(char** str)
 		}
 	}
 	
-	return 1;
+	return true;
 }
 
 /*==========================================
@@ -3412,13 +3415,15 @@ int mob_parse_dbrow(char** str)
  *------------------------------------------*/
 static int mob_readdb(void)
 {
-	FILE *fp;
-	char line[1024];
-	char *filename[]={ "mob_db.txt","mob_db2.txt" };
-	int i, fi;
-	unsigned int ln = 0;
+	char* filename[]={ "mob_db.txt", "mob_db2.txt" };
+	int fi;
+	unsigned int count = 0;
 	
-	for(fi = 0; fi < 2; fi++) {
+	for(fi = 0; fi < 2; fi++)
+	{
+		char line[1024];
+		FILE* fp;
+		
 		sprintf(line, "%s/%s", db_path, filename[fi]);
 		fp = fopen(line, "r");
 		if(fp == NULL) {
@@ -3430,65 +3435,83 @@ static int mob_readdb(void)
 		while(fgets(line, sizeof(line), fp))
 		{
 			char *str[38+2*MAX_MOB_DROP], *p, *np;
+			int i;
 			
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 			
-			for(i = 0, p = line; i < 38 + 2*MAX_MOB_DROP; i++) {
+			for(i = 0, p = line; i < 38 + 2*MAX_MOB_DROP; i++)
+			{
+				str[i] = p;
 				if((np = strchr(p, ',')) != NULL) {
-					str[i] = p; *np = 0; p = np + 1;
-				} else
-					str[i] = p;
+					*np = '\0'; p = np + 1;
+				}
 			}
 			
 			if(i < 38 + 2*MAX_MOB_DROP) {
-				ShowWarning("mob_readdb: Insufficient columns for mob with ID: %d\n", str[0] ? atoi(str[0]) : 0);
+				ShowWarning("mob_readdb: Insufficient columns for mob with id: %d, skipping.\n", str[0] ? atoi(str[0]) : 0);
 				continue;
 			}
 			
 			if (!mob_parse_dbrow(str))
 				continue;
 			
-			ln++; // counts the number of correctly parsed entries
+			count++; // counts the number of correctly parsed entries
 		}
+
 		fclose(fp);
-		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, filename[fi]);
-		ln = 0;
+
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi]);
+		count = 0;
 	}
 	return 0;
 }
 
 #ifndef TXT_ONLY
 /*==========================================
- * SQL reading
+ * mob_db table reading
  *------------------------------------------*/
 static int mob_read_sqldb(void)
 {
 	char *mob_db_name[] = { mob_db_db, mob_db2_db };
 	int fi;
-	unsigned int ln = 0;
+	unsigned int count = 0;
 	
-	for (fi = 0; fi < 2; fi++) {
-		sprintf (tmp_sql, "SELECT * FROM `%s`", mob_db_name[fi]);
-		if (mysql_query(&mmysql_handle, tmp_sql)) {
-			ShowSQL("DB error (%s) - %s\n", mob_db_name[fi], mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+	for (fi = 0; fi < 2; fi++)
+	{
+		if (SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", mob_db_name[fi]))
+		{
+			Sql_ShowDebug(mmysql_handle);
 			continue;
 		}
-		sql_res = mysql_store_result(&mmysql_handle);
-		if (sql_res) {
-			while((sql_row = mysql_fetch_row(sql_res))){
-				
-				if (!mob_parse_dbrow(sql_row))
-					continue;
-				
-				ln++; // counts the number of correctly parsed entries
+
+		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) )
+		{
+			char line[1024];
+			char *str[38+2*MAX_MOB_DROP], *p;
+			int i;
+
+			// wrap the result into a TXT-compatible format
+			for(i = 0, p = line; i < 38 + 2*MAX_MOB_DROP; i++)
+			{
+				char* data;
+				Sql_GetData(mmysql_handle, i, &data, NULL);
+
+				strcpy(p, data);
+				str[i] = p;
+				p+= strlen(data)+1;
 			}
+
+			if (!mob_parse_dbrow(str))
+				continue;
 			
-			mysql_free_result(sql_res);
-			ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, mob_db_name[fi]);
-			ln = 0;
+			count++; // counts the number of correctly parsed entries
 		}
+
+		Sql_FreeResult(mmysql_handle);
+	
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, mob_db_name[fi]);
+		count = 0;
 	}
 	return 0;
 }

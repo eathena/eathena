@@ -76,7 +76,7 @@ unsigned int new_reg_tick = 0;
 struct Sql* sql_handle;
 
 // database parameters
-int login_server_port = 3306;
+uint16 login_server_port = 3306;
 char login_server_ip[32] = "127.0.0.1";
 char login_server_id[32] = "ragnarok";
 char login_server_pw[32] = "ragnarok";
@@ -189,9 +189,6 @@ static int sync_ip_addresses(int tid, unsigned int tick, int id, int data)
 //-----------------------------------------------------
 void read_gm_account(void)
 {
-	char* account;
-	char* level;
-
 	if( !login_config.login_gm_read )
 		return;// char server's job
 
@@ -205,12 +202,16 @@ void read_gm_account(void)
 
 	for( GM_num = 0; SQL_SUCCESS == Sql_NextRow(sql_handle); ++GM_num )
 	{
+		char* account;
+		char* level;
+
 		Sql_GetData(sql_handle, 0, &account, NULL);
 		Sql_GetData(sql_handle, 1, &level, NULL);
 
 		gm_account_db[GM_num].account_id = atoi(account);
 		gm_account_db[GM_num].level = atoi(level);
 	}
+
 	Sql_FreeResult(sql_handle);
 }
 
@@ -297,7 +298,7 @@ int mmo_auth_sqldb_init(void)
 
 	// DB connection start
 	ShowStatus("Connect Login Database Server....\n");
-	if( SQL_ERROR == Sql_Connect(sql_handle, login_server_id, login_server_pw, login_server_ip, (uint16)login_server_port, login_server_db) )
+	if( SQL_ERROR == Sql_Connect(sql_handle, login_server_id, login_server_pw, login_server_ip, login_server_port, login_server_db) )
 	{
 		Sql_ShowDebug(sql_handle);
 		Sql_Free(sql_handle);
@@ -354,9 +355,8 @@ void mmo_db_close(void)
 int mmo_auth_new(struct mmo_account* account, char sex)
 {
 	unsigned int tick = gettick();
-	char esc_userid[NAME_LENGTH*2+1];// escaped username
-	char esc_password[NAME_LENGTH*2+1];// escaped password
-	size_t len;
+	char md5buf[32+1];
+	struct SqlStmt* stmt;
 
 	//Account Registration Flood Protection by [Kevin]
 	if( DIFF_TICK(tick, new_reg_tick) < 0 && num_regs >= allowed_regs )
@@ -365,44 +365,35 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		return 3;
 	}
 
-	// escape username
-	len = strnlen(account->userid, NAME_LENGTH);
-	Sql_EscapeStringLen(sql_handle, esc_userid, account->userid, len);
-
-	//Check for preexisting account
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `%s` FROM `%s` WHERE `userid` = '%s'", login_db_userid, login_db, esc_userid) )
+	// check if the account doesn't exist already
+	stmt = SqlStmt_Malloc(sql_handle);
+	if ( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `%s` FROM `%s` WHERE `userid` = '?'", login_db_userid, login_db)
+	  || SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH))
+	  || SQL_SUCCESS != SqlStmt_Execute(stmt)
+	  || SqlStmt_NumRows(stmt) > 0 )
 	{
-		Sql_ShowDebug(sql_handle);
-		return 1;// Return Incorrect user/pass?
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		return 1; // incorrect user/pass
 	}
-
-	if( Sql_NumRows(sql_handle) > 0 )
-	{
-		Sql_FreeResult(sql_handle);
-		return 1;// Already exists, return incorrect user/pass.
-	}
-
-	// normalize sex
-	sex = TOUPPER(sex);
-
-	// escape/encode password
+	SqlStmt_Free(stmt);
+	
+	// insert new entry into db
+	//TODO: error checking
+	stmt = SqlStmt_Malloc(sql_handle);
+	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('?', '?', '%c', 'a@a.com')", login_db, login_db_userid, login_db_user_pass, TOUPPER(sex));
+	SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH));
 	if( login_config.use_md5_passwds )
 	{
-		MD5_String(account->passwd, esc_password);
+		MD5_String(account->passwd, md5buf);
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, md5buf, 32);
 	}
 	else
-	{
-		len = strnlen(account->passwd, NAME_LENGTH);
-		Sql_EscapeStringLen(sql_handle, esc_password, account->passwd, len);
-	}
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, account->passwd, strnlen(account->passwd, NAME_LENGTH));
+	SqlStmt_Execute(stmt);
+	SqlStmt_Free(stmt);
 
-	ShowInfo("New account: userid='%s' passwd='%s' sex='%c'\n", esc_userid, esc_password, sex);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES ('%s', '%s', '%c', '%s')", login_db, login_db_userid, login_db_user_pass, esc_userid, esc_password, sex, "a@a.com") )	
-	{
-		Sql_ShowDebug(sql_handle);
-		return 1;
-	}
+	ShowInfo("New account: userid='%s' passwd='%s' sex='%c'\n", account->userid, account->passwd, TOUPPER(sex));
 
 	if( Sql_LastInsertId(sql_handle) < START_ACCOUNT_NUM )
 	{// Invalid Account ID! Must update it.
@@ -410,13 +401,13 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `%s`='%d' WHERE `%s`='%lld'", login_db, login_db_account_id, START_ACCOUNT_NUM, login_db_account_id, id) )
 		{
 			Sql_ShowDebug(sql_handle);
-			ShowError("New account '%s' has an invalid account ID [%lld] which could not be updated (account_id must be %d or higher).", esc_userid, id, START_ACCOUNT_NUM);
+			ShowError("New account '%s' has an invalid account ID [%lld] which could not be updated (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM);
 			//Just delete it and fail.
 			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `%s`='%lld'", login_db, login_db_account_id, id) )
 				Sql_ShowDebug(sql_handle);
 			return 1;
 		}
-		ShowNotice("Updated New account '%s' ID %d->%d (account_id must be %d or higher).", esc_userid, id, START_ACCOUNT_NUM, START_ACCOUNT_NUM);
+		ShowNotice("Updated New account '%s' ID %d->%d (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM, START_ACCOUNT_NUM);
 	}
 	if( DIFF_TICK(tick, new_reg_tick) > 0 )
 	{// Update the registration check.
@@ -433,13 +424,11 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 //--------------------------------------------------------------------
 int charif_sendallwos(int sfd, uint8* buf, size_t len)
 {
-	int i;
-	int c;
-	int fd;
+	int i, c;
 
 	for( i = 0, c = 0; i < MAX_SERVERS; ++i )
 	{
-		fd = server_fd[i];
+		int fd = server_fd[i];
 		if( session_isValid(fd) && fd != sfd )
 		{
 			WFIFOHEAD(fd,len);
@@ -550,8 +539,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 
 	// retrieve login entry for the specified username
 	if( SQL_ERROR == Sql_Query(sql_handle,
-		"SELECT `%s`,`%s`,`lastlogin`,`sex`,`connect_until`,`ban_until`,`state`,`%s` "
-		"FROM `%s` WHERE `%s`= %s '%s'",
+		"SELECT `%s`,`%s`,`lastlogin`,`sex`,`connect_until`,`ban_until`,`state`,`%s` FROM `%s` WHERE `%s`= %s '%s'",
 		login_db_account_id, login_db_user_pass, login_db_level,
 		login_db, login_db_userid, (login_config.case_sensitive ? "BINARY" : ""), esc_userid) )
 		Sql_ShowDebug(sql_handle);
@@ -560,8 +548,11 @@ int mmo_auth(struct mmo_account* account, int fd)
 	if( Sql_NumRows(sql_handle) == 0 )
 	{// there's no id.
 		ShowNotice("auth failed: no such account '%s'\n", esc_userid);
+		Sql_FreeResult(sql_handle);
 		return 0;
 	}
+
+	Sql_NextRow(sql_handle); //TODO: error checking?
 
 	Sql_GetData(sql_handle, 0, &data, &len);
 	account->account_id = atoi(data);
@@ -577,23 +568,12 @@ int mmo_auth(struct mmo_account* account, int fd)
 	memcpy(password, data, len);
 	password[len] = '\0';
 
-	Sql_GetData(sql_handle, 2, &data, &len);
-	safestrncpy(account->lastlogin, data, sizeof(account->lastlogin));
-
-	Sql_GetData(sql_handle, 3, &data, &len);
-	account->sex = (*data == 'S' ? 2 : *data == 'M' ? 1 : 0);
-
-	Sql_GetData(sql_handle, 4, &data, &len);
-	connect_until = atol(data);
-
-	Sql_GetData(sql_handle, 5, &data, &len);
-	ban_until_time = atol(data);
-
-	Sql_GetData(sql_handle, 6, &data, &len);
-	state = atoi(data);
-
-	Sql_GetData(sql_handle, 7, &data, &len);
-	account->level = atoi(data);
+	Sql_GetData(sql_handle, 2, &data, &len); safestrncpy(account->lastlogin, data, sizeof(account->lastlogin));
+	Sql_GetData(sql_handle, 3, &data, &len); account->sex = (*data == 'S' ? 2 : *data == 'M' ? 1 : 0);
+	Sql_GetData(sql_handle, 4, &data, &len); connect_until = atol(data);
+	Sql_GetData(sql_handle, 5, &data, &len); ban_until_time = atol(data);
+	Sql_GetData(sql_handle, 6, &data, &len); state = atoi(data);
+	Sql_GetData(sql_handle, 7, &data, &len); account->level = atoi(data);
 	if( account->level > 99 )
 		account->level = 99;
 
@@ -1224,40 +1204,37 @@ int parse_fromchar(int fd)
 		{
 			int account_id = RFIFOL(fd, 2);
 			int char_id = RFIFOL(fd, 6);
+			size_t off;
 
 			if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'", reg_db, account_id) )
 				Sql_ShowDebug(sql_handle);
-			else if( Sql_NumRows(sql_handle) > 0 )
+
+			WFIFOHEAD(fd,10000);
+			WFIFOW(fd,0) = 0x2729;
+			WFIFOL(fd,4) = account_id;
+			WFIFOL(fd,8) = char_id;
+			WFIFOB(fd,12) = 1; //Type 1 for Account2 registry
+			off = 13;
+			while( SQL_SUCCESS == Sql_NextRow(sql_handle) && off < 9000 )
 			{
-				size_t off;
-
-				WFIFOHEAD(fd,10000);
-				WFIFOW(fd,0) = 0x2729;
-				WFIFOL(fd,4) = account_id;
-				WFIFOL(fd,8) = char_id;
-				WFIFOB(fd,12) = 1; //Type 1 for Account2 registry
-				off = 13;
-				while( SQL_SUCCESS == Sql_NextRow(sql_handle) && off < 9000 )
+				char* data;
+				
+				// str
+				Sql_GetData(sql_handle, 0, &data, NULL);
+				if( *data != '\0' )
 				{
-					char* data;
-
-					// str
-					Sql_GetData(sql_handle, 0, &data, NULL);
-					if( *data != '\0' )
-					{
-						off += sprintf(WFIFOP(fd,off), "%s", data)+1; //We add 1 to consider the '\0' in place.
-
-						// value
-						Sql_GetData(sql_handle, 1, &data, NULL);
-						off += sprintf(WFIFOP(fd,off), "%s", data)+1;
-					}
+					off += sprintf(WFIFOP(fd,off), "%s", data)+1; //We add 1 to consider the '\0' in place.
+					
+					// value
+					Sql_GetData(sql_handle, 1, &data, NULL);
+					off += sprintf(WFIFOP(fd,off), "%s", data)+1;
 				}
-				Sql_FreeResult(sql_handle);
-				if( off >= 9000 )
-					ShowWarning("Too many account2 registries for AID %d. Some registries were not sent.\n", account_id);
-				WFIFOW(fd,2) = (uint16)off;
-				WFIFOSET(fd,WFIFOW(fd,2));
 			}
+			Sql_FreeResult(sql_handle);
+			if( off >= 9000 )
+				ShowWarning("Too many account2 registries for AID %d. Some registries were not sent.\n", account_id);
+			WFIFOW(fd,2) = (uint16)off;
+			WFIFOSET(fd,WFIFOW(fd,2));
 
 			RFIFOSKIP(fd,10);
 		}
@@ -1923,7 +1900,7 @@ void sql_config_read(const char* cfgName)
 		else if (!strcmpi(w1, "login_server_ip"))
 			strcpy(login_server_ip, w2);
 		else if (!strcmpi(w1, "login_server_port"))
-			login_server_port = atoi(w2);
+			login_server_port = (uint16)atoi(w2);
 		else if (!strcmpi(w1, "login_server_id"))
 			strcpy(login_server_id, w2);
 		else if (!strcmpi(w1, "login_server_pw"))

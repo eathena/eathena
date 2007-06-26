@@ -3,6 +3,13 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/06/26
+	* Commented out the mail code due to highly incompatible coding;
+	  the whole thing should just be replaced with the official mail system
+	* Rewrote mapserver's sql code - itemdb, mobdb, mapreg, logs
+	* Restored txt zeny logging code (accidentally commented out in r9017 ?)
+	* Fixed char creation always failing (RFIFOSKIP being done too soon)
+	* Fixed a SqlStmt_BindColumn() typo making it always crash on NULL
 2007/06/18
 	* Added support for platform dependent types to sql statements.
 	* Char sql server using the new code. (testing is needed)
@@ -16,6 +23,8 @@ to change the database driver just reimplement common/sql.c with the new driver
 AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO INTO TRUNK.
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 
+- fixed poorly written code in query_sql (r7975)
+- fixed txt's zeny log not working (since r3851)
 2007/06/11
 	* Fixed NPC_PROVOCATION (now the casting mob doesn't keep attacking)
 	* accumulated clif.c fixes [ultramage]

@@ -561,7 +561,7 @@ int SqlStmt_BindColumn(struct SqlStmt* self, size_t idx, enum SqlDataType buffer
 			self->columns[i].buffer_type = MYSQL_TYPE_NULL;
 		self->bind_columns = true;
 	}
-	return BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len, out_length, out_is_null);
+	return BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, out_length, out_is_null);
 }
 
 

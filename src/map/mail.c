@@ -2,13 +2,6 @@
 // For more information, see LICENCE in the main folder
 
 #ifndef TXT_ONLY
-// Mail System for eAthena SQL
-// Created by Valaris
-// moved all strings to msg_athena.conf [Lupus]
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "../common/strlib.h"
 #include "../common/socket.h"
@@ -24,12 +17,16 @@
 #include "pc.h"
 #include "mail.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 int MAIL_CHECK_TIME = 120000;
 int mail_timer;
-//extern char *msg_table[1000]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
 int mail_check(struct map_session_data *sd,int type)
 {
+/*
 	int i = 0, new_ = 0, priority = 0;
 	char message[80];
 
@@ -106,13 +103,13 @@ int mail_check(struct map_session_data *sd,int type)
 		//clif_displaymessage(sd->fd, "You have no new messages.");
 		clif_displaymessage(sd->fd, msg_txt(516));
 	}
-
+*/
 	return 0;
 }
 
 int mail_read(struct map_session_data *sd, int message_id)
 {
-
+/*
 	char message[80];
 
 	nullpo_retr (0, sd);
@@ -163,15 +160,15 @@ int mail_read(struct map_session_data *sd, int message_id)
 		ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
     }
-
+*/
 	return 0;
 }
 
-int mail_delete(struct map_session_data *sd, int message_id)
+int mail_delete(struct map_session_data *sd, int index)
 {
 	nullpo_retr (0, sd);
-
-	sprintf(tmp_sql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%d\" ORDER by `message_id` LIMIT %d, 1",mail_db,sd->status.account_id,message_id-1);
+/*
+	sprintf(tmp_sql,"SELECT `message_id`,`to_account_id`,`read_flag`,`priority`,`check_flag` from `%s` WHERE `to_account_id` = \"%d\" ORDER by `message_id` LIMIT %d, 1",mail_db,sd->status.account_id,index-1);
 
 	if (mysql_query(&mail_handle, tmp_sql)) {
 		ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
@@ -219,14 +216,14 @@ int mail_delete(struct map_session_data *sd, int message_id)
 		ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
 		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
 	}
-
+*/
 	return 0;
 }
 
 int mail_send(struct map_session_data *sd, char *name, char *message, int flag)
 {
 	nullpo_retr (0, sd);
-
+/*
 	if(pc_isGM(sd) < 80 && sd->mail_counter > 0) {
 		//clif_displaymessage(sd->fd,"You must wait 10 minutes before sending another message");
 		clif_displaymessage(sd->fd,msg_txt(522));
@@ -283,7 +280,7 @@ int mail_send(struct map_session_data *sd, char *name, char *message, int flag)
 
 	//clif_displaymessage(sd->fd,"Mail has been sent.");
 	clif_displaymessage(sd->fd,msg_txt(525));
-
+*/
 	return 0;
 }
 
@@ -299,6 +296,7 @@ static int mail_check_timer_sub(struct map_session_data *sd, va_list va)
 
 int mail_check_timer(int tid,unsigned int tick,int id,int data)
 {
+/*
 	if(mail_timer != tid)
 		return 0;
 
@@ -331,13 +329,16 @@ int mail_check_timer(int tid,unsigned int tick,int id,int data)
 	}
 
 	mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
+*/
 	return 0;
 }
 
 int do_init_mail(void)
 {
+/*
 	add_timer_func_list(mail_check_timer,"mail_check_timer");
 	mail_timer=add_timer(gettick()+MAIL_CHECK_TIME,mail_check_timer,0,0);
+*/
 	return 0;
 }
 

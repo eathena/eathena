@@ -1,16 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <math.h>
-
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
 #include "../common/cbasetypes.h"
 #include "../common/core.h"
 #include "../common/timer.h"
@@ -44,16 +34,23 @@
 #include "mercenary.h"	//[orn]
 #include "atcommand.h"
 #include "charcommand.h"
-
 #include "log.h"
-
 #include "irc.h"
+#ifndef TXT_ONLY
+#include "mail.h"
+#endif
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <math.h>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 
 #ifndef TXT_ONLY
-
-#include "mail.h"
-
-char tmp_sql[65535]="";
 char default_codepage[32] = "";
 
 int map_server_port = 3306;
@@ -61,9 +58,7 @@ char map_server_ip[32] = "127.0.0.1";
 char map_server_id[32] = "ragnarok";
 char map_server_pw[32] = "ragnarok";
 char map_server_db[32] = "ragnarok";
-MYSQL mmysql_handle;
-MYSQL_RES* sql_res;
-MYSQL_ROW sql_row;
+struct Sql* mmysql_handle;
 
 int db_use_sqldbs = 0;
 char item_db_db[32] = "item_db";
@@ -79,9 +74,7 @@ int log_db_port = 3306;
 char log_db_id[32] = "ragnarok";
 char log_db_pw[32] = "ragnarok";
 char log_db[32] = "log";
-MYSQL logmysql_handle;
-MYSQL_RES* logsql_res;
-MYSQL_ROW logsql_row;
+struct Sql* logmysql_handle;
 
 // mail system
 int mail_server_enable = 0;
@@ -91,9 +84,7 @@ char mail_server_id[32] = "ragnarok";
 char mail_server_pw[32] = "ragnarok";
 char mail_server_db[32] = "ragnarok";
 char mail_db[32] = "mail";
-MYSQL mail_handle;
-MYSQL_RES* mail_res;
-MYSQL_ROW mail_row;
+struct Sql* mail_handle;
 
 #endif /* not TXT_ONLY */
 
@@ -2967,43 +2958,30 @@ int inter_config_read(char *cfgName)
  *---------------------------------------*/
 int map_sql_init(void)
 {
-	mysql_init(&mmysql_handle);
+	// main db connection
+	mmysql_handle = Sql_Malloc();
 
-	//DB connection start
 	ShowInfo("Connecting to the Map DB Server....\n");
-	if(!mysql_real_connect(&mmysql_handle, map_server_ip, map_server_id, map_server_pw,
-		map_server_db ,map_server_port, (char *)NULL, 0)) {
-			//pointer check
-			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
+	if( SQL_ERROR == Sql_Connect(mmysql_handle, map_server_id, map_server_pw, map_server_ip, map_server_port, map_server_db) )
+		exit(1);
+	ShowStatus("connect success! (Map Server Connection)\n");
+
+	if( strlen(default_codepage) > 0 )
+		if ( SQL_ERROR == Sql_SetEncoding(mmysql_handle, default_codepage) )
+			Sql_ShowDebug(mmysql_handle);
+
+	if(mail_server_enable)
+	{ 
+		// mail system
+		mail_handle = Sql_Malloc();
+
+        ShowInfo("Connecting to the Mail DB Server....\n");
+		if( SQL_ERROR == Sql_Connect(mail_handle, mail_server_id, mail_server_pw, mail_server_ip, mail_server_port, mail_server_db) )
 			exit(1);
-	}
-	else {
-		ShowStatus("connect success! (Map Server Connection)\n");
-	}
 
-	if(mail_server_enable) { // mail system [Valaris]
-		mysql_init(&mail_handle);
-	        ShowInfo("Connecting to the Mail DB Server....\n");
-		if(!mysql_real_connect(&mail_handle, mail_server_ip, mail_server_id, mail_server_pw,
-			mail_server_db ,mail_server_port, (char *)NULL, 0)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
-				exit(1);
-		}
-		if( strlen(default_codepage) > 0 ) {
-			sprintf( tmp_sql, "SET NAMES %s", default_codepage );
-			if (mysql_query(&mail_handle, tmp_sql)) {
-				ShowSQL("DB error - %s\n",mysql_error(&mail_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-		}
-	}
-
-	if( strlen(default_codepage) > 0 ) {
-		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
-		if (mysql_query(&mmysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+		if( strlen(default_codepage) > 0 )
+			if ( SQL_ERROR == Sql_SetEncoding(mail_handle, default_codepage) )
+				Sql_ShowDebug(mail_handle);
 	}
 
 	return 0;
@@ -3011,13 +2989,15 @@ int map_sql_init(void)
 
 int map_sql_close(void)
 {
-	mysql_close(&mmysql_handle);
 	ShowStatus("Close Map DB Connection....\n");
+	Sql_Free(mmysql_handle);
+	mmysql_handle = NULL;
 
 	if (log_config.sql_logs)
 	{
-		mysql_close(&logmysql_handle);
 		ShowStatus("Close Log DB Connection....\n");
+		Sql_Free(logmysql_handle);
+		logmysql_handle = NULL;
 	}
 
 	return 0;
@@ -3025,25 +3005,18 @@ int map_sql_close(void)
 
 int log_sql_init(void)
 {
-    mysql_init(&logmysql_handle);
+	// log db connection
+	logmysql_handle = Sql_Malloc();
 
-	//DB connection start
 	ShowInfo(""CL_WHITE"[SQL]"CL_RESET": Connecting to the Log Database "CL_WHITE"%s"CL_RESET" At "CL_WHITE"%s"CL_RESET"...\n",log_db,log_db_ip);
-	if(!mysql_real_connect(&logmysql_handle, log_db_ip, log_db_id, log_db_pw,
-		log_db ,log_db_port, (char *)NULL, 0)) {
-			//pointer check
-			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
-			exit(1);
-	}
-  
-	ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
-	if( strlen(default_codepage) > 0 ) {
-		sprintf( tmp_sql, "SET NAMES %s", default_codepage );
-		if (mysql_query(&logmysql_handle, tmp_sql)) {
-			ShowSQL("DB error - %s\n",mysql_error(&logmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
-	}
+	if ( SQL_ERROR == Sql_Connect(logmysql_handle, log_db_id, log_db_pw, log_db_ip, log_db_port, log_db) )
+		exit(1);
+  	ShowStatus(""CL_WHITE"[SQL]"CL_RESET": Successfully '"CL_GREEN"connected"CL_RESET"' to Database '"CL_WHITE"%s"CL_RESET"'.\n", log_db);
+
+	if( strlen(default_codepage) > 0 )
+		if ( SQL_ERROR == Sql_SetEncoding(logmysql_handle, default_codepage) )
+			Sql_ShowDebug(logmysql_handle);
+
 	return 0;
 }
 
@@ -3053,31 +3026,25 @@ int log_sql_init(void)
 int map_sql_ping(int tid, unsigned int tick, int id, int data) 
 {
 	ShowInfo("Pinging SQL server to keep connection alive...\n");
-	mysql_ping(&mmysql_handle);
+	Sql_Ping(mmysql_handle);
 	if (log_config.sql_logs)
-		mysql_ping(&logmysql_handle);
+		Sql_Ping(logmysql_handle);
 	if(mail_server_enable)
-		mysql_ping(&mail_handle);
+		Sql_Ping(mail_handle);
 	return 0;
 }
 
 int sql_ping_init(void)
 {
-	int connection_timeout, connection_ping_interval;
+	uint32 connection_timeout, connection_ping_interval;
 
-	// set a default value first
+	// set a default value
 	connection_timeout = 28800; // 8 hours
 
 	// ask the mysql server for the timeout value
-	if (!mysql_query(&mmysql_handle, "SHOW VARIABLES LIKE 'wait_timeout'")
-	&& (sql_res = mysql_store_result(&mmysql_handle)) != NULL) {
-		sql_row = mysql_fetch_row(sql_res);
-		if (sql_row)
-			connection_timeout = atoi(sql_row[1]);
-		if (connection_timeout < 60)
-			connection_timeout = 60;
-		mysql_free_result(sql_res);
-	}
+	Sql_GetTimeout(mmysql_handle, &connection_timeout);
+	if (connection_timeout < 60)
+		connection_timeout = 60;
 
 	// establish keepalive
 	connection_ping_interval = connection_timeout - 30; // 30-second reserve
