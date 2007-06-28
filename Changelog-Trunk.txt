@@ -3,13 +3,20 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/06/28
+	* Fixed parameters being quoted in some sql statements.
+	* Reviewed sql.c/h: [FlavioJS]
+	- better documentation
+	- protected code against a NULL self and out-of-range indexes
+	- fixed output length of column bindings broken on some 64-bit platforms
+	- fixed SqlStmt not destroyed properly
 2007/06/26
 	* Commented out the mail code due to highly incompatible coding;
 	  the whole thing should just be replaced with the official mail system
 	* Rewrote mapserver's sql code - itemdb, mobdb, mapreg, logs
 	* Restored txt zeny logging code (accidentally commented out in r9017 ?)
 	* Fixed char creation always failing (RFIFOSKIP being done too soon)
-	* Fixed a SqlStmt_BindColumn() typo making it always crash on NULL
+	* Fixed a SqlStmt_BindColumn() typo making it always crash on NULL [ultramage]
 2007/06/18
 	* Added support for platform dependent types to sql statements.
 	* Char sql server using the new code. (testing is needed)
