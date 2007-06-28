@@ -23,6 +23,10 @@ Playtester
 Date		Added
 ======
 2007/06/28
+	* Merged Updated Knight Skill Quest. [Samuray22]
+	* Merged Updated Blacksmith Skill Quest.
+	* Merged Updated Monk Skill Quest.
+	* Merged Updated Alchemist Skill Quest.
 	* Fixed a bug in Hugel Bingo game system which prevented players from launch another game after a game has been canceled. [SinSloth]
 2007/06/22
 	* Fixed some typos to Kiel Hyre quest. [SinSloth]
