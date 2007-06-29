@@ -4,6 +4,7 @@ Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
 2007/06/29
+	* Fixed use of an internal field of the MYSQL_BIND structure in sql.c.
 	* Fixed some missing includes in sql.c.
 	* Fixed a precedence issue (&& and ||) in char_sql/char.c.
 	* Modified the makefiles to compile the new code (still ugly).

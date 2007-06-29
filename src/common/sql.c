@@ -5,6 +5,7 @@
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 #include "../common/utils.h"
+#include "../common/strlib.h"
 #include "sql.h"
 
 #ifdef WIN32
@@ -26,6 +27,17 @@ struct Sql
 	unsigned long* lengths;
 };
 
+//##TODO only define when necessary
+#define SQL_COMPAT_OUTLEN
+
+#if defined(SQL_COMPAT_OUTLEN)
+// compatibility between uint32 and unsigned long in out_length of columns
+struct compat_outlen_s
+{
+	uint32* out_length;
+	unsigned long buf;
+};
+#endif
 
 
 /// Sql statement
@@ -35,7 +47,9 @@ struct SqlStmt
 	MYSQL_STMT* stmt;
 	MYSQL_BIND* params;
 	MYSQL_BIND* columns;
-	uint32** column_lengths;
+#if defined(SQL_COMPAT_OUTLEN)
+	struct compat_outlen_s* column_lengths;
+#endif
 	size_t max_params;
 	size_t max_columns;
 	bool bind_params;
@@ -377,7 +391,7 @@ static enum enum_field_types SizeToMysqlIntType(int sz)
 /// Binds a parameter/result.
 ///
 /// @private
-static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void* buffer, size_t buffer_len/*, uint32* out_length*/, int8* out_is_null)
+static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void* buffer, size_t buffer_len, unsigned long* out_length, int8* out_is_null)
 {
 	memset(bind, 0, sizeof(MYSQL_BIND));
 	switch( buffer_type )
@@ -429,7 +443,7 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 	}
 	bind->buffer = buffer;
 	bind->buffer_length = (unsigned long)buffer_len;
-	//bind->length = (unsigned long*)out_length;// uint32 to unsigned long <- breakage on LP64/ILP64
+	bind->length = out_length;
 	bind->is_null = (my_bool*)out_is_null;
 	return SQL_SUCCESS;
 }
@@ -456,7 +470,10 @@ struct SqlStmt* SqlStmt_Malloc(struct Sql* sql)
 	self->stmt = stmt;
 	self->params = NULL;
 	self->columns = NULL;
-	self->column_lengths = NULL;
+#if defined(SQL_COMPAT_OUTLEN)
+	if( sizeof(unsigned long) != 4 )//##FIXME
+		self->column_lengths = NULL;
+#endif
 	self->max_params = 0;
 	self->max_columns = 0;
 	self->bind_params = false;
@@ -558,7 +575,7 @@ int SqlStmt_BindParam(struct SqlStmt* self, size_t idx, enum SqlDataType buffer_
 		self->bind_params = true;
 	}
 	if( idx < self->max_params )
-		return BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len/*, NULL*/, NULL);
+		return BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len, NULL, NULL);
 	else
 		return SQL_SUCCESS;// out of range - ignore
 }
@@ -610,6 +627,8 @@ size_t SqlStmt_NumColumns(struct SqlStmt* self)
 /// Binds the result of a column to a buffer.
 int SqlStmt_BindColumn(struct SqlStmt* self, size_t idx, enum SqlDataType buffer_type, void* buffer, size_t buffer_len, uint32* out_length, int8* out_is_null)
 {
+	unsigned long* outlen;
+
 	if( self == NULL )
 		return SQL_ERROR;
 
@@ -623,18 +642,34 @@ int SqlStmt_BindColumn(struct SqlStmt* self, size_t idx, enum SqlDataType buffer
 		{
 			self->max_columns = count;
 			RECREATE(self->columns, MYSQL_BIND, count);
-			RECREATE(self->column_lengths, uint32*, count);
+#if defined(SQL_COMPAT_OUTLEN)
+			if( sizeof(unsigned long) != 4 )//##FIXME
+				RECREATE(self->column_lengths, struct compat_outlen_s, count);
+#endif
 		}
 		memset(self->columns, 0, count*sizeof(MYSQL_BIND));
-		memset(self->column_lengths, 0, count*sizeof(uint32*));
+#if defined(SQL_COMPAT_OUTLEN)
+		if( sizeof(unsigned long) != 4 )//##FIXME
+			memset(self->column_lengths, 0, count*sizeof(struct compat_outlen_s));
+#endif
 		for( i = 0; i < count; ++i )
 			self->columns[i].buffer_type = MYSQL_TYPE_NULL;
 		self->bind_columns = true;
 	}
 	if( idx < self->max_columns )
 	{
-		self->column_lengths[idx] = out_length;
-		return BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len/*, out_length*/, out_is_null);
+#if defined(SQL_COMPAT_OUTLEN)
+		if( sizeof(unsigned long) != 4 )//##FIXME
+		{
+			self->column_lengths[idx].out_length = out_length;
+			outlen = &(self->column_lengths[idx].buf);
+		}
+		else
+#endif
+		{
+			outlen = (unsigned long*)out_length;
+		}
+		return BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, outlen, out_is_null);
 	}
 	else
 	{
@@ -677,20 +712,22 @@ int SqlStmt_NextRow(struct SqlStmt* self)
 		return SQL_ERROR;
 	}
 
+#if defined(SQL_COMPAT_OUTLEN)
 	// columns bindings - length
-	if( self->bind_columns )
+	if( self->bind_columns && sizeof(unsigned long) != 4 )//##FIXME
 	{
 		size_t i;
 		size_t count = SqlStmt_NumColumns(self);
-		uint32* out_length;
+		struct compat_outlen_s* outlen;
 
 		for( i = 0; i < count; ++i )
 		{
-			out_length = self->column_lengths[i];
-			if( out_length )
-				*out_length = (uint32)self->columns[i].length_value;
+			outlen = &self->column_lengths[i];
+			if( outlen->out_length )
+				*outlen->out_length = (uint32)outlen->buf;
 		}
 	}
+#endif
 
 	return SQL_SUCCESS;
 }
@@ -732,7 +769,10 @@ void SqlStmt_Free(struct SqlStmt* self)
 		if( self->columns )
 		{
 			aFree(self->columns);
-			aFree(self->column_lengths);
+#if defined(SQL_COMPAT_OUTLEN)
+			if( sizeof(unsigned long) != 4 )//##FIXME
+				aFree(self->column_lengths);
+#endif
 		}
 		aFree(self);
 	}
