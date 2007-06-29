@@ -11,6 +11,8 @@
 #include <winsock2.h>
 #endif
 #include <mysql.h>
+#include <string.h>// strlen/strnlen/memcpy/memset
+#include <stdlib.h>// strtoul
 
 
 

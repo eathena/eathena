@@ -4048,9 +4048,9 @@ int char_family(int pl1, int pl2, int pl3)
 		Sql_GetData(sql_handle, 2, &data, NULL);
 		childid = atoi(data);
 
-		if( pl1 == charid    && ((pl2 == partnerid && pl3 == childid  ) || (pl2 == childid   && pl3 == partnerid)) ||
-			pl1 == partnerid && ((pl2 == charid    && pl3 == childid  ) || (pl2 == childid   && pl3 == charid   )) ||
-			pl1 == childid   && ((pl2 == charid    && pl3 == partnerid) || (pl2 == partnerid && pl3 == charid   )) )
+		if( (pl1 == charid    && ((pl2 == partnerid && pl3 == childid  ) || (pl2 == childid   && pl3 == partnerid))) ||
+			(pl1 == partnerid && ((pl2 == charid    && pl3 == childid  ) || (pl2 == childid   && pl3 == charid   ))) ||
+			(pl1 == childid   && ((pl2 == charid    && pl3 == partnerid) || (pl2 == partnerid && pl3 == charid   ))) )
 		{
 			Sql_FreeResult(sql_handle);
 			return childid;
