@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/06/29
+	* Fixed some typos in various Rachel quests. [SinSloth]
 	* Fixed a minor bug in Hugel Bingo game system. [SinSloth]
 2007/06/28
 	* Merged Updated Knight Skill Quest. [Samuray22]
