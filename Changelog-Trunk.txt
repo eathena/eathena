@@ -3,6 +3,10 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/07/01
+	* First attempt at creating a configure script. (incomplete)
+	- run autoconf to generate configure from configure.in and run 
+	  ./configure to create the Makefile
 2007/06/29
 	* Fixed use of an internal field of the MYSQL_BIND structure in sql.c.
 	* Fixed some missing includes in sql.c.

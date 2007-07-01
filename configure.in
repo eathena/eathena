@@ -1,0 +1,212 @@
+#                                               -*- Autoconf -*-
+# Process this file with autoconf to produce a configure script.
+
+AC_PREREQ([2.61])
+AC_REVISION($Revision$)
+AC_INIT(eAthena)
+AC_CONFIG_SRCDIR([src/common/cbasetypes.h])
+AC_CONFIG_FILES([Makefile])
+
+
+
+# MySql (optional)
+AC_ARG_WITH(
+	[mysql],
+	AC_HELP_STRING(
+		[--with-mysql=@<:@ARG@:>@],
+		[use MySQL client library @<:@default=yes@:>@, optionally specify path to mysql_config]
+	),
+	[
+		if test "$withval" = "no" ; then
+			want_mysql="no"
+		elif test "$withval" = "yes" ; then
+			want_mysql="yes"
+		else
+			want_mysql="yes"
+			MYSQL_CONFIG="$withval"
+		fi
+	],
+	[want_mysql="yes"]
+)
+
+
+
+# PCRE (optional)
+AC_ARG_WITH(
+	[pcre],
+	AC_HELP_STRING(
+		[--with-pcre=@<:@ARG@:>@],
+		[use PCRE library @<:@default=yes@:>@, optionally specify the root directory path of pcre installation]
+	),
+	[
+		if test "$withval" = "no" ; then
+			want_pcre="no"
+		elif test "$withval" = "yes" ; then
+			want_pcre="yes"
+		else
+			want_pcre="yes"
+			PCRE_HOME="$withval"
+		fi
+	],
+	[with_pcre="yes"]
+)
+
+
+
+# zlib (required)
+AC_ARG_WITH(
+	[zlib],
+	AC_HELP_STRING(
+		[--with-zlib=DIR],
+		[root directory path of zlib installation (defaults to /usr/local or /usr if not found in /usr/local)]
+	),
+	[
+		test -n "$withval" && ZLIB_HOME="$withval"
+	],
+	[
+		ZLIB_HOME=/usr/local
+		test ! -f "${ZLIB_HOME}/include/zlib.h" && ZLIB_HOME=/usr
+	]
+)
+
+
+
+###############################################################################
+# Checks for programs.
+
+AC_LANG_C
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_MAKE_SET
+
+AC_C_BIGENDIAN
+if test "$ac_cv_c_bigendian" = "yes" ; then
+	AC_MSG_ERROR([Big Endian is not supported])
+fi
+
+AC_MSG_CHECKING([for 64 bits with void**])
+AC_MSG_RESULT()
+AC_CHECK_SIZEOF(void**)
+if test "$SIZEOF_VOIDPP" == "8" ; then
+	AC_MSG_NOTICE([64 bit detected, forcing 32 bits with -m32])
+	CFLAGS="$CFLAGS -m32"
+fi
+
+AC_CHECK_SIZEOF(void*)
+AC_CHECK_SIZEOF(char)
+AC_CHECK_SIZEOF(short)
+AC_CHECK_SIZEOF(int)
+AC_CHECK_SIZEOF(long)
+AC_CHECK_SIZEOF(long long)
+AC_CHECK_SIZEOF(float)
+AC_CHECK_SIZEOF(double)
+
+
+
+###############################################################################
+# Checks for libraries.
+
+
+
+dnl
+dnl Check MySQL libraries (optional)
+dnl
+
+MYSQL_VERSION=""
+MYSQL_CFLAGS=""
+MYSQL_LIBS=""
+
+if test "$want_mysql" = "yes" ; then
+	if test -z "$MYSQL_CONFIG" -o test; then
+		AC_PATH_PROG([MYSQL_CONFIG], [mysql_config], [no])
+	fi
+
+	AC_MSG_CHECKING([for MySQL libraries])
+	if test "$MYSQL_CONFIG" != "no" ; then
+		HAVE_MYSQL="yes"
+		MYSQL_VERSION="`$MYSQL_CONFIG --version`"
+		MYSQL_CFLAGS="`$MYSQL_CONFIG --cflags`"
+		MYSQL_LIBS="`$MYSQL_CONFIG --libs`"
+		AC_MSG_RESULT([yes])
+		AC_MSG_NOTICE([MySQL $MYSQL_VERSION found (optional)])
+	else
+		AC_MSG_RESULT([no])
+		AC_MSG_NOTICE([MySQL not found (optional)])
+	fi
+else
+	AC_MSG_NOTICE([MySQL disabled (optional)])
+fi
+
+AC_SUBST([HAVE_MYSQL])
+AC_SUBST([MYSQL_VERSION])
+AC_SUBST([MYSQL_CFLAGS])
+AC_SUBST([MYSQL_LIBS])
+
+
+
+dnl
+dnl Check PCRE libraries (optional)
+dnl
+##TODO PCRE version
+
+if test "$with_pcre" = "yes" ; then
+	if test -z "$PCRE_HOME" ; then
+		AC_CHECK_LIB([pcre], [pcre_study], [pcre_found=yes], [pcre_found=no])
+		if test "$pcre_found" = "yes" ; then
+			HAVE_PCRE="yes"
+			PCRE_LIBS="-lpcre"
+		fi
+	else
+		PCRE_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS -L$PCRE_HOME/lib"
+		PCRE_OLD_CPPFLAGS="$CPPFLAGS" ; CPPFLAGS="$CPPFLAGS -I$PCRE_HOME/include"
+		AC_CHECK_LIB(pcre, pcre_compile, [pcre_found=yes], [pcre_found=no])
+		CPPFLAGS="$PCRE_OLD_CPPFLAGS"
+		LDFLAGS="$PCRE_OLD_LDFLAGS"
+		if test "$pcre_found" = "yes" ; then
+			HAVE_PCRE="yes"
+			PCRE_LIBS="-L$PCRE_HOME/lib -lpcre"
+			test -d "$PCRE_HOME/include" && PCRE_CFLAGS="-I$PCRE_HOME/include"
+		fi
+	fi
+	if test "$pcre_found" = "yes" ; then
+		AC_MSG_NOTICE([PCRE $PCRE_VERSION found (optional)])
+	else
+		AC_MSG_NOTICE([PCRE not found (optional)])
+	fi
+else
+	AC_MSG_NOTICE([PCRE disabled (optional)])
+fi
+
+AC_SUBST([HAVE_PCRE])
+AC_SUBST([PCRE_VERSION])
+AC_SUBST([PCRE_CFLAGS])
+AC_SUBST([PCRE_LIBS])
+
+
+
+dnl
+dnl zlib libraries (required)
+dnl
+
+if test -n "${ZLIB_HOME}" ; then
+	LDFLAGS="$LDFLAGS -L${ZLIB_HOME}/lib"
+	CPPFLAGS="$CPPFLAGS -I${ZLIB_HOME}/include"
+fi
+AC_CHECK_LIB([z], [inflateEnd], ,[AC_MSG_ERROR([please specify a valid zlib installation with --with-zlib=DIR])])
+AC_CHECK_HEADER([zlib.h], , [AC_MSG_ERROR([please specify a valid zlib installation with --with-zlib=DIR])])
+
+
+
+dnl
+dnl math library (required)
+dnl
+
+AC_CHECK_LIB([m], [sqrt], , [AC_MSG_ERROR([math library not found])])
+
+
+
+###############################################################################
+# Checks for header files.
+
+###############################################################################
+AC_OUTPUT

@@ -1,34 +1,50 @@
+# Based on Makefile.in of $Revision$
 
-CACHED = $(shell ls | grep Makefile.cache)
-ifeq ($(findstring Makefile.cache,$(CACHED)), Makefile.cache)
-MKDEF = $(shell cat Makefile.cache)
-else
+@SET_MAKE@
 
-CC = gcc -pipe
-# CC = g++ --pipe
+CC = @CC@ -pipe
+CFLAGS = @CFLAGS@ -ffast-math -Wall -Wno-sign-compare
+LDFLAGS = @LDFLAGS@
+LIBS = @LIBS@
+CPPFLAGS = @CPPFLAGS@ -I../common
 
-MAKE = make
-# MAKE = gmake
+HAVE_MYSQL = @HAVE_MYSQL@
+MYSQL_VERSION = @MYSQL_VERSION@
+MYSQL_CFLAGS = @MYSQL_CFLAGS@
+MYSQL_LIBS = @MYSQL_LIBS@
+
+HAVE_PCRE = @HAVE_PCRE@
+PCRE_CFLAGS = @PCRE_CFLAGS@
+PCRE_LIBS = @PCRE_LIBS@
 
 # Detecting gcc version
 GCC_VERSION = $(shell $(CC) -v 2>&1 | grep version | cut -d' ' -f3  | cut -d'.' -f1)
+ifeq ($(GCC_VERSION), 4)
+	CFLAGS += -Wno-unused-parameter -Wno-pointer-sign
+endif
 
-OPT = -g
-OPT += -O2
+# Server Packet Protocol version (also defined in src/common/mmo.h)
+# CFLAGS += -DPACKETVER=8
+
+# Makes map-wide script variables be saved to SQL instead of TXT files.
+# CFLAGS += -DMAPREGSQL
+
+ifdef HAVE_PCRE
+	CFLAGS += $(PCRE_CFLAGS)
+	LIBS += $(PCRE_LIBS)
+endif
+
 # OPT += -O3
 # OPT += -mmmx
 # OPT += -msse
 # OPT += -msse2
 # OPT += -msse3
 # OPT += -rdynamic
-OPT += -ffast-math
+# OPT += -ffast-math
 # OPT += -fbounds-checking
 # OPT += -fstack-protector
 # OPT += -fomit-frame-pointer
-OPT += -Wall -Wno-sign-compare
-ifeq ($(GCC_VERSION), 4)
-	OPT += -Wno-unused-parameter -Wno-pointer-sign
-endif
+# OPT += -Wall -Wno-sign-compare
 # Server Packet Protocol version (also defined in src/common/mmo.h)
 # OPT += -DPACKETVER=8
 # Makes map-wide script variables be saved to SQL instead of TXT files.
@@ -80,57 +96,14 @@ ifeq ($(findstring mingw,$(shell gcc --version)), mingw)
    LIBS += -lws2_32
 endif
 
-
-ifeq ($(findstring x86_64,$(ARCH)), x86_64)
-    OPT += -m32
-endif
-
-CFLAGS = $(OPT) -I../common $(OS_TYPE)
-
-ifdef SQLFLAG
-  ifdef IS_MINGW
-    CFLAGS += -I../mysql
-    LIBS += -lmysql
-  else
-    MYSQLFLAG_CONFIG = $(shell which mysql_config)
-    ifeq ($(findstring /,$(MYSQLFLAG_CONFIG)), /)
-      MYSQLFLAG_VERSION = $(shell $(MYSQLFLAG_CONFIG) --version | sed s:\\..*::)
-      ifeq ($(findstring 5,$(MYSQLFLAG_VERSION)), 5)
-        MYSQLFLAG_CONFIG_ARGUMENT = --include
-      else
-        MYSQLFLAG_CONFIG_ARGUMENT = --cflags
-      endif
-      CFLAGS += $(shell $(MYSQLFLAG_CONFIG) $(MYSQLFLAG_CONFIG_ARGUMENT))
-      LIBS += $(shell $(MYSQLFLAG_CONFIG) --libs)
-    else
-      CFLAGS += -I/usr/local/include/mysql
-      LIBS += -L/usr/local/lib/mysql -lmysqlclient
-    endif
-  endif
-endif
-
-ifneq ($(findstring -lz,$(LIBS)), -lz)
-   LIBS += -lz
-endif
-ifneq ($(findstring -lm,$(LIBS)), -lm)
-   LIBS += -lm
-endif
-
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS)" LIB_S="$(LIBS)"
-
-endif
+CFLAGS += $(OS_TYPE)
 
 .PHONY: txt sql common common_sql login login_sql char char_sql map map_sql ladmin converters \
-	addons plugins tools clean clean_cache depend
+	addons plugins tools clean depend
 
-txt: Makefile.cache conf common login char map ladmin clean_cache
+MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS) $(LDFLAGS) $(CPPFLAGS)" LIB_S="$(LIBS)"
 
-ifdef SQLFLAG
-sql: Makefile.cache conf common_sql login_sql char_sql map_sql clean_cache
-else
-sql:
-	$(MAKE) SQLFLAG=1 $@
-endif
+txt: conf common login char map ladmin clean_cache
 
 conf:
 	cp -r conf-tmpl conf
@@ -149,17 +122,30 @@ char: src/char/GNUmakefile common
 map: src/map/GNUmakefile common
 	$(MAKE) -C src/map $(MKDEF) txt
 
+#####################################################################
+ifdef HAVE_MYSQL
+
+MKDEF_SQL = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_CFLAGS) $(LDFLAGS) $(MYSQL_LDFLAGS) $(CPPFLAGS) $(MYSQL_CPPFLAGS)" LIB_S="$(LIBS) $(MYSQL_LIBS)"
+
+sql: conf common_sql login_sql char_sql map_sql
+
 common_sql: src/common/GNUmakefile
-	$(MAKE) -C src/common $(MKDEF) sql
+	$(MAKE) -C src/common $(MKDEF_SQL) sql
 
 login_sql: src/login_sql/GNUmakefile common_sql
-	$(MAKE) -C src/login_sql $(MKDEF) sql
+	$(MAKE) -C src/login_sql $(MKDEF_SQL) sql
 
 char_sql: src/char_sql/GNUmakefile common_sql
-	$(MAKE) -C src/char_sql $(MKDEF) sql
+	$(MAKE) -C src/char_sql $(MKDEF_SQL) sql
 
 map_sql: src/map/GNUmakefile common_sql
-	$(MAKE) -C src/map $(MKDEF) sql
+	$(MAKE) -C src/map $(MKDEF_SQL) sql
+	
+converters: src/txt-converter/GNUmakefile common_sql
+	$(MAKE) -C src/txt-converter $(MKDEF_SQL)
+
+endif
+#####################################################################
 
 ladmin: src/ladmin/GNUmakefile common
 	$(MAKE) -C src/$@ $(MKDEF)
@@ -169,18 +155,10 @@ plugins addons: src/plugins/GNUmakefile common
 
 tools:
 	$(MAKE) -C src/tool $(MKDEF)
-	
-ifdef SQLFLAG
-converters: src/txt-converter/GNUmakefile common_sql
-	$(MAKE) -C src/txt-converter $(MKDEF)
-else
-converters:
-	$(MAKE) SQLFLAG=1 $@
-endif
 
 clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
-	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile clean_cache
+	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
 	$(MAKE) -C src/common $@
 	$(MAKE) -C src/login $@
 	$(MAKE) -C src/login_sql $@
@@ -190,9 +168,6 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	$(MAKE) -C src/ladmin $@
 	$(MAKE) -C src/plugins $@
 	$(MAKE) -C src/txt-converter $@
-
-clean_cache:
-	rm -f Makefile.cache
 
 depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
@@ -207,9 +182,6 @@ depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	cd src/ladmin; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
 	cd src/txt-converter; makedepend -DTXT_SQL_CONVERT -fGNUmakefile -Y. -Y../common *.c; cd ../..;
 	$(MAKE) -C src/plugins $@
-
-Makefile.cache:
-	printf "$(subst ",\",$(MKDEF))" > Makefile.cache
 
 src/%/GNUmakefile: src/%/Makefile
 	sed -e 's/$$>/$$^/' $< > $@
