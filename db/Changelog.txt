@@ -1,3 +1,12 @@
+07/04
+	* Merged various db files [Playtester]
+	- fixed Homunculus races
+	- updated item_db
+	- updated item_trade
+	- updated Thor Volcano and Cursey Abbey mobs
+	- updated Ifrit's and Kasa's skill usage
+	- some minor skill fixes
+	- updated sql files
 06/09
 	* Merged item_db and mob_db [Playtester]
 	- minor item fixes
