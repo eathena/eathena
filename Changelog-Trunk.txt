@@ -3,6 +3,8 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/07/20
+	* Imported txt-converter files and projects from the current trunk. [FlavioJS]
 2007/07/01
 	* First attempt at creating a configure script. (incomplete)
 	- run autoconf to generate configure from configure.in and run 
