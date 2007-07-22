@@ -777,7 +777,7 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	
 	if (type&~BL_MOB)
 		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
+			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++) {
 				bl = map[m].block[bx+by*map[m].bxs];
 				c = map[m].block_count[bx+by*map[m].bxs];
 				for(i=0;i<c && bl;i++,bl=bl->next){
@@ -1582,19 +1582,19 @@ static void* create_charid2nick(DBKey key, va_list args)
 /*==========================================
  * charid_db‚Ö’Ç‰Á(•ÔM‘Ò‚¿‚ª‚ ‚ê‚Î•ÔM)
  *------------------------------------------*/
-void map_addchariddb(int charid, char *name)
+void map_addchariddb(int charid, char* name)
 {
-	struct charid2nick *p;
+	struct charid2nick* p;
 	int req = 0;
 
-	p = idb_ensure(charid_db,charid,create_charid2nick);
+	p = idb_ensure(charid_db, charid, create_charid2nick);
 	req = p->req_id;
 	p->req_id = 0;
 	//We overwrite the nick anyway in case a different one arrived.
 	memcpy(p->nick, name, NAME_LENGTH);
 
 	if (req) {
-		struct map_session_data *sd = map_id2sd(req);
+		struct map_session_data* sd = map_id2sd(req);
 		if (sd) clif_solved_charname(sd,charid);
 	}
 }
@@ -3091,8 +3091,8 @@ int map_config_read(char *cfgName)
 
 	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
-		ShowFatalError("Map configuration file not found at: %s\n", cfgName);
-		exit(1);
+		ShowError("Map configuration file not found at: %s\n", cfgName);
+		return 1;
 	}
 	while(fgets(line, sizeof(line), fp))
 	{

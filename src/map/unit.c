@@ -690,7 +690,7 @@ int unit_can_move(struct block_list *bl)
 	if (!ud)
 		return 0;
 	
-	if (ud->skilltimer != -1 && (!sd || pc_checkskill(sd, SA_FREECAST) <= 0))
+	if (ud->skilltimer != -1 && (!sd || !pc_checkskill(sd, SA_FREECAST)))
 		return 0;
 		
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0)
