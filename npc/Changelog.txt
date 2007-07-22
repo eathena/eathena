@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/07/22
+	* Rev. 10892 Fixed a Little bug on "How does the Airship Works" Quest. [Samuray22]
+	-Thanks to Tantarian
 2007/07/13
 	* Rev. 10881 Fixed error in Rachel's Sanctuary quest. [L0ne_W0lf]
 2007/06/29
