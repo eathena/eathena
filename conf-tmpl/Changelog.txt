@@ -1,5 +1,7 @@
 Date	Added
 
+2007/07/23
+	* Added delay_dependon_agi, both options are available now
 2007/06/14
 	* Enhanced log_athena.conf with global/main chat support
 	- readjust the logging setting because the values have changed!

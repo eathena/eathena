@@ -307,7 +307,8 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 	
 		if(sc->data[SC_AUTOGUARD].timer != -1 && flag&BF_WEAPON &&
 			!(skill_get_nk(skill_num)&NK_NO_CARDFIX_ATK) &&
-			rand()%100 < sc->data[SC_AUTOGUARD].val2) {
+			rand()%100 < sc->data[SC_AUTOGUARD].val2)
+		{
 			int delay;
 			clif_skill_nodamage(bl,bl,CR_AUTOGUARD,sc->data[SC_AUTOGUARD].val1,1);
 			// different delay depending on skill level [celest]
@@ -367,7 +368,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			if (sc->data[SC_UTSUSEMI].timer != -1) {
 				clif_specialeffect(bl, 462, AREA);
 				skill_blown (src, bl, sc->data[SC_UTSUSEMI].val3);
-			};
+			}
 			//Both need to be consumed if they are active.
 			if (sc->data[SC_UTSUSEMI].timer != -1 &&
 				--sc->data[SC_UTSUSEMI].val2 <= 0)
@@ -3339,6 +3340,7 @@ static const struct battle_data_short {
 	{ "casting_rate",                      &battle_config.cast_rate				},
 	{ "delay_rate",                        &battle_config.delay_rate				},
 	{ "delay_dependon_dex",                &battle_config.delay_dependon_dex },
+	{ "delay_dependon_agi",                &battle_config.delay_dependon_agi },
 	{ "skill_delay_attack_enable",         &battle_config.sdelay_attack_enable		},
 	{ "left_cardfix_to_right",             &battle_config.left_cardfix_to_right	},
 	{ "skill_add_range",            			&battle_config.skill_add_range		},
@@ -3733,6 +3735,7 @@ void battle_set_defaults()
 	battle_config.cast_rate=100;
 	battle_config.delay_rate=100;
 	battle_config.delay_dependon_dex=0;
+	battle_config.delay_dependon_agi=0;
 	battle_config.sdelay_attack_enable=0;
 	battle_config.left_cardfix_to_right=0;
 	battle_config.skill_add_range=0;

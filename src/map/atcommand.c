@@ -7704,7 +7704,7 @@ int atcommand_clearweather(const int fd, struct map_session_data* sd, const char
 }
 
 /*===============================================================
- * Sound Command - plays a sound for everyone! [Codemaster]
+ * Sound Command - plays a sound for everyone around! [Codemaster]
  *---------------------------------------------------------------*/
 int atcommand_sound(const int fd, struct map_session_data *sd, const char *command, const char *message)
 {
@@ -7722,7 +7722,7 @@ int atcommand_sound(const int fd, struct map_session_data *sd, const char *comma
 	if(strstr(sound_file, ".wav") == NULL)
 		strcat(sound_file, ".wav");
 
-	clif_soundeffectall(&sd->bl, sound_file,0,2);
+	clif_soundeffectall(&sd->bl, sound_file, 0, AREA);
 
 	return 0;
 }
@@ -8962,7 +8962,7 @@ int atcommand_homshuffle(const int fd, struct map_session_data* sd, const char* 
 	struct homun_data *hd;
 	int lv, i, skillpts;
 	unsigned int exp;
-	struct skill b_skill;
+	struct skill b_skill[MAX_HOMUNSKILL];
 	TBL_PC* tsd = sd;
 
 	nullpo_retr(-1, sd);
@@ -9003,6 +9003,7 @@ int atcommand_homshuffle(const int fd, struct map_session_data* sd, const char* 
 	hd->homunculus.exp = exp;
 	memcpy(&hd->homunculus.hskill, &b_skill, sizeof(b_skill));
 	hd->homunculus.skillpts = skillpts;
+	clif_homskillinfoblock(hd->master);
 	status_calc_homunculus(hd,0);
 	status_percent_heal(&hd->bl, 100, 100);
 	clif_misceffect2(&hd->bl,568);

@@ -314,6 +314,11 @@ int unit_walktoxy( struct block_list *bl, int x, int y, int flag)
 	return unit_walktoxy_sub(bl);
 }
 
+//To set Mob's CHASE/FOLLOW states (shouldn't be done if there's no path to reach)
+#define set_mobstate(bl, flag) \
+	if((bl)->type == BL_MOB && (flag)) \
+		((TBL_MOB*)(bl))->state.skillstate = ((TBL_MOB*)(bl))->state.aggressive?MSS_FOLLOW:MSS_RUSH;
+
 static int unit_walktobl_sub(int tid,unsigned int tick,int id,int data)
 {
 	struct block_list *bl = map_id2bl(id);
@@ -324,7 +329,10 @@ static int unit_walktobl_sub(int tid,unsigned int tick,int id,int data)
 		if (DIFF_TICK(ud->canmove_tick, tick) > 0) //Keep waiting?
 			add_timer(ud->canmove_tick+1, unit_walktobl_sub, id, data);
 		else if (unit_can_move(bl))
-			unit_walktoxy_sub(bl);
+		{
+			if (unit_walktoxy_sub(bl))
+				set_mobstate(bl, ud->state.attack_continue);
+		}
 	}
 	return 0;	
 }
@@ -358,13 +366,10 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	sc = status_get_sc(bl);
 	if (sc && sc->count && sc->data[SC_CONFUSION].timer != -1) //Randomize the target position
 		map_random_dir(bl, &ud->to_x, &ud->to_y);
-	
-	//Set Mob's CHASE/FOLLOW states.
-	if(bl->type == BL_MOB && flag&2)
-		((TBL_MOB*)bl)->state.skillstate = ((TBL_MOB*)bl)->state.aggressive?MSS_FOLLOW:MSS_RUSH;
 
 	if(ud->walktimer != -1) {
 		ud->state.change_walk_target = 1;
+		set_mobstate(bl, flag&2);
 		return 1;
 	}
 
@@ -382,8 +387,13 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 		ud->attacktimer = -1;
 	}
 
-	return unit_walktoxy_sub(bl);
+	if (unit_walktoxy_sub(bl)) {
+		set_mobstate(bl, flag&2);
+		return 1;
+	}
+	return 0;
 }
+#undef set_mobstate
 
 int unit_run(struct block_list *bl)
 {
@@ -429,6 +439,7 @@ int unit_run(struct block_list *bl)
 		to_y -= dir_y;
 	} while (--i > 0 && !unit_walktoxy(bl, to_x, to_y, 1));
 	if (i==0) {
+		// copy-paste from above
 		clif_status_change(bl, SI_BUMP, 1);
 		status_change_end(bl,SC_RUN,-1);
 		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1)|0x10000);
@@ -690,9 +701,9 @@ int unit_can_move(struct block_list *bl)
 	if (!ud)
 		return 0;
 	
-	if (ud->skilltimer != -1 && (!sd || !pc_checkskill(sd, SA_FREECAST)))
+	if (ud->skilltimer != -1 && (!sd || !pc_checkskill(sd, SA_FREECAST) || skill_get_inf2(ud->skillid)&INF2_GUILD_SKILL))
 		return 0;
-		
+	
 	if (DIFF_TICK(ud->canmove_tick, gettick()) > 0)
 		return 0;
 
@@ -1308,9 +1319,9 @@ int unit_can_reach_bl(struct block_list *bl,struct block_list *tbl, int range, i
 	dx=(dx>0)?1:((dx<0)?-1:0);
 	dy=(dy>0)?1:((dy<0)?-1:0);
 	
-	if (map_getcell(tbl->m,tbl->x-dx,tbl->y-dy,CELL_CHKNOREACH))
+	if (map_getcell(tbl->m,tbl->x-dx,tbl->y-dy,CELL_CHKNOPASS))
 	{	//Look for a suitable cell to place in.
-		for(i=0;i<9 && map_getcell(tbl->m,tbl->x-dirx[i],tbl->y-diry[i],CELL_CHKNOREACH);i++);
+		for(i=0;i<9 && map_getcell(tbl->m,tbl->x-dirx[i],tbl->y-diry[i],CELL_CHKNOPASS);i++);
 		if (i==9) return 0; //No valid cells.
 		dx = dirx[i];
 		dy = diry[i];

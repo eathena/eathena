@@ -593,7 +593,7 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 /*==========================================
  * Adapted from foreachinarea for an easier invocation. [Skotlex]
  *------------------------------------------*/
-int map_foreachinrange(int (*func)(struct block_list*,va_list),struct block_list *center, int range,int type,...)
+int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int type, ...)
 {
 	va_list ap;
 	int bx,by,m;
@@ -667,7 +667,7 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list),struct block_list
 /*==========================================
  * Same as foreachinrange, but there must be a shoot-able range between center and target to be counted in. [Skotlex]
  *------------------------------------------*/
-int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block_list *center, int range,int type,...)
+int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block_list* center, int range, int type,...)
 {
 	va_list ap;
 	int bx,by,m;
@@ -747,7 +747,7 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
  * funcを呼ぶ
  * type!=0 ならその種類のみ
  *------------------------------------------*/
-int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y0,int x1,int y1,int type,...)
+int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, int y0, int x1, int y1, int type, ...)
 {
 	va_list ap;
 	int bx,by;
@@ -823,7 +823,7 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list),int m,int x0,int y
  *
  * dx,dyは-1,0,1のみとする（どんな値でもいいっぽい？）
  *------------------------------------------*/
-int map_foreachinmovearea(int (*func)(struct block_list*,va_list),struct block_list *center,int range, int dx,int dy,int type,...)
+int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int dx, int dy, int type, ...)
 {
 	int bx,by,m;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -962,7 +962,7 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list),struct block_l
 //			 which only checks the exact single x/y passed to it rather than an
 //			 area radius - may be more useful in some instances)
 //
-int map_foreachincell(int (*func)(struct block_list*,va_list),int m,int x,int y,int type,...)
+int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int y, int type, ...)
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -1200,7 +1200,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 }
 
 // Copy of map_foreachincell, but applied to the whole map. [Skotlex]
-int map_foreachinmap(int (*func)(struct block_list*,va_list),int m,int type,...)
+int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type,...)
 {
 	int b, bsize;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
@@ -2131,36 +2131,46 @@ int map_check_dir(int s_dir,int t_dir)
 }
 
 /*==========================================
- * Returns the direction of the given cell in absolute relation to the char
- * (regardless of where the char is facing)
+ * Returns the direction of the given cell, relative to 'src'
  *------------------------------------------*/
-int map_calc_dir( struct block_list *src,int x,int y)
+int map_calc_dir(struct block_list* src, int x, int y)
 {
-	int dir=0;
-	int dx,dy;
-
+	int dir = 0;
+	int dx, dy;
+	
 	nullpo_retr(0, src);
-
-	dx=x-src->x;
-	dy=y-src->y;
-	if( dx==0 && dy==0 ){	// 彼我の場所一致
-		dir=0;	// 上
-	}else if( dx>=0 && dy>=0 ){	// 方向的に右上
-		dir=7;						// 右上
-		if( dx*2-1<dy ) dir=0;		// 上
-		if( dx>dy*2 ) dir=6;		// 右
-	}else if( dx>=0 && dy<=0 ){	// 方向的に右下
-		dir=5;						// 右下
-		if( dx*2-1<-dy ) dir=4;		// 下
-		if( dx>-dy*2 ) dir=6;		// 右
-	}else if( dx<=0 && dy<=0 ){ // 方向的に左下
-		dir=3;						// 左下
-		if( dx*2+1>dy ) dir=4;		// 下
-		if( dx<dy*2 ) dir=2;		// 左
-	}else{						// 方向的に左上
-		dir=1;						// 左上
-		if( -dx*2-1<dy ) dir=0;		// 上
-		if( -dx>dy*2 ) dir=2;		// 左
+	
+	dx = x-src->x;
+	dy = y-src->y;
+	if( dx == 0 && dy == 0 )
+	{	// both are standing on the same spot
+		//dir = 6; // aegis-style, causes knockback to the left
+		dir = unit_getdir(src); // athena-style, causes knockback opposite to src's current direction
+	}
+	else if( dx >= 0 && dy >=0 )
+	{	// upper-right
+		if( dx*2-1 < dy )     dir = 0;	// up
+		else if( dx > dy*2 )  dir = 6;	// right
+		else                  dir = 7;	// up-right
+	}
+	else if( dx >= 0 && dy <= 0 )
+	{	// lower-right
+		if( dx*2-1 < -dy )    dir = 4;	// down
+		else if( dx > -dy*2 ) dir = 6;	// right
+		else                  dir = 5;	// down-right
+	}
+	else if( dx <= 0 && dy <= 0 )
+	{	// lower-left
+		if( dx*2+1 > dy )     dir = 4;	// down
+		else if( dx < dy*2 )  dir = 2;	// left
+		else                  dir = 3;	// down-left
+	}
+	else
+	{	// upper-left
+		if( -dx*2-1 < dy )    dir = 0;	// up
+		else if( -dx > dy*2 ) dir = 2;	// left
+		else                  dir = 1;	// up-left
+	
 	}
 	return dir;
 }

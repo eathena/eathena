@@ -339,10 +339,10 @@ const struct skill_name_db skill_names[] = {
  { NPC_BARRIER, "NPC_BARRIER", "NPC_BARRIER" } ,
  { NPC_BLINDATTACK, "NPC_BLINDATTACK", "NPC_BLINDATTACK" } ,
  { NPC_BLOODDRAIN, "NPC_BLOODDRAIN", "NPC_BLOODDRAIN" } ,
- { NPC_BREAKARMOR, "NPC_BREAKARMOR", "NPC_BREAKARMOR" } ,
- { NPC_BREAKHELM, "NPC_BREAKHELM", "NPC_BREAKHELM" } ,
- { NPC_BREAKSHIELD, "NPC_BREAKSHIELD", "NPC_BREAKSHIELD" } ,
- { NPC_BREAKWEAPON, "NPC_BREAKWEAPON", "NPC_BREAKWEAPON" } ,
+ { NPC_ARMORBRAKE, "NPC_ARMORBRAKE", "Break_Armor" } ,
+ { NPC_HELMBRAKE, "NPC_HELMBRAKE", "Break_Helm" } ,
+ { NPC_SHIELDBRAKE, "NPC_SHIELDBRAKE", "Break_Shield" } ,
+ { NPC_WEAPONBRAKER, "NPC_WEAPONBRAKER", "Break_Weapon" } ,
  { NPC_CALLSLAVE, "NPC_CALLSLAVE", "NPC_CALLSLAVE" } ,
  { NPC_CHANGEDARKNESS, "NPC_CHANGEDARKNESS", "NPC_CHANGEDARKNESS" } ,
  { NPC_CHANGEFIRE, "NPC_CHANGEFIRE", "NPC_CHANGEFIRE" } ,
@@ -1255,16 +1255,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		break;
 	}
 	// Equipment breaking monster skills [Celest]
-	case NPC_BREAKWEAPON:
+	case NPC_WEAPONBRAKER:
 		skill_break_equip(bl, EQP_WEAPON, 150*skilllv, BCT_ENEMY);
 		break;
-	case NPC_BREAKARMOR:
+	case NPC_ARMORBRAKE:
 		skill_break_equip(bl, EQP_ARMOR, 150*skilllv, BCT_ENEMY);
 		break;
-	case NPC_BREAKHELM:
+	case NPC_HELMBRAKE:
 		skill_break_equip(bl, EQP_HELM, 150*skilllv, BCT_ENEMY);
 		break;
-	case NPC_BREAKSHIELD:
+	case NPC_SHIELDBRAKE:
 		skill_break_equip(bl, EQP_SHIELD, 150*skilllv, BCT_ENEMY);
 		break;
 
@@ -1766,9 +1766,9 @@ int skill_strip_equip(struct block_list *bl, unsigned short where, int rate, int
 --------------------------------------------------------------------------*/
 int skill_blown (struct block_list *src, struct block_list *target, int count)
 {
-	int dx=0,dy=0,nx,ny;
+	int dx = 0, dy = 0, nx, ny;
 	int dir,ret;
-	struct skill_unit *su=NULL;
+	struct skill_unit* su = NULL;
 
 	nullpo_retr(0, src);
 
@@ -1777,7 +1777,8 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 	if (!(count&0xffff))
 		return 0; //Actual knockback distance is 0.
 	
-	switch (target->type) {
+	switch (target->type)
+	{
 		case BL_MOB:
 			if (((TBL_MOB*)target)->class_ == MOBID_EMPERIUM)
 				return 0;
@@ -1789,7 +1790,7 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 				return 0;
 			break;
 		case BL_SKILL:
-			su=(struct skill_unit *)target;
+			su = (struct skill_unit *)target;
 			break;
 	}
 
@@ -1819,16 +1820,14 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 	if (!dx && !dy) //Could not knockback.
 		return 0;
 
-	map_foreachinmovearea(clif_outsight, target, AREA_SIZE,
-		dx, dy, target->type==BL_PC?BL_ALL:BL_PC, target);
+	map_foreachinmovearea(clif_outsight, target, AREA_SIZE, dx, dy, target->type == BL_PC ? BL_ALL : BL_PC, target);
 
 	if(su)
 		skill_unit_move_unit_group(su->group,target->m,dx,dy);
 	else
 		map_moveblock(target, nx, ny, gettick());
 
-	map_foreachinmovearea(clif_insight, target, AREA_SIZE,
-		-dx, -dy, target->type==BL_PC?BL_ALL:BL_PC, target);
+	map_foreachinmovearea(clif_insight, target, AREA_SIZE, -dx, -dy, target->type == BL_PC ? BL_ALL : BL_PC, target);
 
 	if(!(count&0x20000)) 
 		clif_blown(target);
@@ -2769,10 +2768,10 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NPC_DARKNESSATTACK:
 	case NPC_TELEKINESISATTACK:
 	case NPC_UNDEADATTACK:
-	case NPC_BREAKARMOR:
-	case NPC_BREAKWEAPON:
-	case NPC_BREAKHELM:
-	case NPC_BREAKSHIELD:
+	case NPC_ARMORBRAKE:
+	case NPC_WEAPONBRAKER:
+	case NPC_HELMBRAKE:
+	case NPC_SHIELDBRAKE:
 	case LK_AURABLADE:
 	case LK_SPIRALPIERCE:
 	case LK_HEADCRUSH:
@@ -3043,23 +3042,20 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		} else {
 			int i,c;
 			c = skill_get_blewcount(skillid,skilllv);
+			// keep moving target in the direction that src is looking, square by square
 			for(i=0;i<c;i++){
 				if (!skill_blown(src,bl,0x20000|1))
 					break; //Can't knockback
 				skill_area_temp[0]=0;
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skillid, skilllv),BL_CHAR,
-					src,skillid,skilllv,tick, flag|BCT_ENEMY,
-					skill_area_sub_count);
-				if(skill_area_temp[0]>1) break;
+				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), BL_CHAR,
+					src, skillid, skilllv, tick, flag|BCT_ENEMY, skill_area_sub_count);
+				if(skill_area_temp[0]>1) break; // collision
 			}
 			clif_blown(bl); //Update target pos.
 			if (i!=c) { //Splash
 				skill_area_temp[1]=bl->id;
-				map_foreachinrange(skill_area_sub,bl,
-					skill_get_splash(skillid, skilllv),BL_CHAR,
-					src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
-					skill_castend_damage_id);
+				map_foreachinrange(skill_area_sub,bl, skill_get_splash(skillid, skilllv), BL_CHAR,
+					src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
 			}
 			//Weirdo dual-hit property, two attacks for 500%
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
@@ -3068,7 +3064,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case KN_SPEARSTAB:
-		if(flag&1){
+		if(flag&1) {
 			if (bl->id==skill_area_temp[1])
 				break;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,SD_ANIMATION))
@@ -3078,12 +3074,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			dir = map_calc_dir(bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
 			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
+			// all the enemies between the caster and the target are hit, as well as the target
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
 				skill_blown(src,bl,skill_area_temp[2]);
 			for (i=0;i<4;i++) {
 				map_foreachincell(skill_area_sub,bl->m,x,y,BL_CHAR,
-					src,skillid,skilllv,tick,flag|BCT_ENEMY|1,
-					skill_castend_damage_id);
+					src,skillid,skilllv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
 				x += dirx[dir];
 				y += diry[dir];
 			}
@@ -6138,7 +6134,8 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	case AM_SPHEREMINE:
 	case AM_CANNIBALIZE:
 		{
-			int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
+			int summons[5] = { 1589, 1579, 1575, 1555, 1590 };
+			//int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
 			int class_ = skillid==AM_SPHEREMINE?1142:summons[skilllv-1];
 			struct mob_data *md;
 
@@ -6275,8 +6272,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	case AM_RESURRECTHOMUN:	//[orn]
 		if (sd)
 		{
-			if (map_flag_gvg(src->m) || //No reviving in WoE grounds!
-				!merc_resurrect_homunculus(sd, 20*skilllv, x, y))
+			if (!merc_resurrect_homunculus(sd, 20*skilllv, x, y))
 			{
 				clif_skill_fail(sd,skillid,0,0);
 				break;
@@ -8248,7 +8244,8 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	case AM_SPHEREMINE:
 		if(type&1){
 			int c=0;
-			int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
+			int summons[5] = { 1589, 1579, 1575, 1555, 1590 };
+			//int summons[5] = { 1020, 1068, 1118, 1500, 1368 };
 			int maxcount = (skill==AM_CANNIBALIZE)? 6-lv : skill_get_maxcount(skill);
 			int mob_class = (skill==AM_CANNIBALIZE)? summons[lv-1] :1142;
 			if(battle_config.land_skill_limit && maxcount>0 && (battle_config.land_skill_limit&BL_PC)) {
@@ -8386,8 +8383,7 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 	case GD_BATTLEORDER:
 	case GD_REGENERATION:
 	case GD_RESTORE:
-		//Emergency Recall is handled on skillnotok
-		if (!agit_flag) {
+		if (!map_flag_gvg(sd->bl.m)) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
@@ -8437,13 +8433,6 @@ int skill_check_condition (struct map_session_data *sd, int skill, int lv, int t
 		break;
 	case AM_REST: //Can't vapo homun if you don't have an active homunc or it's hp is < 80%
 		if (!merc_is_hom_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp*80/100))
-		{
-			clif_skill_fail(sd,skill,0,0);
-			return 0;
-		}
-		break;
-	case AM_RESURRECTHOMUN: // Can't resurrect homun if you don't have a dead homun
-		if (!sd->status.hom_id || !sd->hd || sd->hd->homunculus.hp)
 		{
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
@@ -8693,7 +8682,7 @@ int skill_castfix_sc (struct block_list *bl, int time)
 }
 
 /*==========================================
- * Does delay reductions based on dex, sc data, item bonuses, ...
+ * Does delay reductions based on dex/agi, sc data, item bonuses, ...
  *------------------------------------------*/
 int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 {
@@ -8727,6 +8716,14 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 		if (battle_config.delay_dependon_dex && !(delaynodex&1))
 		{	// if skill delay is allowed to be reduced by dex 
 			int scale = battle_config.castrate_dex_scale - status_get_dex(bl);
+			if (scale > 0)
+				time = time * scale / battle_config.castrate_dex_scale;
+			else //To be capped later to minimum.
+				time = 0;
+		}
+		if (battle_config.delay_dependon_agi && !(delaynodex&1))
+		{	// if skill delay is allowed to be reduced by agi 
+			int scale = battle_config.castrate_dex_scale - status_get_agi(bl);
 			if (scale > 0)
 				time = time * scale / battle_config.castrate_dex_scale;
 			else //To be capped later to minimum.
