@@ -1,6 +1,9 @@
 Date	Added
 
 2007/07/23
+	* Adjusted client.conf's packetver table (latest now uses new value)
+	* Added option 'char_rename' to char config (does not do renaming yet)
+2007/07/23
 	* Added delay_dependon_agi, both options are available now
 2007/06/14
 	* Enhanced log_athena.conf with global/main chat support
