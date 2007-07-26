@@ -22,6 +22,10 @@ Playtester
 
 Date		Added
 ======
+2007/07/26
+	* Fixed a bug in the Socket Enchant NPC [Playtester]
+	* Merged spawn updates [Playtester]
+	- Ifrit and Byorgue will spawn in Thor Volcano now
 2007/07/23
 	* Rev. 10900 Corrected bugs in the Rachel Quests. [L0ne_W0lf]
 2007/07/22
