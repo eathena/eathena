@@ -18,6 +18,8 @@ struct Log_Config log_config;
 char timestring[255];
 time_t curtime;
 
+static int should_log_item(int filter, int nameid, int amount); //log filter check
+
 //FILTER OPTIONS
 //0 = Don't log
 //1 = Log any item
@@ -65,16 +67,17 @@ int log_branch(struct map_session_data *sd)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		char t_name[NAME_LENGTH*2];
-
-		Sql_EscapeStringLen(logmysql_handle, t_name, sd->status.name, strnlen(sd->status.name, NAME_LENGTH));
-
-		if (SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%d', '%d', '%s', '%s')",
-			log_config.log_branch_db, sd->status.account_id, sd->status.char_id, t_name, mapindex_id2name(sd->mapindex)) )
+		struct SqlStmt* stmt;
+		stmt = SqlStmt_Malloc(logmysql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%d', '%d', ?, '%s')", log_config.log_branch_db, sd->status.account_id, sd->status.char_id, sd->status.name, mapindex_id2name(sd->mapindex))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
-			Sql_ShowDebug(logmysql_handle);
+			SqlStmt_ShowDebug(stmt);
+			SqlStmt_Free(stmt);
 			return 0;
 		}
+		SqlStmt_Free(stmt);
 	}
 	else
 #endif
@@ -96,7 +99,7 @@ int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int a
 {
 	nullpo_retr(0, sd);
 
-	if (!should_log_item(log_config.filter,nameid, amount))
+	if (!should_log_item(log_config.filter, nameid, amount))
 		return 0; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
 #ifndef TXT_ONLY
@@ -153,7 +156,7 @@ int log_pick_mob(struct mob_data *md, const char *type, int nameid, int amount, 
 
 	nullpo_retr(0, md);
 
-	if (!should_log_item(log_config.filter,nameid, amount))
+	if (!should_log_item(log_config.filter, nameid, amount))
 		return 0; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
 	//either PLAYER or MOB (here we get map name and objects ID)
@@ -273,7 +276,7 @@ int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 }
 
 
-int log_atcommand(struct map_session_data *sd, const char *message)
+int log_atcommand(struct map_session_data* sd, const char* message)
 {
 	if(!log_config.enable_logs)
 		return 0;
@@ -283,8 +286,7 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		char t_name[NAME_LENGTH*2];
-		char t_msg[CHAT_SIZE*2+1];
+		struct SqlStmt* stmt;
 
 		if (strlen(message) > CHAT_SIZE) {
 			if (battle_config.error_log)
@@ -292,15 +294,17 @@ int log_atcommand(struct map_session_data *sd, const char *message)
 			return 0;
 		}
 
-		Sql_EscapeStringLen(logmysql_handle, t_name, sd->status.name, strnlen(sd->status.name, NAME_LENGTH));
-		Sql_EscapeStringLen(logmysql_handle, t_msg, message, strnlen(message, 255));
-
-		if (SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
-			log_config.log_gm_db, sd->status.account_id, sd->status.char_id, t_name, mapindex_id2name(sd->mapindex), t_msg) )
+		stmt = SqlStmt_Malloc(logmysql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`atcommand_date`, `account_id`, `char_id`, `char_name`, `map`, `command`) VALUES (NOW(), '%d', '%d', ?, '%s', ?)", log_config.log_gm_db, sd->status.account_id, sd->status.char_id, sd->status.name, mapindex_id2name(sd->mapindex), message)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, strnlen(message, 255))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
-			Sql_ShowDebug(logmysql_handle);
+			SqlStmt_ShowDebug(stmt);
+			SqlStmt_Free(stmt);
 			return 0;
 		}
+		SqlStmt_Free(stmt);
 	}
 	else
 #endif
@@ -327,18 +331,18 @@ int log_npc(struct map_session_data* sd, const char* message)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		char t_name[NAME_LENGTH*2];
-		char t_msg[2*255+1];
-
-		Sql_EscapeStringLen(logmysql_handle, t_name, sd->status.name, strnlen(sd->status.name, NAME_LENGTH));
-		Sql_EscapeStringLen(logmysql_handle, t_msg, message, strnlen(message, 255));
-
-		if (SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES(NOW(), '%d', '%d', '%s', '%s', '%s') ",
-			log_config.log_npc_db, sd->status.account_id, sd->status.char_id, t_name, mapindex_id2name(sd->mapindex), t_msg) )
+		struct SqlStmt* stmt;
+		stmt = SqlStmt_Malloc(logmysql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES (NOW(), '%d', '%d', ?, '%s', ?)", log_config.log_npc_db, sd->status.account_id, sd->status.char_id, sd->status.name, mapindex_id2name(sd->mapindex), message)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, strnlen(message, 255))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
-			Sql_ShowDebug(logmysql_handle);
+			SqlStmt_ShowDebug(stmt);
+			SqlStmt_Free(stmt);
 			return 0;
 		}
+		SqlStmt_Free(stmt);
 	}
 	else
 #endif
@@ -355,9 +359,10 @@ int log_npc(struct map_session_data* sd, const char* message)
 	return 1;
 }
 
-
 int log_chat(const char* type, int type_id, int src_charid, int src_accid, const char* map, int x, int y, const char* dst_charname, const char* message)
 {
+	//FIXME: the actual filtering is being done by the calling code instead of in here, why!?
+
 	// Log CHAT (Global, Whisper, Party, Guild, Main chat)
 	// LOGGING FILTERS [Lupus]
 	//=============================================================
@@ -377,24 +382,25 @@ int log_chat(const char* type, int type_id, int src_charid, int src_accid, const
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		char t_charname[NAME_LENGTH*2];
-		char t_msg[CHAT_SIZE*2+1]; //Chat line fully escaped, with an extra space just in case.
-
+		struct SqlStmt* stmt;
+		
 		if (strlen(message) > CHAT_SIZE) {
 			if (battle_config.error_log)
 				ShowError("log chat: Received message too long from type %d (%d:%d)!\n", type_id, src_accid, src_charid);
 			return 0;
 		}
 
-		Sql_EscapeStringLen(logmysql_handle, t_charname, dst_charname, strnlen(dst_charname, NAME_LENGTH));
-		Sql_EscapeStringLen(logmysql_handle, t_msg, message, strnlen(message, CHAT_SIZE));
-
-		if ( SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', '%s', '%s')", 
-		 	log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y, t_charname, t_msg) )
+		stmt = SqlStmt_Malloc(logmysql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', ?, ?)", log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)dst_charname, strnlen(dst_charname, NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)message, strnlen(message, CHAT_SIZE))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
-			Sql_ShowDebug(logmysql_handle);
+			SqlStmt_ShowDebug(stmt);
+			SqlStmt_Free(stmt);
 			return 0;
 		}
+		SqlStmt_Free(stmt);
 	}
 	else
 #endif

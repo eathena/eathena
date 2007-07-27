@@ -367,7 +367,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 
 	// check if the account doesn't exist already
 	stmt = SqlStmt_Malloc(sql_handle);
-	if ( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `%s` FROM `%s` WHERE `userid`=?", login_db_userid, login_db)
+	if ( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `%s` FROM `%s` WHERE `userid` = ?", login_db_userid, login_db)
 	  || SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH))
 	  || SQL_SUCCESS != SqlStmt_Execute(stmt)
 	  || SqlStmt_NumRows(stmt) > 0 )

@@ -4,13 +4,9 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#include "map.h"
-
-#ifndef TXT_ONLY
-
-extern char db_server_logdb[32];
-
-#endif //NOT TXT_ONLY
+//#include "map.h"
+struct map_session_data;
+struct mob_data;
 
 //New logs
 int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int amount, struct item *itm);
@@ -26,8 +22,6 @@ int log_branch(struct map_session_data *sd);
 int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp);
 
 int log_config_read(char *cfgName);
-
-int should_log_item(int filter, int nameid, int amount); //log filter check
 
 enum log_what {
 	LOG_ALL                 = 0xFFF,

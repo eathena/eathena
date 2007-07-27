@@ -3415,28 +3415,31 @@ static bool mob_parse_dbrow(char** str)
  *------------------------------------------*/
 static int mob_readdb(void)
 {
-	char* filename[]={ "mob_db.txt", "mob_db2.txt" };
+	char* filename[] = { "mob_db.txt", "mob_db2.txt" };
 	int fi;
-	unsigned int count = 0;
 	
 	for(fi = 0; fi < 2; fi++)
 	{
+		uint32 lines = 0, count = 0;
 		char line[1024];
+		char path[256];
 		FILE* fp;
 		
-		sprintf(line, "%s/%s", db_path, filename[fi]);
-		fp = fopen(line, "r");
+		sprintf(path, "%s/%s", db_path, filename[fi]);
+		fp = fopen(path, "r");
 		if(fp == NULL) {
 			if(fi > 0)
 				continue;
 			return -1;
 		}
 		
+		// process rows one by one
 		while(fgets(line, sizeof(line), fp))
 		{
 			char *str[38+2*MAX_MOB_DROP], *p, *np;
 			int i;
 			
+			lines++;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 			
@@ -3449,21 +3452,21 @@ static int mob_readdb(void)
 			}
 			
 			if(i < 38 + 2*MAX_MOB_DROP) {
-				ShowWarning("mob_readdb: Insufficient columns for mob with id: %d, skipping.\n", str[0] ? atoi(str[0]) : 0);
+				ShowWarning("mob_readdb: Insufficient columns for mob with id: %d, skipping.\n", atoi(str[0]));
 				continue;
 			}
 			
 			if (!mob_parse_dbrow(str))
 				continue;
 			
-			count++; // counts the number of correctly parsed entries
+			count++;
 		}
 
 		fclose(fp);
 
 		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi]);
-		count = 0;
 	}
+
 	return 0;
 }
 
@@ -3473,43 +3476,50 @@ static int mob_readdb(void)
  *------------------------------------------*/
 static int mob_read_sqldb(void)
 {
-	char *mob_db_name[] = { mob_db_db, mob_db2_db };
+	char* mob_db_name[] = { mob_db_db, mob_db2_db };
 	int fi;
-	unsigned int count = 0;
 	
 	for (fi = 0; fi < 2; fi++)
 	{
-		if (SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", mob_db_name[fi]))
+		uint32 lines = 0, count = 0;
+		
+		// retrieve all rows from the mob database
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", mob_db_name[fi]) )
 		{
 			Sql_ShowDebug(mmysql_handle);
 			continue;
 		}
-
+		
+		// process rows one by one
 		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) )
 		{
-			char line[1024];
-			char *str[38+2*MAX_MOB_DROP], *p;
-			int i;
-
 			// wrap the result into a TXT-compatible format
+			char line[1024];
+			char* str[38+2*MAX_MOB_DROP];
+			char* p;
+			int i;
+			
+			lines++;
 			for(i = 0, p = line; i < 38 + 2*MAX_MOB_DROP; i++)
 			{
 				char* data;
-				Sql_GetData(mmysql_handle, i, &data, NULL);
-
+				size_t len;
+				Sql_GetData(mmysql_handle, i, &data, &len);
+				
 				strcpy(p, data);
 				str[i] = p;
-				p+= strlen(data)+1;
+				p+= len + 1;
 			}
-
+			
 			if (!mob_parse_dbrow(str))
 				continue;
 			
-			count++; // counts the number of correctly parsed entries
+			count++;
 		}
-
+		
+		// free the query result
 		Sql_FreeResult(mmysql_handle);
-	
+		
 		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, mob_db_name[fi]);
 		count = 0;
 	}

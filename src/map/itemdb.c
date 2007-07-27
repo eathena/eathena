@@ -712,44 +712,44 @@ static bool itemdb_parse_dbrow(char** str, char* source, int line)
 static int itemdb_readdb(void)
 {
 	char* filename[] = { "item_db.txt", "item_db2.txt" };
-	int i;
+	int fi;
 
-	for(i = 0; i < 2 ; i++)
+	for(fi = 0; fi < 2; fi++)
 	{
 		uint32 lines = 0, count = 0;
 		char line[1024];
+
 		char path[256];
 		FILE* fp;
 
-		sprintf(path, "%s/%s", db_path, filename[i]);
+		sprintf(path, "%s/%s", db_path, filename[fi]);
 		fp = fopen(path, "r");
 		if(fp == NULL) {
-			if(i > 0)
+			if(fi > 0)
 				continue;
-			ShowFatalError("can't read %s\n", path);
-			exit(1); //TODO: this is silly
+			return -1;
 		}
 
 		// process rows one by one
 		while(fgets(line, sizeof(line), fp))
 		{
 			char *str[32], *p, *np;
-			int j;
+			int i;
 
 			lines++;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 			memset(str, 0, sizeof(str));
-			for(j = 0, np = p = line; j < 19 && p; j++)
+			for(i = 0, np = p = line; i < 19 && p; i++)
 			{
-				str[j] = p;
+				str[i] = p;
 				if ((p = strchr(p,',')) != NULL) {
-					*p++ = 0; np=p;
+					*p++ = '\0'; np = p;
 				}
 			}
 
-			if (j < 19) {
-				ShowWarning("itemdb_readdb: Insufficient columns for item with id %d, skipping.\n", filename[i], str[0]);
+			if (i < 19) {
+				ShowWarning("itemdb_readdb: Insufficient columns for item with id %d, skipping.\n", atoi(str[0]));
 				continue;
 			}
 
@@ -781,13 +781,15 @@ static int itemdb_readdb(void)
 				continue;
 			str[20] = p; //Unequip script, last column.
 
-			if (itemdb_parse_dbrow(str, filename[i], lines))
-				count++;
+			if (!itemdb_parse_dbrow(str, filename[fi], lines))
+				continue;
+			
+			count++;
 		}
 
 		fclose(fp);
 
-		ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[i]);
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi]);
 	}
 
 	return 0;
@@ -800,14 +802,14 @@ static int itemdb_readdb(void)
 static int itemdb_read_sqldb(void)
 {
 	char* item_db_name[] = { item_db_db, item_db2_db };
-	int i;
+	int fi;
 	
-	for (i = 0; i < 2; i++)
+	for (fi = 0; fi < 2; fi++)
 	{
 		uint32 lines = 0, count = 0;
 		
 		// retrieve all rows from the item database
-		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", item_db_name[i]) )
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", item_db_name[fi]) )
 		{
 			Sql_ShowDebug(mmysql_handle);
 			continue;
@@ -819,34 +821,36 @@ static int itemdb_read_sqldb(void)
 			// wrap the result into a TXT-compatible format
 			char line[1024];
 			char* str[22];
-			char* p = line;
-			int j;
-
+			char* p;
+			int i;
+			
 			lines++;
-			memset(str, 0, sizeof(str));
-			for (j = 0; j < 22; j++)
+			for (i = 0, p = line; i < 22; i++)
 			{
 				char* data;
 				size_t len;
-				Sql_GetData(mmysql_handle, j, &data, &len);
+				Sql_GetData(mmysql_handle, i, &data, &len);
+				
 				if (data == NULL)
 					p[0] = '\0';
-				else if (j >= 19 && data[0] != '{') {
+				else if (i >= 19 && data[0] != '{') {
 					sprintf(p, "{ %s }", data); len+= 4;
 				} else
 					strcpy(p, data);
-				str[j] = p;
-				p+= len+2;
+				str[i] = p;
+				p+= len + 1;
 			}
 			
-			if (itemdb_parse_dbrow(str, item_db_name[i], lines))
-				count++;
+			if (!itemdb_parse_dbrow(str, item_db_name[fi], lines))
+				continue;
+			
+			count++;
 		}
 		
 		// free the query result
-		Sql_FreeResult(mmysql_handle);		
+		Sql_FreeResult(mmysql_handle);
 		
-		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, item_db_name[i]);
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, item_db_name[fi]);
 	}
 
 	return 0;

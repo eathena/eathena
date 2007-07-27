@@ -11887,6 +11887,7 @@ BUILDIN_FUNC(checkcell)
 
 // <--- [zBuffer] List of mathematics commands
 // [zBuffer] List of dynamic var commands --->
+//FIXME: some other functions are using this private function
 void setd_sub(struct script_state *st, TBL_PC *sd, char *varname, int elem, void *value, struct linkdb_node **ref)
 {
 	set_reg(st, sd, add_str(varname)+(elem<<24), varname, value, ref);
