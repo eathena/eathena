@@ -1,4 +1,8 @@
 07/30
+	* Rev. 10932 Merged several changes from trunk. [L0ne_W0lf]
+	- Merged new in new items, and item_trade entries.
+	- Merged in item_misc.txt updates for old_bleu_box and old_red_box_
+	- merged in item group constants as well as job_alchemist constant.
 	* Fixed monsters using Pneuma on target instead of self [Playtester]
 07/26
 	* Merged mob_skill_db [Playtester]

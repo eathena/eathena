@@ -22,6 +22,10 @@ Playtester
 
 Date		Added
 ======
+2007/07/30
+	* Rev. 10933 Added CashShop_Functions.txt from Trunk. [L0ne_W0lf]
+	- Needed for some Cash Shop item; Giant Fly Wing, Neuralizer, Kafra Card,
+	  and Dungeon teleport Scroll.
 2007/07/26
 	* Fixed a bug in the Socket Enchant NPC [Playtester]
 	* Merged spawn updates [Playtester]

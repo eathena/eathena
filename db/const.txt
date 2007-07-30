@@ -17,6 +17,7 @@ Job_Monk	15
 Job_Sage	16
 Job_Rogue	17
 Job_Alchem	18
+Job_Alchemist	18
 Job_Bard	19
 Job_Dancer	20
 Job_Crusader2	21
@@ -486,6 +487,8 @@ IG_GiftBoxChina	34
 IG_LottoBox	35
 IG_FoodBag	36
 IG_Potion	37
+IG_RedBox_2	38
+IG_BleuBox	39
 
 SC_ALL -1
 SC_STONE	0
