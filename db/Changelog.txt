@@ -1,3 +1,5 @@
+07/30
+	* Fixed monsters using Pneuma on target instead of self [Playtester]
 07/26
 	* Merged mob_skill_db [Playtester]
 	- various skill updates by L0ne_W0lf
