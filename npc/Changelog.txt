@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/07/04
+	* Fixed a nasty bug in Dandelion's Request. [SinSloth]
 2007/07/31
 	* Rev. 10939 Merged over exploit fix for Assassin quest from trunk. [L0ne_W0lf]
 2007/07/30
