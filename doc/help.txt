@@ -407,7 +407,7 @@ Unblocks a account
 
 @charban/@ban/@banish/@charbanish <time> <name>
 Ban temporarily a account
- time usage: adjustement (+/- value) and element (y/a, m, d/j, h, mn, s)
+ time usage: adjustment (+/- value) and element (y/a, m, d/j, h, mn, s)
  Example: @ban +1m-2mn1s-6y testplayer
 
 @charunban/@unban/@unbanish/@uncharbanish <name>

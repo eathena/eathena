@@ -1275,7 +1275,7 @@ int map_getcellp(struct map_data*,int,int,cell_t);
 void map_setcell(int,int,int,int);
 extern int map_read_flag; // 0: grf«Υ«΅«¤«E1: «­«γ«Γ«·«E2: «­«γ«Γ«·«E?υκ)
 enum {
-	READ_FROM_GAT, READ_FROM_AFM,
+	READ_FROM_GAT,
 	READ_FROM_BITMAP, CREATE_BITMAP,
 	READ_FROM_BITMAP_COMPRESSED, CREATE_BITMAP_COMPRESSED
 };

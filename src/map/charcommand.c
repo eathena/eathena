@@ -610,7 +610,7 @@ int charcommand_save(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
@@ -1115,7 +1115,7 @@ int charcommand_warp(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strstr(map_name, ".afm") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) == NULL) {
@@ -1253,7 +1253,7 @@ int charcommand_baselevel(const int fd, struct map_session_data* sd, const char*
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
-		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #baselvl <#> <nickname>).");
+		clif_displaymessage(fd, "Please, enter a level adjustment and a player name (usage: #baselvl <#> <nickname>).");
 		return -1;
 	}
 
@@ -1329,7 +1329,7 @@ int charcommand_joblevel(const int fd, struct map_session_data* sd, const char* 
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message || sscanf(message, "%d %23[^\n]", &level, player) < 2 || level == 0) {
-		clif_displaymessage(fd, "Please, enter a level adjustement and a player name (usage: #joblvl <#> <nickname>).");
+		clif_displaymessage(fd, "Please, enter a level adjustment and a player name (usage: #joblvl <#> <nickname>).");
 		return -1;
 	}
 

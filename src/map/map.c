@@ -3183,10 +3183,9 @@ int map_config_read(char *cfgName)
 			} else if(strcmpi(w1,"db_path") == 0) {
 				strncpy(db_path,w2,255);
 			} else if (strcmpi(w1, "console") == 0) {
-				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 ) {
-					console = 1;
+				console = config_switch(w2);
+				if (console)
 					ShowNotice("Console Commands are enabled.\n");
-				}
 			} else if (strcmpi(w1, "enable_spy") == 0) {
 				if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
 					enable_spy = 1;
@@ -3195,7 +3194,7 @@ int map_config_read(char *cfgName)
 			} else if (strcmpi(w1, "import") == 0) {
 				map_config_read(w2);
 			} else
-				ShowWarning("Unknown setting [%s] in file %s\n", w1, cfgName);
+				ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
 		}
 	}
 	fclose(fp);

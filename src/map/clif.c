@@ -4737,8 +4737,8 @@ int clif_skill_warppoint(struct map_session_data* sd, int skill_num, int skill_l
 	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x11c));
-	WFIFOW(fd,0)=0x11c;
-	WFIFOW(fd,2)=skill_num;
+	WFIFOW(fd,0) = 0x11c;
+	WFIFOW(fd,2) = skill_num;
 	memset(WFIFOP(fd,4), 0x00, 4*MAP_NAME_LENGTH);
 	if (map1 == -1) strcpy((char*)WFIFOP(fd, 4), "Random");
 	if (map1 > 0) snprintf((char*)WFIFOP(fd, 4), MAP_NAME_LENGTH, "%s", mapindex_id2name(map1));
