@@ -24,8 +24,8 @@ struct packet_db_t {
 
 // packet_db[SERVER] is reserved for server use
 #define SERVER 0
-#define packet_len(x) packet_db[SERVER][x].len
-extern struct packet_db_t packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
+#define packet_len(cmd) packet_db[SERVER][cmd].len
+extern struct packet_db_t packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB+1];
 
 // local define
 enum send_target {
@@ -100,8 +100,10 @@ int clif_additem(struct map_session_data*,int,int,int);	//self
 int clif_delitem(struct map_session_data*,int,int);	//self
 int clif_updatestatus(struct map_session_data*,int);	//self
 int clif_changestatus(struct block_list*,int,int);	//area
-int clif_damage(struct block_list *src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2);	// area
-#define clif_takeitem(src,dst) clif_damage(src,dst,0,0,0,0,0,1,0)
+int clif_damage(struct block_list* src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2);	// area
+void clif_takeitem(struct block_list* src,struct block_list* dst);
+void clif_sitting(struct map_session_data* sd);
+void clif_standing(struct map_session_data* sd);
 int clif_changelook(struct block_list *,int,int);	// area
 void clif_changetraplook(struct block_list *bl,int val); // area
 void clif_refreshlook(struct block_list *bl,int id,int type,int val,int area); //area specified in 'area'
@@ -132,8 +134,6 @@ int clif_fame_blacksmith(struct map_session_data *, int);
 int clif_fame_alchemist(struct map_session_data *, int);
 int clif_fame_taekwon(struct map_session_data *, int);
 
-void clif_sitting(struct map_session_data* sd, enum send_target target);
-void clif_standing(struct map_session_data* sd, enum send_target target);
 void clif_emotion(struct block_list *bl,int type);
 void clif_talkiebox(struct block_list* bl, const char* talkie);
 void clif_wedding_effect(struct block_list *bl);
@@ -191,8 +191,7 @@ int clif_skill_nodamage(struct block_list *src,struct block_list *dst,
 int clif_skill_poseffect(struct block_list *src,int skill_id,
 	int val,int x,int y,int tick);
 int clif_skill_estimation(struct map_session_data *sd,struct block_list *dst);
-int clif_skill_warppoint(struct map_session_data *sd,int skill_num, int skill_lv,
-	const char *map1,const char *map2,const char *map3,const char *map4);
+int clif_skill_warppoint(struct map_session_data* sd, int skill_num, int skill_lv, int map1, int map2, int map3, int map4);
 int clif_skill_memo(struct map_session_data *sd,int flag);
 int clif_skill_teleportmessage(struct map_session_data *sd,int flag);
 int clif_skill_produce_mix_list(struct map_session_data *sd, int trigger);

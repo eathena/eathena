@@ -43,7 +43,7 @@ Date		Added
 	* Rev. 10900 Corrected bugs in the Rachel Quests. [L0ne_W0lf]
 2007/07/22
 	* Rev. 10894 Correct some typos error like "next;ing". [Samuray22]
-	-Thanks to theultradamage
+	-Thanks to theultramage
 	* Rev. 10892 Fixed a Little bug on "How does the Airship Works" Quest. [Samuray22]
 	-Thanks to Tantarian
 2007/07/13

@@ -1,14 +1,15 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include "mapindex.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
+#include "../common/strlib.h"
+#include "mapindex.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define MAX_MAPINDEX 2000
 
@@ -24,7 +25,7 @@ char mapindex_cfgfile[80] = "db/map_index.txt";
 
 /// Adds a map to the specified index
 /// Returns 1 if successful, 0 oherwise
-static int mapindex_addmap(int index, const char *name)
+static int mapindex_addmap(int index, const char* name)
 {
 	char map_name[1024];
 	char *ext;
@@ -43,9 +44,6 @@ static int mapindex_addmap(int index, const char *name)
 	}
 	if ((ext = strstr(map_name, ".gat")) != NULL) { //Gat map
 		length = ext-map_name;
-	} else if ((ext = strstr(map_name, ".afm")) != NULL || (ext = strstr(map_name, ".af2")) != NULL) { //afm map
-		length = ext-map_name;
-		sprintf(ext, ".gat"); //Change the extension to gat
 	} else if ((ext = strstr(map_name, ".")) != NULL) { //Generic extension?
 		length = ext-map_name;
 		sprintf(ext, ".gat");
@@ -65,6 +63,7 @@ static int mapindex_addmap(int index, const char *name)
 	indexes[index].length = length;
 	if (max_index <= index)
 		max_index = index+1;
+
 	return 1;
 }
 
@@ -99,7 +98,7 @@ const char* mapindex_id2name(unsigned short id)
 {
 	if (id > MAX_MAPINDEX || !indexes[id].length) {
 		ShowDebug("mapindex_id2name: Requested name for non-existant map index [%d] in cache.\n", id);
-		return indexes[0].name; //Theorically this should never happen, hence we return this string to prevent null pointer crashes.
+		return indexes[0].name; // dummy empty string so that the callee doesn't crash
 	}
 	return indexes[id].name;
 }

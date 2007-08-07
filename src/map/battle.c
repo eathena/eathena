@@ -1,11 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -25,6 +20,11 @@
 #include "guild.h"
 #include "party.h"
 #include "battle.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 
 int attr_fix_table[4][ELE_MAX][ELE_MAX];
 
@@ -87,18 +87,14 @@ struct block_list* battle_gettargeted(struct block_list *target)
 
 
 //Returns the id of the current targetted character of the passed bl. [Skotlex]
-int battle_gettarget(struct block_list *bl)
+int battle_gettarget(struct block_list* bl)
 {
 	switch (bl->type)
 	{
-		case BL_PC:
-			return ((struct map_session_data*)bl)->ud.target;
-		case BL_MOB:
-			return ((struct mob_data*)bl)->target_id;
-		case BL_PET:
-			return ((struct pet_data*)bl)->target_id;
-		case BL_HOM:
-			return ((struct homun_data*)bl)->ud.target;
+		case BL_PC:  return ((struct map_session_data*)bl)->ud.target;
+		case BL_MOB: return ((struct mob_data*)bl)->target_id;
+		case BL_PET: return ((struct pet_data*)bl)->target_id;
+		case BL_HOM: return ((struct homun_data*)bl)->ud.target;
 	}
 	return 0;
 }
@@ -528,9 +524,8 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 	
 	if(md && md->guardian_data) {
 		if(class_ == MOBID_EMPERIUM && flag&BF_SKILL)
-		//SKill inmunity.
+		//Skill immunity.
 			switch (skill_num) {
-			case PA_PRESSURE:
 			case MO_TRIPLEATTACK:
 			case HW_GRAVITATION:
 				break;
@@ -1067,8 +1062,8 @@ static struct Damage battle_calc_weapon_attack(
 		if (skill_num && !flag.hit)
 			switch(skill_num)
 			{
-				case AS_SPLASHER: //Reports say it always hits?
-					if (wflag) //Only if you were the one exploding.
+				case AS_SPLASHER:
+					if (wflag) // Always hits the one exploding.
 						break;
 					flag.hit = 1;
 					break;
@@ -1111,13 +1106,14 @@ static struct Damage battle_calc_weapon_attack(
 
 		if(wd.flag&BF_LONG && !skill_num && //Fogwall's hit penalty is only for normal ranged attacks.
 			tsc && tsc->data[SC_FOGWALL].timer!=-1)
-			hitrate-=50;
+			hitrate -= 50;
 
 		if(sd && flag.arrow)
 			hitrate += sd->arrow_hit;
 		if(skill_num)
 			switch(skill_num)
 		{	//Hit skill modifiers
+			//It is proven that bonus is applied on final hitrate, not hit.
 			case SM_BASH:
 				hitrate += hitrate * 5 * skill_lv / 100;
 				break;
@@ -1150,10 +1146,7 @@ static struct Damage battle_calc_weapon_attack(
 		if (sd && (skill = pc_checkskill(sd,BS_WEAPONRESEARCH)) > 0)
 			hitrate += hitrate * ( 2 * skill ) / 100;
 
-		if (hitrate > battle_config.max_hitrate)
-			hitrate = battle_config.max_hitrate;
-		else if (hitrate < battle_config.min_hitrate)
-			hitrate = battle_config.min_hitrate;
+		hitrate = cap_value(hitrate, battle_config.min_hitrate, battle_config.max_hitrate); 
 
 		if(rand()%100 >= hitrate)
 			wd.dmg_lv = ATK_FLEE;
@@ -1247,14 +1240,14 @@ static struct Damage battle_calc_weapon_attack(
 					(sc && sc->data[SC_WEAPONPERFECTION].timer!=-1?8:0);
 				if (flag.arrow && sd)
 				switch(sd->status.weapon) {
-				case W_BOW:
-				case W_REVOLVER:
-				case W_SHOTGUN:
-				case W_GATLING:
-				case W_GRENADE:
-				  break;
-				default:
-				  i |= 16; // for ex. shuriken must not be influenced by DEX
+					case W_BOW:
+					case W_REVOLVER:
+					case W_SHOTGUN:
+					case W_GATLING:
+					case W_GRENADE:
+						break;
+					default:
+						i |= 16; // for ex. shuriken must not be influenced by DEX
 				}
 				wd.damage = battle_calc_base_damage(sstatus, &sstatus->rhw, sc, tstatus->size, sd, i);
 				if (flag.lh)
@@ -1477,15 +1470,13 @@ static struct Damage battle_calc_weapon_attack(
 					break;
 				case AS_SPLASHER:
 					i = 400+50*skill_lv;
-					if (sd) i += 20*pc_checkskill(sd,AS_POISONREACT);
-					if (wflag>1) i/=wflag; //Splash damage is half.
+					if (wflag>1) i /= 4; // FIXME: Should be 25% of damage inflicted to target, not 25% of skillratio bonus
 					skillratio += i;
 					break;
 				case ASC_BREAKER:
 					skillratio += 100*skill_lv-100;
 					break;
 				case PA_SACRIFICE:
-					//40% less effective on siege maps. [Skotlex]
 					skillratio += 10*skill_lv-10;
 					break;
 				case PA_SHIELDCHAIN:
@@ -1615,6 +1606,7 @@ static struct Damage battle_calc_weapon_attack(
 			if(sc->data[SC_EDP].timer != -1 &&
 			  	skill_num != ASC_BREAKER &&
 				skill_num != ASC_METEORASSAULT &&
+				skill_num != AS_SPLASHER &&
 				skill_num != AS_VENOMKNIFE)
 				ATK_ADDRATE(sc->data[SC_EDP].val3);
 		}
@@ -2653,16 +2645,10 @@ struct Damage  battle_calc_misc_attack(
 struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
 {
 	struct Damage d;
-	switch(attack_type){
-	case BF_WEAPON:
-		d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag);
-		break;
-	case BF_MAGIC:
-		d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);
-		break;
-	case BF_MISC:
-		d = battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);
-		break;
+	switch(attack_type) {
+	case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag); break;
+	case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);  break;
+	case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);   break;
 	default:
 		if (battle_config.error_log)
 			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);
@@ -2679,9 +2665,10 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 	return d;
 }
 
-int battle_calc_return_damage(struct block_list *bl, int *damage, int flag) {
-	struct map_session_data *sd=NULL;
-	struct status_change *sc;
+int battle_calc_return_damage(struct block_list* bl, int* damage, int flag)
+{
+	struct map_session_data* sd = NULL;
+	struct status_change* sc;
 	int rdamage = 0;
 
 	BL_CAST(BL_PC, bl, sd);
@@ -2711,8 +2698,7 @@ int battle_calc_return_damage(struct block_list *bl, int *damage, int flag) {
 	// magic_damage_return by [AppleGirl] and [Valaris]
 	if(flag&BF_MAGIC)
 	{
-		if(sd && sd->magic_damage_return &&
-			rand()%100 < sd->magic_damage_return)
+		if(sd && sd->magic_damage_return && rand()%100 < sd->magic_damage_return)
 		{	//Bounces back full damage, you take none.
 			rdamage = *damage;
 		 	*damage = 0;

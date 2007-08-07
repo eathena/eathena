@@ -1,5 +1,9 @@
 Date	Added
 
+2007/08/07
+	* Temporarily moved the refine_posword setting to the source code
+	* Adjusted motd.txt to not crash new clients
+	* Removed backup_txt config option since it's not needed anymore
 2007/07/23
 	* Adjusted client.conf's packetver table (latest now uses new value)
 	* Added option 'char_rename' to char config (does not do renaming yet)

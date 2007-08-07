@@ -1,3 +1,7 @@
+08/07
+	* Added missing /blacksmith packet action to packet_db.txt
+	* Removed "eathena's custom equipped mobs" from mob&skill db
+	* Added custom Hollow Poring mob_db2 entry [ultramage]
 07/30
 	* Rev. 10932 Merged several changes from trunk. [L0ne_W0lf]
 	- Merged new in new items, and item_trade entries.

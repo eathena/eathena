@@ -46,7 +46,7 @@ unsigned long StatusChangeFlagTable[SC_MAX]; //Stores the flag specifying what t
 static int max_weight_base[MAX_PC_CLASS];
 static int hp_coefficient[MAX_PC_CLASS];
 static int hp_coefficient2[MAX_PC_CLASS];
-static int hp_sigma_val[MAX_PC_CLASS][MAX_LEVEL];
+static int hp_sigma_val[MAX_PC_CLASS][MAX_LEVEL+1];
 static int sp_coefficient[MAX_PC_CLASS];
 static int aspd_base[MAX_PC_CLASS][MAX_WEAPON_TYPE];	//[blackhole89]
 static int refinebonus[MAX_REFINE_BONUS][3];	// 精錬ボーナステーブル(refine_db.txt)
@@ -675,14 +675,9 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 
 	switch (target->type)
 	{
-		case BL_MOB:
-			mob_damage((TBL_MOB*)target, src, hp);
-			break;
-		case BL_PC:
-			pc_damage((TBL_PC*)target,src,hp,sp);
-			break;
-		case BL_HOM:
-			merc_damage((TBL_HOM*)target,src,hp,sp);
+		case BL_PC:  pc_damage((TBL_PC*)target,src,hp,sp); break;
+		case BL_MOB: mob_damage((TBL_MOB*)target, src, hp); break;
+		case BL_HOM: merc_damage((TBL_HOM*)target,src,hp,sp); break;
 	}
 
 	if (status->hp)
@@ -698,17 +693,10 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 	//Non-zero: Standard death. Clear status, cancel move/attack, etc
 	//&2: Also remove object from map.
 	//&4: Also delete object from memory.
-	switch (target->type)
-	{
-		case BL_MOB:
-			flag = mob_dead((TBL_MOB*)target, src, flag&4?3:0);
-			break;
-		case BL_PC:
-			flag = pc_dead((TBL_PC*)target,src);
-			break;
-		case BL_HOM:
-			flag = merc_hom_dead((TBL_HOM*)target,src);
-			break;
+	switch (target->type) {
+		case BL_PC:  flag = pc_dead((TBL_PC*)target,src); break;
+		case BL_MOB: flag = mob_dead((TBL_MOB*)target, src, flag&4?3:0); break;
+		case BL_HOM: flag = merc_hom_dead((TBL_HOM*)target,src); break;
 		default:	//Unhandled case, do nothing to object.
 			flag = 0;
 			break;
@@ -806,15 +794,9 @@ int status_heal(struct block_list *bl,int hp,int sp, int flag)
 		status_change_end(bl,SC_PROVOKE,-1);
 
 	switch(bl->type) {
-	case BL_MOB:
-		mob_heal((TBL_MOB*)bl,hp);
-		break;
-	case BL_PC:
-		pc_heal((TBL_PC*)bl,hp,sp,flag&2?1:0);
-		break;
-	case BL_HOM:
-		merc_hom_heal((TBL_HOM*)bl,hp,sp);
-		break;
+	case BL_PC:  pc_heal((TBL_PC*)bl,hp,sp,flag&2?1:0); break;
+	case BL_MOB: mob_heal((TBL_MOB*)bl,hp); break;
+	case BL_HOM: merc_hom_heal((TBL_HOM*)bl,hp,sp); break;
 	}
 	return hp+sp;
 }
@@ -912,15 +894,9 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 	if (bl->prev) //Animation only if character is already on a map.
 		clif_resurrection(bl, 1);
 	switch (bl->type) {
-		case BL_MOB:
-			mob_revive((TBL_MOB*)bl, hp);
-			break;
-		case BL_PC:
-			pc_revive((TBL_PC*)bl, hp, sp);
-			break;
-		case BL_HOM:	//[orn]
-			merc_hom_revive((TBL_HOM*)bl, hp, sp);
-			break;
+		case BL_PC:  pc_revive((TBL_PC*)bl, hp, sp); break;
+		case BL_MOB: mob_revive((TBL_MOB*)bl, hp); break;
+		case BL_HOM: merc_hom_revive((TBL_HOM*)bl, hp, sp); break;
 	}
 	return 1;
 }
@@ -1493,26 +1469,50 @@ int status_calc_pet(struct pet_data *pd, int first)
 	return 1;
 }	
 
-static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct status_data *status)
+/// Helper function for status_base_pc_maxhp(), used to pre-calculate the hp_sigma_val[] array
+static void status_calc_sigma(void)
+{
+	int i,j;
+
+	for(i = 0; i < MAX_PC_CLASS; i++)
+	{
+		unsigned int k = 0;
+		hp_sigma_val[i][0] = hp_sigma_val[i][1] = 0;
+		for(j = 2; j <= MAX_LEVEL; j++)
+		{
+			k += (hp_coefficient[i]*j + 50) / 100;
+			hp_sigma_val[i][j] = k;
+			if (k >= INT_MAX)
+				break; //Overflow protection. [Skotlex]
+		}
+		for(; j <= MAX_LEVEL; j++)
+			hp_sigma_val[i][j] = INT_MAX;
+	}
+}
+
+/// Calculates base MaxHP value according to class and base level
+/// The recursive equation used to calculate level bonus is (using integer operations)
+///    f(0) = 35 | f(x+1) = f(x) + A + (x + B)*C/D
+/// which reduces to something close to
+///    f(x) = 35 + x*(A + B*C/D) + sum(i=2..x){ i*C/D }
+static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct status_data* status)
 {
 	unsigned int val;
-	val = (3500 + sd->status.base_level*hp_coefficient2[sd->status.class_]
-		+ hp_sigma_val[sd->status.class_][sd->status.base_level-1])/100
-		* (100 + status->vit)/100 + sd->param_equip[2];
-	if (sd->class_&JOBL_UPPER)
-		val += val * 25/100;
-	else if (sd->class_&JOBL_BABY)
-		val -= val * 30/100;
 
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_NINJA || 
-		(sd->class_&MAPID_UPPERMASK) == MAPID_GUNSLINGER)
+	val = 35 + sd->status.base_level*hp_coefficient2[sd->status.class_]/100 + hp_sigma_val[sd->status.class_][sd->status.base_level];
+	val += val * status->vit/100; // +1% per each point of VIT
+
+	if (sd->class_&JOBL_UPPER)
+		val += val * 25/100; //Trans classes get a 25% hp bonus
+	else if (sd->class_&JOBL_BABY)
+		val -= val * 30/100; //Baby classes get a 30% hp penalty
+
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_NINJA || (sd->class_&MAPID_UPPERMASK) == MAPID_GUNSLINGER)
 		val += 100; //Since their HP can't be approximated well enough without this.
-	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON &&
-		sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_TAEKWON && sd->status.base_level >= 90 && pc_famerank(sd->status.char_id, MAPID_TAEKWON))
 		val *= 3; //Triple max HP for top ranking Taekwons over level 90.
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE &&
-		sd->status.base_level >= 99)
-		val += 2000;
+	if((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.base_level >= 99)
+		val += 2000; //Supernovice lvl99 hp bonus.
 
 	return val;
 }
@@ -1520,8 +1520,10 @@ static unsigned int status_base_pc_maxhp(struct map_session_data* sd, struct sta
 static unsigned int status_base_pc_maxsp(struct map_session_data* sd, struct status_data *status)
 {
 	unsigned int val;
-	val = (1000 + sd->status.base_level*sp_coefficient[sd->status.class_])/100
-		* (100 + status->int_)/100 + sd->param_equip[3];
+
+	val = 10 + sd->status.base_level*sp_coefficient[sd->status.class_]/100;
+	val += val * status->int_/100;
+
 	if (sd->class_&JOBL_UPPER)
 		val += val * 25/100;
 	else if (sd->class_&JOBL_BABY)
@@ -1920,24 +1922,12 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		if(!job_bonus[sd->status.class_][i])
 			continue;
 		switch(job_bonus[sd->status.class_][i]) {
-			case 1:
-				status->str++;
-				break;
-			case 2:
-				status->agi++;
-				break;
-			case 3:
-				status->vit++;
-				break;
-			case 4:
-				status->int_++;
-				break;
-			case 5:
-				status->dex++;
-				break;
-			case 6:
-				status->luk++;
-				break;
+			case 1: status->str++; break;
+			case 2: status->agi++; break;
+			case 3: status->vit++; break;
+			case 4: status->int_++; break;
+			case 5: status->dex++; break;
+			case 6: status->luk++; break;
 		}
 	}
 
@@ -3943,22 +3933,15 @@ void status_freecast_switch(struct map_session_data *sd)
 		clif_updatestatus(sd,SP_SPEED);
 }
 
-const char * status_get_name(struct block_list *bl)
+const char* status_get_name(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
 	switch (bl->type) {
-	case BL_MOB:
-		return ((TBL_MOB*)bl)->name;
-	case BL_PC:
-		if(strlen(((TBL_PC *)bl)->fakename)>0)
-			return ((TBL_PC*)bl)->fakename;
-		return ((TBL_PC*)bl)->status.name;
-	case BL_PET:
-		return ((TBL_PET*)bl)->pet.name;
-	case BL_HOM:
-		return ((TBL_HOM*)bl)->homunculus.name;
-	case BL_NPC:
-		return ((TBL_NPC*)bl)->name;
+	case BL_PC:  return ((TBL_PC *)bl)->fakename[0] != '\0' ? ((TBL_PC*)bl)->fakename : ((TBL_PC*)bl)->status.name;
+	case BL_MOB: return ((TBL_MOB*)bl)->name;
+	case BL_PET: return ((TBL_PET*)bl)->pet.name;
+	case BL_HOM: return ((TBL_HOM*)bl)->homunculus.name;
+	case BL_NPC: return ((TBL_NPC*)bl)->name;
 	}
 	return "Unknown";
 }
@@ -3987,14 +3970,12 @@ int status_get_class(struct block_list *bl)
 int status_get_lv(struct block_list *bl)
 {
 	nullpo_retr(0, bl);
-	if(bl->type==BL_MOB)
-		return ((TBL_MOB*)bl)->level;
-	if(bl->type==BL_PC)
-		return ((TBL_PC*)bl)->status.base_level;
-	if(bl->type==BL_PET)
-		return ((TBL_PET*)bl)->pet.level;
-	if(bl->type==BL_HOM)
-		return ((TBL_HOM*)bl)->homunculus.level;
+	switch (bl->type) {
+		case BL_PC:  return ((TBL_PC*)bl)->status.base_level;
+		case BL_MOB: return ((TBL_MOB*)bl)->level;
+		case BL_PET: return ((TBL_PET*)bl)->pet.level;
+		case BL_HOM: return ((TBL_HOM*)bl)->homunculus.level;
+	}		
 	return 1;
 }
 
@@ -4002,10 +3983,8 @@ struct regen_data *status_get_regen_data(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
 	switch (bl->type) {
-		case BL_PC:
-			return &((TBL_PC*)bl)->regen;
-		case BL_HOM:
-			return &((TBL_HOM*)bl)->regen;
+		case BL_PC:  return &((TBL_PC*)bl)->regen;
+		case BL_HOM: return &((TBL_HOM*)bl)->regen;
 		default:
 			return NULL;
 	}
@@ -4016,14 +3995,10 @@ struct status_data *status_get_status_data(struct block_list *bl)
 	nullpo_retr(&dummy_status, bl);
 		
 	switch (bl->type) {
-		case BL_PC:
-			return &((TBL_PC*)bl)->battle_status;
-		case BL_MOB:
-			return &((TBL_MOB*)bl)->status;
-		case BL_PET:
-			return &((TBL_PET*)bl)->status;
-		case BL_HOM:
-			return &((TBL_HOM*)bl)->battle_status;
+		case BL_PC:  return &((TBL_PC*)bl)->battle_status;
+		case BL_MOB: return &((TBL_MOB*)bl)->status;
+		case BL_PET: return &((TBL_PET*)bl)->status;
+		case BL_HOM: return &((TBL_HOM*)bl)->battle_status;
 		default:
 			return &dummy_status;
 	}
@@ -4033,16 +4008,10 @@ struct status_data *status_get_base_status(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
 	switch (bl->type) {
-		case BL_PC:
-			return &((TBL_PC*)bl)->base_status;
-		case BL_MOB:
-			return ((TBL_MOB*)bl)->base_status?
-				((TBL_MOB*)bl)->base_status:
-				&((TBL_MOB*)bl)->db->status;
-		case BL_PET:
-			return &((TBL_PET*)bl)->db->status;
-		case BL_HOM:
-			return &((TBL_HOM*)bl)->base_status;
+		case BL_PC:  return &((TBL_PC*)bl)->base_status;
+		case BL_MOB: return ((TBL_MOB*)bl)->base_status ? ((TBL_MOB*)bl)->base_status : &((TBL_MOB*)bl)->db->status;
+		case BL_PET: return &((TBL_PET*)bl)->db->status;
+		case BL_HOM: return &((TBL_HOM*)bl)->base_status;
 		default:
 			return NULL;
 	}
@@ -4223,21 +4192,15 @@ int status_isimmune(struct block_list *bl)
 	return 0;
 }
 
-struct view_data *status_get_viewdata(struct block_list *bl)
+struct view_data* status_get_viewdata(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
-	switch (bl->type)
-	{
-		case BL_PC:
-			return &((TBL_PC*)bl)->vd;
-		case BL_MOB:
-			return ((TBL_MOB*)bl)->vd;
-		case BL_PET:
-			return &((TBL_PET*)bl)->vd;
-		case BL_NPC:
-			return ((TBL_NPC*)bl)->vd;
-		case BL_HOM: //[blackhole89]
-			return ((TBL_HOM*)bl)->vd;
+	switch (bl->type) {
+		case BL_PC:  return &((TBL_PC*)bl)->vd;
+		case BL_MOB: return ((TBL_MOB*)bl)->vd;
+		case BL_PET: return &((TBL_PET*)bl)->vd;
+		case BL_NPC: return ((TBL_NPC*)bl)->vd;
+		case BL_HOM: return ((TBL_HOM*)bl)->vd;
 	}
 	return NULL;
 }
@@ -4360,14 +4323,10 @@ struct status_change *status_get_sc(struct block_list *bl)
 {
 	nullpo_retr(NULL, bl);
 	switch (bl->type) {
-	case BL_MOB:
-		return &((TBL_MOB*)bl)->sc;
-	case BL_PC:
-		return &((TBL_PC*)bl)->sc;
-	case BL_NPC:
-		return &((TBL_NPC*)bl)->sc;
-	case BL_HOM: //[blackhole89]
-		return &((TBL_HOM*)bl)->sc;
+	case BL_PC:  return &((TBL_PC*)bl)->sc;
+	case BL_MOB: return &((TBL_MOB*)bl)->sc;
+	case BL_NPC: return &((TBL_NPC*)bl)->sc;
+	case BL_HOM: return &((TBL_HOM*)bl)->sc;
 	}
 	return NULL;
 }
@@ -5320,7 +5279,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_TENSIONRELAX:
 			if (sd) {
 				pc_setsit(sd);
-				clif_sitting(sd, AREA);
+				clif_sitting(sd);
 			}
 			val2 = 12; //SP cost
 			val4 = 10000; //Decrease at 10secs intervals.
@@ -7273,26 +7232,6 @@ static int status_natural_heal_timer(int tid,unsigned int tick,int id,int data)
 	natural_heal_diff_tick = DIFF_TICK(tick,natural_heal_prev_tick);
 	map_foreachiddb(status_natural_heal);
 	natural_heal_prev_tick = tick;
-	return 0;
-}
-
-static int status_calc_sigma(void)
-{
-	int i,j;
-	unsigned int k;
-
-	for(i=0;i<MAX_PC_CLASS;i++) {
-		memset(hp_sigma_val[i],0,sizeof(hp_sigma_val[i]));
-		for(k=0,j=2;j<=MAX_LEVEL;j++) {
-			k += hp_coefficient[i]*j + 50;
-			k -= k%100;
-			hp_sigma_val[i][j-1] = k;
-			if (k >= INT_MAX)
-				break; //Overflow protection. [Skotlex]
-		}
-		for(;j<=MAX_LEVEL;j++)
-			hp_sigma_val[i][j-1] = INT_MAX;
-	}
 	return 0;
 }
 

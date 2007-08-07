@@ -57,7 +57,7 @@
 #define MAX_LEVEL 99
 #define MAX_WALKPATH 32
 #define MAX_DROP_PER_MAP 48
-#define MAX_IGNORE_LIST 80
+#define MAX_IGNORE_LIST 20 // official is 14
 #define MAX_VENDING 12
 #define MOBID_EMPERIUM 1288
 
@@ -622,7 +622,7 @@ struct map_session_data {
 	short skillid_dance,skilllv_dance;
 	char blockskill[MAX_SKILL];	// [celest]
 	int cloneskill_id;
-	int menuskill_id, menuskill_lv;
+	int menuskill_id, menuskill_val;
 
 	int invincible_timer;
 	unsigned int canlog_tick;
