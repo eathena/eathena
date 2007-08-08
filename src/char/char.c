@@ -3450,23 +3450,22 @@ int parse_char(int fd)
 				ShowWarning("Unable to find map-server for '%s', sending to major city '%s'.\n", mapindex_id2name(cd->last_point.map), mapindex_id2name(j));
 				cd->last_point.map = j;
 			}
-			{
-				//Send player to map
-				uint32 subnet_map_ip;
-				WFIFOHEAD(fd,28);
-				WFIFOW(fd,0) = 0x71;
-				WFIFOL(fd,2) = cd->char_id;
-				memcpy(WFIFOP(fd,6), mapindex_id2name(cd->last_point.map), MAP_NAME_LENGTH);
-			
-				// Advanced subnet check [LuzZza]
-				subnet_map_ip = lan_subnetcheck(ipl);
-				WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
-				WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
-				WFIFOSET(fd,28);
 
-				ShowInfo("Character selection '%s' (account: %d, slot: %d).\n",
-					cd->name, sd->account_id, ch);
-			}
+			//Send player to map
+			WFIFOHEAD(fd,28);
+			WFIFOW(fd,0) = 0x71;
+			WFIFOL(fd,2) = cd->char_id;
+			memcpy(WFIFOP(fd,6), mapindex_id2name(cd->last_point.map), MAP_NAME_LENGTH);
+		{
+			// Advanced subnet check [LuzZza]
+			uint32 subnet_map_ip;
+			subnet_map_ip = lan_subnetcheck(ipl);
+			WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
+			WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
+			WFIFOSET(fd,28);
+		}
+			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", cd->name, sd->account_id, ch);
+
 			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
 				auth_fifo_pos = 0;
 			auth_fifo[auth_fifo_pos].account_id = sd->account_id;
@@ -4140,8 +4139,7 @@ int char_config_read(const char *cfgName)
 		} else if(strcmpi(w1,"db_path")==0) {
 			strcpy(db_path,w2);
 		} else if (strcmpi(w1, "console") == 0) {
-			if(strcmpi(w2,"on") == 0 || strcmpi(w2,"yes") == 0 )
-				console = 1;
+			console = config_switch(w2);
 		} else if (strcmpi(w1, "fame_list_alchemist") == 0) {
 			fame_list_size_chemist = atoi(w2);
 			if (fame_list_size_chemist > MAX_FAME_LIST) {

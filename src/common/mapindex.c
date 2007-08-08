@@ -13,9 +13,8 @@
 
 #define MAX_MAPINDEX 2000
 
-//Leave an extra char of space to hold the terminator, in case for the strncpy(mapindex_id2name()) calls.
 struct _indexes {
-	char name[MAP_NAME_LENGTH+1]; //Stores map name
+	char name[MAP_NAME_LENGTH]; //Stores map name
 	int length; //Stores string length WITHOUT the extension for quick lookup.
 } indexes[MAX_MAPINDEX];
 

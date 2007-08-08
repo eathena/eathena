@@ -1185,17 +1185,15 @@ static void clif_spiritball_single(int fd, struct map_session_data *sd)
 /*==========================================
  *
  *------------------------------------------*/
-static int clif_set0192(int fd, int m, int x, int y, int type)
+static void clif_set0192(int fd, int m, int x, int y, int type)
 {
 	WFIFOHEAD(fd, packet_len(0x192));
 	WFIFOW(fd,0) = 0x192;
 	WFIFOW(fd,2) = x;
 	WFIFOW(fd,4) = y;
 	WFIFOW(fd,6) = type;
-	memcpy(WFIFOP(fd,8),map[m].name,MAP_NAME_LENGTH);
+	safestrncpy((char*)WFIFOP(fd,8),map[m].name,MAP_NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x192));
-
-	return 0;
 }
 
 // new and improved weather display [Valaris]
@@ -1665,46 +1663,37 @@ void clif_setwaitclose(int fd)
 /*==========================================
  *
  *------------------------------------------*/
-int clif_changemap(struct map_session_data *sd, short map, int x, int y)
+void clif_changemap(struct map_session_data *sd, short map, int x, int y)
 {
 	int fd;
-	
-	nullpo_retr(0, sd);
-
+	nullpo_retv(sd);
 	fd = sd->fd;
 	
 	WFIFOHEAD(fd, packet_len(0x91));
 	WFIFOW(fd,0) = 0x91;
-	memcpy(WFIFOP(fd,2), mapindex_id2name(map), MAP_NAME_LENGTH);
+	safestrncpy((char*)WFIFOP(fd,2), mapindex_id2name(map), MAP_NAME_LENGTH);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOSET(fd, packet_len(0x91));
-
-	return 0;
 }
 
 /*==========================================
  * Tells the client to connect to another map-server
  *------------------------------------------*/
-int clif_changemapserver(struct map_session_data* sd, const char* mapname, int x, int y, uint32 ip, uint16 port)
+void clif_changemapserver(struct map_session_data* sd, unsigned short map_index, int x, int y, uint32 ip, uint16 port)
 {
 	int fd;
-
-	nullpo_retr(0, sd);
-
+	nullpo_retv(sd);
 	fd = sd->fd;
+
 	WFIFOHEAD(fd, packet_len(0x92));
 	WFIFOW(fd,0) = 0x92;
-	//Better not trust the null-terminator is there. [Skotlex]
-	memcpy(WFIFOP(fd,2), mapname, MAP_NAME_LENGTH);
-	WFIFOB(fd,17) = 0;	//Null terminator for mapname
+	safestrncpy((char*)WFIFOP(fd,2), mapindex_id2name(map_index), MAP_NAME_LENGTH);
 	WFIFOW(fd,18) = x;
 	WFIFOW(fd,20) = y;
 	WFIFOL(fd,22) = htonl(ip);
 	WFIFOW(fd,26) = ntows(htons(port)); // [!] LE byte order here [!]
 	WFIFOSET(fd, packet_len(0x92));
-
-	return 0;
 }
 
 int clif_blown(struct block_list *bl)
@@ -4729,22 +4718,21 @@ int clif_skill_delunit(struct skill_unit *unit)
 /*==========================================
  * ワープ場所選択
  *------------------------------------------*/
-int clif_skill_warppoint(struct map_session_data* sd, int skill_num, int skill_lv, int map1, int map2, int map3, int map4)
+void clif_skill_warppoint(struct map_session_data* sd, int skill_num, int skill_lv, int map1, int map2, int map3, int map4)
 {
 	int fd;
-
-	nullpo_retr(0, sd);
+	nullpo_retv(sd);
 	fd = sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x11c));
 	WFIFOW(fd,0) = 0x11c;
 	WFIFOW(fd,2) = skill_num;
 	memset(WFIFOP(fd,4), 0x00, 4*MAP_NAME_LENGTH);
-	if (map1 == -1) strcpy((char*)WFIFOP(fd, 4), "Random");
-	if (map1 > 0) snprintf((char*)WFIFOP(fd, 4), MAP_NAME_LENGTH, "%s", mapindex_id2name(map1));
-	if (map2 > 0) snprintf((char*)WFIFOP(fd,20), MAP_NAME_LENGTH, "%s", mapindex_id2name(map2));
-	if (map3 > 0) snprintf((char*)WFIFOP(fd,36), MAP_NAME_LENGTH, "%s", mapindex_id2name(map3));
-	if (map4 > 0) snprintf((char*)WFIFOP(fd,52), MAP_NAME_LENGTH, "%s", mapindex_id2name(map4));
+	if (map1 == -1) safestrncpy((char*)WFIFOP(fd, 4), "Random", MAP_NAME_LENGTH);
+	if (map1 > 0)   safestrncpy((char*)WFIFOP(fd, 4), mapindex_id2name(map1), MAP_NAME_LENGTH);
+	if (map2 > 0)   safestrncpy((char*)WFIFOP(fd,20), mapindex_id2name(map2), MAP_NAME_LENGTH);
+	if (map3 > 0)   safestrncpy((char*)WFIFOP(fd,36), mapindex_id2name(map3), MAP_NAME_LENGTH);
+	if (map4 > 0)   safestrncpy((char*)WFIFOP(fd,52), mapindex_id2name(map4), MAP_NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x11c));
 
 	sd->menuskill_id = skill_num;
@@ -4752,7 +4740,6 @@ int clif_skill_warppoint(struct map_session_data* sd, int skill_num, int skill_l
 		sd->menuskill_val = (sd->ud.skillx<<16)|sd->ud.skilly; //Store warp position here.
 	else
 		sd->menuskill_val = skill_lv;
-	return 0;
 }
 /*==========================================
  * メモ応答
@@ -5707,21 +5694,22 @@ int clif_party_created(struct map_session_data *sd,int flag)
 int clif_party_member_info(struct party_data *p, struct map_session_data *sd)
 {
 	unsigned char buf[96];
+
 	if (!sd) { //Pick any party member (this call is used when changing item share rules)
 		int i;
 		for (i=0; i<MAX_PARTY && !p->data[i].sd; i++);
 		if (i >= MAX_PARTY) return 0; //Should never happen...
 		sd = p->data[i].sd;
 	}
-	WBUFW(buf,0)=0x1e9;
-	WBUFL(buf,2)= sd->status.account_id;
-	WBUFL(buf,6)= 0; //Apparently setting this to 1 makes you adoptable.
-	WBUFW(buf,10)=sd->bl.x;
-	WBUFW(buf,12)=sd->bl.y;
-	WBUFB(buf,14)=0; //Unconfirmed byte, could be online/offline.
+	WBUFW(buf, 0) = 0x1e9;
+	WBUFL(buf, 2) = sd->status.account_id;
+	WBUFL(buf, 6) = 0; //Apparently setting this to 1 makes you adoptable.
+	WBUFW(buf,10) = sd->bl.x;
+	WBUFW(buf,12) = sd->bl.y;
+	WBUFB(buf,14) = 0; //Unconfirmed byte, could be online/offline.
 	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39), sd->status.name, NAME_LENGTH);
-	memcpy(WBUFP(buf,63), mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
+	safestrncpy((char*)WBUFP(buf,63), mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
 	WBUFB(buf,79) = (p->party.item&1)?1:0;
 	WBUFB(buf,80) = (p->party.item&2)?1:0;
 	clif_send(buf,packet_len(0x1e9),&sd->bl,PARTY);
@@ -5752,7 +5740,7 @@ int clif_party_info(struct party_data* p, struct map_session_data *sd)
 
 		WBUFL(buf,28+c*46) = m->account_id;
 		memcpy(WBUFP(buf,28+c*46+4), m->name, NAME_LENGTH);
-		memcpy(WBUFP(buf,28+c*46+28), mapindex_id2name(m->map), MAP_NAME_LENGTH);
+		safestrncpy((char*)WBUFP(buf,28+c*46+28), mapindex_id2name(m->map), MAP_NAME_LENGTH);
 		WBUFB(buf,28+c*46+44) = (m->leader) ? 0 : 1;
 		WBUFB(buf,28+c*46+45) = (m->online) ? 0 : 1;
 		c++;
@@ -6016,24 +6004,23 @@ int clif_hpmeter(struct map_session_data *sd)
 /*==========================================
  * パーティ場所移動（未使用）
  *------------------------------------------*/
-int clif_party_move(struct party *p,struct map_session_data *sd,int online)
+void clif_party_move(struct party* p, struct map_session_data* sd, int online)
 {
 	unsigned char buf[128];
 
-	nullpo_retr(0, sd);
-	nullpo_retr(0, p);
+	nullpo_retv(sd);
+	nullpo_retv(p);
 
-	WBUFW(buf, 0)=0x104;
-	WBUFL(buf, 2)=sd->status.account_id;
-	WBUFL(buf, 6)=0;
-	WBUFW(buf,10)=sd->bl.x;
-	WBUFW(buf,12)=sd->bl.y;
-	WBUFB(buf,14)=!online;
+	WBUFW(buf, 0) = 0x104;
+	WBUFL(buf, 2) = sd->status.account_id;
+	WBUFL(buf, 6) = 0;
+	WBUFW(buf,10) = sd->bl.x;
+	WBUFW(buf,12) = sd->bl.y;
+	WBUFB(buf,14) = !online;
 	memcpy(WBUFP(buf,15),p->name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39),sd->status.name, NAME_LENGTH);
-	memcpy(WBUFP(buf,63),map[sd->bl.m].name, MAP_NAME_LENGTH);
+	safestrncpy((char*)WBUFP(buf,63),map[sd->bl.m].name, MAP_NAME_LENGTH);
 	clif_send(buf,packet_len(0x104),&sd->bl,PARTY);
-	return 0;
 }
 /*==========================================
  * 攻撃するために移動が必要
@@ -6408,7 +6395,7 @@ int clif_bladestop(struct block_list *src,struct block_list *dst,
 /*==========================================
  *
  *------------------------------------------*/
-int clif_changemapcell(int m,int x,int y,int cell_type,int type)
+void clif_changemapcell(short m, short x, short y, int cell_type, int type)
 {
 	struct block_list bl;
 	unsigned char buf[32];
@@ -6421,13 +6408,8 @@ int clif_changemapcell(int m,int x,int y,int cell_type,int type)
 	WBUFW(buf,2) = x;
 	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = cell_type;
-	memcpy(WBUFP(buf,8),map[m].name,MAP_NAME_LENGTH);
-	if(!type)
-		clif_send(buf,packet_len(0x192),&bl,AREA);
-	else
-		clif_send(buf,packet_len(0x192),&bl,ALL_SAMEMAP);
-
-	return 0;
+	safestrncpy((char*)WBUFP(buf,8),map[m].name,MAP_NAME_LENGTH);
+	clif_send(buf,packet_len(0x192),&bl,(!type)?AREA:ALL_SAMEMAP);
 }
 
 /*==========================================
@@ -7474,7 +7456,7 @@ int clif_specialeffect(struct block_list* bl, int type, enum send_target target)
 int clif_refresh(struct map_session_data *sd)
 {
 	nullpo_retr(-1, sd);
-	clif_changemap(sd, sd->mapindex,sd->bl.x, sd->bl.y);
+	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
 	clif_inventorylist(sd);
 	if(pc_iscarton(sd)) {
 		clif_cartlist(sd);
@@ -7776,16 +7758,17 @@ void clif_gospel_info(struct map_session_data *sd, int type)
  * Info about Star Glaldiator save map [Komurka]
  * type: 1: Information, 0: Map registered
  *------------------------------------------*/
-void clif_feel_info(struct map_session_data *sd, unsigned char feel_level, unsigned char type)
+void clif_feel_info(struct map_session_data* sd, unsigned char feel_level, unsigned char type)
 {
 	int fd=sd->fd;
+
 	WFIFOHEAD(fd,packet_len(0x20e));
-	WFIFOW(fd,0)=0x20e;
-	memcpy(WFIFOP(fd,2),mapindex_id2name(sd->feel_map[feel_level].index), MAP_NAME_LENGTH);
-	WFIFOL(fd,26)=sd->bl.id;
-	WFIFOB(fd,30)=feel_level;
-	WFIFOB(fd,31)=type?1:0;
-	WFIFOSET(fd, packet_len(0x20e));
+	WFIFOW(fd,0) = 0x20e;
+	safestrncpy((char*)WFIFOP(fd,2), mapindex_id2name(sd->feel_map[feel_level].index), MAP_NAME_LENGTH);
+	WFIFOL(fd,26) = sd->bl.id;
+	WFIFOB(fd,30) = feel_level;
+	WFIFOB(fd,31) = type?1:0;
+	WFIFOSET(fd,packet_len(0x20e));
 }
 
 /*==========================================
@@ -9652,10 +9635,10 @@ void clif_parse_UseSkillToPosMoreInfo(int fd, struct map_session_data *sd)
 /*==========================================
  * スキル使用（map指定）
  *------------------------------------------*/
-void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
+void clif_parse_UseSkillMap(int fd, struct map_session_data* sd)
 {
-	int skill_num;
-	skill_num = RFIFOW(fd,2);
+	int skill_num = RFIFOW(fd,2);
+	char* map_name = (char*)RFIFOP(fd,4);
 
 	if(skill_num != sd->menuskill_id) 
 		return;
@@ -9667,7 +9650,7 @@ void clif_parse_UseSkillMap(int fd,struct map_session_data *sd)
 	}
 
 	pc_delinvincibletimer(sd);
-	skill_castend_map(sd,skill_num,(char*)RFIFOP(fd,4));
+	skill_castend_map(sd,skill_num,map_name);
 }
 /*==========================================
  * メモ要求

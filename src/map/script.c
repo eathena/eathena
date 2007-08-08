@@ -9455,36 +9455,31 @@ BUILDIN_FUNC(getcastlename)
 {
 	const char* mapname = script_getstr(st,2);
 	struct guild_castle* gc = guild_mapname2gc(mapname);
-
-	if(gc)
-		script_pushconststr(st,gc->castle_name);
-	else
-		script_pushconststr(st,"");
+	char* name = (gc) ? gc->castle_name : "";
+	script_pushconststr(st,name);
 	return 0;
 }
 
 BUILDIN_FUNC(getcastledata)
 {
 	const char* mapname = script_getstr(st,2);
-	int index=script_getnum(st,3);
-	const char *event=NULL;
-	struct guild_castle *gc;
-	int i;
+	int index = script_getnum(st,3);
 
-	gc = guild_mapname2gc(mapname);
+	struct guild_castle* gc = guild_mapname2gc(mapname);
 
 	if(script_hasdata(st,4) && index==0 && gc) {
-		event=script_getstr(st,4);
+		const char* event = script_getstr(st,4);
 		check_event(st, event);
 		guild_addcastleinfoevent(gc->castle_id,17,event);
 	}
 
 	if(gc){
 		switch(index){
-			case 0:
+			case 0: {
+				int i;
 				for(i=1;i<26;i++) // Initialize[AgitInit]
 					guild_castledataload(gc->castle_id,i);
-				break;
+				} break;
 			case 1:
 				script_pushint(st,gc->guild_id); break;
 			case 2:
@@ -9533,11 +9528,10 @@ BUILDIN_FUNC(getcastledata)
 BUILDIN_FUNC(setcastledata)
 {
 	const char* mapname = script_getstr(st,2);
-	int index=script_getnum(st,3);
-	int value=script_getnum(st,4);
-	struct guild_castle *gc;
+	int index = script_getnum(st,3);
+	int value = script_getnum(st,4);
 
-	gc = guild_mapname2gc(mapname);
+	struct guild_castle* gc = guild_mapname2gc(mapname);
 
 	if(gc) {
 		// Save Data byself First
