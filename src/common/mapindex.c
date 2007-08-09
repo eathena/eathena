@@ -15,51 +15,87 @@
 
 struct _indexes {
 	char name[MAP_NAME_LENGTH]; //Stores map name
-	int length; //Stores string length WITHOUT the extension for quick lookup.
 } indexes[MAX_MAPINDEX];
 
 static unsigned short max_index = 0;
 
 char mapindex_cfgfile[80] = "db/map_index.txt";
 
+#define mapindex_exists(id) (indexes[id].name[0] != '\0')
+
+/// Retrieves the map name from 'string' (removing .gat extension if present).
+/// Result gets placed either into 'buf' or in a static local buffer.
+const char* mapindex_getmapname(const char* string, char* output)
+{
+	static char buf[MAP_NAME_LENGTH];
+	char* dest = (output != NULL) ? output : buf;
+	
+	size_t len = strnlen(string, MAP_NAME_LENGTH_EXT);
+	if (len == MAP_NAME_LENGTH_EXT) {
+		ShowWarning("(mapindex_normalize_name) Map name '%*s' is too long!", 2*MAP_NAME_LENGTH_EXT, string);
+		len--;
+	}
+	if (len >= 4 && stricmp(&string[len-4], ".gat") == 0)
+		len -= 4; // strip .gat extension
+	
+	len = min(len, MAP_NAME_LENGTH-1);
+	strncpy(dest, string, len+1);
+	memset(&dest[len], '\0', MAP_NAME_LENGTH-len);
+	
+	return dest;
+}
+
+/// Retrieves the map name from 'string' (adding .gat extension if not already present).
+/// Result gets placed either into 'buf' or in a static local buffer.
+const char* mapindex_getmapname_ext(const char* string, char* output)
+{
+	static char buf[MAP_NAME_LENGTH_EXT];
+	char* dest = (output != NULL) ? output : buf;
+	
+	size_t len = strnlen(string, MAP_NAME_LENGTH);
+	if (len == MAP_NAME_LENGTH) {
+		ShowWarning("(mapindex_normalize_name) Map name '%*s' is too long!", 2*MAP_NAME_LENGTH, string);
+		len--;
+	}
+	
+	strncpy(dest, string, len+1);
+	
+	if (len < 4 || stricmp(&dest[len-4], ".gat") != 0) {
+		strcpy(&dest[len], ".gat");
+		len += 4; // add .gat extension
+	}
+
+	memset(&dest[len], '\0', MAP_NAME_LENGTH_EXT-len);
+	
+	return dest;
+}
+
 /// Adds a map to the specified index
 /// Returns 1 if successful, 0 oherwise
 static int mapindex_addmap(int index, const char* name)
 {
-	char map_name[1024];
-	char *ext;
-	int length;
+	char map_name[MAP_NAME_LENGTH];
 
 	if (index < 0 || index >= MAX_MAPINDEX) {
 		ShowError("(mapindex_add) Map index (%d) for \"%s\" out of range (max is %d)\n", index, name, MAX_MAPINDEX);
 		return 0;
 	}
-	snprintf(map_name, 1024, "%s", name);
-	map_name[1023] = 0;
-	length = strlen(map_name);
-	if (length > MAP_NAME_LENGTH) {
-		ShowError("(mapindex_add) Map name %s is too long. Maps are limited to %d characters.\n", map_name, MAP_NAME_LENGTH);
+
+	mapindex_getmapname(name, map_name);
+
+	if (map_name[0] == '\0') {
+		ShowError("(mapindex_add) Cannot add maps with no name.\n");
 		return 0;
 	}
-	if ((ext = strstr(map_name, ".gat")) != NULL) { //Gat map
-		length = ext-map_name;
-	} else if ((ext = strstr(map_name, ".")) != NULL) { //Generic extension?
-		length = ext-map_name;
-		sprintf(ext, ".gat");
-	} else { //No extension?
-		length = strlen(map_name);
-		strcat(map_name, ".gat");
-	}
-	if (length > MAP_NAME_LENGTH - 4) {
-		ShowError("(mapindex_add) Adjusted Map name %s is too long. Maps are limited to %d characters.\n", map_name, MAP_NAME_LENGTH);
-		return 0;
-	}
+	//if (length > MAP_NAME_LENGTH - 4) {
+	//	ShowError("(mapindex_add) Map name %s is too long. Maps are limited to %d characters.\n", map_name, MAP_NAME_LENGTH);
+	//	return 0;
+	//}
 
-	if (indexes[index].length)
-		ShowWarning("(mapindex_add) Overriding index %d: map \"%s\" -> \"%s\"\n", indexes[index].name, map_name);
+	if (mapindex_exists(index))
+		ShowWarning("(mapindex_add) Overriding index %d: map \"%s\" -> \"%s\"\n", index, indexes[index].name, map_name);
 
-	strncpy(indexes[index].name, map_name, MAP_NAME_LENGTH);
-	indexes[index].length = length;
+	safestrncpy(indexes[index].name, map_name, MAP_NAME_LENGTH);
 	if (max_index <= index)
 		max_index = index+1;
 
@@ -70,32 +106,31 @@ unsigned short mapindex_name2id(const char* name)
 {
 	//TODO: Perhaps use a db to speed this up? [Skotlex]
 	int i;
-	int length = strlen(name);
-	char *ext = strstr(name, ".");
-	if (ext)
-		length = ext-name; //Base map-name length without the extension.
+	char map_name[MAP_NAME_LENGTH];
+	mapindex_getmapname(name, map_name);
+
 	for (i = 1; i < max_index; i++)
 	{
-		if (indexes[i].length == length && strncmp(indexes[i].name,name,length)==0)
+		if (strcmp(indexes[i].name,map_name)==0)
 			return i;
 	}
 #ifdef MAPINDEX_AUTOADD
-	if( mapindex_addmap(i,name) )
+	if( mapindex_addmap(i,map_name) )
 	{
-		ShowDebug("mapindex_name2id: Auto-added map \"%s\" to position %d\n", indexes[i], i);
+		ShowDebug("mapindex_name2id: Auto-added map \"%s\" to position %d\n", map_name, i);
 		return i;
 	}
-	ShowWarning("mapindex_name2id: Failed to auto-add map \"%s\" to position %d!\n", name, i);
+	ShowWarning("mapindex_name2id: Failed to auto-add map \"%s\" to position %d!\n", map_name, i);
 	return 0;
 #else
-	ShowDebug("mapindex_name2id: Map \"%s\" not found in index list!\n", name);
+	ShowDebug("mapindex_name2id: Map \"%s\" not found in index list!\n", map_name);
 	return 0;
 #endif
 }
 
 const char* mapindex_id2name(unsigned short id)
 {
-	if (id > MAX_MAPINDEX || !indexes[id].length) {
+	if (id > MAX_MAPINDEX || !mapindex_exists(id)) {
 		ShowDebug("mapindex_id2name: Requested name for non-existant map index [%d] in cache.\n", id);
 		return indexes[0].name; // dummy empty string so that the callee doesn't crash
 	}
@@ -121,7 +156,7 @@ void mapindex_init(void)
 		if(line[0] == '/' && line[1] == '/')
 			continue;
 
-		switch (sscanf(line,"%1000s\t%d",map_name,&index)) {
+		switch (sscanf(line,"%1023s\t%d",map_name,&index)) {
 			case 1: //Map with no ID given, auto-assign
 				index = last_index+1;
 			case 2: //Map with ID given

@@ -9453,7 +9453,7 @@ BUILDIN_FUNC(flagemblem)
 
 BUILDIN_FUNC(getcastlename)
 {
-	const char* mapname = script_getstr(st,2);
+	const char* mapname = mapindex_getmapname(script_getstr(st,2),NULL);
 	struct guild_castle* gc = guild_mapname2gc(mapname);
 	char* name = (gc) ? gc->castle_name : "";
 	script_pushconststr(st,name);
@@ -9462,7 +9462,7 @@ BUILDIN_FUNC(getcastlename)
 
 BUILDIN_FUNC(getcastledata)
 {
-	const char* mapname = script_getstr(st,2);
+	const char* mapname = mapindex_getmapname(script_getstr(st,2),NULL);
 	int index = script_getnum(st,3);
 
 	struct guild_castle* gc = guild_mapname2gc(mapname);
@@ -9527,7 +9527,7 @@ BUILDIN_FUNC(getcastledata)
 
 BUILDIN_FUNC(setcastledata)
 {
-	const char* mapname = script_getstr(st,2);
+	const char* mapname = mapindex_getmapname(script_getstr(st,2),NULL);
 	int index = script_getnum(st,3);
 	int value = script_getnum(st,4);
 

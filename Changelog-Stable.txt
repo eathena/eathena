@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/08/09
+	* Fixed a pair of messups from r998 and r1558, making both the code
+	  and config use an incorrect value for defining the mapcache type
+	* Removed strange (nonexistent) 'alias' functionality from map reading
+	* Imported the no-.gat approach from trunk
+	- the server now runs gat-less, adding it only in interface parts
 2007/08/07
 	* Merged FlavioJS's updates to the script engine, plus followup fixes
 	- r10706, r10773, r10813, r10842, r10843, r10848, r10850, r10868, r10878

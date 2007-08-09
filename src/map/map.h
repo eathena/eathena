@@ -1035,18 +1035,16 @@ struct map_data {
 #ifdef CELL_NOSTACK
 	unsigned char *cell_bl; //Holds amount of bls in any given cell.
 #endif
-	char *alias; // [MouseJstr]
 	struct block_list **block;
 	struct block_list **block_mob;
 	int *block_count,*block_mob_count;
 	int m;
 	short xs,ys;
 	short bxs,bys;
-	int water_height;
+	int water_height; // water level value, needed because of mapcache saving
 	int npc_num;
 	int users;
 	struct map_flag {
-		unsigned alias : 1;
 		unsigned nomemo : 1;
 		unsigned noteleport : 1;
 		unsigned noreturn : 1;
@@ -1355,11 +1353,6 @@ struct map_session_data * map_nick2sd(const char*);
 int map_check_dir(int s_dir,int t_dir);
 int map_calc_dir( struct block_list *src,int x,int y);
 int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
-
-// Water functions...
-// 
-int map_setwaterheight(int m, char *mapname, int height);
-int map_waterheight(char *mapname);
 
 // path.c‚æ‚è
 int path_search_real(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int flag,cell_t flag2);

@@ -1571,10 +1571,6 @@ void create_online_files(void)
 				if (online_display_option & 24) { // 8 or 16
 					// prepare map name
 					memcpy(temp, mapindex_id2name(char_dat[j].status.last_point.map), MAP_NAME_LENGTH);
-					temp[MAP_NAME_LENGTH] = '\0';
-					if (strstr(temp, ".gat") != NULL) {
-						temp[strstr(temp, ".gat") - temp] = 0; // suppress the '.gat'
-					}
 					// write map name
 					if (online_display_option & 16) { // map-name AND coordinates
 						fprintf(fp2, "        <td>%s (%d, %d)</td>\n", temp, char_dat[j].status.last_point.x, char_dat[j].status.last_point.y);
@@ -3455,7 +3451,7 @@ int parse_char(int fd)
 			WFIFOHEAD(fd,28);
 			WFIFOW(fd,0) = 0x71;
 			WFIFOL(fd,2) = cd->char_id;
-			memcpy(WFIFOP(fd,6), mapindex_id2name(cd->last_point.map), MAP_NAME_LENGTH);
+			mapindex_getmapname_ext(mapindex_id2name(cd->last_point.map), (char*)WFIFOP(fd,6));
 		{
 			// Advanced subnet check [LuzZza]
 			uint32 subnet_map_ip;
@@ -4081,7 +4077,7 @@ int char_config_read(const char *cfgName)
 		} else if (strcmpi(w1, "save_log") == 0) {
 			save_log = config_switch(w2);
 		} else if (strcmpi(w1, "start_point") == 0) {
-			char map[MAP_NAME_LENGTH];
+			char map[MAP_NAME_LENGTH_EXT];
 			int x, y;
 			if (sscanf(w2, "%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;

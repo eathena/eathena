@@ -3187,7 +3187,7 @@ int parse_char(int fd)
 			WFIFOHEAD(fd,28);
 			WFIFOW(fd,0) = 0x71;
 			WFIFOL(fd,2) = char_dat.char_id;
-			memcpy(WFIFOP(fd,6), mapindex_id2name(char_dat.last_point.map), MAP_NAME_LENGTH);
+			mapindex_getmapname_ext(mapindex_id2name(char_dat.last_point.map), (char*)WFIFOP(fd,6));
 		{
 			// Advanced subnet check [LuzZza]
 			uint32 subnet_map_ip;
@@ -3876,7 +3876,7 @@ int char_config_read(const char* cfgName)
 		} else if (strcmpi(w1, "save_log") == 0) {
 			save_log = config_switch(w2);
 		} else if (strcmpi(w1, "start_point") == 0) {
-			char map[MAP_NAME_LENGTH];
+			char map[MAP_NAME_LENGTH_EXT];
 			int x, y;
 			if (sscanf(w2, "%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;

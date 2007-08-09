@@ -5287,8 +5287,6 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 	}
 	sprintf(atcmd_output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", atcmd_player_name, map[m_id].users, map[m_id].npc_num, chat_num);
 	clif_displaymessage(fd, atcmd_output);
-	if (map[m_id].flag.alias)
-		strcat(atcmd_output, "This map is an alias (a named clone of some other map).");
 	clif_displaymessage(fd, "------ Map Flags ------");
 	strcpy(atcmd_output,"PvP Flags: ");
 	if (map[m_id].flag.pvp)
