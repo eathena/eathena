@@ -1,3 +1,11 @@
+08/10
+	* Merged abra_db, castle_db, create_arrow_db, item_db, skill_db [Playtester]
+	- fixed Venom Splasher in abra_db
+	- removed .gat from castle maps
+	- added the new arrow craftings
+	- Sharp Arrow now has Crit+20
+	- fixed damage of NPC_COMBOATTACK
+	- updated item_db.sql
 08/07
 	* Added missing /blacksmith packet action to packet_db.txt
 	* Removed "eathena's custom equipped mobs" from mob&skill db
