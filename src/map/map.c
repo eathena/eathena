@@ -2457,7 +2457,7 @@ static int map_cache_open(char *fn)
 			map_cache.head.sizeof_map    == sizeof(struct map_cache_entry) &&
 			map_cache.head.filesize      == ftell(map_cache.fp)
 		) {
-			// キャッシュ読み甲ﾝ成功
+			// mapcache loading successful
 			map_cache.map = (struct map_cache_entry *) aMalloc(sizeof(struct map_cache_entry) * map_cache.head.nmaps);
 			fseek(map_cache.fp,sizeof(struct map_cache_head),SEEK_SET);
 			fread(map_cache.map,sizeof(struct map_cache_entry),map_cache.head.nmaps,map_cache.fp);
@@ -2465,7 +2465,7 @@ static int map_cache_open(char *fn)
 		}
 		fclose(map_cache.fp);
 	}
-	// 読み甲ﾝに失敗したので新規に作成する
+	// loading failed, create new cache
 	map_cache.fp = fopen(fn,"wb");
 	if(map_cache.fp) {
 		memset(&map_cache.head,0,sizeof(struct map_cache_head));
@@ -2497,152 +2497,159 @@ static void map_cache_close(void)
 	return;
 }
 
-/// reads one map entry from the mapcache
-int map_cache_read(struct map_data *m)
+/// finds the mapcache entry for the specified map name
+static int map_cache_find(const char* mapname)
 {
 	int i;
-	if(!map_cache.fp) { return 0; }
-
 	for(i = 0; i < map_cache.head.nmaps; i++)
-	{
-		if(!strcmp(m->name,map_cache.map[i].fn))
-		{
-			if(map_cache.map[i].compressed == 0) {
-				// uncompressed data reading
-				int size = map_cache.map[i].xs * map_cache.map[i].ys;
-				m->xs = map_cache.map[i].xs;
-				m->ys = map_cache.map[i].ys;
-				m->water_height = map_cache.map[i].water_height;
-				m->gat = (unsigned char *)aCalloc(m->xs * m->ys,sizeof(unsigned char));
-				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-				if(fread(m->gat,1,size,map_cache.fp) == size) {
-					// 成功
-					return 1;
-				} else {
-					// なぜかファイル後半が欠けてるので読み直し
-					m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
-					return 0;
-				}
-			} else if(map_cache.map[i].compressed == 1) {
-				// zlib-compressed data reading
-				unsigned char *buf;
-				unsigned long dest_len;
-				int size_compress = map_cache.map[i].compressed_len;
-				m->xs = map_cache.map[i].xs;
-				m->ys = map_cache.map[i].ys;
-				m->water_height = map_cache.map[i].water_height;
-				m->gat = (unsigned char *)aMalloc(m->xs * m->ys * sizeof(unsigned char));
-				buf = (unsigned char*)aMalloc(size_compress);
-				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-				if(fread(buf,1,size_compress,map_cache.fp) != size_compress) {
-					// なぜかファイル後半が欠けてるので読み直し
-					ShowError("fread error\n");
-					aFree(m->gat); m->xs = 0; m->ys = 0; m->gat = NULL;
-					aFree(buf);
-					return 0;
-				}
-				dest_len = m->xs * m->ys;
-				decode_zip(m->gat,&dest_len,buf,size_compress);
-				if(dest_len != map_cache.map[i].xs * map_cache.map[i].ys) {
-					// 正常に解凍が出来てない
-					aFree(m->gat); m->xs = 0; m->ys = 0; m->gat = NULL;
-					aFree(buf);
-					return 0;
-				}
-				aFree(buf);
-				return 1;
-			}
+		if(strcmp(mapname,map_cache.map[i].fn) == 0)
+			return i;
+	return -1;
+}
+
+/// reads one map entry from the mapcache
+int map_cache_read(struct map_data* m)
+{
+	int i;
+	char map_name[MAP_NAME_LENGTH_EXT];
+
+	if(!map_cache.fp)
+		return 0;
+
+	// since the mapcache entries are loaded in one big raw binary read, the in-memory data still has .gat in map names
+	mapindex_getmapname_ext(m->name, map_name);
+	i = map_cache_find(map_name);
+	if (i == -1)
+		return 0;
+
+	if(map_cache.map[i].compressed == 0) {
+		// uncompressed data reading
+		int size = map_cache.map[i].xs * map_cache.map[i].ys;
+		m->xs = map_cache.map[i].xs;
+		m->ys = map_cache.map[i].ys;
+		m->water_height = map_cache.map[i].water_height;
+		m->gat = (unsigned char *)aCalloc(m->xs * m->ys,sizeof(unsigned char));
+		fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
+		if(fread(m->gat,1,size,map_cache.fp) == size) {
+			return 1;
+		} else {
+			m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
+			return 0;
+		}
+	} else
+	if(map_cache.map[i].compressed == 1) {
+		// zlib-compressed data reading
+		unsigned char *buf;
+		unsigned long dest_len;
+		int size_compress = map_cache.map[i].compressed_len;
+		m->xs = map_cache.map[i].xs;
+		m->ys = map_cache.map[i].ys;
+		m->water_height = map_cache.map[i].water_height;
+		m->gat = (unsigned char *)aMalloc(m->xs * m->ys * sizeof(unsigned char));
+		buf = (unsigned char*)aMalloc(size_compress);
+		fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
+		if(fread(buf,1,size_compress,map_cache.fp) != size_compress) {
+			ShowError("fread error\n");
+			aFree(m->gat); m->xs = 0; m->ys = 0; m->gat = NULL;
+			aFree(buf);
+			return 0;
+		}
+		dest_len = m->xs * m->ys;
+		decode_zip(m->gat,&dest_len,buf,size_compress);
+		aFree(buf);
+		if(dest_len == map_cache.map[i].xs * map_cache.map[i].ys) {
+			return 1;
+		} else {
+			m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
+			return 0;
 		}
 	}
 	return 0;
 }
 
 /// writes one map entry into the mapcache
-static int map_cache_write(struct map_data *m)
+static int map_cache_write(struct map_data* m)
 {
 	int i;
 	unsigned long len_new, len_old;
 	char *write_buf;
-	if(!map_cache.fp) { return 0; }
 
-	for(i = 0; i < map_cache.head.nmaps; i++)
-	{
-		if(!strcmp(m->name,map_cache.map[i].fn))
-		{	// entry already exists, overwrite it
-			if(map_cache.map[i].compressed == 0) {
-				len_old = map_cache.map[i].xs * map_cache.map[i].ys;
-			} else if(map_cache.map[i].compressed == 1) {
-				len_old = map_cache.map[i].compressed_len;
-			} else {
-				// unsupported format
-				len_old = 0;
-			}
-			if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-				// saving in compressed format
-				// allocate twice 
-				write_buf = (char *) aMalloc(m->xs * m->ys + 12);
-				len_new = m->xs * m->ys + 12;
-				encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
-				map_cache.map[i].compressed     = 1;
-				map_cache.map[i].compressed_len = len_new;
-			} else {
-				len_new = m->xs * m->ys;
-				write_buf = (char *) m->gat;
-				map_cache.map[i].compressed     = 0;
-				map_cache.map[i].compressed_len = 0;
-			}
-			if(len_new <= len_old) {
-				// there's enough space to write the new entry over the old one
-				fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-				fwrite(write_buf,1,len_new,map_cache.fp);
-			} else {
-				// need more space, append new entry to the end of file
-				fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
-				fwrite(write_buf,1,len_new,map_cache.fp);
-				map_cache.map[i].pos = map_cache.head.filesize;
-				map_cache.head.filesize += len_new;
-			}
-			map_cache.map[i].xs  = m->xs;
-			map_cache.map[i].ys  = m->ys;
-			map_cache.map[i].water_height = m->water_height;
-			map_cache.dirty = 1;
-			if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-				aFree(write_buf);
-			}
-			return 1;
+	if(!map_cache.fp)
+		return 0;
+
+	i = map_cache_find(m->name);
+	if (i != -1)
+	{	// entry already exists, overwrite it
+		if(map_cache.map[i].compressed == 0) {
+			len_old = map_cache.map[i].xs * map_cache.map[i].ys;
+		} else if(map_cache.map[i].compressed == 1) {
+			len_old = map_cache.map[i].compressed_len;
+		} else {
+			// unsupported format
+			len_old = 0;
 		}
-	}
-	// entry not present in cache, add it
-	for(i = 0; i < map_cache.head.nmaps; i++)
-	{
-		if(map_cache.map[i].fn[0] == 0) // find first empty spot
-		{
-			// append new entry to the end of file
-			if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-				write_buf = (char *) aMalloc(m->xs * m->ys + 12);
-				len_new = m->xs * m->ys + 12;
-				encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
-				map_cache.map[i].compressed     = 1;
-				map_cache.map[i].compressed_len = len_new;
-			} else {
-				len_new = m->xs * m->ys;
-				write_buf = (char *) m->gat;
-				map_cache.map[i].compressed     = 0;
-				map_cache.map[i].compressed_len = 0;
-			}
-			mapindex_getmapname_ext(m->name, map_cache.map[i].fn);
+		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
+			// saving in compressed format
+			write_buf = (char *) aMalloc(m->xs * m->ys + 12);
+			len_new = m->xs * m->ys + 12;
+			encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
+			map_cache.map[i].compressed     = 1;
+			map_cache.map[i].compressed_len = len_new;
+		} else {
+			len_new = m->xs * m->ys;
+			write_buf = (char *) m->gat;
+			map_cache.map[i].compressed     = 0;
+			map_cache.map[i].compressed_len = 0;
+		}
+		if(len_new <= len_old) {
+			// there's enough space to write the new entry over the old one
+			fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
+			fwrite(write_buf,1,len_new,map_cache.fp);
+		} else {
+			// need more space, append new entry to the end of file
 			fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
 			fwrite(write_buf,1,len_new,map_cache.fp);
 			map_cache.map[i].pos = map_cache.head.filesize;
-			map_cache.map[i].xs  = m->xs;
-			map_cache.map[i].ys  = m->ys;
-			map_cache.map[i].water_height = m->water_height;
 			map_cache.head.filesize += len_new;
-			map_cache.dirty = 1;
-			if(map_read_flag == READ_FROM_BITMAP_COMPRESSED)
-				aFree(write_buf);
-			return 1;
 		}
+		map_cache.map[i].xs  = m->xs;
+		map_cache.map[i].ys  = m->ys;
+		map_cache.map[i].water_height = m->water_height;
+		map_cache.dirty = 1;
+		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
+			aFree(write_buf);
+		}
+		return 1;
+	}
+
+	// entry not present in cache, fund an empty spot and add it
+	i = map_cache_find(""); // empty name -> empty entry
+	if (i != -1)
+	{	// append new entry to the end of file
+		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
+			write_buf = (char *) aMalloc(m->xs * m->ys + 12);
+			len_new = m->xs * m->ys + 12;
+			encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
+			map_cache.map[i].compressed     = 1;
+			map_cache.map[i].compressed_len = len_new;
+		} else {
+			len_new = m->xs * m->ys;
+			write_buf = (char *) m->gat;
+			map_cache.map[i].compressed     = 0;
+			map_cache.map[i].compressed_len = 0;
+		}
+		mapindex_getmapname_ext(m->name, map_cache.map[i].fn); // for backwards compatibility
+		fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
+		fwrite(write_buf,1,len_new,map_cache.fp);
+		map_cache.map[i].pos = map_cache.head.filesize;
+		map_cache.map[i].xs  = m->xs;
+		map_cache.map[i].ys  = m->ys;
+		map_cache.map[i].water_height = m->water_height;
+		map_cache.head.filesize += len_new;
+		map_cache.dirty = 1;
+		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED)
+			aFree(write_buf);
+		return 1;
 	}
 
 	return 0;
@@ -2679,14 +2686,16 @@ static void map_delmapid(int id)
 int map_delmap(char* mapname)
 {
 	int i;
+	char map_name[MAP_NAME_LENGTH];
 
 	if (strcmpi(mapname, "all") == 0) {
 		map_num = 0;
 		return 0;
 	}
 
+	mapindex_getmapname(mapname, map_name);
 	for(i = 0; i < map_num; i++) {
-		if (strcmp(map[i].name, mapname) <= 0) {
+		if (strcmp(map[i].name, map_name) == 0) {
 			map_delmapid(i);
 			return 1;
 		}
@@ -2732,7 +2741,7 @@ int map_readgat (struct map_data* m)
 	char *gat;
 	int wh,x,y,xs,ys;
 	struct gat_1cell {float high[4]; int type;} *p = NULL;
-	
+
 	sprintf(fn, "data\\%s.gat", m->name);
 
 	// read & convert fn
@@ -2836,7 +2845,7 @@ int map_readallmaps (void)
 		int j = i*20/map_num;
 
 		// show progress
-		if ((j != lasti || last_time != time(0)))
+		if (j != lasti || last_time != time(0))
 		{
 			char progress[21] = "                    ";
 			char c = '-';
