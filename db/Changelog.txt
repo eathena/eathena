@@ -1,3 +1,6 @@
+08/11
+	* Merged some more skill fixes from trunk [Playtester]
+	- increased splash range of Focused Arrow Strike and First Wind
 08/10
 	* Merged abra_db, castle_db, create_arrow_db, item_db, skill_db [Playtester]
 	- fixed Venom Splasher in abra_db
