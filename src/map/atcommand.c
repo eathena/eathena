@@ -8761,11 +8761,19 @@ int atcommand_homevolution(const int fd, struct map_session_data* sd, const char
 {
 	nullpo_retr(-1, sd);
 	
-	if (sd->hd && sd->hd->homunculusDB->evo_class)
+	if ( !merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, "You do not have a homunculus.");
+		return -1;
+	}
+
+	if (sd->hd->homunculusDB->evo_class)
 	{
 		merc_hom_evolution(sd->hd) ;
+		return 0;
 	}
-	return 0;
+	
+	clif_displaymessage(fd, "Your homunculus doesn't evove.");
+	return -1;
 }
 
 /*==========================================
@@ -8775,18 +8783,25 @@ int atcommand_makehomun(const int fd, struct map_session_data* sd, const char* c
 {
 	int homunid;
 	nullpo_retr(-1, sd);
-	if(sscanf(message, "%d", &homunid)<1)
+	
+	if ( merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, msg_txt(450));
 		return -1;
+	}
+
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a homunculus id: (usage: @makehomun <homunculus id>.");
+		return -1;
+	}
+	
+	homunid = atoi(message);	
 	if( homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1 )
+	{
+		clif_displaymessage(fd, "Invalid Homunculus id.");
 		return -1;
-	if(sd->status.hom_id == 0)
-	{
-		merc_create_homunculus_request(sd,homunid);
 	}
-	else
-	{
-		clif_displaymessage(fd,msg_txt(450));
-	}
+
+	merc_create_homunculus_request(sd,homunid);
 	return 0;
 }
 
@@ -8799,19 +8814,24 @@ int atcommand_homfriendly(const int fd, struct map_session_data* sd, const char*
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
+	if ( !merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, "You do not have a homunculus.");
 		return -1;
-
-	friendly = atoi(message);
-	if (merc_is_hom_active(sd->hd)) {
-		if (friendly > 0 && friendly <= 1000) {
-			sd->hd->homunculus.intimacy = friendly * 100 ;
-			clif_send_homdata(sd,SP_INTIMATE,friendly);
-		} else {
-			return -1;
-		}
 	}
 
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a friendly value: (usage: @homfriendly <friendly value[0-1000]>.");
+		return -1;
+	}
+
+	friendly = atoi(message);
+	if (friendly < 0)
+		friendly = 0;
+	else if (friendly > 1000)
+		friendly = 1000;
+
+	sd->hd->homunculus.intimacy = friendly * 100 ;
+	clif_send_homdata(sd,SP_INTIMATE,friendly);
 	return 0;
 }
 
@@ -8824,20 +8844,24 @@ int atcommand_homhungry(const int fd, struct map_session_data* sd, const char* c
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
+	if ( !merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, "You do not have a homunculus.");
 		return -1;
-
-	hungry = atoi(message);
-	if (sd->status.hom_id > 0 && sd->hd) {
-		struct homun_data *hd = sd->hd;
-		if (hungry >= 0 && hungry <= 100) {
-			hd->homunculus.hunger = hungry;
-			clif_send_homdata(sd,SP_HUNGRY,hd->homunculus.hunger);
-		} else {
-			return -1;
-		}
 	}
 
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a hunger value: (usage: @homhungry <hunger value[0-100]>.");
+		return -1;
+	}
+
+	hungry = atoi(message);
+	if (hungry < 0)
+		hungry = 0;
+	else if (hungry > 100)
+		hungry = 100;
+
+	sd->hd->homunculus.hunger = hungry;
+	clif_send_homdata(sd,SP_HUNGRY,hungry);
 	return 0;
 }
 
@@ -8856,7 +8880,7 @@ int atcommand_homtalk(const int fd, struct map_session_data* sd, const char* com
 	if (sscanf(message, "%99[^\n]", mes) < 1)
 		return -1;
 
-	snprintf(temp, sizeof temp ,"%s : %s",sd->hd->homunculus.name,mes);
+	snprintf(temp, sizeof temp ,"%s: %s",sd->hd->homunculus.name,mes);
 	clif_message(&sd->hd->bl, temp);
 
 	return 0;
@@ -8871,8 +8895,11 @@ int atcommand_hominfo(const int fd, struct map_session_data* sd, const char* com
 	struct status_data *status;
 	nullpo_retr(-1, sd);
 
-	if(!merc_is_hom_active(sd->hd))
+	if ( !merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, "You do not have a homunculus.");
 		return -1;
+	}
+
 	hd = sd->hd;
 	status = status_get_status_data(&hd->bl);
 	clif_displaymessage(fd, "Homunculus stats :");
@@ -8903,12 +8930,15 @@ int atcommand_homstats(const int fd, struct map_session_data* sd, const char* co
 	struct homun_data *hd;
 	struct homunculus_db *db;
 	struct s_homunculus *hom;
-	int lv;
+	int lv, min, max, evo;
 
 	nullpo_retr(-1, sd);
 
-	if(!merc_is_hom_active(sd->hd))
+	if ( !merc_is_hom_active(sd->hd) ) {
+		clif_displaymessage(fd, "You do not have a homunculus.");
 		return -1;
+	}
+
 	hd = sd->hd;
 	
 	hom = &hd->homunculus;
@@ -8920,36 +8950,45 @@ int atcommand_homstats(const int fd, struct map_session_data* sd, const char* co
 	clif_displaymessage(fd, atcmd_output);
 	lv--; //Since the first increase is at level 2.
 	
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max HP: %d (%d~%d)",
-		hom->max_hp, db->basemaxHP +lv*db->gminHP, db->basemaxHP +lv*db->gmaxHP);
+	evo = (hom->class_ == db->evo_class);
+	min = db->base.HP +lv*db->gmin.HP +(evo?db->emin.HP:0);
+	max = db->base.HP +lv*db->gmax.HP +(evo?db->emax.HP:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max HP: %d (%d~%d)", hom->max_hp, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max SP: %d (%d~%d)",
-		hom->max_sp, db->basemaxSP +lv*db->gminSP, db->basemaxSP +lv*db->gmaxSP);
+	min = db->base.SP +lv*db->gmin.SP +(evo?db->emin.SP:0);
+	max = db->base.SP +lv*db->gmax.SP +(evo?db->emax.SP:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Max SP: %d (%d~%d)", hom->max_sp, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Str: %d (%d~%d)",
-		hom->str/10, db->baseSTR +lv*(db->gminSTR/10), db->baseSTR +lv*(db->gmaxSTR/10));
+	min = db->base.str +lv*(db->gmin.str/10) +(evo?db->emin.str:0);
+	max = db->base.str +lv*(db->gmax.str/10) +(evo?db->emax.str:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Str: %d (%d~%d)", hom->str/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Agi: %d (%d~%d)",
-		hom->agi/10, db->baseAGI +lv*(db->gminAGI/10), db->baseAGI +lv*(db->gmaxAGI/10));
+	min = db->base.agi +lv*(db->gmin.agi/10) +(evo?db->emin.agi:0);
+	max = db->base.agi +lv*(db->gmax.agi/10) +(evo?db->emax.agi:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Agi: %d (%d~%d)", hom->agi/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Vit: %d (%d~%d)",
-		hom->vit/10, db->baseVIT +lv*(db->gminVIT/10), db->baseVIT +lv*(db->gmaxVIT/10));
+	min = db->base.vit +lv*(db->gmin.vit/10) +(evo?db->emin.vit:0);
+	max = db->base.vit +lv*(db->gmax.vit/10) +(evo?db->emax.vit:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Vit: %d (%d~%d)", hom->vit/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Int: %d (%d~%d)",
-		hom->int_/10, db->baseINT +lv*(db->gminINT/10), db->baseINT +lv*(db->gmaxINT/10));
+	min = db->base.int_ +lv*(db->gmin.int_/10) +(evo?db->emin.int_:0);
+	max = db->base.int_ +lv*(db->gmax.int_/10) +(evo?db->emax.int_:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Int: %d (%d~%d)", hom->int_/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Dex: %d (%d~%d)",
-		hom->dex/10, db->baseDEX +lv*(db->gminDEX/10), db->baseDEX +lv*(db->gmaxDEX/10));
+	min = db->base.dex +lv*(db->gmin.dex/10) +(evo?db->emin.dex:0);
+	max = db->base.dex +lv*(db->gmax.dex/10) +(evo?db->emax.dex:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Dex: %d (%d~%d)", hom->dex/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
-	snprintf(atcmd_output, sizeof(atcmd_output) ,"Luk: %d (%d~%d)",
-		hom->luk/10, db->baseLUK +lv*(db->gminLUK/10), db->baseLUK +lv*(db->gmaxLUK/10));
+	min = db->base.luk +lv*(db->gmin.luk/10) +(evo?db->emin.luk:0);
+	max = db->base.luk +lv*(db->gmax.luk/10) +(evo?db->emax.luk:0);;
+	snprintf(atcmd_output, sizeof(atcmd_output) ,"Luk: %d (%d~%d)", hom->luk/10, min, max);
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;

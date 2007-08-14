@@ -1516,64 +1516,16 @@ int clif_walkok(struct map_session_data *sd)
 	return 0;
 }
 
-int clif_movepc(struct map_session_data *sd)
+static void clif_move2(struct block_list *bl, struct view_data *vd, struct unit_data *ud)
 {
 	unsigned char buf[256];
-
-	nullpo_retr(0, sd);
-
-	if (map[sd->bl.m].flag.snow
-		|| map[sd->bl.m].flag.clouds
-		|| map[sd->bl.m].flag.fog
-		|| map[sd->bl.m].flag.fireworks
-		|| map[sd->bl.m].flag.sakura
-		|| map[sd->bl.m].flag.leaves
-		|| map[sd->bl.m].flag.rain
-		|| map[sd->bl.m].flag.clouds2
-	) {
-		memset(buf,0,packet_len(0x7b));
-		WBUFW(buf,0)=0x7b;
-		WBUFL(buf,2)=-10;
-		WBUFW(buf,6)=sd->battle_status.speed;
-		WBUFW(buf,8)=0;
-		WBUFW(buf,10)=0;
-		WBUFW(buf,12)=OPTION_INVISIBLE;
-		WBUFW(buf,14)=100;
-		WBUFL(buf,22)=gettick();
-		WBUFPOS2(buf,50,sd->bl.x,sd->bl.y,sd->ud.to_x,sd->ud.to_y,8,8);
-		WBUFB(buf,56)=5;
-		WBUFB(buf,57)=5;
-		clif_send(buf, packet_len(0x7b), &sd->bl, SELF);
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int clif_move(struct block_list *bl) {
-	struct view_data *vd;
-	struct unit_data *ud;
-	unsigned char buf[256];
 	int len;
-
-	nullpo_retr(0, bl);
-	
-	vd = status_get_viewdata(bl);
-	if (!vd || vd->class_ == INVISIBLE_CLASS)
-		return 0;
-	
-	ud = unit_bl2ud(bl);
-	nullpo_retr(0, ud);
 	
 	len = clif_set007b(bl,vd,ud,buf);
 	clif_send(buf,len,bl,AREA_WOS);
 	if (disguised(bl))
 		clif_setdisguise((TBL_PC*)bl, buf, len, 0);
 		
-	//Stupid client that needs this resent every time someone walks :X
 	if(vd->cloth_color)
 		clif_refreshlook(bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,AREA_WOS);
 
@@ -1599,9 +1551,36 @@ int clif_move(struct block_list *bl) {
 		}
 		break;
 	}
-	return 0;
+	return;
 }
 
+/// Move the unit (does nothing if the client has no info about the unit)
+/// Note: unit must not be self
+void clif_move(struct unit_data *ud)
+{
+	unsigned char buf[16];
+	struct view_data* vd;
+	struct block_list* bl = ud->bl;
+	vd = status_get_viewdata(bl);
+	if (!vd || vd->class_ == INVISIBLE_CLASS)
+		return; //This performance check is needed to keep GM-hidden objects from being notified to bots.
+	
+	if (ud->state.speed_changed) {
+		// Since we don't know how to update the speed of other objects,
+		// use the old walk packet to update the data.
+		ud->state.speed_changed = 0;
+		clif_move2(bl, vd, ud);
+		return;
+	}
+
+	WBUFW(buf,0)=0x86;
+	WBUFL(buf,2)=bl->id;
+	WBUFPOS2(buf,6,bl->x,bl->y,ud->to_x,ud->to_y,8,8);
+	WBUFL(buf,12)=gettick();
+	clif_send(buf, 16, bl, AREA_WOS);
+	if (disguised(bl))
+		clif_setdisguise((TBL_PC*)bl, buf, 16, 0);
+}
 
 /*==========================================
  * Delays the map_quit of a player after they are disconnected. [Skotlex]
@@ -1668,7 +1647,7 @@ void clif_changemap(struct map_session_data *sd, short map, int x, int y)
 	int fd;
 	nullpo_retv(sd);
 	fd = sd->fd;
-	
+
 	WFIFOHEAD(fd,packet_len(0x91));
 	WFIFOW(fd,0) = 0x91;
 	mapindex_getmapname_ext(mapindex_id2name(map), (char*)WFIFOP(fd,2));
@@ -7471,6 +7450,10 @@ int clif_refresh(struct map_session_data *sd)
 	clif_updatestatus(sd,SP_INT);
 	clif_updatestatus(sd,SP_DEX);
 	clif_updatestatus(sd,SP_LUK);
+	if (sd->spiritball)
+		clif_spiritball_single(sd->fd, sd);
+	if (sd->vd.cloth_color)
+		clif_refreshlook(&sd->bl,sd->bl.id,LOOK_CLOTHES_COLOR,sd->vd.cloth_color,SELF);
 	if(merc_is_hom_active(sd->hd))
 		clif_send_homdata(sd,0,0);
 	map_foreachinrange(clif_getareachar,&sd->bl,AREA_SIZE,BL_ALL,sd);

@@ -2094,38 +2094,14 @@ int map_check_dir(int s_dir,int t_dir)
 	if(s_dir == t_dir)
 		return 0;
 	switch(s_dir) {
-		case 0:
-			if(t_dir == 7 || t_dir == 1 || t_dir == 0)
-				return 0;
-			break;
-		case 1:
-			if(t_dir == 0 || t_dir == 2 || t_dir == 1)
-				return 0;
-			break;
-		case 2:
-			if(t_dir == 1 || t_dir == 3 || t_dir == 2)
-				return 0;
-			break;
-		case 3:
-			if(t_dir == 2 || t_dir == 4 || t_dir == 3)
-				return 0;
-			break;
-		case 4:
-			if(t_dir == 3 || t_dir == 5 || t_dir == 4)
-				return 0;
-			break;
-		case 5:
-			if(t_dir == 4 || t_dir == 6 || t_dir == 5)
-				return 0;
-			break;
-		case 6:
-			if(t_dir == 5 || t_dir == 7 || t_dir == 6)
-				return 0;
-			break;
-		case 7:
-			if(t_dir == 6 || t_dir == 0 || t_dir == 7)
-				return 0;
-			break;
+		case 0: if(t_dir == 7 || t_dir == 1 || t_dir == 0) return 0; break;
+		case 1: if(t_dir == 0 || t_dir == 2 || t_dir == 1) return 0; break;
+		case 2: if(t_dir == 1 || t_dir == 3 || t_dir == 2) return 0; break;
+		case 3: if(t_dir == 2 || t_dir == 4 || t_dir == 3) return 0; break;
+		case 4: if(t_dir == 3 || t_dir == 5 || t_dir == 4) return 0; break;
+		case 5: if(t_dir == 4 || t_dir == 6 || t_dir == 5) return 0; break;
+		case 6: if(t_dir == 5 || t_dir == 7 || t_dir == 6) return 0; break;
+		case 7: if(t_dir == 6 || t_dir == 0 || t_dir == 7) return 0; break;
 	}
 	return 1;
 }

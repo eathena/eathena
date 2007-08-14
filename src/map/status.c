@@ -2354,10 +2354,11 @@ int status_calc_homunculus(struct homun_data *hd, int first)
 	status->luk = hom->luk / 10;
 
 	if (first) {	//[orn]
-		status->def_ele =  hd->homunculusDB->element;
+		const struct homunculus_db *db = hd->homunculusDB;
+		status->def_ele =  db->element;
 		status->ele_lv = 1;
-		status->race = hd->homunculusDB->race ;
-		status->size = hd->homunculusDB->size ;
+		status->race = db->race;
+		status->size = (hom->class_ == db->evo_class)?db->evo_size:db->base_size;
 		status->rhw.range = 1 + status->size;
 		status->mode = MD_CANMOVE|MD_CANATTACK;
 		status->speed = DEFAULT_WALK_SPEED;
@@ -2998,7 +2999,7 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 		//because if you step on something while walking, the moment this
 		//piece of code triggers the walk-timer is set on -1) [Skotlex]
 	  	if (ud)
-			ud->state.change_walk_target = 1;
+			ud->state.change_walk_target = ud->state.speed_changed = 1;
 	}
 
 	if(flag&SCB_CRI && b_status->cri) {
@@ -3524,7 +3525,7 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 		return 90;
 	if(sc->data[SC_DRUMBATTLE].timer!=-1)
 		def += sc->data[SC_DRUMBATTLE].val3;
-	if (sc->data[SC_DEFENCE].timer != -1)	//[orn]
+	if(sc->data[SC_DEFENCE].timer != -1)	//[orn]
 		def += sc->data[SC_DEFENCE].val2 ;
 	if(sc->data[SC_INCDEFRATE].timer!=-1)
 		def += def * sc->data[SC_INCDEFRATE].val1/100;
@@ -4191,7 +4192,7 @@ int status_isimmune(struct block_list *bl)
 		return 100;
 
 	if (bl->type == BL_PC &&
-		((TBL_PC*)bl)->special_state.no_magic_damage > battle_config.gtb_sc_immunity)
+		((TBL_PC*)bl)->special_state.no_magic_damage >= battle_config.gtb_sc_immunity)
 		return ((TBL_PC*)bl)->special_state.no_magic_damage;
 	return 0;
 }
