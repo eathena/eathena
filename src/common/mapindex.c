@@ -87,7 +87,7 @@ static int mapindex_addmap(int index, const char* name)
 		ShowError("(mapindex_add) Cannot add maps with no name.\n");
 		return 0;
 	}
-	//if (length > MAP_NAME_LENGTH - 4) {
+	//if (strlen(map_name) >= MAP_NAME_LENGTH) {
 	//	ShowError("(mapindex_add) Map name %s is too long. Maps are limited to %d characters.\n", map_name, MAP_NAME_LENGTH);
 	//	return 0;
 	//}
@@ -106,6 +106,7 @@ unsigned short mapindex_name2id(const char* name)
 {
 	//TODO: Perhaps use a db to speed this up? [Skotlex]
 	int i;
+
 	char map_name[MAP_NAME_LENGTH];
 	mapindex_getmapname(name, map_name);
 
@@ -117,13 +118,13 @@ unsigned short mapindex_name2id(const char* name)
 #ifdef MAPINDEX_AUTOADD
 	if( mapindex_addmap(i,map_name) )
 	{
-		ShowDebug("mapindex_name2id: Auto-added map \"%s\" to position %d\n", map_name, i);
+		ShowDebug("mapindex_name2id: Auto-added map \"%s\" to position %d\n", indexes[i], i);
 		return i;
 	}
-	ShowWarning("mapindex_name2id: Failed to auto-add map \"%s\" to position %d!\n", map_name, i);
+	ShowWarning("mapindex_name2id: Failed to auto-add map \"%s\" to position %d!\n", name, i);
 	return 0;
 #else
-	ShowDebug("mapindex_name2id: Map \"%s\" not found in index list!\n", map_name);
+	ShowDebug("mapindex_name2id: Map \"%s\" not found in index list!\n", name);
 	return 0;
 #endif
 }
@@ -156,7 +157,8 @@ void mapindex_init(void)
 		if(line[0] == '/' && line[1] == '/')
 			continue;
 
-		switch (sscanf(line,"%1023s\t%d",map_name,&index)) {
+		switch (sscanf(line,"%1023s\t%d",map_name,&index))
+		{
 			case 1: //Map with no ID given, auto-assign
 				index = last_index+1;
 			case 2: //Map with ID given

@@ -1,3 +1,6 @@
+08/15
+	* Removed "Crusader quest monsters" from mob_avail (not used anymore)
+	* Replaced some mob_avail.txt entries with a simple example [ultramage]
 08/11
 	* Merged some more skill fixes from trunk [Playtester]
 	- increased splash range of Focused Arrow Strike and First Wind

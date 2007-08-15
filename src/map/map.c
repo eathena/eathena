@@ -2680,6 +2680,7 @@ int map_delmap(char* mapname)
 }
 
 #define NO_WATER 1000000
+
 /* 
  * Reads from the .rsw for each map
  * Returns water height (or NO_WATER if file doesn't exist) or other error is encountered.
@@ -2931,7 +2932,7 @@ int map_readallmaps (void)
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
 
 	if (maps_removed)
-		ShowNotice("Maps Removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
+		ShowNotice("Maps removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
 	if (maps_cached)
 		ShowNotice("Maps Added to Cache: '"CL_WHITE"%d"CL_RESET"'\n",maps_cached);
 
