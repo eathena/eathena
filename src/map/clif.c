@@ -893,9 +893,9 @@ static int clif_set0078(struct block_list* bl, unsigned char* buf)
 		WBUFW(buf,42)=sc->opt3;
 	}
 	WBUFW(buf,14)=vd->class_;
-	WBUFW(buf,16)=vd->hair_style;  //Required for pets (removes attack cursor)
+	WBUFW(buf,16)=vd->hair_style; //Required for pets (removes attack cursor)
 	//18W: Weapon
-	WBUFW(buf,20)=vd->head_bottom;	//Pet armor (ignored by client)
+	WBUFW(buf,20)=vd->head_bottom; //Pet armor (ignored by client)
 	if (bl->type == BL_NPC && vd->class_ == FLAG_CLASS)
 	{	//The hell, why flags work like this?
 		WBUFL(buf,22)=emblem_id;
@@ -1066,7 +1066,7 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 	WBUFW(buf,16)=vd->class_;
 	WBUFW(buf,18)=vd->hair_style; //Required for pets (removes attack cursor)
 	//20L: Weapon/Shield
-	WBUFW(buf,24)=vd->head_bottom;	//Pet armor
+	WBUFW(buf,24)=vd->head_bottom; //Pet armor
 	WBUFL(buf,26)=gettick();
 	//30W: Head top
 	//32W: Head mid
@@ -1096,7 +1096,7 @@ static int clif_set007b(struct block_list *bl, struct view_data *vd, struct unit
 		WBUFW(buf,46)=sc->opt3;
 	}
 	WBUFW(buf,14)=vd->class_;
-	WBUFW(buf,16)=vd->hair_style; //For pets
+	WBUFW(buf,16)=vd->hair_style; //Required for pets (removes attack cursor)
 	//18W: Weapon
 	WBUFW(buf,20)=vd->head_bottom; //Pet armor
 	WBUFL(buf,22)=gettick();
@@ -1313,7 +1313,7 @@ int clif_spawn(struct block_list *bl)
 			WBUFW(buf,10)=sc->opt2;
 			WBUFW(buf,12)=sc->option;
 		}
-		//14W: Hair Style
+		WBUFW(buf,14)=vd->hair_style; //Required for pets (removes attack cursor)
 		//16W: Weapon
 		//18W: Head bottom 
 		WBUFW(buf,20)=vd->class_;
@@ -1361,11 +1361,8 @@ int clif_spawn(struct block_list *bl)
 		}
 	break;
 	case BL_PET:
-		{
-			TBL_PET* pd = (TBL_PET*)bl;
-			if (pd->vd.head_bottom) clif_pet_equip(pd); // needed to display pet equip properly
-			clif_send_petdata_area(pd, 5, battle_config.pet_hair_style); // removes the attack cursor
-		}
+		if (vd->head_bottom)
+			clif_pet_equip_area((TBL_PET*)bl); // needed to display pet equip properly
 		break;
 	}
 	return 0;
@@ -3177,7 +3174,7 @@ int clif_createchat(struct map_session_data *sd,int fail)
 /*==========================================
  *
  *------------------------------------------*/
-int clif_dispchat(struct chat_data *cd,int fd)
+int clif_dispchat(struct chat_data* cd, int fd)
 {
 	unsigned char buf[128];	// 最大title(60バイト)+17
 
@@ -3740,21 +3737,8 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		}
 		break;
 	case BL_PET:
-		{
-			// needed to display pet equip properly
-			TBL_PET* pd = (TBL_PET*)bl;
-			if (pd->vd.head_bottom)
-			{
-				//TODO: adjust clif_pet_equip() to support a 'target', then rewrite this mess into a function call
-				int fd = sd->fd;
-				WFIFOHEAD(fd,packet_len(0x1a4));
-				WFIFOW(fd,0) = 0x1a4;
-				WFIFOB(fd,2) = 3;
-				WFIFOL(fd,3) = pd->bl.id;
-				WFIFOL(fd,7) = pd->vd.head_bottom;
-				WFIFOSET(fd,packet_len(0x1a4));
-			}
-		}
+		if (vd->head_bottom)
+			clif_pet_equip(sd, (TBL_PET*)bl); // needed to display pet equip properly
 		break;
 	}
 }
@@ -6123,37 +6107,21 @@ int clif_sendegg(struct map_session_data *sd)
  * type = 3 -> param = accessory id
  * type = 4 -> param = performance number (1-3:normal, 4:special)
  * type = 5 -> param = hairstyle number
+ * If sd is null, the update is sent to nearby objects, otherwise it is sent only to that player.
  *------------------------------------------*/
-int clif_send_petdata(struct map_session_data* sd, int type, int param)
-{
-	int fd;
-
-	nullpo_retr(0, sd);
-	nullpo_retr(0, sd->pd);
-
-	fd = sd->fd;
-	WFIFOHEAD(fd,packet_len(0x1a4));
-	WFIFOW(fd,0) = 0x1a4;
-	WFIFOB(fd,2) = type;
-	WFIFOL(fd,3) = sd->pd->bl.id;
-	WFIFOL(fd,7) = param;
-	WFIFOSET(fd,packet_len(0x1a4));
-
-	return 0;
-}
-
-int clif_send_petdata_area(struct pet_data* pd, int type, int param)
+int clif_send_petdata(struct map_session_data* sd, struct pet_data* pd, int type, int param)
 {
 	uint8 buf[16];
-
 	nullpo_retr(0, pd);
 
 	WBUFW(buf,0) = 0x1a4;
 	WBUFB(buf,2) = type;
 	WBUFL(buf,3) = pd->bl.id;
 	WBUFL(buf,7) = param;
-	clif_send(buf, packet_len(0x1a4), &pd->bl, AREA);
-
+	if (sd)
+		clif_send(buf, packet_len(0x1a4), &sd->bl, SELF);
+	else
+		clif_send(buf, packet_len(0x1a4), &pd->bl, AREA);
 	return 0;
 }
 
@@ -7994,6 +7962,16 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	clif_updatestatus(sd,SP_MAXWEIGHT);
 	clif_updatestatus(sd,SP_WEIGHT);
 
+	if(battle_config.pc_invincible_time > 0) {
+		if(map_flag_gvg(sd->bl.m))
+			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
+		else
+			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
+	}
+	map_addblock(&sd->bl);	// ブロック登録
+	clif_spawn(&sd->bl);	// spawn
+
+
 	// Party
 	if(sd->status.party_id) {
 		party_send_movemap(sd);
@@ -8003,15 +7981,6 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// guild
 	if(sd->status.guild_id)
 		guild_send_memberinfoshort(sd,1);
-
-	if(battle_config.pc_invincible_time > 0) {
-		if(map_flag_gvg(sd->bl.m))
-			pc_setinvincibletimer(sd,battle_config.pc_invincible_time<<1);
-		else
-			pc_setinvincibletimer(sd,battle_config.pc_invincible_time);
-	}
-	map_addblock(&sd->bl);	// ブロック登録
-	clif_spawn(&sd->bl);	// spawn
 
 	if(map[sd->bl.m].flag.pvp) {
 		if(!battle_config.pk_mode) { // remove pvp stuff for pk_mode [Valaris]
@@ -8051,7 +8020,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	if(sd->pd) {
 		map_addblock(&sd->pd->bl);
 		clif_spawn(&sd->pd->bl);
-		clif_send_petdata(sd,0,0);
+		clif_send_petdata(sd,sd->pd,0,0);
 		clif_send_petstatus(sd);
 //		skill_unit_move(&sd->pd->bl,gettick(),1);
 	}
@@ -8078,6 +8047,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_updatestatus(sd,SP_NEXTJOBEXP);
 		clif_updatestatus(sd,SP_SKILLPOINT);
 		clif_initialstatus(sd);
+		clif_hotkeys_send(sd);
 
 		if (sd->sc.option&OPTION_FALCON)
 			clif_status_load(&sd->bl, SI_FALCON, 1);
@@ -8184,6 +8154,38 @@ void clif_parse_TickSend(int fd, struct map_session_data *sd)
 	WFIFOL(fd,2)=gettick();
 	WFIFOSET(fd,packet_len(0x7f));
 	return;
+}
+
+void clif_hotkeys_send(struct map_session_data *sd) {
+#ifdef HOTKEY_SAVING
+	const int fd = sd->fd;
+	int i;
+	if (!fd) return;
+	WFIFOHEAD(fd, 2+HOTKEY_SAVING*7);
+	WFIFOW(fd, 0) = 0x02b9;
+	for(i = 0; i < HOTKEY_SAVING; i++) {
+		WFIFOB(fd, 2 + 0 + i * 7) = sd->status.hotkeys[i].type; // type: 0: item, 1: skill
+		WFIFOL(fd, 2 + 1 + i * 7) = sd->status.hotkeys[i].id; // item or skill ID
+		WFIFOW(fd, 2 + 5 + i * 7) = sd->status.hotkeys[i].lv; // skill level
+	}
+	WFIFOSET(fd, packet_len(0x02b9));
+#endif
+}
+
+void clif_parse_Hotkey(int fd, struct map_session_data *sd) {
+#ifdef HOTKEY_SAVING
+	unsigned short idx;
+	int cmd;
+
+	cmd = RFIFOW(fd, 0);
+	idx = RFIFOW(fd, packet_db[sd->packet_ver][cmd].pos[0]);
+	if (idx >= HOTKEY_SAVING) return;
+
+	sd->status.hotkeys[idx].type = RFIFOB(fd, packet_db[sd->packet_ver][cmd].pos[1]);
+	sd->status.hotkeys[idx].id = RFIFOL(fd, packet_db[sd->packet_ver][cmd].pos[2]);
+	sd->status.hotkeys[idx].lv = RFIFOW(fd, packet_db[sd->packet_ver][cmd].pos[3]);
+	return;
+#endif
 }
 
 /*==========================================
@@ -9188,7 +9190,7 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
 /*==========================================
  *
  *------------------------------------------*/
-void clif_parse_CreateChatRoom(int fd,struct map_session_data *sd)
+void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 {
 	if (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOROOM)
 		return;
@@ -10767,7 +10769,7 @@ void clif_parse_PMIgnore(int fd, struct map_session_data *sd)
 		WFIFOSET(fd, packet_len(0x0d1));
 
 		//Sort the ignore list.
-		//FIXME: why not just use a simple shift-and-insert scheme instead?
+		//FIXME: why not just use a simple shift-and-insert scheme instead? [ultramage]
 		qsort (sd->ignore[0].name, MAX_IGNORE_LIST, sizeof(sd->ignore[0].name), pstrcmp);
 	}
 	else
@@ -11636,7 +11638,7 @@ static int packetdb_readdb(void)
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0, 18,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
-	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
+	    0,  0,  0,  0,  0,  0,  0,  0,   0,191,  0,  0,  0,  0,  0,  0,
 	//#0x02C0
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
 	    0,  0,  0,  0,  0,  0,  0,  0,   0,  0,  0,  0,  0,  0,  0,  0,
@@ -11779,6 +11781,7 @@ static int packetdb_readdb(void)
 		{clif_parse_HomMoveTo,"hommoveto"},
 		{clif_parse_HomAttack,"homattack"},
 		{clif_parse_HomMenu,"hommenu"},
+		{clif_parse_Hotkey,"hotkey"},
 		{NULL,NULL}
 	};
 

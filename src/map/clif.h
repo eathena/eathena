@@ -144,6 +144,7 @@ void clif_soundeffect(struct map_session_data* sd, struct block_list* bl, const 
 int clif_soundeffectall(struct block_list* bl, const char *name, int type, enum send_target coverage);
 void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick);
 void clif_parse_LoadEndAck(int fd,struct map_session_data *sd);
+void clif_hotkeys_send(struct map_session_data *sd);
 
 // trade
 int clif_traderequest(struct map_session_data* sd, const char* name);
@@ -320,10 +321,10 @@ int clif_catch_process(struct map_session_data *sd);
 int clif_pet_roulette(struct map_session_data *sd,int data);
 int clif_sendegg(struct map_session_data *sd);
 int clif_send_petstatus(struct map_session_data *sd);
-int clif_send_petdata(struct map_session_data* sd, int type, int param);
-int clif_send_petdata_area(struct pet_data* pd, int type, int param);
-#define clif_pet_equip(pd) clif_send_petdata_area(pd, 3, (pd)->vd.head_bottom)
-#define clif_pet_performance(pd, param) clif_send_petdata_area(pd, 4, param)
+int clif_send_petdata(struct map_session_data *sd, struct pet_data* pd, int type, int param);
+#define clif_pet_equip(sd, pd) clif_send_petdata(sd, pd, 3, (pd)->vd.head_bottom)
+#define clif_pet_equip_area(pd) clif_send_petdata(NULL, pd, 3, (pd)->vd.head_bottom)
+#define clif_pet_performance(pd, param) clif_send_petdata(NULL, pd, 4, param)
 int clif_pet_emotion(struct pet_data *pd,int param);
 int clif_pet_food(struct map_session_data *sd,int foodid,int fail);
 
@@ -345,7 +346,7 @@ int clif_timedout(struct map_session_data *sd);
 
 int clif_disp_overhead(struct map_session_data *sd, const char* mes);
 
-void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lhand);
+void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, unsigned short *lhand);
 
 int clif_party_xy_remove(struct map_session_data *sd); //Fix for minimap [Kevin]
 void clif_gospel_info(struct map_session_data *sd, int type);
