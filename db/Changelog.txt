@@ -1,3 +1,5 @@
+08/19
+	* Rev. 11045 Fixed weight for Silver_Shotel and Spirit_of_Kamaitachi. [L0ne_W0lf]
 08/15
 	* Removed "Crusader quest monsters" from mob_avail (not used anymore)
 	* Replaced some mob_avail.txt entries with a simple example [ultramage]
