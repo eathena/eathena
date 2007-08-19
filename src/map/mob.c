@@ -55,6 +55,12 @@ struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db
 
 static struct eri *item_drop_ers; //For loot drops delay structures.
 static struct eri *item_drop_list_ers;
+
+static struct {
+	int qty;
+	int class_[350];
+} summon[MAX_RANDOMMONSTER];
+
 #define CLASSCHANGE_BOSS_NUM 21
 
 /*==========================================
@@ -248,7 +254,10 @@ int mob_get_random_id(int type, int flag, int lv)
 		return 0;
 	}
 	do {
-		class_ = rand() % MAX_MOB_DB;
+		if (type)
+			class_ = summon[type].class_[rand()%summon[type].qty];
+		else //Dead branch
+			class_ = rand() % MAX_MOB_DB;
 		mob = mob_db(class_);
 	} while ((mob == mob_dummy ||
 		mob_is_clone(class_) ||
@@ -960,7 +969,7 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 		md->state.skillstate = MSS_IDLE;
 	case MSS_IDLE:
 		// Idle skill.
-		if (!(++md->ud.walk_count%IDLE_SKILL_INTERVAL) &&
+		if ((md->target_id || !(++md->ud.walk_count%IDLE_SKILL_INTERVAL)) &&
 			mobskill_use(md, tick, -1))
 			break;
 		//Random walk.
@@ -1452,11 +1461,8 @@ static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, str
 		&& check_distance_blxy(&dlist->first_sd->bl, dlist->x, dlist->y, AUTOLOOT_DISTANCE)
 #endif
 	) {	//Autoloot.
-		if (party_share_loot(
-			dlist->first_sd->status.party_id?
-				party_search(dlist->first_sd->status.party_id):
-				NULL,
-			dlist->first_sd,&ditem->item_data,dlist->first_sd->bl.id) == 0
+		if (party_share_loot(party_search(dlist->first_sd->status.party_id),
+			dlist->first_sd, &ditem->item_data, dlist->first_sd->bl.id) == 0
 		) {
 			ers_free(item_drop_ers, ditem);
 			return;
@@ -1516,88 +1522,66 @@ int mob_respawn(int tid, unsigned int tick, int id,int data )
 	return 1;
 }
 
-//Call when a mob has received damage.
-void mob_damage(struct mob_data *md, struct block_list *src, int damage)
+void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 {
 	int char_id = 0, flag = 0;
+	if(damage < 0) return; //Do nothing for absorbed damage.
 
-	if (damage > 0)
-	{	//Store total damage...
-		if (UINT_MAX - (unsigned int)damage > md->tdmg)
-			md->tdmg+=damage;
-		else if (md->tdmg == UINT_MAX)
-			damage = 0; //Stop recording damage once the cap has been reached.
-		else { //Cap damage log...
-			damage = (int)(UINT_MAX - md->tdmg);
-			md->tdmg = UINT_MAX;
-		}
-		if (md->state.aggressive)
-		{	//No longer aggressive, change to retaliate AI.
-			md->state.aggressive = 0;
-			if(md->state.skillstate== MSS_ANGRY)
-				md->state.skillstate = MSS_BERSERK;
-			if(md->state.skillstate== MSS_FOLLOW)
-				md->state.skillstate = MSS_RUSH;
-		}
-	}
+	if(!damage && !(src->type&DEFAULT_ENEMY_TYPE(md)))
+		return; //Do not log non-damaging effects from non-enemies.
 
-	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) // guardian hp update [Valaris] (updated by [Skotlex])
-		md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->status.hp;
-
-	if (battle_config.show_mob_info&3)
-		clif_charnameack (0, &md->bl);
-	
-	if (!src)
-		return;
-	
 	switch (src->type) {
-		case BL_PC: 
-		{
-			struct map_session_data *sd = (TBL_PC*)src;
-			char_id = sd->status.char_id;
+	case BL_PC: 
+	{
+		struct map_session_data *sd = (TBL_PC*)src;
+		char_id = sd->status.char_id;
+		if (damage)
 			md->attacked_id = src->id;
-			break;
-		}
-		case BL_HOM:	//[orn]
-		{
-			struct homun_data *hd = (TBL_HOM*)src;
-			flag = 1;
-			if (hd->master)
-				char_id = hd->master->status.char_id;
+		break;
+	}
+	case BL_HOM:	//[orn]
+	{
+		struct homun_data *hd = (TBL_HOM*)src;
+		flag = 1;
+		if (hd->master)
+			char_id = hd->master->status.char_id;
+		if (damage)
 			md->attacked_id = src->id;
-			break;
+		break;
+	}
+	case BL_PET:
+	{
+		struct pet_data *pd = (TBL_PET*)src;
+		if (battle_config.pet_attack_exp_to_master && pd->msd) {
+			char_id = pd->msd->status.char_id;
+			damage=(damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
 		}
-		case BL_PET:
-		{
-			struct pet_data *pd = (TBL_PET*)src;
-			if (battle_config.pet_attack_exp_to_master && pd->msd) {
-				char_id = pd->msd->status.char_id;
-				damage=(damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
-			}
-			//Let mobs retaliate against the pet's master [Skotlex]
-			if(pd->msd)
-				md->attacked_id = pd->msd->bl.id;
-			break;
+		//Let mobs retaliate against the pet's master [Skotlex]
+		if(pd->msd && damage)
+			md->attacked_id = pd->msd->bl.id;
+		break;
+	}
+	case BL_MOB:
+	{
+		struct mob_data* md2 = (TBL_MOB*)src;
+		if(md2->special_state.ai && md2->master_id) {
+			struct map_session_data* msd = map_id2sd(md2->master_id);
+			if (msd) char_id = msd->status.char_id;
 		}
-		case BL_MOB:
-		{
-			struct mob_data* md2 = (TBL_MOB*)src;
-			if(md2->special_state.ai && md2->master_id) {
-				struct map_session_data* msd = map_id2sd(md2->master_id);
-				if (msd) char_id = msd->status.char_id;
-			}
-			//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
-			if (md2->master_id && battle_config.retaliate_to_master)
-				md->attacked_id = md2->master_id;
-			else
-				md->attacked_id = src->id;
+		if (!damage)
 			break;
-		}
-		default: //For all unhandled types.
+		//Let players decide whether to retaliate versus the master or the mob. [Skotlex]
+		if (md2->master_id && battle_config.retaliate_to_master)
+			md->attacked_id = md2->master_id;
+		else
 			md->attacked_id = src->id;
+		break;
+	}
+	default: //For all unhandled types.
+		md->attacked_id = src->id;
 	}
 	//Log damage...
-	if (char_id && damage > 0) {
+	if(char_id) {
 		int i,minpos;
 		unsigned int mindmg;
 		for(i=0,minpos=DAMAGELOG_SIZE-1,mindmg=UINT_MAX;i<DAMAGELOG_SIZE;i++){
@@ -1623,6 +1607,41 @@ void mob_damage(struct mob_data *md, struct block_list *src, int damage)
 			md->dmglog[minpos].dmg = damage;
 		}
 	}
+	return;
+}
+//Call when a mob has received damage.
+void mob_damage(struct mob_data *md, struct block_list *src, int damage)
+{
+	if (damage > 0)
+	{	//Store total damage...
+		if (UINT_MAX - (unsigned int)damage > md->tdmg)
+			md->tdmg+=damage;
+		else if (md->tdmg == UINT_MAX)
+			damage = 0; //Stop recording damage once the cap has been reached.
+		else { //Cap damage log...
+			damage = (int)(UINT_MAX - md->tdmg);
+			md->tdmg = UINT_MAX;
+		}
+		if (md->state.aggressive)
+		{	//No longer aggressive, change to retaliate AI.
+			md->state.aggressive = 0;
+			if(md->state.skillstate== MSS_ANGRY)
+				md->state.skillstate = MSS_BERSERK;
+			if(md->state.skillstate== MSS_FOLLOW)
+				md->state.skillstate = MSS_RUSH;
+		}
+		//Log damage
+		if (src) mob_log_damage(md, src, damage);
+	}
+
+	if(md->guardian_data && md->guardian_data->number < MAX_GUARDIANS) // guardian hp update [Valaris] (updated by [Skotlex])
+		md->guardian_data->castle->guardian[md->guardian_data->number].hp = md->status.hp;
+
+	if (battle_config.show_mob_info&3)
+		clif_charnameack (0, &md->bl);
+	
+	if (!src)
+		return;
 	
 	if(md->special_state.ai==2/* && md->master_id == src->id*/)
 	{	//LOne WOlf explained that ANYONE can trigger the marine countdown skill. [Skotlex]
@@ -3447,6 +3466,8 @@ static int mob_read_randommonster(void)
 		"mob_boss.txt",
 		"mob_pouch.txt"};
 
+	memset(&summon, 0, sizeof(summon));
+
 	for(i=0;i<MAX_RANDOMMONSTER;i++){
 		mob_db_data[0]->summonper[i] = 1002;	// Ý’è‚µ–Y‚ê‚½ê‡‚Íƒ|ƒŠƒ“‚ªo‚é‚æ‚¤‚É‚µ‚Ä‚¨‚­
 		sprintf(line, "%s/%s", db_path, mobfile[i]);
@@ -3457,7 +3478,7 @@ static int mob_read_randommonster(void)
 		}
 		while(fgets(line, sizeof(line), fp))
 		{
-			int class_,per;
+			int class_;
 			if(line[0] == '/' && line[1] == '/')
 				continue;
 			memset(str,0,sizeof(str));
@@ -3471,9 +3492,22 @@ static int mob_read_randommonster(void)
 				continue;
 
 			class_ = atoi(str[0]);
-			per=atoi(str[2]);
-			if(mob_db(class_) != mob_dummy)
-				mob_db_data[class_]->summonper[i]=per;
+			if(mob_db(class_) == mob_dummy)
+				continue;
+			mob_db_data[class_]->summonper[i]=atoi(str[2]);
+			if (i) {
+				if (summon[i].qty < sizeof(summon[i].class_)/sizeof(summon[i].class_[0])) //MvPs
+					summon[i].class_[summon[i].qty++] = class_;
+				else {
+					ShowDebug("Can't store more random mobs from %s, increase size of mob.c:summon variable!\n", mobfile[i]);
+					break;
+				}
+			}
+		}
+		if (i && !summon[i].qty)
+		{ //At least have the default here.
+			summon[i].class_[0] = mob_db_data[0]->summonper[i];
+			summon[i].qty = 1;
 		}
 		fclose(fp);
 		ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",mobfile[i]);
