@@ -1,10 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../common/showmsg.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -28,6 +24,12 @@
 #include "party.h"
 #include "intif.h"
 #include "chrif.h"
+#include "script.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 const int dirx[8]={0,-1,-1,-1,0,1,1,1};
 const int diry[8]={1,1,0,-1,-1,-1,0,1};
@@ -426,7 +428,7 @@ int unit_run(struct block_list *bl)
 		//If you can't run forward, you must be next to a wall, so bounce back. [Skotlex]
 		clif_status_change(bl, SI_BUMP, 1);
 		status_change_end(bl,SC_RUN,-1);
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1)|0x10000);
+		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1),unit_getdir(bl),0);
 		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
 		clif_status_change(bl, SI_BUMP, 0);
 		return 0;
@@ -442,7 +444,7 @@ int unit_run(struct block_list *bl)
 		// copy-paste from above
 		clif_status_change(bl, SI_BUMP, 1);
 		status_change_end(bl,SC_RUN,-1);
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1)|0x10000);
+		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1),unit_getdir(bl),0);
 		clif_fixpos(bl);
 		clif_status_change(bl, SI_BUMP, 0);
 		return 0;

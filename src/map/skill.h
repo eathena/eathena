@@ -187,7 +187,7 @@ int	skill_tree_get_max( int id, int b_class );	// Celest
 const char*	skill_get_name( int id ); 	// [Skotlex]
 const char*	skill_get_desc( int id ); 	// [Skotlex]
 
-int skill_isammotype(TBL_PC *sd, int skill);
+int skill_isammotype(struct map_session_data *sd, int skill);
 int skill_castend_id( int tid, unsigned int tick, int id,int data );
 int skill_castend_pos( int tid, unsigned int tick, int id,int data );
 int skill_castend_map( struct map_session_data *sd,int skill_num, const char *map);
@@ -198,7 +198,7 @@ int skill_addtimerskill(struct block_list *src,unsigned int tick,int target,int 
 // 追加?果
 int skill_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
 int skill_counter_additional_effect( struct block_list* src, struct block_list *bl,int skillid,int skilllv,int attack_type,unsigned int tick);
-int skill_blown( struct block_list *src, struct block_list *target,int count);
+int skill_blown(struct block_list* src, struct block_list* target, int count, int direction, int flag);
 int skill_break_equip(struct block_list *bl, unsigned short where, int rate, int flag);
 int skill_strip_equip(struct block_list *bl, unsigned short where, int rate, int lv, int time);
 // ユニットスキル
@@ -243,7 +243,7 @@ void skill_identify(struct map_session_data *sd,int idx);
 void skill_weaponrefine(struct map_session_data *sd,int idx); // [Celest]
 int skill_autospell(struct map_session_data *md,int skillid);
 
-int skill_calc_heal(struct block_list *bl, int skill_lv);
+int skill_calc_heal(struct block_list *src, struct block_list *target, int skill_lv);
 
 int skill_check_cloaking(struct block_list *bl, struct status_change *sc);
 

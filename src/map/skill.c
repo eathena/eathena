@@ -1,11 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -32,6 +27,12 @@
 #include "guild.h"
 #include "date.h"
 #include "unit.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 
 #define SKILLUNITTIMER_INVERVAL	100
 //Guild Skills are shifted to these to make them stick into the skill array.
@@ -839,25 +840,29 @@ int skill_get_range2 (struct block_list *bl, int id, int lv)
 	return range;
 }
 
-int skill_calc_heal (struct block_list *bl, int skill_lv)
+int skill_calc_heal (struct block_list *src, struct block_list *target, int skill_lv)
 {
 	int skill, heal;
+	struct status_change* sc;
 
 	if (skill_lv >= battle_config.max_heal_lv)
 		return battle_config.max_heal;
 
-	heal = ( status_get_lv(bl)+status_get_int(bl) )/8 *(4+ skill_lv*8);
-	if(bl->type == BL_PC)
+	heal = ( status_get_lv(src)+status_get_int(src) )/8 *(4+ skill_lv*8);
+	if(src->type == BL_PC)
 	{
-		if ((skill = pc_checkskill((TBL_PC*)bl, HP_MEDITATIO)) > 0)
+		if ((skill = pc_checkskill((TBL_PC*)src, HP_MEDITATIO)) > 0)
 			heal += heal * skill * 2 / 100;
-		if ((skill = battle_skillatk_bonus((TBL_PC*)bl, AL_HEAL)) > 0)
+		if ((skill = battle_skillatk_bonus((TBL_PC*)src, AL_HEAL)) > 0)
 			heal += heal * skill / 100;
 	}
 
-	if(bl->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)bl), HLIF_BRAIN)) > 0)
+	if(src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0)
 		heal += heal * skill * 2 / 100;
 
+	sc = status_get_sc(target);
+	if (sc && sc->count && sc->data[SC_CRITICALWOUND].timer!=-1)
+		heal -= heal * sc->data[SC_CRITICALWOUND].val2/100;
 	return heal;
 }
 
@@ -1277,7 +1282,13 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	case NPC_STUNATTACK:
 		sc_start(bl,SkillStatusChangeTable(skillid),50+10*skilllv,skilllv,skill_get_time2(skillid,skilllv));
 		break;
-
+	case NPC_ACIDBREATH:
+	case NPC_ICEBREATH:
+		sc_start(bl,SkillStatusChangeTable(skillid),70,skilllv,skill_get_time2(skillid,skilllv));
+		break;
+	case NPC_BLEEDING:
+		sc_start(bl,SC_BLEEDING,(20*skilllv),skilllv,skill_get_time2(skillid,skilllv));
+		break;
 	case NPC_MENTALBREAKER: 
 	{	//Based on observations by Tharis, Mental Breaker should do SP damage
 	  	//equal to Matk*skLevel.
@@ -1409,6 +1420,12 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			rate += (sstatus->dex - tstatus->dex)/5;
 		if (skill_strip_equip(bl, EQP_WEAPON, rate, skilllv, skill_get_time(skillid,skilllv)))
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		break;
+	case NPC_HELLJUDGEMENT:
+		sc_start(bl,SC_CURSE,100,skilllv,skill_get_time2(skillid,skilllv));
+		break;
+	case NPC_CRITICALWOUND:
+		sc_start(bl,SC_CRITICALWOUND,100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
 	}
 
@@ -1793,22 +1810,21 @@ int skill_strip_equip(struct block_list *bl, unsigned short where, int rate, int
 
 /*=========================================================================
  Used to knock back players, monsters, traps, etc
- If count&0xf00000, the direction is send in the 6th byte.
- If count&0x10000, the direction is to the back of the target, otherwise is away from the src.
- If count&0x20000, position update packets must not be sent.
- IF count&0X40000, direction is random.
---------------------------------------------------------------------------*/
-int skill_blown (struct block_list *src, struct block_list *target, int count)
+ - 'count' is the number of squares to knock back
+ - 'direction' indicates the way OPPOSITE to the knockback direction (or -1 for default behavior)
+ - if 'flag&0x1', position update packets must not be sent.
+ -------------------------------------------------------------------------*/
+int skill_blown(struct block_list* src, struct block_list* target, int count, int direction, int flag)
 {
 	int dx = 0, dy = 0, nx, ny;
-	int dir,ret;
+	int ret;
 	struct skill_unit* su = NULL;
 
 	nullpo_retr(0, src);
 
 	if (src != target && map_flag_gvg(target->m))
 		return 0; //No knocking back in WoE
-	if (!(count&0xffff))
+	if (count == 0)
 		return 0; //Actual knockback distance is 0.
 	
 	switch (target->type)
@@ -1828,20 +1844,16 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 			break;
 	}
 
-	if (count&0xf00000)
-		dir = (count>>20)&0xf;
-	else if (count&0x10000 || (target->x==src->x && target->y==src->y))
-		dir = unit_getdir(target);
-	else if (count&0x40000) //Flag for random pushing.
-		dir = rand()%8;
-	else
-		dir = map_calc_dir(target,src->x,src->y);
-	if (dir>=0 && dir<8){
-		dx = -dirx[dir];
-		dy = -diry[dir];
+	if (direction == -1) // <optimized>: do the computation here instead of outside
+		direction = map_calc_dir(target, src->x, src->y); // direction from src to target, reversed
+
+	if (direction >= 0 && direction < 8)
+	{	// take the reversed 'direction' and reverse it
+		dx = -dirx[direction];
+		dy = -diry[direction];
 	}
 
-	ret=path_blownpos(target->m,target->x,target->y,dx,dy,count&0xffff);
+	ret=path_blownpos(target->m,target->x,target->y,dx,dy,count);
 	nx = ret>>16;
 	ny = ret&0xffff;
 
@@ -1863,13 +1875,13 @@ int skill_blown (struct block_list *src, struct block_list *target, int count)
 
 	map_foreachinmovearea(clif_insight, target, AREA_SIZE, -dx, -dy, target->type == BL_PC ? BL_ALL : BL_PC, target);
 
-	if(!(count&0x20000)) 
+	if(!(flag&0x1)) 
 		clif_blown(target);
 
 	if(target->type == BL_PC && map_getcell(target->m, target->x, target->y, CELL_CHKNPC))
 		npc_touch_areanpc((TBL_PC*)target, target->m, target->x, target->y); //Invoke area NPC
 
-	return (count&0xFFFF); //Return amount of knocked back cells.
+	return count; //Return amount of knocked back cells.
 }
 
 /*
@@ -1999,8 +2011,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	damage = dmg.damage + dmg.damage2;
 
-	if (damage > 0 && src != bl && src == dsrc && skillid != WS_CARTTERMINATION) // FIXME(?): Quick and dirty check, but HSCR does bypass Shield Reflect... so I make it bypass the whole reflect thing [DracoRPG]
-		rdamage = battle_calc_return_damage(bl, &damage, dmg.flag);
+	if (damage > 0 && src != bl && skillid != WS_CARTTERMINATION) // FIXME(?): Quick and dirty check, but HSCR does bypass Shield Reflect... so I make it bypass the whole reflect thing [DracoRPG]
+		rdamage = battle_calc_return_damage(bl, &damage, src == dsrc, dmg.flag);
 
 	//Skill hit type
 	type=(skillid==0)?5:skill_get_hit(skillid);
@@ -2180,7 +2192,16 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
 	if (dmg.blewcount > 0 && !status_isdead(bl))
-		skill_blown(dsrc,bl,dmg.blewcount);
+	{
+		int direction = -1; // default
+		switch(skillid)
+		{
+			case MG_FIREWALL:  direction = unit_getdir(bl); break; // backwards
+			case WZ_STORMGUST: direction = rand()%8;        break; // randomly
+			case PR_SANCTUARY: direction = unit_getdir(bl); break; // backwards
+		}
+		skill_blown(dsrc,bl,dmg.blewcount,direction,0);
+	}
 	
 	//Delayed damage must be dealt after the knockback (it needs to know actual position of target)
 	if (dmg.amotion)
@@ -2805,6 +2826,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case NPC_WEAPONBRAKER:
 	case NPC_HELMBRAKE:
 	case NPC_SHIELDBRAKE:
+	case NPC_BLINDATTACK:
+	case NPC_SILENCEATTACK:
+	case NPC_STUNATTACK:
+	case NPC_PETRIFYATTACK:
+	case NPC_CURSEATTACK:
+	case NPC_SLEEPATTACK:
 	case LK_AURABLADE:
 	case LK_SPIRALPIERCE:
 	case LK_HEADCRUSH:
@@ -2836,21 +2863,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case ASC_BREAKER:
 	case HFLI_MOON:	//[orn]
 	case HFLI_SBR44:	//[orn]
+	case NPC_BLEEDING:
+	case NPC_CRITICALWOUND:
 		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		break;
-	case NPC_BLINDATTACK:
-	case NPC_SILENCEATTACK:
-	case NPC_STUNATTACK:
-	case NPC_PETRIFYATTACK:
-	case NPC_CURSEATTACK:
-	case NPC_SLEEPATTACK:
-		if (flag&1 || skill_get_splash(skillid, skilllv) < 1)
-			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		else
-			map_foreachinrange(skill_area_sub, bl,
-				skill_get_splash(skillid, skilllv),BL_CHAR,
-				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
-				skill_castend_damage_id);
 		break;
 
 	case LK_JOINTBEAT: // decide the ailment first (affects attack damage and effect)
@@ -2907,6 +2922,17 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		//line of sight between caster and target.
 		skill_area_temp[1] = bl->id;
 		map_foreachinpath (skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
+			skill_get_splash(skillid, skilllv),BL_CHAR,
+			skill_get_type(skillid),src,src,skillid,skilllv,tick,flag,BCT_ENEMY);
+		break;
+
+	case NPC_ACIDBREATH:
+	case NPC_DARKNESSBREATH:
+	case NPC_FIREBREATH:
+	case NPC_ICEBREATH:
+	case NPC_THUNDERBREATH:
+		skill_area_temp[1] = bl->id;
+		map_foreachinpath(skill_attack_area,src->m,src->x,src->y,bl->x,bl->y,
 			skill_get_splash(skillid, skilllv),BL_CHAR,
 			skill_get_type(skillid),src,src,skillid,skilllv,tick,flag,BCT_ENEMY);
 		break;
@@ -3004,6 +3030,12 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	//Splash attack skills.
+	case NPC_PULSESTRIKE:
+	case NPC_HELLJUDGEMENT:
+		skill_attack(skill_get_type(skillid), src, src, bl,
+			skillid, skilllv, tick, skill_area_temp[0]|(flag&SD_LEVEL));
+		break;
+
 	case AS_SPLASHER:
 	case AS_GRIMTOOTH:
 	case SM_MAGNUM:
@@ -3020,6 +3052,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case ASC_METEORASSAULT:
 	case GS_DESPERADO:
 	case GS_SPREADATTACK:
+	case NPC_EARTHQUAKE:
 		if (flag&1)
 		{	//Invoked from map_foreachinarea, skill_area_temp[0] holds number of targets to divide damage by.
 			if (skill_area_temp[1] != bl->id)
@@ -3077,7 +3110,7 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			c = skill_get_blewcount(skillid,skilllv);
 			// keep moving target in the direction that src is looking, square by square
 			for(i=0;i<c;i++){
-				if (!skill_blown(src,bl,0x20000|1))
+				if (!skill_blown(src,bl,1,(unit_getdir(src)+4)%8,0x1))
 					break; //Can't knockback
 				skill_area_temp[0]=0;
 				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), BL_CHAR,
@@ -3101,15 +3134,15 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			if (bl->id==skill_area_temp[1])
 				break;
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,SD_ANIMATION))
-				skill_blown(src,bl,skill_area_temp[2]);
+				skill_blown(src,bl,skill_area_temp[2],-1,0);
 		} else {
 			int x=bl->x,y=bl->y,i,dir;
 			dir = map_calc_dir(bl,src->x,src->y);
 			skill_area_temp[1] = bl->id;
-			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv)|dir<<20;
+			skill_area_temp[2] = skill_get_blewcount(skillid,skilllv);
 			// all the enemies between the caster and the target are hit, as well as the target
 			if (skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0))
-				skill_blown(src,bl,skill_area_temp[2]);
+				skill_blown(src,bl,skill_area_temp[2],-1,0);
 			for (i=0;i<4;i++) {
 				map_foreachincell(skill_area_sub,bl->m,x,y,BL_CHAR,
 					src,skillid,skilllv,tick,flag|BCT_ENEMY|1,skill_castend_damage_id);
@@ -3404,7 +3437,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case HLIF_HEAL:	//[orn]
 	case AL_HEAL:
 		{
-			int heal = skill_calc_heal(src, skilllv);
+			int heal = skill_calc_heal(src, bl, skilllv);
 			int heal_get_jobexp;
 	
 			if (status_isimmune(bl) || (dstmd && dstmd->class_ == MOBID_EMPERIUM))
@@ -3808,8 +3841,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case AS_POISONREACT:
 	case MC_LOUD:
 	case MG_ENERGYCOAT:
-	case MG_SIGHT:
-	case AL_RUWACH:
 	case MO_EXPLOSIONSPIRITS:
 	case MO_STEELBODY:
 	case MO_BLADESTOP:
@@ -3826,7 +3857,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case PA_SACRIFICE:
 	case ASC_EDP:
 	case NPC_STOP:
-	case WZ_SIGHTBLASTER:
 	case PF_DOUBLECASTING:
 	case SG_SUN_COMFORT:
 	case SG_MOON_COMFORT:
@@ -3840,8 +3870,18 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NJ_UTSUSEMI:
 	case NJ_NEN:
 	case NPC_DEFENDER:
+	case NPC_MAGICMIRROR:
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
+		break;
+	case MG_SIGHT:
+	case AL_RUWACH:
+	case WZ_SIGHTBLASTER:
+	case NPC_WIDESIGHT:
+	case NPC_STONESKIN:
+	case NPC_ANTIMAGIC:
+		clif_skill_nodamage(src,bl,skillid,skilllv,
+			sc_start2(bl,type,100,skilllv,skillid,skill_get_time(skillid,skilllv)));
 		break;
 	case HLIF_AVOID:
 		if (hd)
@@ -4026,7 +4066,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case TK_TURNKICK:
 	case MO_BALKYOUNG: //Passive part of the attack. Splash knock-back+stun. [Skotlex]
 		if (skill_area_temp[1] != bl->id) {
-			skill_blown(src,bl,skill_get_blewcount(skillid,skilllv));
+			skill_blown(src,bl,skill_get_blewcount(skillid,skilllv),-1,0);
 			skill_additional_effect(src,bl,skillid,skilllv,BF_MISC,tick); //Use Misc rather than weapon to signal passive pushback
 		}
 		break;	
@@ -4081,9 +4121,17 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		status_change_end(src, SC_HIDING, -1);
 		break;
 
+	case NPC_EARTHQUAKE:
 	case ASC_METEORASSAULT:
 	case GS_SPREADATTACK:
+		skill_area_temp[0] = 0;
+		if (skill_get_nk(skillid)&NK_SPLASHSPLIT)
+			map_foreachinrange(skill_area_sub, bl, 
+				skill_get_splash(skillid, skilllv), BL_CHAR,
+				src, skillid, skilllv, tick, BCT_ENEMY, skill_area_sub_count);
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+	case NPC_HELLJUDGEMENT:
+	case NPC_PULSESTRIKE:
 		skill_area_temp[1] = bl->id;
 		//Mob casted skills should also hit skills.
 		map_foreachinrange(skill_area_sub, bl,
@@ -4487,6 +4535,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			unit_warp(bl,-1,-1,-1,3);
 		break;
 
+	case NPC_EXPULSION:
+		clif_skill_nodamage(src,bl,skillid,skilllv,1);
+		unit_warp(bl,-1,-1,-1,3);
+		break;
+
 	case AL_HOLYWATER:
 		if(sd) {
 			if (skill_produce_mix(sd, skillid, 523, 0, 0, 0, 1))
@@ -4619,6 +4672,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if(dstsd)
 					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
 			}
+			if (tsc && tsc->count && tsc->data[SC_CRITICALWOUND].timer!=-1)
+			{
+				hp -= hp * tsc->data[SC_CRITICALWOUND].val2 / 100;
+				sp -= sp * tsc->data[SC_CRITICALWOUND].val2 / 100;
+			}
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			if(hp > 0 || (skillid == AM_POTIONPITCHER && sp <= 0))
 				clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
@@ -4719,7 +4777,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 	case TF_BACKSLIDING: //This is the correct implementation as per packet logging information. [Skotlex]
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
-		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv)|0x10000);
+		skill_blown(src,bl,skill_get_blewcount(skillid,skilllv),unit_getdir(bl),0);
 		break;
 
 	case TK_HIGHJUMP:
@@ -5225,6 +5283,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if (sp)
 					sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10)/100;
 			}
+			if (tsc && tsc->count && tsc->data[SC_CRITICALWOUND].timer!=-1)
+			{
+				hp -= hp * tsc->data[SC_CRITICALWOUND].val2 / 100;
+				sp -= sp * tsc->data[SC_CRITICALWOUND].val2 / 100;
+			}
 			if(hp > 0)
 				clif_skill_nodamage(NULL,bl,AL_HEAL,hp,1);
 			if(sp > 0)
@@ -5569,7 +5632,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				bl = map_id2bl(battle_gettarget(src));
 
 			if (!bl) bl = src;
-			i = skill_calc_heal( src, 1+rand()%skilllv);
+			i = skill_calc_heal( src, bl, 1+rand()%skilllv);
 			//Eh? why double skill packet?
 			clif_skill_nodamage(src,bl,AL_HEAL,i,1);
 			clif_skill_nodamage(src,bl,skillid,i,1);
@@ -5587,6 +5650,31 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			sc_start(bl,type,100,skilllv,skill_get_time(skillid,skilllv)));
 		if (hd)
 			skill_blockmerc_start(hd, skillid, skill_get_time2(skillid,skilllv));
+		break;
+	case NPC_DRAGONFEAR:
+		if (flag&1) {
+			const int sc[] = { SC_STUN, SC_CURSE, SC_SILENCE, SC_BLEEDING };
+			sc_start(bl,rand()%ARRAYLENGTH(sc),100,skilllv,skill_get_time2(skillid,skilllv));
+			break;
+		}
+	case NPC_WIDEBLEEDING:
+	case NPC_WIDECONFUSE:
+	case NPC_WIDECURSE:
+	case NPC_WIDEFREEZE:
+	case NPC_WIDESLEEP:
+	case NPC_WIDESILENCE:
+	case NPC_WIDESTONE:
+	case NPC_WIDESTUN:
+	case NPC_SLOWCAST:
+		if (flag&1)
+			sc_start(bl,type,100,skilllv,skill_get_time2(skillid,skilllv));
+		else {
+			clif_skill_nodamage(src,bl,skillid,skilllv,1);
+			map_foreachinrange(skill_area_sub, bl,
+				skill_get_splash(skillid, skilllv),BL_CHAR,
+				src,skillid,skilllv,tick, flag|BCT_ENEMY|1,
+				skill_castend_nodamage_id);
+		}
 		break;
 	default:
 		ShowWarning("skill_castend_nodamage_id: Unknown skill used:%d\n",skillid);
@@ -7066,7 +7154,7 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 			break;
 		if (ss == bl) //Also needed to prevent infinite loop crash.
 			break;
-		skill_blown(ss, bl, 0x10000|skill_get_blewcount(sg->skill_id,sg->skill_lv));
+		skill_blown(ss,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0);
 		break;
 	}
 	return skillid;
@@ -7174,6 +7262,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int heal = sg->val2;
 				if (tstatus->hp >= tstatus->max_hp)
 					break;
+				if (tsc && tsc->count && tsc->data[SC_CRITICALWOUND].timer!=-1)
+					heal -= heal * tsc->data[SC_CRITICALWOUND].val2 / 100;
 				if (status_isimmune(bl))
 					heal = 0;	/* 黄金蟲カード（ヒール量０） */
 				clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
@@ -7235,7 +7325,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 
 		case UNT_SKIDTRAP:
 			{
-				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv)|0x10000);
+				skill_blown(&src->bl,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),unit_getdir(bl),0);
 				sg->unit_id = UNT_USED_TRAPS;
 				clif_changetraplook(&src->bl, UNT_USED_TRAPS);
 				sg->limit=DIFF_TICK(tick,sg->tick)+1500;
@@ -7332,6 +7422,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			if (sg->src_id == bl->id)
 				break;
 			heal = sg->val2;
+			if(tsc && tsc->count && tsc->data[SC_CRITICALWOUND].timer!=-1)
+				heal -= heal * tsc->data[SC_CRITICALWOUND].val2 / 100;
 			clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
 			status_heal(bl, heal, 0, 0);
 			break;	
@@ -7890,7 +7982,7 @@ static int skill_check_condition_mob_master_sub (struct block_list *bl, va_list 
  * Determines if a given skill should be made to consume ammo 
  * when used by the player. [Skotlex]
  *------------------------------------------*/
-int skill_isammotype (TBL_PC *sd, int skill)
+int skill_isammotype (struct map_session_data *sd, int skill)
 {
 	return (
 		battle_config.arrow_decrement==2 &&
@@ -8688,6 +8780,9 @@ int skill_castfix_sc (struct block_list *bl, int time)
 	struct status_change *sc = status_get_sc(bl);
 
 	if (sc && sc->count) {
+		if (sc->data[SC_SLOWCAST].timer != -1)
+			time+= time * sc->data[SC_SLOWCAST].val2 / 100;
+
 		if (sc->data[SC_SUFFRAGIUM].timer != -1) {
 			time -= time * (sc->data[SC_SUFFRAGIUM].val1 * 15) / 100;
 			status_change_end(bl, SC_SUFFRAGIUM, -1);
@@ -9283,12 +9378,20 @@ int skill_attack_area (struct block_list *bl, va_list ap)
 	if(battle_check_target(dsrc,bl,type) <= 0 ||
 		!status_check_skilluse(NULL, bl, skillid, 2))
 		return 0;
-	
-	if (skillid == WZ_FROSTNOVA) //Only skill that doesn't requires the animation to be removed :X
-		return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag);
 
-	//Area-splash, disable skill animation.
-	return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
+
+	switch (skillid) {
+	case WZ_FROSTNOVA: //Skills that don't require the animation to be removed
+	case NPC_ACIDBREATH:
+	case NPC_DARKNESSBREATH:
+	case NPC_FIREBREATH:
+	case NPC_ICEBREATH:
+	case NPC_THUNDERBREATH:
+		return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag);
+	default:
+		//Area-splash, disable skill animation.
+		return skill_attack(atk_type,src,dsrc,bl,skillid,skilllv,tick,flag|SD_ANIMATION);
+	}
 }
 /*==========================================
  *
@@ -9583,7 +9686,7 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 			break;
 		case UNT_GROUNDDRIFT_FIRE:
 			if(skill_attack(BF_WEAPON,ss,src,bl,sg->skill_id,sg->skill_lv,tick,sg->val1))
-				skill_blown(src,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv));
+				skill_blown(src,bl,skill_get_blewcount(sg->skill_id,sg->skill_lv),-1,0);
 			break;
 		default:
 			return 0;

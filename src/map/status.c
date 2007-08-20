@@ -1,12 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <time.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <memory.h>
-#include <string.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
@@ -28,6 +22,13 @@
 #include "script.h"
 #include "unit.h"
 #include "mercenary.h"
+
+#include <time.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <memory.h>
+#include <string.h>
+
 
 //For specifying where in the SkillStatusChangeTableArray the "out of bounds" skills get stored. [Skotlex]
 #define SC_HM_BASE 800
@@ -59,7 +60,6 @@ int current_equip_item_index; //Contains inventory index of an equipped item. To
 int current_equip_card_id; //To prevent card-stacking (from jA) [Skotlex]
 //we need it for new cards 15 Feb 2005, to check if the combo cards are insrerted into the CURRENT weapon only
 //to avoid cards exploits
-void status_calc_bl_sub_hom(struct homun_data *hd, unsigned long flag);	//[orn]
 
 static void add_sc(int skill, int sc)
 {
@@ -369,6 +369,26 @@ void initChangeTables(void)
 	set_sc(NJ_NEN, SC_NEN, SI_NEN, SCB_STR|SCB_INT);
 	set_sc(NJ_UTSUSEMI, SC_UTSUSEMI, SI_UTSUSEMI,SCB_NONE);
 	set_sc(NJ_BUNSINJYUTSU, SC_BUNSINJYUTSU, SI_BUNSINJYUTSU, SCB_DYE);
+
+	add_sc(NPC_ICEBREATH, SC_FREEZE);
+	add_sc(NPC_ACIDBREATH, SC_POISON);
+	add_sc(NPC_HELLJUDGEMENT, SC_CURSE);
+	add_sc(NPC_WIDESILENCE, SC_SILENCE);
+	add_sc(NPC_WIDEFREEZE, SC_FREEZE);
+	add_sc(NPC_WIDEBLEEDING, SC_BLEEDING);
+	add_sc(NPC_WIDESTONE, SC_STONE);
+	add_sc(NPC_WIDECONFUSE, SC_CONFUSION);
+	add_sc(NPC_WIDESLEEP, SC_SLEEP);
+	add_sc(NPC_WIDESIGHT, SC_SIGHT);
+
+	add_sc(NPC_MAGICMIRROR, SC_MAGICMIRROR);
+	set_sc(NPC_SLOWCAST, SC_SLOWCAST, SI_SLOWCAST, SCB_NONE);
+	set_sc(NPC_CRITICALWOUND, SC_CRITICALWOUND, SI_CRITICALWOUND, SCB_NONE);
+	set_sc(NPC_STONESKIN, SC_ARMORCHANGE, SI_BLANK, SCB_DEF|SCB_MDEF|SCB_DEF2|SCB_MDEF2);
+	add_sc(NPC_ANTIMAGIC, SC_ARMORCHANGE);
+	add_sc(NPC_WIDECURSE, SC_CURSE);
+	add_sc(NPC_WIDESTUN, SC_STUN);
+
 	set_sc(CR_SHRINK, SC_SHRINK, SI_SHRINK, SCB_NONE);
 	set_sc(RG_CLOSECONFINE, SC_CLOSECONFINE2, SI_CLOSECONFINE2, SCB_NONE);
 	set_sc(RG_CLOSECONFINE, SC_CLOSECONFINE, SI_CLOSECONFINE, SCB_FLEE);
@@ -1150,13 +1170,24 @@ int status_check_visibility(struct block_list *src, struct block_list *target)
 
 void status_calc_bl(struct block_list *bl, unsigned long flag);
 
-	// Basic ASPD value
-#define status_base_amotion_pc(sd,status) (sd->aspd_add + \
-	(sd->status.weapon < MAX_WEAPON_TYPE? \
-		(1000 -4*status->agi -status->dex)*aspd_base[sd->status.class_][sd->status.weapon]/1000:\
-		(1000 -4*status->agi -status->dex)*(\
-			aspd_base[sd->status.class_][sd->weapontype1]+\
-			aspd_base[sd->status.class_][sd->weapontype2])*2/3000))
+// Basic ASPD value
+int status_base_amotion_pc(struct map_session_data* sd, struct status_data* status)
+{
+	int amotion;
+	
+	// base weapon delay
+	amotion = (sd->status.weapon < MAX_WEAPON_TYPE)
+	 ? (aspd_base[sd->status.class_][sd->status.weapon]) // single weapon
+	 : (aspd_base[sd->status.class_][sd->weapontype1] + aspd_base[sd->status.class_][sd->weapontype2])*7/10; // dual-wield
+	
+	// percentual delay reduction from stats
+	amotion-= amotion * (4*status->agi + status->dex)/1000;
+	
+	// raw delay adjustment from bAspd bonus
+	amotion+= sd->aspd_add;
+	
+ 	return amotion;
+}
 
 static int status_base_atk(struct block_list *bl, struct status_data *status)
 {
@@ -3523,6 +3554,8 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 		return 90;
 	if(sc->data[SC_STEELBODY].timer!=-1)
 		return 90;
+	if(sc->data[SC_ARMORCHANGE].timer!=-1)
+		def += def * sc->data[SC_ARMORCHANGE].val2/100;
 	if(sc->data[SC_DRUMBATTLE].timer!=-1)
 		def += sc->data[SC_DRUMBATTLE].val3;
 	if(sc->data[SC_DEFENCE].timer != -1)	//[orn]
@@ -3558,6 +3591,8 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS].timer!=-1)
 		return 0;
+	if(sc->data[SC_ARMORCHANGE].timer!=-1)
+		def2 += def2 * sc->data[SC_ARMORCHANGE].val2/100;
 	if(sc->data[SC_SUN_COMFORT].timer!=-1)
 		def2 += sc->data[SC_SUN_COMFORT].val2;
 	if(sc->data[SC_ANGELUS].timer!=-1)
@@ -3596,6 +3631,8 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 		return 90;
 	if(sc->data[SC_SKA].timer != -1) // [marquis007]
 		return 90;
+	if(sc->data[SC_ARMORCHANGE].timer!=-1)
+		mdef += mdef * sc->data[SC_ARMORCHANGE].val3/100;
 	if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
 		mdef += 25*mdef/100;
 	if(sc->data[SC_FREEZE].timer!=-1)
@@ -3613,6 +3650,8 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
+	if(sc->data[SC_ARMORCHANGE].timer!=-1)
+		mdef2 += mdef2 * sc->data[SC_ARMORCHANGE].val3/100;
 	if(sc->data[SC_MINDBREAKER].timer!=-1)
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER].val3/100;
 
@@ -5227,6 +5266,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 		case SC_SIGHT:			/* サイト/ルアフ */
 		case SC_RUWACH:
 		case SC_SIGHTBLASTER:
+			val3 = skill_get_splash(val2, val1); //Val2 should bring the skill-id.
 			val2 = tick/250;
 			tick = 10;
 			break;
@@ -5611,10 +5651,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			break;
 		case SC_ADRENALINE2:
 		case SC_ADRENALINE:
-			if (val2 || !battle_config.party_skill_penalty)
-				val3 = 300;
-			else
-				val3 = 200;
+			val3 = (val2) ? 300 : 200; // aspd increase
 		case SC_WEAPONPERFECTION:
 		case SC_OVERTHRUST:
 			if(sd && pc_checkskill(sd,BS_HILTBINDING)>0)
@@ -5750,6 +5787,26 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val2 = val2%ELE_MAX;
 			else if (val2 < 0)
 				val2 = rand()%ELE_MAX;
+			break;
+		case SC_CRITICALWOUND:
+			val2 = 10*val1; //Heal effectiveness decrease
+			break;
+		case SC_MAGICMIRROR:
+		case SC_SLOWCAST:
+			val2 = 20*val1; //Magic reflection/cast rate
+			break;
+
+		case SC_ARMORCHANGE:
+			if (val2 == NPC_ANTIMAGIC)
+			{	//Boost mdef
+				val2 =-20;
+				val3 = 20;
+			} else { //Boost def
+				val2 = 20;
+				val3 =-20;
+			}
+			val2*=val1; //20% per level
+			val3*=val1;
 			break;
 		case SC_ARMOR_ELEMENT:
 			//Place here SCs that have no SCB_* data, no skill associated, no ICON
@@ -6606,9 +6663,8 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 	case SC_RUWACH:
 	case SC_SIGHTBLASTER:
 		{
-			map_foreachinrange( status_change_timer_sub, bl, 
-				skill_get_splash(StatusSkillChangeTable[type], sc->data[type].val1),
-				BL_CHAR, bl,sc,type,tick);
+			map_foreachinrange( status_change_timer_sub, bl,
+				sc->data[type].val3, BL_CHAR, bl,sc,type,tick);
 
 			if( (--sc->data[type].val2)>0 ){
 				sc->data[type].timer=add_timer(	/* タイマ?再設定 */

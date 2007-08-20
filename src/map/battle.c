@@ -317,7 +317,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 			unit_set_walkdelay(bl, gettick(), delay, 1);
 
 			if(sc->data[SC_SHRINK].timer != -1 && rand()%100<5*sc->data[SC_AUTOGUARD].val1)
-				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1));
+				skill_blown(bl,src,skill_get_blewcount(CR_SHRINK,1),-1,0);
 			return 0;
 		}
 
@@ -363,7 +363,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 		{
 			if (sc->data[SC_UTSUSEMI].timer != -1) {
 				clif_specialeffect(bl, 462, AREA);
-				skill_blown (src, bl, sc->data[SC_UTSUSEMI].val3);
+				skill_blown(src,bl,sc->data[SC_UTSUSEMI].val3,-1,0);
 			}
 			//Both need to be consumed if they are active.
 			if (sc->data[SC_UTSUSEMI].timer != -1 &&
@@ -1131,6 +1131,7 @@ static struct Damage battle_calc_weapon_attack(
 			case NPC_DARKNESSATTACK:
 			case NPC_UNDEADATTACK:
 			case NPC_TELEKINESISATTACK:
+			case NPC_BLEEDING:
 				hitrate += hitrate * 20 / 100;
 				break;
 			case KN_PIERCE:
@@ -1382,6 +1383,12 @@ static struct Damage battle_calc_weapon_attack(
 				case NPC_UNDEADATTACK:
 				case NPC_TELEKINESISATTACK:
 				case NPC_BLOODDRAIN:
+				case NPC_ACIDBREATH:
+				case NPC_DARKNESSBREATH:
+				case NPC_FIREBREATH:
+				case NPC_ICEBREATH:
+				case NPC_THUNDERBREATH:
+				case NPC_HELLJUDGEMENT:
 					skillratio += 100*(skill_lv-1);
 					break;
 				case RG_BACKSTAP:
@@ -2158,18 +2165,14 @@ struct Damage battle_calc_magic_attack(
 	switch(skill_num)
 	{
 		case MG_FIREWALL:
+			ad.dmotion = 0; //No flinch animation.
 			if(mflag) //mflag has a value when it was checked against an undead in skill.c [Skotlex]
 				ad.blewcount = 0; //No knockback
-			else
-				ad.blewcount |= 0x10000;
+			break;
 		case HW_GRAVITATION:
 			ad.dmotion = 0; //No flinch animation.
 			break;
-		case WZ_STORMGUST: //Should knockback randomly.
-			ad.blewcount|=0x40000;
-			break;
 		case PR_SANCTUARY:
-			ad.blewcount|=0x10000;
 			ad.dmotion = 0; //No flinch animation.
 			break;
 	}
@@ -2188,7 +2191,7 @@ struct Damage battle_calc_magic_attack(
 		{	//Calc base damage according to skill
 			case AL_HEAL:
 			case PR_BENEDICTIO:
-				ad.damage = skill_calc_heal(src,skill_lv)/2;
+				ad.damage = skill_calc_heal(src, target, skill_lv)/2;
 				break;
 			case PR_ASPERSIO:
 				ad.damage = 40;
@@ -2215,6 +2218,12 @@ struct Damage battle_calc_magic_attack(
 				break;
 			default:
 			{
+				if (skill_num == NPC_EARTHQUAKE) {
+					if (sstatus->rhw.atk2 > sstatus->rhw.atk)
+						MATK_ADD(sstatus->rhw.atk + rand()%(1+sstatus->rhw.atk2-sstatus->rhw.atk))
+					else
+						MATK_ADD(sstatus->rhw.atk);
+				} else
 				if (sstatus->matk_max > sstatus->matk_min) {
 					MATK_ADD(sstatus->matk_min+rand()%(1+sstatus->matk_max-sstatus->matk_min));
 				} else {
@@ -2305,6 +2314,9 @@ struct Damage battle_calc_magic_attack(
 					case NJ_KAMAITACHI:
 					case NPC_ENERGYDRAIN:
 						skillratio += 100*skill_lv;
+						break;
+					case NPC_EARTHQUAKE:
+						skillratio += 400 + 500*skill_lv;
 						break;
 				}
 
@@ -2665,7 +2677,8 @@ struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct bl
 	return d;
 }
 
-int battle_calc_return_damage(struct block_list* bl, int* damage, int flag)
+//Calculates returned damage. direct is true if the skill was a direct attack (that is, not from another source, like a land spell
+int battle_calc_return_damage(struct block_list* bl, int* damage, int direct, int flag)
 {
 	struct map_session_data* sd = NULL;
 	struct status_change* sc;
@@ -2673,8 +2686,10 @@ int battle_calc_return_damage(struct block_list* bl, int* damage, int flag)
 
 	BL_CAST(BL_PC, bl, sd);
 	sc = status_get_sc(bl);
+	if(sc && !sc->count)
+		sc = NULL;
 
-	if(flag&BF_WEAPON) {
+	if(flag&BF_WEAPON && direct) {
 		//Bounces back part of the damage.
 		if (flag & BF_SHORT) {
 			if (sd && sd->short_weapon_damage_return)
@@ -2698,7 +2713,10 @@ int battle_calc_return_damage(struct block_list* bl, int* damage, int flag)
 	// magic_damage_return by [AppleGirl] and [Valaris]
 	if(flag&BF_MAGIC)
 	{
-		if(sd && sd->magic_damage_return && rand()%100 < sd->magic_damage_return)
+		if(
+			(sd && sd->magic_damage_return && direct && rand()%100 < sd->magic_damage_return)
+			|| (sc && sc->data[SC_MAGICMIRROR].timer != -1 && rand()%100 < sc->data[SC_MAGICMIRROR].val2)
+			)
 		{	//Bounces back full damage, you take none.
 			rdamage = *damage;
 		 	*damage = 0;
@@ -2890,7 +2908,7 @@ int battle_weapon_attack(struct block_list* src, struct block_list* target, unsi
 
 	damage = wd.damage + wd.damage2;
 	if (damage > 0 && src != target) {
-		rdamage = battle_calc_return_damage(target, &damage, wd.flag);
+		rdamage = battle_calc_return_damage(target, &damage, 1, wd.flag);
 		if (rdamage > 0) {
 			rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
 			//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
@@ -3262,10 +3280,8 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 				(sd2->class_&MAPID_UPPERMASK) == MAPID_NOVICE ||
 				sd->status.base_level < battle_config.pk_min_level ||
 			  	sd2->status.base_level < battle_config.pk_min_level ||
-				(battle_config.pk_level_range && (
-					sd->status.base_level > sd2->status.base_level ?
-					sd->status.base_level - sd2->status.base_level :
-					sd2->status.base_level - sd->status.base_level )
+				(battle_config.pk_level_range && 
+					abs(sd->status.base_level - sd2->status.base_level) 
 			  		> battle_config.pk_level_range)
 			)
 				state&=~BCT_ENEMY;
@@ -4277,11 +4293,13 @@ void battle_validate_conf() {
 int battle_config_read(const char *cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
-	FILE *fp;
+	FILE* fp;
 	static int count = 0;
 
-	if ((count++) == 0)
+	if (count == 0)
 		battle_set_defaults();
+
+	count++;
 
 	fp = fopen(cfgName,"r");
 	if (fp == NULL) {
@@ -4292,12 +4310,13 @@ int battle_config_read(const char *cfgName)
 	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-		if (sscanf(line, "%[^:]:%s", w1, w2) != 2)
+		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
 			continue;
 		if (strcmpi(w1, "import") == 0)
 			battle_config_read(w2);
 		else
-			battle_set_value(w1, w2);
+		if (battle_set_value(w1, w2) == 0)
+			ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
 	}
 	fclose(fp);
 
