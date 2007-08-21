@@ -1,3 +1,5 @@
+08/21
+	* Removed heal bonus on Spiritual Ring [Playtester]
 08/20
 	* Merged mob_skill_db (usage of the new npc skills)
 	* Issen's delay is now 1 sec. [Skotlex]
