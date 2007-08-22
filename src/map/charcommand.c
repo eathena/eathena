@@ -596,7 +596,7 @@ int charcommand_option(const int fd, struct map_session_data* sd, const char* co
  *------------------------------------------*/
 int charcommand_save(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 	char character[NAME_LENGTH];
 	struct map_session_data* pl_sd;
 	int x = 0, y = 0;
@@ -610,7 +610,7 @@ int charcommand_save(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) != NULL) {
@@ -1099,7 +1099,7 @@ int charcommand_item(const int fd, struct map_session_data* sd, const char* comm
  *------------------------------------------*/
 int charcommand_warp(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 	char character[NAME_LENGTH];
 	int x = 0, y = 0;
 	struct map_session_data *pl_sd;
@@ -1115,7 +1115,7 @@ int charcommand_warp(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	if ((pl_sd = map_nick2sd(character)) == NULL) {

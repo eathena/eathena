@@ -1244,7 +1244,7 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
  *------------------------------------------*/
 int atcommand_rura( const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 	unsigned short mapindex;
 	int x = 0, y = 0;
 	int m = -1;
@@ -1261,7 +1261,7 @@ int atcommand_rura( const int fd, struct map_session_data* sd, const char* comma
 			return -1;
 	}
 
-	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+	if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 		strcat(map_name, ".gat");
 
 	mapindex = mapindex_name2id(map_name);
@@ -1628,7 +1628,7 @@ int atcommand_whomap3(const int fd, struct map_session_data* sd, const char* com
 	int i, count, users;
 	int pl_GM_level, GM_level;
 	int map_id;
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(map_name, '\0', sizeof(map_name));
@@ -1637,7 +1637,7 @@ int atcommand_whomap3(const int fd, struct map_session_data* sd, const char* com
 		map_id = sd->bl.m;
 	else {
 		sscanf(message, "%15s", map_name);
-		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
@@ -1683,7 +1683,7 @@ int atcommand_whomap2(const int fd, struct map_session_data* sd, const char* com
 	int i, count, users;
 	int pl_GM_level, GM_level;
 	int map_id = 0;
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 
 	nullpo_retr(-1, sd);
 
@@ -1694,7 +1694,7 @@ int atcommand_whomap2(const int fd, struct map_session_data* sd, const char* com
 		map_id = sd->bl.m;
 	else {
 		sscanf(message, "%15s", map_name);
-		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
@@ -1742,7 +1742,7 @@ int atcommand_whomap(const int fd, struct map_session_data* sd, const char* comm
 	int i, count, users;
 	int pl_GM_level, GM_level;
 	int map_id = 0;
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 	struct guild *g;
 	struct party_data *p;
 
@@ -1757,7 +1757,7 @@ int atcommand_whomap(const int fd, struct map_session_data* sd, const char* comm
 		map_id = sd->bl.m;
 	else {
 		sscanf(message, "%15s", map_name);
-		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
@@ -3071,10 +3071,10 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 {
 	int i;
 	int town;
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 	int m;
  
-	const struct { char map[MAP_NAME_LENGTH]; int x,   y; } data[] = {
+	const struct { char map[MAP_NAME_LENGTH_EXT]; int x,   y; } data[] = {
 		{ MAP_PRONTERA,	156, 191  },		//	 0=Prontera
 		{ MAP_MORROC,		156, 93  },			//	 1=Morroc
 		{ MAP_GEFFEN,		119, 59  },			//	 2=Geffen
@@ -3131,10 +3131,10 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		return -1;
 	} else {
 		// get possible name of the city and add .gat if not in the name
-		map_name[MAP_NAME_LENGTH-1] = '\0';
+		map_name[MAP_NAME_LENGTH_EXT-1] = '\0';
 		for (i = 0; map_name[i]; i++)
 			map_name[i] = TOLOWER(map_name[i]);
-		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		// try to see if it's a name, and not a number (try a lot of possibilities, write errors and abbreviations too)
 		if (strncmp(map_name, "prontera.gat", 3) == 0) { // 3 first characters
@@ -3517,7 +3517,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap)
 void atcommand_killmonster_sub(const int fd, struct map_session_data* sd, const char* message, const int drop)
 {
 	int map_id;
-	char map_name[MAP_NAME_LENGTH];
+	char map_name[MAP_NAME_LENGTH_EXT];
 
 	if (!sd) return;
 
@@ -3526,7 +3526,7 @@ void atcommand_killmonster_sub(const int fd, struct map_session_data* sd, const 
 	if (!message || !*message || sscanf(message, "%15s", map_name) < 1)
 		map_id = sd->bl.m;
 	else {
-		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(map_name, ".gat") == NULL && strlen(map_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(map_name, ".gat");
 		if ((map_id = map_mapname2mapid(map_name)) < 0)
 			map_id = sd->bl.m;
@@ -5263,11 +5263,11 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 	}
 
 	if (atcmd_player_name[0] == '\0') {
-		memcpy(atcmd_player_name, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
-		atcmd_player_name[MAP_NAME_LENGTH] = '\0';
+		memcpy(atcmd_player_name, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH_EXT);
+		atcmd_player_name[MAP_NAME_LENGTH_EXT] = '\0';
 		m_id =  map_mapindex2mapid(sd->mapindex);
 	} else {
-		if (strstr(atcmd_player_name, ".gat") == NULL && strlen(atcmd_player_name) < MAP_NAME_LENGTH-4) // 16 - 4 (.gat)
+		if (strstr(atcmd_player_name, ".gat") == NULL && strlen(atcmd_player_name) < MAP_NAME_LENGTH_EXT-4) // 16 - 4 (.gat)
 			strcat(atcmd_player_name, ".gat");
 		m_id = map_mapname2mapid(atcmd_player_name);
 	}
