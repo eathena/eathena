@@ -5654,7 +5654,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case NPC_DRAGONFEAR:
 		if (flag&1) {
 			const int sc[] = { SC_STUN, SC_CURSE, SC_SILENCE, SC_BLEEDING };
-			sc_start(bl,rand()%ARRAYLENGTH(sc),100,skilllv,skill_get_time2(skillid,skilllv));
+			i = rand()%ARRAYLENGTH(sc);
+			sc_start(bl,sc[i],100,skilllv,skill_get_time2(skillid,i+1));
 			break;
 		}
 	case NPC_WIDEBLEEDING:
