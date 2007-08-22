@@ -26,6 +26,7 @@
 #include <string.h>
 #include <math.h>
 
+
 int attr_fix_table[4][ELE_MAX][ELE_MAX];
 
 struct Battle_Config battle_config;
@@ -3754,7 +3755,7 @@ void battle_set_defaults()
 	battle_config.clear_unit_onwarp=BL_ALL;
 	battle_config.random_monster_checklv=1;
 	battle_config.attr_recover=1;
-	battle_config.flooritem_lifetime=LIFETIME_FLOORITEM*1000;
+	battle_config.flooritem_lifetime=60000;
 	battle_config.item_auto_get=0;
 	battle_config.item_first_get_time=3000;
 	battle_config.item_second_get_time=1000;
@@ -4090,7 +4091,7 @@ void battle_set_defaults()
 
 void battle_validate_conf() {
 	if(battle_config.flooritem_lifetime < 1000)
-		battle_config.flooritem_lifetime = LIFETIME_FLOORITEM*1000;
+		battle_config.flooritem_lifetime = 60000;
 /*	if(battle_config.restart_hp_rate < 0)
 		battle_config.restart_hp_rate = 0;
 	else*/ if(battle_config.restart_hp_rate > 100)

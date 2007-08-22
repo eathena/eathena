@@ -4,7 +4,10 @@
 #ifndef _LOG_H_
 #define _LOG_H_
 
-#include "map.h"
+//#include "map.h"
+struct map_session_data;
+struct mob_data;
+struct item;
 
 #ifndef TXT_ONLY
 

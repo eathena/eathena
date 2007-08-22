@@ -709,7 +709,7 @@ int clif_clearunit_delayed(struct block_list* bl, unsigned int tick)
 	return 0;
 }
 
-void clif_get_weapon_view(TBL_PC* sd, unsigned short *rhand, unsigned short *lhand)
+void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, unsigned short *lhand)
 {
 #if PACKETVER > 3
 	struct item_data *id;
@@ -1315,9 +1315,10 @@ int clif_spawn(struct block_list *bl)
 		}
 		WBUFW(buf,14)=vd->hair_style; //Required for pets (removes attack cursor)
 		//16W: Weapon
-		//18W: Head bottom 
+		WBUFW(buf,18)=vd->head_bottom; //Pet armor (ignored by client)
 		WBUFW(buf,20)=vd->class_;
 		//22W: Shield
+		WBUFW(buf,24)=vd->head_bottom;	//Pet armor
 		//24W: Head top
 		//26W: Head mid
 		//28W: Hair color
@@ -3178,12 +3179,12 @@ int clif_dispchat(struct chat_data* cd, int fd)
 {
 	unsigned char buf[128];	// Å‘åtitle(60ƒoƒCƒg)+17
 
-	if(cd==NULL || *cd->owner==NULL)
+	if(cd==NULL || cd->owner==NULL)
 		return 1;
 
 	WBUFW(buf,0)=0xd7;
 	WBUFW(buf,2)=strlen((const char*)cd->title)+17;
-	WBUFL(buf,4)=(*cd->owner)->id;
+	WBUFL(buf,4)=cd->owner->id;
 	WBUFL(buf,8)=cd->bl.id;
 	WBUFW(buf,12)=cd->limit;
 	WBUFW(buf,14)=cd->users;
@@ -3194,7 +3195,7 @@ int clif_dispchat(struct chat_data* cd, int fd)
 		memcpy(WFIFOP(fd,0),buf,WBUFW(buf,2));
 		WFIFOSET(fd,WBUFW(buf,2));
 	} else {
-		clif_send(buf,WBUFW(buf,2),*cd->owner,AREA_WOSC);
+		clif_send(buf,WBUFW(buf,2),cd->owner,AREA_WOSC);
 	}
 
 	return 0;
@@ -3240,7 +3241,7 @@ int clif_clearchat(struct chat_data *cd,int fd)
 		memcpy(WFIFOP(fd,0),buf,packet_len(0xd8));
 		WFIFOSET(fd,packet_len(0xd8));
 	} else {
-		clif_send(buf,packet_len(0xd8),*cd->owner,AREA_WOSC);
+		clif_send(buf,packet_len(0xd8),cd->owner,AREA_WOSC);
 	}
 
 	return 0;
@@ -3284,7 +3285,7 @@ int clif_joinchatok(struct map_session_data *sd,struct chat_data* cd)
 	WFIFOW(fd, 2) = 8 + (28*cd->users);
 	WFIFOL(fd, 4) = cd->bl.id;
 	for (i = 0; i < cd->users; i++) {
-		WFIFOL(fd, 8+i*28) = (i!=0) || ((*cd->owner)->type == BL_NPC);
+		WFIFOL(fd, 8+i*28) = (i != 0 || cd->owner->type == BL_NPC);
 		memcpy(WFIFOP(fd, 8+i*28+4), cd->usersd[i]->status.name, NAME_LENGTH);
 	}
 	WFIFOSET(fd, WFIFOW(fd, 2));
@@ -3313,7 +3314,7 @@ int clif_addchat(struct chat_data* cd,struct map_session_data *sd)
 /*==========================================
  *
  *------------------------------------------*/
-int clif_changechatowner(struct chat_data* cd,struct map_session_data *sd)
+int clif_changechatowner(struct chat_data* cd, struct map_session_data* sd)
 {
 	unsigned char buf[64];
 
@@ -3710,7 +3711,7 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 		clif_refreshlook(&sd->bl,bl->id,LOOK_CLOTHES_COLOR,vd->cloth_color,SELF);
 
 	switch (bl->type)
-	{	// FIXME: 'AREA' causes unneccessary spam since this should be 1:1 communication
+	{	// FIXME: 'AREA' causes unneccessary spam since this should be 1:1 communication [ultramage]
 	case BL_PC:
 		{
 			TBL_PC* tsd = (TBL_PC*)bl;
@@ -3855,42 +3856,40 @@ void clif_takeitem(struct block_list* src, struct block_list* dst)
 }
 
 /*==========================================
- * inform clients in area that `sd` is sitting
+ * inform clients in area that `bl` is sitting
  *------------------------------------------*/
-void clif_sitting(struct map_session_data* sd)
+void clif_sitting(struct block_list* bl)
 {
 	unsigned char buf[32];
-
-	nullpo_retv(sd);
+	nullpo_retv(bl);
 
 	WBUFW(buf, 0) = 0x8a;
-	WBUFL(buf, 2) = sd->bl.id;
+	WBUFL(buf, 2) = bl->id;
 	WBUFB(buf,26) = 2;
-	clif_send(buf, packet_len(0x8a), &sd->bl, AREA);
+	clif_send(buf, packet_len(0x8a), bl, AREA);
 
-	if(disguised(&sd->bl)) {
-		WBUFL(buf, 2) = -sd->bl.id;
-		clif_send(buf, packet_len(0x8a), &sd->bl, SELF);
+	if(disguised(bl)) {
+		WBUFL(buf, 2) = - bl->id;
+		clif_send(buf, packet_len(0x8a), bl, SELF);
 	}
 }
 
 /*==========================================
- * inform clients in area that `sd` is standing
+ * inform clients in area that `bl` is standing
  *------------------------------------------*/
-void clif_standing(struct map_session_data* sd)
+void clif_standing(struct block_list* bl)
 {
 	unsigned char buf[32];
-
-	nullpo_retv(sd);
+	nullpo_retv(bl);
 
 	WBUFW(buf, 0) = 0x8a;
-	WBUFL(buf, 2) = sd->bl.id;
+	WBUFL(buf, 2) = bl->id;
 	WBUFB(buf,26) = 3;
-	clif_send(buf, packet_len(0x8a), &sd->bl, AREA);
+	clif_send(buf, packet_len(0x8a), bl, AREA);
 
-	if(disguised(&sd->bl)) {
-		WBUFL(buf, 2) = -sd->bl.id;
-		clif_send(buf, packet_len(0x8a), &sd->bl, SELF);
+	if(disguised(bl)) {
+		WBUFL(buf, 2) = - bl->id;
+		clif_send(buf, packet_len(0x8a), bl, SELF);
 	}
 }
 
@@ -8646,7 +8645,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 		if(pc_issit(sd)) {
 			//Bugged client? Just refresh them.
-			clif_sitting(sd);
+			clif_sitting(&sd->bl);
 			return;
 		}
 
@@ -8661,17 +8660,17 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 		pc_setsit(sd);
 		skill_sit(sd,1);
-		clif_sitting(sd);
+		clif_sitting(&sd->bl);
 	break;
 	case 0x03: // standup
 		if (!pc_issit(sd)) {
 			//Bugged client? Just refresh them.
-			clif_standing(sd);
+			clif_standing(&sd->bl);
 			return;
 		}
 		pc_setstand(sd);
 		skill_sit(sd,0); 
-		clif_standing(sd);
+		clif_standing(&sd->bl);
 	break;
 	}
 }
@@ -9192,12 +9191,25 @@ void clif_parse_NpcSellListSend(int fd,struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 {
+	int len = RFIFOW(fd,2)-15;
+	int limit = RFIFOW(fd,4);
+	bool public = (bool)RFIFOB(fd,6);
+	const char* password = (char*)RFIFOP(fd,7); //not zero-terminated
+	const char* title = (char*)RFIFOP(fd,15); // not zero-terminated
+	char s_title[CHATROOM_TITLE_SIZE];
+	char s_password[CHATROOM_PASS_SIZE];
+
 	if (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOROOM)
 		return;
-	if(battle_config.basic_skill_check == 0 || pc_checkskill(sd,NV_BASIC) >= 4){
-		chat_createchat(sd,RFIFOW(fd,4),RFIFOB(fd,6),(char*)RFIFOP(fd,7),(char*)RFIFOP(fd,15),RFIFOW(fd,2)-15);
-	} else
+	if(battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
 		clif_skill_fail(sd,1,0,3);
+		return;
+	}
+
+	safestrncpy(s_title, title, min(len+1,CHATROOM_TITLE_SIZE));
+	safestrncpy(s_password, password, CHATROOM_PASS_SIZE);
+
+	chat_createpcchat(sd, s_title, s_password, limit, public);
 }
 
 /*==========================================
@@ -9209,11 +9221,22 @@ void clif_parse_ChatAddMember(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- *
+ * S 00de <len>.w <limit>.w <pub>.B <passwd>.8B <title>.?B
  *------------------------------------------*/
-void clif_parse_ChatRoomStatusChange(int fd,struct map_session_data *sd)
+void clif_parse_ChatRoomStatusChange(int fd, struct map_session_data* sd)
 {
-	chat_changechatstatus(sd,RFIFOW(fd,4),RFIFOB(fd,6),(char*)RFIFOP(fd,7),(char*)RFIFOP(fd,15),RFIFOW(fd,2)-15);
+	int len = RFIFOW(fd,2)-15;
+	int limit = RFIFOW(fd,4);
+	bool public = (bool)RFIFOB(fd,6);
+	const char* password = (char*)RFIFOP(fd,7); //not zero-terminated
+	const char* title = (char*)RFIFOP(fd,15); // not zero-terminated
+
+	char s_title[CHATROOM_TITLE_SIZE];
+	char s_password[CHATROOM_PASS_SIZE];
+	safestrncpy(s_title, title, min(len+1,CHATROOM_TITLE_SIZE));
+	safestrncpy(s_password, password, CHATROOM_PASS_SIZE);
+
+	chat_changechatstatus(sd, s_title, s_password, limit, public);
 }
 
 /*==========================================
@@ -11775,7 +11798,6 @@ static int packetdb_readdb(void)
 		{clif_parse_RankingPk,"rankingpk"},
 		{clif_parse_FeelSaveOk,"feelsaveok"},
 		{clif_parse_debug,"debug"},
-		//[blackhole89]	//[orn]
 		{clif_parse_ChangeHomunculusName,"changehomunculusname"},
 		{clif_parse_HomMoveToMaster,"hommovetomaster"},
 		{clif_parse_HomMoveTo,"hommoveto"},

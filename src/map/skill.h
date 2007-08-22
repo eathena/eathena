@@ -4,7 +4,7 @@
 #ifndef _SKILL_H_
 #define _SKILL_H_
 
-#include "map.h"
+#include "map.h" // MAX_SKILL_LEVEL, ...
 
 #define MAX_SKILL_DB			1100
 #define MAX_SKILL_PRODUCE_DB	150

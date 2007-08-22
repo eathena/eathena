@@ -4,12 +4,14 @@
 #ifndef _GUILD_H_
 #define _GUILD_H_
 
-struct map_session_data;
-struct mob_data;
+//#include "../common/mmo.h"
 struct guild;
 struct guild_member;
 struct guild_position;
 struct guild_castle;
+//#include "map.h"
+struct map_session_data;
+struct mob_data;
 
 int guild_skill_get_max(int id);
 
@@ -24,8 +26,8 @@ struct guild *guild_search(int guild_id);
 struct guild *guild_searchname(char *str);
 struct guild_castle *guild_castle_search(int gcid);
 
-struct guild_castle *guild_mapname2gc(const char *mapname);
-struct guild_castle *guild_mapindex2gc(short mapindex);
+struct guild_castle* guild_mapname2gc(const char* mapname);
+struct guild_castle* guild_mapindex2gc(short mapindex);
 
 struct map_session_data *guild_getavailablesd(struct guild *g);
 int guild_getindex(struct guild *g,int account_id,int char_id);

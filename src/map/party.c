@@ -1,13 +1,9 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
-#include "../common/socket.h"
+#include "../common/socket.h" // last_tick
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -22,6 +18,11 @@
 #include "skill.h"
 #include "status.h"
 #include "itemdb.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 
 static DB party_db;
 int party_share_level = 10;
@@ -702,20 +703,19 @@ int party_send_xy_clear(struct party_data *p)
 }
 
 // exp share and added zeny share [Valaris]
-int party_exp_share(struct party_data *p,struct block_list *src,unsigned int base_exp,unsigned int job_exp,int zeny)
+int party_exp_share(struct party_data* p, struct block_list* src, unsigned int base_exp, unsigned int job_exp, int zeny)
 {
 	struct map_session_data* sd[MAX_PARTY];
-	int i;
-	unsigned short c;
+	unsigned int i, c;
 
 	nullpo_retr(0, p);
 
-	for (i = c = 0; i < MAX_PARTY; i++)
-		if ((sd[c] = p->data[i].sd)!=NULL && sd[c]->bl.m == src->m && !pc_isdead(sd[c])) {
-			if (battle_config.idle_no_share && (sd[c]->chatID || sd[c]->vender_id || (sd[c]->idletime < (last_tick - battle_config.idle_no_share))))
-				continue;
-			c++;
-		}
+	// count the number of players eligible for exp sharing
+	for (i = c = 0; i < MAX_PARTY; i++) {
+		if( (sd[c] = p->data[i].sd) == NULL || sd[c]->bl.m != src->m || pc_isdead(sd[c]) || (battle_config.idle_no_share && pc_isidle(sd[c])) )
+			continue;
+		c++;
+	}
 	if (c < 1)
 		return 0;
 
@@ -723,32 +723,15 @@ int party_exp_share(struct party_data *p,struct block_list *src,unsigned int bas
 	job_exp/=c;
 	zeny/=c;
 
-	if (battle_config.party_even_share_bonus && c > 1) {
-		unsigned short bonus =100 + battle_config.party_even_share_bonus*(c-1);
-		if (base_exp) {
-			if (base_exp/100 > UINT_MAX/bonus)
-				base_exp= UINT_MAX; //Exp overflow
-			else if (base_exp > 10000)
-				base_exp = (base_exp/100)*bonus; //Calculation overflow protection
-			else
-				base_exp = base_exp*bonus/100;
-		}
-		if (job_exp) {
-			if (job_exp/100 > UINT_MAX/bonus)
-				job_exp = UINT_MAX;
-			else if (job_exp > 10000)
-				job_exp = (job_exp/100)*bonus;
-			else
-				job_exp = job_exp*bonus/100;
-		}
-		if (zeny) {
-			if (zeny/100 > INT_MAX/bonus)
-				zeny = INT_MAX;
-			else if (zeny > 10000)
-				zeny = (zeny/100)*bonus;
-			else
-				zeny = zeny*bonus/100;
-		}
+	if (battle_config.party_even_share_bonus && c > 1)
+	{
+		double bonus = 100 + battle_config.party_even_share_bonus*(c-1);
+		if (base_exp)
+			base_exp = (unsigned int) cap_value(base_exp * bonus/100, 0, UINT_MAX);
+		if (job_exp)
+			job_exp = (unsigned int) cap_value(job_exp * bonus/100, 0, UINT_MAX);
+		if (zeny)
+			zeny = (unsigned int) cap_value(zeny * bonus/100, INT_MIN, INT_MAX);
 	}
 
 	for (i = 0; i < c; i++)
@@ -761,7 +744,7 @@ int party_exp_share(struct party_data *p,struct block_list *src,unsigned int bas
 }
 
 //Does party loot. first holds the id of the player who has time priority to take the item.
-int party_share_loot(struct party_data* p, TBL_PC* sd, struct item* item_data, int first)
+int party_share_loot(struct party_data* p, struct map_session_data* sd, struct item* item_data, int first)
 {
 	TBL_PC* target = NULL;
 	int i;
@@ -777,8 +760,7 @@ int party_share_loot(struct party_data* p, TBL_PC* sd, struct item* item_data, i
 				if (i >= MAX_PARTY)
 					i = 0;	// reset counter to 1st person in party so it'll stop when it reaches "itemc"
 
-				if( (psd = p->data[i].sd) == NULL || sd->bl.m != psd->bl.m || pc_isdead(psd) ||
-					(battle_config.idle_no_share && (psd->chatID || psd->vender_id || last_tick - battle_config.idle_no_share > psd->idletime)) )
+				if( (psd = p->data[i].sd) == NULL || sd->bl.m != psd->bl.m || pc_isdead(psd) || (battle_config.idle_no_share && pc_isidle(psd)) )
 					continue;
 				
 				if (pc_additem(psd,item_data,item_data->amount))
@@ -796,8 +778,7 @@ int party_share_loot(struct party_data* p, TBL_PC* sd, struct item* item_data, i
 			int count = 0;
 			//Collect pick candidates
 			for (i = 0; i < MAX_PARTY; i++) {
-				if( (psd[count] = p->data[i].sd) == NULL || psd[count]->bl.m != sd->bl.m || pc_isdead(psd[count]) ||
-					(battle_config.idle_no_share && (psd[count]->chatID || psd[count]->vender_id || last_tick - battle_config.idle_no_share > psd[count]->idletime)) )
+				if( (psd[count] = p->data[i].sd) == NULL || psd[count]->bl.m != sd->bl.m || pc_isdead(psd[count]) || (battle_config.idle_no_share && pc_isidle(psd[count])) )
 					continue;
 
 				count++;
@@ -850,7 +831,7 @@ int party_sub_count(struct block_list *bl, va_list ap)
 	if (sd->state.autotrade)
 		return 0;
 	
-	if (battle_config.idle_no_share && (sd->chatID || sd->vender_id || (sd->idletime < (last_tick - battle_config.idle_no_share))))
+	if (battle_config.idle_no_share && pc_isidle(sd))
 		return 0;
 
 	return 1;

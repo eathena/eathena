@@ -10,6 +10,9 @@
 //Note: The range is unlimited unless this define is set.
 //#define AUTOLOOT_DISTANCE AREA_SIZE
 
+//#include "map.h"
+struct map_session_data;
+
 enum AtCommandType {
 	AtCommand_None = -1,
 	AtCommand_Broadcast = 0,

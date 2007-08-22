@@ -35,7 +35,6 @@
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
 #define AREA_SIZE battle_config.area_size
-#define LIFETIME_FLOORITEM 60
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
 //Quick defines to know which are the min-max common ailments. [Skotlex]
@@ -169,7 +168,10 @@ enum {
 //String length you can write in the 'talking box'
 #define CHATBOX_SIZE 70
 //Talk max size: <name> : <message of 70> [Skotlex]
-#define CHAT_SIZE	(NAME_LENGTH + 3 + CHATBOX_SIZE)
+#define CHAT_SIZE (NAME_LENGTH + 3 + CHATBOX_SIZE)
+//Chatroom-related string sizes
+#define CHATROOM_TITLE_SIZE (36 + 1)
+#define CHATROOM_PASS_SIZE (8 + 1)
 
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
@@ -188,7 +190,7 @@ enum bl_type {
 	BL_PC = 0x001,
 	BL_MOB = 0x002,
 	BL_PET = 0x004,
-	BL_HOM = 0x008,	//[blackhole89]
+	BL_HOM = 0x008,
 	BL_ITEM = 0x010,
 	BL_SKILL = 0x020,
 	BL_NPC = 0x040,
@@ -839,7 +841,7 @@ struct npc_data {
 	int eventtimer[MAX_EVENTTIMER];
 	short arenaflag;
 
-	void *chatdb;
+	void* chatdb; // pointer to a npc_parse struct (see npc_chat.c)
 	struct npc_data *master_nd;
 
 	union {
@@ -1031,7 +1033,7 @@ enum {
 struct map_data {
 	char name[MAP_NAME_LENGTH];
 	unsigned short index; //Index is the map index used by the mapindex* functions.
-	unsigned char *gat;	// If this is NULL‚ the map is not on this map-server
+	unsigned char *gat; // If this is NULL, the map is not on this map-server
 	unsigned char *cell; //Contains temporary cell data that is set/unset on tiles.
 #ifdef CELL_NOSTACK
 	unsigned char *cell_bl; //Holds amount of bls in any given cell.
@@ -1101,16 +1103,18 @@ struct map_data {
 
 	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
 	int mob_delete_timer;	// [Skotlex]
-	int zone;	// [Komurka]
+	int zone;	// zone number (for item/skill restrictions)
 	int jexp;	// map experience multiplicator
 	int bexp;	// map experience multiplicator
 	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
 };
 
+/// Stores information about a remote map (for multi-mapserver setups).
+/// Beginning of data structure matches 'map_data', to allow typecasting.
 struct map_data_other_server {
 	char name[MAP_NAME_LENGTH];
 	unsigned short index; //Index is the map index used by the mapindex* functions.
-	unsigned char *gat;	// NULLŒÅ’è‚É‚µ‚Ä”»’f
+	unsigned char *gat; // If this is NULL, the map is not on this map-server
 	uint32 ip;
 	uint16 port;
 };
@@ -1122,6 +1126,19 @@ struct flooritem_data {
 	int first_get_id,second_get_id,third_get_id;
 	unsigned int first_get_tick,second_get_tick,third_get_tick;
 	struct item item_data;
+};
+
+struct chat_data {
+	struct block_list bl;            // data for this map object
+	char title[CHATROOM_TITLE_SIZE]; // room title 
+	char pass[CHATROOM_PASS_SIZE];   // password
+	bool pub;                        // private/public flag
+	unsigned char users;             // current users
+	unsigned char limit;             // join limit
+	unsigned char trigger;           // number of users needed to trigger event
+	struct map_session_data* usersd[20];
+	struct block_list* owner;
+	char npc_event[50];
 };
 
 enum _sp {
@@ -1240,21 +1257,6 @@ enum {
 	CELL_CLRSAFETYWALL,
 	CELL_SETICEWALL,
 	CELL_CLRICEWALL,
-};
-
-struct chat_data {
-	struct block_list bl;
-
-	char pass[8+1];   /* password */
-	char title[60+1]; /* room title */
-	unsigned char limit;     /* join limit */
-	unsigned char trigger;
-	unsigned char users;     /* current users */
-	unsigned char pub;       /* room attribute */
-	struct map_session_data *usersd[20];
-	struct block_list *owner_;
-	struct block_list **owner;
-	char npc_event[50];
 };
 
 extern struct map_data map[];

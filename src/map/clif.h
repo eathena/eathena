@@ -4,7 +4,26 @@
 #ifndef _CLIF_H_
 #define _CLIF_H_
 
-#include "map.h"
+#include "../common/cbasetypes.h"
+//#include "../common/mmo.h"
+struct storage;
+struct guild_storage;
+//#include "map.h"
+struct block_list;
+struct unit_data;
+struct map_session_data;
+struct homun_data;
+struct pet_data;
+struct mob_data;
+struct npc_data;
+struct chat_data;
+struct flooritem_data;
+struct skill_unit;
+struct vending;
+struct party;
+struct party_data;
+struct guild;
+#include <stdarg.h>
 
 // server->client protocol version
 // v7 - 2005-04-11aSakexe+ - 0x229, 0x22a, 0x22b, 0x22c
@@ -102,8 +121,8 @@ int clif_updatestatus(struct map_session_data*,int);	//self
 int clif_changestatus(struct block_list*,int,int);	//area
 int clif_damage(struct block_list* src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2);	// area
 void clif_takeitem(struct block_list* src,struct block_list* dst);
-void clif_sitting(struct map_session_data* sd);
-void clif_standing(struct map_session_data* sd);
+void clif_sitting(struct block_list* bl);
+void clif_standing(struct block_list* bl);
 int clif_changelook(struct block_list *,int,int);	// area
 void clif_changetraplook(struct block_list *bl,int val); // area
 void clif_refreshlook(struct block_list *bl,int id,int type,int val,int area); //area specified in 'area'

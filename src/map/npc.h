@@ -4,6 +4,11 @@
 #ifndef _NPC_H_
 #define _NPC_H_
 
+//#include "map.h"
+struct block_list;
+struct npc_data;
+struct view_data;
+
 #define START_NPC_NUM 110000000
 
 #define WARP_CLASS 45

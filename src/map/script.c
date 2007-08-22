@@ -7,7 +7,6 @@
 //#define DEBUG_RUN
 
 #include "../common/cbasetypes.h"
-#include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/malloc.h"
 #include "../common/lock.h"
@@ -50,6 +49,7 @@
 #include <time.h>
 #include <setjmp.h>
 #include <errno.h>
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //## TODO possible enhancements: [FlavioJS]
@@ -3943,7 +3943,6 @@ BUILDIN_FUNC(unitattack);
 BUILDIN_FUNC(unitstop);
 BUILDIN_FUNC(unittalk);
 BUILDIN_FUNC(unitemote);
-
 BUILDIN_FUNC(unitskilluseid); // originally by Qamera [celest]
 BUILDIN_FUNC(unitskillusepos); // originally by Qamera [celest]
 
@@ -4277,7 +4276,6 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(unitstop,"i"),
 	BUILDIN_DEF(unittalk,"is"),
 	BUILDIN_DEF(unitemote,"ii"),
-
 	BUILDIN_DEF(unitskilluseid,"iii?"), // originally by Qamera [Celest]
 	BUILDIN_DEF(unitskillusepos,"iiiii"), // [Celest]
 
@@ -8842,8 +8840,6 @@ BUILDIN_FUNC(waitingroom)
 
 	title = script_getstr(st, 2);
 	limit = script_getnum(st, 3);
-	if( limit == 0 )
-		pub = 3;
 
 	if( script_hasdata(st,5) )
 	{
@@ -8857,15 +8853,16 @@ BUILDIN_FUNC(waitingroom)
 		else
 		{// ,"<event>",<trigger>
 			ev = script_getstr(st, 4);
-			trigger=script_getnum(st,5);
+			trigger = script_getnum(st,5);
 		}
 	}
 	else if( script_hasdata(st,4) )
 	{// ,"<event>"
 		ev = script_getstr(st, 4);
+		trigger = limit;
 	}
 	if( (nd=(struct npc_data *)map_id2bl(st->oid)) != NULL )
-		chat_createnpcchat(nd, limit, pub, trigger, title, (int)strlen(title), ev);
+		chat_createnpcchat(nd, title, limit, pub, trigger, ev);
 	return 0;
 }
 
@@ -10568,7 +10565,7 @@ BUILDIN_FUNC(soundeffectall)
 	name = script_getstr(st,2);
 	type = script_getnum(st,3);
 
-	//FIXME: enumerating map squares (map_foreach) is slower than enumerating the list of online players (map_foreachpc?)
+	//FIXME: enumerating map squares (map_foreach) is slower than enumerating the list of online players (map_foreachpc?) [ultramage]
 
 	if(!script_hasdata(st,4))
 	{	// area around

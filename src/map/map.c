@@ -1,22 +1,12 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <math.h>
-
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-
 #include "../common/cbasetypes.h"
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/grfio.h"
 #include "../common/malloc.h"
-#include "../common/socket.h"
+#include "../common/socket.h" // WFIFO*()
 #include "../common/showmsg.h"
 #include "../common/version.h"
 #include "../common/nullpo.h"
@@ -46,6 +36,16 @@
 #include "charcommand.h"
 
 #include "log.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+#include <math.h>
+
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #ifndef TXT_ONLY
 
@@ -1820,7 +1820,7 @@ struct map_session_data * map_nick2sd(const char *nick)
 struct block_list * map_id2bl(int id)
 {
 	struct block_list *bl=NULL;
-	if(id >= 0 && id < sizeof(objects)/sizeof(objects[0]))
+	if(id >= 0 && id < ARRAYLENGTH(objects))
 		bl = objects[id];
 	else
 		bl = idb_get(id_db,id);

@@ -1,12 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <math.h>
-
 #include "../common/cbasetypes.h"
 #include "../common/timer.h"
 #include "../common/db.h"
@@ -33,6 +27,13 @@
 #include "script.h"
 #include "atcommand.h"
 #include "date.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <math.h>
+
 
 #define IDLE_SKILL_INTERVAL 10	//Active idle skills should be triggered every 1 second (1000/MIN_MOBTHINKTIME)
 
@@ -3061,8 +3062,9 @@ static unsigned int mob_drop_adjust(int rate, int rate_adjust, unsigned short ra
 		//Equation: Droprate(x,y) = x * (5 - log(x)) ^ (ln(y) / ln(5))
 		//x is the normal Droprate, y is the Modificator.
 		rate = (int)(rate * pow((5.0 - log10(rate)), (log(rate_adjust/100.) / log(5.0))) + 0.5);
-	else	//Classical linear rate adjustment.
-		rate = rate*rate_adjust/100;
+	else
+		//Classical linear rate adjustment.
+		rate = rate * rate_adjust/100;
 	return cap_value(rate,rate_min,rate_max);
 }
 

@@ -22,6 +22,7 @@
 #include "skill.h"
 #include "unit.h"
 #include "npc.h"
+#include "chat.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1504,11 +1505,9 @@ int npc_unload(struct npc_data* nd)
 	map_deliddb(&nd->bl);
 	strdb_remove(npcname_db, (nd->bl.subtype < SCRIPT) ? nd->name : nd->exname);
 
-	if (nd->chat_id) {
-		struct chat_data *cd = (struct chat_data*)map_id2bl(nd->chat_id);
-		if (cd) aFree (cd);
-		cd = NULL;
-	}
+	if (nd->chat_id) // remove npc chatroom object and kick users
+		chat_deletenpcchat(nd);
+
 #ifdef PCRE_SUPPORT
 	npc_chat_finalize(nd); // deallocate npc PCRE data structures
 #endif
@@ -2225,6 +2224,19 @@ void npc_movenpc(struct npc_data* nd, int x, int y)
 	map_foreachinrange(clif_insight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
 	npc_setcells(nd);
 }
+
+int npc_changename(const char* name, const char* newname, short look)
+{
+	struct npc_data* nd = (struct npc_data *) strdb_remove(npcname_db, name);
+	if (nd == NULL)
+		return 0;
+	npc_enable(name, 0);
+	strcpy(nd->name, newname);
+	nd->class_ = look;
+	npc_enable(newname, 1);
+	return 0;
+}
+
 /*==========================================
  * functions‰ðÍ
  *------------------------------------------*/
@@ -3126,17 +3138,5 @@ int do_init_npc(void)
 	map_addiddb(&fake_nd->bl);
 	// End of initialization
 
-	return 0;
-}
-// [Lance]
-int npc_changename(const char* name, const char* newname, short look)
-{
-	struct npc_data* nd = (struct npc_data *) strdb_remove(npcname_db, name);
-	if (nd == NULL)
-		return 0;
-	npc_enable(name, 0);
-	strcpy(nd->name, newname);
-	nd->class_ = look;
-	npc_enable(newname, 1);
 	return 0;
 }
