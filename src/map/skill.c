@@ -1421,6 +1421,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		if (skill_strip_equip(bl, EQP_WEAPON, rate, skilllv, skill_get_time(skillid,skilllv)))
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
+	case NPC_EVILLAND:
+		sc_start(bl,SC_BLIND,5*skilllv,skilllv,skill_get_time2(skillid,skilllv));
+		break;
 	case NPC_HELLJUDGEMENT:
 		sc_start(bl,SC_CURSE,100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -6170,6 +6173,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	case NJ_HYOUSYOURAKU:
 	case NJ_RAIGEKISAI:
 	case NJ_KAMAITACHI:
+	case NPC_EVILLAND:
 		flag|=1;//Set flag to 1 to prevent deleting ammo (it will be deleted on group-delete).
 	case GS_GROUNDDRIFT: //Ammo should be deleted right away.
 		skill_unitsetting(src,skillid,skilllv,x,y,0);
@@ -6692,8 +6696,9 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 		break;
 
 	case PR_SANCTUARY:
+	case NPC_EVILLAND:
 		val1=(skilllv+3)*2;
-		val2=(skilllv>6)?777:skilllv*100;
+		val2=(skilllv>6)?(skillid == PR_SANCTUARY?777:666):skilllv*100;
 		if (sd && (i = battle_skillatk_bonus(sd, skillid)) > 0)
 			val2 += val2 * i / 100;
 		break;
@@ -7274,6 +7279,24 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			}
 			if (sg->val1 <= 0)
 				skill_delunitgroup(NULL,sg, 0);
+			break;
+
+		case UNT_EVILLAND:
+			if (!battle_check_undead(tstatus->race, tstatus->def_ele) && tstatus->race!=RC_DEMON)
+			{	//Damage enemies
+				if(battle_check_target(&src->bl,bl,BCT_ENEMY)>0)
+					skill_attack(BF_MAGIC, ss, &src->bl, bl, sg->skill_id, sg->skill_lv, tick, 0);
+			} else {
+				int heal = sg->val2;
+				if (tstatus->hp >= tstatus->max_hp)
+					break;
+				if (tsc && tsc->count && tsc->data[SC_CRITICALWOUND].timer!=-1)
+					heal -= heal * tsc->data[SC_CRITICALWOUND].val2 / 100;
+				if (status_isimmune(bl))
+					heal = 0;
+				clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);
+				status_heal(bl, heal, 0, 0);
+			}
 			break;
 
 		case UNT_MAGNUS:
@@ -11057,6 +11080,7 @@ void skill_init_unit_layout (void)
 			case WZ_ICEWALL:
 				break;
 			case PR_SANCTUARY:
+			case NPC_EVILLAND:
 			{
 				static const int dx[] = {
 					-1, 0, 1,-2,-1, 0, 1, 2,-2,-1,
