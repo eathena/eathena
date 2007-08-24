@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf (Script), DZeroX (Timer)
 //===== Current Version: ===================================== 
-//= 3.2b
+//= 3.5
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -27,7 +27,7 @@
 //	Corrected Elly showing cutin but not text for some states of the quest (causing players to log off to continue).
 //	Let fisherman talk to you when you have 10 fishes OR MORE.
 //	Corrected not letting you enter the tombstone after finishing the quest.
-//= 1.8 Elly now deletes the Iron_Box, and Kiel Hyre deletes the Pin. [L0ne_W0lf]
+//= 1.8 Elly now deletes the Steel_box, and Kiel Hyre deletes the Pin. [L0ne_W0lf]
 //= 	More security on the 5th Big Door, now makes sure no one outside of who-
 //=	acticated it initially can use it. Resets after 10 minutes to make it.
 //=	Made it so that you need to be at least step 84 to activate the final door.
@@ -65,6 +65,11 @@
 //= 3.1 Moved the "delitem" for all related quest items to the proper NPC. [L0ne_W0lf]
 //= 3.2 Fixed error with Allysia teling you to "Go away." maybe. [L0ne_W0lf]
 //= 3.2b Fixed some typos and grammar mistakes. [SinSloth]
+//= 3.3 Fixed the receiver log out bugs. [L0ne_W0lf]
+//= 3.4 Fixed bug when u can't get a Yellow Keycard if u got the Blue one at first [Lupus]
+//=		Note: There are many condition checks that should be omitted in the future fixed item names in item_db.txt / txt resources according the quest
+//=		for items, should be used bitwise methods in a single variable. So let's fix the rest possible bugs (if they exist) and then optimize ^_-		
+//= 3.5 Changed the way the Black Keycard distibuting NPCs work slighty. [L0ne_W0lf]
 //============================================================ 
 //============================================================================
 // Kiel Hyre Quest/Robotic Lab Dungeon
@@ -81,7 +86,7 @@
 //  - Accidentally progressed Elly's dialog while reading 'Letter to Elly'. Improvising.
 //  - Possible missing dialog for some getitem weight checks.
 //  - Possible missing dialog for "Test Tube" if you haven't read the second poem.
-//  - Possible missing dialog for Elly in Dromitory if you don't have "Grey Box"
+//  - Possible missing dialog for Elly in Dromitory if you don't have "Steel Box"
 //  - Possible missing dialog for "Grave" if you don't have "Yellow Keycard"
 //  - Not going to list ALL of the more usless NPCs. (Doors + Empty "Beautiful Ladies")
 //  - Accidently progressed Kiel Hyre's dialog. Improvising.
@@ -1732,14 +1737,14 @@ kh_school,178,180,5	script	Elly	895,{
 			mes "^3355FFIt looks like Elly's^000000";
 			mes "^3355FFGolden Key might fit^000000";
 			mes "^3355FFinto the keyhole on the^000000";
-			mes "^3355FFGrey Box you found inside^000000";
+			mes "^3355FFSteel Box you found inside^000000";
 			mes "^3355FFKiel Hyre's Cottage.^000000";
 			next;
 			mes "^3355FFYou successfully open the^000000";
-			mes "^3355FFGrey Box with the Golden Key,^000000";
+			mes "^3355FFSteel Box with the Golden Key,^000000";
 			mes "^3355FFand find a Blue Keycard, along^000000";
 			mes "^3355FFwith a folded note, inside the^000000";
-			mes "^3355FFGrey Box. You quickly read^000000";
+			mes "^3355FFSteel Box. You quickly read^000000";
 			mes "^3355FFthe note's contents...^000000";
 			next;
 			mes "Dearest Elly,";
@@ -1768,7 +1773,7 @@ kh_school,178,180,5	script	Elly	895,{
 			mes "Sorry about that,";
 			mes "Grandpa";
 			getitem 7495,1; //Blue_Keycard
-			delitem 7491,1; //Iron_Box
+			delitem 7491,1; //Steel_box
 			set KielHyreQuest,36;
 			close;
 		}
@@ -1778,7 +1783,7 @@ kh_school,178,180,5	script	Elly	895,{
 	else if (KielHyreQuest >= 36) {
 		mes "^3355FFThis is where you^000000";
 		mes "^3355FFdiscovered the note^000000";
-		mes "^3355FFlocked inside the Grey Box.^000000";
+		mes "^3355FFlocked inside the Steel Box.^000000";
 		mes "^3355FFThe following message was^000000";
 		mes "^3355FFwritten in the note by Elly's^000000";
 		mes "^3355FFgrandfather, Kiel Hyre.^000000";
@@ -2796,7 +2801,7 @@ kh_vila,115,186,0	script	Drawer::DrawerKHQ1	111,{
 		mes "trusty Kafra Storage first.^000000";
 		close;
 	}
-	if ((countitem(7492) < 1) && (KielHyreQuest < 36)) {
+	if ((countitem(7492) < 1) && (KielHyreQuest <= 36)) {
 		mes "^3355FFYou find an old drawer^000000";
 		mes "^3355FFthat has been closed.^000000";
 		mes "^3355FFIf you open it, then you^000000";
@@ -3001,13 +3006,13 @@ kh_vila,181,138,0	script	Bookshelf::BookshelfKHQ1	111,{
 						if (@KHFirstKeyhole == 2) && (@KHSecondKeyhole == 1) {
 							mes "^3355FFThe safe opens with^000000";
 							mes "^3355FFa click and you see^000000";
-							mes "^3355FFa Grey Box inside.^000000";
-							mes "^3355FFYou take the Grey Box^000000";
+							mes "^3355FFa Steel Box inside.^000000";
+							mes "^3355FFYou take the Steel Box^000000";
 							mes "^3355FFwith you, hoping that^000000";
 							mes "^3355FFwill come in handy later.^000000";
 							delitem 7489,1; //Cottage Key
 							delitem 7516,1; //Green_Keycard
-							getitem 7491,1; //Iron_Box
+							getitem 7491,1; //Steel_box
 							close;
 						}
 
@@ -3991,7 +3996,7 @@ kh_dun01,162,206,0	duplicate(KHKeyardReader)	Mechanical Device	111
 
 //----------------------------------------------------------------------------
 // Keep monsters out of the quest area.
-// Silly really sinc ehte rest of it's a dungeon
+// Silly really since the rest of it's a dungeon
 //----------------------------------------------------------------------------
 //kh_dun01,180,220,0	script	Monster Warp#kh1::KHMobWarp	-1,5,20,{
 //OnTouchNPC:
@@ -5108,7 +5113,7 @@ kh_mansion,22,28,4	script	Kiel Hyre	903,{
 		delitem 7490,1; //Letter to Elly
 		delitem 7492,1; //Yellow_Keycard
 		delitem 7516,1;	//Green_Keycard
-		delitem 7491,1; //Iron_Box
+		delitem 7491,1; //Steel_box
 		delitem 7496,1; //Red_Keycard
 		delitem 7497,1; //Metal_Fragment
 		delitem 7504,1; //Power_Source
@@ -6367,7 +6372,6 @@ yuno_fild09,158,217,0	script		Wooden Board	111,{
 //----------------------------------------------------------------------------
 kh_kiehl01,17,39,0	script	Receiver	111,{
 	if (.KHKilled < 1) {
-		set .KHKilled,.KHKilled+1;
 		mes "^333333*BBBZZZ*^000000";
 		if (KielHyreQuest == 74) {
 			next;
@@ -6380,8 +6384,8 @@ kh_kiehl01,17,39,0	script	Receiver	111,{
 			mes "try to find me, adventurer.^000000.";
 			set KielHyreQuest,76;
 		}
-
 		close2;
+		set .KHKilled,2;
 		monster "kh_kiehl01",16,32,"Alicel",1739,1,"Receiver::OnMyMobDead";
 		monster "kh_kiehl01",18,31,"Aliot",1740,1,"Receiver::OnMyMobDead";
 		end;
@@ -6392,8 +6396,8 @@ kh_kiehl01,17,39,0	script	Receiver	111,{
 	}
 
 OnMyMobDead:
-	set .KHKilled,.KHKilled+1;
-	if (.KHKilled == 3) { 
+	set .KHKilled,.KHKilled-1;
+	if (.KHKilled < 1) { 
 		makeitem 7506,1,"this",19,36; 
 		set .KHKilled,0;
 	}
@@ -6752,12 +6756,12 @@ OnTouch:
 //----------------------------------------------------------------------------
 kh_kiehl01,15,179,0	script	Robots#kh1	111,{
 	if (.KHKilled < 1) {
-		set .KHKilled,.KHKilled+1;
 		mes "^3355FFAs soon as you";
 		mes "touch the test tube,";
 		mes "a bunch of robots";
 		mes "suddenly appeared.^000000.";
 		close2;
+		set .KHKilled,4;
 		monster "kh_kiehl01",18,181,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
 		monster "kh_kiehl01",18,180,"Alicel",1739,1,"Robots#kh1::OnMyMobDead";
 		monster "kh_kiehl01",18,179,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
@@ -6770,8 +6774,8 @@ kh_kiehl01,15,179,0	script	Robots#kh1	111,{
 	}
 
 OnMyMobDead:
-	set .KHKilled,.KHKilled+1;
-	if (.KHKilled == 4) { 
+	set .KHKilled,.KHKilled-1;
+	if (.KHKilled < 1) { 
 		makeitem 7506,1,"this",18,180;
 		set .KHKilled,0;
 	}
@@ -6805,26 +6809,7 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 			mes "you can hear the door";
 			mes "hinges slightly squeak.^000000";
 			next;
-
-			switch(select("Push Door","Kick Door","Shake Door","Pull Door","Lift Door")) {
-
-			case 1:
-				break;
-
-			case 2:
-				break;
-
-			case 3:
-				break;
-
-			case 4:
-				break;
-
-			case 5:
-				break;
-
-			}
-
+			select("Push Door","Kick Door","Shake Door","Pull Door","Lift Door");
 			mes "^3355FFA group of monsters";
 			mes "suddenly appeared as";
 			mes "soon as you applied";
