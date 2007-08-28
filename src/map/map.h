@@ -797,7 +797,7 @@ struct map_session_data {
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 
 #ifndef TXT_ONLY
-	int mail_counter;	// mail counter for mail system [Valaris]
+	int mail_counter;	// mail counter for mail system (antiflood protection)
 #endif
 
 	int duel_group; // duel vars [LuzZza]

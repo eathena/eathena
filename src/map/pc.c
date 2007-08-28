@@ -745,7 +745,7 @@ int pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_t
 
 #ifndef TXT_ONLY
 	if(mail_server_enable)
-		mail_check(sd,1); // check mail at login [Valaris]
+		mail_check(sd,0); // check mail at login [Valaris]
 #endif
 
 	// message of the limited time of the account

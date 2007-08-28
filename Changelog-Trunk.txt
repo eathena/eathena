@@ -3,6 +3,12 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/08/28
+	* Conversion of the remaining mail code to new SQL [ultramage]
+	- Added separate atcommand for mail deletion
+	- Silenced the 'you have no new mail' message at login
+	- Corrected a few messages that said 'new' instead of 'unread'
+	- Broadcast (*) messages now use '*' as the target's name (not '')
 2007/07/27
 	* Improved db reading code a bit for consistency
 	* Corrected login converter (uses sql code, properly escapes inputs)
