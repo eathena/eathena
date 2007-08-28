@@ -3,11 +3,11 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 1.7
+//= 1.8
 //===== Compatible With: ===================================== 
 //= eAthena 7.15 +
 //===== Description: ========================================= 
-//= Stop Post and Binoculars Quest.
+//= Stop Post / Binoculars Quest / Dandelion's Request
 //===== Additional Comments: ================================= 
 //= 1.1 Fixed exploits [Lupus]
 //= 1.2 Added Dandelion's Request / Morroc Invasion quest. [SinSloth]
@@ -15,9 +15,10 @@
 //= 1.3a added GM lvl check as in other invansion quests [Lupus]
 //= 1.4 Fixed a small bug in Dandelion's Request. [SinSloth]
 //= 1.5 Fixed a little bug with "Job_Alchemist" changed to "Job_Alchem". [Samuray22]
-//	-Thanks to Nobuo
 //= 1.6 Fixed a nasty bug in last part of the quest. [SinSloth]
-//= 1.7 Fixed a big with XP rewards. [SinSloth]
+//= 1.6a replaced item "names" with item id. [Lupus]
+//= 1.7 Fixed a bug with XP rewards. [SinSloth]
+//= 1.8 Fixed a bug which prevented reset of events. [SinSloth]
 //============================================================ 
 
 
@@ -45,14 +46,14 @@ morocc_in,142,100,4	script	Pierce	89,{
 		mes "For producing ^3355FF'Stop Post'^000000, we need ^3355FF' 91100 Zeny '^000000";
 		mes "And 50 ^3355FF' Trunk '^000000 and one ^3355FF' Black Dyestuffs'^000000.";
 		next;
-		if(countitem("Wooden_Block") > 49 && countitem("Black_Dyestuffs") > 0 && Zeny > 91099) {
-			delitem "Wooden_Block",50;
-			delitem "Black_Dyestuffs",1;
+		if(countitem(1019) > 49 && countitem(983) > 0 && Zeny > 91099) {
+			delitem 1019,50;
+			delitem 983,1;
 			set Zeny,Zeny-91100;
 			mes "[Pierce]";
 			mes "Alright! This is the famous ^3355FF'Stop Post '^000000 of 250 years history!";
 			mes "Thank you for shopping here! See you soon!";
-			getitem "Stop_Post",1;
+			getitem 2272,1;
 			close;
 		}
 			mes "[Pierce]";
@@ -100,19 +101,19 @@ morocc_in,76,163,4	script	Marius	64,5,5{
 		mes "One ^3355FFGeek Glasses^000000! 100 ^3355FFSteel^000000! And ^3355FF50.000 Zeny^000000!";
 		close;
 	case 2:
-		if (countitem("Spinning_Eyes") > 0 && countitem("Steel") > 99 && Zeny > 49999) {
+		if (countitem(2243) > 0 && countitem(999) > 99 && Zeny > 49999) {
 			mes "[Marius]";
 			mes "Great! It is great!";
 			mes "I made one Binoculars!";
 			mes "And I found the right owner for it!";
 			next;
-			delitem "Spinning_Eyes",1;
-			delitem "Steel", 100;
+			delitem 2243,1;
+			delitem 999, 100;
 			set Zeny,Zeny-50000;
 			next;
 			mes "[Marius]";
 			mes "Here you are... Binoculars!";
-			getitem "Binoculars",1;
+			getitem 2296,1;
 			next;
 			mes "[Marius]";
 			mes "I hope you won't need to use this Binoculars...";
@@ -7963,7 +7964,7 @@ OnTouch:
 		mes "teleported outside.^000000";
 		close2;
 		warp "morocc",100,100;
-		set $maogate1,0;
+		set $mao_gate1,0;
 	}
 	end;
 
@@ -8007,7 +8008,7 @@ OnTimer596000:
 
 OnTimer597000:
 	enablenpc "#maogate1";
-	set $maogate1,0;
+	set $mao_gate1,0;
 	stopnpctimer;
 	end;
 }
@@ -8950,7 +8951,7 @@ OnTouch:
 		donpcevent "#maogate1_battle::OnStop";
 		donpcevent "#maogate1_battle::OnEnter";
 		enablenpc "#maogate1";
-		set $maogate1,0;
+		set $mao_gate1,0;
 		end;
 	}
 }
@@ -8978,7 +8979,7 @@ OnTouch:
 		mes "teleported outside.^000000";
 		close2;
 		warp "morocc",100,100;
-		set $maogate2,0;
+		set $mao_gate2,0;
 	}
 	end;
 
@@ -9022,7 +9023,7 @@ OnTimer596000:
 
 OnTimer597000:
 	enablenpc "#maogate2";
-	set $maogate2,0;
+	set $mao_gate2,0;
 	stopnpctimer;
 	end;
 }
@@ -9975,7 +9976,7 @@ OnTouch:
 		donpcevent "#maogate2_battle::OnStop";
 		donpcevent "#maogate2_battle::OnEnter";
 		enablenpc "#maogate2";
-		set $maogate2,0;
+		set $mao_gate2,0;
 		end;
 	}
 }
