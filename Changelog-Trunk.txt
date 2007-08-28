@@ -4,6 +4,7 @@ Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
 2007/08/28
+	* Removed an extra comma that was causing sql errors during skill saving
 	* Conversion of the remaining mail code to new SQL [ultramage]
 	- Added separate atcommand for mail deletion
 	- Silenced the 'you have no new mail' message at login

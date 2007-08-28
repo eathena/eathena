@@ -658,7 +658,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 			{
 				if( count )
 					StringBuf_AppendStr(&buf, ",");
-				StringBuf_Printf(&buf, "('%d','%d','%d'),", char_id, p->skill[i].id, (p->skill[i].flag == 0 ? p->skill[i].lv : p->skill[i].flag - 2));
+				StringBuf_Printf(&buf, "('%d','%d','%d')", char_id, p->skill[i].id, (p->skill[i].flag == 0 ? p->skill[i].lv : p->skill[i].flag - 2));
 				++count;
 			}
 		}
