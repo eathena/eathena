@@ -177,7 +177,7 @@ next;
 			mes @npcname$;
 			mes "I'm sorry, the quantity you inputted gives a bigger zeny amount than the max allowed. I can't allow this.";
 			next;
-			goto L_Menu
+			goto L_Menu;
 		} else
 
 		next;
