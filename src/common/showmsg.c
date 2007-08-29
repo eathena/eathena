@@ -2,7 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
-#include "../common/utils.h"
+#include "../common/strlib.h" // StringBuf
 #include "showmsg.h"
 
 #include <stdio.h>

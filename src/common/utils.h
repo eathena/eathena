@@ -15,26 +15,6 @@
 void dump(const unsigned char* buffer, int num);
 #endif
 
-struct StringBuf
-{
-	char *buf_;
-	char *ptr_;
-	unsigned int max_;
-};
-typedef struct StringBuf StringBuf;
-
-StringBuf* StringBuf_Malloc(void);
-void StringBuf_Init(StringBuf* self);
-int StringBuf_Printf(StringBuf* self, const char* fmt, ...);
-int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list args);
-int StringBuf_Append(StringBuf* self, const StringBuf *sbuf);
-int StringBuf_AppendStr(StringBuf* self, const char* str);
-int StringBuf_Length(StringBuf* self);
-char* StringBuf_Value(StringBuf* self);
-void StringBuf_Clear(StringBuf* self);
-void StringBuf_Destroy(StringBuf* self);
-void StringBuf_Free(StringBuf* self);
-
 void findfile(const char *p, const char *pat, void (func)(const char*));
 
 //Caps values to min/max

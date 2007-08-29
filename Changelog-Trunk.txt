@@ -4,6 +4,7 @@ Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
 2007/08/29
+	* Moved StringBuf code from utils.c/h to strlib.c/h 
 	* Added typedefs that remove 'struct' from struct Sql/SqlStmt/StringBuf
 2007/08/28
 	* Removed an extra comma that was causing sql errors during skill saving
