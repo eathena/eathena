@@ -67,7 +67,7 @@ int log_branch(struct map_session_data *sd)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		struct SqlStmt* stmt;
+		SqlStmt* stmt;
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`branch_date`, `account_id`, `char_id`, `char_name`, `map`) VALUES (NOW(), '%d', '%d', ?, '%s')", log_config.log_branch_db, sd->status.account_id, sd->status.char_id, sd->status.name, mapindex_id2name(sd->mapindex))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
@@ -286,7 +286,7 @@ int log_atcommand(struct map_session_data* sd, const char* message)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		struct SqlStmt* stmt;
+		SqlStmt* stmt;
 
 		if (strlen(message) > CHAT_SIZE) {
 			if (battle_config.error_log)
@@ -331,7 +331,7 @@ int log_npc(struct map_session_data* sd, const char* message)
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		struct SqlStmt* stmt;
+		SqlStmt* stmt;
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`npc_date`, `account_id`, `char_id`, `char_name`, `map`, `mes`) VALUES (NOW(), '%d', '%d', ?, '%s', ?)", log_config.log_npc_db, sd->status.account_id, sd->status.char_id, sd->status.name, mapindex_id2name(sd->mapindex), message)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, sd->status.name, strnlen(sd->status.name, NAME_LENGTH))
@@ -382,7 +382,7 @@ int log_chat(const char* type, int type_id, int src_charid, int src_accid, const
 #ifndef TXT_ONLY
 	if(log_config.sql_logs > 0)
 	{
-		struct SqlStmt* stmt;
+		SqlStmt* stmt;
 		
 		if (strlen(message) > CHAT_SIZE) {
 			if (battle_config.error_log)

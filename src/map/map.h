@@ -1424,9 +1424,9 @@ extern char main_chat_nick[16];
 extern int db_use_sqldbs;
 extern int mail_server_enable;
 
-extern struct Sql* mmysql_handle;
-extern struct Sql* logmysql_handle;
-extern struct Sql* mail_handle;
+extern Sql* mmysql_handle;
+extern Sql* logmysql_handle;
+extern Sql* mail_handle;
 
 extern char item_db_db[32];
 extern char item_db2_db[32];

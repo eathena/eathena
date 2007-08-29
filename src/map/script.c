@@ -3155,7 +3155,7 @@ static int script_load_mapreg(void)
 		+-------------------------+
 	 */
 
-	struct SqlStmt* stmt = SqlStmt_Malloc(mmysql_handle);
+	SqlStmt* stmt = SqlStmt_Malloc(mmysql_handle);
 	char varname[32+1];
 	int index;
 	char value[255+1];
@@ -4345,7 +4345,7 @@ BUILDIN_FUNC(menu)
 	// TODO detect multiple scripts waiting for input at the same time, and what to do when that happens
 	if( sd->state.menu_or_input == 0 )
 	{
-		struct StringBuf* buf;
+		StringBuf* buf;
 		struct script_data* data;
 
 		if( script_lastdata(st) % 2 == 0 )
@@ -4454,7 +4454,7 @@ BUILDIN_FUNC(select)
 
 	if( sd->state.menu_or_input == 0 )
 	{
-		struct StringBuf* buf;
+		StringBuf* buf;
 
 		buf = StringBuf_Malloc();
 		for( i = 2, sd->npc_menu = 0; i <= script_lastdata(st); ++i )
@@ -4514,7 +4514,7 @@ BUILDIN_FUNC(prompt)
 
 	if( sd->state.menu_or_input == 0 )
 	{
-		struct StringBuf* buf;
+		StringBuf* buf;
 
 		buf = StringBuf_Malloc();
 		for( i = 2, sd->npc_menu = 0; i <= script_lastdata(st); ++i )
@@ -13030,7 +13030,7 @@ BUILDIN_FUNC(unittalk)
 	bl = map_id2bl(unit_id);
 	if( bl != NULL )
 	{
-		struct StringBuf* buf = StringBuf_Malloc();
+		StringBuf* buf = StringBuf_Malloc();
 		StringBuf_Printf(buf, "%s : %s", status_get_name(bl), message);
 		clif_message(bl, StringBuf_Value(buf));
 		if( bl->type == BL_PC )

@@ -54,7 +54,7 @@ int server_fd[MAX_SERVERS]; // char server sockets
 struct mmo_char_server server[MAX_SERVERS]; // char server data
 
 // Advanced subnet check [LuzZza]
-struct _subnet {
+struct s_subnet {
 	uint32 subnet;
 	uint32 mask;
 	uint32 char_ip;
@@ -73,7 +73,7 @@ int time_allowed = 10; //in seconds
 int num_regs = 0;
 unsigned int new_reg_tick = 0;
 
-struct Sql* sql_handle;
+Sql* sql_handle;
 
 // database parameters
 uint16 login_server_port = 3306;
@@ -119,7 +119,7 @@ struct online_login_data {
 
 //-----------------------------------------------------
 
-struct dbt *online_db;
+struct dbt* online_db;
 
 static void* create_online_user(DBKey key, va_list args)
 {
@@ -356,7 +356,7 @@ int mmo_auth_new(struct mmo_account* account, char sex)
 {
 	unsigned int tick = gettick();
 	char md5buf[32+1];
-	struct SqlStmt* stmt;
+	SqlStmt* stmt;
 
 	//Account Registration Flood Protection by [Kevin]
 	if( DIFF_TICK(tick, new_reg_tick) < 0 && num_regs >= allowed_regs )
@@ -1092,7 +1092,7 @@ int parse_fromchar(int fd)
 				return 0;
 			if( RFIFOL(fd,4) > 0 )
 			{
-				struct SqlStmt* stmt;
+				SqlStmt* stmt;
 				int account_id;
 				size_t off;
 

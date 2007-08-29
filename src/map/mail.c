@@ -243,7 +243,7 @@ int mail_delete(struct map_session_data* sd, int index)
 /// for sending normal and priority messages
 int mail_send(struct map_session_data* sd, char* name, char* message, int flag)
 {
-	struct SqlStmt* stmt;
+	SqlStmt* stmt;
 
 	nullpo_retr (0, sd);
 

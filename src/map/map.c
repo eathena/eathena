@@ -58,7 +58,7 @@ char map_server_ip[32] = "127.0.0.1";
 char map_server_id[32] = "ragnarok";
 char map_server_pw[32] = "ragnarok";
 char map_server_db[32] = "ragnarok";
-struct Sql* mmysql_handle;
+Sql* mmysql_handle;
 
 int db_use_sqldbs = 0;
 char item_db_db[32] = "item_db";
@@ -74,7 +74,7 @@ int log_db_port = 3306;
 char log_db_id[32] = "ragnarok";
 char log_db_pw[32] = "ragnarok";
 char log_db[32] = "log";
-struct Sql* logmysql_handle;
+Sql* logmysql_handle;
 
 // mail system
 int mail_server_enable = 0;
@@ -84,7 +84,7 @@ char mail_server_id[32] = "ragnarok";
 char mail_server_pw[32] = "ragnarok";
 char mail_server_db[32] = "ragnarok";
 char mail_db[32] = "mail";
-struct Sql* mail_handle;
+Sql* mail_handle;
 
 #endif /* not TXT_ONLY */
 

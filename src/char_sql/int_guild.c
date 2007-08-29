@@ -172,7 +172,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 	// If we need an update on an existing guild or more update on the new guild
 	if (((flag & GS_BASIC_MASK) && !new_guild) || ((flag & (GS_BASIC_MASK & ~GS_BASIC)) && new_guild))
 	{
-		struct StringBuf buf;
+		StringBuf buf;
 		bool add_comma = false;
 
 		StringBuf_Init(&buf);

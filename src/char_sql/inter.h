@@ -26,8 +26,8 @@ int inter_log(char *fmt,...);
 extern unsigned int party_share_level;
 extern char inter_log_filename[1024];
 
-extern struct Sql* sql_handle;
-extern struct Sql* lsql_handle;
+extern Sql* sql_handle;
+extern Sql* lsql_handle;
 
 extern int char_server_port;
 extern char char_server_ip[32];

@@ -86,8 +86,8 @@ int read_gm_account()
 
 int convert_login(void)
 {
-	struct Sql* mysql_handle;
-	struct SqlStmt* stmt;
+	Sql* mysql_handle;
+	SqlStmt* stmt;
 	FILE *fp;
 	int line_counter = 0;
 	int account_id, logincount, user_level, state, n, i;

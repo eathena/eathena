@@ -68,7 +68,7 @@ int mapif_homunculus_created(int fd, int account_id, struct s_homunculus *sh, un
 // Save/Update Homunculus Skills
 int mapif_save_homunculus_skills(struct s_homunculus *hd)
 {
-	struct SqlStmt* stmt;
+	SqlStmt* stmt;
 	int i;
 
 	stmt = SqlStmt_Malloc(sql_handle);

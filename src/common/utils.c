@@ -62,23 +62,23 @@ void dump(const unsigned char* buffer, int num)
 // @author MouseJstr (original)
 
 /// Allocates a StringBuf
-struct StringBuf* StringBuf_Malloc() 
+StringBuf* StringBuf_Malloc() 
 {
-	struct StringBuf* self;
-	CREATE(self, struct StringBuf, 1);
+	StringBuf* self;
+	CREATE(self, StringBuf, 1);
 	StringBuf_Init(self);
 	return self;
 }
 
 /// Initializes a previously allocated StringBuf
-void StringBuf_Init(struct StringBuf* self)
+void StringBuf_Init(StringBuf* self)
 {
 	self->max_ = 1024;
 	self->ptr_ = self->buf_ = (char*)aMallocA(self->max_ + 1);
 }
 
 /// Appends the result of printf to the StringBuf
-int StringBuf_Printf(struct StringBuf* self, const char* fmt, ...)
+int StringBuf_Printf(StringBuf* self, const char* fmt, ...)
 {
 	int len;
 	va_list ap;
@@ -91,7 +91,7 @@ int StringBuf_Printf(struct StringBuf* self, const char* fmt, ...)
 }
 
 /// Appends the result of vprintf to the StringBuf
-int StringBuf_Vprintf(struct StringBuf* self, const char* fmt, va_list ap)
+int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list ap)
 {
 	int n, size, off;
 
@@ -115,7 +115,7 @@ int StringBuf_Vprintf(struct StringBuf* self, const char* fmt, va_list ap)
 }
 
 /// Appends the contents of another StringBuf to the StringBuf
-int StringBuf_Append(struct StringBuf* self, const struct StringBuf* sbuf)
+int StringBuf_Append(StringBuf* self, const StringBuf* sbuf)
 {
 	int available = self->max_ - (self->ptr_ - self->buf_);
 	int needed = (int)(sbuf->ptr_ - sbuf->buf_);
@@ -134,7 +134,7 @@ int StringBuf_Append(struct StringBuf* self, const struct StringBuf* sbuf)
 }
 
 // Appends str to the StringBuf
-int StringBuf_AppendStr(struct StringBuf* self, const char* str) 
+int StringBuf_AppendStr(StringBuf* self, const char* str) 
 {
 	int available = self->max_ - (self->ptr_ - self->buf_);
 	int needed = (int)strlen(str);
@@ -153,26 +153,26 @@ int StringBuf_AppendStr(struct StringBuf* self, const char* str)
 }
 
 // Returns the length of the data in the Stringbuf
-int StringBuf_Length(struct StringBuf* self) 
+int StringBuf_Length(StringBuf* self) 
 {
 	return (int)(self->ptr_ - self->buf_);
 }
 
 /// Returns the data in the StringBuf
-char* StringBuf_Value(struct StringBuf* self) 
+char* StringBuf_Value(StringBuf* self) 
 {
 	*self->ptr_ = '\0';
 	return self->buf_;
 }
 
 /// Clears the contents of the StringBuf
-void StringBuf_Clear(struct StringBuf* self) 
+void StringBuf_Clear(StringBuf* self) 
 {
 	self->ptr_ = self->buf_;
 }
 
 /// Destroys the StringBuf
-void StringBuf_Destroy(struct StringBuf* self)
+void StringBuf_Destroy(StringBuf* self)
 {
 	aFree(self->buf_);
 	self->ptr_ = self->buf_ = 0;
@@ -180,7 +180,7 @@ void StringBuf_Destroy(struct StringBuf* self)
 }
 
 // Frees a StringBuf returned by StringBuf_Malloc
-void StringBuf_Free(struct StringBuf* self) 
+void StringBuf_Free(StringBuf* self) 
 {
 	StringBuf_Destroy(self);
 	aFree(self);

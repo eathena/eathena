@@ -54,7 +54,7 @@ int storage_tosql(int account_id,struct storage *p){
 // DB -> storage data conversion
 int storage_fromsql(int account_id, struct storage* p)
 {
-	struct StringBuf buf;
+	StringBuf buf;
 	struct item* item;
 	char* data;
 	int i;
@@ -145,7 +145,7 @@ int guild_storage_tosql(int guild_id, struct guild_storage *p){
 // Load guild_storage data to mem
 int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 {
-	struct StringBuf buf;
+	StringBuf buf;
 	struct item* item;
 	char* data;
 	int i;

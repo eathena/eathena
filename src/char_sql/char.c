@@ -107,7 +107,7 @@ int log_char = 1;	// loggin char or not [devil]
 int log_inter = 1;	// loggin inter or not [devil]
 
 // Advanced subnet check [LuzZza]
-struct _subnet {
+struct s_subnet {
 	uint32 subnet;
 	uint32 mask;
 	uint32 char_ip;
@@ -436,7 +436,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 	char save_status[128]; //For displaying save information. [Skotlex]
 	struct mmo_charstatus *cp;
 	struct itemtmp mapitem[MAX_GUILD_STORAGE];
-	struct StringBuf buf;
+	StringBuf buf;
 
 	if (char_id!=p->char_id) return 0;
 
@@ -723,13 +723,13 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 // [Ilpalazzo-sama]
 int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tableswitch)
 {
-	struct StringBuf buf;
+	StringBuf buf;
+	SqlStmt* stmt;
 	int i;
 	int j;
 	int flag;
 	const char* tablename;
 	const char* selectoption;
-	struct SqlStmt* stmt;
 
 	switch (tableswitch) {
 	case TABLE_INVENTORY:     tablename = inventory_db;     selectoption = "char_id";    break;
@@ -867,7 +867,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	int i,j;
 	char t_msg[128] = "";
 	struct mmo_charstatus* cp;
-	struct StringBuf buf;
+	StringBuf buf;
 	char* data;
 	size_t len;
 
@@ -2778,7 +2778,7 @@ int parse_frommap(int fd)
 			if( count > 0 )
 			{
 				struct status_change_data data;
-				struct StringBuf buf;
+				StringBuf buf;
 				int i;
 
 				StringBuf_Init(&buf);

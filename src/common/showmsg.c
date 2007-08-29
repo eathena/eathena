@@ -59,7 +59,7 @@ int msg_silent = 0; //Specifies how silent the console is.
 #define NEWBUF(buf)				\
 	struct {					\
 		char s_[SBUF_SIZE];		\
-		struct StringBuf *d_;	\
+		StringBuf *d_;			\
 		char *v_;				\
 		int l_;					\
 	} buf ={"",NULL,NULL,0};	\

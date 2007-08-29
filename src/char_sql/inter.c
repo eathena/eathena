@@ -20,8 +20,8 @@
 #define WISDELLIST_MAX 256			// Wisデータ削除リストの要素数
 
 
-struct Sql* sql_handle = NULL;
-struct Sql* lsql_handle = NULL;
+Sql* sql_handle = NULL;
+Sql* lsql_handle = NULL;
 
 int char_server_port = 3306;
 char char_server_ip[32] = "127.0.0.1";
@@ -85,7 +85,7 @@ int inter_sql_test (void);
 int inter_accreg_tosql(int account_id, int char_id, struct accreg* reg, int type)
 {
 	struct global_reg* r;
-	struct SqlStmt* stmt;
+	SqlStmt* stmt;
 	int i;
 
 	if( account_id <= 0 )

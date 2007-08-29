@@ -21,18 +21,19 @@ struct StringBuf
 	char *ptr_;
 	unsigned int max_;
 };
+typedef struct StringBuf StringBuf;
 
-struct StringBuf* StringBuf_Malloc(void);
-void StringBuf_Init(struct StringBuf* self);
-int StringBuf_Printf(struct StringBuf* self, const char* fmt, ...);
-int StringBuf_Vprintf(struct StringBuf* self, const char* fmt, va_list args);
-int StringBuf_Append(struct StringBuf* self, const struct StringBuf *sbuf);
-int StringBuf_AppendStr(struct StringBuf* self, const char* str);
-int StringBuf_Length(struct StringBuf* self);
-char* StringBuf_Value(struct StringBuf* self);
-void StringBuf_Clear(struct StringBuf* self);
-void StringBuf_Destroy(struct StringBuf* self);
-void StringBuf_Free(struct StringBuf* self);
+StringBuf* StringBuf_Malloc(void);
+void StringBuf_Init(StringBuf* self);
+int StringBuf_Printf(StringBuf* self, const char* fmt, ...);
+int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list args);
+int StringBuf_Append(StringBuf* self, const StringBuf *sbuf);
+int StringBuf_AppendStr(StringBuf* self, const char* str);
+int StringBuf_Length(StringBuf* self);
+char* StringBuf_Value(StringBuf* self);
+void StringBuf_Clear(StringBuf* self);
+void StringBuf_Destroy(StringBuf* self);
+void StringBuf_Free(StringBuf* self);
 
 void findfile(const char *p, const char *pat, void (func)(const char*));
 
