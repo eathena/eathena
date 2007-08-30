@@ -1,3 +1,5 @@
+08/29
+	* Merged related item_db entries to bSkillHeal bonus. [Skotlex]
 08/21
 	* Removed heal bonus on Spiritual Ring [Playtester]
 08/20

@@ -289,7 +289,7 @@ int merc_hom_evolution(struct homun_data *hd)
 	struct map_session_data *sd;
 	nullpo_retr(0, hd);
 
-	if(!hd->homunculusDB->evo_class)
+	if(!hd->homunculusDB->evo_class || hd->homunculus.class_ == hd->homunculusDB->evo_class)
 	{
 		clif_emotion(&hd->bl, 4) ;	//swt
 		return 0 ;
@@ -297,12 +297,12 @@ int merc_hom_evolution(struct homun_data *hd)
 	sd = hd->master;
 	if (!sd)
 		return 0;
-
 	
 	if (!merc_hom_change_class(hd, hd->homunculusDB->evo_class)) {
 		ShowError("merc_hom_evolution: Can't evolve homunc from %d to %d", hd->homunculus.class_, hd->homunculusDB->evo_class);
 		return 0;
 	}
+
 	//Apply evolution bonuses
 	hom = &hd->homunculus;
 	max = &hd->homunculusDB->emax;
@@ -603,7 +603,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 
 	i = search_homunculusDB_index(hom->class_,HOMUNCULUS_CLASS);
 	if(i < 0) {
-		ShowError("merc_hom_alloc: unknown homunculus class [%d]", hom->class_);
+		ShowError("merc_hom_alloc: unknown class [%d] for homunculus '%s', requesting deletion.\n", hom->class_, hom->name);
 		sd->status.hom_id = 0;
 		intif_homunculus_requestdelete(hom->hom_id);
 		return 1;
@@ -714,8 +714,7 @@ int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag)
 		merc_hom_alloc(sd, sh);
 	
 	hd = sd->hd;
-	if(hd->homunculus.hp && !hd->homunculus.vaporize &&
-		hd->bl.prev == NULL && sd->bl.prev != NULL)
+	if(hd->homunculus.hp && !hd->homunculus.vaporize && hd->bl.prev == NULL && sd->bl.prev != NULL)
 	{
 		map_addblock(&hd->bl);
 		clif_spawn(&hd->bl);

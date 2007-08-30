@@ -849,13 +849,8 @@ int skill_calc_heal (struct block_list *src, struct block_list *target, int skil
 		return battle_config.max_heal;
 
 	heal = ( status_get_lv(src)+status_get_int(src) )/8 *(4+ skill_lv*8);
-	if(src->type == BL_PC)
-	{
-		if ((skill = pc_checkskill((TBL_PC*)src, HP_MEDITATIO)) > 0)
-			heal += heal * skill * 2 / 100;
-		if ((skill = battle_skillatk_bonus((TBL_PC*)src, AL_HEAL)) > 0)
-			heal += heal * skill / 100;
-	}
+	if(src->type == BL_PC && ((skill = pc_checkskill((TBL_PC*)src, HP_MEDITATIO)) > 0))
+		heal += heal * skill * 2 / 100;
 
 	if(src->type == BL_HOM && (skill = merc_hom_checkskill(((TBL_HOM*)src), HLIF_BRAIN)) > 0)
 		heal += heal * skill * 2 / 100;
@@ -3446,6 +3441,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (status_isimmune(bl) || (dstmd && dstmd->class_ == MOBID_EMPERIUM))
 				heal=0;
 			if (sd) {
+				if ((i = pc_skillheal_bonus(sd, skillid)))
+					heal += heal * i / 100;
 				if (sd && dstsd && sd->status.partner_id == dstsd->status.char_id &&
 					(sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE && sd->status.sex == 0)
 					heal = heal*2;
@@ -4663,7 +4660,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 							sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10) / 100;
 					}
 				}
-				if ((i = battle_skillatk_bonus(sd, skillid)) > 0)
+				if ((i = pc_skillheal_bonus(sd, skillid)))
 				{
 					hp += hp * i / 100;
 					sp += sp * i / 100;
@@ -5636,6 +5633,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if (!bl) bl = src;
 			i = skill_calc_heal( src, bl, 1+rand()%skilllv);
+			if (sd && (rnd = pc_skillheal_bonus(sd, skillid)) > 0)
+				i += i * rnd / 100;
 			//Eh? why double skill packet?
 			clif_skill_nodamage(src,bl,AL_HEAL,i,1);
 			clif_skill_nodamage(src,bl,skillid,i,1);
@@ -6293,7 +6292,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 			i = pc_checkskill(sd,CR_SLIMPITCHER)*10
 				+ pc_checkskill(sd,AM_POTIONPITCHER)*10
 				+ pc_checkskill(sd,AM_LEARNINGPOTION)*5
-				+ battle_skillatk_bonus(sd, skillid);
+				+ pc_skillheal_bonus(sd, skillid);
 
 			potion_hp = potion_hp * (100+i)/100;
 			potion_sp = potion_sp * (100+i)/100;
@@ -6699,7 +6698,7 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	case NPC_EVILLAND:
 		val1=(skilllv+3)*2;
 		val2=(skilllv>6)?(skillid == PR_SANCTUARY?777:666):skilllv*100;
-		if (sd && (i = battle_skillatk_bonus(sd, skillid)) > 0)
+		if (sd && (i = pc_skillheal_bonus(sd, skillid)))
 			val2 += val2 * i / 100;
 		break;
 
@@ -6806,6 +6805,8 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 		if(sd){
 			val1 += pc_checkskill(sd,BA_MUSICALLESSON);
 			val2 += 5*pc_checkskill(sd,BA_MUSICALLESSON);
+			if ((i = pc_skillheal_bonus(sd, skillid)))
+				val2 += val2 * i / 100;
 		}
 		break;
 	case DC_SERVICEFORYOU:
