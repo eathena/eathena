@@ -7,6 +7,7 @@
 #ifndef _CBASETYPES_H_
 #include "../common/cbasetypes.h"
 #endif
+#include <stdarg.h>
 
 char* jstrescape (char* pt);
 char* jstrescapecpy (char* pt, const char* spt);

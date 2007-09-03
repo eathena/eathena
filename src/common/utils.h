@@ -7,7 +7,6 @@
 #ifndef _CBASETYPES_H_
 #include "../common/cbasetypes.h"
 #endif
-#include <stdarg.h>
 
 // Function that dumps the hex of the first num bytes of the buffer to the screen
 //#define UTIL_DUMP

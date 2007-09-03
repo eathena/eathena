@@ -7,6 +7,7 @@
 //#include "map.h"
 struct map_session_data;
 struct mob_data;
+struct item;
 
 //New logs
 int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int amount, struct item *itm);

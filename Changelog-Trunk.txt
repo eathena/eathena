@@ -4,6 +4,8 @@ Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
 2007/09/03
+	* Fixed missing forward declaration of 'struct item' in log.h.
+	* Fixed a forgotten include in r11084.
 	* More work on the configure script:
 	- propper test for pointers fitting in ints
 	- host OS dependant stuff
