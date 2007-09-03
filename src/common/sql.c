@@ -597,6 +597,11 @@ int SqlStmt_Execute(SqlStmt* self)
 		return SQL_ERROR;
 	}
 	self->bind_columns = false;
+	if( mysql_stmt_store_result(self->stmt) )// store all the data
+	{//FIXME is this enough or do i need to bind columns first? [FlavioJS]
+		ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));
+		return SQL_ERROR;
+	}
 
 	return SQL_SUCCESS;
 }

@@ -1,5 +1,3 @@
-# Based on Makefile.in of $Revision$
-
 @SET_MAKE@
 
 CC = @CC@ -pipe
@@ -29,81 +27,23 @@ endif
 # Makes map-wide script variables be saved to SQL instead of TXT files.
 # CFLAGS += -DMAPREGSQL
 
-ifdef HAVE_PCRE
-	CFLAGS += $(PCRE_CFLAGS)
-	LIBS += $(PCRE_LIBS)
-endif
-
-# OPT += -O3
-# OPT += -mmmx
-# OPT += -msse
-# OPT += -msse2
-# OPT += -msse3
-# OPT += -rdynamic
-# OPT += -ffast-math
-# OPT += -fbounds-checking
-# OPT += -fstack-protector
-# OPT += -fomit-frame-pointer
-# OPT += -Wall -Wno-sign-compare
-# Server Packet Protocol version (also defined in src/common/mmo.h)
-# OPT += -DPACKETVER=8
-# Makes map-wide script variables be saved to SQL instead of TXT files.
-# OPT += -DMAPREGSQL
-# Enable the perl regular expression support for scripts
-# OPT += -DPCRE_SUPPORT
 # OPT += -DGCOLLECT
+# LIBS += -lgc
+
 # OPT += -DMEMWATCH
+
 # OPT += -DDMALLOC -DDMALLOC_FUNC_CHECK
+# LIBS += -ldmalloc
+
 # OPT += -DBCHECK
 
-# LIBS += -lgc
-# LIBS += -ldmalloc
-# LIBS += -L/usr/local/lib -lpcre
-
-PLATFORM = $(shell uname)
-ARCH = $(shell uname -m)
-
-ifeq ($(findstring Linux,$(PLATFORM)), Linux)
-   LIBS += -ldl
-endif
-
-ifeq ($(findstring SunOS,$(PLATFORM)), SunOS)
-   LIBS += -lsocket -lnsl -ldl
-   MAKE = gmake
-endif
-
-ifeq ($(findstring FreeBSD,$(PLATFORM)), FreeBSD)
-   MAKE = gmake
-   OS_TYPE = -D__FREEBSD__
-endif
-
-ifeq ($(findstring NetBSD,$(PLATFORM)), NetBSD)
-   MAKE = gmake
-   OS_TYPE = -D__NETBSD__
-endif
-
-ifeq ($(findstring CYGWIN,$(PLATFORM)), CYGWIN)
-   OPT += -DFD_SETSIZE=4096
-   OS_TYPE = -DCYGWIN
-endif
-
-ifeq ($(findstring mingw,$(shell gcc --version)), mingw)
-   IS_MINGW = 1
-   OS_TYPE = -DMINGW
-   OPT += -DFD_SETSIZE=4096
-#   CFLAGS += -I../zlib
-#   LIBS += -L../../lib
-   LIBS += -lws2_32
-endif
-
-CFLAGS += $(OS_TYPE)
 
 .PHONY: txt sql common common_sql login login_sql char char_sql map map_sql ladmin converters \
 	addons plugins tools clean depend
 
 MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS) $(LDFLAGS) $(CPPFLAGS)" LIB_S="$(LIBS)"
 
-txt: conf common login char map ladmin clean_cache
+txt: conf common login char map ladmin
 
 conf:
 	cp -r conf-tmpl conf
