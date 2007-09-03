@@ -16,7 +16,7 @@
 //Remove/Comment this line to disable server-side hot-key saving support [Skotlex]
 //Note that newer clients no longer save hotkeys in the registry!
 //The number is the max number of hotkeys to save (27 = 9 skills x 3 bars)
-//#define HOTKEY_SAVING 27
+#define HOTKEY_SAVING 27
 
 #define MAX_MAP_PER_SERVER 1024
 #define MAX_INVENTORY 100
