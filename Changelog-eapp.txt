@@ -1,4 +1,7 @@
 Date	Added
+2007/09/04
+	* Fixed strnlen not present and not replaced by an alternative on non-GNU 
+	  linux distributions. [FlavioJS]
 2007/06/24
 	* sync with ea repository (although I still consider it useless
 	  when there is only one person contributing ;p) [Hinoko]

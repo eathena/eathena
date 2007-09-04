@@ -23,7 +23,7 @@ char * strndup (const char *s, size_t n)
 }
 #endif//defined(_WIN32)
 
-#if defined(_MSC_VER) && _MSC_VER < 1400	// MSVC8 apperently has this
+#if !defined(HAVE_STRNLEN)
 /// find the length of str, but scan at most maxlen characters.
 /// If no '\0' terminator is found, return maxlen.
 size_t strnlen (const char *string, size_t maxlen)
@@ -31,7 +31,7 @@ size_t strnlen (const char *string, size_t maxlen)
 	const char *end = (const char *)memchr(string, '\0', maxlen);
 	return end ? (size_t) (end - string) : maxlen;
 }
-#endif//defined(_MSC_VER) && _MSC_VER < 1400
+#endif//!defined(HAVE_STRNLEN)
 
 
 

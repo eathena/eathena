@@ -864,9 +864,15 @@ typedef unsigned long long	uint64;
 #if defined(_WIN32)
 char * strndup (const char *s, size_t n);
 #endif//defined(_WIN32)
-#if defined(_MSC_VER) && _MSC_VER < 1400	// MSVC8 apperently has this
+
+#if !defined(HAVE_STRNLEN) && defined(_MSC_VER) && _MSC_VER >= 1400	// MSVC8 apperently has this
+#define HAVE_STRNLEN
+#endif//!defined(HAVE_STRNLEN) && defined(_MSC_VER) && _MSC_VER >= 1400
+
+#if !defined(HAVE_STRNLEN)
 size_t strnlen (const char *string, size_t maxlen);
-#endif//defined(_MSC_VER) && _MSC_VER < 1400
+#endif//!defined(HAVE_STRNLEN)
+
 
 
 //////////////////////////////////////////////////////////////////////////
