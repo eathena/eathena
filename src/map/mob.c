@@ -997,7 +997,7 @@ int mob_unlocktarget(struct mob_data *md,int tick)
 /*==========================================
  * Random walk
  *------------------------------------------*/
-int mob_randomwalk(struct mob_data *md,int tick)
+int mob_randomwalk(struct mob_data *md,unsigned int tick)
 {
 	const int retrycount=20;
 	int i,x,y,c,d;
@@ -3881,6 +3881,14 @@ void mob_reload(void)
 		}
 	mob_readskilldb();
 	mob_readdb_race();
+}
+
+void mob_clear_spawninfo()
+{	//Clears spawn related information for a script reload.
+	int i;
+	for (i = 0; i < MAX_MOB_DB; i++)
+		if (mob_db_data[i])
+			memset(&mob_db_data[i]->spawn,0,sizeof(mob_db_data[i]->spawn));
 }
 
 /*==========================================

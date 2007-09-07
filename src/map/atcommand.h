@@ -247,6 +247,7 @@ enum AtCommandType {
 
 	AtCommand_ItemInfo, // Lupus
 	AtCommand_WhoDrops, // Skotlex
+	AtCommand_WhereIs, // Skotlex
 	AtCommand_MapFlag, // Lupus
 	AtCommand_MonsterIgnore, // [Valaris]
 	AtCommand_FakeName, // [Valaris]
