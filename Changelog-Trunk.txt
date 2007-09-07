@@ -3,6 +3,8 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/07
+	* Some misc login server cleanups (reformatting etc) [ultramage]
 2007/09/03
 	* Fixed missing forward declaration of 'struct item' in log.h.
 	* Fixed a forgotten include in r11084.

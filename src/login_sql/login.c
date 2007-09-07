@@ -17,10 +17,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h> // for stat/lstat/fstat
-#include <signal.h>
-#include <fcntl.h>
 #include <string.h>
+#include <sys/stat.h> // for stat/lstat/fstat
 
 struct Login_Config {
 
@@ -481,7 +479,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 {
 	time_t ban_until_time;
 	char esc_userid[NAME_LENGTH*2+1];// escaped username
-	char login_password[256], password[256];
+	char user_password[256], password[256];
 	long connect_until;
 	int state;
 	size_t len;
@@ -489,8 +487,6 @@ int mmo_auth(struct mmo_account* account, int fd)
 
 	char ip[16];
 	uint8* sin_addr = (uint8*)&session[fd]->client_addr;
-
-
 	sprintf(ip, "%u.%u.%u.%u", sin_addr[3], sin_addr[2], sin_addr[1], sin_addr[0]);
 
 	// DNS Blacklist check
@@ -517,18 +513,23 @@ int mmo_auth(struct mmo_account* account, int fd)
 		}
 	}
 
+	//Client Version check
+	if( login_config.check_client_version && account->version != 0 &&
+		account->version != login_config.client_version_to_connect )
+		return 5;
+
 	len = strnlen(account->userid, NAME_LENGTH);
 
 	// Account creation with _M/_F
 	if( login_config.new_account_flag )
 	{
-		if( len >= 4+2 && strnlen(account->passwd, NAME_LENGTH) > 4 &&// valid user and password lengths
+		if( len > 2 && strnlen(account->passwd, NAME_LENGTH) >= 4 && // valid user and password lengths
 			account->passwdenc == 0 &&// unencoded password
-			account->userid[len - 2] == '_' && memchr("FfMm", (unsigned char)account->userid[len - 1], 4) )
+			account->userid[len-2] == '_' && memchr("FfMm", (unsigned char)account->userid[len-1], 4) ) // _M/_F suffix
 		{
 			int result;
-			account->userid[len - 2] = '\0';// terminate the name.
-			result = mmo_auth_new(account, account->userid[len - 1]);
+			account->userid[len-2] = '\0';// terminate the name.
+			result = mmo_auth_new(account, account->userid[len-1]);
 			if( result )
 				return result;// Failed to make account. [Skotlex].
 		}
@@ -545,8 +546,8 @@ int mmo_auth(struct mmo_account* account, int fd)
 		Sql_ShowDebug(sql_handle);
 	//login {0-account_id/1-user_pass/2-lastlogin/3-sex/4-connect_untl/5-ban_until/6-state/7-level}
 
-	if( Sql_NumRows(sql_handle) == 0 )
-	{// there's no id.
+	if( Sql_NumRows(sql_handle) == 0 ) // no such entry
+	{
 		ShowNotice("auth failed: no such account '%s'\n", esc_userid);
 		Sql_FreeResult(sql_handle);
 		return 0;
@@ -579,32 +580,20 @@ int mmo_auth(struct mmo_account* account, int fd)
 
 	Sql_FreeResult(sql_handle);
 
-	//Client Version check
-	if( login_config.check_client_version && account->version != 0 &&
-		account->version != login_config.client_version_to_connect )
-		return 5;
-
-	switch( state )
-	{
-	case -3: //id is banned
-	case -2: //dynamic ban
-		return state;
-	}
-
 	if( login_config.use_md5_passwds )
-		MD5_String(account->passwd, login_password);
+		MD5_String(account->passwd, user_password);
 	else
-	{
-		memcpy(login_password, account->passwd, NAME_LENGTH);
-		login_password[NAME_LENGTH] = '\0';
-	}
+		safestrncpy(user_password, account->passwd, NAME_LENGTH);
 
-	if( !check_password(session[fd]->session_data, account->passwdenc, login_password, password) )
+	if( !check_password(session[fd]->session_data, account->passwdenc, user_password, password) )
 	{
 		ShowInfo("Invalid password (account: '%s', pass: '%s', received pass: '%s', ip: %s)\n",
-			esc_userid, password, (account->passwdenc) ? "[MD5]" : login_password, ip);
+			esc_userid, password, (account->passwdenc) ? "[MD5]" : user_password, ip);
 		return 1; // 1 = Incorrect Password
 	}
+
+	if( connect_until != 0 && connect_until < time(NULL) )
+		return 2; // 2 = This ID is expired
 
 	if( ban_until_time != 0 )
 	{// account is banned
@@ -616,7 +605,14 @@ int mmo_auth(struct mmo_account* account, int fd)
 			Sql_ShowDebug(sql_handle);
 	}
 
-	switch(state)
+	switch( state )
+	{
+	case -3: //id is banned
+	case -2: //dynamic ban
+		return state;
+	}
+
+	switch( state )
 	{// packet 0x006a value + 1
 	case 0:
 		break;
@@ -648,9 +644,6 @@ int mmo_auth(struct mmo_account* account, int fd)
 		return 99; // 99 = ID has been totally erased
 	}
 
-	if( connect_until != 0 && connect_until < time(NULL) )
-		return 2; // 2 = This ID is expired
-
 	if( login_config.online_check )
 	{
 		struct online_login_data* data = idb_get(online_db, account->account_id);
@@ -658,11 +651,11 @@ int mmo_auth(struct mmo_account* account, int fd)
 		{
 			//Request char servers to kick this account out. [Skotlex]
 			uint8 buf[8];
-			ShowNotice("User [%s] is already online - Rejected.\n", account->userid);
+			ShowNotice("User '%s' is already online - Rejected.\n", account->userid);
 			WBUFW(buf,0) = 0x2734;
 			WBUFL(buf,2) = account->account_id;
 			charif_sendallwos(-1, buf, 6);
-			if (data->waiting_disconnect == -1)
+			if( data->waiting_disconnect == -1 )
 				data->waiting_disconnect = add_timer(gettick()+30000, waiting_disconnect_timer, account->account_id, 0);
 			return 3; // Rejected
 		}
@@ -671,13 +664,14 @@ int mmo_auth(struct mmo_account* account, int fd)
 	account->login_id1 = rand();
 	account->login_id2 = rand();
 
-	if (account->sex != 2 && account->account_id < START_ACCOUNT_NUM)
+	if( account->sex != 2 && account->account_id < START_ACCOUNT_NUM )
 		ShowWarning("Account %s has account id %d! Account IDs must be over %d to work properly!\n", account->userid, account->account_id, START_ACCOUNT_NUM);
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount`+1, `last_ip`='%s'  WHERE `%s` = '%d'",
 		login_db, ip, login_db_account_id, account->account_id) )
 		Sql_ShowDebug(sql_handle);
-	return -1;
+
+	return -1; // account OK
 }
 
 static int online_db_setoffline(DBKey key, void* data, va_list ap)
@@ -703,10 +697,11 @@ static int online_db_setoffline(DBKey key, void* data, va_list ap)
 //--------------------------------
 int parse_fromchar(int fd)
 {
-	int i;
-	int id;
-	char ip[16];
+	int i, id;
+
 	uint32 ipl = session[fd]->client_addr;
+	char ip[16];
+	ip2str(ipl, ip);
 
 	for( id = 0; id < MAX_SERVERS; ++id )
 		if( server_fd[id] == fd )
@@ -717,8 +712,6 @@ int parse_fromchar(int fd)
 		do_close(fd);
 		return 0;
 	}
-
-	ip2str(ipl, ip);
 
 	if( session[fd]->eof )
 	{
@@ -761,7 +754,7 @@ int parse_fromchar(int fd)
 			{
 				if( auth_fifo[i].account_id == account_id &&
 					auth_fifo[i].login_id1  == RFIFOL(fd,6) &&
-					auth_fifo[i].login_id2  == RFIFOL(fd,10) && // relate to the versions higher than 18
+					auth_fifo[i].login_id2  == RFIFOL(fd,10) &&
 					auth_fifo[i].sex        == RFIFOB(fd,14) &&
 					auth_fifo[i].ip         == ntohl(RFIFOL(fd,15)) &&
 					!auth_fifo[i].delflag)
@@ -1271,14 +1264,8 @@ int parse_fromchar(int fd)
 int lan_subnetcheck(uint32 ip)
 {
 	int i;
-
-	for(i = 0; i < subnet_count; i++) {
-		if(subnet[i].subnet == (ip & subnet[i].mask)) {
-			return subnet[i].char_ip;
-		}
-	}
-
-	return 0;
+	ARR_FIND( 0, subnet_count, i, subnet[i].subnet == (ip & subnet[i].mask) );
+	return ( i < subnet_count ) ? subnet[i].char_ip : 0;
 }
 
 int login_ip_ban_check(uint32 ip)
@@ -1388,7 +1375,7 @@ int parse_login(int fd)
 
 			result = mmo_auth(&account, fd);
 			if( result == -1 )
-			{// auth success
+			{	// auth success
 				if( login_config.min_level_to_connect > account.level )
 				{
 					WFIFOHEAD(fd,3);
@@ -1447,7 +1434,9 @@ int parse_login(int fd)
 						WFIFOSET(fd,3);
 					}
 				}
-			} else { // auth failed
+			}
+			else
+			{	// auth failed
 				if (login_config.log_login)
 				{
 					const char* error;
@@ -1483,8 +1472,8 @@ int parse_login(int fd)
 						Sql_ShowDebug(sql_handle);
 				}
 
-				if( result == 1 && login_config.dynamic_pass_failure_ban && login_config.log_login )
-				{// failed password
+				if( result == 1 && login_config.dynamic_pass_failure_ban && login_config.log_login ) // failed password
+				{
 					unsigned long failures = 0;
 					if( SQL_ERROR == Sql_Query(sql_handle, "SELECT count(*) FROM `%s` WHERE `ip` = '%u' AND `rcode` = '1' AND `time` > NOW() - INTERVAL %d MINUTE",
 						loginlog_db, ipl, login_config.dynamic_pass_failure_ban_interval) )// how many times failed account? in one ip.
@@ -1584,8 +1573,8 @@ int parse_login(int fd)
 			uint16 server_port;
 
 			memset(&account, 0, sizeof(account));
-			safestrncpy(account.userid, RFIFOP(fd,2), NAME_LENGTH);//## does it have to be nul-terminated?
-			safestrncpy(account.passwd, RFIFOP(fd,26), NAME_LENGTH);//## does it have to be nul-terminated?
+			safestrncpy(account.userid, RFIFOP(fd,2), NAME_LENGTH);
+			safestrncpy(account.passwd, RFIFOP(fd,26), NAME_LENGTH);
 			account.passwdenc = 0;
 			server_ip = ntohl(RFIFOL(fd,54));
 			server_port = ntohs(RFIFOW(fd,58));
@@ -1594,8 +1583,7 @@ int parse_login(int fd)
 			Sql_EscapeStringLen(sql_handle, esc_server_name, server_name, strnlen(server_name, 20));
 			Sql_EscapeStringLen(sql_handle, esc_userid, account.userid, strnlen(account.userid, NAME_LENGTH));
 
-			ShowInfo("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (ip: %s)\n",
-				esc_server_name, CONVIP(server_ip), server_port, ip);
+			ShowInfo("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (account: '%s', pass: '%s', ip: '%s')\n", esc_server_name, CONVIP(server_ip), server_port, account.userid, account.passwd, ip);
 
 			if( login_config.log_login && SQL_ERROR == Sql_Query(sql_handle, "INSERT DELAYED INTO `%s`(`time`,`ip`,`user`,`rcode`,`log`) VALUES (NOW(), '%u', '%s@%s','100', 'charserver - %s@%u.%u.%u.%u:%d')",
 				loginlog_db, ipl, esc_userid, esc_server_name, esc_server_name, CONVIP(server_ip), server_port) )
@@ -1604,7 +1592,7 @@ int parse_login(int fd)
 			result = mmo_auth(&account, fd);
 			if( result == -1 && account.sex == 2 && account.account_id < MAX_SERVERS && server_fd[account.account_id] == -1 )
 			{
-				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
+				ShowStatus("Connection of the char-server '%s' accepted.\n", esc_server_name);
 				memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
 				server[account.account_id].ip = ntohl(RFIFOL(fd,54));
 				server[account.account_id].port = ntohs(RFIFOW(fd,58));
@@ -1614,24 +1602,22 @@ int parse_login(int fd)
 				server[account.account_id].new_ = RFIFOW(fd,84);
 				server_fd[account.account_id] = fd;
 
-				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `sstatus` WHERE `index`='%d'", account.account_id) )
-					Sql_ShowDebug(sql_handle);
-
-				if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `sstatus`(`index`,`name`,`user`) VALUES ( '%d', '%s', '%d')",
-					account.account_id, esc_server_name, 0) )
-					Sql_ShowDebug(sql_handle);
-
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
+
 				session[fd]->func_parse = parse_fromchar;
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 				send_GM_accounts(fd); // send GM account to char-server
+
+				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `sstatus`(`index`,`name`,`user`) VALUES ( '%d', '%s', '%d')", account.account_id, esc_server_name, 0) )
+					Sql_ShowDebug(sql_handle);
 			}
 			else
 			{
+				ShowNotice("Connection of the char-server '%s' REFUSED.\n", esc_server_name);
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 3;
@@ -1676,6 +1662,9 @@ int parse_login(int fd)
 	return 0;
 }
 
+//-----------------------
+// Console Command Parser [Wizputer]
+//-----------------------
 int parse_console(char* buf)
 {
 	char command[256];
@@ -1684,20 +1673,22 @@ int parse_console(char* buf)
 
 	sscanf(buf, "%[^\n]", command);
 
-	//login_log("Console command :%s" RETCODE, command);
+	ShowInfo("Console command :%s", command);
 
 	if( strcmpi("shutdown", command) == 0 ||
 		strcmpi("exit", command) == 0 ||
 		strcmpi("quit", command) == 0 ||
 		strcmpi("end", command) == 0 )
 		runflag = 0;
-	else if( strcmpi("alive", command) == 0 ||
-			strcmpi("status", command) == 0 )
+	else
+	if( strcmpi("alive", command) == 0 || 
+		strcmpi("status", command) == 0 )
 		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
-	else if( strcmpi("help", command) == 0 ){
+	else
+	if( strcmpi("help", command) == 0 ) {
 		printf(CL_BOLD"Help of commands:"CL_RESET"\n");
 		printf("  To shutdown the server:\n");
-		printf("  'shutdown|exit|qui|end'\n");
+		printf("  'shutdown|exit|quit|end'\n");
 		printf("  To know if server is alive:\n");
 		printf("  'alive|status'\n");
 	}
@@ -1882,8 +1873,8 @@ void sql_config_read(const char* cfgName)
 	char line[1024], w1[1024], w2[1024];
 	FILE* fp = fopen(cfgName, "r");
 	if(fp == NULL) {
-		ShowFatalError("file not found: %s\n", cfgName);
-		exit(1);
+		ShowError("file not found: %s\n", cfgName);
+		return;
 	}
 	ShowInfo("reading configuration file %s...\n", cfgName);
 	while(fgets(line, sizeof(line), fp))
