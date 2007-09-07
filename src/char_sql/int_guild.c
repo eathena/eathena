@@ -522,7 +522,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		// rsv1 (12)
 		// rsv2 (13)
 		// name
-		Sql_GetData(sql_handle, 1, &data, &len);
+		Sql_GetData(sql_handle, 14, &data, &len);
 		memcpy(m->name, data, min(len, NAME_LENGTH));
 		m->modified = GS_MEMBER_UNMODIFIED;
 	}

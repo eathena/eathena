@@ -3176,13 +3176,13 @@ int parse_login(int fd)
 			server_port = ntohs(RFIFOW(fd, 58));
 			
 			ShowInfo("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (account: '%s', pass: '%s', ip: '%s')\n", server_name, CONVIP(server_ip), server_port, account.userid, account.passwd, ip);
-			login_log("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (account: '%s', pass: '%s', ip: '%s')", RETCODE, server_name, CONVIP(server_ip), server_port, account.userid, account.passwd, ip);
+			login_log("Connection request of the char-server '%s' @ %d.%d.%d.%d:%d (account: '%s', pass: '%s', ip: '%s')" RETCODE, server_name, CONVIP(server_ip), server_port, account.userid, account.passwd, ip);
 			
 			result = mmo_auth(&account, fd);
 			if( result == -1 && account.sex == 2 && account.account_id < MAX_SERVERS && server_fd[account.account_id] == -1 )
 			{
 				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
-				login_log("Connection of the char-server '%s' accepted.", RETCODE, server_name);
+				login_log("Connection of the char-server '%s' accepted." RETCODE, server_name);
 				memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
 				server[account.account_id].ip = ntohl(RFIFOL(fd,54));
 				server[account.account_id].port = ntohs(RFIFOW(fd,58));
@@ -3205,7 +3205,7 @@ int parse_login(int fd)
 			else
 			{
 				ShowNotice("Connection of the char-server '%s' REFUSED.\n", server_name);
-				login_log("Connection of the char-server '%s' REFUSED.", RETCODE, server_name);
+				login_log("Connection of the char-server '%s' REFUSED." RETCODE, server_name);
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 3;

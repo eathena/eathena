@@ -779,7 +779,7 @@ static int itemdb_readdb(void)
 
 			if(!np || (p=strchr(np,'{'))==NULL)
 				continue;
-			str[20] = p; //Unequip script, last column.
+			str[21] = p; //Unequip script, last column.
 
 			if (!itemdb_parse_dbrow(str, filename[fi], lines))
 				continue;

@@ -104,10 +104,10 @@ int inter_pet_fromsql(int pet_id, struct s_pet* p)
 		Sql_GetData(sql_handle, 9, &data, NULL);
 		p->hungry = atoi(data);
 		// rename_flag
-		Sql_GetData(sql_handle, 3, &data, NULL);
+		Sql_GetData(sql_handle, 10, &data, NULL);
 		p->rename_flag = atoi(data);
 		// incuvate
-		Sql_GetData(sql_handle, 3, &data, NULL);
+		Sql_GetData(sql_handle, 11, &data, NULL);
 		p->incuvate = atoi(data);
 
 		Sql_FreeResult(sql_handle);
