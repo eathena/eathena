@@ -4,9 +4,7 @@
 #ifndef _INTER_SQL_H_
 #define _INTER_SQL_H_
 
-#ifndef _CBASETYPES_H_
-#include "../common/cbasetypes.h"
-#endif
+struct accreg;
 #include "../common/sql.h"
 
 int inter_init_sql(const char *file);

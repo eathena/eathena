@@ -2,16 +2,22 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
-#include "../common/utils.h"
 #include "../common/strlib.h"
-#include "../common/showmsg.h"
+#include "../common/core.h"
+#include "../common/utils.h"
+#include "../common/timer.h"
+#include "../common/mmo.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
-
-#include "itemdb.h"
+#include "../common/mapindex.h"
+#include "../common/showmsg.h"
+#include "../common/socket.h"
+#include "../common/version.h"
 #include "inter.h"
 #include "int_guild.h"
 #include "int_homun.h"
+#include "int_party.h"
+#include "itemdb.h"
 #include "char.h"
 
 #include <sys/types.h>

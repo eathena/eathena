@@ -1,10 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "../common/mmo.h"
 #include "../common/cbasetypes.h"
 #include "../common/strlib.h"
@@ -12,9 +8,28 @@
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
+#include "../common/timer.h"
+#include "char.h"
 #include "inter.h"
 #include "int_guild.h"
-#include "char.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#define GS_BASIC 0x0001
+#define GS_MEMBER 0x0002
+#define GS_POSITION 0x0004
+#define GS_ALLIANCE 0x0008
+#define GS_EXPULSION 0x0010
+#define GS_SKILL 0x0020
+#define GS_EMBLEM 0x0040
+#define GS_CONNECT 0x0080
+#define GS_LEVEL 0x0100
+#define GS_MES 0x0200
+#define GS_MASK 0x03FF
+#define GS_BASIC_MASK (GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES)
+#define GS_REMOVE 0x8000
 
 #define GS_MEMBER_UNMODIFIED 0x00
 #define GS_MEMBER_MODIFIED 0x01

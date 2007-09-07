@@ -1,10 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
@@ -16,6 +12,10 @@
 #include "int_storage.h"
 #include "int_pet.h"
 #include "int_guild.h"
+
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 // ファイル名のデフォルト
 // inter_config_read()で再設定される

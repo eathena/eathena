@@ -1,18 +1,21 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "../common/cbasetypes.h"
+#include "../common/mmo.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/strlib.h"
 #include "../common/socket.h"
 #include "../common/showmsg.h"
-
+#include "../common/mapindex.h"
+#include "../common/sql.h"
 #include "char.h"
+#include "inter.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifndef TXT_SQL_CONVERT
 struct party_data {
@@ -24,6 +27,20 @@ struct party_data {
 
 static struct party_data *party_pt;
 static struct dbt *party_db_;
+
+//Party Flags on what to save/delete.
+//Create a new party entry (index holds leader's info) 
+#define PS_CREATE 0x01
+//Update basic party info.
+#define PS_BASIC 0x02
+//Update party's leader
+#define PS_LEADER 0x04
+//Specify new party member (index specifies which party member)
+#define PS_ADDMEMBER 0x08
+//Specify member that left (index specifies which party member)
+#define PS_DELMEMBER 0x10
+//Specify that this party must be deleted.
+#define PS_BREAK 0x20
 
 int mapif_party_broken(int party_id,int flag);
 int party_check_empty(struct party_data *p);

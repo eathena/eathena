@@ -4,7 +4,7 @@
 #ifndef _INT_STATUS_H_
 #define _INT_STATUS_H_
 
-#include "char.h"
+#include "../common/mmo.h" // ENABLE_SC_SAVING, struct status_change_data
 
 struct scdata {
 	int account_id, char_id;

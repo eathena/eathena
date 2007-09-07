@@ -4,20 +4,7 @@
 #ifndef _CHAR_SQL_H_
 #define _CHAR_SQL_H_
 
-#include "../common/core.h"
-#include "../common/socket.h"
-#include "../common/timer.h"
-#include "../common/mmo.h"
-#include "../common/version.h"
-#include "../common/db.h"
-#include "../common/mapindex.h"
-
-#include "inter.h"
-#include "int_pet.h"
-#include "int_guild.h"
-#include "int_party.h"
-#include "int_storage.h"
-#include "itemdb.h"
+struct mmo_charstatus;
 
 #define START_CHAR_NUM 150000
 #define MAX_MAP_SERVERS 30

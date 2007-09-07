@@ -1,14 +1,14 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-// original code from athena
-// SQL conversion by Jioh L. Jung
-
+#include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/socket.h"
 #include "../common/strlib.h" // StringBuf
+#include "../common/sql.h"
 #include "char.h"
-#include "itemdb.h"
+#include "inter.h"
 
 #include <stdio.h>
 #include <string.h>
