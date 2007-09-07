@@ -384,7 +384,7 @@ void initChangeTables(void)
 	add_sc(NPC_MAGICMIRROR, SC_MAGICMIRROR);
 	set_sc(NPC_SLOWCAST, SC_SLOWCAST, SI_SLOWCAST, SCB_NONE);
 	set_sc(NPC_CRITICALWOUND, SC_CRITICALWOUND, SI_CRITICALWOUND, SCB_NONE);
-	set_sc(NPC_STONESKIN, SC_ARMORCHANGE, SI_BLANK, SCB_DEF|SCB_MDEF|SCB_DEF2|SCB_MDEF2);
+	set_sc(NPC_STONESKIN, SC_ARMORCHANGE, SI_BLANK, SCB_DEF|SCB_MDEF);
 	add_sc(NPC_ANTIMAGIC, SC_ARMORCHANGE);
 	add_sc(NPC_WIDECURSE, SC_CURSE);
 	add_sc(NPC_WIDESTUN, SC_STUN);
@@ -1752,7 +1752,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->sp_gain_value)
 		+ sizeof(sd->sp_vanish_rate)
 		+ sizeof(sd->sp_vanish_per)
-		+ sizeof(sd->add_drop_count)
 		+ sizeof(sd->unbreakable)
 		+ sizeof(sd->unbreakable_equip)
 		+ sizeof(sd->unstripable_equip)
@@ -3556,7 +3555,7 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 	if(sc->data[SC_STEELBODY].timer!=-1)
 		return 90;
 	if(sc->data[SC_ARMORCHANGE].timer!=-1)
-		def += def * sc->data[SC_ARMORCHANGE].val2/100;
+		def += sc->data[SC_ARMORCHANGE].val2;
 	if(sc->data[SC_DRUMBATTLE].timer!=-1)
 		def += sc->data[SC_DRUMBATTLE].val3;
 	if(sc->data[SC_DEFENCE].timer != -1)	//[orn]
@@ -3592,8 +3591,6 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 		return 0;
 	if(sc->data[SC_ETERNALCHAOS].timer!=-1)
 		return 0;
-	if(sc->data[SC_ARMORCHANGE].timer!=-1)
-		def2 += def2 * sc->data[SC_ARMORCHANGE].val2/100;
 	if(sc->data[SC_SUN_COMFORT].timer!=-1)
 		def2 += sc->data[SC_SUN_COMFORT].val2;
 	if(sc->data[SC_ANGELUS].timer!=-1)
@@ -3633,7 +3630,7 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 	if(sc->data[SC_SKA].timer != -1) // [marquis007]
 		return 90;
 	if(sc->data[SC_ARMORCHANGE].timer!=-1)
-		mdef += mdef * sc->data[SC_ARMORCHANGE].val3/100;
+		mdef += sc->data[SC_ARMORCHANGE].val3;
 	if(sc->data[SC_STONE].timer!=-1 && sc->opt1 == OPT1_STONE)
 		mdef += 25*mdef/100;
 	if(sc->data[SC_FREEZE].timer!=-1)
@@ -3651,8 +3648,6 @@ static signed short status_calc_mdef2(struct block_list *bl, struct status_chang
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
-	if(sc->data[SC_ARMORCHANGE].timer!=-1)
-		mdef2 += mdef2 * sc->data[SC_ARMORCHANGE].val3/100;
 	if(sc->data[SC_MINDBREAKER].timer!=-1)
 		mdef2 -= mdef2 * sc->data[SC_MINDBREAKER].val3/100;
 
@@ -4466,6 +4461,11 @@ int status_get_sc_def(struct block_list *bl, int type, int rate, int tick, int f
 			tick /= 5;
 		sc_def = status->agi;
 		break;
+	case SC_MAGICMIRROR:
+	case SC_ARMORCHANGE:
+		if (sd) //Duration greatly reduced for players.
+			tick /= 15;
+		//No defense against it (buff).
 	default:
 		//Effect that cannot be reduced? Likely a buff.
 		if (!(rand()%10000 < rate))
@@ -4601,7 +4601,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 	switch (type) {
 	case SC_FREEZE:
 	case SC_STONE:
-		//Undead are inmune to Freeze/Stone
+		//Undead are immune to Freeze/Stone
 		if (undead_flag && !(flag&1))
 			return 0;
 	case SC_SLEEP:

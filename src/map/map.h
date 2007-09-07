@@ -662,13 +662,14 @@ struct map_session_data {
 	// zeroed structures start here
 	struct s_autospell{
 		short id, lv, rate, card_id, flag;
-	} autospell[MAX_PC_BONUS], autospell2[MAX_PC_BONUS];
+	} autospell[15], autospell2[15];
 	struct s_addeffect{
 		short id, rate, arrow_rate;
 		unsigned char flag;
 	} addeff[MAX_PC_BONUS], addeff2[MAX_PC_BONUS];
 	struct { //skillatk raises bonus dmg% of skills, skillheal increases heal%, skillblown increases bonus blewcount for some skills.
-		short id, val;
+		unsigned short id;
+		short val;
 	} skillatk[MAX_PC_BONUS], skillheal[5], skillblown[MAX_PC_BONUS];
 	struct {
 		short class_, rate;
@@ -715,7 +716,6 @@ struct map_session_data {
 	short sp_gain_value, hp_gain_value;
 	short sp_vanish_rate;
 	short sp_vanish_per;	
-	short add_drop_count;
 	unsigned short unbreakable;	// chance to prevent ANY equipment breaking [celest]
 	unsigned short unbreakable_equip; //100% break resistance on certain equipment
 	unsigned short unstripable_equip;
@@ -1164,7 +1164,7 @@ enum _sp {
 	SP_CRITICAL_DEF,SP_NEAR_ATK_DEF,SP_LONG_ATK_DEF, // 1019-1021
 	SP_DOUBLE_RATE, SP_DOUBLE_ADD_RATE, SP_SKILL_HEAL, SP_MATK_RATE, // 1022-1025
 	SP_IGNORE_DEF_ELE,SP_IGNORE_DEF_RACE, // 1026-1027
-	SP_ATK_RATE,SP_SPEED_ADDRATE,SP_FREE3, // 1028-1030
+	SP_ATK_RATE,SP_SPEED_ADDRATE,SP_SP_REGEN_RATE, // 1028-1030
 	SP_MAGIC_ATK_DEF,SP_MISC_ATK_DEF, // 1031-1032
 	SP_IGNORE_MDEF_ELE,SP_IGNORE_MDEF_RACE, // 1033-1034
 	SP_MAGIC_ADDELE,SP_MAGIC_ADDRACE,SP_MAGIC_ADDSIZE, // 1035-1037
@@ -1180,6 +1180,7 @@ enum _sp {
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,SP_HP_DRAIN_RATE_RACE,SP_SP_DRAIN_RATE_RACE, // 1083-1085
+	SP_IGNORE_MDEF_RATE, //1086
 	
 	SP_RESTART_FULL_RECOVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_NO_MISC_DAMAGE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
@@ -1187,15 +1188,12 @@ enum _sp {
 
 	SP_CRIT_ATK_RATE, SP_CRITICAL_ADDRACE, SP_NO_REGEN, SP_ADDEFF_WHENHIT, SP_AUTOSPELL_WHENHIT, // 2013-2017
 	SP_SKILL_ATK, SP_UNSTRIPABLE, SP_ADD_DAMAGE_BY_CLASS, // 2018-2020
-	SP_SP_GAIN_VALUE, SP_FREE, SP_HP_LOSS_RATE, SP_ADDRACE2, SP_HP_GAIN_VALUE, // 2021-2025
+	SP_SP_GAIN_VALUE, SP_HP_REGEN_RATE, SP_HP_LOSS_RATE, SP_ADDRACE2, SP_HP_GAIN_VALUE, // 2021-2025
 	SP_SUBSIZE, SP_HP_DRAIN_VALUE_RACE, SP_ADD_ITEM_HEAL_RATE, SP_SP_DRAIN_VALUE_RACE, SP_EXP_ADDRACE,	// 2026-2030
 	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_ADDEFF_WHENHIT_SHORT,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
-	//Before adding another, note that these are free:
-	//1030 (SP_FREE3, previous AspdAddRate)
-	//2022 (SP_FREE, previous bDefIgnoreMob)
 };
 
 enum _look {

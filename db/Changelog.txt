@@ -1,3 +1,6 @@
+09/07
+	* Merged item_db bonus AutoSpell cleanups (and a few item name corrections)
+	  [Skotlex]
 08/30
 	* Merged complete item_db [Playtester]
 08/29
