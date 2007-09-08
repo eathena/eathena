@@ -4,6 +4,20 @@
 #ifndef _INT_GUILD_SQL_H_
 #define _INT_GUILD_SQL_H_
 
+#define GS_BASIC 0x0001
+#define GS_MEMBER 0x0002
+#define GS_POSITION 0x0004
+#define GS_ALLIANCE 0x0008
+#define GS_EXPULSION 0x0010
+#define GS_SKILL 0x0020
+#define GS_EMBLEM 0x0040
+#define GS_CONNECT 0x0080
+#define GS_LEVEL 0x0100
+#define GS_MES 0x0200
+#define GS_MASK 0x03FF
+#define GS_BASIC_MASK (GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES)
+#define GS_REMOVE 0x8000
+
 struct guild;
 struct guild_castle;
 

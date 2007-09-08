@@ -1,104 +1,52 @@
 @SET_MAKE@
 
-CC = @CC@ -pipe
-CFLAGS = @CFLAGS@ -ffast-math -Wall -Wno-sign-compare
-LDFLAGS = @LDFLAGS@
-LIBS = @LIBS@
-CPPFLAGS = @CPPFLAGS@ -I../common
-
-HAVE_MYSQL = @HAVE_MYSQL@
-MYSQL_VERSION = @MYSQL_VERSION@
-MYSQL_CFLAGS = @MYSQL_CFLAGS@
-MYSQL_LIBS = @MYSQL_LIBS@
-
-HAVE_PCRE = @HAVE_PCRE@
-PCRE_CFLAGS = @PCRE_CFLAGS@
-PCRE_LIBS = @PCRE_LIBS@
-
-# Detecting gcc version
-GCC_VERSION = $(shell $(CC) -v 2>&1 | grep version | cut -d' ' -f3  | cut -d'.' -f1)
-ifeq ($(GCC_VERSION), 4)
-	CFLAGS += -Wno-unused-parameter -Wno-pointer-sign
-endif
-
-# Server Packet Protocol version (also defined in src/common/mmo.h)
-# CFLAGS += -DPACKETVER=8
-
-# Makes map-wide script variables be saved to SQL instead of TXT files.
-# CFLAGS += -DMAPREGSQL
-
-# OPT += -DGCOLLECT
-# LIBS += -lgc
-
-# OPT += -DMEMWATCH
-
-# OPT += -DDMALLOC -DDMALLOC_FUNC_CHECK
-# LIBS += -ldmalloc
-
-# OPT += -DBCHECK
-
-
 .PHONY: txt sql common common_sql login login_sql char char_sql map map_sql ladmin converters \
 	addons plugins tools clean depend
 
-MKDEF = CC="$(CC)" CFLAGS="$(CFLAGS) $(LDFLAGS) $(CPPFLAGS)" LIB_S="$(LIBS)"
+#####################################################################
 
-txt: conf common login char map ladmin
+all: txt sql ladmin tools converters plugins conf
+
+txt: common login char map conf
+
+sql: common_sql login_sql char_sql map_sql conf
+
+login: src/login/GNUmakefile common
+	$(MAKE) -C src/login
+
+login_sql: src/login_sql/GNUmakefile common_sql
+	$(MAKE) -C src/login_sql
+
+char: src/char/GNUmakefile common
+	$(MAKE) -C src/char
+
+char_sql: src/char_sql/GNUmakefile common_sql
+	$(MAKE) -C src/char_sql
+
+map: src/map/GNUmakefile common
+	$(MAKE) -C src/map txt
+
+map_sql: src/map/GNUmakefile common_sql
+	$(MAKE) -C src/map sql
+
+ladmin: src/ladmin/GNUmakefile common
+	$(MAKE) -C src/ladmin
+
+tools: src/tool/GNUmakefile
+	$(MAKE) -C src/tool
+
+converters: src/txt-converter/GNUmakefile
+	$(MAKE) -C src/txt-converter
+
+plugins addons: src/plugins/GNUmakefile common
+	$(MAKE) -C src/plugins
 
 conf:
 	cp -r conf-tmpl conf
 	cp -r save-tmpl save
 	rm -rf conf/.svn conf/*/.svn save/.svn
 
-common: src/common/GNUmakefile
-	$(MAKE) -C src/common $(MKDEF) txt
-
-login: src/login/GNUmakefile common
-	$(MAKE) -C src/login $(MKDEF) txt
-
-char: src/char/GNUmakefile common
-	$(MAKE) -C src/char $(MKDEF) txt
-
-map: src/map/GNUmakefile common
-	$(MAKE) -C src/map $(MKDEF) txt
-
-#####################################################################
-ifdef HAVE_MYSQL
-
-MKDEF_SQL = CC="$(CC)" CFLAGS="$(CFLAGS) $(MYSQL_CFLAGS) $(LDFLAGS) $(MYSQL_LDFLAGS) $(CPPFLAGS) $(MYSQL_CPPFLAGS)" LIB_S="$(LIBS) $(MYSQL_LIBS)"
-
-sql: conf common_sql login_sql char_sql map_sql
-
-common_sql: src/common/GNUmakefile
-	$(MAKE) -C src/common $(MKDEF_SQL) sql
-
-login_sql: src/login_sql/GNUmakefile common_sql
-	$(MAKE) -C src/login_sql $(MKDEF_SQL) sql
-
-char_sql: src/char_sql/GNUmakefile common_sql
-	$(MAKE) -C src/char_sql $(MKDEF_SQL) sql
-
-map_sql: src/map/GNUmakefile common_sql
-	$(MAKE) -C src/map $(MKDEF_SQL) sql
-	
-converters: src/txt-converter/GNUmakefile common_sql
-	$(MAKE) -C src/txt-converter $(MKDEF_SQL)
-
-endif
-#####################################################################
-
-ladmin: src/ladmin/GNUmakefile common
-	$(MAKE) -C src/$@ $(MKDEF)
-
-plugins addons: src/plugins/GNUmakefile common
-	$(MAKE) -C src/plugins $(MKDEF)
-
-tools:
-	$(MAKE) -C src/tool $(MKDEF)
-
-clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
-	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
-	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
+clean:
 	$(MAKE) -C src/common $@
 	$(MAKE) -C src/login $@
 	$(MAKE) -C src/login_sql $@
@@ -107,8 +55,18 @@ clean: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	$(MAKE) -C src/map $@
 	$(MAKE) -C src/ladmin $@
 	$(MAKE) -C src/plugins $@
+	$(MAKE) -C src/tool $@
 	$(MAKE) -C src/txt-converter $@
 
+#####################################################################
+
+common: src/common/GNUmakefile
+	$(MAKE) -C src/common txt
+
+common_sql: src/common/GNUmakefile
+	$(MAKE) -C src/common sql
+
+# TODO what is this for?
 depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
 	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
 	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
@@ -134,7 +92,28 @@ src/char_sql/GNUmakefile: src/char_sql/Makefile
 src/map/GNUmakefile: src/map/Makefile
 src/plugins/GNUmakefile: src/plugins/Makefile
 src/ladmin/GNUmakefile: src/ladmin/Makefile
+src/tool/GNUmakefile: src/tool/Makefile
 src/txt-converter/GNUmakefile: src/txt-converter/Makefile
+
+#####################################################################
+# TODO
+
+# Server Packet Protocol version (also defined in src/common/mmo.h)
+# CFLAGS += -DPACKETVER=8
+
+# Makes map-wide script variables be saved to SQL instead of TXT files.
+# CFLAGS += -DMAPREGSQL
+
+# OPT += -DGCOLLECT
+# LIBS += -lgc
+
+# OPT += -DMEMWATCH
+
+# OPT += -DDMALLOC -DDMALLOC_FUNC_CHECK
+# LIBS += -ldmalloc
+
+# OPT += -DBCHECK
+
 
 install:	conf/%.conf conf/%.txt
 	$(shell mkdir -p /opt/eathena/bin/)

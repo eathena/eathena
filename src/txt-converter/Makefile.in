@@ -1,24 +1,55 @@
-all sql: char-converter login-converter
 
-char-converter: char-converter.o ../common/obj/minicore.o \
-	../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/strlib.o \
-	../common/obj/mapindex.o ../common/obj/ers.o ../common/obj/utils.o \
-	../char/char.o ../char/int_pet.o ../char/int_storage.o ../char/inter.o \
-	../char/int_party.o ../char/int_guild.o \
-	../char_sql/char.o ../char_sql/int_pet.o ../char_sql/int_storage.o \
-	../char_sql/inter.o ../char_sql/int_party.o ../char_sql/int_guild.o
-	$(CC) -o ../../tools/$@ $^ $(LIB_S)
+CHAR_CONVERTER_OBJ = char-converter.o ../common/obj/minicore.o \
+	../common/obj/malloc.o ../common/obj/strlib.o ../common/obj/showmsg.o \
+	../common/obj/utils.o ../common/obj/ers.o ../common/obj/mapindex.o \
+	../common/obj_sql/sql.o \
+	obj_txt/char.o obj_txt/int_pet.o obj_txt/int_storage.o obj_txt/inter.o \
+	obj_txt/int_party.o obj_txt/int_guild.o \
+	obj_sql/char.o obj_sql/int_pet.o obj_sql/int_storage.o \
+	obj_sql/inter.o obj_sql/int_party.o obj_sql/int_guild.o
 
-login-converter: login-converter.o ../common/obj/minicore.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/ers.o ../common/obj/utils.o
-	$(CC) -o ../../tools/$@ $^ $(LIB_S)
+#####################################################################
+.PHONY : all login-converter char-converter clean help
+
+all: login-converter char-converter
+
+login-converter: login-converter.o ../common/obj/minicore.o \
+	../common/obj/malloc.o ../common/obj/strlib.o ../common/obj/showmsg.o \
+	../common/obj/utils.o ../common/obj/ers.o ../common/obj/db.o \
+	../common/obj_sql/sql.o
+	@CC@ @LDFLAGS@ -o ../../tools/$@ $^ @LIBS@ @MYSQL_LIBS@
+
+char-converter: obj $(CHAR_CONVERTER_OBJ)
+	@CC@ @LDFLAGS@ -o ../../tools/$@ $(CHAR_CONVERTER_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -f *.o ../../tools/login-converter ../../tools/char-converter GNUmakefile
+	rm -rf *.o obj_txt obj_sql ../../tools/login-converter ../../tools/char-converter GNUmakefile
+
+help:
+	@echo "possible targets are 'login-converter' 'char-converter' 'all' 'clean' 'help'"
+	@echo "'login-converter'  - login server converter"
+	@echo "'char-converter'   - char server converter"
+	@echo "'all'              - builds all above targets"
+	@echo "'clean'            - cleans builds and objects"
+	@echo "'help'             - outputs this message"
+
+#####################################################################
+
+obj:
+	-mkdir obj_txt
+	-mkdir obj_sql
+
 
 # DO NOT DELETE
 
 %.o: %.c
-	$(COMPILE.c) -DTXT_SQL_CONVERT $(OUTPUT_OPTION) $<
+	@CC@ @CFLAGS@ @MYSQL_CFLAGS@ @CPPFLAGS@ -DTXT_SQL_CONVERT -c $(OUTPUT_OPTION) $<
+
+obj_txt/%.o: ../char/%.c
+	@CC@ @CFLAGS@ @MYSQL_CFLAGS@ @CPPFLAGS@ -DTXT_SQL_CONVERT -c $(OUTPUT_OPTION) $<
+
+obj_sql/%.o: ../char_sql/%.c
+	@CC@ @CFLAGS@ @MYSQL_CFLAGS@ @CPPFLAGS@ -DTXT_SQL_CONVERT -c $(OUTPUT_OPTION) $<
 
 char-converter.o: char-converter.c
 login-converter.o: login-converter.c

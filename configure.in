@@ -86,32 +86,62 @@ AC_PROG_CPP
 AC_LANG([C])
 
 
+CFLAGS="$CFLAGS -pipe -ffast-math -Wall -Wno-sign-compare"
+CPPFLAGS="$CPPFLAGS -I../common"
+
+
 AC_C_BIGENDIAN(
-	[AC_MSG_ERROR([bigendian is not supported... stopping])],
+	[AC_MSG_ERROR([[bigendian is not supported... stopping]])],
 	,
-	[AC_MSG_WARN([unable to determine endianess, only little endian is supported])]
+	[AC_MSG_WARN([[unable to determine endianess, only little endian is supported]])]
 )
 
 
 AC_MSG_CHECKING([whether pointers can be stored in ints (old code)])
+pointers_fit_in_ints="no"
 AC_COMPILE_IFELSE(
-	[AC_LANG_PROGRAM([[int hw[sizeof(int) == sizeof(void *)];]])],
+	[AC_LANG_PROGRAM([[int hw[(sizeof(int) == sizeof(void *))];]])],
+	[pointers_fit_in_ints="yes"],
+	[]
+)
+if test "$pointers_fit_in_ints" = "no" ; then
+	CFLAGS="$CFLAGS -m32"
+	AC_COMPILE_IFELSE(
+		[AC_LANG_PROGRAM([[int hw[(sizeof(int) == sizeof(void *))];]])],
+		[pointers_fit_in_ints="yes (with -m32)"],
+		[]
+	)
+fi
+AC_MSG_RESULT($pointers_fit_in_ints)
+if test "$pointers_fit_in_ints" = "no" ; then
+	AC_MSG_ERROR([pointers cannot be stored in ints, required for old code... stopping])
+fi
+
+
+AC_MSG_CHECKING([whether $CC supports -Wno-unused-parameter])
+OLD_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wno-unused-parameter"
+AC_COMPILE_IFELSE(
+	[int foo;],
 	[AC_MSG_RESULT([yes])],
 	[
-		CFLAGS="$CFLAGS -m32"
-		AC_COMPILE_IFELSE(
-			[
-				AC_LANG_PROGRAM([[int hw[sizeof(int) == sizeof(void *)];]])
-			],
-			[AC_MSG_RESULT([yes (with -m32)])],
-			[
-				AC_MSG_RESULT([no])
-				AC_MSG_ERROR([pointers cannot be stored in ints, required for old code... stopping])
-			]
-		)
+		AC_MSG_RESULT([no])
+		CFLAGS="$OLD_CFLAGS"
 	]
 )
 
+
+AC_MSG_CHECKING([whether $CC supports -Wno-pointer-sign])
+OLD_CFLAGS="$CFLAGS"
+CFLAGS="$CPPFLAGS -Wno-pointer-sign"
+AC_COMPILE_IFELSE(
+	[int foo;],
+	[AC_MSG_RESULT([yes])],
+	[
+		AC_MSG_RESULT([no])
+		CFLAGS="$OLD_CFLAGS"
+	]
+)
 
 
 ###############################################################################
@@ -224,6 +254,8 @@ dnl
 AC_MSG_CHECKING([host OS])
 host_os="`uname`"
 AC_MSG_RESULT([$host_os])
+fd_setsize=""
+PLUGINEXT="so"
 case $host_os in
 Solaris* )
 	LIBS="$LIBS -lsocket -lnsl -ldl"
@@ -240,12 +272,13 @@ NetBSD*)
 CYGWIN*)
 	CPPFLAGS="$CPPFLAGS -DFD_SETSIZE=4096 -DCYGWIN"
 	fd_setsize="done"
+	PLUGINEXT="dll"
 	;;
 esac
+AC_SUBST([PLUGINEXT])
 
 AC_MSG_CHECKING([for MinGW])
-cc_version="`$CC --version`"
-if test expr index "$cc_version" "mingw" ; then
+if test -n "`$CC --version | grep -i mingw`" ; then
 	AC_MSG_RESULT([yes])
 	CPPFLAGS="$CPPFLAGS -DMINGW"
 	if test -z "$fd_setsize" ; then

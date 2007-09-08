@@ -3,6 +3,13 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/08
+	* Moved some defines back to char_sql/int_party.h and char_sql/int_guild.h
+	  (required for the txt-converters).
+	* Work on configure script and Makefiles: [FlavioJS]
+	- a more compatible way to test for MinGW in configure
+	- check if -Wno-unused-parameter and -Wno-pointer-sign are supported
+	- move stuff from the main Makefile to the other Makefiles (embedded)
 2007/09/07
 	* Corrected charserver header usage
 	* Some misc login server cleanups (reformatting etc) [ultramage]
