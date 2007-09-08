@@ -186,6 +186,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 
 			strcat(t_info, " emblem");
 			// Convert emblem_data to hex
+			//TODO: why not use binary directly? [ultramage]
 			for(i=0; i<g->emblem_len; i++){
 				*pData++ = dataToHex[(g->emblem_data[i] >> 4) & 0x0F];
 				*pData++ = dataToHex[g->emblem_data[i] & 0x0F];
@@ -356,6 +357,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 		ShowInfo("Saved guild (%d - %s):%s\n",g->guild_id,g->name,t_info);
 	return 1;
 }
+
 #ifndef TXT_SQL_CONVERT
 // Read guild from sql
 struct guild * inter_guild_fromsql(int guild_id)
@@ -390,53 +392,27 @@ struct guild * inter_guild_fromsql(int guild_id)
 	CREATE(g, struct guild, 1);
 
 	g->guild_id = guild_id;
-	// name
-	Sql_GetData(sql_handle, 0, &data, &len);
-	memcpy(g->name, data, min(len, NAME_LENGTH));
-	// master
-	Sql_GetData(sql_handle, 1, &data, &len);
-	memcpy(g->master, data, min(len, NAME_LENGTH));
-	// guild_lv
-	Sql_GetData(sql_handle, 2, &data, NULL);
-	g->guild_lv = atoi(data);
-	// connect_member
-	Sql_GetData(sql_handle, 3, &data, NULL);
-	g->connect_member = atoi(data);
-	// max_member
-	Sql_GetData(sql_handle, 4, &data, NULL);
-	g->max_member = atoi(data);
+	Sql_GetData(sql_handle, 0, &data, &len); memcpy(g->name, data, min(len, NAME_LENGTH));
+	Sql_GetData(sql_handle, 1, &data, &len); memcpy(g->master, data, min(len, NAME_LENGTH));
+	Sql_GetData(sql_handle, 2, &data, NULL); g->guild_lv = atoi(data);
+	Sql_GetData(sql_handle, 3, &data, NULL); g->connect_member = atoi(data);
+	Sql_GetData(sql_handle, 4, &data, NULL); g->max_member = atoi(data);
 	if( g->max_member > MAX_GUILD )
 	{	// Fix reduction of MAX_GUILD [PoW]
 		ShowWarning("Guild %d:%s specifies higher capacity (%d) than MAX_GUILD (%d)\n", guild_id, g->name, g->max_member, MAX_GUILD);
 		g->max_member = MAX_GUILD;
 	}
-	// average_lv
-	Sql_GetData(sql_handle, 5, &data, NULL);
-	g->average_lv = atoi(data);
-	// exp
-	Sql_GetData(sql_handle, 6, &data, NULL);
-	g->exp = (unsigned int)strtoul(data, NULL, 10);
-	// next_exp
-	Sql_GetData(sql_handle, 7, &data, NULL);
-	g->next_exp = (unsigned int)strtoul(data, NULL, 10);
-	// max_member
-	Sql_GetData(sql_handle, 8, &data, NULL);
-	g->skill_point = atoi(data);
-	//There shouldn't be a need to copy the very last char, as it's the \0 [Skotlex]
-	// mes1
-	Sql_GetData(sql_handle, 9, &data, &len);
-	memcpy(g->mes1, data, min(len, sizeof(g->mes1)));
-	// mes2
-	Sql_GetData(sql_handle, 10, &data, &len);
-	memcpy(g->mes2, data, min(len, sizeof(g->mes2)));
-	// emblem_len
-	Sql_GetData(sql_handle, 11, &data, &len);
-	g->emblem_len = atoi(data);
-	// emblem_id
-	Sql_GetData(sql_handle, 12, &data, &len);
-	g->emblem_id = atoi(data);
-	// emblem_data
+	Sql_GetData(sql_handle,  5, &data, NULL); g->average_lv = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); g->exp = (unsigned int)strtoul(data, NULL, 10);
+	Sql_GetData(sql_handle,  7, &data, NULL); g->next_exp = (unsigned int)strtoul(data, NULL, 10);
+	Sql_GetData(sql_handle,  8, &data, NULL); g->skill_point = atoi(data);
+	Sql_GetData(sql_handle,  9, &data, &len); memcpy(g->mes1, data, min(len, sizeof(g->mes1)));
+	Sql_GetData(sql_handle, 10, &data, &len); memcpy(g->mes2, data, min(len, sizeof(g->mes2)));
+	Sql_GetData(sql_handle, 11, &data, &len); g->emblem_len = atoi(data);
+	Sql_GetData(sql_handle, 12, &data, &len); g->emblem_id = atoi(data);
 	Sql_GetData(sql_handle, 13, &data, &len);
+	// convert emblem data from hexadecimal to binary
+	//TODO: why not store it in the db as binary directly? [ultramage]
 	for( i = 0, p = g->emblem_data; i < g->emblem_len; ++i, ++p )
 	{
 		if( *data >= '0' && *data <= '9' )
@@ -467,49 +443,26 @@ struct guild * inter_guild_fromsql(int guild_id)
 	}
 	for( i = 0; i < g->max_member && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		struct guild_member *m = &g->member[i];
+		struct guild_member* m = &g->member[i];
 
-		// account_id
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		m->account_id = atoi(data);
-		// char_id
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		m->char_id = atoi(data);
-		// hair
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		m->hair = atoi(data);
-		// hair_color
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		m->hair_color = atoi(data);
-		// gender
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		m->gender = atoi(data);
-		// class_
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		m->class_ = atoi(data);
-		// lv
-		Sql_GetData(sql_handle, 7, &data, NULL);
-		m->lv = atoi(data);
-		// exp
-		Sql_GetData(sql_handle, 8, &data, NULL);
-		m->exp = (unsigned int)strtoul(data, NULL, 10);
-		// exp_payper
-		Sql_GetData(sql_handle, 9, &data, NULL);
-		m->exp_payper = (unsigned int)atoi(data);
-		// online
-		Sql_GetData(sql_handle, 10, &data, NULL);
-		m->online = atoi(data);
-		// position
-		Sql_GetData(sql_handle, 11, &data, NULL);
-		m->position = atoi(data);
+		Sql_GetData(sql_handle,  1, &data, NULL); m->account_id = atoi(data);
+		Sql_GetData(sql_handle,  2, &data, NULL); m->char_id = atoi(data);
+		Sql_GetData(sql_handle,  3, &data, NULL); m->hair = atoi(data);
+		Sql_GetData(sql_handle,  4, &data, NULL); m->hair_color = atoi(data);
+		Sql_GetData(sql_handle,  5, &data, NULL); m->gender = atoi(data);
+		Sql_GetData(sql_handle,  6, &data, NULL); m->class_ = atoi(data);
+		Sql_GetData(sql_handle,  7, &data, NULL); m->lv = atoi(data);
+		Sql_GetData(sql_handle,  8, &data, NULL); m->exp = (unsigned int)strtoul(data, NULL, 10);
+		Sql_GetData(sql_handle,  9, &data, NULL); m->exp_payper = (unsigned int)atoi(data);
+		Sql_GetData(sql_handle, 10, &data, NULL); m->online = atoi(data);
+		Sql_GetData(sql_handle, 11, &data, NULL); m->position = atoi(data);
 		if( m->position >= MAX_GUILDPOSITION ) // Fix reduction of MAX_GUILDPOSITION [PoW]
 			m->position = MAX_GUILDPOSITION - 1;
 		//## TODO what about the rsv fields?
 		// rsv1 (12)
 		// rsv2 (13)
 		// name
-		Sql_GetData(sql_handle, 14, &data, &len);
-		memcpy(m->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle, 14, &data, &len); memcpy(m->name, data, min(len, NAME_LENGTH));
 		m->modified = GS_MEMBER_UNMODIFIED;
 	}
 
@@ -525,21 +478,13 @@ struct guild * inter_guild_fromsql(int guild_id)
 		int position;
 		struct guild_position* p;
 
-		// position
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		position = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); position = atoi(data);
 		if( position < 0 || position >= MAX_GUILDPOSITION )
 			continue;// invalid position
 		p = &g->position[position];
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(p->name, data, min(len, NAME_LENGTH));
-		// mode
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		p->mode = atoi(data);
-		// exp_mode
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		p->exp_mode = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, &len); memcpy(p->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle, 3, &data, NULL); p->mode = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); p->exp_mode = atoi(data);
 		p->modified = GS_POSITION_UNMODIFIED;
 	}
 
@@ -554,15 +499,9 @@ struct guild * inter_guild_fromsql(int guild_id)
 	{
 		struct guild_alliance* a = &g->alliance[i];
 
-		// opposition
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		a->opposition = atoi(data);
-		// alliance_id
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		a->guild_id = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 3, &data, &len);
-		memcpy(a->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle, 1, &data, NULL); a->opposition = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); a->guild_id = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, &len); memcpy(a->name, data, min(len, NAME_LENGTH));
 	}
 
 	//printf("- Read guild_expulsion %d from sql \n",guild_id);
@@ -576,27 +515,13 @@ struct guild * inter_guild_fromsql(int guild_id)
 	{
 		struct guild_expulsion *e = &g->expulsion[i];
 
-		// name
-		Sql_GetData(sql_handle, 1, &data, &len);
-		memcpy(e->name, data, min(len, NAME_LENGTH));
-		// mes
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(e->mes, data, min(len, sizeof(e->mes)));
-		// acc
-		Sql_GetData(sql_handle, 3, &data, &len);
-		memcpy(e->acc, data, min(len, sizeof(e->acc)));
-		// account_id
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		e->account_id = atoi(data);
-		// rsv1
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		e->rsv1 = atoi(data);
-		// rsv2
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		e->rsv2 = atoi(data);
-		// rsv3
-		Sql_GetData(sql_handle, 7, &data, NULL);
-		e->rsv3 = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, &len); memcpy(e->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle, 2, &data, &len); memcpy(e->mes, data, min(len, sizeof(e->mes)));
+		Sql_GetData(sql_handle, 3, &data, &len); memcpy(e->acc, data, min(len, sizeof(e->acc)));
+		Sql_GetData(sql_handle, 4, &data, NULL); e->account_id = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); e->rsv1 = atoi(data);
+		Sql_GetData(sql_handle, 6, &data, NULL); e->rsv2 = atoi(data);
+		Sql_GetData(sql_handle, 7, &data, NULL); e->rsv3 = atoi(data);
 	}
 
 	//printf("- Read guild_skill %d from sql \n",guild_id);
@@ -703,81 +628,31 @@ int inter_guildcastle_fromsql(int castle_id,struct guild_castle *gc)
 		return 1; //Assume empty castle.
 	}
 
-	// guild_id
-	Sql_GetData(sql_handle, 1, &data, NULL);
-	gc->guild_id =  atoi(data);
-	// economy
-	Sql_GetData(sql_handle, 2, &data, NULL);
-	gc->economy = atoi(data);
-	// defense
-	Sql_GetData(sql_handle, 3, &data, NULL);
-	gc->defense = atoi(data);
-	// triggerE
-	Sql_GetData(sql_handle, 4, &data, NULL);
-	gc->triggerE = atoi(data);
-	// triggerD
-	Sql_GetData(sql_handle, 5, &data, NULL);
-	gc->triggerD = atoi(data);
-	// nextTime
-	Sql_GetData(sql_handle, 6, &data, NULL);
-	gc->nextTime = atoi(data);
-	// payTime
-	Sql_GetData(sql_handle, 7, &data, NULL);
-	gc->payTime = atoi(data);
-	// createTime
-	Sql_GetData(sql_handle, 8, &data, NULL);
-	gc->createTime = atoi(data);
-	// visibleC
-	Sql_GetData(sql_handle, 9, &data, NULL);
-	gc->visibleC = atoi(data);
-	// visibleG0
-	Sql_GetData(sql_handle, 10, &data, NULL);
-	gc->guardian[0].visible = atoi(data);
-	// visibleG1
-	Sql_GetData(sql_handle, 11, &data, NULL);
-	gc->guardian[1].visible = atoi(data);
-	// visibleG2
-	Sql_GetData(sql_handle, 12, &data, NULL);
-	gc->guardian[2].visible = atoi(data);
-	// visibleG3
-	Sql_GetData(sql_handle, 13, &data, NULL);
-	gc->guardian[3].visible = atoi(data);
-	// visibleG4
-	Sql_GetData(sql_handle, 14, &data, NULL);
-	gc->guardian[4].visible = atoi(data);
-	// visibleG5
-	Sql_GetData(sql_handle, 15, &data, NULL);
-	gc->guardian[5].visible = atoi(data);
-	// visibleG6
-	Sql_GetData(sql_handle, 16, &data, NULL);
-	gc->guardian[6].visible = atoi(data);
-	// visibleG7
-	Sql_GetData(sql_handle, 17, &data, NULL);
-	gc->guardian[7].visible = atoi(data);
-	// Ghp0
-	Sql_GetData(sql_handle, 18, &data, NULL);
-	gc->guardian[0].hp = atoi(data);
-	// Ghp1
-	Sql_GetData(sql_handle, 19, &data, NULL);
-	gc->guardian[1].hp = atoi(data);
-	// Ghp2
-	Sql_GetData(sql_handle, 20, &data, NULL);
-	gc->guardian[2].hp = atoi(data);
-	// Ghp3
-	Sql_GetData(sql_handle, 21, &data, NULL);
-	gc->guardian[3].hp = atoi(data);
-	// Ghp4
-	Sql_GetData(sql_handle, 22, &data, NULL);
-	gc->guardian[4].hp = atoi(data);
-	// Ghp5
-	Sql_GetData(sql_handle, 23, &data, NULL);
-	gc->guardian[5].hp = atoi(data);
-	// Ghp6
-	Sql_GetData(sql_handle, 24, &data, NULL);
-	gc->guardian[6].hp = atoi(data);
-	// Ghp7
-	Sql_GetData(sql_handle, 25, &data, NULL);
-	gc->guardian[7].hp = atoi(data);
+	Sql_GetData(sql_handle,  1, &data, NULL); gc->guild_id =  atoi(data);
+	Sql_GetData(sql_handle,  2, &data, NULL); gc->economy = atoi(data);
+	Sql_GetData(sql_handle,  3, &data, NULL); gc->defense = atoi(data);
+	Sql_GetData(sql_handle,  4, &data, NULL); gc->triggerE = atoi(data);
+	Sql_GetData(sql_handle,  5, &data, NULL); gc->triggerD = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); gc->nextTime = atoi(data);
+	Sql_GetData(sql_handle,  7, &data, NULL); gc->payTime = atoi(data);
+	Sql_GetData(sql_handle,  8, &data, NULL); gc->createTime = atoi(data);
+	Sql_GetData(sql_handle,  9, &data, NULL); gc->visibleC = atoi(data);
+	Sql_GetData(sql_handle, 10, &data, NULL); gc->guardian[0].visible = atoi(data);
+	Sql_GetData(sql_handle, 11, &data, NULL); gc->guardian[1].visible = atoi(data);
+	Sql_GetData(sql_handle, 12, &data, NULL); gc->guardian[2].visible = atoi(data);
+	Sql_GetData(sql_handle, 13, &data, NULL); gc->guardian[3].visible = atoi(data);
+	Sql_GetData(sql_handle, 14, &data, NULL); gc->guardian[4].visible = atoi(data);
+	Sql_GetData(sql_handle, 15, &data, NULL); gc->guardian[5].visible = atoi(data);
+	Sql_GetData(sql_handle, 16, &data, NULL); gc->guardian[6].visible = atoi(data);
+	Sql_GetData(sql_handle, 17, &data, NULL); gc->guardian[7].visible = atoi(data);
+	Sql_GetData(sql_handle, 18, &data, NULL); gc->guardian[0].hp = atoi(data);
+	Sql_GetData(sql_handle, 19, &data, NULL); gc->guardian[1].hp = atoi(data);
+	Sql_GetData(sql_handle, 20, &data, NULL); gc->guardian[2].hp = atoi(data);
+	Sql_GetData(sql_handle, 21, &data, NULL); gc->guardian[3].hp = atoi(data);
+	Sql_GetData(sql_handle, 22, &data, NULL); gc->guardian[4].hp = atoi(data);
+	Sql_GetData(sql_handle, 23, &data, NULL); gc->guardian[5].hp = atoi(data);
+	Sql_GetData(sql_handle, 24, &data, NULL); gc->guardian[6].hp = atoi(data);
+	Sql_GetData(sql_handle, 25, &data, NULL); gc->guardian[7].hp = atoi(data);
 
 	Sql_FreeResult(sql_handle);
 	memcpy(&castles[castle_id],gc,sizeof(struct guild_castle));
@@ -1343,84 +1218,32 @@ int mapif_guild_castle_alldataload(int fd)
 	{
 		memset(gc, 0, sizeof(struct guild_castle));
 
-		// castle_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		gc->castle_id = atoi(data);
-		// guild_id
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		gc->guild_id = atoi(data);
-		// economy
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		gc->economy = atoi(data);
-		// defense
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		gc->defense = atoi(data);
-		// triggerE
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		gc->triggerE = atoi(data);
-		// triggerD
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		gc->triggerD = atoi(data);
-		// nextTime
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		gc->nextTime = atoi(data);
-		// payTime
-		Sql_GetData(sql_handle, 7, &data, NULL);
-		gc->payTime = atoi(data);
-		// createTime
-		Sql_GetData(sql_handle, 8, &data, NULL);
-		gc->createTime = atoi(data);
-		// visibleC
-		Sql_GetData(sql_handle, 9, &data, NULL);
-		gc->visibleC = atoi(data);
-		// visibleG0
-		Sql_GetData(sql_handle, 10, &data, NULL);
-		gc->guardian[0].visible = atoi(data);
-		// visibleG1
-		Sql_GetData(sql_handle, 11, &data, NULL);
-		gc->guardian[1].visible = atoi(data);
-		// visibleG2
-		Sql_GetData(sql_handle, 12, &data, NULL);
-		gc->guardian[2].visible = atoi(data);
-		// visibleG3
-		Sql_GetData(sql_handle, 13, &data, NULL);
-		gc->guardian[3].visible = atoi(data);
-		// visibleG4
-		Sql_GetData(sql_handle, 14, &data, NULL);
-		gc->guardian[4].visible = atoi(data);
-		// visibleG5
-		Sql_GetData(sql_handle, 15, &data, NULL);
-		gc->guardian[5].visible = atoi(data);
-		// visibleG6
-		Sql_GetData(sql_handle, 16, &data, NULL);
-		gc->guardian[6].visible = atoi(data);
-		// visibleG7
-		Sql_GetData(sql_handle, 17, &data, NULL);
-		gc->guardian[7].visible = atoi(data);
-		// Ghp0
-		Sql_GetData(sql_handle, 18, &data, NULL);
-		gc->guardian[0].hp = atoi(data);
-		// Ghp1
-		Sql_GetData(sql_handle, 19, &data, NULL);
-		gc->guardian[1].hp = atoi(data);
-		// Ghp2
-		Sql_GetData(sql_handle, 20, &data, NULL);
-		gc->guardian[2].hp = atoi(data);
-		// Ghp3
-		Sql_GetData(sql_handle, 21, &data, NULL);
-		gc->guardian[3].hp = atoi(data);
-		// Ghp4
-		Sql_GetData(sql_handle, 22, &data, NULL);
-		gc->guardian[4].hp = atoi(data);
-		// Ghp5
-		Sql_GetData(sql_handle, 23, &data, NULL);
-		gc->guardian[5].hp = atoi(data);
-		// Ghp6
-		Sql_GetData(sql_handle, 24, &data, NULL);
-		gc->guardian[6].hp = atoi(data);
-		// Ghp7
-		Sql_GetData(sql_handle, 25, &data, NULL);
-		gc->guardian[7].hp = atoi(data);
+		Sql_GetData(sql_handle,  0, &data, NULL); gc->castle_id = atoi(data);
+		Sql_GetData(sql_handle,  1, &data, NULL); gc->guild_id = atoi(data);
+		Sql_GetData(sql_handle,  2, &data, NULL); gc->economy = atoi(data);
+		Sql_GetData(sql_handle,  3, &data, NULL); gc->defense = atoi(data);
+		Sql_GetData(sql_handle,  4, &data, NULL); gc->triggerE = atoi(data);
+		Sql_GetData(sql_handle,  5, &data, NULL); gc->triggerD = atoi(data);
+		Sql_GetData(sql_handle,  6, &data, NULL); gc->nextTime = atoi(data);
+		Sql_GetData(sql_handle,  7, &data, NULL); gc->payTime = atoi(data);
+		Sql_GetData(sql_handle,  8, &data, NULL); gc->createTime = atoi(data);
+		Sql_GetData(sql_handle,  9, &data, NULL); gc->visibleC = atoi(data);
+		Sql_GetData(sql_handle, 10, &data, NULL); gc->guardian[0].visible = atoi(data);
+		Sql_GetData(sql_handle, 11, &data, NULL); gc->guardian[1].visible = atoi(data);
+		Sql_GetData(sql_handle, 12, &data, NULL); gc->guardian[2].visible = atoi(data);
+		Sql_GetData(sql_handle, 13, &data, NULL); gc->guardian[3].visible = atoi(data);
+		Sql_GetData(sql_handle, 14, &data, NULL); gc->guardian[4].visible = atoi(data);
+		Sql_GetData(sql_handle, 15, &data, NULL); gc->guardian[5].visible = atoi(data);
+		Sql_GetData(sql_handle, 16, &data, NULL); gc->guardian[6].visible = atoi(data);
+		Sql_GetData(sql_handle, 17, &data, NULL); gc->guardian[7].visible = atoi(data);
+		Sql_GetData(sql_handle, 18, &data, NULL); gc->guardian[0].hp = atoi(data);
+		Sql_GetData(sql_handle, 19, &data, NULL); gc->guardian[1].hp = atoi(data);
+		Sql_GetData(sql_handle, 20, &data, NULL); gc->guardian[2].hp = atoi(data);
+		Sql_GetData(sql_handle, 21, &data, NULL); gc->guardian[3].hp = atoi(data);
+		Sql_GetData(sql_handle, 22, &data, NULL); gc->guardian[4].hp = atoi(data);
+		Sql_GetData(sql_handle, 23, &data, NULL); gc->guardian[5].hp = atoi(data);
+		Sql_GetData(sql_handle, 24, &data, NULL); gc->guardian[6].hp = atoi(data);
+		Sql_GetData(sql_handle, 25, &data, NULL); gc->guardian[7].hp = atoi(data);
 
 		memcpy(WFIFOP(fd, off), gc, sizeof(struct guild_castle));
 		off += sizeof(struct guild_castle);
@@ -1690,7 +1513,7 @@ int mapif_parse_BreakGuild(int fd,int guild_id)
 
 	// Delete guild from sql
 	//printf("- Delete guild %d from guild\n",guild_id);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id`='%d'", guild_db, guild_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id) )
 		Sql_ShowDebug(sql_handle);
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id) )

@@ -4,9 +4,8 @@
 #ifndef	_MMO_H_
 #define	_MMO_H_
 
-#include <time.h>
 #include "cbasetypes.h"
-#include "utils.h" // _WIN32
+#include <time.h>
 
 // server protocol version
 #ifndef PACKETVER

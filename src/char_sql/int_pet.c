@@ -6,6 +6,7 @@
 #include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 #include "../common/sql.h"
 #include "char.h"
 #include "inter.h"
@@ -76,39 +77,17 @@ int inter_pet_fromsql(int pet_id, struct s_pet* p)
 	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
 	{
 		p->pet_id = pet_id;
-		// class
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		p->class_ = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(p->name, data, min(len, NAME_LENGTH));
-		// account_id
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		p->account_id = atoi(data);
-		// char_id
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		p->char_id = atoi(data);
-		// level
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		p->level = atoi(data);
-		// egg_id
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		p->egg_id = atoi(data);
-		// equip
-		Sql_GetData(sql_handle, 7, &data, NULL);
-		p->equip = atoi(data);
-		// intimate
-		Sql_GetData(sql_handle, 8, &data, NULL);
-		p->intimate = atoi(data);
-		// hungry
-		Sql_GetData(sql_handle, 9, &data, NULL);
-		p->hungry = atoi(data);
-		// rename_flag
-		Sql_GetData(sql_handle, 10, &data, NULL);
-		p->rename_flag = atoi(data);
-		// incuvate
-		Sql_GetData(sql_handle, 11, &data, NULL);
-		p->incuvate = atoi(data);
+		Sql_GetData(sql_handle,  1, &data, NULL); p->class_ = atoi(data);
+		Sql_GetData(sql_handle,  2, &data, &len); memcpy(p->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle,  3, &data, NULL); p->account_id = atoi(data);
+		Sql_GetData(sql_handle,  4, &data, NULL); p->char_id = atoi(data);
+		Sql_GetData(sql_handle,  5, &data, NULL); p->level = atoi(data);
+		Sql_GetData(sql_handle,  6, &data, NULL); p->egg_id = atoi(data);
+		Sql_GetData(sql_handle,  7, &data, NULL); p->equip = atoi(data);
+		Sql_GetData(sql_handle,  8, &data, NULL); p->intimate = atoi(data);
+		Sql_GetData(sql_handle,  9, &data, NULL); p->hungry = atoi(data);
+		Sql_GetData(sql_handle, 10, &data, NULL); p->rename_flag = atoi(data);
+		Sql_GetData(sql_handle, 11, &data, NULL); p->incuvate = atoi(data);
 
 		Sql_FreeResult(sql_handle);
 

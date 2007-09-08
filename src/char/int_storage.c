@@ -7,6 +7,7 @@
 #include "../common/db.h"
 #include "../common/lock.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 #include "char.h"
 #include "inter.h"
 #include "int_storage.h"

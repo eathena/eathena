@@ -81,31 +81,16 @@ int storage_fromsql(int account_id, struct storage* p)
 	for( i = 0; i < MAX_STORAGE && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		item = &p->storage_[i];
-		// id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		item->id = atoi(data);
-		// nameid
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		item->nameid = atoi(data);
-		// amount
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		item->amount = atoi(data);
-		// equip
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		item->equip = atoi(data);
-		// identify
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		item->identify = atoi(data);
-		// refine
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		item->refine = atoi(data);
-		// attribute
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		item->attribute = atoi(data);
+		Sql_GetData(sql_handle, 0, &data, NULL); item->id = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); item->nameid = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); item->amount = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, NULL); item->equip = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); item->identify = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); item->refine = atoi(data);
+		Sql_GetData(sql_handle, 6, &data, NULL); item->attribute = atoi(data);
 		for( j = 0; j < MAX_SLOTS; ++j )
-		{// cards
-			Sql_GetData(sql_handle, 7+j, &data, NULL);
-			item->card[j] = atoi(data);
+		{
+			Sql_GetData(sql_handle, 7+j, &data, NULL); item->card[j] = atoi(data);
 		}
 	}
 	p->storage_amount = i;
@@ -172,31 +157,16 @@ int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 	for( i = 0; i < MAX_GUILD_STORAGE && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		item = &p->storage_[i];
-		// id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		item->id = atoi(data);
-		// nameid
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		item->nameid = atoi(data);
-		// amount
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		item->amount = atoi(data);
-		// equip
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		item->equip = atoi(data);
-		// identify
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		item->identify = atoi(data);
-		// refine
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		item->refine = atoi(data);
-		// attribute
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		item->attribute = atoi(data);
+		Sql_GetData(sql_handle, 0, &data, NULL); item->id = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); item->nameid = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); item->amount = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, NULL); item->equip = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); item->identify = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); item->refine = atoi(data);
+		Sql_GetData(sql_handle, 6, &data, NULL); item->attribute = atoi(data);
 		for( j = 0; j < MAX_SLOTS; ++j )
-		{// cards
-			Sql_GetData(sql_handle, 7+j, &data, NULL);
-			item->card[j] = atoi(data);
+		{
+			Sql_GetData(sql_handle, 7+j, &data, NULL); item->card[j] = atoi(data);
 		}
 	}
 	p->storage_amount = i;

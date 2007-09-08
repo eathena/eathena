@@ -6,6 +6,7 @@
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
+#include "../common/utils.h"
 #include "../common/sql.h"
 #include "char.h"
 #include "inter.h"
@@ -159,68 +160,28 @@ int mapif_load_homunculus(int fd)
 	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
 	{
 		homun_pt->hom_id = RFIFOL(fd,6);
-		// char_id
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		homun_pt->char_id = atoi(data);
-		// class_
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		homun_pt->class_ = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 3, &data, &len);
-		memcpy(homun_pt->name, data, min(len, NAME_LENGTH));
-		// level
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		homun_pt->level = atoi(data);
-		// exp
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		homun_pt->exp = atoi(data);
-		// intimacy
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		homun_pt->intimacy = (unsigned int)strtoul(data, NULL, 10);
+		Sql_GetData(sql_handle,  1, &data, NULL); homun_pt->char_id = atoi(data);
+		Sql_GetData(sql_handle,  2, &data, NULL); homun_pt->class_ = atoi(data);
+		Sql_GetData(sql_handle,  3, &data, &len); memcpy(homun_pt->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle,  4, &data, NULL); homun_pt->level = atoi(data);
+		Sql_GetData(sql_handle,  5, &data, NULL); homun_pt->exp = atoi(data);
+		Sql_GetData(sql_handle,  6, &data, NULL); homun_pt->intimacy = (unsigned int)strtoul(data, NULL, 10);
 		homun_pt->intimacy = cap_value(homun_pt->intimacy, 0, 100000);
-		// hunger
-		Sql_GetData(sql_handle, 7, &data, NULL);
-		homun_pt->hunger = atoi(data);
+		Sql_GetData(sql_handle,  7, &data, NULL); homun_pt->hunger = atoi(data);
 		homun_pt->hunger = cap_value(homun_pt->hunger, 0, 100);
-		// str
-		Sql_GetData(sql_handle, 8, &data, NULL);
-		homun_pt->str = atoi(data);
-		// agi
-		Sql_GetData(sql_handle, 9, &data, NULL);
-		homun_pt->agi = atoi(data);
-		// vit
-		Sql_GetData(sql_handle, 10, &data, NULL);
-		homun_pt->vit = atoi(data);
-		// int_
-		Sql_GetData(sql_handle, 11, &data, NULL);
-		homun_pt->int_ = atoi(data);
-		// dex
-		Sql_GetData(sql_handle, 12, &data, NULL);
-		homun_pt->dex = atoi(data);
-		// luk
-		Sql_GetData(sql_handle, 13, &data, NULL);
-		homun_pt->luk = atoi(data);
-		// hp
-		Sql_GetData(sql_handle, 14, &data, NULL);
-		homun_pt->hp = atoi(data);
-		// max_hp
-		Sql_GetData(sql_handle, 15, &data, NULL);
-		homun_pt->max_hp = atoi(data);
-		// sp
-		Sql_GetData(sql_handle, 16, &data, NULL);
-		homun_pt->sp = atoi(data);
-		// max_sp
-		Sql_GetData(sql_handle, 17, &data, NULL);
-		homun_pt->max_sp = atoi(data);
-		// skillpts
-		Sql_GetData(sql_handle, 18, &data, NULL);
-		homun_pt->skillpts = atoi(data);
-		// rename_flag
-		Sql_GetData(sql_handle, 19, &data, NULL);
-		homun_pt->rename_flag = atoi(data);
-		// vaporize
-		Sql_GetData(sql_handle, 20, &data, NULL);
-		homun_pt->vaporize = atoi(data);
+		Sql_GetData(sql_handle,  8, &data, NULL); homun_pt->str = atoi(data);
+		Sql_GetData(sql_handle,  9, &data, NULL); homun_pt->agi = atoi(data);
+		Sql_GetData(sql_handle, 10, &data, NULL); homun_pt->vit = atoi(data);
+		Sql_GetData(sql_handle, 11, &data, NULL); homun_pt->int_ = atoi(data);
+		Sql_GetData(sql_handle, 12, &data, NULL); homun_pt->dex = atoi(data);
+		Sql_GetData(sql_handle, 13, &data, NULL); homun_pt->luk = atoi(data);
+		Sql_GetData(sql_handle, 14, &data, NULL); homun_pt->hp = atoi(data);
+		Sql_GetData(sql_handle, 15, &data, NULL); homun_pt->max_hp = atoi(data);
+		Sql_GetData(sql_handle, 16, &data, NULL); homun_pt->sp = atoi(data);
+		Sql_GetData(sql_handle, 17, &data, NULL); homun_pt->max_sp = atoi(data);
+		Sql_GetData(sql_handle, 18, &data, NULL); homun_pt->skillpts = atoi(data);
+		Sql_GetData(sql_handle, 19, &data, NULL); homun_pt->rename_flag = atoi(data);
+		Sql_GetData(sql_handle, 20, &data, NULL); homun_pt->vaporize = atoi(data);
 
 		Sql_FreeResult(sql_handle);
 	}

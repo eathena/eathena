@@ -228,21 +228,11 @@ struct party_data *inter_party_fromsql(int party_id)
 		return NULL;
 
 	p->party.party_id = party_id;
-	// name
-	Sql_GetData(sql_handle, 1, &data, &len);
-	memcpy(p->party.name, data, min(len, NAME_LENGTH));
-	// exp
-	Sql_GetData(sql_handle, 2, &data, NULL);
-	p->party.exp = (atoi(data) ? 1 : 0);
-	// item
-	Sql_GetData(sql_handle, 3, &data, NULL);
-	p->party.item = atoi(data);
-	// leader_id
-	Sql_GetData(sql_handle, 4, &data, NULL);
-	leader_id = atoi(data);
-	// leader_char
-	Sql_GetData(sql_handle, 5, &data, NULL);
-	leader_char = atoi(data);
+	Sql_GetData(sql_handle, 1, &data, &len); memcpy(p->party.name, data, min(len, NAME_LENGTH));
+	Sql_GetData(sql_handle, 2, &data, NULL); p->party.exp = (atoi(data) ? 1 : 0);
+	Sql_GetData(sql_handle, 3, &data, NULL); p->party.item = atoi(data);
+	Sql_GetData(sql_handle, 4, &data, NULL); leader_id = atoi(data);
+	Sql_GetData(sql_handle, 5, &data, NULL); leader_char = atoi(data);
 	Sql_FreeResult(sql_handle);
 
 	// Load members
@@ -254,29 +244,14 @@ struct party_data *inter_party_fromsql(int party_id)
 	for( i = 0; i < MAX_PARTY && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		m = &p->party.member[i];
-		// account_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		m->account_id = atoi(data);
-		// char_id
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		m->char_id = atoi(data);
-		// leader
+		Sql_GetData(sql_handle, 0, &data, NULL); m->account_id = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); m->char_id = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, &len); memcpy(m->name, data, min(len, NAME_LENGTH));
+		Sql_GetData(sql_handle, 3, &data, NULL); m->lv = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); m->map = mapindex_name2id(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); m->online = (atoi(data) ? 1 : 0);
+		Sql_GetData(sql_handle, 6, &data, NULL); m->class_ = atoi(data);
 		m->leader = (m->account_id == leader_id && m->char_id == leader_char ? 1 : 0);
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(m->name, data, min(len, NAME_LENGTH));
-		// lv
-		Sql_GetData(sql_handle, 3, &data, NULL);
-		m->lv = atoi(data);
-		// map
-		Sql_GetData(sql_handle, 4, &data, NULL);
-		m->map = mapindex_name2id(data);
-		// online
-		Sql_GetData(sql_handle, 5, &data, NULL);
-		m->online = (atoi(data) ? 1 : 0);
-		// class_
-		Sql_GetData(sql_handle, 6, &data, NULL);
-		m->class_ = atoi(data);
 	}
 	Sql_FreeResult(sql_handle);
 
