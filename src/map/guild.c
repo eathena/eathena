@@ -12,6 +12,7 @@
 #include "../common/mapindex.h"
 #include "../common/showmsg.h"
 #include "../common/ers.h"
+#include "../common/utils.h"
 
 #include "map.h"
 #include "guild.h"

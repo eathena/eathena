@@ -4,7 +4,6 @@
 #include "../common/cbasetypes.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
-#include "../common/utils.h"
 #include "../common/strlib.h"
 #include "sql.h"
 

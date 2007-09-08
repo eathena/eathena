@@ -4,6 +4,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
+#include "../common/utils.h"
 #include "battle.h"
 #include "map.h"
 #include "clif.h"

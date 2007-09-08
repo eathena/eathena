@@ -13,6 +13,7 @@
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
 #include "../common/core.h"
+#include "../common/utils.h"
 
 #include "map.h"
 #include "chrif.h"

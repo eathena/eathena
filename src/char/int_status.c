@@ -1,6 +1,7 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/mmo.h"
 #include "../common/db.h"
 #include "../common/lock.h"
 #include "../common/malloc.h"

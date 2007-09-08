@@ -242,6 +242,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\sql.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\utils.c"
 				>
 			</File>

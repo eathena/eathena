@@ -12,6 +12,7 @@
 #include "../common/malloc.h"
 #include "../common/mapindex.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 #include "../common/version.h"
 #include "inter.h"
 #include "int_pet.h"
@@ -19,9 +20,7 @@
 #include "int_guild.h"
 #include "int_party.h"
 #include "int_storage.h"
-#ifdef ENABLE_SC_SAVING
 #include "int_status.h"
-#endif
 #include "char.h"
 
 #include <sys/types.h>
@@ -72,11 +71,12 @@ int email_creation = 0; // disabled by default
 char char_txt[1024]="save/athena.txt";
 char backup_txt[1024]="save/backup.txt"; //By zanetheinsane
 char friends_txt[1024]="save/friends.txt"; // davidsiaw
+
+char db_path[1024]="db";
 #ifndef TXT_SQL_CONVERT
 char backup_txt_flag = 0; // The backup_txt file was created because char deletion bug existed. Now it's finish and that take a lot of time to create a second file when there are a lot of characters. => option By [Yor]
 char unknown_char_name[1024] = "Unknown"; // Name to use when the requested name cannot be determined
 char char_log_filename[1024] = "log/char.log";
-char db_path[1024]="db";
 
 // Advanced subnet check [LuzZza]
 struct _subnet {
