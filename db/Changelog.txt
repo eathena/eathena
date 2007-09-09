@@ -1,4 +1,5 @@
 09/09
+	* Commented unimplemented mob skills [Playtester]
 	* Merged create_arrow_db, mob_skill_db and skill_cast_db [Playtester]
 	- added 11.3 items to arrow crafting
 	- added Cursed Abbey mob skills thanks to Doddler
