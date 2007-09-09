@@ -1,3 +1,9 @@
+09/09
+	* Merged create_arrow_db, mob_skill_db and skill_cast_db [Playtester]
+	- added 11.3 items to arrow crafting
+	- added Cursed Abbey mob skills thanks to Doddler
+	- fixed MVPs using Heal level 10 instead of 11
+	- fixed wrong casting time of Rebirth Spirit
 09/07
 	* Rev. 11140 Fixed "Luxurious Keycard" item_trade entry. (83 -> 91) [L0ne_W0lf]
 	* Merged item_db bonus AutoSpell cleanups (and a few item name corrections)
