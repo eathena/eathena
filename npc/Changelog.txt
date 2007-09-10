@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/09/10
+	* Updated experience rewards in a lot of quests to match upcoming rate adjustments changes. [SinSloth]
+	- Please use 'getexp' command when rewarding experience in any lore-related quest.
 2007/09/07
 	* Rev. 11140 Updated Keil Hyre quest from trunk. Talk to Keil Hyre [L0ne_W0lf]
 	  after finishing the quest to remove outstanding quest items.

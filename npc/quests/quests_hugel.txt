@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= MasterOfMuppets & SinSloth
 //===== Current Version: =====================================
-//= 1.2
+//= 1.4
 //===== Compatible With: =====================================
 //= eAthena
 //===== Description: =========================================
@@ -13,6 +13,9 @@
 //= 1.1 Added most of Hugel quests. Thanks to MasterOfMuppets
 //= for scripting most of them. [SinSloth]
 //= 1.2 Added Odin Temple Excavation quest. [SinSloth]
+//= 1.3 Added a Missing "close;". [Samuray22]
+//=	-Thanks to Elfange
+//= 1.4 Fixed experience gains to match upcoming rate adjustments. [SinSloth]
 //============================================================
 
 //-------------------------------------------------------------------------
@@ -698,7 +701,7 @@ OnTouch:
 		specialeffect 71;
 		set hg_herb,13;
 		getitem 603,1; //Old blue box
-		set BaseExp,BaseExp+50000;
+		getexp 50000,0;
 	}
 	else
 	{
@@ -1315,7 +1318,7 @@ ein_in01,16,36,3	script	Morriphen	86,{
 		mes "I won't have to worry";
 		mes "about you. Take care~";
 		set hg_bio,9;
-		set BaseExp,BaseExp+700000;
+		getexp 700000,0;
 		close;
 	}
 	else if(hg_bio == 9)
@@ -1527,7 +1530,7 @@ hu_in01,326,307,3	script	Siria	90,{
 		mes "I just... I just need to relax.";
 		mes "Thank you for everything...";
 		set hg_bio,8;
-		set BaseExp,BaseExp+500000;
+		getexp 500000,0;
 		close;
 	}
 	else if(hg_bio == 8)
@@ -3803,6 +3806,7 @@ einbech,208,124,3	script	Bomb Maker	851,{
 		mes "Hey, what's up?";
 		mes "I am a professional Marine Sphere Bottle maker.";
 		mes "You can call me Boomer.";
+		close;
 	}
 	
 }
@@ -5351,7 +5355,7 @@ hugel,196,164,3	script	El Schatt	50,{
 		next;
 		specialeffect2 71;
 		set hg_memory,12;
-		set BaseExp,BaseExp+50000;
+		getexp 50000,0;
 		getitem 603,1; //Old blue box
 		mes "[El Schatt]";
 		mes "Oh... Oh dear";
@@ -5682,7 +5686,7 @@ hu_fild06,190,367,3	script	Torpy's Mom	701,{
 		specialeffect2 71;
 		set hg_ubu01,8;
 		getitem 12065,3; //Green salad
-		set BaseExp,BaseExp+50000;
+		getexp 50000,0;
 		close;
 	}
 	else if(hg_ubu01 == 7)
@@ -5704,7 +5708,7 @@ hu_fild06,190,367,3	script	Torpy's Mom	701,{
 		specialeffect2 68;
 		set hg_ubu01,8;
 		getitem 12065,3; //Green salad
-		set BaseExp,BaseExp+50000;
+		getexp 50000,0;
 		close;
 	}
 	else if(hg_ubu01 == 8)
@@ -6421,7 +6425,7 @@ hu_in01,15,372,3	script	Cellette Lavit	74,{
 		mes "you so much for your help~";
 		set hg_odeng,0;
 		getitem 584,3; //Skewer soup
-		set BaseExp,BaseExp+1000;
+		getexp 1000,0;
 		next;
 		mes "[Cellette]";
 		mes "It was really nice working";
@@ -7172,8 +7176,7 @@ yuno,111,156,3	script	Euslan	90,{
 		close2;
 		set hg_ma1,13;
 		specialeffect 253;
-		set BaseExp,BaseExp+900000;
-		set JobExp,JobExp+600000;
+		getexp 900000,600000;
 		end;
 	}
 	else if(hg_ma1 == 13)
