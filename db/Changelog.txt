@@ -1,4 +1,5 @@
 09/10
+	* Merged the db/skill_* files. [Skotlex]
 	* Merged mob_skill_db and skill_unit_db [Playtester]
 	- small Cursed Abbey mob skill update
 	- fixed size of NPC_EVILLAND

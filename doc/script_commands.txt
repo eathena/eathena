@@ -78,6 +78,10 @@
 //=       options [FlavioJS]
 //= 3.05.20070819
 //=       Removed the messy 'unitdeadsit' command reference [ultramage]
+//= 3.05.20070823
+//=       Fixed typo in 'areamonster' description (missing argument) [ultramage]
+//= 3.06 20070909
+//=       Added 'gethominfo' description [Skotlex]
 //===== Description =======================================
 //= A reference manual for the eAthena scripting language,
 //= sorted out depending on their functionality.
@@ -789,7 +793,7 @@ Logical bitwise operators work only on numbers, and they are the following:
 		if( inProgress&2 == 0 ){
 			// this will set the bit for quest 2 (inProgress has that bit set to 0)
 			set inProgress,inProgress^2;
-			mes "Quest 2: find a newbie and be helpfull to him for an hour.";
+			mes "Quest 2: find a newbie and be helpful to him for an hour.";
 			close;
 		}
 	- After spending some time reading info on Xor's, the player finally completes quest 1:
@@ -2759,13 +2763,26 @@ currently has active. Valid types are:
  0 - Unique pet ID number as stored by the char server and distinguishing it 
      from all other pets the characters actually have. This value is currently 
      useless, at most you can use it to tell pets apart reliably.
- 1 - Pet ID number as per 'db/pet_db.txt' - will tell you what kind of a pet it 
+ 1 - Pet class number as per 'db/pet_db.txt' - will tell you what kind of a pet it 
      is.
  2 - Pet name. Will return "null" if there's no pet. 
  3 - Pet friendly level (intimacy score). 1000 is full loyalty.
  4 - Pet hungry level. 100 is completely full.
  5 - Pet rename flag. 0 means this pet has not been named yet.
 ---------------------------------------
+
+*gethominfo(<type>)
+
+This function works as a direct counterpart of 'getpetinfo':
+ 0 - Homunculus unique ID
+ 1 - Homunculus Class
+ 2 - Name
+ 3 - Friendly level (intimacy score). 100000 is full loyalty.
+ 4 - Hungry level. 100 is completely full.
+ 5 - Rename flag. 0 means this homunculus has not been named yet.
+ 6 - Homunculus level
+---------------------------------------
+
 
 *petstat(<flag>)
 
@@ -4403,8 +4420,8 @@ Example(s):
 ==================================
 ---------------------------------------
 
-*monster "<map name>",<x>,<y>,"<name to show>",<mob id>,<amount>{,"<event label>"};
-*areamonster "<map name>",<x1>,<y1>,<x2>,<y2>,"<monster name>",<amount>{,"<event label>"};
+*monster     "<map name>",<x>,<y>,"<name to show>",<mob id>,<amount>{,"<event label>"};
+*areamonster "<map name>",<x1>,<y1>,<x2>,<y2>,"<name to show>",<mob id>,<amount>{,"<event label>"};
 
 This command will spawn a monster on the specified coordinates on the specified 
 map. If the script is invoked by a character, a special map name, "this", will 

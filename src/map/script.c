@@ -207,6 +207,7 @@ static struct {
 		int index;
 		int count;
 		int flag;
+		struct linkdb_node *case_label;
 	} curly[256];		// 右カッコの情報
 	int curly_count;	// 右カッコの数
 	int index;			// スクリプト内で使用した構文の数
@@ -1166,6 +1167,7 @@ const char* parse_curly_close(const char* p)
 		sprintf(label,"__SW%x_FIN",syntax.curly[pos].index);
 		l=add_str(label);
 		set_label(l,script_pos, p);
+		linkdb_final(&syntax.curly[pos].case_label);	// free the list of case label
 		syntax.curly_count--;
 		return p+1;
 	} else {
@@ -1231,7 +1233,8 @@ const char* parse_syntax(const char* p)
 				return p+1;
 			} else {
 				char label[256];
-				int  l,len;
+				int  l,v;
+				char *np;
 				if(syntax.curly[pos].count != 1) {
 					// FALLTHRU 用のジャンプ
 					sprintf(label,"goto __SW%x_%xJ;",syntax.curly[pos].index,syntax.curly[pos].count);
@@ -1249,20 +1252,30 @@ const char* parse_syntax(const char* p)
 				if(p == p2) {
 					disp_error_message("parse_syntax: expect space ' '",p);
 				}
-				p2 = p;
-				if((*p == '-' || *p == '+') && ISDIGIT(p[1]))	// pre-skip because '-' can not skip_word
-					p++;
-				p = skip_word(p);
-				len = p-p2; // length of word at p2
+				// check whether case label is integer or not
+				v = strtol(p,&np,0);
+				if(np == p) { //Check for constants
+					p2 = skip_word(p);
+					v = p2-p; // length of word at p2
+					memcpy(label,p,v);
+					label[v]='\0';
+					v = search_str(label);
+					if (v < 0 || str_data[v].type != C_INT)
+						disp_error_message("parse_syntax: 'case' label not integer",p);
+					v = str_data[v].val;
+					p = skip_word(p);
+				} else { //Numeric value
+					if((*p == '-' || *p == '+') && ISDIGIT(p[1]))	// pre-skip because '-' can not skip_word
+						p++;
+					p = skip_word(p);
+					if(np != p)
+						disp_error_message("parse_syntax: 'case' label not integer",np);
+				}
 				p = skip_space(p);
 				if(*p != ':')
 					disp_error_message("parse_syntax: expect ':'",p);
-
-				memcpy(label,"if(",3);
-				memcpy(label+3,p2,len);
-				sprintf(label+3+len," != $@__SW%x_VAL) goto __SW%x_%x;",
-					syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
-
+				sprintf(label,"if(%d != $@__SW%x_VAL) goto __SW%x_%x;",
+					v,syntax.curly[pos].index,syntax.curly[pos].index,syntax.curly[pos].count+1);
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 				// ２回parse しないとダメ
 				p2 = parse_line(label);
@@ -1274,6 +1287,11 @@ const char* parse_syntax(const char* p)
 					l=add_str(label);
 					set_label(l,script_pos,p);
 				}
+				// check duplication of case label [Rayce]
+				if(linkdb_search(&syntax.curly[pos].case_label, (void*)v) != NULL)
+					disp_error_message("parse_syntax: dup 'case'",p);
+				linkdb_insert(&syntax.curly[pos].case_label, (void*)v, (void*)1);
+
 				sprintf(label,"set $@__SW%x_VAL,0;",syntax.curly[pos].index);
 				syntax.curly[syntax.curly_count++].type = TYPE_NULL;
 			
@@ -1912,6 +1930,8 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 
 	if( setjmp( error_jump ) != 0 ) {
 		//Restore program state when script has problems. [from jA]
+		int i;
+		const int size = sizeof(syntax.curly)/sizeof(syntax.curly[0]);
 		if( error_report )
 			script_error(src,file,line,error_msg,error_pos);
 		aFree( error_msg );
@@ -1921,6 +1941,8 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		script_buf  = NULL;
 		for(i=LABEL_START;i<str_num;i++)
 			if(str_data[i].type == C_NOP) str_data[i].type = C_NAME;
+		for(i=0; i<size; i++)
+			linkdb_final(&syntax.curly[i].case_label);
 		return NULL;
 	}
 
@@ -10962,27 +10984,68 @@ BUILDIN_FUNC(recovery)
 BUILDIN_FUNC(getpetinfo)
 {
 	TBL_PC *sd=script_rid2sd(st);
-	struct pet_data *pd;
+	TBL_PET *pd;
 	int type=script_getnum(st,2);
-
-	if(sd && sd->status.pet_id && sd->pd){
-		pd = sd->pd;
-		switch(type){
-			case 0: script_pushint(st,sd->status.pet_id); break;
-			case 1: script_pushint(st,pd->pet.class_); break;
-			case 2: script_pushstr(st,aStrdup(pd->pet.name)); break;
-			case 3: script_pushint(st,pd->pet.intimate); break;
-			case 4: script_pushint(st,pd->pet.hungry); break;
-			case 5: script_pushint(st,pd->pet.rename_flag); break;
-			default:
-				script_pushint(st,0);
-				break;
-		}
-	}else{
-		script_pushint(st,0);
+	
+	if(!sd || !sd->pd) {
+		if (type == 2)
+			script_pushconststr(st,"null");
+		else
+			script_pushint(st,0);
+		return 0;
+	}
+	pd = sd->pd;
+	switch(type){
+		case 0: script_pushint(st,pd->pet.pet_id); break;
+		case 1: script_pushint(st,pd->pet.class_); break;
+		case 2: script_pushstr(st,aStrdup(pd->pet.name)); break;
+		case 3: script_pushint(st,pd->pet.intimate); break;
+		case 4: script_pushint(st,pd->pet.hungry); break;
+		case 5: script_pushint(st,pd->pet.rename_flag); break;
+		default:
+			script_pushint(st,0);
+			break;
 	}
 	return 0;
 }
+
+/*==========================================
+ * Get your homunculus info: gethominfo(n)  
+ * n -> 0:hom_id 1:class 2:name
+ * 3:friendly 4:hungry, 5: rename flag.
+ * 6: level
+ *------------------------------------------*/
+BUILDIN_FUNC(gethominfo)
+{
+	TBL_PC *sd=script_rid2sd(st);
+	TBL_HOM *hd;
+	int type=script_getnum(st,2);
+
+	hd = sd?sd->hd:NULL;
+	if(!merc_is_hom_active(hd))
+	{
+		if (type == 2)
+			script_pushconststr(st,"null");
+		else
+			script_pushint(st,0);
+		return 0;
+	}
+
+	switch(type){
+		case 0: script_pushint(st,hd->homunculus.hom_id); break;
+		case 1: script_pushint(st,hd->homunculus.class_); break;
+		case 2: script_pushstr(st,aStrdup(hd->homunculus.name)); break;
+		case 3: script_pushint(st,hd->homunculus.intimacy); break;
+		case 4: script_pushint(st,hd->homunculus.hunger); break;
+		case 5: script_pushint(st,hd->homunculus.rename_flag); break;
+		case 6: script_pushint(st,hd->homunculus.level); break;
+		default:
+			script_pushint(st,0);
+			break;
+	}
+	return 0;
+}
+
 /*==========================================
  * Shows wether your inventory(and equips) contain
    selected card or not.

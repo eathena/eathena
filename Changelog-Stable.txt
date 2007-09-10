@@ -4,6 +4,23 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/09/10
+	* Merged usage of maxcount to specify the path range for path-based
+	  skills.
+	* Removed unused bonuses bAddDamageByClass, bAddEffWhenHitShort.
+	* Merged item bonuses bIgnoreMDef (per race), bCastRate (for a specific
+	  skill), bHPRegenRate, bSPRegenRate.
+	* Modified how bGetZenyNum works (so it fits Aegis behaviour).
+	* Auto-casted Full Strip has no duration now.
+	* Merged the script engine update which checks for duplicate labels.
+	* Merged script command gethominfo
+	* Merged auto-declining guild/party invites when the target is
+	  disconnected.
+	* Corrected bonus3 bAutoSpell(WhenHit) to select target enemy (rather than
+	  self) for skills with inf self and inf2 'don't target self' (aka:
+	  auto-select target skills).
+	* Merged map_foreachinpath implementation that lets a path range to be
+	  specified. Updated sharp-shooting and Kamaitachi skill_db entries.
 2007/09/07
 	* Stone Skin and Anti Magic now add absolute values rather than relative
 	  ones.

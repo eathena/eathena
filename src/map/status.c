@@ -1657,6 +1657,7 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->magic_addsize)
 		+ sizeof(sd->critaddrace)
 		+ sizeof(sd->expaddrace)
+		+ sizeof(sd->ignore_mdef)
 		+ sizeof(sd->itemgrouphealrate)
 		+ sizeof(sd->sp_gain_race)
 		);
@@ -1696,10 +1697,14 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->addeff2)
 		+ sizeof(sd->skillatk)
 		+ sizeof(sd->skillheal)
+		+ sizeof(sd->hp_loss)
+		+ sizeof(sd->sp_loss)
+		+ sizeof(sd->hp_regen)
+		+ sizeof(sd->sp_regen)
 		+ sizeof(sd->skillblown)
+		+ sizeof(sd->skillcast)
 		+ sizeof(sd->add_def)
 		+ sizeof(sd->add_mdef)
-		+ sizeof(sd->add_dmg)
 		+ sizeof(sd->add_mdmg)
 		+ sizeof(sd->add_drop)
 		+ sizeof(sd->itemhealrate)
@@ -1734,8 +1739,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->break_weapon_rate)
 		+ sizeof(sd->break_armor_rate)
 		+ sizeof(sd->crit_atk_rate)
-		+ sizeof(sd->hp_loss_rate)
-		+ sizeof(sd->sp_loss_rate)
 		+ sizeof(sd->classchange)
 		+ sizeof(sd->speed_add_rate)
 		+ sizeof(sd->aspd_add)
@@ -1745,9 +1748,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->splash_range)
 		+ sizeof(sd->splash_add_range)
 		+ sizeof(sd->add_steal_rate)
-		+ sizeof(sd->hp_loss_value)
-		+ sizeof(sd->sp_loss_value)
-		+ sizeof(sd->hp_loss_type)
 		+ sizeof(sd->hp_gain_value)
 		+ sizeof(sd->sp_gain_value)
 		+ sizeof(sd->sp_vanish_rate)
@@ -1755,10 +1755,6 @@ int status_calc_pc(struct map_session_data* sd,int first)
 		+ sizeof(sd->unbreakable)
 		+ sizeof(sd->unbreakable_equip)
 		+ sizeof(sd->unstripable_equip)
-		+ sizeof(sd->add_def_count)
-		+ sizeof(sd->add_mdef_count)
-		+ sizeof(sd->add_dmg_count)
-		+ sizeof(sd->add_mdmg_count)
 		);
 
 	// Parse equipment.
@@ -4725,6 +4721,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			}
 			if (!opt_flag) return 0;
 		}
+		if (tick == 1) return 1; //Minimal duration: Only strip without causing the SC
 		break;
 	case SC_STRIPSHIELD:
 		if (sd) {
@@ -4737,6 +4734,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				return 0;
 			pc_unequipitem(sd,i,3);
 		}
+		if (tick == 1) return 1; //Minimal duration: Only strip without causing the SC
 		break;
 	case SC_STRIPARMOR:
 		if (sd) {
@@ -4748,6 +4746,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				return 0;
 			pc_unequipitem(sd,i,3);
 		}
+		if (tick == 1) return 1; //Minimal duration: Only strip without causing the SC
 		break;
 	case SC_STRIPHELM:
 		if (sd) {
@@ -4759,6 +4758,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				return 0;
 			pc_unequipitem(sd,i,3);
 		}
+		if (tick == 1) return 1; //Minimal duration: Only strip without causing the SC
 		break;
 	}
 
@@ -7138,8 +7138,12 @@ static int status_natural_heal(DBKey key,void * data,va_list ap)
 	))
 		flag=0;
 
-	if (sd && (sd->hp_loss_value > 0 || sd->sp_loss_value > 0))
-		pc_bleeding(sd, natural_heal_diff_tick);
+	if (sd) {
+		if (sd->hp_loss.value || sd->sp_loss.value)
+			pc_bleeding(sd, natural_heal_diff_tick);
+		if (sd->hp_regen.value || sd->sp_regen.value)
+			pc_regen(sd, natural_heal_diff_tick);
+	}
 
 	if(flag&(RGN_SHP|RGN_SSP) && regen->ssregen &&
 		(vd = status_get_viewdata(bl)) && vd->dead_sit == 2)

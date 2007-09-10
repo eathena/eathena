@@ -268,6 +268,11 @@ int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 			return 0;
 		}
 	}
+	if (!tsd->fd) { //You can't invite someone who has already disconnected.
+		clif_party_inviteack(sd,tsd->status.name,1);
+		return 0;
+	}
+
 	if( tsd->status.party_id>0 || tsd->party_invite>0 ){
 		clif_party_inviteack(sd,tsd->status.name,0);
 		return 0;
@@ -744,7 +749,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 }
 
 //Does party loot. first holds the id of the player who has time priority to take the item.
-int party_share_loot(struct party_data* p, struct map_session_data* sd, struct item* item_data, int first)
+int party_share_loot(struct party_data* p, TBL_PC* sd, struct item* item_data, int first)
 {
 	TBL_PC* target = NULL;
 	int i;
