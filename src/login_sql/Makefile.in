@@ -9,16 +9,23 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 	../common/grfio.h ../common/mapindex.h \
 	../common/ers.h ../common/md5calc.h  ../common/sql.h 
 
+HAVE_MYSQL=@HAVE_MYSQL@
+ifeq ($(HAVE_MYSQL),yes)
+	LOGIN_SERVER_SQL_DEPENDS=login.o $(COMMON_OBJ)
+else
+	LOGIN_SERVER_SQL_DEPENDS=needs_mysql
+endif
+
 #####################################################################
 .PHONY : all login-server_sql clean help
 
 all: login-server_sql
 
-login-server_sql: login.o $(COMMON_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ login.o $(COMMON_OBJ) @LIBS@ @MYSQL_LIBS@
+login-server_sql: $(LOGIN_SERVER_SQL_DEPENDS)
+	@CC@ @LDFLAGS@ -o ../../login-server_sql@EXEEXT@ login.o $(COMMON_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -f *.o ../../login-server_sql GNUmakefile
+	rm -f *.o ../../login-server_sql@EXEEXT@ GNUmakefile
 
 help:
 	@echo "possible targets are 'login-server_sql' 'all' 'clean' 'help'"
@@ -28,6 +35,10 @@ help:
 	@echo "'help'              - outputs this message"
 
 #####################################################################
+
+needs_mysql:
+	@echo "MySQL not found or disabled by the configure script"
+	@exit 1
 
 # DO NOT DELETE
 

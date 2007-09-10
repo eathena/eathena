@@ -8,20 +8,20 @@ COMMON_H = ../common/plugin.h ../common/cbasetypes.h
 
 all: $(PLUGINS)
 
-sample: sample.@PLUGINEXT@
+sample: sample@DLLEXT@
 
-sig: sig.@PLUGINEXT@
+sig: sig@DLLEXT@
 
-pid: pid.@PLUGINEXT@
+pid: pid@DLLEXT@
 
-gui: gui.@PLUGINEXT@
+gui: gui@DLLEXT@
 
-upnp: upnp.@PLUGINEXT@
+upnp: upnp@DLLEXT@
 
-console: console.@PLUGINEXT@
+console: console@DLLEXT@
 
 clean:
-	rm -rf $(PLUGINS:%=%.@PLUGINEXT@) GNUmakefile
+	rm -rf GNUmakefile
 
 help:
 	@echo "possible targets are $(PLUGINS:%='%') 'all' 'clean' 'help'"
@@ -37,16 +37,16 @@ help:
 
 #####################################################################
 
-%.@PLUGINEXT@: %.c
+%@DLLEXT@: %.c
 	@CC@ @CFLAGS@ @CPPFLAGS@ -shared -o ../../plugins/$@ $<
 
-sig.@PLUGINEXT@: sig.c
+sig@DLLEXT@: sig.c
 	@CC@ @CFLAGS@ @CPPFLAGS@ -shared -o ../../plugins/$@ $< \
 	../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o \
 	../common/obj/minimalloc.o
 
-gui.@PLUGINEXT@: ../../plugins/gui.conf
-upnp.@PLUGINEXT@: ../../plugins/upnp.conf
+gui@DLLEXT@: ../../plugins/gui.conf
+upnp@DLLEXT@: ../../plugins/upnp.conf
 
 ../../plugins/%.conf: %.txt
 	cp -r $< $@
@@ -59,10 +59,10 @@ depend:
 
 # DO NOT DELETE
 
-sample.@PLUGINEXT@: sample.c $(COMMON_H)
-sig.@PLUGINEXT@: sig.c $(COMMON_H)
-pid.@PLUGINEXT@: pid.c $(COMMON_H)
-gui.@PLUGINEXT@: gui.c $(COMMON_H)
+sample@DLLEXT@: sample.c $(COMMON_H)
+sig@DLLEXT@: sig.c $(COMMON_H)
+pid@DLLEXT@: pid.c $(COMMON_H)
+gui@DLLEXT@: gui.c $(COMMON_H)
 #TODO where is upnp.c? [FlavioJS]
-#upnp.@PLUGINEXT@: upnp.c $(COMMON_H)
-console.@PLUGINEXT@: console.c $(COMMON_H)
+#upnp@DLLEXT@: upnp.c $(COMMON_H)
+console@DLLEXT@: console.c $(COMMON_H)

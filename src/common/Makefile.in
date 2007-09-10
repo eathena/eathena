@@ -4,7 +4,7 @@ ifeq ($(HAVE_MYSQL),yes)
 	SQL_DEPENDS=txt obj_sql common_sql
 else
 	ALL_TARGET=txt
-	SQL_DEPENDS=
+	SQL_DEPENDS=needs_mysql
 endif
 
 #####################################################################
@@ -28,6 +28,10 @@ help:
 	@echo "'help'   - outputs this message"
 
 #####################################################################
+
+needs_mysql:
+	@echo "MySQL not found or disabled by the configure script"
+	@exit 1
 
 obj:
 	-mkdir obj

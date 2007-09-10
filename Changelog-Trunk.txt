@@ -3,6 +3,10 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/10
+	* Refinements to the configure script and makefiles: [FlavioJS]
+	- main makefile with help target.
+	- stop compilation if mysql is required but not available.
 2007/09/08
 	* Adjusted VS project files (added missing sql.c/h entries)
 	* Moved some defines back to char_sql/int_party.h and char_sql/int_guild.h

@@ -17,10 +17,10 @@ CHAR_OBJ = char.o inter.o int_party.o int_guild.o int_storage.o int_status.o int
 all: char-server
 
 char-server: $(CHAR_OBJ) $(COMMON_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@
+	@CC@ @LDFLAGS@ -o ../../char-server@EXEEXT@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@
 
 clean:
-	rm -f *.o ../../char-server GNUmakefile
+	rm -f *.o ../../char-server@EXEEXT@ GNUmakefile
 
 help:
 	@echo "possible targets are 'char-server' 'all' 'clean' 'help'"

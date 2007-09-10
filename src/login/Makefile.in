@@ -15,10 +15,10 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 all: login-server
 
 login-server: login.o $(COMMON_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ login.o $(COMMON_OBJ) @LIBS@ 
+	@CC@ @LDFLAGS@ -o ../../login-server@EXEEXT@ login.o $(COMMON_OBJ) @LIBS@ 
 
 clean:
-	rm -f *.o ../../login-server GNUmakefile
+	rm -f *.o ../../login-server@EXEEXT@ GNUmakefile
 
 help:
 	@echo "possible targets are 'login-server' 'all' 'clean' 'help'"

@@ -1,4 +1,7 @@
-
+LOGIN_CONVERTER_OBJ = login-converter.o ../common/obj/minicore.o \
+	../common/obj/malloc.o ../common/obj/strlib.o ../common/obj/showmsg.o \
+	../common/obj/utils.o ../common/obj/ers.o ../common/obj/db.o \
+	../common/obj_sql/sql.o
 CHAR_CONVERTER_OBJ = char-converter.o ../common/obj/minicore.o \
 	../common/obj/malloc.o ../common/obj/strlib.o ../common/obj/showmsg.o \
 	../common/obj/utils.o ../common/obj/ers.o ../common/obj/mapindex.o \
@@ -8,22 +11,28 @@ CHAR_CONVERTER_OBJ = char-converter.o ../common/obj/minicore.o \
 	obj_sql/char.o obj_sql/int_pet.o obj_sql/int_storage.o \
 	obj_sql/inter.o obj_sql/int_party.o obj_sql/int_guild.o
 
+HAVE_MYSQL=@HAVE_MYSQL@
+ifeq ($(HAVE_MYSQL),yes)
+	LOGIN_CONVERTER_DEPENDS=$(LOGIN_CONVERTER_OBJ)
+	CHAR_CONVERTER_DEPENDS=obj $(CHAR_CONVERTER_OBJ)
+else
+	LOGIN_CONVERTER_DEPENDS=needs_mysql
+	CHAR_CONVERTER_DEPENDS=needs_mysql
+endif
+
 #####################################################################
 .PHONY : all login-converter char-converter clean help
 
 all: login-converter char-converter
 
-login-converter: login-converter.o ../common/obj/minicore.o \
-	../common/obj/malloc.o ../common/obj/strlib.o ../common/obj/showmsg.o \
-	../common/obj/utils.o ../common/obj/ers.o ../common/obj/db.o \
-	../common/obj_sql/sql.o
-	@CC@ @LDFLAGS@ -o ../../tools/$@ $^ @LIBS@ @MYSQL_LIBS@
+login-converter: $(LOGIN_CONVERTER_DEPENDS)
+	@CC@ @LDFLAGS@ -o ../../tools/login-converter@EXEEXT@ $(LOGIN_CONVERTER_OBJ) @LIBS@ @MYSQL_LIBS@
 
-char-converter: obj $(CHAR_CONVERTER_OBJ)
-	@CC@ @LDFLAGS@ -o ../../tools/$@ $(CHAR_CONVERTER_OBJ) @LIBS@ @MYSQL_LIBS@
+char-converter: $(CHAR_CONVERTER_DEPENDS)
+	@CC@ @LDFLAGS@ -o ../../tools/char-converter@EXEEXT@ $(CHAR_CONVERTER_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -rf *.o obj_txt obj_sql ../../tools/login-converter ../../tools/char-converter GNUmakefile
+	rm -rf *.o obj_txt obj_sql ../../tools/login-converter@EXEEXT@ ../../tools/char-converter@EXEEXT@ GNUmakefile
 
 help:
 	@echo "possible targets are 'login-converter' 'char-converter' 'all' 'clean' 'help'"
@@ -34,6 +43,10 @@ help:
 	@echo "'help'             - outputs this message"
 
 #####################################################################
+
+needs_mysql:
+	@echo "MySQL not found or disabled by the configure script"
+	@exit 1
 
 obj:
 	-mkdir obj_txt

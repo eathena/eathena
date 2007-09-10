@@ -255,7 +255,7 @@ AC_MSG_CHECKING([host OS])
 host_os="`uname`"
 AC_MSG_RESULT([$host_os])
 fd_setsize=""
-PLUGINEXT="so"
+DLLEXT=".so"
 case $host_os in
 Solaris* )
 	LIBS="$LIBS -lsocket -lnsl -ldl"
@@ -272,10 +272,10 @@ NetBSD*)
 CYGWIN*)
 	CPPFLAGS="$CPPFLAGS -DFD_SETSIZE=4096 -DCYGWIN"
 	fd_setsize="done"
-	PLUGINEXT="dll"
+	DLLEXT=".dll"
 	;;
 esac
-AC_SUBST([PLUGINEXT])
+AC_SUBST([DLLEXT])
 
 AC_MSG_CHECKING([for MinGW])
 if test -n "`$CC --version | grep -i mingw`" ; then

@@ -11,16 +11,23 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 
 CHAR_OBJ = char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o int_homun.o itemdb.o
 
+HAVE_MYSQL=@HAVE_MYSQL@
+ifeq ($(HAVE_MYSQL),yes)
+	CHAR_SERVER_SQL_DEPENDS=$(CHAR_OBJ) $(COMMON_OBJ)
+else
+	CHAR_SERVER_SQL_DEPENDS=needs_mysql
+endif
+
 #####################################################################
 .PHONY : all char-server_sql clean help
 
 all: char-server_sql
 
-char-server_sql: $(CHAR_OBJ) $(COMMON_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@ @MYSQL_LIBS@
+char-server_sql: $(CHAR_SERVER_SQL_DEPENDS)
+	@CC@ @LDFLAGS@ -o ../../char-server_sql@EXEEXT@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -f *.o ../../char-server_sql GNUmakefile
+	rm -f *.o ../../char-server_sql@EXEEXT@ GNUmakefile
 
 help:
 	@echo "possible targets are 'char-server_sql' 'all' 'clean' 'help'"
@@ -30,6 +37,10 @@ help:
 	@echo "'help'             - outputs this message"
 
 #####################################################################
+
+needs_mysql:
+	@echo "MySQL not found or disabled by the configure script"
+	@exit 1
 
 %.o: %.c
 	@CC@ @CFLAGS@ @MYSQL_CFLAGS@ @CPPFLAGS@ -c $(OUTPUT_OPTION) $<

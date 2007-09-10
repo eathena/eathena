@@ -5,7 +5,7 @@ ifeq ($(HAVE_MYSQL),yes)
 	SQL_DEPENDS=obj_sql map-server_sql
 else
 	ALL_TARGET=txt
-	SQL_DEPENDS=
+	SQL_DEPENDS=needs_mysql
 endif
 
 HAVE_PCRE=@HAVE_PCRE@
@@ -26,7 +26,7 @@ txt: obj_txt map-server
 sql: $(SQL_DEPENDS)
 
 clean:
-	rm -rf *.o ../../map-server ../../map-server_sql obj_txt obj_sql GNUmakefile
+	rm -rf *.o ../../map-server@EXEEXT@ ../../map-server_sql@EXEEXT@ obj_txt obj_sql GNUmakefile
 
 help:
 ifeq ($(HAVE_MYSQL),yes)
@@ -41,6 +41,10 @@ endif
 	@echo "'help'  - outputs this message"
 
 #####################################################################
+
+needs_mysql:
+	@echo "MySQL not found or disabled by the configure script"
+	@exit 1
 
 obj_txt:
 	-mkdir obj_txt
@@ -71,10 +75,10 @@ MAP_OBJ = obj/map.o obj/chrif.o obj/clif.o obj/pc.o obj/status.o obj/npc.o \
 	obj/log.o obj/mail.o obj/date.o obj/irc.o obj/unit.o obj/mercenary.o
 
 map-server: $(MAP_OBJ:obj/%=obj_txt/%) $(COMMON_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ $(MAP_OBJ:obj/%=obj_txt/%) $(COMMON_OBJ) @LIBS@ @PCRE_LIBS@
+	@CC@ @LDFLAGS@ -o ../../map-server@EXEEXT@ $(MAP_OBJ:obj/%=obj_txt/%) $(COMMON_OBJ) @LIBS@ @PCRE_LIBS@
 
 map-server_sql: $(MAP_OBJ:obj/%=obj_sql/%) $(COMMON_SQL_OBJ)
-	@CC@ @LDFLAGS@ -o ../../$@ $(MAP_OBJ:obj/%=obj_sql/%) $(COMMON_SQL_OBJ) @LIBS@ @PCRE_LIBS@ @MYSQL_LIBS@
+	@CC@ @LDFLAGS@ -o ../../map-server_sql@EXEEXT@ $(MAP_OBJ:obj/%=obj_sql/%) $(COMMON_SQL_OBJ) @LIBS@ @PCRE_LIBS@ @MYSQL_LIBS@
 
 obj_txt/%.o: %.c
 	@CC@ @CFLAGS@ $(PCRE_CFLAGS) -DTXT_ONLY @CPPFLAGS@ -c $(OUTPUT_OPTION) $<
