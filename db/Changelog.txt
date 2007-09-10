@@ -1,3 +1,7 @@
+09/10
+	* Merged mob_skill_db and skill_unit_db [Playtester]
+	- small Cursed Abbey mob skill update
+	- fixed size of NPC_EVILLAND
 09/09
 	* Commented unimplemented mob skills [Playtester]
 	* Merged create_arrow_db, mob_skill_db and skill_cast_db [Playtester]
