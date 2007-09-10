@@ -1,4 +1,12 @@
 09/10
+	* Merged item_db, mob_db, mob_skill_db [Playtester]
+	- fixed up all 11.3 equips
+	- added various items
+	- added the new 11.3 equips to mob drops
+	- updated Dark Lord and Detardeurus stats
+	- fixed some mob names
+	- fixed Garm's and Bacsojin's skills being cancelable
+	- updated sql files
 	* Merged the db/skill_* files. [Skotlex]
 	* Merged mob_skill_db and skill_unit_db [Playtester]
 	- small Cursed Abbey mob skill update
