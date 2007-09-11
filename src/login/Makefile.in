@@ -18,7 +18,7 @@ login-server: login.o $(COMMON_OBJ)
 	@CC@ @LDFLAGS@ -o ../../login-server@EXEEXT@ login.o $(COMMON_OBJ) @LIBS@ 
 
 clean:
-	rm -f *.o ../../login-server@EXEEXT@ GNUmakefile
+	rm -f *.o ../../login-server@EXEEXT@
 
 help:
 	@echo "possible targets are 'login-server' 'all' 'clean' 'help'"

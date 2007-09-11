@@ -32,7 +32,7 @@ char-converter: $(CHAR_CONVERTER_DEPENDS)
 	@CC@ @LDFLAGS@ -o ../../tools/char-converter@EXEEXT@ $(CHAR_CONVERTER_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -rf *.o obj_txt obj_sql ../../tools/login-converter@EXEEXT@ ../../tools/char-converter@EXEEXT@ GNUmakefile
+	rm -rf *.o obj_txt obj_sql ../../tools/login-converter@EXEEXT@ ../../tools/char-converter@EXEEXT@
 
 help:
 	@echo "possible targets are 'login-converter' 'char-converter' 'all' 'clean' 'help'"

@@ -4,11 +4,11 @@ HAVE_MYSQL=@HAVE_MYSQL@
 ifeq ($(HAVE_MYSQL),yes)
 	ALL_DEPENDS=common common_sql login login_sql char char_sql map map_sql ladmin tools converters plugins conf
 	SQL_DEPENDS=common_sql login_sql char_sql map_sql conf
-	COMMON_SQL_DEPENDS=src/common/GNUmakefile
-	LOGIN_SQL_DEPENDS=src/login_sql/GNUmakefile common_sql
-	CHAR_SQL_DEPENDS=src/char_sql/GNUmakefile common_sql
-	MAP_SQL_DEPENDS=src/map/GNUmakefile common_sql
-	CONVERTERS_DEPENDS=src/txt-converter/GNUmakefile common_sql
+	COMMON_SQL_DEPENDS=
+	LOGIN_SQL_DEPENDS=common_sql
+	CHAR_SQL_DEPENDS=common_sql
+	MAP_SQL_DEPENDS=common_sql
+	CONVERTERS_DEPENDS=common_sql
 else
 	ALL_DEPENDS=common login char map ladmin tools plugins conf
 	SQL_DEPENDS=needs_mysql
@@ -29,58 +29,72 @@ txt: common login char map conf
 
 sql: $(SQL_DEPENDS)
 
-common: src/common/GNUmakefile
-	$(MAKE) -C src/common txt
+common:
+	@$(MAKE) -C src/common txt
 
 common_sql: $(COMMON_SQL_DEPENDS)
-	$(MAKE) -C src/common sql
+	@$(MAKE) -C src/common sql
 
-login: src/login/GNUmakefile common
-	$(MAKE) -C src/login
+login: common
+	@$(MAKE) -C src/login
 
 login_sql: $(LOGIN_SQL_DEPENDS)
-	$(MAKE) -C src/login_sql
+	@$(MAKE) -C src/login_sql
 
-char: src/char/GNUmakefile common
-	$(MAKE) -C src/char
+char: common
+	@$(MAKE) -C src/char
 
 char_sql: $(CHAR_SQL_DEPENDS)
-	$(MAKE) -C src/char_sql
+	@$(MAKE) -C src/char_sql
 
-map: src/map/GNUmakefile common
-	$(MAKE) -C src/map txt
+map: common
+	@$(MAKE) -C src/map txt
 
 map_sql: $(MAP_SQL_DEPENDS)
-	$(MAKE) -C src/map sql
+	@$(MAKE) -C src/map sql
 
-ladmin: src/ladmin/GNUmakefile common
-	$(MAKE) -C src/ladmin
+ladmin: common
+	@$(MAKE) -C src/ladmin
 
-tools: src/tool/GNUmakefile
-	$(MAKE) -C src/tool
+tools:
+	@$(MAKE) -C src/tool
 
 converters: $(CONVERTERS_DEPENDS)
-	$(MAKE) -C src/txt-converter
+	@$(MAKE) -C src/txt-converter
 
-plugins addons: src/plugins/GNUmakefile common
-	$(MAKE) -C src/plugins
+plugins addons: common
+	@$(MAKE) -C src/plugins
 
 conf:
-	cp -r conf-tmpl conf
-	cp -r save-tmpl save
-	rm -rf conf/.svn conf/*/.svn save/.svn
+# conf:
+# 1) create conf and conf/import folders
+# 2) add missing import files
+# 3) copy the rest of the files and folders
+# 4) remove remaining .svn folders
+	@echo "building conf folder..."
+	@if test ! -d conf ; then mkdir conf ; fi
+	@if test ! -d conf/import ; then mkdir conf/import ; fi
+	@for f in $$(ls conf-tmpl/import) ; do if test ! -e conf/import/$$f ; then cp conf-tmpl/import/$$f conf/import ; fi ; done
+	@for f in $$(ls conf-tmpl) ; do if test "$$f" != "import" ; then cp -rf conf-tmpl/$$f conf ; fi ; done
+	@rm -rf conf/*/.svn
+# save:
+# 1)  create save folder
+# 2) add missing files
+	@echo "building save folder..."
+	@if test ! -d save ; then mkdir save ; fi
+	@for f in $$(ls save-tmpl) ; do if test ! -e save/$$f ; then cp save-tmpl/$$f save ; fi ; done
 
 clean:
-	$(MAKE) -C src/common $@
-	$(MAKE) -C src/login $@
-	$(MAKE) -C src/login_sql $@
-	$(MAKE) -C src/char $@
-	$(MAKE) -C src/char_sql $@
-	$(MAKE) -C src/map $@
-	$(MAKE) -C src/ladmin $@
-	$(MAKE) -C src/plugins $@
-	$(MAKE) -C src/tool $@
-	$(MAKE) -C src/txt-converter $@
+	@$(MAKE) -C src/common $@
+	@$(MAKE) -C src/login $@
+	@$(MAKE) -C src/login_sql $@
+	@$(MAKE) -C src/char $@
+	@$(MAKE) -C src/char_sql $@
+	@$(MAKE) -C src/map $@
+	@$(MAKE) -C src/ladmin $@
+	@$(MAKE) -C src/plugins $@
+	@$(MAKE) -C src/tool $@
+	@$(MAKE) -C src/txt-converter $@
 
 help:
 	@echo "most common targets are 'all' 'txt' 'sql' 'clean' 'help'"
@@ -98,7 +112,7 @@ help:
 	@echo "'converters'  - builds the login/char converters"
 	@echo "'plugins'     - builds all the plugins in src/plugins"
 	@echo "'addons'"
-	@echo "'conf'        - copies configuration files from the templates"
+	@echo "'conf'        - builds conf and save folders from the templates"
 	@echo "'all'         - builds all above targets"
 	@echo "'txt'         - builds txt servers (targets 'common' 'login' 'char' 'map' and"
 	@echo "                'conf')"
@@ -112,35 +126,6 @@ help:
 needs_mysql:
 	@echo "MySQL not found or disabled by the configure script"
 	@exit 1
-
-# TODO what is this for?
-depend: src/common/GNUmakefile src/login/GNUmakefile src/login_sql/GNUmakefile \
-	src/char/GNUmakefile src/char_sql/GNUmakefile src/map/GNUmakefile \
-	src/ladmin/GNUmakefile src/plugins/GNUmakefile src/txt-converter/GNUmakefile
-	cd src/common; makedepend -fGNUmakefile -pobj/ -Y. *.c; cd ../..;
-	cd src/login; makedepend -DTXT_ONLY -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/login_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/char; makedepend -DTXT_ONLY -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/char_sql; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/map; makedepend -DTXT_ONLY -fGNUmakefile -ptxtobj/ -Y. -Y../common *.c; cd ../..;
-	cd src/map; makedepend -fGNUmakefile -a -psqlobj/ -Y. -Y../common *.c; cd ../..;
-	cd src/ladmin; makedepend -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	cd src/txt-converter; makedepend -DTXT_SQL_CONVERT -fGNUmakefile -Y. -Y../common *.c; cd ../..;
-	$(MAKE) -C src/plugins $@
-
-src/%/GNUmakefile: src/%/Makefile
-	sed -e 's/$$>/$$^/' $< > $@
-
-src/common/GNUmakefile: src/common/Makefile
-src/login/GNUmakefile: src/login/Makefile
-src/login_sql/GNUmakefile: src/login_sql/Makefile
-src/char/GNUmakefile: src/char/Makefile
-src/char_sql/GNUmakefile: src/char_sql/Makefile
-src/map/GNUmakefile: src/map/Makefile
-src/plugins/GNUmakefile: src/plugins/Makefile
-src/ladmin/GNUmakefile: src/ladmin/Makefile
-src/tool/GNUmakefile: src/tool/Makefile
-src/txt-converter/GNUmakefile: src/txt-converter/Makefile
 
 #####################################################################
 # TODO

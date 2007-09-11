@@ -27,7 +27,7 @@ char-server_sql: $(CHAR_SERVER_SQL_DEPENDS)
 	@CC@ @LDFLAGS@ -o ../../char-server_sql@EXEEXT@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@ @MYSQL_LIBS@
 
 clean:
-	rm -f *.o ../../char-server_sql@EXEEXT@ GNUmakefile
+	rm -f *.o ../../char-server_sql@EXEEXT@
 
 help:
 	@echo "possible targets are 'char-server_sql' 'all' 'clean' 'help'"

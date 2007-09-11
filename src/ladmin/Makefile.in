@@ -14,7 +14,7 @@ ladmin: ladmin.o $(COMMON_OBJ)
 	@CC@ @LDFLAGS@ -o ../../ladmin@EXEEXT@ ladmin.o $(COMMON_OBJ) @LIBS@
 
 clean:
-	rm -f *.o ../../ladmin@EXEEXT@ GNUmakefile
+	rm -f *.o ../../ladmin@EXEEXT@
 
 help:
 	@echo "possible targets are 'ladmin' 'all' 'clean' 'help'"

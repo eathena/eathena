@@ -14,7 +14,7 @@ mapcache:
 	@CC@ -o ../../mapcache@EXEEXT@ mapcache.c grfio.o -lz
 
 clean:
-	rm -rf *.o ../../tools/adduser@EXEEXT@ ../../tools/convert@EXEEXT@ ../../mapcache@EXEEXT@ GNUmakefile
+	rm -rf *.o ../../tools/adduser@EXEEXT@ ../../tools/convert@EXEEXT@ ../../mapcache@EXEEXT@
 
 help:
 	@echo "possible targets are 'adduser' 'convert' 'mapcache' 'all' 'clean' 'help'"

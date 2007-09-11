@@ -20,7 +20,7 @@ char-server: $(CHAR_OBJ) $(COMMON_OBJ)
 	@CC@ @LDFLAGS@ -o ../../char-server@EXEEXT@ $(CHAR_OBJ) $(COMMON_OBJ) @LIBS@
 
 clean:
-	rm -f *.o ../../char-server@EXEEXT@ GNUmakefile
+	rm -f *.o ../../char-server@EXEEXT@
 
 help:
 	@echo "possible targets are 'char-server' 'all' 'clean' 'help'"

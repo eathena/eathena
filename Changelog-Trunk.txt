@@ -3,6 +3,10 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/11
+	* Refinements in the Makefiles: [FlavioJS]
+	- only add missing files to 'save' and 'conf/import' folders (never replace)
+	- GNUmakefiles are no longer created (not needed anymore)
 2007/09/10
 	* Refinements to the configure script and makefiles: [FlavioJS]
 	- main makefile with help target.

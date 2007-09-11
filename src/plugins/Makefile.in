@@ -1,3 +1,4 @@
+@SET_MAKE@
 
 PLUGINS = sample sig pid gui upnp console
 
@@ -21,7 +22,7 @@ upnp: upnp@DLLEXT@
 console: console@DLLEXT@
 
 clean:
-	rm -rf GNUmakefile
+	rm -rf *.o
 
 help:
 	@echo "possible targets are $(PLUGINS:%='%') 'all' 'clean' 'help'"
@@ -41,6 +42,7 @@ help:
 	@CC@ @CFLAGS@ @CPPFLAGS@ -shared -o ../../plugins/$@ $<
 
 sig@DLLEXT@: sig.c
+	@$(MAKE) -C ../common txt
 	@CC@ @CFLAGS@ @CPPFLAGS@ -shared -o ../../plugins/$@ $< \
 	../common/obj/showmsg.o ../common/obj/utils.o ../common/obj/strlib.o \
 	../common/obj/minimalloc.o
@@ -53,9 +55,6 @@ upnp@DLLEXT@: ../../plugins/upnp.conf
 
 ../../plugins/gui.conf: gui.txt
 ../../plugins/upnp.conf: upnp.txt
-
-depend:
-	makedepend -fGNUmakefile -o.@PLUGINEXT@ -Y. -Y../common *.c $(PLUGINS:%=../../plugins/%.@PLUGINEXT@)
 
 # DO NOT DELETE
 

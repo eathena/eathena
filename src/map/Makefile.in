@@ -26,7 +26,7 @@ txt: obj_txt map-server
 sql: $(SQL_DEPENDS)
 
 clean:
-	rm -rf *.o ../../map-server@EXEEXT@ ../../map-server_sql@EXEEXT@ obj_txt obj_sql GNUmakefile
+	rm -rf *.o ../../map-server@EXEEXT@ ../../map-server_sql@EXEEXT@ obj_txt obj_sql
 
 help:
 ifeq ($(HAVE_MYSQL),yes)
