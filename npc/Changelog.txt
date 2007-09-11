@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/09/10
+	* Added the Cursed Abbey and Nameless Island warps (why would you merge the
+	  spawns without these?) [Skotlex]
 	* Added Cursed Abbey spawns [Playtester]
 	* Updated experience rewards in a lot of quests to match upcoming rate adjustments changes. [SinSloth]
 	- Please use 'getexp' command when rewarding experience in any lore-related quest.
