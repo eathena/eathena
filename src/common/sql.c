@@ -372,7 +372,7 @@ void Sql_Free(Sql* self)
 /// Returns the mysql integer type for the target size.
 ///
 /// @private
-static enum enum_field_types SizeToMysqlIntType(int sz)
+static enum enum_field_types Sql_P_SizeToMysqlIntType(int sz)
 {
 	switch( sz )
 	{
@@ -391,7 +391,7 @@ static enum enum_field_types SizeToMysqlIntType(int sz)
 /// Binds a parameter/result.
 ///
 /// @private
-static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void* buffer, size_t buffer_len, unsigned long* out_length, int8* out_is_null)
+static int Sql_P_BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void* buffer, size_t buffer_len, unsigned long* out_length, int8* out_is_null)
 {
 	memset(bind, 0, sizeof(MYSQL_BIND));
 	switch( buffer_type )
@@ -413,19 +413,19 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 		break;
 	// platform dependent size
 	case SQLDT_UCHAR: bind->is_unsigned = 1;
-	case SQLDT_CHAR: bind->buffer_type = SizeToMysqlIntType(sizeof(char));
+	case SQLDT_CHAR: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(char));
 		break;
 	case SQLDT_USHORT: bind->is_unsigned = 1;
-	case SQLDT_SHORT: bind->buffer_type = SizeToMysqlIntType(sizeof(short));
+	case SQLDT_SHORT: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(short));
 		break;
 	case SQLDT_UINT: bind->is_unsigned = 1;
-	case SQLDT_INT: bind->buffer_type = SizeToMysqlIntType(sizeof(int));
+	case SQLDT_INT: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(int));
 		break;
 	case SQLDT_ULONG: bind->is_unsigned = 1;
-	case SQLDT_LONG: bind->buffer_type = SizeToMysqlIntType(sizeof(long));
+	case SQLDT_LONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(long));
 		break;
 	case SQLDT_ULONGLONG: bind->is_unsigned = 1;
-	case SQLDT_LONGLONG: bind->buffer_type = SizeToMysqlIntType(sizeof(long long));
+	case SQLDT_LONGLONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(long long));
 		break;
 	// floating point
 	case SQLDT_FLOAT: bind->buffer_type = MYSQL_TYPE_FLOAT;
@@ -434,6 +434,8 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 		break;
 	// other
 	case SQLDT_STRING: bind->buffer_type = MYSQL_TYPE_STRING;
+		break;
+	case SQLDT_ENUM: bind->buffer_type = MYSQL_TYPE_STRING;
 		break;
 	case SQLDT_BLOB: bind->buffer_type = MYSQL_TYPE_BLOB;
 		break;
@@ -446,6 +448,43 @@ static int BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type, void*
 	bind->length = out_length;
 	bind->is_null = (my_bool*)out_is_null;
 	return SQL_SUCCESS;
+}
+
+
+
+/// Prints debug information about a field (type and length).
+///
+/// @private
+static void Sql_P_ShowDebugMysqlFieldInfo(const char* prefix, enum enum_field_types type, int is_unsigned, unsigned long length)
+{
+	const char* sign = (is_unsigned ? "UNSIGNED " : "");
+	switch( type )
+	{
+	default:
+		ShowDebug("%stype=%s%u, length=%d\n", prefix, sign, type, length);
+		return;
+#define SHOW_DEBUG_OF(x) case x: ShowDebug("%stype=%s" #x ", length=%d\n", prefix, sign, length); break
+	SHOW_DEBUG_OF(MYSQL_TYPE_TINY);
+	SHOW_DEBUG_OF(MYSQL_TYPE_SHORT);
+	SHOW_DEBUG_OF(MYSQL_TYPE_LONG);
+	SHOW_DEBUG_OF(MYSQL_TYPE_INT24);
+	SHOW_DEBUG_OF(MYSQL_TYPE_LONGLONG);
+	SHOW_DEBUG_OF(MYSQL_TYPE_DECIMAL);
+	SHOW_DEBUG_OF(MYSQL_TYPE_FLOAT);
+	SHOW_DEBUG_OF(MYSQL_TYPE_DOUBLE);
+	SHOW_DEBUG_OF(MYSQL_TYPE_TIMESTAMP);
+	SHOW_DEBUG_OF(MYSQL_TYPE_DATE);
+	SHOW_DEBUG_OF(MYSQL_TYPE_TIME);
+	SHOW_DEBUG_OF(MYSQL_TYPE_DATETIME);
+	SHOW_DEBUG_OF(MYSQL_TYPE_YEAR);
+	SHOW_DEBUG_OF(MYSQL_TYPE_STRING);
+	SHOW_DEBUG_OF(MYSQL_TYPE_VAR_STRING);
+	SHOW_DEBUG_OF(MYSQL_TYPE_BLOB);
+	SHOW_DEBUG_OF(MYSQL_TYPE_SET);
+	SHOW_DEBUG_OF(MYSQL_TYPE_ENUM);
+	SHOW_DEBUG_OF(MYSQL_TYPE_NULL);
+#undef SHOW_DEBUG_TYPE_OF
+	}
 }
 
 
@@ -575,7 +614,7 @@ int SqlStmt_BindParam(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, v
 		self->bind_params = true;
 	}
 	if( idx < self->max_params )
-		return BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len, NULL, NULL);
+		return Sql_P_BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len, NULL, NULL);
 	else
 		return SQL_SUCCESS;// out of range - ignore
 }
@@ -597,7 +636,7 @@ int SqlStmt_Execute(SqlStmt* self)
 	}
 	self->bind_columns = false;
 	if( mysql_stmt_store_result(self->stmt) )// store all the data
-	{//FIXME is this enough or do i need to bind columns first? [FlavioJS]
+	{
 		ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));
 		return SQL_ERROR;
 	}
@@ -674,7 +713,7 @@ int SqlStmt_BindColumn(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, 
 		{
 			outlen = (unsigned long*)out_length;
 		}
-		return BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, outlen, out_is_null);
+		return Sql_P_BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, outlen, out_is_null);
 	}
 	else
 	{
@@ -707,10 +746,51 @@ int SqlStmt_NextRow(SqlStmt* self)
 	if( self->bind_columns && mysql_stmt_bind_result(self->stmt, self->columns) )
 		err = 1;// error binding columns
 	else
-		err = (size_t)mysql_stmt_fetch(self->stmt);// fetch row
+		err = mysql_stmt_fetch(self->stmt);// fetch row
 
 	if( err == MYSQL_NO_DATA )
 		return SQL_NO_DATA;
+	if( err == MYSQL_DATA_TRUNCATED )
+	{
+		size_t i;
+		size_t cols;
+		unsigned long* old_length;
+		unsigned long length;
+		my_bool truncate;
+
+		if( !self->bind_columns )
+		{
+			ShowSQL("DB error - data truncated (unknown source, columns are not bound)\n");
+			return SQL_ERROR;
+		}
+
+		cols = SqlStmt_NumColumns(self);
+		for( i = 0; i < cols; ++i )
+		{
+			old_length = self->columns[i].length;
+			self->columns[i].length = &length;
+			self->columns[i].error = &truncate;
+			mysql_stmt_fetch_column(self->stmt, self->columns, (unsigned int)i, 0);
+			self->columns[i].error = NULL;
+			self->columns[i].length = old_length;
+			if( truncate )
+			{
+				MYSQL_RES* meta;
+				MYSQL_FIELD* field;
+
+				meta = mysql_stmt_result_metadata(self->stmt);
+				field = mysql_fetch_field_direct(meta, (unsigned int)i);
+				ShowSQL("DB error - data of field '%s' was truncated.\n", field->name);
+				ShowDebug("column - %lu\n", (unsigned long)i);
+				Sql_P_ShowDebugMysqlFieldInfo("data   - ", field->type, field->flags&UNSIGNED_FLAG, length);
+				Sql_P_ShowDebugMysqlFieldInfo("buffer - ", self->columns[i].buffer_type, self->columns[i].is_unsigned, self->columns[i].buffer_length);
+				mysql_free_result(meta);
+				return SQL_ERROR;
+			}
+		}
+		ShowSQL("DB error - data truncated (unknown source)\n");
+		return SQL_ERROR;
+	}
 	if( err )
 	{
 		ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));

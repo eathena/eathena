@@ -3,6 +3,10 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/12
+	* Added use of ENUM type to sql code (like a string).
+	* Sql code now handles data truncation.
+	  (reports the type and length of the data and target buffer)
 2007/09/11
 	* Refinements in the Makefiles: [FlavioJS]
 	- only add missing files to 'save' and 'conf/import' folders (never replace)
@@ -30,8 +34,8 @@ to change the database driver just reimplement common/sql.c with the new driver
 	- host OS dependant stuff
 	- detect MinGW (primitive method?)
 	- generate all the makefiles
-	* Untested fix for the sql statements not knowing how many rows are 
-	  available (because the result was not fully buffered). [FlavioJS]
+	* Fix for the sql statements not knowing how many rows are available 
+	  (because the result was not fully buffered). [FlavioJS]
 2007/08/29
 	* Moved StringBuf code from utils.c/h to strlib.c/h 
 	* Added typedefs that remove 'struct' from struct Sql/SqlStmt/StringBuf

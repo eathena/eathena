@@ -19,7 +19,7 @@
 
 
 /// Data type identifier.
-/// String and blob data types need the buffer length specified.
+/// String, enum and blob data types need the buffer length specified.
 enum SqlDataType
 {
 	SQLDT_NULL,
@@ -48,6 +48,9 @@ enum SqlDataType
 	SQLDT_DOUBLE,
 	// other
 	SQLDT_STRING,
+	SQLDT_ENUM,
+	// Note: An ENUM is a string with restricted values. When an invalid value
+	//       is inserted, it is saved as an empty string (numerical value 0).
 	SQLDT_BLOB,
 	SQLDT_LASTID
 };
