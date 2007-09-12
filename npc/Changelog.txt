@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/09/11
+	* Added first version of Nameless Island sailor.
+	- Players can now access Cursed Abbey for further testings.
 2007/09/10
 	* Added the Cursed Abbey and Nameless Island warps (why would you merge the
 	  spawns without these?) [Skotlex]
