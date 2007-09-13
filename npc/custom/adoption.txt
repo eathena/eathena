@@ -1,8 +1,9 @@
-//===== Athena Script =======================================
+//===== eAthena Script =======================================
 //= Simple Adoption Script
-//===== By ================================================
+//===== By ===================================================
 //= Fredzilla with help from Kamari,Acky
-//===== Version ===========================================
+//===== Version ==============================================
+//= 1.7 Moved warps to the southern exit of the main chappel. [L0ne_W0lf]
 //= 1.6a Fixed wrong label name [KarLaeda]
 //= 1.6 Removed call to function Is_Taekwon_Class in favor of baseClass == Job_Taekwon [Silentdragon]
 //= 1.5 Added GM menu to reset current adoption [Lupus]
@@ -20,13 +21,13 @@
 //= 1.1 - Minor correction, replaced missing close; and mes :D
 //= 1.0 - First Release, most likely going to have some bugs
 //=	  Is using @adopt instead of proper NPC script command 
-//===== Compatible With ===================================
+//===== Compatible With ======================================
 //= eAthena Final (SVN), any version that contained the GM command @adopt
 //= This is any version released after 03/29/05, don't know the number
-//===== Description =======================================
+//===== Description ==========================================
 //= A simple adoption script that lets couples adopt a 
 //= lvl 1/1 novice without the help of a GM there
-//===== Comments ==========================================
+//===== Comments =============================================
 //= List or Variables used
 //= $@AdoptionActive = Stops other people trying to use 
 //= the adoption NPC's intill the currant one is over.
@@ -47,12 +48,12 @@
 //= 	*event_adopted = Put on baby so it can't be adopted again.
 //= 	Use "getchildid()>0" insread of event_adopt
 //= 	Use "Upper==2" insread of event_adopted
-//=========================================================
+//============================================================
 
-prt_church.gat,115,122,0	warp	prtch03	1,2,prt_church.gat,164,171
-prt_church.gat,162,171,0	warp	prtch01-3	1,2,prt_church.gat,113,122
+prt_church,83,122,0	warp	prtch03	1,2,prt_church,164,171
+prt_church,162,171,0	warp	prtch01-3	1,2,prt_church,86,122
 
-prt_church.gat,166,176,3	script	Adoption Man	61,{
+prt_church,166,176,3	script	Adoption Man	61,{
 
 	//If u're a GM you can always reset current Adoption process
 	if(getgmlevel()>=90) {
@@ -130,7 +131,7 @@ A_YouBaby:
 	close;
 }
 
-prt_church.gat,172,177,3	script	Adoption Lady	103,{
+prt_church,172,177,3	script	Adoption Lady	103,{
 	if (Upper==2) goto A_YouBaby;
 	if (getchildid()>0 && getskilllv(410)<=0) goto A_GetSkill;
 	if (getchildid()>0) goto A_Already;
@@ -207,7 +208,7 @@ A_Wedringpassed:
 	next;
 	deltimer "timeadopt::OnAdopt";
 	addtimer 300000,"timeadopt::OnAdopt";
-	areaannounce "prt_church.gat",0,0,350,350,"Can I please see "+$@ParentTwo$+" please",0; 
+	areaannounce "prt_church",0,0,350,350,"Can I please see "+$@ParentTwo$+" please",0; 
 	mes "[Inanna]";
 	mes "Can you now please wait for me to call you again, thank you.";
 	close;
@@ -274,7 +275,7 @@ A_YesBaby:
 	addtimer 300000,"timeadopt::OnAdopt";
 	mes "[Inanna]";
 	mes "Thank you, can you please wait with your partner, and wait to be called back.";
-	areaannounce "prt_church.gat",0,0,350,350,"Can I please see "+$@Baby$+", please",0;
+	areaannounce "prt_church",0,0,350,350,"Can I please see "+$@Baby$+", please",0;
 	close;
 A_FinalTest:
 	deltimer "timeadopt::OnAdopt";
@@ -318,7 +319,7 @@ A_Ready:
 	mes "I have no objections to you being adopted.";
 	mes "Before you can be adopted I will need to see your parents, and you, one last time.";
 	set $@FinalQuestion,1;
-	areaannounce "prt_church.gat",0,0,350,350,"Can I please see all people involved with this adoption please",0;
+	areaannounce "prt_church",0,0,350,350,"Can I please see all people involved with this adoption please",0;
 	deltimer "timeadopt::OnAdopt";
 	addtimer 300000,"timeadopt::OnAdopt";
 	close;
@@ -414,7 +415,7 @@ A_FinalYesB:
 	close;
 A_SameFail:
 	mes "[Inanna]";
-	mes "Sorry, it seems you have registerd as both parents, this isn't allowed";
+	mes "Sorry, it seems you have registered as both parents, this isn't allowed";
 	callfunc "AdoptReset","both parents are the same person";
 	close;
 
@@ -454,7 +455,7 @@ THEEND:
 	end;
 }
 
-prt_church.gat,165,175,0	script	timeadopt	-1,{
+prt_church,165,175,0	script	timeadopt	-1,{
 OnAdopt:
 	callfunc "AdoptReset","too much time has passed between steps";
 	end;
@@ -468,11 +469,11 @@ function	script	AdoptReset	{
 	set $@GenderBaby$, null;
 	set $@FinalQuestion, 0;
 	set $@CheckAll, 0;
-	areaannounce "prt_church.gat",0,0,350,350,"The adoption has been canceled because "+getarg(0),0;
+	areaannounce "prt_church",0,0,350,350,"The adoption has been canceled because "+getarg(0),0;
 	return;
 }
 
-prt_church.gat,165,166,6	script	Teacher	97,{
+prt_church,165,166,6	script	Teacher	97,{
 	mes "[Mario]";
 	if (Upper==2 && (getskilllv(408)<=0 || getskilllv(409)<=0)) goto L_Teach;
 	if (Upper==2) mes "Hello, baby! How are you?";
