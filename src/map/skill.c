@@ -6367,6 +6367,7 @@ int skill_castend_pos2 (struct block_list *src, int x, int y, int skillid, int s
 	case SG_SUN_WARM:
 	case SG_MOON_WARM:
 	case SG_STAR_WARM:
+		skill_clear_unitgroup(src);
 		if ((sg = skill_unitsetting(src,skillid,skilllv,src->x,src->y,0)))
 			sc_start4(src,type,100,skilllv,0,0,(int)sg,skill_get_time(skillid,skilllv));
 		flag|=1;
