@@ -241,14 +241,6 @@ SOURCE=..\src\char_sql\inter.c
 
 SOURCE=..\src\char_sql\inter.h
 # End Source File
-# Begin Source File
-
-SOURCE=..\src\char_sql\itemdb.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\char_sql\itemdb.h
-# End Source File
 # End Group
 # End Target
 # End Project

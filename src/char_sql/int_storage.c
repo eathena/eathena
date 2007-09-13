@@ -21,39 +21,18 @@
 // reset by inter_config_read()
 struct storage *storage_pt=NULL;
 struct guild_storage *guild_storage_pt=NULL;
-
 #endif //TXT_SQL_CONVERT
-// storage data -> DB conversion
-int storage_tosql(int account_id,struct storage *p){
-	int i,j;
-//	int eqcount=1;
-//	int noteqcount=1;
-	int count=0;
-	struct itemtmp mapitem[MAX_STORAGE];
-	for(i=0;i<MAX_STORAGE;i++){
-		if(p->storage_[i].nameid>0){
-			mapitem[count].flag=0;
-			mapitem[count].id = p->storage_[i].id;
-			mapitem[count].nameid=p->storage_[i].nameid;
-			mapitem[count].amount = p->storage_[i].amount;
-			mapitem[count].equip = p->storage_[i].equip;
-			mapitem[count].identify = p->storage_[i].identify;
-			mapitem[count].refine = p->storage_[i].refine;
-			mapitem[count].attribute = p->storage_[i].attribute;
-			for(j=0; j<MAX_SLOTS; j++)
-				mapitem[count].card[j] = p->storage_[i].card[j];
-			count++;
-		}
-	}
 
-	memitemdata_to_sql(mapitem, count, account_id,TABLE_STORAGE);
-
-	//printf ("storage dump to DB - id: %d (total: %d)\n", account_id, j);
+/// Save guild_storage data to sql
+int storage_tosql(int account_id,struct storage* p)
+{
+	memitemdata_to_sql(p->storage_, MAX_STORAGE, account_id, TABLE_STORAGE);
+	//ShowInfo ("storage save to DB - account: %d\n", account_id);
 	return 0;
 }
-#ifndef TXT_SQL_CONVERT
 
-// DB -> storage data conversion
+#ifndef TXT_SQL_CONVERT
+/// Load guild_storage data to mem
 int storage_fromsql(int account_id, struct storage* p)
 {
 	StringBuf buf;
@@ -100,36 +79,17 @@ int storage_fromsql(int account_id, struct storage* p)
 	return 1;
 }
 #endif //TXT_SQL_CONVERT
-// Save guild_storage data to sql
-int guild_storage_tosql(int guild_id, struct guild_storage *p){
-	int i,j;
-//	int eqcount=1;
-//	int noteqcount=1;
-	int count=0;
-	struct itemtmp mapitem[MAX_GUILD_STORAGE];
-	for(i=0;i<MAX_GUILD_STORAGE;i++){
-		if(p->storage_[i].nameid>0){
-			mapitem[count].flag=0;
-			mapitem[count].id = p->storage_[i].id;
-			mapitem[count].nameid=p->storage_[i].nameid;
-			mapitem[count].amount = p->storage_[i].amount;
-			mapitem[count].equip = p->storage_[i].equip;
-			mapitem[count].identify = p->storage_[i].identify;
-			mapitem[count].refine = p->storage_[i].refine;
-			mapitem[count].attribute = p->storage_[i].attribute;
-			for (j=0; j<MAX_SLOTS; j++)
-				mapitem[count].card[j] = p->storage_[i].card[j];
-			count++;
-		}
-	}
 
-	memitemdata_to_sql(mapitem, count, guild_id,TABLE_GUILD_STORAGE);
-
-	ShowInfo ("guild storage save to DB - id: %d (total: %d)\n", guild_id,i);
+/// Save guild_storage data to sql
+int guild_storage_tosql(int guild_id, struct guild_storage* p)
+{
+	memitemdata_to_sql(p->storage_, MAX_GUILD_STORAGE, guild_id, TABLE_GUILD_STORAGE);
+	ShowInfo ("guild storage save to DB - guild: %d\n", guild_id);
 	return 0;
 }
+
 #ifndef TXT_SQL_CONVERT
-// Load guild_storage data to mem
+/// Load guild_storage data to mem
 int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 {
 	StringBuf buf;
@@ -178,14 +138,13 @@ int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 
 //---------------------------------------------------------
 // storage data initialize
-int inter_storage_sql_init(void){
+int inter_storage_sql_init(void)
+{
 
 	//memory alloc
 	ShowDebug("interserver storage memory initialize....(%d byte)\n",sizeof(struct storage));
 	storage_pt = (struct storage*)aCalloc(sizeof(struct storage), 1);
 	guild_storage_pt = (struct guild_storage*)aCalloc(sizeof(struct guild_storage), 1);
-//	memset(storage_pt,0,sizeof(struct storage)); //Calloc sets stuff to 0 already. [Skotlex]
-//	memset(guild_storage_pt,0,sizeof(struct guild_storage));
 
 	return 1;
 }
@@ -214,7 +173,8 @@ int inter_guild_storage_delete(int guild_id)
 // packet from map server
 
 // recive packet about storage data
-int mapif_load_storage(int fd,int account_id){
+int mapif_load_storage(int fd,int account_id)
+{
 	//load from DB
 	WFIFOHEAD(fd, sizeof(struct storage)+8);
 	storage_fromsql(account_id, storage_pt);
@@ -226,7 +186,8 @@ int mapif_load_storage(int fd,int account_id){
 	return 0;
 }
 // send ack to map server which is "storage data save ok."
-int mapif_save_storage_ack(int fd,int account_id){
+int mapif_save_storage_ack(int fd,int account_id)
+{
 	WFIFOHEAD(fd, 7);
 	WFIFOW(fd,0)=0x3811;
 	WFIFOL(fd,2)=account_id;
@@ -277,13 +238,15 @@ int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 // packet from map server
 
 // recive request about storage data
-int mapif_parse_LoadStorage(int fd){
+int mapif_parse_LoadStorage(int fd)
+{
 	RFIFOHEAD(fd);
 	mapif_load_storage(fd,RFIFOL(fd,2));
 	return 0;
 }
 // storage data recive and save
-int mapif_parse_SaveStorage(int fd){
+int mapif_parse_SaveStorage(int fd)
+{
 	int account_id;
 	int len;
 	RFIFOHEAD(fd);
@@ -338,7 +301,8 @@ int mapif_parse_SaveGuildStorage(int fd)
 }
 
 
-int inter_storage_parse_frommap(int fd){
+int inter_storage_parse_frommap(int fd)
+{
 	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)){
 	case 0x3010: mapif_parse_LoadStorage(fd); break;

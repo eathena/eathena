@@ -393,14 +393,6 @@
 				RelativePath="..\src\char_sql\inter.h"
 				>
 			</File>
-			<File
-				RelativePath="..\src\char_sql\itemdb.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\itemdb.h"
-				>
-			</File>
 		</Filter>
 	</Files>
 	<Globals>

@@ -3,6 +3,16 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/13
+	* Adjusted the way the sql charserver does item saving
+	- Fixed another extra comma at the end of memo saving query
+	- Removed a major case of premature optimization - itemdb.c / .h
+	- When saving items, the items list will be passed by reference instead
+	  of doing "copy every item to temp buffer, one by one"
+	- When testing for changes in various char arrays (item, friend, memo..)
+	  during saving, memcmp() will be used instead of manually comparing
+	  members one by one (way simpler code, idea from jA)
+	* Corrected usage of reserved keyword 'friend' in mmo.h [ultramage]
 2007/09/12
 	* Added use of ENUM type to sql code (like a string).
 	* Sql code now handles data truncation.
@@ -16,7 +26,7 @@ to change the database driver just reimplement common/sql.c with the new driver
 	- main makefile with help target.
 	- stop compilation if mysql is required but not available.
 2007/09/08
-	* Adjusted VS project files (added missing sql.c/h entries)
+	* Adjusted VS project files (added missing sql.c/h entries) [ultramage]
 	* Moved some defines back to char_sql/int_party.h and char_sql/int_guild.h
 	  (required for the txt-converters).
 	* Work on configure script and Makefiles: [FlavioJS]

@@ -17,7 +17,6 @@
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_party.h"
-#include "itemdb.h"
 #include "char.h"
 
 #include <sys/types.h>
@@ -32,7 +31,6 @@
 
 #include <time.h>
 #include <signal.h>
-#include <fcntl.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdio.h>
@@ -407,7 +405,7 @@ void read_gm_account(void)
 	mapif_send_gmaccounts();
 }
 #endif //TXT_SQL_CONVERT
-int compare_item(struct item *a, struct item *b)
+int compare_item(const struct item* a, const struct item* b)
 {
 
 	if(a->id == b->id &&
@@ -434,14 +432,14 @@ static void* create_charstatus(DBKey key, va_list args)
 	return cp;
 }
 #endif //TXT_SQL_CONVERT
-int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
+
+int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 {
-	int i=0,j;
+	int i = 0;
 	int count = 0;
 	int diff = 0;
 	char save_status[128]; //For displaying save information. [Skotlex]
 	struct mmo_charstatus *cp;
-	struct itemtmp mapitem[MAX_GUILD_STORAGE];
 	StringBuf buf;
 
 	if (char_id!=p->char_id) return 0;
@@ -454,55 +452,21 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 
 	StringBuf_Init(&buf);
 	memset(save_status, 0, sizeof(save_status));
-	diff = 0;
-	//map inventory data
-	for(i=0;i<MAX_INVENTORY;i++){
-		if (!compare_item(&p->inventory[i], &cp->inventory[i]))
-			diff = 1;
-		if(p->inventory[i].nameid>0){
-			mapitem[count].flag=0;
-			mapitem[count].id = p->inventory[i].id;
-			mapitem[count].nameid=p->inventory[i].nameid;
-			mapitem[count].amount = p->inventory[i].amount;
-			mapitem[count].equip = p->inventory[i].equip;
-			mapitem[count].identify = p->inventory[i].identify;
-			mapitem[count].refine = p->inventory[i].refine;
-			mapitem[count].attribute = p->inventory[i].attribute;
-			for (j=0; j<MAX_SLOTS; j++)
-				mapitem[count].card[j] = p->inventory[i].card[j];
-			count++;
-		}
-	}
-	//printf("- Save item data to MySQL!\n");
-	if (diff)
-		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_INVENTORY))
-			strcat(save_status, " inventory");
 
-	count = 0;
-	diff = 0;
+	//map inventory data
+	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
+	{
+		memitemdata_to_sql(p->inventory, MAX_INVENTORY, p->char_id, TABLE_INVENTORY);
+		strcat(save_status, " inventory");
+	}
 
 	//map cart data
-	for(i=0;i<MAX_CART;i++){
-		if (!compare_item(&p->cart[i], &cp->cart[i]))
-			diff = 1;
-		if(p->cart[i].nameid>0){
-			mapitem[count].flag=0;
-			mapitem[count].id = p->cart[i].id;
-			mapitem[count].nameid=p->cart[i].nameid;
-			mapitem[count].amount = p->cart[i].amount;
-			mapitem[count].equip = p->cart[i].equip;
-			mapitem[count].identify = p->cart[i].identify;
-			mapitem[count].refine = p->cart[i].refine;
-			mapitem[count].attribute = p->cart[i].attribute;
-			for (j=0; j<MAX_SLOTS; j++)
-				mapitem[count].card[j] = p->cart[i].card[j];
-			count++;
-		}
+	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
+	{
+		memitemdata_to_sql(p->cart, MAX_CART, p->char_id, TABLE_CART);
+		strcat(save_status, " cart");
 	}
 
-	if (diff)
-		if (!memitemdata_to_sql(mapitem, count, p->char_id,TABLE_CART))
-			strcat(save_status, " cart");
 #ifdef TXT_SQL_CONVERT
 {	//Insert the barebones to then update the rest.
 	char esc_name[NAME_LENGTH*2+1];
@@ -513,10 +477,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 	{
 		Sql_ShowDebug(sql_handle);
 	}
-	else
-	{
-		strcat(save_status, " creation");
-	}
+
+	strcat(save_status, " creation");
 }
 #endif
 
@@ -541,7 +503,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 			"`base_exp`='%u', `job_exp`='%u', `zeny`='%d',"
 			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
 			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
-			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',"	//[orn] add homun_id (homunculus id)
+			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',"
 			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
 			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d'"
 			" WHERE  `account_id`='%d' AND `char_id` = '%d'",
@@ -549,7 +511,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 			p->base_exp, p->job_exp, p->zeny,
 			p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
 			p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-			p->option, p->party_id, p->guild_id, p->pet_id, p->hom_id,	//[orn] add homun_id (homunculus id)
+			p->option, p->party_id, p->guild_id, p->pet_id, p->hom_id,
 			p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
 			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
 			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
@@ -557,10 +519,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 		{
 			Sql_ShowDebug(sql_handle);
 		}
-		else
-		{
-			strcat(save_status, " status");
-		}
+		strcat(save_status, " status");
 	}
 
 	//Values that will seldom change (to speed up saving)
@@ -586,24 +545,13 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 		{
 			Sql_ShowDebug(sql_handle);
 		}
-		else
-		{
-			strcat(save_status, " status2");
-		}
-	}
-	
 
-	diff = 0;
-
-	for(i=0;i<MAX_MEMOPOINTS;i++){
-		if(p->memo_point[i].map == cp->memo_point[i].map && p->memo_point[i].x == cp->memo_point[i].x && p->memo_point[i].y == cp->memo_point[i].y)
-			continue;
-		diff = 1;
-		break;
+		strcat(save_status, " status2");
 	}
 
-	if (diff)
-	{ //Save memo
+	//memo points
+	if( memcmp(p->memo_point, cp->memo_point, sizeof(p->memo_point)) )
+	{
 		char esc_mapname[NAME_LENGTH*2+1];
 
 		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
@@ -620,7 +568,7 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 				if( count )
 					StringBuf_AppendStr(&buf, ",");
 				Sql_EscapeString(sql_handle, esc_mapname, mapindex_id2name(p->memo_point[i].map));
-				StringBuf_Printf(&buf, "('%d', '%s', '%d', '%d'),", char_id, esc_mapname, p->memo_point[i].x, p->memo_point[i].y);
+				StringBuf_Printf(&buf, "('%d', '%s', '%d', '%d')", char_id, esc_mapname, p->memo_point[i].x, p->memo_point[i].y);
 				++count;
 			}
 		}
@@ -628,29 +576,20 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 		{
 			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 				Sql_ShowDebug(sql_handle);
-			else
-				strcat(save_status, " memo");
 		}
-		else //Memo Points cleared (how is this possible?).
-			strcat(save_status, " memo");
+		
+		strcat(save_status, " memo");
 	}
 
-	diff = 0;
-	for(i=0;i<MAX_SKILL;i++) {
+	//FIXME: is this neccessary? [ultramage]
+	for(i=0;i<MAX_SKILL;i++)
 		if ((p->skill[i].lv != 0) && (p->skill[i].id == 0))
 			p->skill[i].id = i; // Fix skill tree
 
-		if((p->skill[i].id != cp->skill[i].id) || (p->skill[i].lv != cp->skill[i].lv) ||
-			(p->skill[i].flag != cp->skill[i].flag))
-		{
-			diff = 1;
-			break;
-		}
-	}
 
-	if (diff)
-	{	//Save skills
-
+	//skills
+	if( memcmp(p->skill, cp->skill, sizeof(p->skill)) )
+	{
 		//`skill` (`char_id`, `id`, `lv`)
 		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", skill_db, p->char_id) )
 			Sql_ShowDebug(sql_handle);
@@ -672,12 +611,11 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 		{
 			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 				Sql_ShowDebug(sql_handle);
-			else
-				strcat(save_status, " skills");
 		}
-		else //Skills removed (reset?)
-			strcat(save_status, " skills");
+
+		strcat(save_status, " skills");
 	}
+
 	diff = 0;
 	for(i = 0; i < MAX_FRIENDS; i++){
 		if(p->friends[i].char_id != cp->friends[i].char_id ||
@@ -726,16 +664,18 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus *p)
 	return 0;
 }
 
-// [Ilpalazzo-sama]
-int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tableswitch)
+/// Saves an array of 'item' entries into the specified table.
+int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch)
 {
 	StringBuf buf;
 	SqlStmt* stmt;
 	int i;
 	int j;
-	int flag;
 	const char* tablename;
 	const char* selectoption;
+	struct item item; // temp storage variable
+	bool* flag; // bit array for inventory matching
+	bool found;
 
 	switch (tableswitch) {
 	case TABLE_INVENTORY:     tablename = inventory_db;     selectoption = "char_id";    break;
@@ -747,92 +687,80 @@ int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tabl
 		return 1;
 	}
 
-	//=======================================mysql database data > memory===============================================
+
+	// The following code compares inventory with current database values
+	// and performs modification/deletion/insertion only on relevant rows.
+	// This approach is more complicated than a trivial delete&insert, but
+	// it significantly reduces cpu load on the database server.
 
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ", `card%d`", j);
-	StringBuf_Printf(&buf, " FROM `%s` WHERE `%s`='%d'", tablename, selectoption, char_id);
+	StringBuf_Printf(&buf, " FROM `%s` WHERE `%s`='%d'", tablename, selectoption, id);
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf)) )
+	if( SQL_ERROR == SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_ERROR == SqlStmt_Execute(stmt) )
 	{
 		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
+		StringBuf_Clear(&buf);
 		return 1;
 	}
-	if( SQL_ERROR == SqlStmt_Execute(stmt) )
-		SqlStmt_ShowDebug(stmt);
-	else
+
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &item.id,        0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,  &item.nameid,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,  &item.amount,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &item.equip,     0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &item.identify,  0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &item.refine,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &item.attribute, 0, NULL, NULL);
+	for( j = 0; j < MAX_SLOTS; ++j )
+		SqlStmt_BindColumn(stmt, 7+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
+
+	// bit array indicating which inventory items have already been matched
+	flag = (bool*) aCallocA(max, sizeof(bool));
+
+	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) )
 	{
-		struct itemtmp item;
-
-		SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &item.id, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,  &item.nameid, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,  &item.amount, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &item.equip, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &item.identify, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &item.refine, 0, NULL, NULL);
-		SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &item.attribute, 0, NULL, NULL);
-		for( j = 0; j < MAX_SLOTS; ++j )
-			SqlStmt_BindColumn(stmt, 7+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
-
-		memset(&item, 0, sizeof(struct itemtmp));
-
-		for( ; SQL_SUCCESS == SqlStmt_NextRow(stmt); memset(&item, 0, sizeof(struct itemtmp)) )
+		bool found = false;
+		// search for the presence of the item in the char's inventory
+		for( i = 0; i < max; ++i )
 		{
-			flag = 0;
-			for( i = 0; i < count; ++i )
+			if( flag[i] )
+				continue; // this item was matched already, skip it
+			
+			if( items[i].id == 0 )
+			{	// to make skipping empty entries faster and to prevent saving them later
+				flag[i] = true;
+				continue;
+			}
+			
+			if( compare_item(&items[i], &item) )
+				; // Equal - do nothing.
+			else
 			{
-				if( mapitem[i].flag == 1 )
-					continue;
-				if( mapitem[i].nameid  == item.nameid &&
-					mapitem[i].card[0] == item.card[0] &&
-					mapitem[i].card[2] == item.card[2] &&
-					mapitem[i].card[3] == item.card[3] )
-				{// They are the same item.
-					for( j = 0; j < MAX_SLOTS && mapitem[i].card[j] == item.card[j]; ++j )
-						;
-					if( j == MAX_SLOTS &&
-						mapitem[i].amount    == item.amount &&
-						mapitem[i].equip     == item.equip &&
-						mapitem[i].identify  == item.identify &&
-						mapitem[i].refine    == item.refine &&
-						mapitem[i].attribute == item.attribute )
-					{// Equal - do nothing.
-					}
-					else
-//==============================================Memory data > SQL ===============================
-#ifndef TXT_SQL_CONVERT
-					if( !itemdb_isequip(mapitem[i].nameid) )
-					{// Quick update of stackable items. Update Qty and Equip should be enough, but in case we are also updating identify
-						if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `equip`='%d', `identify`='%d', `amount`='%d' WHERE `id`='%d' LIMIT 1",
-							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].amount, item.id) )
-							Sql_ShowDebug(sql_handle);
-					}
-					else
-#endif //TXT_SQL_CONVERT
-					{// Equipment or Misc item, just update all fields.
-						StringBuf_Clear(&buf);
-						StringBuf_Printf(&buf, "UPDATE `%s` SET `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
-							tablename, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute);
-						for( j = 0; j < MAX_SLOTS; ++j )
-							StringBuf_Printf(&buf, ", `card%d`=%d", j, mapitem[i].card[j]);
-						StringBuf_Printf(&buf, ", `amount`='%d' WHERE `id`='%d' LIMIT 1", mapitem[i].amount, item.id);
-
-						if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-							Sql_ShowDebug(sql_handle);
-					}
-					flag = mapitem[i].flag = 1; //Item dealt with,
-					break; //skip to next item in the db.
-				}
-			}
-			if( !flag )
-			{// Item not updated, remove it.
-				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `id`='%d'", tablename, item.id) )
+				// update all fields.
+				StringBuf_Clear(&buf);
+				StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
+					tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute);
+				for( j = 0; j < MAX_SLOTS; ++j )
+					StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
+				StringBuf_Printf(&buf, ", `amount`='%d' WHERE `id`='%d' LIMIT 1", items[i].amount, item.id);
+				
+				if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 					Sql_ShowDebug(sql_handle);
+
 			}
+			
+			found = flag[i] = true; //Item dealt with,
+			break; //skip to next item in the db.
+		}
+		if( !found )
+		{// Item not present in inventory, remove it.
+			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `id`='%d'", tablename, item.id) )
+				Sql_ShowDebug(sql_handle);
 		}
 	}
 	SqlStmt_Free(stmt);
@@ -842,27 +770,32 @@ int memitemdata_to_sql(struct itemtmp* mapitem, int count, int char_id, int tabl
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ", `card%d`", j);
 	StringBuf_AppendStr(&buf, ") VALUES ");
-	for( i = 0, flag = 0; i < count; ++i )
+
+	found = false;
+	// insert non-matched items into the db as new items
+	for( i = 0, found = 0; i < max; ++i )
 	{
-		if( !mapitem[i].flag )
+		if( !flag[i] )
 		{
-			if( flag )
+			if( found )
 				StringBuf_AppendStr(&buf, ",");
 			else
-				flag = 1;
+				found = true;
 
 			StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
-				char_id, mapitem[i].nameid, mapitem[i].amount, mapitem[i].equip, mapitem[i].identify, mapitem[i].refine, mapitem[i].attribute);
+				id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute);
 			for( j = 0; j < MAX_SLOTS; ++j )
-				StringBuf_Printf(&buf, ", '%d'", mapitem[i].card[j]);
+				StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
 			StringBuf_AppendStr(&buf, ")");
 		}
 	}
 
-	if( flag && SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+	if( found && SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 		Sql_ShowDebug(sql_handle);
 
 	StringBuf_Destroy(&buf);
+	aFree(flag);
+
 	return 0;
 }
 
@@ -902,7 +835,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 	}
 
 	p->char_id = char_id;
-	//TODO: prepared statement goes here >_>
+	//TODO: prepared statement goes here >_> [ultramage]
 	Sql_GetData(sql_handle,  1, &data, NULL); p->account_id = atoi(data);
 	Sql_GetData(sql_handle,  2, &data, NULL); p->char_num = atoi(data);
 	Sql_GetData(sql_handle,  3, &data, &len); memcpy(p->name, data, min(len, NAME_LENGTH));
@@ -1057,7 +990,7 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 
 	Sql_FreeResult(sql_handle);
 	StringBuf_Destroy(&buf);
-	if (save_log) ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
+	if (save_log) ShowInfo("Loaded char (%d - %s):%s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
 
 	cp = idb_ensure(char_db_, char_id, create_charstatus);
   	memcpy(cp, p, sizeof(struct mmo_charstatus));
@@ -1100,14 +1033,9 @@ int make_new_char_sql(int fd, unsigned char *dat)
 	unsigned int i; // Used in for loop and comparing with strlen, safe to be unsigned. [Lance]
 	int char_id;
 
-	strncpy(name, dat, NAME_LENGTH);
-	name[NAME_LENGTH-1] = '\0'; //Always terminate string.
+	safestrncpy(name, dat, NAME_LENGTH);
 	normalize_name(name,TRIM_CHARS); //Normalize character name. [Skotlex]
 	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-
-	// disabled until fixed >.>
-	// Note: escape characters should be added to jstrescape()!
-	//mysql_real_escape_string(&mysql_handle, t_name, t_name_temp, sizeof(t_name_temp));
 
 	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
 		return -2;
@@ -1275,27 +1203,14 @@ int delete_char_sql(int char_id, int partner_id)
 		return -1;
 	}
 
-	// name
-	Sql_GetData(sql_handle, 0, &data, &len);
-	memset(name, 0, NAME_LENGTH);
-	memcpy(name, data, min(len, NAME_LENGTH));
-	Sql_EscapeStringLen(sql_handle, esc_name, data, min(len, NAME_LENGTH));
-	// account_id
-	Sql_GetData(sql_handle, 1, &data, NULL);
-	account_id = atoi(data);
-	// party_id
-	Sql_GetData(sql_handle, 2, &data, NULL);
-	party_id = atoi(data);
-	// guild_id
-	Sql_GetData(sql_handle, 3, &data, NULL);
-	guild_id = atoi(data);
-	// base_level
-	Sql_GetData(sql_handle, 4, &data, NULL);
-	base_level = atoi(data);
-	// hom_id
-	Sql_GetData(sql_handle, 5, &data, NULL);
-	hom_id = atoi(data);
+	Sql_GetData(sql_handle, 0, &data, &len); safestrncpy(name, data, NAME_LENGTH);
+	Sql_GetData(sql_handle, 1, &data, NULL); account_id = atoi(data);
+	Sql_GetData(sql_handle, 2, &data, NULL); party_id = atoi(data);
+	Sql_GetData(sql_handle, 3, &data, NULL); guild_id = atoi(data);
+	Sql_GetData(sql_handle, 4, &data, NULL); base_level = atoi(data);
+	Sql_GetData(sql_handle, 5, &data, NULL); hom_id = atoi(data);
 
+	Sql_EscapeStringLen(sql_handle, esc_name, data, min(len, NAME_LENGTH));
 	Sql_FreeResult(sql_handle);
 
 	//check for config char del condition [Lupus]
@@ -2311,24 +2226,12 @@ int parse_frommap(int fd)
 				WFIFOL(fd,8) = cid;
 				for( count = 0; count < 50 && SQL_SUCCESS == Sql_NextRow(sql_handle); ++count )
 				{
-					// type
-					Sql_GetData(sql_handle, 0, &data, NULL);
-					scdata.type = atoi(data);
-					// tick
-					Sql_GetData(sql_handle, 1, &data, NULL);
-					scdata.tick = atoi(data);
-					// val1
-					Sql_GetData(sql_handle, 2, &data, NULL);
-					scdata.val1 = atoi(data);
-					// val2
-					Sql_GetData(sql_handle, 3, &data, NULL);
-					scdata.val2 = atoi(data);
-					// val3
-					Sql_GetData(sql_handle, 4, &data, NULL);
-					scdata.val3 = atoi(data);
-					// val4
-					Sql_GetData(sql_handle, 5, &data, NULL);
-					scdata.val4 = atoi(data);
+					Sql_GetData(sql_handle, 0, &data, NULL); scdata.type = atoi(data);
+					Sql_GetData(sql_handle, 1, &data, NULL); scdata.tick = atoi(data);
+					Sql_GetData(sql_handle, 2, &data, NULL); scdata.val1 = atoi(data);
+					Sql_GetData(sql_handle, 3, &data, NULL); scdata.val2 = atoi(data);
+					Sql_GetData(sql_handle, 4, &data, NULL); scdata.val3 = atoi(data);
+					Sql_GetData(sql_handle, 5, &data, NULL); scdata.val4 = atoi(data);
 					memcpy(WFIFOP(fd, 14+count*sizeof(struct status_change_data)), &scdata, sizeof(struct status_change_data));
 				}
 				if (count >= 50)
@@ -3637,18 +3540,8 @@ void sql_config_read(const char *cfgName)
 			strcpy(pet_db,w2);
 		}else if(strcmpi(w1,"friend_db")==0){
 			strcpy(friend_db,w2);
-#ifndef TXT_SQL_CONVERT
 		}else if(strcmpi(w1,"db_path")==0){
 			strcpy(db_path,w2);
-		//Map server option to use SQL db or not
-		}else if(strcmpi(w1,"use_sql_db")==0){ // added for sql item_db read for char server [Valaris]
-			db_use_sqldbs = config_switch(w2);
-			ShowStatus("Using SQL dbs: %s\n",w2);
-		}else if(strcmpi(w1,"item_db_db")==0){
-			strcpy(item_db_db,w2);
-		}else if(strcmpi(w1,"item_db2_db")==0){
-			strcpy(item_db2_db,w2);
-#endif
 		//support the import command, just like any other config
 		}else if(strcmpi(w1,"import")==0){
 			sql_config_read(w2);
@@ -3822,7 +3715,6 @@ void do_final(void)
 {
 	ShowInfo("Doing final stage...\n");
 	//inter_save();
-	do_final_itemdb();
 	//check SQL save progress.
 	//wait until save char complete
 
@@ -3915,9 +3807,6 @@ int do_init(int argc, char **argv)
 	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName); // inter server √ ±‚»≠
 	ShowInfo("Finished reading the inter-server configuration.\n");
 	
-	//Read ItemDB
-	do_init_itemdb();
-
 	ShowInfo("Initializing char server.\n");
 	online_char_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	mmo_char_sql_init();
@@ -4044,15 +3933,9 @@ int char_family(int pl1, int pl2, int pl3)
 		int childid;
 		char* data;
 
-		// char_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		charid = atoi(data);
-		// partner_id
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		partnerid = atoi(data);
-		// child
-		Sql_GetData(sql_handle, 2, &data, NULL);
-		childid = atoi(data);
+		Sql_GetData(sql_handle, 0, &data, NULL); charid = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); partnerid = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); childid = atoi(data);
 
 		if( (pl1 == charid    && ((pl2 == partnerid && pl3 == childid  ) || (pl2 == childid   && pl3 == partnerid))) ||
 			(pl1 == partnerid && ((pl2 == charid    && pl3 == childid  ) || (pl2 == childid   && pl3 == charid   ))) ||

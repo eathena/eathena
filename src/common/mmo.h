@@ -180,7 +180,7 @@ struct s_homunculus {	//[orn]
 	int luk ;
 };
 
-struct friend {
+struct s_friend {
 	int account_id;
 	int char_id;
 	char name[NAME_LENGTH];
@@ -222,7 +222,7 @@ struct mmo_charstatus {
 	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
 	struct skill skill[MAX_SKILL];
 
-	struct friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
+	struct s_friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
 };
 
 struct registry {
@@ -250,8 +250,6 @@ struct guild_storage {
 	struct item storage_[MAX_GUILD_STORAGE];
 };
 
-struct map_session_data;
-
 struct gm_account {
 	int account_id;
 	int level;
@@ -276,6 +274,8 @@ struct party {
 				item : 2; //&1: Party-Share (round-robin), &2: pickup style: shared.
 	struct party_member member[MAX_PARTY];
 };
+
+struct map_session_data;
 
 struct guild_member {
 	int account_id, char_id;

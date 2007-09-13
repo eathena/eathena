@@ -13,17 +13,6 @@ struct mmo_charstatus;
 
 #define DEFAULT_AUTOSAVE_INTERVAL 300*1000
 
-struct itemtmp {
-	int flag;//checked = 1 else 0
-	int id;
-	short nameid;
-	short amount;
-	unsigned short equip;
-	char identify;
-	char refine;
-	char attribute;
-	short card[4];
-};
 enum {
 	TABLE_INVENTORY,
 	TABLE_CART,
@@ -31,7 +20,7 @@ enum {
 	TABLE_GUILD_STORAGE,
 };
 
-int memitemdata_to_sql(struct itemtmp mapitem[], int count, int char_id,int tableswitch);
+int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 
 int mapif_sendall(unsigned char *buf,unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf,unsigned int len);
