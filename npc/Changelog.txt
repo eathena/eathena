@@ -23,7 +23,7 @@ Playtester
 Date		Added
 ======
 2007/09/14
-	* Merged guides and merchants directory from trunk [ultramage]
+	* Merged guides directory from trunk [ultramage]
 2007/09/13
 	* Rev. 11190 Merged Adoption script from trunk. (Resolves bug: 51) [L0ne_W0lf]
 	- Not sure why it was over-looked when the Gaebolg quest was merged from trunk.
