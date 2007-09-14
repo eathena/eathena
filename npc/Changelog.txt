@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/09/14
+	* Merged the merchants directory from trunk (see r11208 for details)
 	* Merged guides directory from trunk [ultramage]
 2007/09/13
 	* Rev. 11190 Merged Adoption script from trunk. (Resolves bug: 51) [L0ne_W0lf]
