@@ -2709,6 +2709,7 @@ int map_waterheight(char* mapname)
 
 	//Look up for the rsw
 	sprintf(fn, "data\\%s.rsw", mapname);
+
 	found = grfio_find_file(fn);
 	if (found) strcpy(fn, found); // replace with real name
 	

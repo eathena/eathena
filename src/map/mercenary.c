@@ -714,7 +714,7 @@ int merc_hom_recv_data(int account_id, struct s_homunculus *sh, int flag)
 		merc_hom_alloc(sd, sh);
 	
 	hd = sd->hd;
-	if(hd->homunculus.hp && !hd->homunculus.vaporize && hd->bl.prev == NULL && sd->bl.prev != NULL)
+	if(hd && hd->homunculus.hp && !hd->homunculus.vaporize && hd->bl.prev == NULL && sd->bl.prev != NULL)
 	{
 		map_addblock(&hd->bl);
 		clif_spawn(&hd->bl);
