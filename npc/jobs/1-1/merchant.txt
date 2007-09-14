@@ -243,7 +243,7 @@ M_Menu:
 	M_1:
 		mes "[Chief Mahnsoo]";
 		mes "Merchants are people who are in the business of buying and selling goods.  We focus on finding rare items and selling them to those who desire or need them.";
-		mes "We are not particularly good at fighting nor do we have any usefull support skills.  What we Merchants can do is buy Goods at lower prices as well as sell them at Highter prices.";
+		mes "We are not particularly good at fighting nor do we have any useful support skills.  What we Merchants can do is buy Goods at lower prices as well as sell them at Highter prices.";
 		next;
 		mes "[Chief Mahnsoo]";
 		mes "As far as what weapons go, we can use most of them.  Bows, Rods, and Two-Handed Swords are the only types of weapons we can't use.";

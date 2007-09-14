@@ -1041,7 +1041,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	  does normal damage against non brute/demihumans. [Skotlex]
 	* Merged Ground Drift implementation where it has a splash damage of 3x3,
 	  and the additional damage is defense bypassing neutral damage. [Skotlex]
-	* Merged Soul Linkers being inmune to Dispel. [Skotlex]
+	* Merged Soul Linkers being immune to Dispel. [Skotlex]
 	* Merged Suiton triggering the agi/speed penalty on everyone in versus
 	  grounds. [Skotlex]
 2006/11/07
@@ -1314,7 +1314,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* SpeedAddRate bonuses now stack linearly.
 	* Mobs no longer check distance to target on every ai iteration unless
 	  monster_ai&1 is specified. [Skotlex]
-	* Marine Spheres and Floras are now inmune to class-changing effects
+	* Marine Spheres and Floras are now immune to class-changing effects
 	  [Skotlex]
 2006/09/17
 	* Fixed NPC_INVISIBLE's cloak ending after attacking once. [Skotlex]
@@ -2015,7 +2015,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	  data being sent to invalid recipients which in turn could crash the server.
 	  This involved a lot of rewrites around the duel-related functions and
 	  night/day time.
-	- Updated monsterignore to make you inmune to offensive attacks. Added
+	- Updated monsterignore to make you immune to offensive attacks. Added
 	  @battleignore alias to reflect this change.
 	- Merged clif_specialeffect directly receiving the recipient type. 
 	- Merged fix for @storeall saying it failed when the storage is already
@@ -3264,7 +3264,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Corrected Waterball so that higher levels can do insane amount of hits.
 	  [Skotlex]
 	* Coma no longer sends SP to 1. [Skotlex]
-	* Dark elemental characters are now inmune to Curse. [Skotlex]
+	* Dark elemental characters are now immune to Curse. [Skotlex]
 	* Increased HT_DETECTING seek range to 7x7 [Skotlex]
 2006/02/05
 	* Fixed and documented script command "callshop". [Skotlex]
@@ -3489,7 +3489,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	  battle_check_target calls on a bunch of invalid targets such as
 	  items/skills/npcs on skills and other misc places. [Skotlex] 
 	* Fixed mob skills that should trigger on status on "any bad". [Skotlex]
-	* TK classes no longer are inmune to the strip-effects of Jump Kick [Skotlex]
+	* TK classes no longer are immune to the strip-effects of Jump Kick [Skotlex]
 	* Fixed SQL mapreg saving. [Skotlex]
 	* Reverted Ice Wall Behaviour (you can snipe/cast through it again) [Skotlex]
 	* Fixed possible crash in skill_check_condition on consume-delayed items [Skotlex]
@@ -3755,7 +3755,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Fixed the warp unloading code. [Skotlex]
 	* Updated Jump Side Kick to also clear Berserk Pitcher.  [Skotlex]
 	* Preserve now protects against the stripping effects of Side Kick. Taekwon
-	  Classes (TK/SL/SG) are also inmune to it.  [Skotlex]
+	  Classes (TK/SL/SG) are also immune to it.  [Skotlex]
 	* Hopefully fixed the guild information not being sent in some situations
 	  when people are added/removed from a guild. [Skotlex]
 	* Some cleaning up and bug fixes to the guild module of the char-sql
@@ -4886,7 +4886,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Corrected True Sight's critical bonus (from +0.1 cri per level to +1 cri
 	  per level) [Skotlex]
 	* Made coma a status effect. SC_COMA. Sets HP/SP to 1. Bosses/Emperium are
-	  inmune to it. [Skotlex]
+	  immune to it. [Skotlex]
 	* Fixed null pointer crash in battle_damage. [Skotlex]
 	* Increased max account variables to 32. [Skotlex]
 	* Pressure/Gloria Domini now isn't instant-cancelled by status effects, and

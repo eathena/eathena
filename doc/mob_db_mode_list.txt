@@ -19,7 +19,7 @@ MD_ANGRY        | 0x800 | 2048
 4: Aggressive: normal aggressive mob, will look for a close-by player and charge him until death. Aggressive mobs also can change target if they are hit by someone else while chasing someone else.
 8: Assist
 16: Cast Sensor: If mob is aggressive, it will also change targets while chasing/following someone else, otherwise, it'll also be cast-sensitive while idle/random-walking.
-32: Boss. Special flag which makes mobs inmune to certain stuff like status-changes and basilica.
+32: Boss. Special flag which makes mobs immune to certain stuff like status-changes and basilica.
 64: Plant. Always receives 1 damage from stuff.
 128: Can Attack. Everyone with a few exceptions has this. Only prevents normal attacks, not skills.
 256: Detector: can see hidden players. Insects, Demons, and Bosses automatically receive this.
@@ -47,4 +47,70 @@ Old -> New
 159 -> 159: Cast sensor, Assist, Agressive, Looter
 171 -> 171: Boss, summons, assists & loots (Golden Thief Bug) 
 181 -> 1461: Boss, summons, detector & aggressive (pretty much every MVP and miniboss) 
-none -> 2181 : Hyper-active (Familiar)
+none -> 2181 : Hyper-active (Familiar)==== ORIGINAL VERSION doc/mob_db_mode_list.txt 118977565246923
+CanMove: Enables the mob to move/chase characters.
+
+CanAttack: Enables the mob to attack/retaliate when you are within attack
+	range. Note that this only enables them to use normal attacks, skills are
+	always allowed.
+
+Looter: The mob will loot up nearby items on the ground when it's on idle state.
+
+Aggressive: normal aggressive mob, will look for a close-by player to attack.
+
+Assist: When a nearby mob of the same class attacks, assist types will join them.
+
+Cast Sensor Idle: Will go after characters who start casting on them if idle
+	or walking (without a target).
+
+Cast Sensor Chase: Will go after characters who start casting on them if idle
+	or chasing other players (they switch chase targets)
+
+Boss: Special flag which makes mobs immune to certain status changes and skills.
+
+Plant: Always receives 1 damage from attacks.
+
+Detector: Enables mob to detect and attack characters who are in hiding/cloak.
+
+ChangeChase: Allows chasing mobs to switch targets if another player happens
+	to be within attack range (handy on ranged attackers, for example)
+
+Angry: These mobs are "hyper-active". Apart from "chase"/"attack", they have
+	the states "follow"/"angry". Once hit, they stop using these states and use
+	the normal ones. The new states are used to determine a different skill-set
+	for their "before attacked" and "after attacked" states. Also, when
+	"following", they automatically switch to whoever character is closest.
+
+Change Target Melee: Enables a mob to switch targets when attacked while
+	attacking someone else.
+
+Change Target Chase: Enables a mob to switch targets when attacked while
+	chasing another character.
+
+Aegis Mob Types:
+-------------------------------------------------------------------------------
+
+What Aegis has are mob-types, where each type represents an AI behaviour that
+is mimicked by a group of eA mode bits. This is the table to convert from one
+to another:
+
+Aegis/eA (description)
+01: 0x0081 (passive)
+02: 0x0083 (passive, looter)
+03: 0x1089 (passive, assist and change-target melee)
+04: 0x3885 (angry, change-target melee/chase)
+05: 0x2085 (aggro, change-target chase)
+06: 0x0000 (passive, immobile, can't attack) [plants]
+07: 0x108B (passive, looter, assist, change-target melee)
+09: 0x3095 (aggro, change-target melee/chase, cast sensor idle) [Guardian]
+10: 0x0084 (aggro, immobile)
+11: 0x0084 (aggro, immobile) [Guardian]
+12: 0x2085 (aggro, change-target chase) [Guardian]
+13: 0x308D (aggro, change-target melee/chase, assist)
+17: 0x0091 (passive, cast sensor idle)
+19: 0x3095 (aggro, change-target melee/chase, cast sensor idle)
+20: 0x3295 (aggro, change-target melee/chase, cast sensor idle/chase)
+21: 0x3695 (aggro, change-target melee/chase, cast sensor idle/chase, chase-change target)
+
+- Note that the detector bit due to being Insect/Demon, plant  and Boss mode
+  bits need to be added independently of this list.

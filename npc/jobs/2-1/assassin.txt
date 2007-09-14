@@ -376,7 +376,7 @@ L_Failed:
 		mes "Hmm..... I see... Sorry about my outburst of laughter...... people make mistakes from time to time..... I understand this.";
 		next;
 		mes "[Assassin Kai]";
-		mes "Although I can't give you any answers to the test, I can give you some usefull information about Assassins that may help you......";
+		mes "Although I can't give you any answers to the test, I can give you some useful information about Assassins that may help you......";
 		next;
 		mes "[Assassin Kai]";
 		mes "For an Assassin honor and pride is of the utmost importance.  You cannot be an Assassin without any honor.";

@@ -4605,16 +4605,16 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 			return 0; //Cannot override other opt1 status changes. [Skotlex]
 	break;
 	case SC_CURSE:
-		//Dark Elementals are inmune to curse.
+		//Dark Elementals are immune to curse.
 		if (status->def_ele == ELE_DARK && !(flag&1))
 			return 0;
 	break;
-	case SC_CHANGEUNDEAD: //Undead/Dark are inmune to it.
+	case SC_CHANGEUNDEAD: //Undead/Dark are immune to it.
 		if ((status->def_ele == ELE_DARK || undead_flag) && !(flag&1))
 			return 0;
 	break;
 	case SC_COMA:
-		//Dark elementals and Demons are inmune to coma.
+		//Dark elementals and Demons are immune to coma.
 		if((status->def_ele == ELE_DARK || status->race == RC_DEMON) && !(flag&1))
 			return 0;
 	break;

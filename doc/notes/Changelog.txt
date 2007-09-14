@@ -2622,8 +2622,8 @@ Date	Added
 	* Split zlib dll opening from grf opening in grfio.c [celest]
 	* Moved grfio.c back to /common, it'll be needed by the core later [celest]
 	* SQL Logs crash likely fixed. [Skotlex]
-	* Added Stone-Curse to the list of status effects undead chars are inmune
-	  to. So far undead chars are inmune to Freeze and Stone Curse. [Skotlex]
+	* Added Stone-Curse to the list of status effects undead chars are immune
+	  to. So far undead chars are immune to Freeze and Stone Curse. [Skotlex]
 	* Fixed disp_hpmeter not working properly when set to 0/no [Skotlex]
 	* Added malloc_usage() for checking total memory used [celest]
 	* Added func_parse_table to assign a parse function according to SessionType
