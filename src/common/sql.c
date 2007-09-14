@@ -26,18 +26,17 @@ struct Sql
 	unsigned long* lengths;
 };
 
-//##TODO only define when necessary
-#define SQL_COMPAT_OUTLEN
 
-#if defined(SQL_COMPAT_OUTLEN)
-// compatibility between uint32 and unsigned long in out_length of columns
-struct compat_outlen_s
+
+// Column length receiver.
+// Takes care of the possible size missmatch between uint32 and unsigned long.
+struct s_column_length
 {
 	uint32* out_length;
-	unsigned long buf;
+	unsigned long length;
 };
-typedef struct compat_outlen_s compat_outlen_s;
-#endif
+typedef struct s_column_length s_column_length;
+
 
 
 /// Sql statement
@@ -47,9 +46,7 @@ struct SqlStmt
 	MYSQL_STMT* stmt;
 	MYSQL_BIND* params;
 	MYSQL_BIND* columns;
-#if defined(SQL_COMPAT_OUTLEN)
-	compat_outlen_s* column_lengths;
-#endif
+	s_column_length* column_lengths;
 	size_t max_params;
 	size_t max_columns;
 	bool bind_params;
@@ -433,14 +430,13 @@ static int Sql_P_BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type,
 	case SQLDT_DOUBLE: bind->buffer_type = MYSQL_TYPE_DOUBLE;
 		break;
 	// other
-	case SQLDT_STRING: bind->buffer_type = MYSQL_TYPE_STRING;
-		break;
+	case SQLDT_STRING:
 	case SQLDT_ENUM: bind->buffer_type = MYSQL_TYPE_STRING;
 		break;
 	case SQLDT_BLOB: bind->buffer_type = MYSQL_TYPE_BLOB;
 		break;
 	default:
-		ShowDebug("BindSqlDataType: unsupported buffer type (%d)\n", buffer_type);
+		ShowDebug("Sql_P_BindSqlDataType: unsupported buffer type (%d)\n", buffer_type);
 		return SQL_ERROR;
 	}
 	bind->buffer = buffer;
@@ -455,15 +451,16 @@ static int Sql_P_BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type,
 /// Prints debug information about a field (type and length).
 ///
 /// @private
-static void Sql_P_ShowDebugMysqlFieldInfo(const char* prefix, enum enum_field_types type, int is_unsigned, unsigned long length)
+static void Sql_P_ShowDebugMysqlFieldInfo(const char* prefix, enum enum_field_types type, int is_unsigned, unsigned long length, const char* length_postfix)
 {
 	const char* sign = (is_unsigned ? "UNSIGNED " : "");
+	const char* type_string;
 	switch( type )
 	{
 	default:
 		ShowDebug("%stype=%s%u, length=%d\n", prefix, sign, type, length);
 		return;
-#define SHOW_DEBUG_OF(x) case x: ShowDebug("%stype=%s" #x ", length=%d\n", prefix, sign, length); break
+#define SHOW_DEBUG_OF(x) case x: type_string = #x; break
 	SHOW_DEBUG_OF(MYSQL_TYPE_TINY);
 	SHOW_DEBUG_OF(MYSQL_TYPE_SHORT);
 	SHOW_DEBUG_OF(MYSQL_TYPE_LONG);
@@ -485,6 +482,7 @@ static void Sql_P_ShowDebugMysqlFieldInfo(const char* prefix, enum enum_field_ty
 	SHOW_DEBUG_OF(MYSQL_TYPE_NULL);
 #undef SHOW_DEBUG_TYPE_OF
 	}
+	ShowDebug("%stype=%s%s, length=%d%s\n", prefix, sign, type_string, length, length_postfix); 
 }
 
 
@@ -509,10 +507,7 @@ SqlStmt* SqlStmt_Malloc(Sql* sql)
 	self->stmt = stmt;
 	self->params = NULL;
 	self->columns = NULL;
-#if defined(SQL_COMPAT_OUTLEN)
-	if( sizeof(unsigned long) != 4 )//##FIXME
-		self->column_lengths = NULL;
-#endif
+	self->column_lengths = NULL;
 	self->max_params = 0;
 	self->max_columns = 0;
 	self->bind_params = false;
@@ -671,49 +666,40 @@ size_t SqlStmt_NumColumns(SqlStmt* self)
 /// Binds the result of a column to a buffer.
 int SqlStmt_BindColumn(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, void* buffer, size_t buffer_len, uint32* out_length, int8* out_is_null)
 {
-	unsigned long* outlen;
-
 	if( self == NULL )
 		return SQL_ERROR;
 
+	if( buffer_type == SQLDT_STRING || buffer_type == SQLDT_ENUM )
+	{
+		if( buffer_len < 1 )
+		{
+			ShowDebug("SqlStmt_BindColumn: buffer_len(%d) is too small, no room for the nul-terminator\n", buffer_len);
+			return SQL_ERROR;
+		}
+		--buffer_len;// nul-terminator
+	}
 	if( !self->bind_columns )
 	{// initialize the bindings
 		size_t i;
-		size_t count;
+		size_t cols;
 
-		count = SqlStmt_NumColumns(self);
-		if( self->max_columns < count )
+		cols = SqlStmt_NumColumns(self);
+		if( self->max_columns < cols )
 		{
-			self->max_columns = count;
-			RECREATE(self->columns, MYSQL_BIND, count);
-#if defined(SQL_COMPAT_OUTLEN)
-			if( sizeof(unsigned long) != 4 )//##FIXME
-				RECREATE(self->column_lengths, compat_outlen_s, count);
-#endif
+			self->max_columns = cols;
+			RECREATE(self->columns, MYSQL_BIND, cols);
+			RECREATE(self->column_lengths, s_column_length, cols);
 		}
-		memset(self->columns, 0, count*sizeof(MYSQL_BIND));
-#if defined(SQL_COMPAT_OUTLEN)
-		if( sizeof(unsigned long) != 4 )//##FIXME
-			memset(self->column_lengths, 0, count*sizeof(compat_outlen_s));
-#endif
-		for( i = 0; i < count; ++i )
+		memset(self->columns, 0, cols*sizeof(MYSQL_BIND));
+		memset(self->column_lengths, 0, cols*sizeof(s_column_length));
+		for( i = 0; i < cols; ++i )
 			self->columns[i].buffer_type = MYSQL_TYPE_NULL;
 		self->bind_columns = true;
 	}
 	if( idx < self->max_columns )
 	{
-#if defined(SQL_COMPAT_OUTLEN)
-		if( sizeof(unsigned long) != 4 )//##FIXME
-		{
-			self->column_lengths[idx].out_length = out_length;
-			outlen = &(self->column_lengths[idx].buf);
-		}
-		else
-#endif
-		{
-			outlen = (unsigned long*)out_length;
-		}
-		return Sql_P_BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, outlen, out_is_null);
+		self->column_lengths[idx].out_length = out_length;
+		return Sql_P_BindSqlDataType(self->columns+idx, buffer_type, buffer, buffer_len, &self->column_lengths[idx].length, out_is_null);
 	}
 	else
 	{
@@ -738,6 +724,10 @@ uint64 SqlStmt_NumRows(SqlStmt* self)
 int SqlStmt_NextRow(SqlStmt* self)
 {
 	int err;
+	size_t i;
+	size_t cols;
+	MYSQL_BIND* column;
+	unsigned long length;
 
 	if( self == NULL )
 		return SQL_ERROR;
@@ -748,15 +738,12 @@ int SqlStmt_NextRow(SqlStmt* self)
 	else
 		err = mysql_stmt_fetch(self->stmt);// fetch row
 
+	// check for errors
 	if( err == MYSQL_NO_DATA )
 		return SQL_NO_DATA;
 	if( err == MYSQL_DATA_TRUNCATED )
 	{
-		size_t i;
-		size_t cols;
-		unsigned long* old_length;
-		unsigned long length;
-		my_bool truncate;
+		my_bool truncated;
 
 		if( !self->bind_columns )
 		{
@@ -764,17 +751,16 @@ int SqlStmt_NextRow(SqlStmt* self)
 			return SQL_ERROR;
 		}
 
+		// find truncated column
 		cols = SqlStmt_NumColumns(self);
 		for( i = 0; i < cols; ++i )
 		{
-			old_length = self->columns[i].length;
-			self->columns[i].length = &length;
-			self->columns[i].error = &truncate;
-			mysql_stmt_fetch_column(self->stmt, self->columns, (unsigned int)i, 0);
-			self->columns[i].error = NULL;
-			self->columns[i].length = old_length;
-			if( truncate )
-			{
+			column = &self->columns[i];
+			column->error = &truncated;
+			mysql_stmt_fetch_column(self->stmt, column, (unsigned int)i, 0);
+			column->error = NULL;
+			if( truncated )
+			{// report truncated column
 				MYSQL_RES* meta;
 				MYSQL_FIELD* field;
 
@@ -782,8 +768,11 @@ int SqlStmt_NextRow(SqlStmt* self)
 				field = mysql_fetch_field_direct(meta, (unsigned int)i);
 				ShowSQL("DB error - data of field '%s' was truncated.\n", field->name);
 				ShowDebug("column - %lu\n", (unsigned long)i);
-				Sql_P_ShowDebugMysqlFieldInfo("data   - ", field->type, field->flags&UNSIGNED_FLAG, length);
-				Sql_P_ShowDebugMysqlFieldInfo("buffer - ", self->columns[i].buffer_type, self->columns[i].is_unsigned, self->columns[i].buffer_length);
+				Sql_P_ShowDebugMysqlFieldInfo("data   - ", field->type, field->flags&UNSIGNED_FLAG, self->column_lengths[i].length, "");
+				if( column->buffer_type == MYSQL_TYPE_STRING )
+					Sql_P_ShowDebugMysqlFieldInfo("buffer - ", column->buffer_type, column->is_unsigned, column->buffer_length, "+1(nul-terminator)");
+				else
+					Sql_P_ShowDebugMysqlFieldInfo("buffer - ", column->buffer_type, column->is_unsigned, column->buffer_length, "");
 				mysql_free_result(meta);
 				return SQL_ERROR;
 			}
@@ -797,22 +786,23 @@ int SqlStmt_NextRow(SqlStmt* self)
 		return SQL_ERROR;
 	}
 
-#if defined(SQL_COMPAT_OUTLEN)
-	// columns bindings - length
-	if( self->bind_columns && sizeof(unsigned long) != 4 )//##FIXME
+	// propagate column lengths and clear unused parts of string/enum/blob buffers
+	cols = SqlStmt_NumColumns(self);
+	for( i = 0; i < cols; ++i )
 	{
-		size_t i;
-		size_t count = SqlStmt_NumColumns(self);
-		compat_outlen_s* outlen;
-
-		for( i = 0; i < count; ++i )
-		{
-			outlen = &self->column_lengths[i];
-			if( outlen->out_length )
-				*outlen->out_length = (uint32)outlen->buf;
+		length = self->column_lengths[i].length;
+		if( self->column_lengths[i].out_length )
+			*self->column_lengths[i].out_length = (uint32)length;
+		column = &self->columns[i];
+		if( column->buffer_type == MYSQL_TYPE_STRING )
+		{// clear unused part of the string/enum buffer (and nul-terminate)
+			memset((char*)column->buffer + length, 0, column->buffer_length - length + 1);
+		}
+		else if( column->buffer_type == MYSQL_TYPE_BLOB && length < column->buffer_length )
+		{// clear unused part of the blob buffer
+			memset((char*)column->buffer + length, 0, column->buffer_length - length);
 		}
 	}
-#endif
 
 	return SQL_SUCCESS;
 }
@@ -854,10 +844,7 @@ void SqlStmt_Free(SqlStmt* self)
 		if( self->columns )
 		{
 			aFree(self->columns);
-#if defined(SQL_COMPAT_OUTLEN)
-			if( sizeof(unsigned long) != 4 )//##FIXME
-				aFree(self->column_lengths);
-#endif
+			aFree(self->column_lengths);
 		}
 		aFree(self);
 	}

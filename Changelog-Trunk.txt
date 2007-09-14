@@ -3,6 +3,14 @@ Date	Added
 Temporary branch for sql abstraction (from trunk r10748)
 to change the database driver just reimplement common/sql.c with the new driver
 
+2007/09/14
+	* Now unused portions of the column buffers are cleared when data is 
+	  received and string/enum buffers are always nul-terminated.
+	* Now sql statements always receive the length of the data of columns and 
+	  propagate the info every time a row is read (takes care of the possible 
+	  size missmatch between long and uint32).
+	* Fixed only reporting the first truncated column properly (due to 
+	  missleading info in the mysql documentation). [FlavioJS]
 2007/09/13
 	* Adjusted the way the sql charserver does item saving
 	- Fixed another extra comma at the end of memo saving query

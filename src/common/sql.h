@@ -297,6 +297,8 @@ size_t SqlStmt_NumColumns(SqlStmt* self);
 
 /// Binds the result of a column to a buffer.
 /// The buffer will be filled with data when the next row is fetched.
+/// For string/enum buffer types there has to be enough space for the data 
+/// and the nul-terminator (an extra byte).
 ///
 /// @return SQL_SUCCESS or SQL_ERROR
 int SqlStmt_BindColumn(SqlStmt* self, size_t idx, SqlDataType buffer_type, void* buffer, size_t buffer_len, uint32* out_length, int8* out_is_null);
