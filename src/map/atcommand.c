@@ -2009,7 +2009,7 @@ int atcommand_speed(const int fd, struct map_session_data* sd, const char* comma
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message) {
+	if (!message || !*message || sscanf(message, "%d", &speed) < 1) {
 		sprintf(atcmd_output, "Please, enter a speed value (usage: @speed <%d-%d>).", MIN_WALK_SPEED, MAX_WALK_SPEED);
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
@@ -5120,37 +5120,35 @@ int atcommand_reloadbattleconf(const int fd, struct map_session_data* sd, const 
 
 	battle_config_read(BATTLE_CONF_FILENAME);
 
-	if (memcmp(&prev_config.item_rate_mvp,
-		&battle_config.item_rate_mvp,
-		sizeof(battle_config.item_rate_mvp)+
-		sizeof(battle_config.item_rate_common)+
-		sizeof(battle_config.item_rate_common_boss)+
-		sizeof(battle_config.item_rate_card)+
-		sizeof(battle_config.item_rate_card_boss)+
-		sizeof(battle_config.item_rate_equip)+
-		sizeof(battle_config.item_rate_equip_boss)+
-		sizeof(battle_config.item_rate_heal)+
-		sizeof(battle_config.item_rate_heal_boss)+
-		sizeof(battle_config.item_rate_use)+
-		sizeof(battle_config.item_rate_use_boss)+
-		sizeof(battle_config.item_rate_treasure)+
-		sizeof(battle_config.item_rate_adddrop)+
-		sizeof(battle_config.logarithmic_drops)+
-		sizeof(battle_config.item_drop_common_min)+
-		sizeof(battle_config.item_drop_common_max)+
-		sizeof(battle_config.item_drop_card_min)+
-		sizeof(battle_config.item_drop_card_max)+
-		sizeof(battle_config.item_drop_equip_min)+
-		sizeof(battle_config.item_drop_equip_max)+
-		sizeof(battle_config.item_drop_mvp_min)+
-		sizeof(battle_config.item_drop_mvp_max)+
-		sizeof(battle_config.item_drop_heal_min)+
-		sizeof(battle_config.item_drop_heal_max)+
-		sizeof(battle_config.item_drop_use_min)+
-		sizeof(battle_config.item_drop_use_max)+
-		sizeof(battle_config.item_drop_treasure_min)+
-		sizeof(battle_config.item_drop_treasure_max)
-	) != 0)
+	if( prev_config.item_rate_mvp          != battle_config.item_rate_mvp
+	||  prev_config.item_rate_common       != battle_config.item_rate_common
+	||  prev_config.item_rate_common_boss  != battle_config.item_rate_common_boss
+	||  prev_config.item_rate_card         != battle_config.item_rate_card
+	||  prev_config.item_rate_card_boss    != battle_config.item_rate_card_boss
+	||  prev_config.item_rate_equip        != battle_config.item_rate_equip
+	||  prev_config.item_rate_equip_boss   != battle_config.item_rate_equip_boss
+	||  prev_config.item_rate_heal         != battle_config.item_rate_heal
+	||  prev_config.item_rate_heal_boss    != battle_config.item_rate_heal_boss
+	||  prev_config.item_rate_use          != battle_config.item_rate_use
+	||  prev_config.item_rate_use_boss     != battle_config.item_rate_use_boss
+	||  prev_config.item_rate_treasure     != battle_config.item_rate_treasure
+	||  prev_config.item_rate_adddrop      != battle_config.item_rate_adddrop
+	||  prev_config.logarithmic_drops      != battle_config.logarithmic_drops
+	||  prev_config.item_drop_common_min   != battle_config.item_drop_common_min
+	||  prev_config.item_drop_common_max   != battle_config.item_drop_common_max
+	||  prev_config.item_drop_card_min     != battle_config.item_drop_card_min
+	||  prev_config.item_drop_card_max     != battle_config.item_drop_card_max
+	||  prev_config.item_drop_equip_min    != battle_config.item_drop_equip_min
+	||  prev_config.item_drop_equip_max    != battle_config.item_drop_equip_max
+	||  prev_config.item_drop_mvp_min      != battle_config.item_drop_mvp_min
+	||  prev_config.item_drop_mvp_max      != battle_config.item_drop_mvp_max
+	||  prev_config.item_drop_heal_min     != battle_config.item_drop_heal_min
+	||  prev_config.item_drop_heal_max     != battle_config.item_drop_heal_max
+	||  prev_config.item_drop_use_min      != battle_config.item_drop_use_min
+	||  prev_config.item_drop_use_max      != battle_config.item_drop_use_max
+	||  prev_config.item_drop_treasure_min != battle_config.item_drop_treasure_min
+	||  prev_config.item_drop_treasure_max != battle_config.item_drop_treasure_max
+	)
   	{	//Drop rates changed.
 		mob_reload(); //Needed as well so rate changes take effect.
 #ifndef TXT_ONLY

@@ -2260,7 +2260,7 @@ int mob_class_change (struct mob_data *md, int class_)
 	status_calc_mob(md, 3);
 	md->ud.state.speed_changed = 1; //Speed change update.
 
-	if (battle_config.monster_class_change_full_recover) {
+	if (battle_config.monster_class_change_recover) {
 		memset(md->dmglog, 0, sizeof(md->dmglog));
 		md->tdmg = 0;
 	} else {
@@ -2381,7 +2381,7 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 		amount+=k; //Increase final value by same amount to preserve total number to summon.
 	}
 	
-	if (!battle_config.monster_class_change_full_recover &&
+	if (!battle_config.monster_class_change_recover &&
 		(skill_id == NPC_TRANSFORMATION || skill_id == NPC_METAMORPHOSIS))
 		hp_rate = 100*md2->status.hp/md2->status.max_hp;
 
