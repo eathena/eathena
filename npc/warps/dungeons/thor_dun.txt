@@ -1,4 +1,4 @@
-//===== Athena Script ========================================
+//===== eAthena Script =======================================
 //= Thor's Volcano Dungeon Warp Script
 //===== By: ==================================================
 //= $ephiroth
@@ -20,3 +20,5 @@ thor_v01,202,34,0	warp	veinswarp4001	1,1,thor_v02,74,205
 thor_v02,72,206,0	warp	veinswarp4002	1,1,thor_v01,199,34
 thor_v02,191,55,0	warp	veinswarp4003	1,1,thor_v03,31,272
 thor_v03,28,272,0	warp	veinswarp4004	1,1,thor_v02,190,57
+thor_v02,143,78,0	warp	veinswarp4005	1,1,thor_camp,284,289
+thor_camp,288,289,0	warp	veinswarp4006	1,1,thor_v02,146,86

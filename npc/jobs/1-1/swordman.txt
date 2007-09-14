@@ -384,6 +384,19 @@ job_sword1.gat,223,167,2	script	Mae	92,{
 }
 
 
+// warps
+//==============================================================================
+job_sword1,192,244,0	warp	SwordWarp0	2,2,job_sword1,215,244
+job_sword1,223,243,0	warp	SwordWarp1	2,2,job_sword1,12,206
+job_sword1,192,206,0	warp	SwordWarp2	2,2,job_sword1,215,205
+job_sword1,223,205,0	warp	SwordWarp3	2,2,job_sword1,12,168
+job_sword1,192,168,0	warp	SwordWarp4	2,2,job_sword1,215,167
+// Underground cave
+job_sword1,65,117,0	warp	swd101	1,1,job_sword1,10,245
+job_sword1,98,27,0	warp	swd102	1,1,job_sword1,11,207
+job_sword1,161,27,0	warp	swd103	1,1,job_sword1,11,207
+job_sword1,239,117,0	warp	swd106	1,1,job_sword1,11,169
+
 
 
 // == Green Traps ==
