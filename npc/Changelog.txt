@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/09/16
+	* Rev. 11227 Merged Friendship quest changes from trunk. [L0ne_W0lf]
+	- Fixes EXP rewards, adds cutins for Maku, and some other minor changes.
 2007/09/15
 	* Merged 'other' directory from trunk
 	- 2 new npc files - Fortune Teller and Hypnotist (skill reset) npc
