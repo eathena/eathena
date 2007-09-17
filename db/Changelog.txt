@@ -1,4 +1,8 @@
 09/17
+	* Merged const, item_db, mob_db [Playtester]
+	- merged constants for equip fields
+	- updated items to use those constants
+	- raised drop rate for some of the new equips
 	* Reduced Necromancer's summon frequency [Playtester]
 09/15
 	* Fixed TF_BACKSLIDING being targeted on mob skills [Playtester]
