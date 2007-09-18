@@ -22,6 +22,10 @@ Playtester
 
 Date		Added
 ======
+2007/09/18
+	* Fixed two minor bugs in the Sign Quest and Thanatos Tower ascension. [SinSloth]
+	- Players do not lose time anymore if they return the Sign around midnight.
+	- Thanatos Tower code game now resets properly when entering a wrong value in the box.
 2007/09/16
 	* Rev. 11227 Merged Friendship quest changes from trunk. [L0ne_W0lf]
 	- Fixes EXP rewards, adds cutins for Maku, and some other minor changes.
