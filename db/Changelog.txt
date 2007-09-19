@@ -1,3 +1,8 @@
+09/19
+	* Merged item_db and mob_db [Playtester]
+	- fixed two view ids
+	- slightly adjusted drop rates
+	- updated sql files
 09/17
 	* Some more drop rate updates [Playtester]
 	* Merged const, item_db, mob_db [Playtester]
