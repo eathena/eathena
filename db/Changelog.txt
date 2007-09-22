@@ -1,3 +1,9 @@
+09/22
+	* Merged item_db, mob_db, mob_race2_db [Playtester]
+	- fixed up various item scripts according to official info
+	- more official 11.2 MVP stats
+	- updated mob_race2_db to official
+	- updated sql files
 09/19
 	* Gravitation is now a misc attack [Skotlex]
 	* Merged item_db and mob_db [Playtester]
