@@ -1,3 +1,13 @@
+09/28
+	* Merged item_db, item_trade, mob_db2, mob_db, skill_cast_db, skill_db [Playtester]
+	- fixed prices of all ETC items
+	- added 12.1 equips
+	- small item trade adjustments
+	- removed crusader quest mobs from mob_db2
+	- small drop rate adjustments
+	- removed Final Strike from skill_cast_db
+	- added two missing npc skills to the skill_db
+	- updated sql files
 09/22
 	* Merged item_db, mob_db, mob_race2_db [Playtester]
 	- fixed up various item scripts according to official info
