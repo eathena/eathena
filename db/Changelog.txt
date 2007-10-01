@@ -1,3 +1,9 @@
+10/01
+	* Merged item_db, mob_db and skill_unit_db [Playtester]
+	- reverted the Gemini Card bug that was added in the last update
+	- some small item fixes
+	- added 11.2 guns to drops
+	- "Heat" and "Crimson Fire Formation" now trigger as often as firewall
 09/30
 	* Fixed Gemini-S58 Card [Paradox924X]
 	- It now 50% resistance to Petrification and Sleep when Vit is 80 or above instead of 30% resistance.
