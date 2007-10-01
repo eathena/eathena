@@ -1,3 +1,6 @@
+09/30
+	* Fixed Gemini-S58 Card [Paradox924X]
+	- It now 50% resistance to Petrification and Sleep when Vit is 80 or above instead of 30% resistance.
 09/28
 	* Merged item_db, item_trade, mob_db2, mob_db, skill_cast_db, skill_db [Playtester]
 	- fixed prices of all ETC items
