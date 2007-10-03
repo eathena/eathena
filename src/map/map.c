@@ -1081,7 +1081,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	if (length)
 	{	//Adjust final position to fit in the given area.
 		//TODO: Find an alternate method which does not requires a square root calculation.
-		k = sqrt(magnitude2);
+		k = (int)sqrt(magnitude2);
 		mx1 = x0 + (x1 - x0)*length/k;
 		my1 = y0 + (y1 - y0)*length/k;
 		len_limit = MAGNITUDE2(x0,y0, mx1,my1);

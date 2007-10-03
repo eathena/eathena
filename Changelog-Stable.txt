@@ -6,6 +6,9 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/10/03
 	* Bosses now can use teleport on Land Protector [Playtester]
+	* Fixed a Warning in map.c [Zephyrus]
+	* Moved the homunculus shuffle code to mercenary.c, fixing the bug in the
+	  atcommand not using the bonus evolution stats for homunculus.
 2007/09/24
 	* Updated the 'skills that cause no damage are blocked now if the skill
 	  element is blocked by the target' to only apply if the skill has a status
