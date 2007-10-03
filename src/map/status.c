@@ -163,7 +163,7 @@ void initChangeTables(void)
 	set_sc(PR_ASPERSIO, SC_ASPERSIO, SI_ASPERSIO, SCB_ATK_ELE);
 	set_sc(PR_BENEDICTIO, SC_BENEDICTIO, SI_BENEDICTIO, SCB_DEF_ELE);
 	set_sc(PR_SLOWPOISON, SC_SLOWPOISON, SI_SLOWPOISON, SCB_REGEN);
-	set_sc(PR_KYRIE, SC_KYRIE,	SI_KYRIE, SCB_NONE);
+	set_sc(PR_KYRIE, SC_KYRIE, SI_KYRIE, SCB_NONE);
 	set_sc(PR_MAGNIFICAT, SC_MAGNIFICAT, SI_MAGNIFICAT, SCB_REGEN);
 	set_sc(PR_GLORIA, SC_GLORIA, SI_GLORIA, SCB_LUK);
 	add_sc(PR_LEXDIVINA, SC_SILENCE);
@@ -971,7 +971,8 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	}	
 		
 	//Should fail when used on top of Land Protector [Skotlex]
-	if (src && skill_num == AL_TELEPORT && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR))
+	if (src && skill_num == AL_TELEPORT && map_getcell(src->m, src->x, src->y, CELL_CHKLANDPROTECTOR)
+		&& !(status->mode&MD_BOSS))
 		return 0;
 
 	if (src) sc = status_get_sc(src);
