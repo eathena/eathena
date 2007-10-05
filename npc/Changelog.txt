@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/10/05
+	* Fixed a bug in Hugel Bingo which caused wrong rotation in player locations. [SinSloth]
 2007/09/30
 	* Merged Dye Maker from Trunk. [Paradox924X]
 2007/09/27
