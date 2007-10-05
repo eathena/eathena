@@ -914,7 +914,8 @@ struct mob_data {
 		unsigned char steal_flag; //number of steal tries (to prevent steal exploit on mobs with few items) [Lupus]
 		unsigned steal_coin_flag : 1;
 		unsigned soul_change_flag : 1; // Celest
-		unsigned alchemist: 1;
+		unsigned alchemist : 1;
+		unsigned spotted : 1;
 		unsigned char attacked_count; //For rude attacked.
 		int provoke_flag; // Celest
 	} state;
