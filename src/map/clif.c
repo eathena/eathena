@@ -715,7 +715,7 @@ void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, un
 	struct item_data *id;
 #endif
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
 	{
 		*rhand = *lhand = 0;
 		return;
@@ -1962,51 +1962,51 @@ int clif_cutin(struct map_session_data* sd, const char* image, int type)
 static void clif_addcards(unsigned char* buf, struct item* item)
 {
 	int i=0,j;
-	if (item == NULL) { //Blank data
-		WBUFW(buf,0)=0;
-		WBUFW(buf,2)=0;
-		WBUFW(buf,4)=0;
-		WBUFW(buf,6)=0;
+	if( item == NULL ) { //Blank data
+		WBUFW(buf,0) = 0;
+		WBUFW(buf,2) = 0;
+		WBUFW(buf,4) = 0;
+		WBUFW(buf,6) = 0;
 		return;
 	}
-	if(item->card[0]==CARD0_PET) { //pet eggs
-		WBUFW(buf,0)=0;
-		WBUFW(buf,2)=0;
-		WBUFW(buf,4)=0;
-		WBUFW(buf,6)=item->card[3]; //Pet renamed flag.
+	if( item->card[0] == CARD0_PET ) { //pet eggs
+		WBUFW(buf,0) = 0;
+		WBUFW(buf,2) = 0;
+		WBUFW(buf,4) = 0;
+		WBUFW(buf,6) = item->card[3]; //Pet renamed flag.
 		return;
 	}
-	if(item->card[0]==CARD0_FORGE || item->card[0]==CARD0_CREATE) { //Forged/created items
-		WBUFW(buf,0)=item->card[0];
-		WBUFW(buf,2)=item->card[1];
-		WBUFW(buf,4)=item->card[2];
-		WBUFW(buf,6)=item->card[3];
+	if( item->card[0] == CARD0_FORGE || item->card[0] == CARD0_CREATE ) { //Forged/created items
+		WBUFW(buf,0) = item->card[0];
+		WBUFW(buf,2) = item->card[1];
+		WBUFW(buf,4) = item->card[2];
+		WBUFW(buf,6) = item->card[3];
 		return;
 	}
 	//Client only receives four cards.. so randomly send them a set of cards. [Skotlex]
-	if (MAX_SLOTS > 4 && (j = itemdb_slot(item->nameid)) > 4)
+	if( MAX_SLOTS > 4 && (j = itemdb_slot(item->nameid)) > 4 )
 		i = rand()%(j-3); //eg: 6 slots, possible i values: 0->3, 1->4, 2->5 => i = rand()%3;
 
 	//Normal items.
-	if (item->card[i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
-		WBUFW(buf,0)=j;
+	if( item->card[i] > 0 && (j=itemdb_viewid(item->card[i])) > 0 )
+		WBUFW(buf,0) = j;
 	else
-		WBUFW(buf,0)= item->card[i];
+		WBUFW(buf,0) = item->card[i];
 
-	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
-		WBUFW(buf,2)=j;
+	if( item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0 )
+		WBUFW(buf,2) = j;
 	else
-		WBUFW(buf,2)=item->card[i];
+		WBUFW(buf,2) = item->card[i];
 
-	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
-		WBUFW(buf,4)=j;
+	if( item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0 )
+		WBUFW(buf,4) = j;
 	else
-		WBUFW(buf,4)=item->card[i];
+		WBUFW(buf,4) = item->card[i];
 
-	if (item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0)
-		WBUFW(buf,6)=j;
+	if( item->card[++i] > 0 && (j=itemdb_viewid(item->card[i])) > 0 )
+		WBUFW(buf,6) = j;
 	else
-		WBUFW(buf,6)=item->card[i];
+		WBUFW(buf,6) = item->card[i];
 }
 
 /*==========================================
@@ -2669,11 +2669,12 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		break;
 		case LOOK_BASE:
 			vd->class_ = val;
-			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS)
+			if (vd->class_ == JOB_WEDDING || vd->class_ == JOB_XMAS || vd->class_ == JOB_SUMMER)
 				vd->weapon = vd->shield = 0;
 			if (vd->cloth_color && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
-				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette)
+				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette) ||
+				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette)
 			))
 				clif_changelook(bl,LOOK_CLOTHES_COLOR,0);
 		break;
@@ -2695,7 +2696,8 @@ int clif_changelook(struct block_list *bl,int type,int val)
 		case LOOK_CLOTHES_COLOR:
 			if (val && (
 				(vd->class_ == JOB_WEDDING && battle_config.wedding_ignorepalette) ||
-				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette)
+				(vd->class_ == JOB_XMAS && battle_config.xmas_ignorepalette) ||
+				(vd->class_ == JOB_SUMMER && battle_config.summer_ignorepalette)
 			))
 				val = 0;
 			vd->cloth_color = val;
@@ -8626,7 +8628,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 		if (clif_cant_act(sd) || sd->sc.option&OPTION_HIDE)
 			return;
 
-		if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+		if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
 			return;
 
 		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
@@ -9486,7 +9488,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
 		return;
 	
 	if(target_id<0 && -target_id == sd->bl.id) // for disguises [Valaris]
@@ -9592,7 +9594,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 		return;
 	}
 
-	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS))
+	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
 		return;
 	
 	if(sd->menuskill_id)
@@ -11445,6 +11447,23 @@ void clif_parse_HomMenu(int fd, struct map_session_data *sd)
 	merc_menu(sd,RFIFOB(fd,packet_db[sd->packet_ver][cmd].pos[0]));
 }
 
+void clif_parse_AutoRevive(int fd, struct map_session_data *sd)
+{
+	int item_position;
+
+	nullpo_retv(sd);
+	item_position = pc_search_inventory(sd, 7621);
+
+	if (item_position < 0)
+		return;
+
+	if (!status_revive(&sd->bl, 100, 100))
+		return;
+	
+	clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,4,1);
+	pc_delitem(sd, item_position, 1, 0);
+}
+
 /*==========================================
  * パケットデバッグ
  *------------------------------------------*/
@@ -11849,6 +11868,7 @@ static int packetdb_readdb(void)
 		{clif_parse_HomAttack,"homattack"},
 		{clif_parse_HomMenu,"hommenu"},
 		{clif_parse_Hotkey,"hotkey"},
+		{clif_parse_AutoRevive,"autorevive"},
 		{NULL,NULL}
 	};
 

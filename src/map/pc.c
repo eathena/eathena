@@ -3779,6 +3779,9 @@ int pc_jobid2mapid(unsigned short b_class)
 		case JOB_XMAS:
 			class_ = MAPID_XMAS;
 			break;
+		case JOB_SUMMER:
+			class_ = MAPID_SUMMER;
+			break;
 		default:
 			return -1;
 	}
@@ -3801,6 +3804,7 @@ int pc_mapid2jobid(unsigned short class_, int sex)
 		case MAPID_GUNSLINGER:      return JOB_GUNSLINGER;
 		case MAPID_NINJA:           return JOB_NINJA;
 		case MAPID_XMAS:            return JOB_XMAS;
+		case MAPID_SUMMER:          return JOB_SUMMER;
 	//2_1 classes
 		case MAPID_SUPER_NOVICE:    return JOB_SUPER_NOVICE;
 		case MAPID_KNIGHT:          return JOB_KNIGHT;
@@ -3911,7 +3915,10 @@ char* job_name(int class_)
 
 	case JOB_XMAS:
 		return msg_txt(570 - JOB_WEDDING+class_);
-		
+
+	case JOB_SUMMER:
+		return msg_txt(621);
+
 	case JOB_NOVICE_HIGH:
 	case JOB_SWORDMAN_HIGH:
 	case JOB_MAGE_HIGH:
@@ -4188,6 +4195,9 @@ static void pc_calcexp(struct map_session_data *sd, unsigned int *base_exp, unsi
 	if (battle_config.pk_mode && 
 		(int)(status_get_lv(src) - sd->status.base_level) >= 20)
 		bonus += 15; // pk_mode additional exp if monster >20 levels [Valaris]	
+
+	if (sd->sc.data[SC_EXPBOOST].timer != -1)
+		bonus += sd->sc.data[SC_EXPBOOST].val1;
 
 	if (!bonus)
 	  	return;
@@ -5058,7 +5068,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	if(battle_config.death_penalty_type && sd->state.snovice_dead_flag != 1
 		&& (sd->class_&MAPID_UPPERMASK) != MAPID_NOVICE	// only novices will receive no penalty
 		&& !map[sd->bl.m].flag.noexppenalty && !map_flag_gvg(sd->bl.m)
-		&& sd->sc.data[SC_BABY].timer == -1)
+		&& sd->sc.data[SC_BABY].timer == -1 && sd->sc.data[SC_LIFEINSURANCE].timer == -1)
 	{
 		unsigned int base_penalty =0;
 		if (battle_config.death_penalty_base > 0) {
@@ -5756,6 +5766,11 @@ int pc_setoption(struct map_session_data *sd,int type)
 	if (type&OPTION_XMAS && !(p_type&OPTION_XMAS))
 		new_look = JOB_XMAS;
 	else if (!(type&OPTION_XMAS) && p_type&OPTION_XMAS)
+		new_look = -1;
+
+	if (type&OPTION_SUMMER && !(p_type&OPTION_SUMMER))
+		new_look = JOB_SUMMER;
+	else if (!(type&OPTION_SUMMER) && p_type&OPTION_SUMMER)
 		new_look = -1;
 
 	if (new_look < 0) { //Restore normal look.
@@ -7348,7 +7363,7 @@ int pc_readdb(void)
 	fclose(fp);
 	for (i = 0; i < MAX_PC_CLASS; i++) {
 		if (!pcdb_checkid(i)) continue;
-		if (i == JOB_WEDDING || i == JOB_XMAS)
+		if (i == JOB_WEDDING || i == JOB_XMAS || i == JOB_SUMMER)
 			continue; //Classes that do not need exp tables.
 		if (!max_level[i][0])
 			ShowWarning("Class %s (%d) does not has a base exp table.\n", job_name(i), i);

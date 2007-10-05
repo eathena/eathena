@@ -1915,7 +1915,15 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 			// attempt to drop the item
 			if (rand() % 10000 >= drop_rate)
-				continue;
+			{
+				if (sd && sd->sc.data[SC_ITEMBOOST].timer != -1)
+				{
+					if (rand() % 10000 >= drop_rate)
+						continue; // Double try by Bubble Gum
+				}
+				else
+					continue;
+			}
 
 			ditem = mob_setdropitem(md->db->dropitem[i].nameid, 1);
 

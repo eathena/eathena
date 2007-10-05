@@ -269,6 +269,11 @@ enum {
 	SC_CRITICALWOUND,
 	SC_MAGICMIRROR,
 	SC_SLOWCAST,
+	SC_SUMMER,
+	SC_EXPBOOST, // Field Guide
+	SC_ITEMBOOST, // Bubble Gum
+	SC_BOSSMAPINFO, // Convex Mirror
+	SC_LIFEINSURANCE, // Life Insurance
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 };
 int SkillStatusChangeTable(int skill);
@@ -509,6 +514,7 @@ enum {
 //Note that clientside Flying and Xmas are 0x8000 for clients prior to 2007.
 #define OPTION_FLYING 0x0008000
 #define OPTION_XMAS 0x00010000
+#define OPTION_SUMMER 0x00040000
 
 #define OPTION_CART (OPTION_CART1|OPTION_CART2|OPTION_CART3|OPTION_CART4|OPTION_CART5)
 
@@ -575,7 +581,6 @@ int status_percent_change(struct block_list *src,struct block_list *target,signe
 #define status_percent_heal(bl, hp_rate, sp_rate) status_percent_change(NULL, bl, -(hp_rate), -(sp_rate), 1)
 #define status_percent_damage(src, target, hp_rate, sp_rate) status_percent_change(src, target, hp_rate, sp_rate, 0)
 //Instant kill with no drops/exp/etc
-//
 #define status_kill(bl) status_percent_damage(NULL, bl, 100, 0)
 //Used to set the hp/sp of an object to an absolute value (can't kill)
 int status_set_hp(struct block_list *bl, unsigned int hp, int flag);
