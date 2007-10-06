@@ -1,3 +1,10 @@
+10/06
+	* Merged item_db, mob_skill_db, mob_skill_db2 [Playtester]
+	- fixed up gender restrictions (should be ignored by code)
+	- fixed wedding dress displaying wedding sprite
+	- added some missing item names
+	- fixed a typo "stan" -> "stun"
+	- updated sql files
 10/01
 	* Merged item_db, mob_db and skill_unit_db [Playtester]
 	- reverted the Gemini Card bug that was added in the last update
