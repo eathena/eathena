@@ -347,75 +347,6 @@ void mmo_db_close(void)
 		do_close(login_fd);
 }
 
-//-----------------------------------------------------
-// Make new account
-//-----------------------------------------------------
-int mmo_auth_new(struct mmo_account* account, char sex)
-{
-	unsigned int tick = gettick();
-	char md5buf[32+1];
-	SqlStmt* stmt;
-
-	//Account Registration Flood Protection by [Kevin]
-	if( DIFF_TICK(tick, new_reg_tick) < 0 && num_regs >= allowed_regs )
-	{
-		ShowNotice("Account registration denied (registration limit exceeded)\n");
-		return 3;
-	}
-
-	// check if the account doesn't exist already
-	stmt = SqlStmt_Malloc(sql_handle);
-	if ( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `%s` FROM `%s` WHERE `userid` = ?", login_db_userid, login_db)
-	  || SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH))
-	  || SQL_SUCCESS != SqlStmt_Execute(stmt)
-	  || SqlStmt_NumRows(stmt) > 0 )
-	{
-		SqlStmt_ShowDebug(stmt);
-		SqlStmt_Free(stmt);
-		return 1; // incorrect user/pass
-	}
-	SqlStmt_Free(stmt);
-	
-	// insert new entry into db
-	//TODO: error checking
-	stmt = SqlStmt_Malloc(sql_handle);
-	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES (?, ?, '%c', 'a@a.com')", login_db, login_db_userid, login_db_user_pass, TOUPPER(sex));
-	SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH));
-	if( login_config.use_md5_passwds )
-	{
-		MD5_String(account->passwd, md5buf);
-		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, md5buf, 32);
-	}
-	else
-		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, account->passwd, strnlen(account->passwd, NAME_LENGTH));
-	SqlStmt_Execute(stmt);
-	SqlStmt_Free(stmt);
-
-	ShowInfo("New account: userid='%s' passwd='%s' sex='%c'\n", account->userid, account->passwd, TOUPPER(sex));
-
-	if( Sql_LastInsertId(sql_handle) < START_ACCOUNT_NUM )
-	{// Invalid Account ID! Must update it.
-		uint64 id = Sql_LastInsertId(sql_handle);
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `%s`='%d' WHERE `%s`='%lld'", login_db, login_db_account_id, START_ACCOUNT_NUM, login_db_account_id, id) )
-		{
-			Sql_ShowDebug(sql_handle);
-			ShowError("New account '%s' has an invalid account ID [%lld] which could not be updated (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM);
-			//Just delete it and fail.
-			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `%s`='%lld'", login_db, login_db_account_id, id) )
-				Sql_ShowDebug(sql_handle);
-			return 1;
-		}
-		ShowNotice("Updated New account '%s' ID %d->%d (account_id must be %d or higher).", account->userid, id, START_ACCOUNT_NUM, START_ACCOUNT_NUM);
-	}
-	if( DIFF_TICK(tick, new_reg_tick) > 0 )
-	{// Update the registration check.
-		num_regs = 0;
-		new_reg_tick = tick + time_allowed*1000;
-	}
-	++num_regs;
-	return 0;
-}
-
 
 //--------------------------------------------------------------------
 // Packet send to all char-servers, except one (wos: without our self)
@@ -473,6 +404,62 @@ bool check_password(struct login_session_data* ld, int passwdenc, const char* pa
 
 
 //-----------------------------------------------------
+// Make new account
+//-----------------------------------------------------
+int mmo_auth_new(struct mmo_account* account, char sex)
+{
+	unsigned int tick = gettick();
+	char md5buf[32+1];
+	SqlStmt* stmt;
+
+	//Account Registration Flood Protection by [Kevin]
+	if( DIFF_TICK(tick, new_reg_tick) < 0 && num_regs >= allowed_regs )
+	{
+		ShowNotice("Account registration denied (registration limit exceeded)\n");
+		return 3;
+	}
+
+	// check if the account doesn't exist already
+	stmt = SqlStmt_Malloc(sql_handle);
+	if ( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `%s` FROM `%s` WHERE `userid` = ?", login_db_userid, login_db)
+	  || SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH))
+	  || SQL_SUCCESS != SqlStmt_Execute(stmt)
+	  || SqlStmt_NumRows(stmt) > 0 )
+	{
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		return 1; // incorrect user/pass
+	}
+	SqlStmt_Free(stmt);
+	
+	// insert new entry into db
+	//TODO: error checking
+	stmt = SqlStmt_Malloc(sql_handle);
+	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`) VALUES (?, ?, '%c', 'a@a.com')", login_db, login_db_userid, login_db_user_pass, TOUPPER(sex));
+	SqlStmt_BindParam(stmt, 0, SQLDT_STRING, account->userid, strnlen(account->userid, NAME_LENGTH));
+	if( login_config.use_md5_passwds )
+	{
+		MD5_String(account->passwd, md5buf);
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, md5buf, 32);
+	}
+	else
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, account->passwd, strnlen(account->passwd, NAME_LENGTH));
+	SqlStmt_Execute(stmt);
+	SqlStmt_Free(stmt);
+
+	ShowInfo("New account: userid='%s' passwd='%s' sex='%c'\n", account->userid, account->passwd, TOUPPER(sex));
+
+	if( DIFF_TICK(tick, new_reg_tick) > 0 )
+	{// Update the registration check.
+		num_regs = 0;
+		new_reg_tick = tick + time_allowed*1000;
+	}
+	++num_regs;
+	return 0;
+}
+
+
+//-----------------------------------------------------
 // Check/authentication of a connection
 //-----------------------------------------------------
 int mmo_auth(struct mmo_account* account, int fd)
@@ -523,8 +510,8 @@ int mmo_auth(struct mmo_account* account, int fd)
 	// Account creation with _M/_F
 	if( login_config.new_account_flag )
 	{
-		if( len > 2 && strnlen(account->passwd, NAME_LENGTH) >= 4 && // valid user and password lengths
-			account->passwdenc == 0 &&// unencoded password
+		if( len > 2 && strnlen(account->passwd, NAME_LENGTH) > 0 && // valid user and password lengths
+			account->passwdenc == 0 && // unencoded password
 			account->userid[len-2] == '_' && memchr("FfMm", (unsigned char)account->userid[len-1], 4) ) // _M/_F suffix
 		{
 			int result;
@@ -544,7 +531,6 @@ int mmo_auth(struct mmo_account* account, int fd)
 		login_db_account_id, login_db_user_pass, login_db_level,
 		login_db, login_db_userid, (login_config.case_sensitive ? "BINARY" : ""), esc_userid) )
 		Sql_ShowDebug(sql_handle);
-	//login {0-account_id/1-user_pass/2-lastlogin/3-sex/4-connect_untl/5-ban_until/6-state/7-level}
 
 	if( Sql_NumRows(sql_handle) == 0 ) // no such entry
 	{
@@ -555,26 +541,16 @@ int mmo_auth(struct mmo_account* account, int fd)
 
 	Sql_NextRow(sql_handle); //TODO: error checking?
 
-	Sql_GetData(sql_handle, 0, &data, &len);
-	account->account_id = atoi(data);
-
-	Sql_GetData(sql_handle, 1, &data, &len);
+	Sql_GetData(sql_handle, 0, &data, NULL); account->account_id = atoi(data);
+	Sql_GetData(sql_handle, 1, &data, &len); safestrncpy(password, data, sizeof(password));
+	Sql_GetData(sql_handle, 2, &data, NULL); safestrncpy(account->lastlogin, data, sizeof(account->lastlogin));
+	Sql_GetData(sql_handle, 3, &data, NULL); account->sex = (*data == 'S' ? 2 : *data == 'M' ? 1 : 0);
+	Sql_GetData(sql_handle, 4, &data, NULL); connect_until = atol(data);
+	Sql_GetData(sql_handle, 5, &data, NULL); ban_until_time = atol(data);
+	Sql_GetData(sql_handle, 6, &data, NULL); state = atoi(data);
+	Sql_GetData(sql_handle, 7, &data, NULL); account->level = atoi(data);
 	if( len > sizeof(password) - 1 )
-	{
-#if defined(DEBUG)
 		ShowDebug("mmo_auth: password buffer is too small (len=%u,buflen=%u)\n", len, sizeof(password));
-#endif
-		len = sizeof(password) - 1;
-	}
-	memcpy(password, data, len);
-	password[len] = '\0';
-
-	Sql_GetData(sql_handle, 2, &data, &len); safestrncpy(account->lastlogin, data, sizeof(account->lastlogin));
-	Sql_GetData(sql_handle, 3, &data, &len); account->sex = (*data == 'S' ? 2 : *data == 'M' ? 1 : 0);
-	Sql_GetData(sql_handle, 4, &data, &len); connect_until = atol(data);
-	Sql_GetData(sql_handle, 5, &data, &len); ban_until_time = atol(data);
-	Sql_GetData(sql_handle, 6, &data, &len); state = atoi(data);
-	Sql_GetData(sql_handle, 7, &data, &len); account->level = atoi(data);
 	if( account->level > 99 )
 		account->level = 99;
 
@@ -595,53 +571,13 @@ int mmo_auth(struct mmo_account* account, int fd)
 	if( connect_until != 0 && connect_until < time(NULL) )
 		return 2; // 2 = This ID is expired
 
-	if( ban_until_time != 0 )
-	{// account is banned
-		if( ban_until_time > time(NULL) )// still banned
-			return 6; // 6 = Your are Prohibited to log in until %s
+	if( ban_until_time != 0 && ban_until_time > time(NULL) )
+		return 6; // 6 = Your are Prohibited to log in until %s
 
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `ban_until`='0' %s WHERE `%s`= '%d'",
-			login_db, (state == 7 ? ",state='0'" : ""), login_db_account_id, account->account_id) )
-			Sql_ShowDebug(sql_handle);
-	}
-
-	switch( state )
+	if( state )
 	{
-	case -3: //id is banned
-	case -2: //dynamic ban
-		return state;
-	}
-
-	switch( state )
-	{// packet 0x006a value + 1
-	case 0:
-		break;
-	case 1: // 0 = Unregistered ID
-	case 2: // 1 = Incorrect Password
-	case 3: // 2 = This ID is expired
-	case 4: // 3 = Rejected from Server
-	case 5: // 4 = You have been blocked by the GM Team
-	case 6: // 5 = Your Game's EXE file is not the latest version
-	case 7: // 6 = Your are Prohibited to log in until %s
-	case 8: // 7 = Server is jammed due to over populated
-	case 9: // 8 = No more accounts may be connected from this company
-	case 10: // 9 = MSI_REFUSE_BAN_BY_DBA
-	case 11: // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
-	case 12: // 11 = MSI_REFUSE_BAN_BY_GM
-	case 13: // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
-	case 14: // 13 = MSI_REFUSE_SELF_LOCK
-	case 15: // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
-	case 16: // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
-	case 100: // 99 = This ID has been totally erased
-	case 101: // 100 = Login information remains at %s.
-	case 102: // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
-	case 103: // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
-	case 104: // 103 = This character is being deleted. Login is temporarily unavailable for the time being
-	case 105: // 104 = Your spouse character is being deleted. Login is temporarily unavailable for the time being
-		ShowInfo("Auth Error #%d\n", state);
+		ShowInfo("Connection refused (account: %s, pass: %s, state: %d, ip: %s)\n", account->userid, account->passwd, state, ip);
 		return state - 1;
-	default:
-		return 99; // 99 = ID has been totally erased
 	}
 
 	if( login_config.online_check )
@@ -667,7 +603,7 @@ int mmo_auth(struct mmo_account* account, int fd)
 	if( account->sex != 2 && account->account_id < START_ACCOUNT_NUM )
 		ShowWarning("Account %s has account id %d! Account IDs must be over %d to work properly!\n", account->userid, account->account_id, START_ACCOUNT_NUM);
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount`+1, `last_ip`='%s'  WHERE `%s` = '%d'",
+	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `lastlogin` = NOW(), `logincount`=`logincount`+1, `last_ip`='%s', `ban_until`='0', `state`='0' WHERE `%s` = '%d'",
 		login_db, ip, login_db_account_id, account->account_id) )
 		Sql_ShowDebug(sql_handle);
 
@@ -703,9 +639,7 @@ int parse_fromchar(int fd)
 	char ip[16];
 	ip2str(ipl, ip);
 
-	for( id = 0; id < MAX_SERVERS; ++id )
-		if( server_fd[id] == fd )
-			break;
+	ARR_FIND( 0, MAX_SERVERS, id, server_fd[id] == fd );
 	if( id == MAX_SERVERS )
 	{// not a char server
 		set_eof(fd);
@@ -748,16 +682,15 @@ int parse_fromchar(int fd)
 			if( RFIFOREST(fd) < 19 )
 				return 0;
 		{
-			int account_id;
-			account_id = RFIFOL(fd,2); // speed up
+			uint32 account_id = RFIFOL(fd,2);
 			for( i = 0; i < AUTH_FIFO_SIZE; ++i )
 			{
-				if( auth_fifo[i].account_id == account_id &&
-					auth_fifo[i].login_id1  == RFIFOL(fd,6) &&
-					auth_fifo[i].login_id2  == RFIFOL(fd,10) &&
-					auth_fifo[i].sex        == RFIFOB(fd,14) &&
-					auth_fifo[i].ip         == ntohl(RFIFOL(fd,15)) &&
-					!auth_fifo[i].delflag)
+				if( auth_fifo[i].account_id == RFIFOL(fd,2) &&
+				    auth_fifo[i].login_id1  == RFIFOL(fd,6) &&
+				    auth_fifo[i].login_id2  == RFIFOL(fd,10) &&
+				    auth_fifo[i].sex        == RFIFOB(fd,14) &&
+				    auth_fifo[i].ip         == ntohl(RFIFOL(fd,15)) &&
+				    !auth_fifo[i].delflag)
 				{
 					auth_fifo[i].delflag = 1;
 					break;
@@ -766,11 +699,9 @@ int parse_fromchar(int fd)
 
 			if( i != AUTH_FIFO_SIZE && account_id > 0 )
 			{// send ack 
-				uint32 connect_until_time = 0;
+				uint32 connect_until_time;
 				char email[40];
 
-				memset(email, 0, sizeof(email));
-				account_id = RFIFOL(fd,2);
 				if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `email`,`connect_until` FROM `%s` WHERE `%s`='%d'", login_db, login_db_account_id, account_id) )
 					Sql_ShowDebug(sql_handle);
 				if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
@@ -778,21 +709,19 @@ int parse_fromchar(int fd)
 					char* data = NULL;
 					size_t len = 0;
 
-					Sql_GetData(sql_handle, 0, &data, &len);
+					Sql_GetData(sql_handle, 0, &data, &len); safestrncpy(email, data, sizeof(email));
+					Sql_GetData(sql_handle, 1, &data, NULL); connect_until_time = (uint32)strtoul(data, NULL, 10);
 					if( len > sizeof(email) )
-					{
-#if defined(DEBUG)
 						ShowDebug("parse_fromchar:0x2712: email is too long (len=%u,maxlen=%u)\n", len, sizeof(email));
-#endif
-						len = sizeof(email);
-					}
-					memcpy(email, data, len);
-
-					Sql_GetData(sql_handle, 1, &data, NULL);
-					connect_until_time = (uint32)strtoul(data, NULL, 10);
 
 					Sql_FreeResult(sql_handle);
 				}
+				else
+				{
+					memset(email, 0, sizeof(email));
+					connect_until_time = 0;
+				}
+
 				WFIFOHEAD(fd,51);
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = account_id;
@@ -802,11 +731,13 @@ int parse_fromchar(int fd)
 				WFIFOSET(fd,51);
 			}
 			else
-			{
+			{// authentification not found
 				WFIFOHEAD(fd,51);
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = account_id;
 				WFIFOB(fd,6) = 1;
+				// It is unnecessary to send email
+				// It is unnecessary to send validity date of the account
 				WFIFOSET(fd,51);
 			}
 
@@ -828,7 +759,7 @@ int parse_fromchar(int fd)
 					Sql_ShowDebug(sql_handle);
 			}
 			// send some answer
-			WFIFOHEAD(fd,6);
+			WFIFOHEAD(fd,2);
 			WFIFOW(fd,0) = 0x2718;
 			WFIFOSET(fd,2);
 
@@ -1177,7 +1108,7 @@ int parse_fromchar(int fd)
 				struct online_login_data *p;
 				int aid;
 				uint32 i, users;
-				online_db->foreach(online_db,online_db_setoffline,id); //Set all chars from this char-server offline first
+				online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char-server offline first
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
@@ -1245,12 +1176,12 @@ int parse_fromchar(int fd)
 
 		case 0x2737: //Request to set all offline.
 			ShowInfo("Setting accounts from char-server %d offline.\n", id);
-			online_db->foreach(online_db,online_db_setoffline,id);
+			online_db->foreach(online_db, online_db_setoffline, id);
 			RFIFOSKIP(fd,2);
 		break;
 
 		default:
-			ShowError("parse_fromchar: Unknown packet 0x%x from a char-server! Disconnecting!\n", RFIFOW(fd,0));
+			ShowError("parse_fromchar: Unknown packet 0x%x from a char-server! Disconnecting!\n", command);
 			set_eof(fd);
 			return 0;
 		} // switch
@@ -1446,31 +1377,29 @@ int parse_login(int fd)
 				if (login_config.log_login)
 				{
 					const char* error;
-					switch ((result + 1)) {
-					case  -2: error = "Account banned."; break; //-3 = Account Banned
-					case  -1: error = "dynamic ban (ip and account)."; break; //-2 = Dynamic Ban
-					case   1: error = "Unregistered ID."; break; // 0 = Unregistered ID
-					case   2: error = "Incorrect Password."; break; // 1 = Incorrect Password
-					case   3: error = "Account Expired."; break; // 2 = This ID is expired
-					case   4: error = "Rejected from server."; break; // 3 = Rejected from Server
-					case   5: error = "Blocked by GM."; break; // 4 = You have been blocked by the GM Team
-					case   6: error = "Not latest game EXE."; break; // 5 = Your Game's EXE file is not the latest version
-					case   7: error = "Banned."; break; // 6 = Your are Prohibited to log in until %s
-					case   8: error = "Server Over-population."; break; // 7 = Server is jammed due to over populated
-					case   9: error = "Account limit from company"; break; // 8 = No more accounts may be connected from this company
-					case  10: error = "Ban by DBA"; break; // 9 = MSI_REFUSE_BAN_BY_DBA
-					case  11: error = "Email not confirmed"; break; // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
-					case  12: error = "Ban by GM"; break; // 11 = MSI_REFUSE_BAN_BY_GM
-					case  13: error = "Working in DB"; break; // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
-					case  14: error = "Self Lock"; break; // 13 = MSI_REFUSE_SELF_LOCK
-					case  15: error = "Not Permitted Group"; break; // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
-					case  16: error = "Not Permitted Group"; break; // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
-					case 100: error = "Account gone."; break; // 99 = This ID has been totally erased
-					case 101: error = "Login info remains."; break; // 100 = Login information remains at %s
-					case 102: error = "Hacking investigation."; break; // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
-					case 103: error = "Bug investigation."; break; // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
-					case 104: error = "Deleting char."; break; // 103 = This character is being deleted. Login is temporarily unavailable for the time being
-					case 105: error = "Deleting spouse char."; break; // 104 = This character is being deleted. Login is temporarily unavailable for the time being
+					switch( result ) {
+					case   0: error = "Unregistered ID."; break; // 0 = Unregistered ID
+					case   1: error = "Incorrect Password."; break; // 1 = Incorrect Password
+					case   2: error = "Account Expired."; break; // 2 = This ID is expired
+					case   3: error = "Rejected from server."; break; // 3 = Rejected from Server
+					case   4: error = "Blocked by GM."; break; // 4 = You have been blocked by the GM Team
+					case   5: error = "Not latest game EXE."; break; // 5 = Your Game's EXE file is not the latest version
+					case   6: error = "Banned."; break; // 6 = Your are Prohibited to log in until %s
+					case   7: error = "Server Over-population."; break; // 7 = Server is jammed due to over populated
+					case   8: error = "Account limit from company"; break; // 8 = No more accounts may be connected from this company
+					case   9: error = "Ban by DBA"; break; // 9 = MSI_REFUSE_BAN_BY_DBA
+					case  10: error = "Email not confirmed"; break; // 10 = MSI_REFUSE_EMAIL_NOT_CONFIRMED
+					case  11: error = "Ban by GM"; break; // 11 = MSI_REFUSE_BAN_BY_GM
+					case  12: error = "Working in DB"; break; // 12 = MSI_REFUSE_TEMP_BAN_FOR_DBWORK
+					case  13: error = "Self Lock"; break; // 13 = MSI_REFUSE_SELF_LOCK
+					case  14: error = "Not Permitted Group"; break; // 14 = MSI_REFUSE_NOT_PERMITTED_GROUP
+					case  15: error = "Not Permitted Group"; break; // 15 = MSI_REFUSE_NOT_PERMITTED_GROUP
+					case  99: error = "Account gone."; break; // 99 = This ID has been totally erased
+					case 100: error = "Login info remains."; break; // 100 = Login information remains at %s
+					case 101: error = "Hacking investigation."; break; // 101 = Account has been locked for a hacking investigation. Please contact the GM Team for more information
+					case 102: error = "Bug investigation."; break; // 102 = This account has been temporarily prohibited from login due to a bug-related investigation
+					case 103: error = "Deleting char."; break; // 103 = This character is being deleted. Login is temporarily unavailable for the time being
+					case 104: error = "Deleting spouse char."; break; // 104 = This character is being deleted. Login is temporarily unavailable for the time being
 					default : error = "Unknown Error."; break;
 					}
 
@@ -1500,21 +1429,8 @@ int parse_login(int fd)
 							Sql_ShowDebug(sql_handle);
 					}
 				}
-				else if( result == -2 )
-				{// dynamic banned - add ip to ban list.
-					uint8* p = (uint8*)&ipl;
-					if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `ipbanlist`(`list`,`btime`,`rtime`,`reason`) VALUES ('%d.%d.%d.*', NOW() , NOW() +  INTERVAL 1 MONTH ,'Dynamic banned user id : %s')", p[3], p[2], p[1], esc_userid) )
-						Sql_ShowDebug(sql_handle);
-					result = -3;
-				}
-				else if( result == 6 )
-				{// not lastet version ..
-					//result = 5;
-				}
 
-				//cannot connect login failed
 				WFIFOHEAD(fd,23);
-				memset(WFIFOP(fd,0), '\0', 23);
 				WFIFOW(fd,0) = 0x6a;
 				WFIFOB(fd,2) = (uint8)result;
 				if( result == 6 )
@@ -1533,6 +1449,8 @@ int parse_login(int fd)
 						strftime(WFIFOP(fd,3), 20, login_config.date_format, localtime(&ban_until_time));
 					}
 				}
+				else
+					memset(WFIFOP(fd,0), '\0', 20);
 				WFIFOSET(fd,23);
 			}
 
@@ -1602,7 +1520,7 @@ int parse_login(int fd)
 				memset(&server[account.account_id], 0, sizeof(struct mmo_char_server));
 				server[account.account_id].ip = ntohl(RFIFOL(fd,54));
 				server[account.account_id].port = ntohs(RFIFOW(fd,58));
-				memcpy(server[account.account_id].name, server_name, 20);
+				safestrncpy(server[account.account_id].name, server_name, sizeof(server[account.account_id].name));
 				server[account.account_id].users = 0;
 				server[account.account_id].maintenance = RFIFOW(fd,82);
 				server[account.account_id].new_ = RFIFOW(fd,84);
@@ -1741,8 +1659,8 @@ int login_lan_config_read(const char *lancfgName)
 		if ((line[0] == '/' && line[1] == '/') || line[0] == '\n' || line[1] == '\n')
 			continue;
 
-		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4) {
-
+		if(sscanf(line,"%[^:]: %[^:]:%[^:]:%[^\r\n]", w1, w2, w3, w4) != 4)
+		{
 			ShowWarning("Error syntax of configuration file %s in line %d.\n", lancfgName, line_num);
 			continue;
 		}
@@ -1807,11 +1725,11 @@ int login_config_read(const char* cfgName)
 		remove_control_chars(w1);
 		remove_control_chars(w2);
 
-		if(!strcmpi(w1,"timestamp_format")) {
+		if(!strcmpi(w1,"timestamp_format"))
 			strncpy(timestamp_format, w2, 20);
-		} else if(!strcmpi(w1,"stdout_with_ansisequence")) {
+		else if(!strcmpi(w1,"stdout_with_ansisequence"))
 			stdout_with_ansisequence = config_switch(w2);
-		} else if(!strcmpi(w1,"console_silent")) {
+		else if(!strcmpi(w1,"console_silent")) {
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
 		}
@@ -1825,18 +1743,18 @@ int login_config_read(const char* cfgName)
 			login_config.login_port = (uint16)atoi(w2);
 			ShowStatus("set login_port : %s\n",w2);
 		}
-		else if (!strcmpi(w1, "log_login"))
+		else if(!strcmpi(w1, "log_login"))
 			login_config.log_login = config_switch(w2);
 
-		else if (!strcmpi(w1, "ipban"))
+		else if(!strcmpi(w1, "ipban"))
 			login_config.ipban = config_switch(w2);
-		else if (!strcmpi(w1, "dynamic_pass_failure_ban"))
+		else if(!strcmpi(w1, "dynamic_pass_failure_ban"))
 			login_config.dynamic_pass_failure_ban = config_switch(w2);
-		else if (!strcmpi(w1, "dynamic_pass_failure_ban_interval"))
+		else if(!strcmpi(w1, "dynamic_pass_failure_ban_interval"))
 			login_config.dynamic_pass_failure_ban_interval = atoi(w2);
-		else if (!strcmpi(w1, "dynamic_pass_failure_ban_limit"))
+		else if(!strcmpi(w1, "dynamic_pass_failure_ban_limit"))
 			login_config.dynamic_pass_failure_ban_limit = atoi(w2);
-		else if (!strcmpi(w1, "dynamic_pass_failure_ban_duration"))
+		else if(!strcmpi(w1, "dynamic_pass_failure_ban_duration"))
 			login_config.dynamic_pass_failure_ban_duration = atoi(w2);
 
 		else if(!strcmpi(w1, "new_account"))
@@ -1865,9 +1783,9 @@ int login_config_read(const char* cfgName)
 			login_config.use_dnsbl = (bool)config_switch(w2);
 		else if(!strcmpi(w1, "dnsbl_servers"))
 			safestrncpy(login_config.dnsbl_servs, w2, sizeof(login_config.dnsbl_servs));
-		else if (!strcmpi(w1, "ip_sync_interval"))
+		else if(!strcmpi(w1, "ip_sync_interval"))
 			login_config.ip_sync_interval = (unsigned int)1000*60*atoi(w2); //w2 comes in minutes.
-		else if (!strcmpi(w1, "import"))
+		else if(!strcmpi(w1, "import"))
 			login_config_read(w2);
 	}
 	fclose(fp);
@@ -1971,9 +1889,11 @@ void set_server_type(void)
 	SERVER_TYPE = ATHENA_SERVER_LOGIN;
 }
 
+//------------------------------
+// Login server initialization
+//------------------------------
 int do_init(int argc, char** argv)
 {
-	// initialize login server
 	int i;
 
 	login_set_defaults();

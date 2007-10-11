@@ -8,6 +8,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Login server merges from trunk
 	- r11245 - usage of Sql wrapper functions instead of direct mysql calls
 	- r11248 - Login_Config data structure for TXT server (partially done)
+	- r11249, 11250, 11251 - cleanups and fixing of the login server changes
 	* Updated VS project files to use the new sql.c [ultramage]
 	* Merged other minor changes.
 	* Merged safestrnlen that doesn't crash on null pointers. (r11271)
