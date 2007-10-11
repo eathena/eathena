@@ -29,7 +29,7 @@ OBJECTS = obj/map.o obj/chrif.o obj/clif.o obj/pc.o obj/status.o obj/npc.o \
 map-server: $(OBJECTS:obj/%=txtobj/%)
 	$(CC) -o ../../$@ $> $(LIBS) $(LIB_S)
 
-map-server_sql: $(OBJECTS:obj/%=sqlobj/%)
+map-server_sql: $(OBJECTS:obj/%=sqlobj/%) sqlobj/sql_.o
 	$(CC) -o ../../$@ $> $(LIB_S)
 
 txtobj/%.o: %.c
@@ -99,3 +99,5 @@ sqlobj/charcommand.o: charcommand.c charcommand.h itemdb.h pc.h map.h skill.h cl
 sqlobj/date.o: date.c date.h $(COMMON_H)
 sqlobj/unit.o: unit.c unit.h $(COMMON_H)
 sqlobj/mercenary.o: mercenary.c mercenary.h $(COMMON_H)
+sqlobj/sql_.o: ../common/sql.c ../common/sql.h $(COMMON_H)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<

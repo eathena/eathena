@@ -10,7 +10,7 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 	../common/malloc.h ../common/showmsg.h ../common/utils.h ../common/strlib.h \
 	../common/grfio.h ../common/mapindex.h
 
-char-server_sql: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o int_homun.o itemdb.o $(COMMON_OBJ)
+char-server_sql: char.o inter.o int_party.o int_guild.o int_storage.o int_pet.o int_homun.o itemdb.o sql_.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $^ $(LIB_S)
 
 clean:
@@ -26,3 +26,5 @@ int_storage.o: int_storage.c int_storage.h char.h itemdb.h ../common/showmsg.h
 int_pet.o: int_pet.c int_pet.h inter.h char.h ../common/mmo.h ../common/socket.h ../common/db.h ../common/showmsg.h
 int_homun.o: int_homun.c int_homun.h inter.h char.h ../common/mmo.h ../common/socket.h ../common/db.h ../common/showmsg.h
 itemdb.o: itemdb.c itemdb.h ../common/db.h ../common/mmo.h ../common/showmsg.h
+sql_.o: ../common/sql.c ../common/sql.h $(COMMON_H)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<

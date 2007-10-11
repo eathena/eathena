@@ -6,10 +6,10 @@ char-converter: char-converter.o ../common/obj/minicore.o \
 	../char/char.o ../char/int_pet.o ../char/int_storage.o ../char/inter.o \
 	../char/int_party.o ../char/int_guild.o \
 	../char_sql/char.o ../char_sql/int_pet.o ../char_sql/int_storage.o \
-	../char_sql/inter.o ../char_sql/int_party.o ../char_sql/int_guild.o
+	../char_sql/inter.o ../char_sql/int_party.o ../char_sql/int_guild.o sql_.o
 	$(CC) -o ../../tools/$@ $^ $(LIB_S)
 
-login-converter: login-converter.o ../common/obj/minicore.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/ers.o ../common/obj/utils.o
+login-converter: login-converter.o ../common/obj/minicore.o ../common/obj/db.o ../common/obj/malloc.o ../common/obj/showmsg.o ../common/obj/ers.o ../common/obj/utils.o sql_.o
 	$(CC) -o ../../tools/$@ $^ $(LIB_S)
 
 clean:
@@ -22,3 +22,5 @@ clean:
 
 char-converter.o: char-converter.c
 login-converter.o: login-converter.c
+sql_.o: ../common/sql.c ../common/sql.h $(COMMON_H)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<

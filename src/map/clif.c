@@ -11490,8 +11490,9 @@ int clif_parse(int fd)
 {
 	int cmd, packet_ver, packet_len, err;
 	TBL_PC* sd;
+	int pnum;
 
-	while(1)
+	for( pnum = 0; pnum < 3; ++pnum )// Limit max packets per cycle to 3 (delay packet spammers) [FlavioJS]
 	{ // begin main client packet processing loop
 
 	sd = (TBL_PC *)session[fd]->session_data;

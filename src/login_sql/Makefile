@@ -11,7 +11,7 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 	../common/grfio.h ../common/mapindex.h \
 	../common/md5calc.h
 
-login-server_sql: login.o $(COMMON_OBJ)
+login-server_sql: login.o sql_.o $(COMMON_OBJ)
 	$(CC) -o ../../$@ $^ $(LIB_S)
 
 clean:
@@ -20,3 +20,5 @@ clean:
 # DO NOT DELETE
 
 login.o: login.c login.h $(COMMON_H)
+sql_.o: ../common/sql.c ../common/sql.h $(COMMON_H)
+	$(COMPILE.c) $(OUTPUT_OPTION) $<
