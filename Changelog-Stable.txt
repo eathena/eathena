@@ -5,6 +5,10 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/10/11
+	* Char server merges from trunk
+	- r11245 - usage of Sql wrapper functions instead of direct mysql calls,
+	           as well as a serious improvement of the storage handling code
+	- r11251, r11264, r11275, r11311, r11324, r11328 - corrective changes
 	* Login server merges from trunk
 	- r11245 - usage of Sql wrapper functions instead of direct mysql calls
 	- r11248 - Login_Config data structure for TXT server (partially done)
