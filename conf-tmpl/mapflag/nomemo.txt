@@ -28,6 +28,7 @@ lou_in01	mapflag	nomemo
 lou_in02	mapflag	nomemo
 moc_castle	mapflag	nomemo
 morocc_in	mapflag	nomemo
+nameless_in	mapflag	nomemo
 niflheim	mapflag	nomemo
 nif_in	mapflag	nomemo
 new_zone01	mapflag	nomemo
@@ -72,7 +73,6 @@ p_track02	mapflag	nomemo
 ra_in01	mapflag	nomemo
 ra_temin	mapflag	nomemo
 ra_temsky	mapflag	nomemo
-veins	mapflag	nomemo
 ve_in	mapflag	nomemo
 ve_in02	mapflag	nomemo
 thor_camp	mapflag	nomemo

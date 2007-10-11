@@ -1,5 +1,7 @@
 Date	Added
 
+2007/10/11
+	* Removed nomemo and noteleport mapflags from Veins [Playtester]
 2007/09/09
 	* Added 'nomemo' mapflags to some Cursed Abbey maps [Playtester]
 2007/08/30

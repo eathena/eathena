@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/10/11
+	* Updated Veins Field spawns [Playtester]
 2007/10/06
 	* Updated Atroce's respawn time on Veins fields [Playtester]
 2007/10/05
