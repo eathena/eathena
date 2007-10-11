@@ -7,6 +7,7 @@
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 
 #include "map.h"
 #include "battle.h"

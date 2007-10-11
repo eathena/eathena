@@ -2,6 +2,8 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/nullpo.h"
+#include "../common/strlib.h"
+#include "../common/utils.h"
 #include "clif.h"
 #include "itemdb.h"
 #include "atcommand.h"

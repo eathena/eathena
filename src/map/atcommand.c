@@ -10,6 +10,7 @@
 #include "../common/malloc.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
+#include "../common/utils.h"
 
 #include "atcommand.h"
 #include "log.h"
