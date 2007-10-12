@@ -1,4 +1,11 @@
 10/12
+	* Merged item_db, map_index, mob_avail, mob_db2, mob_db, mob_skill_db2 [Playtester]
+	- fixed up various items
+	- added various maps (Moscovia and newer)
+	- commented all custom mob entries
+	- added various missing mobs
+	- updated Moscovia mobs
+	- updated sql files
 	* Merged packet_db.txt [Skotlex]
 10/10
 	* Added a missing item name thanks to rollopop [Playtester]
