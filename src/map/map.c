@@ -49,7 +49,6 @@
 #endif
 
 #ifndef TXT_ONLY
-
 char tmp_sql[65535]="";
 char default_codepage[32] = "";
 
@@ -77,8 +76,6 @@ char log_db_id[32] = "ragnarok";
 char log_db_pw[32] = "ragnarok";
 char log_db[32] = "log";
 MYSQL logmysql_handle;
-MYSQL_RES* logsql_res;
-MYSQL_ROW logsql_row;
 
 // mail system
 int mail_server_enable = 0;
@@ -89,8 +86,8 @@ char mail_server_pw[32] = "ragnarok";
 char mail_server_db[32] = "ragnarok";
 char mail_db[32] = "mail";
 MYSQL mail_handle;
-MYSQL_RES* mail_res;
-MYSQL_ROW mail_row;
+MYSQL_RES* 	mail_res ;
+MYSQL_ROW	mail_row ;
 
 #endif /* not TXT_ONLY */
 
@@ -111,10 +108,10 @@ char *MSG_CONF_NAME;
 char *GRF_PATH_FILENAME;
 
 // ‹É—Í static‚Åƒ?ƒJƒ‹‚É?‚ß‚é
-static struct dbt * id_db=NULL;
-static struct dbt * pc_db=NULL;
+static struct dbt * id_db=NULL;// id -> struct block_list
+static struct dbt * pc_db=NULL;// id -> struct map_session_data
 static struct dbt * map_db=NULL;
-static struct dbt * charid_db=NULL;
+static struct dbt * charid_db=NULL;// charid -> struct map_session_data
 
 static int map_users=0;
 static struct block_list *objects[MAX_FLOORITEM];
@@ -1761,7 +1758,7 @@ struct map_session_data * map_id2sd(int id)
 /*==========================================
  * char_id”Ô?‚Ì–¼‘O‚ð’T‚·
  *------------------------------------------*/
-char * map_charid2nick(int id)
+const char * map_charid2nick(int id)
 {
 	struct charid2nick *p = (struct charid2nick*)idb_get(charid_db,id);
 
@@ -2139,25 +2136,25 @@ int map_calc_dir(struct block_list* src, int x, int y)
 	}
 	else if( dx >= 0 && dy >=0 )
 	{	// upper-right
-		if( dx*2-1 < dy )     dir = 0;	// up
+		if( dx*2 <= dy )      dir = 0;	// up
 		else if( dx > dy*2 )  dir = 6;	// right
 		else                  dir = 7;	// up-right
 	}
 	else if( dx >= 0 && dy <= 0 )
 	{	// lower-right
-		if( dx*2-1 < -dy )    dir = 4;	// down
+		if( dx*2 <= -dy )     dir = 4;	// down
 		else if( dx > -dy*2 ) dir = 6;	// right
 		else                  dir = 5;	// down-right
 	}
 	else if( dx <= 0 && dy <= 0 )
 	{	// lower-left
-		if( dx*2+1 > dy )     dir = 4;	// down
+		if( dx*2 >= dy )      dir = 4;	// down
 		else if( dx < dy*2 )  dir = 2;	// left
 		else                  dir = 3;	// down-left
 	}
 	else
 	{	// upper-left
-		if( -dx*2-1 < dy )    dir = 0;	// up
+		if( -dx*2 <= dy )     dir = 0;	// up
 		else if( -dx > dy*2 ) dir = 2;	// left
 		else                  dir = 1;	// up-left
 	
@@ -3483,6 +3480,42 @@ void do_final(void)
     map_sql_close();
 #endif /* not TXT_ONLY */
 	ShowStatus("Successfully terminated.\n");
+}
+
+static int map_abort_sub(DBKey key,void * data,va_list ap)
+{
+	struct map_session_data *sd = (TBL_PC*)data;
+
+	if (!sd->state.auth || sd->state.waitingdisconnect || sd->state.finalsave) 
+		return 0;
+
+	chrif_save(sd,1);
+	return 1;
+}
+
+
+//------------------------------
+// Function called when the server
+// has received a crash signal.
+//------------------------------
+void do_abort(void)
+{
+	static int run = 0;
+	//Save all characters and then flush the inter-connection.
+	if (run) {
+		ShowFatalError("Server has crashed while trying to save characters. Character data can't be saved!\n");
+		return;
+	}
+	run = 1;
+	if (!chrif_isconnected())
+	{
+		if (pc_db->size(pc_db))
+			ShowFatalError("Server has crashed without a connection to the char-server, %u characters can't be saved!\n", pc_db->size(pc_db));
+		return;
+	}
+	ShowError("Server received crash signal! Attempting to save all online characters!\n");
+	map_foreachpc(map_abort_sub);
+	chrif_flush_fifo();
 }
 
 /*======================================================

@@ -96,15 +96,14 @@ int log_inter = 1;	// loggin inter or not [devil]
 static int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
 // Advanced subnet check [LuzZza]
-struct _subnet {
-	uint32 subnet;
+struct s_subnet {
 	uint32 mask;
 	uint32 char_ip;
 	uint32 map_ip;
 } subnet[16];
 int subnet_count = 0;
 
-struct char_session_data{
+struct char_session_data {
 	int account_id, login_id1, login_id2, sex;
 	int found_char[MAX_CHARS];
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
@@ -453,17 +452,18 @@ int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p)
  --------------------------------------------------*/
 int mmo_hotkeys_tostr(char *str, struct mmo_charstatus *p)
 {
+#ifdef HOTKEY_SAVING
 	int i;
 	char *str_p = str;
 	str_p += sprintf(str_p, "%d", p->char_id);
-#ifdef HOTKEY_SAVING
-	for (i=0;i<HOTKEY_SAVING;i++)
+	for (i=0;i<MAX_HOTKEYS;i++)
 		str_p += sprintf(str_p, ",%d,%d,%d", p->hotkeys[i].type, p->hotkeys[i].id, p->hotkeys[i].lv);
-#endif
 	str_p += '\0';
+#endif
 
 	return 0;
 }
+
 //-------------------------------------------------
 // Function to create the character line (for save)
 //-------------------------------------------------
@@ -936,7 +936,7 @@ int parse_hotkey_txt(struct mmo_charstatus *p)
 		//Read hotkeys 
 		len = strlen(line);
 		next = pos;
-		for (count = 0; next < len && count < HOTKEY_SAVING; count++)
+		for (count = 0; next < len && count < MAX_HOTKEYS; count++)
 		{
 			if (sscanf(line+next, ",%d,%d,%d%n",&type,&id,&lv, &pos) < 3)
 				//Invalid entry?
@@ -3331,20 +3331,14 @@ static int char_mapif_init(int fd)
 int lan_subnetcheck(uint32 ip)
 {
 	int i;
-	
-	for(i = 0; i < subnet_count; i++) {
-	
-		if((subnet[i].subnet & subnet[i].mask) == (ip & subnet[i].mask)) {
-			
-			ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n",
-				CONVIP(ip), CONVIP(subnet[i].subnet), CONVIP(subnet[i].mask));
-			
-			return subnet[i].map_ip;
-		}
+	ARR_FIND( 0, subnet_count, i, (subnet[i].char_ip & subnet[i].mask) == (ip & subnet[i].mask) );
+	if ( i < subnet_count ) {
+		ShowInfo("Subnet check [%u.%u.%u.%u]: Matches "CL_CYAN"%u.%u.%u.%u/%u.%u.%u.%u"CL_RESET"\n", CONVIP(ip), CONVIP(subnet[i].char_ip & subnet[i].mask), CONVIP(subnet[i].mask));
+		return subnet[i].char_ip;
+	} else {
+		ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", CONVIP(ip));
+		return 0;
 	}
-	
-	ShowInfo("Subnet check [%u.%u.%u.%u]: "CL_CYAN"WAN"CL_RESET"\n", CONVIP(ip));
-	return 0;
 }
 
 int parse_char(int fd)
@@ -3375,16 +3369,17 @@ int parse_char(int fd)
 		return 0;
 	}
 
-	while(RFIFOREST(fd) >= 2)
+	while( RFIFOREST(fd) >= 2 )
 	{
 		//For use in packets that depend on an sd being present [Skotlex]
 		#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd==NULL) { RFIFOSKIP(fd,rest); return 0; } }
 
 		cmd = RFIFOW(fd,0);
-		switch(cmd)
+		switch( cmd )
 		{
 
-		case 0x65: // request to connect
+		// request to connect
+		case 0x65:
 			ShowInfo("request connect - account_id:%d/login_id1:%d/login_id2:%d\n", RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10));
 			if (RFIFOREST(fd) < 17)
 				return 0;
@@ -3394,6 +3389,7 @@ int parse_char(int fd)
 			if (sd) {
 				//Received again auth packet for already authentified account?? Discard it.
 				//TODO: Perhaps log this as a hack attempt?
+				//TODO: and perhaps send back a reply?
 				RFIFOSKIP(fd,17);
 				break;
 			}
@@ -3405,25 +3401,26 @@ int parse_char(int fd)
 			CREATE(session[fd]->session_data, struct char_session_data, 1);
 			sd = (struct char_session_data*)session[fd]->session_data;
 			strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
-			sd->connect_until_time = 0; // unknow or illimited (not displaying on map-server)
+			sd->connect_until_time = 0; // unknown or unlimited (not displaying on map-server)
 			sd->account_id = RFIFOL(fd,2);
 			sd->login_id1 = RFIFOL(fd,6);
 			sd->login_id2 = RFIFOL(fd,10);
 			sd->sex = RFIFOB(fd,16);
+
 			// send back account_id
 			WFIFOHEAD(fd,4);
 			WFIFOL(fd,0) = RFIFOL(fd,2);
 			WFIFOSET(fd,4);
+
 			// search authentification
-			for(i = 0; i < AUTH_FIFO_SIZE && !(
+			ARR_FIND( 0, AUTH_FIFO_SIZE, i,
 				auth_fifo[i].account_id == sd->account_id &&
 				auth_fifo[i].login_id1 == sd->login_id1 &&
 				auth_fifo[i].login_id2 == sd->login_id2 &&
 				auth_fifo[i].ip == session[fd]->client_addr &&
-				auth_fifo[i].delflag == 2)
-				; i++);
+				auth_fifo[i].delflag == 2 );
 
-			if (i < AUTH_FIFO_SIZE) {
+			if( i < AUTH_FIFO_SIZE ) {
 				auth_fifo[i].delflag = 1;
 				char_auth_ok(fd, sd);
 			} else { // authentication not found
@@ -3443,12 +3440,13 @@ int parse_char(int fd)
 					WFIFOSET(fd,3);
 				}
 			}
+		}
 
 			RFIFOSKIP(fd,17);
-		}
 		break;
 
-		case 0x66: // char select
+		// char select
+		case 0x66:
 			FIFOSD_CHECK(3);
 		{
 			int char_num = RFIFOB(fd,2);
@@ -3465,9 +3463,7 @@ int parse_char(int fd)
 				break;
 			}
 			// otherwise, load the character
-			for (ch = 0; ch < MAX_CHARS; ch++)
-				if (sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].status.char_num == char_num)
-					break;
+			ARR_FIND( 0, MAX_CHARS, ch, sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].status.char_num == char_num );
 			if (ch == MAX_CHARS)
 			{	//Not found?? May be forged packet.
 				break;
@@ -3484,9 +3480,7 @@ int parse_char(int fd)
 			if (i < 0) {
 				unsigned short j;
 				//First check that there's actually a map server online.
-				for(j = 0; j < MAX_MAP_SERVERS; j++)
-					if (server_fd[j] >= 0 && server[j].map[0])
-						break;
+				ARR_FIND( 0, MAX_MAP_SERVERS, j, server_fd[j] >= 0 && server[j].map[0] );
 				if (j == MAX_MAP_SERVERS) {
 					ShowInfo("Connection Closed. No map servers available.\n");
 					WFIFOHEAD(fd,3);
@@ -3563,7 +3557,8 @@ int parse_char(int fd)
 				WFIFOB(fd,2) = 1; // 01 = Server closed
 				WFIFOSET(fd,3);
 				break;
-			}	
+			}
+
 			//Send auth to server.
 			WFIFOHEAD(map_fd, 20 + sizeof(struct mmo_charstatus));
 			WFIFOW(map_fd,0) = 0x2afd;
@@ -3580,10 +3575,12 @@ int parse_char(int fd)
 		}
 		break;
 
-		case 0x67:	// make new
+		// create new char
+		// S 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <char num>.B <hair color>.W <hair style>.W
+		case 0x67:
 			FIFOSD_CHECK(37);
 
-			if(char_new == 0) //turn character creation on/off [Kevin]
+			if( !char_new ) //turn character creation on/off [Kevin]
 				i = -2;
 			else
 				i = make_new_char(fd, RFIFOP(fd,2));
@@ -3602,27 +3599,28 @@ int parse_char(int fd)
 				RFIFOSKIP(fd,37);
 				break;
 			}
-
-			{	//Send to player.
+			else
+			{
 				int len;
+				// send to player
 				WFIFOHEAD(fd,110);
 				WFIFOW(fd,0) = 0x6d;
 				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat[i].status);
 				WFIFOSET(fd,len);
-			}
 
-			for(ch = 0; ch < MAX_CHARS; ch++) {
-				if (sd->found_char[ch] == -1) {
-					sd->found_char[ch] = i;
-					break;
-				}
+				// add new entry to the chars list
+				ARR_FIND( 0, MAX_CHARS, ch, sd->found_char[ch] == -1 );
+				if( ch < MAX_CHARS )
+						sd->found_char[ch] = i;
 			}
 
 			RFIFOSKIP(fd,37);
 		break;
 
-		case 0x68:	// delete char
-		case 0x1fb:	// 2004-04-19aSakexe+ langtype 12 char deletion packet
+		// delete char
+		case 0x68:
+		// 2004-04-19aSakexe+ langtype 12 char deletion packet
+		case 0x1fb:
 			if (cmd == 0x68) FIFOSD_CHECK(46);
 			if (cmd == 0x1fb) FIFOSD_CHECK(56);
 		{
@@ -3647,24 +3645,24 @@ int parse_char(int fd)
 					break;
 				}
 				// we change the packet to set it like selection.
-				for (i = 0; i < MAX_CHARS; i++)
-					if (sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid) {
-						// we save new e-mail
-						memcpy(sd->email, email, 40);
-						// we send new e-mail to login-server ('online' login-server is checked before)
-						WFIFOHEAD(login_fd,46);
-						WFIFOW(login_fd,0) = 0x2715;
-						WFIFOL(login_fd,2) = sd->account_id;
-						memcpy(WFIFOP(login_fd, 6), email, 40);
-						WFIFOSET(login_fd,46);
-						// change value to put new packet (char selection)
-						RFIFOSKIP(fd,-3); //FIXME: Will this work? Messing with the received buffer is ugly anyway... 
-						RFIFOW(fd,0) = 0x66;
-						RFIFOB(fd,2) = char_dat[sd->found_char[i]].status.char_num;
-						// not send packet, it's modify of actual packet
-						break;
-					}
-				if (i == MAX_CHARS) {
+				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid );
+				if( i < MAX_CHARS )
+				{
+					// we save new e-mail
+					memcpy(sd->email, email, 40);
+					// we send new e-mail to login-server ('online' login-server is checked before)
+					WFIFOHEAD(login_fd,46);
+					WFIFOW(login_fd,0) = 0x2715;
+					WFIFOL(login_fd,2) = sd->account_id;
+					memcpy(WFIFOP(login_fd, 6), email, 40);
+					WFIFOSET(login_fd,46);
+					// change value to put new packet (char selection)
+					RFIFOSKIP(fd,-3); //FIXME: Will this work? Messing with the received buffer is ugly anyway... 
+					RFIFOW(fd,0) = 0x66;
+					RFIFOB(fd,2) = char_dat[sd->found_char[i]].status.char_num;
+					// not send packet, it's modify of actual packet
+					break;
+				} else {
 					WFIFOHEAD(fd,3);
 					WFIFOW(fd,0) = 0x70;
 					WFIFOB(fd,2) = 0; // 00 = Incorrect Email address
@@ -3683,11 +3681,10 @@ int parse_char(int fd)
 				break;
 			}
 
-			for (i = 0; i < MAX_CHARS; i++) {
-				if (sd->found_char[i] == -1) continue;
-				if (char_dat[sd->found_char[i]].status.char_id == cid) break;
-			}
-			if (i == MAX_CHARS) { // Such a character does not exist in the account
+			// check if this char exists
+			ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid );
+			if( i == MAX_CHARS )
+			{ // Such a character does not exist in the account
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x70;
 				WFIFOB(fd,2) = 0;
@@ -3717,29 +3714,38 @@ int parse_char(int fd)
 				}
 			}
 			char_num--;
+
+			// remove char from list and compact it
 			for(ch = i; ch < MAX_CHARS-1; ch++)
 				sd->found_char[ch] = sd->found_char[ch+1];
 			sd->found_char[MAX_CHARS-1] = -1;
+
+			/* Char successfully deleted.*/
 			WFIFOHEAD(fd,2);
 			WFIFOW(fd,0) = 0x6f;
 			WFIFOSET(fd,2);
 		}
 		break;
 
-		case 0x187:	// R 0187 <account ID>.l - client keep-alive packet (every 12 seconds)
+		// client keep-alive packet (every 12 seconds)
+		// R 0187 <account ID>.l
+		case 0x187:
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			RFIFOSKIP(fd,6);
 		break;
 
-		case 0x28d: // R 028d <account ID>.l <char ID>.l <new name>.24B - char rename request
+		// char rename request
+		// R 028d <account ID>.l <char ID>.l <new name>.24B
+		case 0x28d:
 			if (RFIFOREST(fd) < 34)
 				return 0;
 			//not implemented
 			RFIFOSKIP(fd,34);
 		break;
 
-		case 0x2af8: // login as map-server
+		// login as map-server
+		case 0x2af8:
 			if (RFIFOREST(fd) < 60)
 				return 0;
 		{
@@ -3785,8 +3791,8 @@ int parse_char(int fd)
 		}
 		break;
 
-		case 0x7530: // Athena info get
-		{
+		// Athena info get
+		case 0x7530:
 			WFIFOHEAD(fd,10);
 			WFIFOW(fd,0) = 0x7531;
 			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
@@ -3797,15 +3803,17 @@ int parse_char(int fd)
 			WFIFOB(fd,7) = ATHENA_SERVER_INTER | ATHENA_SERVER_CHAR;
 			WFIFOW(fd,8) = ATHENA_MOD_VERSION;
 			WFIFOSET(fd,10);
-			RFIFOSKIP(fd,2);
-			return 0;
-		}
 
-		case 0x7532: // disconnect request from login server
+			RFIFOSKIP(fd,2);
+		break;
+
+			// disconnect request from login server
+		case 0x7532:
 			set_eof(fd);
 			return 0;
 
-		default: // unknown packet received
+		// unknown packet received
+		default:
 			ShowError("parse_char: Received unknown packet "CL_WHITE"0x%x"CL_RESET" from ip '"CL_WHITE"%s"CL_RESET"'! Disconnecting!\n", RFIFOW(fd,0), ip2str(ipl, NULL));
 			set_eof(fd);
 			return 0;
@@ -4033,13 +4041,14 @@ int char_lan_config_read(const char *lancfgName)
 		remove_control_chars(w3);
 		remove_control_chars(w4);
 
-		if(strcmpi(w1, "subnet") == 0) {
-	
+		if( strcmpi(w1, "subnet") == 0 )
+		{
 			subnet[subnet_count].mask = str2ip(w2);
 			subnet[subnet_count].char_ip = str2ip(w3);
 			subnet[subnet_count].map_ip = str2ip(w4);
-			subnet[subnet_count].subnet = subnet[subnet_count].char_ip&subnet[subnet_count].mask;
-			if (subnet[subnet_count].subnet != (subnet[subnet_count].map_ip&subnet[subnet_count].mask)) {
+
+			if( (subnet[subnet_count].char_ip & subnet[subnet_count].mask) != (subnet[subnet_count].map_ip & subnet[subnet_count].mask) )
+			{
 				ShowError("%s: Configuration Error: The char server (%s) and map server (%s) belong to different subnetworks!\n", lancfgName, w3, w4);
 				continue;
 			}
@@ -4281,6 +4290,14 @@ void do_final(void)
 	mapindex_final();
 
 	char_log("----End of char-server (normal end with closing of all files).\n");
+}
+
+//------------------------------
+// Function called when the server
+// has received a crash signal.
+//------------------------------
+void do_abort(void)
+{
 }
 
 void set_server_type(void)

@@ -163,16 +163,15 @@ enum {
 	MAPID_BABY_SOUL_LINKER,
 };
 
-//Max size when inputting a string with those 'npc input boxes'
-//(also used for Graffiti, Talkie Box, Vending, and Chatrooms)
-#define MESSAGE_SIZE 80
+//Max size for inputs to Graffiti, Talkie Box and Vending text prompts
+#define MESSAGE_SIZE (79 + 1)
 //String length you can write in the 'talking box'
-#define CHATBOX_SIZE 70
-//Talk max size: <name> : <message of 70> [Skotlex]
-#define CHAT_SIZE (NAME_LENGTH + 3 + CHATBOX_SIZE)
+#define CHATBOX_SIZE (70 + 1)
 //Chatroom-related string sizes
 #define CHATROOM_TITLE_SIZE (36 + 1)
 #define CHATROOM_PASS_SIZE (8 + 1)
+//Max allowed chat text length
+#define CHAT_SIZE (NAME_LENGTH + 3 + CHATBOX_SIZE)
 
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
@@ -607,7 +606,7 @@ struct map_session_data {
 	int npc_menu;
 	int npc_amount;
 	struct script_state *st;
-	char npc_str[256];
+	char npc_str[CHATBOX_SIZE]; // for passing npc input box text to script engine
 	int npc_timer_id; //For player attached npc timers. [Skotlex]
 	unsigned int chatID;
 	time_t idletime;
@@ -914,8 +913,8 @@ struct mob_data {
 		unsigned char steal_flag; //number of steal tries (to prevent steal exploit on mobs with few items) [Lupus]
 		unsigned steal_coin_flag : 1;
 		unsigned soul_change_flag : 1; // Celest
-		unsigned alchemist : 1;
-		unsigned spotted : 1;
+		unsigned alchemist: 1;
+		unsigned spotted: 1;
 		unsigned char attacked_count; //For rude attacked.
 		int provoke_flag; // Celest
 	} state;
@@ -1330,9 +1329,10 @@ int map_addflooritem(struct item *,int,int,int,int,struct map_session_data *,str
 // ÉLÉÉÉâidÅÅÅÑÉLÉÉÉâñº ïœä∑ä÷òA
 void map_addchariddb(int charid,char *name);
 void map_delchariddb(int charid);
+void map_addnickdb(struct map_session_data *);
 int map_reqchariddb(struct map_session_data * sd,int charid);
-char * map_charid2nick(int);
-struct map_session_data * map_charid2sd(int);
+const char* map_charid2nick(int charid);
+struct map_session_data* map_charid2sd(int charid);
 
 struct map_session_data * map_id2sd(int);
 struct block_list * map_id2bl(int);
@@ -1347,7 +1347,6 @@ void map_deliddb(struct block_list *bl);
 struct map_session_data** map_getallusers(int *users);
 void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
-void map_addnickdb(struct map_session_data *);
 struct map_session_data * map_nick2sd(const char*);
 
 // ÇªÇÃëº
@@ -1398,37 +1397,6 @@ extern char *GRF_PATH_FILENAME;
 
 extern char *map_server_dns;
 
-#ifndef TXT_ONLY
-
-#ifdef WIN32
-#include <winsock2.h>
-#endif
-#include <mysql.h>
-
-extern char tmp_sql[65535];
-
-extern int db_use_sqldbs;
-extern MYSQL mmysql_handle;
-extern MYSQL_RES*	sql_res ;
-extern MYSQL_ROW	sql_row ;
-
-extern MYSQL logmysql_handle;
-extern MYSQL_RES*	logsql_res ;
-extern MYSQL_ROW	logsql_row ;
-
-extern int mail_server_enable;
-extern MYSQL mail_handle;
-extern MYSQL_RES* 	mail_res ;
-extern MYSQL_ROW	mail_row ;
-
-extern char item_db_db[32];
-extern char item_db2_db[32];
-extern char mob_db_db[32];
-extern char mob_db2_db[32];
-extern char char_db[32];
-extern char mail_db[32];
-
-#endif /* not TXT_ONLY */
 //Useful typedefs from jA [Skotlex]
 typedef struct map_session_data TBL_PC;
 typedef struct npc_data         TBL_NPC;
@@ -1445,5 +1413,40 @@ typedef struct homun_data       TBL_HOM;
 
 extern int lowest_gm_level;
 extern char main_chat_nick[16];
+
+#ifndef TXT_ONLY
+
+#ifdef WIN32
+#include <winsock2.h>
+#endif
+#include <mysql.h>
+
+extern char tmp_sql[65535];
+
+extern int db_use_sqldbs;
+extern int mail_server_enable;
+
+extern MYSQL mmysql_handle;
+extern MYSQL_RES*	sql_res ;
+extern MYSQL_ROW	sql_row ;
+
+extern MYSQL logmysql_handle;
+extern MYSQL_RES*	logsql_res ;
+extern MYSQL_ROW	logsql_row ;
+
+extern MYSQL mmysql_handle;
+extern MYSQL logmysql_handle;
+extern MYSQL mail_handle;
+extern MYSQL_RES* 	mail_res ;
+extern MYSQL_ROW	mail_row ;
+
+extern char item_db_db[32];
+extern char item_db2_db[32];
+extern char mob_db_db[32];
+extern char mob_db2_db[32];
+extern char char_db[32];
+extern char mail_db[32];
+
+#endif /* not TXT_ONLY */
 
 #endif /* _MAP_H_ */

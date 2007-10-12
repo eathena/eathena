@@ -81,6 +81,13 @@ static void sig_proc(int sn)
 			exit(0);
 		runflag = 0;
 		break;
+	case SIGSEGV:
+	case SIGFPE:
+		do_abort();
+		// Pass the signal to the system's default handler
+		compat_signal(sn, SIG_DFL);
+		raise(sn);
+		break;
 #ifndef _WIN32
 	case SIGXFSZ:
 		// ignore and allow it to set errno to EFBIG
@@ -98,17 +105,17 @@ void signals_init (void)
 {
 	compat_signal(SIGTERM, sig_proc);
 	compat_signal(SIGINT, sig_proc);
-
-	// Signal to create coredumps by system when necessary (crash)
-	compat_signal(SIGSEGV, SIG_DFL);
-	compat_signal(SIGFPE, SIG_DFL);
+#ifndef _DEBUG // need unhandled exceptions to debug on Windows
+	compat_signal(SIGSEGV, sig_proc);
+	compat_signal(SIGFPE, sig_proc);
+#endif
+#ifndef _WIN32
 	compat_signal(SIGILL, SIG_DFL);
-	#ifndef _WIN32
-		compat_signal(SIGXFSZ, sig_proc);
-		compat_signal(SIGPIPE, sig_proc);
-		compat_signal(SIGBUS, SIG_DFL);
-		compat_signal(SIGTRAP, SIG_DFL);
-	#endif
+	compat_signal(SIGXFSZ, sig_proc);
+	compat_signal(SIGPIPE, sig_proc);
+	compat_signal(SIGBUS, SIG_DFL);
+	compat_signal(SIGTRAP, SIG_DFL);
+#endif
 }
 #endif
 

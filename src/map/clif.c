@@ -5159,7 +5159,7 @@ int clif_wis_end(int fd, int flag)
  *------------------------------------------*/
 int clif_solved_charname(struct map_session_data *sd,int char_id)
 {
-	char *p= map_charid2nick(char_id);
+	const char *p= map_charid2nick(char_id);
 	int fd;
 
 	nullpo_retr(0, sd);
@@ -8166,9 +8166,9 @@ void clif_hotkeys_send(struct map_session_data *sd) {
 	const int fd = sd->fd;
 	int i;
 	if (!fd) return;
-	WFIFOHEAD(fd, 2+HOTKEY_SAVING*7);
+	WFIFOHEAD(fd, 2+MAX_HOTKEYS*7);
 	WFIFOW(fd, 0) = 0x02b9;
-	for(i = 0; i < HOTKEY_SAVING; i++) {
+	for(i = 0; i < MAX_HOTKEYS; i++) {
 		WFIFOB(fd, 2 + 0 + i * 7) = sd->status.hotkeys[i].type; // type: 0: item, 1: skill
 		WFIFOL(fd, 2 + 1 + i * 7) = sd->status.hotkeys[i].id; // item or skill ID
 		WFIFOW(fd, 2 + 5 + i * 7) = sd->status.hotkeys[i].lv; // skill level
@@ -8184,7 +8184,7 @@ void clif_parse_Hotkey(int fd, struct map_session_data *sd) {
 
 	cmd = RFIFOW(fd, 0);
 	idx = RFIFOW(fd, packet_db[sd->packet_ver][cmd].pos[0]);
-	if (idx >= HOTKEY_SAVING) return;
+	if (idx >= MAX_HOTKEYS) return;
 
 	sd->status.hotkeys[idx].type = RFIFOB(fd, packet_db[sd->packet_ver][cmd].pos[1]);
 	sd->status.hotkeys[idx].id = RFIFOL(fd, packet_db[sd->packet_ver][cmd].pos[2]);
@@ -11206,7 +11206,7 @@ void clif_parse_PVPInfo(int fd,struct map_session_data *sd)
 void clif_parse_Blacksmith(int fd,struct map_session_data *sd)
 {
 	int i;
-	char *name;
+	const char *name;
 
 	WFIFOHEAD(fd,packet_len(0x219));
 	WFIFOW(fd,0) = 0x219;
@@ -11249,7 +11249,7 @@ int clif_fame_blacksmith(struct map_session_data *sd, int points)
 void clif_parse_Alchemist(int fd,struct map_session_data *sd)
 {
 	int i;
-	char *name;
+	const char *name;
 
 	WFIFOHEAD(fd,packet_len(0x21a));
 	WFIFOW(fd,0) = 0x21a;
@@ -11292,7 +11292,7 @@ int clif_fame_alchemist(struct map_session_data *sd, int points)
 void clif_parse_Taekwon(int fd,struct map_session_data *sd)
 {
 	int i;
-	char *name;
+	const char *name;
 
 	WFIFOHEAD(fd,packet_len(0x226));
 	WFIFOW(fd,0) = 0x226;
