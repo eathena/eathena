@@ -1,5 +1,9 @@
 Date	Added
 
+2007/10/12
+	* Merged maps_athena.conf [Playtester]
+	- removed .gat ending (hope this doesn't cause problems)
+	- added Moscovia and 12.1 maps
 2007/10/11
 	* Removed nomemo and noteleport mapflags from Veins [Playtester]
 2007/09/09
