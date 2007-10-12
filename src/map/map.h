@@ -593,7 +593,7 @@ struct map_session_data {
 	struct mmo_charstatus status;
 	struct registry save_reg;
 	
-	struct item_data *inventory_data[MAX_INVENTORY];
+	struct item_data* inventory_data[MAX_INVENTORY]; // direct pointers to itemdb entries (faster than doing item_id lookups)
 	short equip_index[11];
 	unsigned int weight,max_weight;
 	int cart_weight,cart_num;
@@ -793,7 +793,7 @@ struct map_session_data {
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 
 #ifndef TXT_ONLY
-	int mail_counter;	// mail counter for mail system [Valaris]
+	int mail_counter;	// mail counter for mail system (antiflood protection)
 #endif
 
 	int duel_group; // duel vars [LuzZza]

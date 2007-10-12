@@ -615,7 +615,7 @@ static int itemdb_gendercheck(struct item_data *id)
 	if (id->look == W_WHIP && id->type == IT_WEAPON) //Whips are always female-only
 		return 0;
 
-	return (battle_config.ignore_items_gender?2:id->sex);
+	return (battle_config.ignore_items_gender) ? 2 : id->sex;
 }
 #ifndef TXT_ONLY
 
@@ -977,7 +977,7 @@ static int itemdb_readdb(void)
 }
 
 /*====================================
- * Removed item_value_db, don't re-add
+ * read all item-related databases
  *------------------------------------*/
 static void itemdb_read(void)
 {
