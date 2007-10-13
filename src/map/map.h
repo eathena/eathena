@@ -1359,7 +1359,7 @@ int path_search_real(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1
 #define path_search(wpd,m,x0,y0,x1,y1,flag)  path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKNOPASS)
 #define path_search2(wpd,m,x0,y0,x1,y1,flag) path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKWALL)
 
-int path_search_long_real(struct shootpath_data *spd,int m,int x0,int y0,int x1,int y1,cell_t flag);
+bool path_search_long_real(struct shootpath_data *spd,int m,int x0,int y0,int x1,int y1,cell_t flag);
 #define path_search_long(spd,m,x0,y0,x1,y1) path_search_long_real(spd,m,x0,y0,x1,y1,CELL_CHKWALL)
 
 int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
@@ -1416,29 +1416,14 @@ extern char main_chat_nick[16];
 
 #ifndef TXT_ONLY
 
-#ifdef WIN32
-#include <winsock2.h>
-#endif
-#include <mysql.h>
-
-extern char tmp_sql[65535];
+#include "../common/sql.h"
 
 extern int db_use_sqldbs;
 extern int mail_server_enable;
 
-extern MYSQL mmysql_handle;
-extern MYSQL_RES*	sql_res ;
-extern MYSQL_ROW	sql_row ;
-
-extern MYSQL logmysql_handle;
-extern MYSQL_RES*	logsql_res ;
-extern MYSQL_ROW	logsql_row ;
-
-extern MYSQL mmysql_handle;
-extern MYSQL logmysql_handle;
-extern MYSQL mail_handle;
-extern MYSQL_RES* 	mail_res ;
-extern MYSQL_ROW	mail_row ;
+extern Sql* mmysql_handle;
+extern Sql* logmysql_handle;
+extern Sql* mail_handle;
 
 extern char item_db_db[32];
 extern char item_db2_db[32];

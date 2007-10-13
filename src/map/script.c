@@ -224,13 +224,10 @@ int potion_hp=0, potion_per_hp=0, potion_sp=0, potion_per_sp=0;
 int potion_target=0;
 
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-// [zBuffer] SQL Mapreg Saving/Loading Database Declaration
 char mapregsql_db[32] = "mapreg";
 char mapregsql_db_varname[32] = "varname";
 char mapregsql_db_index[32] = "index";
 char mapregsql_db_value[32] = "value";
-char tmp_sql[65535];
-// --------------------------------------------------------
 #endif
 
 int get_com(unsigned char *script,int *pos);
@@ -1899,6 +1896,9 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	struct script_code *code;
 	static int first=1;
 
+	if( src == NULL )
+		return NULL;// empty script
+
 	memset(&syntax,0,sizeof(syntax));
 	if(first){
 		add_buildin_func();
@@ -1949,21 +1949,34 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	parse_syntax_for_flag=0;
 	p=src;
 	p=skip_space(p);
-	if(*p!='{'){
-		disp_error_message("not found '{'",p);
+	if( options&SCRIPT_IGNORE_EXTERNAL_BRACKETS )
+	{// does not require brackets around the script
+		if( *p == '\0' )
+		{// empty script
+			aFree( script_buf );
+			script_pos  = 0;
+			script_size = 0;
+			script_buf  = NULL;
+			return NULL;
+		}
 	}
-	p++;
-	p = skip_space(p);
-	if (p && *p == '}') {
-		// an empty function, just return  
-		aFree( script_buf );
-		script_pos  = 0;
-		script_size = 0;
-		script_buf  = NULL;
-		return NULL;
+	else
+	{// requires brackets around the script
+		if( *p != '{' )
+			disp_error_message("not found '{'",p);
+		p = skip_space(++p);
+		if( *p == '}' )
+		{// empty script
+			aFree( script_buf );
+			script_pos  = 0;
+			script_size = 0;
+			script_buf  = NULL;
+			return NULL;
+		}
 	}
 
-	while (p && *p && (*p!='}' || syntax.curly_count != 0)) {
+	while (*p && (*p != '}' || syntax.curly_count != 0) )
+	{
 		p=skip_space(p);
 		// labelだけ特殊処理
 		tmpp=skip_space(skip_word(p));
@@ -3220,85 +3233,76 @@ void run_script_main(struct script_state *st)
 /*==========================================
  * マップ変数の変更
  *------------------------------------------*/
-int mapreg_setreg(int num,int val)
+int mapreg_setreg(int num, int val)
 {
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	int i=num>>24;
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-	char tmp_str[64];
-#endif
+	int i = num >> 24;
+	char* name = str_buf + str_data[num&0x00ffffff].str;
 
-	if(val!=0) {
+	if( val != 0 ) {
 		if(idb_put(mapreg_db,num,(void*)val))
 			;
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
 		else if(name[1] != '@') {
-			sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,val);
-			if(mysql_query(&mmysql_handle,tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+			char tmp_str[32*2+1];
+			Sql_EscapeStringLen(mmysql_handle, tmp_str, name, strnlen(name, 32));
+			if( SQL_ERROR == Sql_Query(mmysql_handle, "INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%d')", mapregsql_db, mapregsql_db_varname, mapregsql_db_index, mapregsql_db_value, tmp_str, i, val) )
+				Sql_ShowDebug(mmysql_handle);
 		}
-#endif
-	} else { // [zBuffer]
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
+	} else { // val == 0
 		if(name[1] != '@') { // Remove from database because it is unused.
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
-			if(mysql_query(&mmysql_handle,tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+			if( SQL_ERROR == Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'", mapregsql_db, mapregsql_db_varname, name, mapregsql_db_index, i) )
+				Sql_ShowDebug(mmysql_handle);
 		}
-#endif
 		idb_remove(mapreg_db,num);
 	}
+#else
+	if(val != 0)
+		idb_put(mapreg_db,num,(void*)val);
+	else
+		idb_remove(mapreg_db,num);
+#endif
 
-	mapreg_dirty=1;
+	mapreg_dirty = 1;
 	return 1;
 }
 /*==========================================
  * 文字列型マップ変数の変更
  *------------------------------------------*/
-int mapreg_setregstr(int num,const char *str)
+int mapreg_setregstr(int num, const char* str)
 {
-	char *p;
 #if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	char tmp_str[64];
-	char tmp_str2[512];
-	int i=num>>24; // [zBuffer]
-	char *name=str_buf+str_data[num&0x00ffffff].str;
-#endif
-
-	if( str==NULL || *str==0 ){
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
+	int i = num >> 24;
+	char* name = str_buf + str_data[num&0x00ffffff].str;
+	
+	if( str==NULL || *str==0 ) {
 		if(name[1] != '@') {
-			sprintf(tmp_sql,"DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_varname,name,mapregsql_db_index,i);
-			if(mysql_query(&mmysql_handle,tmp_sql)){
-				ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
+			if( SQL_ERROR == Sql_Query(mmysql_handle, "DELETE FROM `%s` WHERE `%s`='%s' AND `%s`='%d'", mapregsql_db, mapregsql_db_varname, name, mapregsql_db_index, i) )
+				Sql_ShowDebug(mmysql_handle);
 		}
-#endif
 		idb_remove(mapregstr_db,num);
-		mapreg_dirty=1;
+		mapreg_dirty = 1;
 		return 1;
 	}
-	p=(char *)aMallocA((strlen(str)+1)*sizeof(char));
-	strcpy(p,str);
 	
-	if (idb_put(mapregstr_db,num,p))
+	if (idb_put(mapregstr_db,num, aStrdup(str)))
 		;
-#if !defined(TXT_ONLY) && defined(MAPREGSQL)
-	else if(name[1] != '@'){ //put returned null, so we must insert.
+	else if(name[1] != '@') { //put returned null, so we must insert.
 		// Someone is causing a database size infinite increase here without name[1] != '@' [Lance]
-		sprintf(tmp_sql,"INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%s')",mapregsql_db,mapregsql_db_varname,mapregsql_db_index,mapregsql_db_value,jstrescapecpy(tmp_str,name),i,jstrescapecpy(tmp_str2,p));
-		if(mysql_query(&mmysql_handle,tmp_sql)){
-			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+		char tmp_str[32*2+1];
+		char tmp_str2[255*2+1];
+		Sql_EscapeStringLen(mmysql_handle, tmp_str, name, strnlen(name, 32));
+		Sql_EscapeStringLen(mmysql_handle, tmp_str2, str, strnlen(str, 255));
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "INSERT INTO `%s`(`%s`,`%s`,`%s`) VALUES ('%s','%d','%s')", mapregsql_db, mapregsql_db_varname, mapregsql_db_index, mapregsql_db_value, tmp_str, i, tmp_str2) )
+			Sql_ShowDebug(mmysql_handle);
 	}
+#else
+	if( str==NULL || *str==0 )
+		idb_remove(mapregstr_db,num);
+	else
+		idb_put(mapregstr_db,num,aStrdup(str));
 #endif
-	mapreg_dirty=1;
+
+	mapreg_dirty = 1;
 	return 1;
 }
 
@@ -3308,83 +3312,87 @@ int mapreg_setregstr(int num,const char *str)
 static int script_load_mapreg(void)
 {
 #if defined(TXT_ONLY) || !defined(MAPREGSQL)
-	FILE *fp;
+	FILE* fp;
 	char line[1024];
 
-	if( (fp=fopen(mapreg_txt,"rt"))==NULL )
+	if( (fp=fopen(mapreg_txt,"rt")) == NULL )
 		return -1;
 
 	while(fgets(line,sizeof(line),fp))
 	{
-		char buf1[256],buf2[1024],*p;
+		char buf1[256],buf2[1024];
+		char* p;
 		int n,v,s,i;
 		if( sscanf(line,"%255[^,],%d\t%n",buf1,&i,&n)!=2 &&
 			(i=0,sscanf(line,"%[^\t]\t%n",buf1,&n)!=1) )
 			continue;
-		if( buf1[strlen(buf1)-1]=='$' ){
-			if( sscanf(line+n,"%[^\n\r]",buf2)!=1 ){
-				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
+		if( buf1[strlen(buf1)-1] == '$' ) {
+			if( sscanf(line + n, "%[^\n\r]", buf2) != 1 ) {
+				ShowError("%s: %s broken data !\n", mapreg_txt, buf1);
 				continue;
 			}
-			p=(char *)aMallocA((strlen(buf2) + 1)*sizeof(char));
-			strcpy(p,buf2);
-			s= add_str(buf1);
-			idb_put(mapregstr_db,(i<<24)|s,p);
-		}else{
-			if( sscanf(line+n,"%d",&v)!=1 ){
-				ShowError("%s: %s broken data !\n",mapreg_txt,buf1);
+			p = aStrdup(buf2);
+			s = add_str(buf1);
+			idb_put(mapregstr_db, (i<<24)|s, p);
+		} else {
+			if( sscanf(line + n, "%d", &v) != 1 ) {
+				ShowError("%s: %s broken data !\n", mapreg_txt, buf1);
 				continue;
 			}
-			s= add_str(buf1);
-			idb_put(mapreg_db,(i<<24)|s,(void*)v);
+			s = add_str(buf1);
+			idb_put(mapreg_db, (i<<24)|s, (void*)v);
 		}
 	}
 	fclose(fp);
-	mapreg_dirty=0;
+
+	mapreg_dirty = 0;
 	return 0;
 #else
-	// SQL mapreg code start [zBuffer]
 	/*
-	     0       1       2
-	+-------------------------+
-	| varname | index | value |
-	+-------------------------+
-	*/
-	unsigned int perfomance = (unsigned int)time(NULL);
-	sprintf(tmp_sql,"SELECT * FROM `%s`",mapregsql_db);
-	ShowInfo("Querying script_load_mapreg ...\n");
-	if(mysql_query(&mmysql_handle, tmp_sql) ) {
-		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
+		     0       1       2
+		+-------------------------+
+		| varname | index | value |
+		+-------------------------+
+	 */
+
+	SqlStmt* stmt = SqlStmt_Malloc(mmysql_handle);
+	char varname[32+1];
+	int index;
+	char value[255+1];
+	uint32 length;
+
+	if ( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `%s`, `%s`, `%s` FROM `%s`", mapregsql_db_varname, mapregsql_db_index, mapregsql_db_value, mapregsql_db)
+	  || SQL_ERROR == SqlStmt_Execute(stmt)
+	  ) {
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
 		return -1;
 	}
-	ShowInfo("Success! Returning results ...\n");
-	sql_res = mysql_store_result(&mmysql_handle);
-	if (sql_res) {
-        while ((sql_row = mysql_fetch_row(sql_res))) {
-			char buf1[33], *p = NULL;
-			int i,v,s;
-			strcpy(buf1,sql_row[0]);
-			if( buf1[strlen(buf1)-1]=='$' ){
-				i = atoi(sql_row[1]);
-				p=(char *)aMallocA((strlen(sql_row[2]) + 1)*sizeof(char));
-				strcpy(p,sql_row[2]);
-				s= add_str(buf1);
-				idb_put(mapregstr_db,(i<<24)|s,p);
-			}else{
-				s= add_str(buf1);
-				v= atoi(sql_row[2]);
-				i = atoi(sql_row[1]);
-				idb_put(mapreg_db,(i<<24)|s,(void *)v);
-			}
-	    }        
+
+	SqlStmt_BindColumn(stmt, 0, SQLDT_STRING, &varname[0], 32, &length, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &index, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, &value[0], 255, NULL, NULL);
+	
+	while ( SQL_SUCCESS == SqlStmt_NextRow(stmt) )
+	{
+		if( varname[length-1] == '$' ) {
+			int s = add_str(varname);
+			int i = index;
+			char* p = aStrdup(value);
+			idb_put(mapregstr_db, (i<<24)|s, p);
+		} else {
+			int s = add_str(varname);
+			int i = index;
+			int v = atoi(value);
+			idb_put(mapreg_db, (i<<24)|s, (void *)v);			
+		}
 	}
-	ShowInfo("Freeing results...\n");
-	mysql_free_result(sql_res);
-	mapreg_dirty=0;
-	perfomance = (((unsigned int)time(NULL)) - perfomance);
-	ShowInfo("SQL Mapreg Loading Completed Under %d Seconds.\n",perfomance);
+	
+	SqlStmt_Free(stmt);
+
+	mapreg_dirty = 0;
 	return 0;
+
 #endif /* TXT_ONLY */
 }
 /*==========================================
@@ -3392,56 +3400,50 @@ static int script_load_mapreg(void)
  *------------------------------------------*/
 static int script_save_mapreg_intsub(DBKey key,void *data,va_list ap)
 {
-#if defined(TXT_ONLY) || !defined(MAPREGSQL)
-	FILE *fp=va_arg(ap,FILE*);
 	int num=key.i&0x00ffffff, i=key.i>>24;
 	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
+
+#if defined(TXT_ONLY) || !defined(MAPREGSQL)
+	FILE *fp=va_arg(ap,FILE*);
+	if( name[1]!='@' ) {
 		if(i==0)
 			fprintf(fp,"%s\t%d\n", name, (int)data);
 		else
 			fprintf(fp,"%s,%d\t%d\n", name, i, (int)data);
 	}
-	return 0;
 #else
-	int num=key.i&0x00ffffff, i=key.i>>24; // [zBuffer]
-	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
-		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%d' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,(int)data,mapregsql_db_varname,name,mapregsql_db_index,i);
-		if(mysql_query(&mmysql_handle, tmp_sql) ) {
-			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "UPDATE `%s` SET `%s`='%d' WHERE `%s`='%s' AND `%s`='%d'", mapregsql_db, mapregsql_db_value, (int)data, mapregsql_db_varname, name, mapregsql_db_index, i) )
+			Sql_ShowDebug(mmysql_handle);
 	}
-	return 0;
 #endif
+
+	return 0;
 }
+
 static int script_save_mapreg_strsub(DBKey key,void *data,va_list ap)
 {
-#if defined(TXT_ONLY) || !defined(MAPREGSQL)
-	FILE *fp=va_arg(ap,FILE*);
 	int num=key.i&0x00ffffff, i=key.i>>24;
 	char *name=str_buf+str_data[num].str;
-	if( name[1]!='@' ){
+
+#if defined(TXT_ONLY) || !defined(MAPREGSQL)
+	FILE *fp=va_arg(ap,FILE*);
+	if( name[1]!='@' ) {
 		if(i==0)
 			fprintf(fp,"%s\t%s\n", name, (char *)data);
 		else
 			fprintf(fp,"%s,%d\t%s\n", name, i, (char *)data);
 	}
-	return 0;
 #else
-	char tmp_str2[512];
-	int num=key.i&0x00ffffff, i=key.i>>24;
-	char *name=str_buf+str_data[num].str;
 	if ( name[1] != '@') {
-		sprintf(tmp_sql,"UPDATE `%s` SET `%s`='%s' WHERE `%s`='%s' AND `%s`='%d'",mapregsql_db,mapregsql_db_value,jstrescapecpy(tmp_str2,(char *)data),mapregsql_db_varname,name,mapregsql_db_index,i);
-		if(mysql_query(&mmysql_handle, tmp_sql) ) {
-			ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+		char tmp_str2[2*255+1];
+		Sql_EscapeStringLen(mmysql_handle, tmp_str2, (char*)data, strnlen((char*)data, 255));
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "UPDATE `%s` SET `%s`='%s' WHERE `%s`='%s' AND `%s`='%d'", mapregsql_db, mapregsql_db_value, tmp_str2, mapregsql_db_varname, name, mapregsql_db_index, i) )
+			Sql_ShowDebug(mmysql_handle);
 	}
-	return 0;
 #endif
+
+	return 0;
 }
 static int script_save_mapreg(void)
 {
@@ -3457,12 +3459,8 @@ static int script_save_mapreg(void)
 	mapregstr_db->foreach(mapregstr_db,script_save_mapreg_strsub,fp);
 	lock_fclose(fp,mapreg_txt,&lock);
 #else
-	unsigned int perfomance = (unsigned int)time(NULL);
-	mapreg_db->foreach(mapreg_db,script_save_mapreg_intsub);  // [zBuffer]
+	mapreg_db->foreach(mapreg_db,script_save_mapreg_intsub);
 	mapregstr_db->foreach(mapregstr_db,script_save_mapreg_strsub);
-	perfomance = ((unsigned int)time(NULL) - perfomance);
-	if(perfomance > 2)
-		ShowWarning("Slow Query: MapregSQL Saving @ %d second(s).\n", perfomance);
 #endif
 	mapreg_dirty=0;
 	return 0;
@@ -3630,9 +3628,8 @@ int do_init_script()
 	
 	script_load_mapreg();
 
-	add_timer_func_list(script_autosave_mapreg,"script_autosave_mapreg");
-	add_timer_interval(gettick()+MAPREG_AUTOSAVE_INTERVAL,
-		script_autosave_mapreg,0,0,MAPREG_AUTOSAVE_INTERVAL);
+	add_timer_func_list(script_autosave_mapreg, "script_autosave_mapreg");
+	add_timer_interval(gettick() + MAPREG_AUTOSAVE_INTERVAL, script_autosave_mapreg, 0, 0, MAPREG_AUTOSAVE_INTERVAL);
 
 	return 0;
 }
@@ -3915,6 +3912,7 @@ BUILDIN_FUNC(getusersname); //jA commands added [Lupus]
 BUILDIN_FUNC(dispbottom);
 BUILDIN_FUNC(recovery);
 BUILDIN_FUNC(getpetinfo);
+BUILDIN_FUNC(gethominfo);
 BUILDIN_FUNC(checkequipedcard);
 BUILDIN_FUNC(globalmes);
 BUILDIN_FUNC(jump_zero);
@@ -4247,6 +4245,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(getusersname,"*"),
 	BUILDIN_DEF(recovery,""),
 	BUILDIN_DEF(getpetinfo,"i"),
+	BUILDIN_DEF(gethominfo,"i"),
 	BUILDIN_DEF(checkequipedcard,"i"),
 	BUILDIN_DEF(jump_zero,"ii"), //for future jA script compatibility
 	BUILDIN_DEF(globalmes,"s*"),
@@ -12013,6 +12012,7 @@ BUILDIN_FUNC(checkcell)
 
 // <--- [zBuffer] List of mathematics commands
 // [zBuffer] List of dynamic var commands --->
+//FIXME: some other functions are using this private function
 void setd_sub(struct script_state *st, TBL_PC *sd, char *varname, int elem, void *value, struct linkdb_node **ref)
 {
 	set_reg(st, sd, add_str(varname)+(elem<<24), varname, value, ref);
@@ -12046,93 +12046,125 @@ BUILDIN_FUNC(setd)
 BUILDIN_FUNC(query_sql)
 {
 #ifndef TXT_ONLY
-	char *name = NULL;
-	const char *query;
-	int num, i = 0,j, nb_rows;
-	struct { char * dst_var_name; char type; } row[32];
-	TBL_PC *sd = (st->rid)? script_rid2sd(st) : NULL;
+	int i, j;
+	TBL_PC* sd = NULL;
+	const char* query;
+	struct script_data* data;
+	char* name;
+	int max_rows = 128;// maximum number of rows
+	int num_vars;
+	int num_cols;
 
+	// check target variables
+	for( i = 3; script_hasdata(st,i); ++i )
+	{
+		data = script_getdata(st, i);
+		if( data_isreference(data) && reference_tovariable(data) )
+		{// it's a variable
+			name = reference_getname(data);
+			if( not_server_variable(*name) && sd == NULL )
+			{// requires a player
+				sd = script_rid2sd(st);
+				if( sd == NULL )
+				{// no player attached
+					script_reportdata(data);
+					st->state = END;
+					return 1;
+				}
+			}
+			if( not_array_variable(*name) )
+				max_rows = 1;// not an array, limit to one row
+		}
+		else
+		{
+			ShowError("script:query_sql: not a variable\n");
+			script_reportdata(data);
+			st->state = END;
+			return 1;
+		}
+	}
+	num_vars = i - 3;
+
+	// Execute the query
 	query = script_getstr(st,2);
-	strcpy(tmp_sql, query);
-	if(mysql_query(&mmysql_handle,tmp_sql)){
-		ShowSQL("DB error - %s\n",mysql_error(&mmysql_handle));
-		ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		script_pushint(st,0);
+	if( SQL_ERROR == Sql_Query(mmysql_handle, query) )
+	{
+		Sql_ShowDebug(mmysql_handle);
+		script_pushint(st, 0);
 		return 1;
 	}
 
-	// If some data was returned
-	if((sql_res = mysql_store_result(&mmysql_handle))){
-		// Count the number of rows to store
-		nb_rows = mysql_num_fields(sql_res);
-
-		// Can't store more row than variable
-		if (nb_rows > st->end - (st->start+3))
-			nb_rows = st->end - (st->start+3);
-
-		if (!nb_rows)
-		{
-			script_pushint(st,0);
-			return 0; // Nothing to store
-		}
-
-		if (nb_rows > 32)
-		{
-			ShowWarning("buildin_query_sql: too many rows!\n");
-			script_pushint(st,0);
-			return 1;
-		}
-
-		memset(row, 0, sizeof(row));
-		// Verify argument types
-		for(j=0; j < nb_rows; j++)
-		{
-			if(!data_isreference(script_getdata(st, 3+j))){
-				ShowWarning("buildin_query_sql: Parameter %d is not a variable!\n", j);
-				script_pushint(st,0);
-				return 0;
-			} else {
-				// Store type of variable (string = 0/int = 1)
-				num=st->stack->stack_data[st->start+3+j].u.num;
-				name=(char *)(str_buf+str_data[num&0x00ffffff].str);
-				if(name[strlen(name)-1] != '$') {
-					row[j].type = 1;
-				}
-				row[j].dst_var_name = name;
-			}
-		}
-		// Store data
-		while(i<128 && (sql_row = mysql_fetch_row(sql_res))){
-			for(j=0; j < nb_rows; j++)
-			{
-				if (row[j].type == 1)
-					setd_sub(st,sd, row[j].dst_var_name, i, (void *)atoi(sql_row[j]),script_getref(st,3+j));
-				else
-					setd_sub(st,sd, row[j].dst_var_name, i, (void *)sql_row[j],script_getref(st,3+j));
-			}
-			i++;
-		}
-		// Free data
-		mysql_free_result(sql_res);
+	if( Sql_NumRows(mmysql_handle) == 0 )
+	{// No data received
+		Sql_FreeResult(mmysql_handle);
+		script_pushint(st, 0);
+		return 0;
 	}
-	script_pushint(st,i);
+
+	// Count the number of columns to store
+	num_cols = Sql_NumColumns(mmysql_handle);
+	if( num_vars < num_cols )
+	{
+		ShowWarning("script:query_sql: Too many columns, discarting last %u columns.\n", (unsigned int)(num_cols-num_vars));
+		script_reportsrc(st);
+	}
+	else if( num_vars > num_cols )
+	{
+		ShowWarning("script:query_sql: Too many variables (%u extra).\n", (unsigned int)(num_vars-num_cols));
+		script_reportsrc(st);
+	}
+
+	// Store data
+	for( i = 0; i < max_rows && SQL_SUCCESS == Sql_NextRow(mmysql_handle); ++i )
+	{
+		for( j = 0; j < num_vars; ++j )
+		{
+			char* str = NULL;
+
+			if( j < num_cols )
+				Sql_GetData(mmysql_handle, j, &str, NULL);
+
+			data = script_getdata(st, j+3);
+			name = reference_getname(data);
+			if( is_string_variable(name) )
+				setd_sub(st, sd, name, i, (void *)(str?str:""), reference_getref(data));
+			else
+				setd_sub(st, sd, name, i, (void *)(str?atoi(str):0), reference_getref(data));
+		}
+	}
+	if( i == max_rows && max_rows < Sql_NumRows(mmysql_handle) )
+	{
+		ShowWarning("script:query_sql: Only %d/%u rows have been stored.\n", max_rows, (unsigned int)Sql_NumRows(mmysql_handle));
+		script_reportsrc(st);
+	}
+
+	// Free data
+	Sql_FreeResult(mmysql_handle);
+	script_pushint(st, i);
 #else
 	//for TXT version, we always return -1
 	script_pushint(st,-1);
 #endif
+
 	return 0;
 }
 
 //Allows escaping of a given string.
 BUILDIN_FUNC(escape_sql)
 {
-	const char *query;
-	char *t_query;
-	query = script_getstr(st,2);
-	
-	t_query = aMallocA((strlen(query)*2+1)*sizeof(char));
-	jstrescapecpy(t_query,query);
-	script_pushstr(st,t_query);
+	const char *str;
+	char *esc_str;
+	size_t len;
+
+	str = script_getstr(st,2);
+	len = strlen(str);
+	esc_str = aMallocA(len*2+1);
+#if defined(TXT_ONLY)
+	jstrescapecpy(esc_str, str);
+#else
+	Sql_EscapeStringLen(mmysql_handle, esc_str, str, len);
+#endif
+	script_pushstr(st, esc_str);
 	return 0;
 }
 

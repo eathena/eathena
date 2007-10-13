@@ -26,7 +26,7 @@ struct item_data dummy_item; //This is the default dummy item used for non-exist
  * 名前で検索用
  *------------------------------------------*/
 // name = item alias, so we should find items aliases first. if not found then look for "jname" (full name)
-int itemdb_searchname_sub(DBKey key,void *data,va_list ap)
+static int itemdb_searchname_sub(DBKey key,void *data,va_list ap)
 {
 	struct item_data *item=(struct item_data *)data,**dst,**dst2;
 	char *str;
@@ -617,364 +617,266 @@ static int itemdb_gendercheck(struct item_data *id)
 
 	return (battle_config.ignore_items_gender) ? 2 : id->sex;
 }
-#ifndef TXT_ONLY
 
-/*======================================
- * SQL
- *======================================*/
-static int itemdb_read_sqldb(void)
+/*==========================================
+ * processes one itemdb entry
+ *------------------------------------------*/
+static bool itemdb_parse_dbrow(char** str, const char* source, int line, int scriptopt)
 {
-	unsigned short nameid;
-	struct item_data *id;
-	char script[65535 + 2 + 1]; // Maximum length of MySQL TEXT type (65535) + 2 bytes for curly brackets + 1 byte for terminator
-	char *item_db_name[] = { item_db_db, item_db2_db };
-	long unsigned int ln = 0;
-	int i;	
-
-	// ----------
-
-	for (i = 0; i < 2; i++) {
-		sprintf(tmp_sql, "SELECT * FROM `%s`", item_db_name[i]);
-
-		// Execute the query; if the query execution succeeded...
-		if (mysql_query(&mmysql_handle, tmp_sql) == 0) {
-			sql_res = mysql_store_result(&mmysql_handle);
-
-			// If the storage of the query result succeeded...
-			if (sql_res) {
-				// Parse each row in the query result into sql_row
-				while ((sql_row = mysql_fetch_row(sql_res)))
-				{	/*Table structure is:
-					00  id
-					01  name_english
-					02  name_japanese
-					03  type
-					04  price_buy
-					05  price_sell
-					06  weight
-					07  attack
-					08  defence
-					09  range
-					10  slots
-					11  equip_jobs
-					12  equip_upper
-					13  equip_genders
-					14  equip_locations
-					15  weapon_level
-					16  equip_level
-					17  refineable
-					18  view
-					19  script
-					20  equip_script
-					21  unequip_script
-					*/
-					nameid = atoi(sql_row[0]);
-
-					// If the identifier is not within the valid range, process the next row
-					if (nameid == 0)
-						continue;
-
-					ln++;
-
-					// ----------
-					id = itemdb_load(nameid);
-					
-					strncpy(id->name, sql_row[1], ITEM_NAME_LENGTH-1);
-					strncpy(id->jname, sql_row[2], ITEM_NAME_LENGTH-1);
-
-					id->type = atoi(sql_row[3]);
-					if (id->type == IT_DELAYCONSUME)
-					{	//Items that are consumed upon target confirmation
-						//(yggdrasil leaf, spells & pet lures) [Skotlex]
-						id->type = IT_USABLE;
-						id->flag.delay_consume=1;
-					} else //In case of an itemdb reload and the item type changed.
-						id->flag.delay_consume=0;
-
-					// If price_buy is not NULL and price_sell is not NULL...
-					if ((sql_row[4] != NULL) && (sql_row[5] != NULL)) {
-						id->value_buy = atoi(sql_row[4]);
-						id->value_sell = atoi(sql_row[5]);
-					}
-					// If price_buy is not NULL and price_sell is NULL...
-					else if ((sql_row[4] != NULL) && (sql_row[5] == NULL)) {
-						id->value_buy = atoi(sql_row[4]);
-						id->value_sell = atoi(sql_row[4]) / 2;
-					}
-					// If price_buy is NULL and price_sell is not NULL...
-					else if ((sql_row[4] == NULL) && (sql_row[5] != NULL)) {
-						id->value_buy = atoi(sql_row[5]) * 2;
-						id->value_sell = atoi(sql_row[5]);
-					}
-					// If price_buy is NULL and price_sell is NULL...
-					if ((sql_row[4] == NULL) && (sql_row[5] == NULL)) {
-						id->value_buy = 0;
-						id->value_sell = 0;
-					}
-
-					id->weight	= atoi(sql_row[6]);
-					id->atk		= (sql_row[7] != NULL) ? atoi(sql_row[7]) : 0;
-					id->def		= (sql_row[8] != NULL) ? atoi(sql_row[8]) : 0;
-					id->range	= (sql_row[9] != NULL) ? atoi(sql_row[9]) : 0;
-					id->slot	= (sql_row[10] != NULL) ? atoi(sql_row[10]) : 0;
-					if (id->slot > MAX_SLOTS)
-					{
-						ShowWarning("itemdb_read_sqldb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
-						id->slot = MAX_SLOTS;
-					}
-					itemdb_jobid2mapid(id->class_base, (sql_row[11] != NULL) ? (unsigned int)strtoul(sql_row[11], NULL, 0) : 0);
-					id->class_upper= (sql_row[12] != NULL) ? atoi(sql_row[12]) : 0;
-					id->sex		= (sql_row[13] != NULL) ? atoi(sql_row[13]) : 0;
-					id->equip	= (sql_row[14] != NULL) ? atoi(sql_row[14]) : 0;
-					if (!id->equip && itemdb_isequip2(id))
-					{
-						ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
-						id->type = 3;
-					}
-					id->wlv		= (sql_row[15] != NULL) ? atoi(sql_row[15]) : 0;
-					id->elv		= (sql_row[16] != NULL)	? atoi(sql_row[16]) : 0;
-					id->flag.no_refine = (sql_row[17] == NULL || atoi(sql_row[17]) == 1)?0:1;
-					id->look	= (sql_row[18] != NULL) ? atoi(sql_row[18]) : 0;
-					id->view_id	= 0;
-					id->sex = itemdb_gendercheck(id); //Apply gender filtering.
-
-					// ----------
-					
-					if (id->script)
-						script_free_code(id->script);
-					if (sql_row[19] != NULL) {
-						if (sql_row[19][0] == '{')
-							id->script = parse_script(sql_row[19],item_db_name[i], ln, 0);
-						else {
-							sprintf(script, "{%s}", sql_row[19]);
-							id->script = parse_script(script, item_db_name[i], ln, 0);
-						}
-					} else id->script = NULL;
+	/*
+		+----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+-------------+---------------+-----------------+--------------+-------------+------------+------+--------+--------------+----------------+
+		| 00 |      01      |       02      |  03  |     04    |     05     |   06   |   07   |    08   |   09  |   10  |     11     |      12     |       13      |        14       |      15      |      16     |     17     |  18  |   19   |      20      |        21      |
+		+----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+-------------+---------------+-----------------+--------------+-------------+------------+------+--------+--------------+----------------+
+		| id | name_english | name_japanese | type | price_buy | price_sell | weight | attack | defence | range | slots | equip_jobs | equip_upper | equip_genders | equip_locations | weapon_level | equip_level | refineable | view | script | equip_script | unequip_script |
+		+----+--------------+---------------+------+-----------+------------+--------+--------+---------+-------+-------+------------+-------------+---------------+-----------------+--------------+-------------+------------+------+--------+--------------+----------------+
+	*/
+	int nameid;
+	struct item_data* id;
 	
-					if (id->equip_script)
-						script_free_code(id->equip_script);
-					if (sql_row[20] != NULL) {
-						if (sql_row[20][0] == '{')
-							id->equip_script = parse_script(sql_row[20], item_db_name[i], ln, 0);
-						else {
-							sprintf(script, "{%s}", sql_row[20]);
-							id->equip_script = parse_script(script, item_db_name[i], ln, 0);
-						}
-					} else id->equip_script = NULL;
+	nameid = atoi(str[0]);
+	if( nameid <= 0 )
+	{
+		ShowWarning("itemdb_parse_dbrow: Invalid id %d in line %d of \"%s\", skipping.\n", nameid, line, source);
+		return false;
+	}
 	
-					if (id->unequip_script)
-						script_free_code(id->unequip_script);
-					if (sql_row[21] != NULL) {
-						if (sql_row[21][0] == '{')
-							id->unequip_script = parse_script(sql_row[21],item_db_name[i], ln, 0);
-						else {
-							sprintf(script, "{%s}", sql_row[21]);
-							id->unequip_script = parse_script(script, item_db_name[i], ln, 0);
-						}
-					} else id->unequip_script = NULL;
-				
-					// ----------
+	//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Job Upper,Gender,Loc,wLV,eLV,refineable,View
+	id = itemdb_load(nameid);
+	safestrncpy(id->name, str[1], sizeof(id->name));
+	safestrncpy(id->jname, str[2], sizeof(id->jname));
+	
+	id->type = atoi(str[3]);
+	if (id->type == IT_DELAYCONSUME)
+	{	//Items that are consumed only after target confirmation
+		id->type = IT_USABLE;
+		id->flag.delay_consume = 1;
+	} else //In case of an itemdb reload and the item type changed.
+		id->flag.delay_consume = 0;
 
-					id->flag.available	= 1;
-					id->flag.value_notdc	= 0;
-					id->flag.value_notoc	= 0;
-				}
+	id->value_buy = atoi(str[4]);
+	id->value_sell = atoi(str[5]);
+	if (id->value_buy < id->value_sell * 2) id->value_buy = id->value_sell * 2; // prevent exploit
+	if (id->value_buy == 0 && id->value_sell > 0) id->value_buy = id->value_sell * 2;
+	if (id->value_sell == 0 && id->value_buy > 0) id->value_sell = id->value_buy / 2;
+	
+	id->weight = atoi(str[6]);
+	id->atk = atoi(str[7]);
+	id->def = atoi(str[8]);
+	id->range = atoi(str[9]);
+	id->slot = atoi(str[10]);
+	
+	if (id->slot > MAX_SLOTS)
+	{
+		ShowWarning("itemdb_parse_dbrow: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
+		id->slot = MAX_SLOTS;
+	}
+	
+	itemdb_jobid2mapid(id->class_base, (unsigned int)strtoul(str[11],NULL,0));
+	id->class_upper = atoi(str[12]);
+	id->sex	= atoi(str[13]);
+	id->equip = atoi(str[14]);
+	
+	if (!id->equip && itemdb_isequip2(id))
+	{
+		ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
+		id->type = IT_ETC;
+	}
+	
+	id->wlv = atoi(str[15]);
+	id->elv = atoi(str[16]);
+	id->flag.no_refine = atoi(str[17]) ? 0 : 1; //FIXME: verify this
+	id->look = atoi(str[18]);
+	
+	id->flag.available = 1;
+	id->flag.value_notdc = 0;
+	id->flag.value_notoc = 0;
+	id->view_id = 0;
+	id->sex = itemdb_gendercheck(id); //Apply gender filtering.
 
-				ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", ln, item_db_name[i]);
-				ln = 0;
-			} else {
-				ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mmysql_handle));
-				ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-			}
-
-			// Free the query result
-			mysql_free_result(sql_res);
-		} else {
-			ShowSQL("DB error (%s) - %s\n",item_db_name[i], mysql_error(&mmysql_handle));
-			ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		}
+	if (id->script)
+	{
+		script_free_code(id->script);
+		id->script = NULL;
+	}
+	if (id->equip_script)
+	{
+		script_free_code(id->equip_script);
+		id->equip_script = NULL;
+	}
+	if (id->unequip_script)
+	{
+		script_free_code(id->unequip_script);
+		id->unequip_script = NULL;
 	}
 
-	return 0;
+	if (*str[19])
+		id->script = parse_script(str[19], source, line, scriptopt);
+	if (*str[20])
+		id->equip_script = parse_script(str[20], source, line, scriptopt);
+	if (*str[21])
+		id->unequip_script = parse_script(str[21], source, line, scriptopt);
+
+	return true;
 }
-#endif /* not TXT_ONLY */
 
 /*==========================================
  * アイテムデータベースの読み込み
  *------------------------------------------*/
 static int itemdb_readdb(void)
 {
-	FILE *fp;
-	char line[1024];
-	int ln=0,lines=0;
-	int nameid,j;
-	char *str[32],*p,*np;
-	struct item_data *id;
-	int i=0;
-	char *filename[]={ "item_db.txt","item_db2.txt" };
+	const char* filename[] = { "item_db.txt", "item_db2.txt" };
+	int fi;
 
-	for(i=0;i<2;i++){
-		sprintf(line, "%s/%s", db_path, filename[i]);
-		fp=fopen(line,"r");
-		if(fp==NULL){
-			if(i>0)
-				continue;
-			ShowFatalError("can't read %s\n",line);
-			exit(1);
+	for( fi = 0; fi < ARRAYLENGTH(filename); ++fi )
+	{
+		uint32 lines = 0, count = 0;
+		char line[1024];
+
+		char path[256];
+		FILE* fp;
+
+		sprintf(path, "%s/%s", db_path, filename[fi]);
+		fp = fopen(path, "r");
+		if( fp == NULL )
+		{
+			ShowWarning("itemdb_readdb: File not found \"%s\", skipping.\n", path);
+			continue;
 		}
 
-		lines=0;
+		// process rows one by one
 		while(fgets(line, sizeof(line), fp))
 		{
+			char *str[32], *p;
+			int i;
+
 			lines++;
-			if(line[0]=='/' && line[1]=='/')
+			if(line[0] == '/' && line[1] == '/')
 				continue;
-			memset(str,0,sizeof(str));
-			for(j=0,np=p=line;j<19 && p;j++){
-				str[j]=p;
-				p=strchr(p,',');
-				if(p){ *p++=0; np=p; }
-			}
-			if(str[0]==NULL)
-				continue;
+			memset(str, 0, sizeof(str));
 
-			nameid=atoi(str[0]);
-			if(nameid<=0)
-				continue;
-			if (j < 19)
-			{	//Crash-fix on broken item lines. [Skotlex]
-				ShowWarning("Reading %s: Insufficient fields for item with id %d, skipping.\n", filename[i], nameid);
-				continue;
-			}
-			ln++;
-
-			//ID,Name,Jname,Type,Price,Sell,Weight,ATK,DEF,Range,Slot,Job,Job Upper,Gender,Loc,wLV,eLV,refineable,View
-			id=itemdb_load(nameid);
-			strncpy(id->name, str[1], ITEM_NAME_LENGTH-1);
-			strncpy(id->jname, str[2], ITEM_NAME_LENGTH-1);
-			id->type=atoi(str[3]);
-			if (id->type == IT_DELAYCONSUME)
-			{	//Items that are consumed upon target confirmation
-				//(yggdrasil leaf, spells & pet lures) [Skotlex]
-				id->type = IT_USABLE;
-				id->flag.delay_consume=1;
-			} else //In case of an itemdb reload and the item type changed.
-				id->flag.delay_consume=0;
-
+			p = line;
+			while( ISSPACE(*p) )
+				++p;
+			if( *p == '\0' )
+				continue;// empty line
+			for( i = 0; i < 19; ++i )
 			{
-				int buy = atoi(str[4]), sell = atoi(str[5]);
-				// if buying price > selling price * 2 consider it valid and don't change it [celest]
-				if (buy && sell && buy > sell*2){
-					id->value_buy = buy;
-					id->value_sell = sell;
-				} else {
-					// buy≠sell*2 は item_value_db.txt で指定してください。
-					if (sell) {		// sell値を優先とする
-						id->value_buy = sell*2;
-						id->value_sell = sell;
-					} else {
-						id->value_buy = buy;
-						id->value_sell = buy/2;
-					}
-				}
-				// check for bad prices that can possibly cause exploits
-				if (id->value_buy*75/100 < id->value_sell*124/100) {
-					ShowWarning ("Item %s [%d] buying:%d < selling:%d\n",
-						id->name, id->nameid, id->value_buy*75/100, id->value_sell*124/100);
-				}
+				str[i] = p;
+				p = strchr(p,',');
+				if( p == NULL )
+					break;// comma not found
+				*p = '\0';
+				++p;
 			}
-			id->weight=atoi(str[6]);
-			id->atk=atoi(str[7]);
-			id->def=atoi(str[8]);
-			id->range=atoi(str[9]);
-			id->slot=atoi(str[10]);
-			if (id->slot > MAX_SLOTS)
+
+			if( p == NULL )
 			{
-				ShowWarning("itemdb_readdb: Item %d (%s) specifies %d slots, but the server only supports up to %d\n", nameid, id->jname, id->slot, MAX_SLOTS);
-				id->slot = MAX_SLOTS;
+				ShowError("itemdb_readdb: Insufficient columns in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
+				continue;
 			}
-			itemdb_jobid2mapid(id->class_base, (unsigned int)strtoul(str[11],NULL,0));
-			id->class_upper = atoi(str[12]);
-			id->sex	= atoi(str[13]);
-			if(id->equip != atoi(str[14])){
-				id->equip=atoi(str[14]);
-			}
-			if (!id->equip && itemdb_isequip2(id))
+
+			// Script
+			if( *p != '{' )
 			{
-				ShowWarning("Item %d (%s) is an equipment with no equip-field! Making it an etc item.\n", nameid, id->jname);
-				id->type = 3;
-			}
-			id->wlv=atoi(str[15]);
-			id->elv=atoi(str[16]);
-			id->flag.no_refine = atoi(str[17])?0:1;	//If the refine column is 1, no_refine is 0
-			id->look=atoi(str[18]);
-			id->flag.available=1;
-			id->flag.value_notdc=0;
-			id->flag.value_notoc=0;
-			id->view_id=0;
-			id->sex = itemdb_gendercheck(id); //Apply gender filtering.
-
-			if (id->script) {
-				script_free_code(id->script);
-				id->script=NULL;
-			}
-			if (id->equip_script) {
-				script_free_code(id->equip_script);
-				id->equip_script=NULL;
-			}
-			if (id->unequip_script) {
-				script_free_code(id->unequip_script);
-				id->unequip_script=NULL;
-			}
-
-			if((p=strchr(np,'{'))==NULL)
-				continue;
-			
-			str[19] = p; //Script
-			np = strchr(p,'}');
-
-			while (np && np[1] && np[1] != ',')
-				np = strchr(np+1,'}'); //Jump close brackets until the next field is found.
-			if (!np || !np[1]) {
-				//Couldn't find the end of the script field.
-				id->script = parse_script(str[19],filename[i],lines,0);
+				ShowError("itemdb_readdb: Invalid format (Script column) in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
 				continue;
 			}
-			np[1] = '\0'; //Set end of script
-			id->script = parse_script(str[19],filename[i],lines,0);
-			np+=2; //Skip to next field
-
-			if(!np || (p=strchr(np,'{'))==NULL)
-				continue;
-
-			str[20] = p; //Equip Script
-			np = strchr(p,'}');
-
-			while (np && np[1] && np[1] != ',')
-				np = strchr(np+1,'}'); //Jump close brackets until the next field is found.
-			if (!np || !np[1]) {
-				//Couldn't find the end of the script field.
-				id->equip_script = parse_script(str[20],filename[i],lines,0);
+			str[19] = p;
+			p = strstr(p+1,"},");
+			if( p == NULL )
+			{
+				ShowError("itemdb_readdb: Invalid format (Script column) in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
 				continue;
 			}
+			p[1] = '\0';
+			p += 2;
 
-			np[1] = '\0'; //Set end of script
-			id->equip_script = parse_script(str[20],filename[i],lines,0);
-			np+=2; //Skip comma, to next field
-
-			if(!np || (p=strchr(np,'{'))==NULL)
+			// OnEquip_Script
+			if( *p != '{' )
+			{
+				ShowError("itemdb_readdb: Invalid format (OnEquip_Script column) in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
 				continue;
-			//Unequip script, last column.
-			id->unequip_script = parse_script(p,filename[i],lines,0);
+			}
+			str[20] = p;
+			p = strstr(p+1,"},");
+			if( p == NULL )
+			{
+				ShowError("itemdb_readdb: Invalid format (OnEquip_Script column) in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
+				continue;
+			}
+			p[1] = '\0';
+			p += 2;
+
+			// OnUnequip_Script (last column)
+			if( *p != '{' )
+			{
+				ShowError("itemdb_readdb: Invalid format (OnUnequip_Script column) in line %d of \"%s\" (item with id %d), skipping.\n", lines, path, atoi(str[0]));
+				continue;
+			}
+			str[21] = p;
+
+
+			if (!itemdb_parse_dbrow(str, path, lines, 0))
+				continue;
+
+			count++;
 		}
+
 		fclose(fp);
-		if (ln > 0) {
-			ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,filename[i]);
-		}
-		ln=0;	// reset to 0
+
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, filename[fi]);
 	}
+
 	return 0;
 }
+
+#ifndef TXT_ONLY
+/*======================================
+ * item_db table reading
+ *======================================*/
+static int itemdb_read_sqldb(void)
+{
+	const char* item_db_name[] = { item_db_db, item_db2_db };
+	int fi;
+	
+	for( fi = 0; fi < ARRAYLENGTH(item_db_name); ++fi )
+	{
+		uint32 lines = 0, count = 0;
+
+		// retrieve all rows from the item database
+		if( SQL_ERROR == Sql_Query(mmysql_handle, "SELECT * FROM `%s`", item_db_name[fi]) )
+		{
+			Sql_ShowDebug(mmysql_handle);
+			continue;
+		}
+
+		// process rows one by one
+		while( SQL_SUCCESS == Sql_NextRow(mmysql_handle) )
+		{// wrap the result into a TXT-compatible format
+			char* str[22];
+			char* dummy = "";
+			int i;
+			++lines;
+			for( i = 0; i < 22; ++i )
+			{
+				Sql_GetData(mmysql_handle, i, &str[i], NULL);
+				if( str[i] == NULL ) str[i] = dummy; // get rid of NULL columns
+			}
+
+			if (!itemdb_parse_dbrow(str, item_db_name[fi], lines, 0))
+				continue;
+			++count;
+		}
+
+		// free the query result
+		Sql_FreeResult(mmysql_handle);
+
+		ShowStatus("Done reading '"CL_WHITE"%lu"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", count, item_db_name[fi]);
+	}
+
+	return 0;
+}
+#endif /* not TXT_ONLY */
 
 /*====================================
  * read all item-related databases
@@ -997,30 +899,34 @@ static void itemdb_read(void)
 /*==========================================
  * Initialize / Finalize
  *------------------------------------------*/
-static int itemdb_final_sub (DBKey key,void *data,va_list ap)
+
+/// Destroys the item_data.
+static void destroy_item_data(struct item_data* self, int free_self)
 {
-	int flag;
+	if( self == NULL )
+		return;
+	// free scripts
+	if( self->script )
+		script_free_code(self->script);
+	if( self->equip_script )
+		script_free_code(self->equip_script);
+	if( self->unequip_script )
+		script_free_code(self->unequip_script);
+#if defined(DEBUG)
+	// trash item
+	memset(self, 0xDD, sizeof(struct item_data));
+#endif
+	// free self
+	if( free_self )
+		aFree(self);
+}
+
+static int itemdb_final_sub(DBKey key,void *data,va_list ap)
+{
 	struct item_data *id = (struct item_data *)data;
 
-	flag = va_arg(ap, int);
-	if (id->script)
-	{
-		script_free_code(id->script);
-		id->script = NULL;
-	}
-	if (id->equip_script)
-	{
-		script_free_code(id->equip_script);
-		id->equip_script = NULL;
-	}
-	if (id->unequip_script)
-	{
-		script_free_code(id->unequip_script);
-		id->unequip_script = NULL;
-	}
-	// Whether to clear the item data (exception: do not clear the dummy item data
-	if (flag && id != &dummy_item) 
-		aFree(id);
+	if( id != &dummy_item )
+		destroy_item_data(id, 1);
 
 	return 0;
 }
@@ -1033,19 +939,8 @@ void itemdb_reload(void)
 
 void do_final_itemdb(void)
 {
-	item_db->destroy(item_db, itemdb_final_sub, 1);
-	if (dummy_item.script) {
-		script_free_code(dummy_item.script);
-		dummy_item.script = NULL;
-	}
-	if (dummy_item.equip_script) {
-		script_free_code(dummy_item.equip_script);
-		dummy_item.equip_script = NULL;
-	}
-	if (dummy_item.unequip_script) {
-		script_free_code(dummy_item.unequip_script);
-		dummy_item.unequip_script = NULL;
-	}
+	item_db->destroy(item_db, itemdb_final_sub);
+	destroy_item_data(&dummy_item, 0);
 }
 
 int do_init_itemdb(void)
