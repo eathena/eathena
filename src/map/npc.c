@@ -6,6 +6,7 @@
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/strlib.h"
 #include "../common/utils.h"
 #include "../common/ers.h"
 #include "../common/db.h"
@@ -184,99 +185,6 @@ int npc_event_dequeue(struct map_session_data* sd)
 }
 
 /*==========================================
- * イベントの遅延実行
- *------------------------------------------*/
-int npc_event_timer(int tid, unsigned int tick, int id, int data)
-{
-	char* eventname = (char *)data;
-	struct event_data* ev = strdb_get(ev_db,eventname);
-	struct npc_data* nd;
-	struct map_session_data* sd = map_id2sd(id);
-	size_t i;
-
-	if((ev==NULL || (nd=ev->nd)==NULL))
-	{
-		if(battle_config.error_log)
-			ShowWarning("npc_event: event not found [%s]\n",eventname);
-	}
-	else
-	{
-		for(i=0;i<MAX_EVENTTIMER;i++) {
-			if( nd->eventtimer[i]==tid ) {
-				nd->eventtimer[i]=-1;
-				npc_event(sd,eventname,0); // sd NULL check is within
-				break;
-			}
-		}
-		if(i==MAX_EVENTTIMER && battle_config.error_log)
-			ShowWarning("npc_event_timer: event timer not found [%s]!\n",eventname);
-	}
-
-	aFree(eventname);
-	return 0;
-}
-
-int npc_timer_event(const char* eventname)	// Added by RoVeRT
-{
-	struct event_data* ev = strdb_get(ev_db, eventname);
-	struct npc_data *nd;
-//	int xs,ys;
-
-	if((ev==NULL || (nd=ev->nd)==NULL)){
-		ShowWarning("npc_timer_event: event not found [%s]\n",eventname);
-		return 0;
-	}
-
-	run_script(nd->u.scr.script,ev->pos,nd->bl.id,nd->bl.id);
-
-	return 0;
-}
-/*
-int npc_timer_sub_sub(DBKey key,void *data,va_list ap)	// Added by RoVeRT
-{
-	char *p=(char *)key;
-	struct event_data *ev=(struct event_data *)data;
-	int *c=va_arg(ap,int *);
-	int tick=0,ctick=gettick();
-	char temp[10];
-	char event[100];
-
-	if(ev->nd->bl.id==(int)*c && (p=strchr(p,':')) && p && strncasecmp("::OnTimer",p,8)==0 ){
-		sscanf(&p[9],"%s",temp);
-		tick=atoi(temp);
-
-		strcpy( event, ev->nd->name);
-		strcat( event, p);
-
-		if (ctick >= ev->nd->lastaction && ctick - ev->nd->timer >= tick) {
-			npc_timer_event(event);
-			ev->nd->lastaction = ctick;
-		}
-	}
-	return 0;
-}
-
-int npc_timer_sub(DBKey key,void *data,va_list ap)	// Added by RoVeRT
-{
-	struct npc_data *nd=(struct npc_data*)data;
-
-	if(nd->timer == -1)
-		return 0;
-
-	sv_db->foreach(ev_db,npc_timer_sub_sub,&nd->bl.id);
-
-	return 0;
-}
-
-int npc_timer(int tid,unsigned int tick,int id,int data)	// Added by RoVeRT
-{
-	npcname_db->foreach(npcname_db,npc_timer_sub);
-
-	aFree((void*)data);
-	return 0;
-}*/
-
-/*==========================================
  * exports a npc event label
  * npc_parse_script->strdb_foreachから呼ばれる
  *------------------------------------------*/
@@ -444,93 +352,7 @@ int npc_event_do_oninit(void)
 
 	return 0;
 }
-/*==========================================
- * OnTimer NPC event - by RoVeRT
- *------------------------------------------*/
-int npc_addeventtimer(struct npc_data* nd, int tick, const char* name)
-{
-	int i;
-	char* evname;
-	
-	for(i=0;i<MAX_EVENTTIMER;i++)
-		if( nd->eventtimer[i]==-1 )
-			break;
-	if(i<MAX_EVENTTIMER){
-		if (!strdb_get(ev_db,name)) {
-			if (battle_config.error_log)
-				ShowError("npc_addeventimer: Event %s does not exists.\n", name);
-			return 1; //Event does not exists!
-		}
-		evname = (char *)aMallocA(NAME_LENGTH*sizeof(char));
-		if(evname==NULL){
-			ShowFatalError("npc_addeventtimer: out of memory !\n");exit(1);
-		}
-		strncpy(evname,name,NAME_LENGTH);
-		evname[NAME_LENGTH-1] = '\0';
-		nd->eventtimer[i]=add_timer(gettick()+tick,
-			npc_event_timer,nd->bl.id,(int)evname);
-	}else
-		ShowWarning("npc_addtimer: event timer is full !\n");
 
-	return 0;
-}
-
-int npc_deleventtimer(struct npc_data* nd, const char* name)
-{
-	int i;
-	for(i=0;i<MAX_EVENTTIMER;i++)
-		if( nd->eventtimer[i]!=-1 && strcmp((char *)(get_timer(nd->eventtimer[i])->data), name)==0 ){
-			delete_timer(nd->eventtimer[i],npc_event_timer);
-			nd->eventtimer[i]=-1;
-			break;
-		}
-
-	return 0;
-}
-
-int npc_cleareventtimer(struct npc_data* nd)
-{
-	int i;
-	for(i=0;i<MAX_EVENTTIMER;i++)
-		if( nd->eventtimer[i]!=-1 ){
-			delete_timer(nd->eventtimer[i],npc_event_timer);
-			nd->eventtimer[i]=-1;
-		}
-
-	return 0;
-}
-
-int npc_do_ontimer_sub(DBKey key, void* data, va_list ap)
-{
-	const char *p = key.str;
-	struct event_data *ev = (struct event_data *)data;
-	int *c = va_arg(ap,int *);
-//	struct map_session_data *sd=va_arg(ap,struct map_session_data *);
-	int option = va_arg(ap,int);
-	int tick = 0;
-	char temp[10];
-	char event[50];
-
-	if(ev->nd->bl.id == (int)*c && (p = strchr(p,':')) && strnicmp("::OnTimer",p,8) == 0){
-		sscanf(&p[9], "%s", temp);
-		tick = atoi(temp);
-
-		strcpy(event, ev->nd->name);
-		strcat(event, p);
-
-		if (option!=0) {
-			npc_addeventtimer(ev->nd, tick, event);
-		} else {
-			npc_deleventtimer(ev->nd, event);
-		}
-	}
-	return 0;
-}
-int npc_do_ontimer(int npc_id, int option)
-{
-	ev_db->foreach(ev_db, npc_do_ontimer_sub, &npc_id, option);
-	return 0;
-}
 /*==========================================
  * タイマーイベント用ラベルの取り込み
  * npc_parse_script->strdb_foreachから呼ばれる
@@ -817,19 +639,21 @@ int npc_settimerevent_tick(struct npc_data* nd, int newtimer)
 
 int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char* eventname)
 {
-	if ( sd->npc_id!=0) {
+	if ( sd->npc_id != 0 )
+	{
 		//Enqueue the event trigger.
 		int i;
-		for(i=0;i<MAX_EVENTQUEUE && sd->eventqueue[i][0];i++);
-		
-		if (i==MAX_EVENTQUEUE) {
-			if (battle_config.error_log)
+		ARR_FIND( 0, MAX_EVENTQUEUE, i, sd->eventqueue[i][0] == '\0' );
+		if( i < MAX_EVENTQUEUE )
+			safestrncpy(sd->eventqueue[i],eventname,50); //Event enqueued.
+		else
+			if( battle_config.error_log )
 				ShowWarning("npc_event: event queue is full !\n");
-		}else //Event enqueued.
-			memcpy(sd->eventqueue[i],eventname,50);
+		
 		return 1;
 	}
-	if (ev->nd->sc.option&OPTION_INVISIBLE) {
+	if( ev->nd->sc.option&OPTION_INVISIBLE )
+	{
 		//Disabled npc, shouldn't trigger event.
 		npc_event_dequeue(sd);
 		return 2;
@@ -890,31 +714,6 @@ int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill)
 	return npc_event_sub(sd,ev,eventname);
 }
 
-
-int npc_command_sub(DBKey key,void *data,va_list ap)
-{
-	const char* p = (const char*)key.str;
-	struct event_data *ev=(struct event_data *)data;
-	const char* npcname = va_arg(ap, const char*);
-	const char* command = va_arg(ap, const char*);
-	char temp[100];
-
-	if(strcmp(ev->nd->name,npcname)==0 && (p=strchr(p,':')) && strnicmp("::OnCommand",p,10)==0 ){
-		sscanf(&p[11],"%s",temp);
-
-		if (strcmp(command,temp)==0)
-			run_script(ev->nd->u.scr.script,ev->pos,0,ev->nd->bl.id);
-	}
-
-	return 0;
-}
-
-int npc_command(struct map_session_data* sd, const char* npcname, const char* command)
-{
-	ev_db->foreach(ev_db, npc_command_sub, npcname, command);
-
-	return 0;
-}
 /*==========================================
  * 接触型のNPC処理
  *------------------------------------------*/
@@ -1522,7 +1321,6 @@ int npc_unload(struct npc_data* nd)
 				ers_free(timer_event_ers, (struct event_timer_data*)td->data);
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
 		}
-		npc_cleareventtimer (nd);
 		if (nd->u.scr.timer_event)
 			aFree(nd->u.scr.timer_event);
 		if (nd->u.scr.src_id == 0) {
@@ -1747,8 +1545,7 @@ static int npc_parse_shop(char* w1, char* w2, char* w3, char* w4)
 	nd->bl.x = x;
 	nd->bl.y = y;
 	nd->bl.id = npc_get_new_npc_id();
-	memcpy(nd->name, w3, NAME_LENGTH);
-	nd->name[NAME_LENGTH-1] = '\0';
+	safestrncpy(nd->name, w3, NAME_LENGTH);
 	nd->class_ = m==-1?-1:atoi(w4);
 	nd->speed = 200;
 	
@@ -1808,8 +1605,7 @@ int npc_convertlabel_db(DBKey key, void* data, va_list ap)
 		ShowError("npc_parse_script: label name longer than 23 chars! '%s'\n (%s)", lname, current_file);
 		exit(1);
 	}
-	memcpy(lst[num].name, lname, len);
-	lst[num].name[len]=0;
+	safestrncpy(lst[num].name, lname, NAME_LENGTH);
 	lst[num].pos = pos;
 	nd->u.scr.label_list = lst;
 	nd->u.scr.label_list_num = num+1;
@@ -2045,8 +1841,6 @@ static int npc_parse_script(char* w1, char* w2, char* w3, char* w4, char* first_
 	nd->bl.type = BL_NPC;
 	nd->bl.subtype = SCRIPT;
 
-	for (i = 0; i < MAX_EVENTTIMER; i++)
-		nd->eventtimer[i] = -1;
 	if (m >= 0) {
 		nd->n = map_addnpc(m, nd);
 		status_change_init(&nd->bl);
@@ -2918,11 +2712,9 @@ void npc_read_event_script(void)
 	}
 }
 
-/*==========================================
- *
- *------------------------------------------*/
-static int npc_cleanup_sub(struct block_list* bl, va_list ap)
+static int npc_cleanup_dbsub(DBKey key, void* data, va_list ap)
 {
+	struct block_list* bl = (struct block_list*)data;
 	nullpo_retr(0, bl);
 
 	switch(bl->type) {
@@ -2937,18 +2729,11 @@ static int npc_cleanup_sub(struct block_list* bl, va_list ap)
 	return 0;
 }
 
-static int npc_cleanup_dbsub(DBKey key, void* data, va_list ap)
-{
-	return npc_cleanup_sub((struct block_list*)data, 0);
-}
-
 int npc_reload(void)
 {
 	struct npc_src_list *nsl;
 	int m, i;
-	time_t last_time = time(0);
-	int busy = 0, npc_new_min = npc_id;
-	char c = '-';
+	int npc_new_min = npc_id;
 
 	//Remove all npcs/mobs. [Skotlex]
 	map_foreachiddb(npc_cleanup_dbsub);
@@ -2963,7 +2748,7 @@ int npc_reload(void)
 	}
 	mob_clear_spawninfo();
 
-        // clear npc-related data structures
+	// clear npc-related data structures
 	ev_db->clear(ev_db,NULL);
 	npcname_db->clear(npcname_db,NULL);
 	npc_warp = npc_shop = npc_script = 0;
@@ -3104,7 +2889,6 @@ int do_init_npc(void)
 	if (battle_config.warp_point_debug)
 		npc_debug_warps();
 
-	add_timer_func_list(npc_event_timer,"npc_event_timer");
 	add_timer_func_list(npc_event_do_clock,"npc_event_do_clock");
 	add_timer_func_list(npc_timerevent,"npc_timerevent");
 
@@ -3114,8 +2898,6 @@ int do_init_npc(void)
 	fake_nd->bl.id = npc_get_new_npc_id();
 	fake_nd->class_ = -1;
 	fake_nd->speed = 200;
-	for (i = 0; i < MAX_EVENTTIMER; i++)
-		fake_nd->eventtimer[i] = -1;
 	strcpy(fake_nd->name,"FAKE_NPC");
 	memcpy(fake_nd->exname, fake_nd->name, 9);
 
