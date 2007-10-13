@@ -81,13 +81,6 @@ struct s_packet_db packet_db[MAX_PACKET_VER + 1][MAX_PACKET_DB + 1];
 //To make the assignation of the level based on limits clearer/easier. [Skotlex]
 #define clif_setlevel(lv) (lv<battle_config.max_lv?lv:battle_config.max_lv-(lv<battle_config.aura_lv?1:0));
 
-//Removed sd->npc_shopid because there is no packet sent from the client when you cancel a buy!
-//Quick check to know if the player shouldn't be "busy" with something else to deny action requests. [Skotlex]
-#define clif_cant_act(sd) (sd->npc_id || sd->vender_id || sd->chatID || sd->sc.opt1 || sd->state.trading || sd->state.storage_flag)
-
-// Checks if SD is in a trade/shop (where messing with the inventory can cause problems/exploits)
-#define clif_trading(sd) (sd->npc_id || sd->vender_id || sd->state.trading )
-
 //To idenfity disguised characters.
 #define disguised(bl) ((bl)->type==BL_PC && ((TBL_PC*)bl)->disguise)
 
@@ -8207,7 +8200,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd)
 
 	if (sd->sc.opt1 && sd->sc.opt1 == OPT1_STONEWAIT)
 		; //You CAN walk on this OPT1 value.
-	else if (clif_cant_act(sd))
+	else if (pc_cant_act(sd))
 		return;
 
 	if(sd->sc.count && sd->sc.data[SC_RUN].timer != -1)
@@ -8629,7 +8622,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 	case 0x00: // once attack
 	case 0x07: // continuous attack
 
-		if (clif_cant_act(sd) || sd->sc.option&OPTION_HIDE)
+		if (pc_cant_act(sd) || sd->sc.option&OPTION_HIDE)
 			return;
 
 		if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
@@ -8952,7 +8945,7 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd)
 		if (fitem == NULL || fitem->bl.type != BL_ITEM || fitem->bl.m != sd->bl.m)
 			break;
 	
-		if (clif_cant_act(sd))
+		if (pc_cant_act(sd))
 			break;
 
   		//Disable cloaking/chasewalking characters from looting [Skotlex]
@@ -8987,7 +8980,7 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 		return;
 
 	if (sd->sc.count && (
@@ -9025,7 +9018,7 @@ void clif_parse_UseItem(int fd, struct map_session_data *sd)
 		if (sd->npc_id != sd->npc_item_flag)
 			return;
 	} else
-	if (clif_trading(sd))
+	if (pc_istrading(sd))
 		return;
 	
 	pc_delinvincibletimer(sd);
@@ -9060,7 +9053,7 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 			return;
 	} else if (sd->state.storage_flag || sd->sc.opt1)
 		; //You can equip/unequip stuff while storage is open/under status changes
-	else if (clif_cant_act(sd))
+	else if (pc_cant_act(sd))
 		return;
 
 	if(sd->sc.data[SC_BLADESTOP].timer!=-1 || sd->sc.data[SC_BERSERK].timer!=-1 )
@@ -9100,7 +9093,7 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 
 	if (sd->state.storage_flag)
 		; //You can equip/unequip stuff while storage is open.
-	else if (clif_cant_act(sd))
+	else if (pc_cant_act(sd))
 		return;
 
 	index = RFIFOW(fd,2)-2;
@@ -9120,7 +9113,7 @@ void clif_parse_NpcClicked(int fd,struct map_session_data *sd)
 		return;
 	}
 
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 		return;
 
 	bl = map_id2bl(RFIFOL(fd,2));
@@ -9304,7 +9297,7 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 	
 	t_sd = map_id2sd(RFIFOL(fd,2));
 
-	if(!sd->chatID && clif_cant_act(sd))
+	if(!sd->chatID && pc_cant_act(sd))
 		return; //You can trade while in a chatroom.
 
 	// @noask [LuzZza]
@@ -9372,7 +9365,7 @@ void clif_parse_StopAttack(int fd,struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_PutItemToCart(int fd,struct map_session_data *sd)
 {
-	if (clif_trading(sd))
+	if (pc_istrading(sd))
 		return;
 	if (!pc_iscarton(sd))
 		return;
@@ -9474,7 +9467,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		return;
 	}
 
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 		return;
 	if (pc_issit(sd))
 		return;
@@ -9629,7 +9622,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 
 void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd)
 {
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 		return;
 	if (pc_issit(sd))
 		return;
@@ -9645,7 +9638,7 @@ void clif_parse_UseSkillToPos(int fd, struct map_session_data *sd)
 
 void clif_parse_UseSkillToPosMoreInfo(int fd, struct map_session_data *sd)
 {
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 		return;
 	if (pc_issit(sd))
 		return;
@@ -9670,7 +9663,7 @@ void clif_parse_UseSkillMap(int fd, struct map_session_data* sd)
 	if(skill_num != sd->menuskill_id) 
 		return;
 
-	if (clif_cant_act(sd))
+	if (pc_cant_act(sd))
 	{
 		sd->menuskill_id = sd->menuskill_val = 0;
 		return;
@@ -9695,7 +9688,7 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 	if (sd->menuskill_id !=	AM_PHARMACY)
 		return;
 
-	if (clif_trading(sd)) {
+	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skillid,0,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
@@ -9711,7 +9704,7 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 {
 	if (sd->menuskill_id != BS_REPAIRWEAPON)
 		return;
-	if (clif_trading(sd)) {
+	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skillid,0,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
@@ -9730,7 +9723,7 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd)
 
 	if (sd->menuskill_id != WS_WEAPONREFINE) //Packet exploit?
 		return;
-	if (clif_trading(sd)) {
+	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skillid,0,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
@@ -9820,7 +9813,7 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 {
 	if (sd->menuskill_id != AC_MAKINGARROW)
 		return;
-	if (clif_trading(sd)) {
+	if (pc_istrading(sd)) {
 	//Make it fail to avoid shop exploits where you sell something different than you see.
 		clif_skill_fail(sd,sd->ud.skillid,0,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
@@ -9922,7 +9915,7 @@ void clif_parse_MoveToKafra(int fd, struct map_session_data *sd)
 {
 	int item_index, item_amount;
 
-	if (clif_trading(sd))
+	if (pc_istrading(sd))
 		return;
 	
 	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
@@ -10204,7 +10197,7 @@ void clif_parse_PurchaseReq(int fd, struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_OpenVending(int fd,struct map_session_data *sd)
 {
-	if (clif_trading(sd))
+	if (pc_istrading(sd))
 		return;
 	if (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOROOM)
 		return;
