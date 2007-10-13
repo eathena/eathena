@@ -2940,10 +2940,26 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case KN_CHARGEATK:
-		flag = distance_bl(src, bl);
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		if (unit_movepos(src, bl->x, bl->y, 1, 1))
-			clif_slide(src,bl->x,bl->y);
+		{
+		bool path = path_search_long(NULL, src->m, src->x, src->y, bl->x, bl->y);
+		unsigned int dist = distance_bl(src, bl);
+		unsigned int dir = map_calc_dir(bl, src->x, src->y);
+
+		// teleport to target (if not on WoE grounds)
+		if( !map_flag_gvg(src->m) && unit_movepos(src, bl->x, bl->y, 0, 1) )
+			clif_slide(src, bl->x, bl->y);
+
+		// cause damage and knockback if the path to target was a straight one
+		if( path )
+		{
+			skill_attack(BF_WEAPON, src, src, bl, skillid, skilllv, tick, dist);
+			skill_blown(src, bl, dist, dir, 0);
+			//HACK: since knockback officially defaults to the left, the client also turns to the left... therefore,
+			// make the caster look in the direction of the target
+			unit_setdir(src, (dir+4)%8);
+		}
+
+		}
 		break;
 
 	case TK_JUMPKICK:
