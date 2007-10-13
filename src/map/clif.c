@@ -7094,12 +7094,11 @@ void clif_emotion(struct block_list *bl,int type)
 void clif_talkiebox(struct block_list* bl, const char* talkie)
 {
 	unsigned char buf[86];
-
 	nullpo_retv(bl);
 
-	WBUFW(buf,0)=0x191;
-	WBUFL(buf,2)=bl->id;
-	memcpy(WBUFP(buf,6),talkie,MESSAGE_SIZE);
+	WBUFW(buf,0) = 0x191;
+	WBUFL(buf,2) = bl->id;
+	safestrncpy((char*)WBUFP(buf,6),talkie,MESSAGE_SIZE);
 	clif_send(buf,packet_len(0x191),bl,AREA);
 }
 
@@ -8359,66 +8358,70 @@ void clif_parse_GetCharNameRequest(int fd, struct map_session_data *sd)
 
 /*==========================================
  * Validates and processes global messages
- * S 008c/00f3 <packet len>.w <strz>.?B
+ * S 008c/00f3 <packet len>.w <text>.?B (<name> : <message>) 00
  *------------------------------------------*/
 void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 {
-	char* message;
-	unsigned int packetlen, messagelen, namelen;
+	const char *text, *name, *message;
+	unsigned int packetlen, textlen, namelen, messagelen;
 
 	packetlen = RFIFOW(fd,2);
-	if (packetlen > RFIFOREST(fd)) { // there has to be enough data to read
-		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (length is incorrect)!", sd->status.name);
+	// basic structure checks
+	if( packetlen > RFIFOREST(fd) )
+	{	// there has to be enough data to read
+		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (length is incorrect)!\n", sd->status.name);
 		return;
 	}
-	if (packetlen < 4 + 1) { // 4-byte header and at least an empty string is expected
-		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (no message data)!", sd->status.name);
+	if( packetlen < 4 + 1 )
+	{	// 4-byte header and at least an empty string is expected
+		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (no message data)!\n", sd->status.name);
 		return;
 	}
 
-	message = (char*)RFIFOP(fd,4);
-	messagelen = packetlen - 4; // let's trust the client here, nothing can go wrong and it saves us one strlen()
-	if (messagelen > CHAT_SIZE) { // messages mustn't be too long
-		int i;
-		// special case here - allow some more freedom for frost joke & dazzler 
-		// TODO:? You could use a state flag when FrostJoke/Scream is used, and unset it once the skill triggers. [Skotlex]
-		for(i = 0; i < MAX_SKILLTIMERSKILL && sd->ud.skilltimerskill[i] &&
-			sd->ud.skilltimerskill[i]->skill_id != BA_FROSTJOKE &&
-			sd->ud.skilltimerskill[i]->skill_id != DC_SCREAM; i++);
+	text = (char*)RFIFOP(fd,4);
+	textlen = packetlen - 4;
 
-		if (i == MAX_SKILLTIMERSKILL || !sd->ud.skilltimerskill[i]) { // normal message, too long
-			ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message too long ('%.*s')!", sd->status.name, CHAT_SIZE, message);
-			return;
-		}
-		if (messagelen > 255) { // frost joke/dazzler, but still too long
-			ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message too long ('%.*s')!", sd->status.name, 255, message);
-			return;
-		}
-	}
-	if (message[messagelen-1] != '\0') { // message must be zero-terminated
-		ShowWarning("clif_parse_GlobalMessage: Player '%s' sent an unterminated string!", sd->status.name);
-		return;		
-	}
-
+	name = text;
 	namelen = strnlen(sd->status.name, NAME_LENGTH - 1);
-	if (strncmp(message, sd->status.name, namelen) || // the name has to match the speaker's name
-		message[namelen] != ' ' || message[namelen+1] != ':' || message[namelen+2] != ' ') // completely, not just the prefix
+	// verify <name> part of the packet
+	if( strncmp(name, sd->status.name, namelen) || // the text must start with the speaker's name
+		name[namelen] != ' ' || name[namelen+1] != ':' || name[namelen+2] != ' ' ) // followed by ' : '
 	{
 		//Hacked message, or infamous "client desynch" issue where they pick one char while loading another.
+		ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message using an incorrect name! Forcing a relog...\n", sd->status.name);
 		clif_setwaitclose(fd); // Just kick them out to correct it.
-		ShowWarning("clif_parse_GlobalMessage: Player '%.*s' sent a message using an incorrect name ('%s')! Forcing a relog...", namelen, sd->status.name, message);
 		return;
 	}
-	
-	if (is_atcommand(fd, sd, message) != AtCommand_None || is_charcommand(fd, sd, message) != CharCommand_None)
+
+	message = text + namelen + 3;
+	messagelen = textlen - namelen - 3; // this should be the message length (w/ zero byte included)
+	// verify <message> part of the packet
+	if( message[messagelen-1] != '\0' )
+	{	// message must be zero-terminated
+		ShowWarning("clif_parse_GlobalMessage: Player '%s' sent an unterminated string!\n", sd->status.name);
+		return;		
+	}
+	if( messagelen != strnlen(message, messagelen)+1 )
+	{	// the declared length must match real length
+		ShowWarning("clif_parse_GlobalMessage: Received malformed packet from player '%s' (length is incorrect)!\n", sd->status.name);
+		return;		
+	}
+	if( messagelen > CHAT_SIZE_MAX )
+	{	// messages mustn't be too long
+		// Normally you can only enter CHATBOX_SIZE-1 chars into the chat box, but Frost Joke / Dazzler's text can be longer.
+		// Neither the official client nor server place any restriction on the length of the text in the packet,
+		// but we'll only allow reasonably long strings here. This also makes sure all strings fit into the `chatlog` table.
+		ShowWarning("clif_parse_GlobalMessage: Player '%s' sent a message too long ('%.*s')!\n", sd->status.name, CHAT_SIZE_MAX, message);
+		return;
+	}
+
+	if( is_atcommand(fd, sd, text) != AtCommand_None || is_charcommand(fd, sd, text) != CharCommand_None )
 		return;
 
-	if (sd->sc.count &&
-		(sd->sc.data[SC_BERSERK].timer != -1 ||
-		(sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)))
+	if( sd->sc.data[SC_BERSERK].timer != -1 || (sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT) )
 		return;
 
-	if (battle_config.min_chat_delay)
+	if( battle_config.min_chat_delay )
 	{	//[Skotlex]
 		if (DIFF_TICK(sd->cantalk_tick, gettick()) > 0)
 			return;
@@ -8426,11 +8429,11 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	}
 
 	// send message to others
-	WFIFOHEAD(fd, messagelen + 8);
+	WFIFOHEAD(fd, 8 + textlen);
 	WFIFOW(fd,0) = 0x8d;
-	WFIFOW(fd,2) = messagelen + 8;
+	WFIFOW(fd,2) = 8 + textlen;
 	WFIFOL(fd,4) = sd->bl.id;
-	memcpy(WFIFOP(fd,8), message, messagelen);
+	safestrncpy((char*)WFIFOP(fd,8), text, textlen);
 	clif_send(WFIFOP(fd,0), WFIFOW(fd,2), &sd->bl, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
 
 	// send back message to the speaker
@@ -8440,36 +8443,37 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 
 #ifdef PCRE_SUPPORT
 	// trigger listening npcs
-	map_foreachinrange(npc_chat_sub, &sd->bl, AREA_SIZE, BL_NPC, message, strlen(message), &sd->bl);
+	map_foreachinrange(npc_chat_sub, &sd->bl, AREA_SIZE, BL_NPC, text, textlen, &sd->bl);
 #endif
 
 	// check for special supernovice phrase
-	if ((sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE) {
+	if( (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE )
+	{
 		int next = pc_nextbaseexp(sd);
-		if (next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0) { // 0%, 10%, 20%, ...
+		if( next > 0 && (sd->status.base_exp * 1000 / next)% 100 == 0 ) { // 0%, 10%, 20%, ...
 			switch (sd->state.snovice_call_flag) {
 			case 0:
-					if (strstr(message, msg_txt(504))) // "Guardian Angel, can you hear my voice? ^^;"
+					if( strstr(message, msg_txt(504)) ) // "Guardian Angel, can you hear my voice? ^^;"
 						sd->state.snovice_call_flag++;
 			break;
 			case 1: {
 					char buf[256];
 					sprintf(buf, msg_txt(505), sd->status.name);
-					if (strstr(message, buf)) // "My name is %s, and I'm a Super Novice~"
+					if( strstr(message, buf) ) // "My name is %s, and I'm a Super Novice~"
 						sd->state.snovice_call_flag++;
 					}
 			break;
 			case 2:
-					if (strstr(message, msg_txt(506))) // "Please help me~ T.T"
+					if( strstr(message, msg_txt(506)) ) // "Please help me~ T.T"
 						sd->state.snovice_call_flag++;
 			break;
 			case 3:
-				if (skillnotok(MO_EXPLOSIONSPIRITS,sd))
-					break; //Do not override the noskill mapflag. [Skotlex]
-				clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,
-					sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
+					if( skillnotok(MO_EXPLOSIONSPIRITS,sd) )
+						break; //Do not override the noskill mapflag. [Skotlex]
+					clif_skill_nodamage(&sd->bl,&sd->bl,MO_EXPLOSIONSPIRITS,-1,
+						sc_start(&sd->bl,SkillStatusChangeTable(MO_EXPLOSIONSPIRITS),100,
 						17,skill_get_time(MO_EXPLOSIONSPIRITS,1))); //Lv17-> +50 critical (noted by Poki) [Skotlex]
-				sd->state.snovice_call_flag = 0;
+					sd->state.snovice_call_flag = 0;
 			break;
 			}
 		}
@@ -8901,27 +8905,29 @@ void clif_parse_Wis(int fd, struct map_session_data* sd)
 }
 
 /*==========================================
- * /b
+ * /b /nb
+ * S 0099 <packet len>.w <text>.?B 00
  *------------------------------------------*/
-void clif_parse_GMmessage(int fd, struct map_session_data *sd)
+void clif_parse_GMmessage(int fd, struct map_session_data* sd)
 {
-	char* mes;
-	int size, lv;
+	char* msg = (char*)RFIFOP(fd,4);
+	unsigned int len = RFIFOW(fd,2)-4;
+	int lv;
 
 	if (battle_config.atc_gmonly && !pc_isGM(sd))
 		return;
 	if (pc_isGM(sd) < (lv=get_atcommand_level(AtCommand_Broadcast)))
 		return;
 
-	size = RFIFOW(fd,2)-4;
-	mes = (char*)RFIFOP(fd,4);
-	mes_len_check(mes, size, CHAT_SIZE);
+	// as the length varies depending on the command used, just block unreasonably long strings
+	mes_len_check(msg, len, CHAT_SIZE_MAX);
 
-	intif_GMmessage(mes, size, 0);
+	intif_GMmessage(msg, len, 0);
+
 	if(log_config.gm && lv >= log_config.gm) {
-		char message[CHAT_SIZE+4];
-		sprintf(message, "/b %s", mes);
-		log_atcommand(sd, message);
+		char logmsg[CHAT_SIZE_MAX+4];
+		sprintf(logmsg, "/b %s", msg);
+		log_atcommand(sd, logmsg);
 	}
 }
 
@@ -9581,8 +9587,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, int skilll
 			return;
 		}
 		//You can't use Graffiti/TalkieBox AND have a vending open, so this is safe.
-		memcpy(sd->message, RFIFOP(fd,skillmoreinfo), MESSAGE_SIZE);
-		sd->message[MESSAGE_SIZE-1] = '\0'; //Overflow protection [Skotlex]
+		safestrncpy(sd->message, (char*)RFIFOP(fd,skillmoreinfo), MESSAGE_SIZE);
 	}
 
 	if (sd->ud.skilltimer != -1)
@@ -9762,34 +9767,30 @@ void clif_parse_NpcNextClicked(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- *
+ * Value entered into a NPC input box.
+ * S 0143 <npcID>.l <amount>.l
  *------------------------------------------*/
 void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 {
-	sd->npc_amount=(int)RFIFOL(fd,6);
-	npc_scriptcont(sd,RFIFOL(fd,2));
+	int npcid = RFIFOL(fd,2);
+	int amount = (int)RFIFOL(fd,6);
+
+	sd->npc_amount = amount;
+	npc_scriptcont(sd, npcid);
 }
 
 /*==========================================
- *
+ * Text entered into a NPC input box.
+ * S 01d5 <len>.w <npcID>.l <input>.?B 00
  *------------------------------------------*/
-void clif_parse_NpcStringInput(int fd,struct map_session_data *sd)
+void clif_parse_NpcStringInput(int fd, struct map_session_data* sd)
 {
-	short message_len;
-	message_len = RFIFOW(fd,2)-7;
+	int message_len = RFIFOW(fd,2)-8;
+	int npcid = RFIFOL(fd,4);
+	const char* message = (char*)RFIFOP(fd,8);
 
-	if(message_len < 1)
-		return; //Blank message?
-
-	if(message_len >= sizeof(sd->npc_str)){
-		ShowWarning("clif: input string too long !\n");
-		message_len = sizeof(sd->npc_str);
-	}
-
-	// Exploit prevention if crafted packets (without null) is being sent. [Lance]
-	memcpy(sd->npc_str,RFIFOP(fd,8),message_len); 
-	sd->npc_str[message_len-1]=0;
-	npc_scriptcont(sd,RFIFOL(fd,4));
+	safestrncpy(sd->npc_str, message, min(message_len,CHATBOX_SIZE));
+	npc_scriptcont(sd, npcid);
 }
 
 /*==========================================
@@ -9888,31 +9889,29 @@ void clif_parse_ResetChar(int fd, struct map_session_data *sd)
 }
 
 /*==========================================
- * 019c /lb“™
+ * /lb /nlb
+ * S 019c <packet len>.w <text>.?B 00
  *------------------------------------------*/
-void clif_parse_LGMmessage(int fd, struct map_session_data *sd)
+void clif_parse_LGMmessage(int fd, struct map_session_data* sd)
 {
-	unsigned char buf[CHAT_SIZE+4];
-	char *mes;
-	int len, lv;
+	char* msg = (char*)RFIFOP(fd,4);
+	unsigned int len = RFIFOW(fd,2)-4;
+	int lv;
 
 	if (battle_config.atc_gmonly && !pc_isGM(sd))
 		return;
 	if (pc_isGM(sd) < (lv=get_atcommand_level(AtCommand_LocalBroadcast)))
 		return;
 
-	len = RFIFOW(fd,2) - 4;
-	mes = (char*)RFIFOP(fd,4);
-	mes_len_check(mes, len, CHAT_SIZE);
+	// as the length varies depending on the command used, just block unreasonably long strings
+	mes_len_check(msg, len, CHAT_SIZE_MAX);
 
-	WBUFW(buf,0) = 0x9a;
-	WBUFW(buf,2) = len+4;
-	memcpy(WBUFP(buf,4), mes, len);
-	clif_send(buf, WBUFW(buf,2), &sd->bl, ALL_SAMEMAP);
+	clif_GMmessage(&sd->bl, msg, len, 1);
+
 	if(log_config.gm && lv >= log_config.gm) {
-		char message[CHAT_SIZE+5];
-		sprintf(message, "/lb %s", mes);
-		log_atcommand(sd, message);
+		char logmsg[CHAT_SIZE_MAX+5];
+		sprintf(logmsg, "/lb %s", msg);
+		log_atcommand(sd, logmsg);
 	}
 }
 

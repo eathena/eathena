@@ -171,7 +171,7 @@ enum {
 #define CHATROOM_TITLE_SIZE (36 + 1)
 #define CHATROOM_PASS_SIZE (8 + 1)
 //Max allowed chat text length
-#define CHAT_SIZE (NAME_LENGTH + 3 + CHATBOX_SIZE)
+#define CHAT_SIZE_MAX 150
 
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 

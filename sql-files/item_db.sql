@@ -36,7 +36,6 @@ CREATE TABLE `item_db` (
 # //
 # // Healing Items
 # //=============================================================
-REPLACE INTO `item_db` VALUES (0,'DEFAULT','Default',0,NULL,10,10,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (501,'Red_Potion','Red Potion',0,50,NULL,70,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(45,65),0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (502,'Orange_Potion','Orange Potion',0,200,NULL,100,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(105,145),0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (503,'Yellow_Potion','Yellow Potion',0,550,NULL,130,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(175,235),0; ',NULL,NULL);
