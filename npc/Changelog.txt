@@ -23,6 +23,7 @@ Playtester
 Date		Added
 ======
 2007/10/13
+	* Merged headgear quest updates from L0ne_W0lf [Playtester]
 	* Fixed scripts that were using incorrect timer functions [ultramage]
 2007/10/11
 	* Updated Veins Field spawns [Playtester]
