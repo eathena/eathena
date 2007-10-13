@@ -2824,32 +2824,10 @@ int map_readallmaps (void)
 	for (i = 0; i < map_num; i++)
 	{
 		int success = 0;
-		static int lasti = -1;
-		static int last_time = -1;
-		int j = i*20/map_num;
+		int j;
 
 		// show progress
-		if (j != lasti || last_time != time(0))
-		{
-			char progress[21] = "                    ";
-			char c = '-';
-			int k;
-
-			lasti = j;
-			printf("\r");
-			ShowStatus("Progress: [");
-			for (k=0; k < j; k++) progress[k] = '#';
-			printf(progress);
-			last_time = (int)time(0);
-			switch(last_time % 4) {
-				case 0: c='\\'; break;
-				case 1: c='|'; break;
-				case 2: c='/'; break;
-				case 3: c='-'; break;
-			}
-			printf("] Working: [%c]",c);
-			fflush(stdout);
-		}
+		ShowStatus("Loading maps [%i/%i]: %s"CL_CLL"\r", i, map_num, map[i].name);
 
 		// pre-init some data
 		map[i].m = i;
@@ -2935,8 +2913,7 @@ int map_readallmaps (void)
 	}
 
 	// finished map loading
-	printf("\r");
-	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps.%30s\n",map_num,"");
+	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps."CL_CLL"\n",map_num);
 
 	if (maps_removed)
 		ShowNotice("Maps removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);

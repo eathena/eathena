@@ -1722,7 +1722,6 @@ static int npc_parse_shop(char* w1, char* w2, char* w3, char* w4)
 		nd->u.shop_item[pos].value = value;
 		// check for bad prices that can possibly cause exploits
 		if (value/124. < id->value_sell/75.) {  //Clened up formula to prevent overflows.
-			printf("\r"); //Carriage return to clear the 'loading..' line. [Skotlex]
 			if (value < id->value_sell)
 				ShowWarning ("Item %s [%d] buying price (%d) is less than selling price (%d) at %s\n",
 					id->name, id->nameid, value, id->value_sell, current_file);
@@ -2295,7 +2294,6 @@ static int npc_parse_function(char* w1, char* w2, char* w3, char* w4, char* firs
 
 	user_db = script_get_userfunc_db();
 	if(strdb_get(user_db, p) != NULL) {
-		printf("\r"); //Carriage return to clear the 'loading..' line. [Skotlex]
 		ShowWarning("parse_function: Duplicate user function [%s] (%s:%d)\n", p, file, *lines);
 		aFree(p);
 		script_free_code(script);
@@ -2778,10 +2776,8 @@ void npc_parsesrcfile(const char* name)
 			if ((count = sscanf(line, "%s %s %[^\t]\t %n%[^\n]", w1, w2, w3, &w4pos, w4)) == 4 ||
 			(count = sscanf(line, "%s %s %s %n%[^\n]\n", w1, w2, w3, &w4pos, w4)) >= 3)
 			{
-				ShowWarning("\r");
 				ShowWarning("Incorrect separator syntax in file '%s', line '%i'. Use tabs instead of spaces!\n * %s %s %s %s\n",current_file,lines,w1,w2,w3,w4);
 			} else {
-				ShowError("\r"); //Erase the npc spinner.
 				ShowError("Could not parse file '%s', line '%i'.\n * %s %s %s %s\n",current_file,lines,w1,w2,w3,w4);
 				continue;
 			}
@@ -2967,36 +2963,20 @@ int npc_reload(void)
 	}
 	mob_clear_spawninfo();
 
-	// anything else we should cleanup?
-	// Reloading npc's now
+        // clear npc-related data structures
 	ev_db->clear(ev_db,NULL);
 	npcname_db->clear(npcname_db,NULL);
 	npc_warp = npc_shop = npc_script = 0;
 	npc_mob = npc_cache_mob = npc_delay_mob = 0;
 
-	for (nsl = npc_src_files; nsl; nsl = nsl->next) {
+	// Reloading npcs now
+	for (nsl = npc_src_files; nsl; nsl = nsl->next)
+	{
+		ShowStatus("Loading NPC file: %s"CL_CLL"\r", nsl->name);
 		npc_parsesrcfile(nsl->name);
-		if (script_config.verbose_mode) {
-			printf("\r");
-			ShowStatus("Loading NPCs... %-53s", nsl->name);
-		} else {
-			if (last_time != time(0)) {
-				printf("\r");
-				ShowStatus("Loading NPCs... Working: ");
-				last_time = time(0);
-				switch(busy) {
-					case 0: c='\\'; busy++; break;
-					case 1: c='|'; busy++; break;
-					case 2: c='/'; busy++; break;
-					case 3: c='-'; busy=0;
-				}
-				printf("[%c]",c);
-			}
-		}
-		fflush(stdout);
 	}
-	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:\n"
+
+	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:"CL_CLL"\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
@@ -3009,8 +2989,7 @@ int npc_reload(void)
 	npc_read_event_script();
 
 	//Execute the OnInit event for freshly loaded npcs. [Skotlex]
-	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"
-	CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
+	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
 	// Execute rest of the startup events if connected to char-server. [Lance]
 	if(!CheckForCharServer()){
 		ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
@@ -3086,10 +3065,7 @@ static void npc_debug_warps(void)
 int do_init_npc(void)
 {
 	struct npc_src_list *file;
-	time_t last_time = time(NULL);
-	int busy = 0;
 	int i;
-	char c = '-';
 
 	//Stock view data for normal npcs.
 	memset(&npc_viewdb, 0, sizeof(npc_viewdb));
@@ -3097,38 +3073,21 @@ int do_init_npc(void)
 	for( i = 1; i < MAX_NPC_CLASS; i++ ) 
 		npc_viewdb[i].class_ = i;
 
-	// comparing only the first 24 chars of labels that are 50 chars long isn't that nice
-	// will cause "duplicated" labels where actually no dup is...
-	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,51);
+	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,2*NAME_LENGTH+2+1);
 	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 	timer_event_ers = ers_new(sizeof(struct timer_event_data));
 
-	for( file = npc_src_files; file != NULL; file = file->next) {
+	// process all npc files
+	ShowStatus("Loading NPCs...\r");
+	for( file = npc_src_files; file != NULL; file = file->next )
+	{
+		ShowStatus("Loading NPC file: %s"CL_CLL"\r", file->name);
 		npc_parsesrcfile(file->name);
-		printf("\r");
-		if (script_config.verbose_mode)
-			ShowStatus("Loading NPCs... %-53s", file->name);
-		else
-		{
-			ShowStatus("Loading NPCs... Working: ");
-			if (last_time != time(NULL))
-			{// change character at least every second
-				last_time = time(NULL);
-				switch(busy) {
-					case 0: c='\\'; busy++; break;
-					case 1: c='|'; busy++; break;
-					case 2: c='/'; busy++; break;
-					case 3: c='-'; busy=0;
-				}
-			}
-			printf("[%c]",c);
-		}
-		fflush(stdout);
 	}
-	printf("\r");
-	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:\n"
+
+	ShowInfo ("Done loading '"CL_WHITE"%d"CL_RESET"' NPCs:"CL_CLL"\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
@@ -3137,8 +3096,10 @@ int do_init_npc(void)
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - START_NPC_NUM, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
+	// set up the events cache
 	memset(script_event, 0, sizeof(script_event));
 	npc_read_event_script();
+
 	//Debug function to locate all endless loop warps.
 	if (battle_config.warp_point_debug)
 		npc_debug_warps();

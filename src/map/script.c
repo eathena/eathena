@@ -3493,10 +3493,7 @@ int script_config_read_sub(char *cfgName)
 		if(i!=2)
 			continue;
 
-		if(strcmpi(w1,"verbose_mode")==0) {
-			script_config.verbose_mode = config_switch(w2);
-		}
-		else if(strcmpi(w1,"warn_func_mismatch_paramnum")==0) {
+		if(strcmpi(w1,"warn_func_mismatch_paramnum")==0) {
 			script_config.warn_func_mismatch_paramnum = config_switch(w2);
 		}
 		else if(strcmpi(w1,"check_cmdcount")==0) {
@@ -3564,7 +3561,6 @@ int script_config_read(char *cfgName)
 {	//Script related variables should be initialized once! [Skotlex]
 
 	memset (&script_config, 0, sizeof(script_config));
-	script_config.verbose_mode = 0;
 	script_config.warn_func_mismatch_paramnum = 1;
 	script_config.check_cmdcount = 65535;
 	script_config.check_gotocount = 2048;
