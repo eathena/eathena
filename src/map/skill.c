@@ -4396,20 +4396,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 
 	case BA_PANGVOICE:
-		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start(bl,SC_CONFUSION,50,7,skill_get_time(skillid,skilllv)));
+		clif_skill_nodamage(src,bl,skillid,skilllv, sc_start(bl,SC_CONFUSION,50,7,skill_get_time(skillid,skilllv)));
 		break;
 
 	case DC_WINKCHARM:
-		if(dstsd){
-			clif_skill_nodamage(src,bl,skillid,skilllv,
-				sc_start(bl,SC_CONFUSION,30,7,skill_get_time2(skillid,skilllv)));
-		}else if(dstmd)
+		if( dstsd )
+			clif_skill_nodamage(src,bl,skillid,skilllv, sc_start(bl,SC_CONFUSION,30,7,skill_get_time2(skillid,skilllv)));
+		else
+		if( dstmd )
 		{
-			if(status_get_lv(src)>status_get_lv(bl) && (tstatus->race == RC_DEMON || tstatus->race == RC_DEMIHUMAN || tstatus->race == RC_ANGEL)) {
-				clif_skill_nodamage(src,bl,skillid,skilllv,
-					sc_start(bl,type,70,skilllv,skill_get_time(skillid,skilllv)));
-			} else{
+			if( status_get_lv(src) > status_get_lv(bl)
+			&&  (tstatus->race == RC_DEMON || tstatus->race == RC_DEMIHUMAN || tstatus->race == RC_ANGEL)
+			&&  !(tstatus->mode&MD_BOSS) )
+				clif_skill_nodamage(src,bl,skillid,skilllv, sc_start(bl,type,70,skilllv,skill_get_time(skillid,skilllv)));
+			else
+			{
 				clif_skill_nodamage(src,bl,skillid,skilllv,0);
 				if(sd) clif_skill_fail(sd,skillid,0,0);
 			}
@@ -6829,10 +6830,10 @@ struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid,
 	case BA_POEMBRAGI:
 		val1 = 3*skilllv+status->dex/10; // Casting time reduction
 		//For some reason at level 10 the base delay reduction is 50%.
-		val2 = (skilllv<10?3*skilllv:50)+status->int_/10; // After-cast delay reduction
+		val2 = (skilllv<10?3*skilllv:50)+status->int_/5; // After-cast delay reduction
 		if(sd){
-			val1 += pc_checkskill(sd,BA_MUSICALLESSON);
-			val2 += pc_checkskill(sd,BA_MUSICALLESSON);
+			val1 += 2*pc_checkskill(sd,BA_MUSICALLESSON);
+			val2 += 2*pc_checkskill(sd,BA_MUSICALLESSON);
 		}
 		break;
 	case DC_DONTFORGETME:
