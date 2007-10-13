@@ -97,7 +97,7 @@ char bind_ip_str[128];
 uint32 bind_ip = INADDR_ANY;
 uint16 char_port = 6121;
 int char_maintenance = 0;
-int char_new = 1;
+bool char_new = true;
 int char_new_display = 0;
 
 int name_ignoring_case = 0; // Allow or not identical name for characters but with a different case by [Yor]
@@ -132,6 +132,7 @@ struct s_subnet {
 int subnet_count = 0;
 
 struct char_session_data {
+	int fd;
 	int account_id, login_id1, login_id2, sex;
 	int found_char[MAX_CHARS];
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
@@ -267,6 +268,7 @@ void set_char_offline(int char_id, int account_id)
 	struct mmo_charstatus *cp;
 	struct online_char_data* character;
 
+	//FIXME: usage of 'magic constant'; this needs to go! [ultramage]
 	if ( char_id == 99 )
 	{
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id) )
@@ -1087,141 +1089,104 @@ int mmo_char_sql_init(void)
 
 //==========================================================================================================
 
-int make_new_char_sql(int fd, unsigned char *dat)
+int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int agi, int vit, int int_, int dex, int luk, int char_num, int hair_color, int hair_style)
 {
-	struct char_session_data *sd;
 	char name[NAME_LENGTH];
 	char esc_name[NAME_LENGTH*2+1];
-	unsigned int i; // Used in for loop and comparing with strlen, safe to be unsigned. [Lance]
+	unsigned int i;
 	int char_id;
+	bool valid;
 
-	safestrncpy(name, dat, NAME_LENGTH);
-	normalize_name(name,TRIM_CHARS); //Normalize character name. [Skotlex]
+	safestrncpy(name, name_, NAME_LENGTH);
+	normalize_name(name,TRIM_CHARS);
 	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-
-	if (!session_isValid(fd) || !(sd = (struct char_session_data*)session[fd]->session_data))
-		return -2;
 
 	ShowInfo("New character request (%d)\n", sd->account_id);
 
-	// check lenght of character name
-	if (strlen(name) < 4) {
-		ShowInfo("Create char failed (character name too small): (connection #%d, account: %d, name: '%s').\n",
-		         fd, sd->account_id, dat);
-		return -2;
-	}
-
-	//check name != main chat nick [LuzZza]
-	if(strcmpi(name, main_chat_nick) == 0) {
-		ShowInfo("Create char failed (%d): this nick (%s) reserved for mainchat messages.\n", sd->account_id, name);
-		return -2;
-	}
-
-	//check for charcount (maxchars) :)
-	if(char_per_account != 0){
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id) )
+	// check the number of already existing chars in this account
+	if( char_per_account != 0 ) {
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id) )
 			Sql_ShowDebug(sql_handle);
-		if( Sql_NumRows(sql_handle) >= char_per_account )
-		{
-			//hehe .. limit exceeded :P
+		if( Sql_NumRows(sql_handle) >= char_per_account ) {
 			ShowInfo("Create char failed (%d): charlimit exceeded.\n", sd->account_id);
 			Sql_FreeResult(sql_handle);
 			return -2;
 		}
 	}
 
+	// check char slot.
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'", char_db, sd->account_id, char_num) )
+		Sql_ShowDebug(sql_handle);
+	if( Sql_NumRows(sql_handle) > 0 )
+	{
+		ShowWarning("Create char failed (%d, slot: %d), slot already in use\n", sd->account_id, char_num);
+		return -2;
+	}
+
+	// check length of character name
+	if( name[0] == '\0' ) {
+		ShowInfo("Create char failed (empty character name): (connection #%d, account: %d).\n", sd->fd, sd->account_id);
+		return -2;
+	}
+
+	// check name != main chat nick [LuzZza]
+	if( strcmpi(name, main_chat_nick) == 0 ) {
+		ShowInfo("Create char failed (%d): this nick (%s) reserved for mainchat messages.\n", sd->account_id, name);
+		return -2;
+	}
+
 	// Check Authorised letters/symbols in the name of the character
-	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
-		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) == NULL)
+	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
+		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
+			if( strchr(char_name_letters, name[i]) == NULL )
 				return -2;
-	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
-		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) != NULL)
+	} else
+	if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
+		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
+			if( strchr(char_name_letters, name[i]) != NULL )
 				return -2;
 	} // else, all letters/symbols are authorised (except control char removed before)
 
-	//check stat error
-	if ((dat[24]+dat[25]+dat[26]+dat[27]+dat[28]+dat[29]!=6*5 ) || // stats
-		(dat[30] >= MAX_CHARS) || // slots (dat[30] can not be negativ)
-		(dat[33] <= 0) || (dat[33] >= 24) || // hair style
-		(dat[31] >= 9)) { // hair color (dat[31] can not be negativ)
-		if (log_char) {
-			// char.log to charlog
-			if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-				charlog_db,"make new char error", sd->account_id, dat[30], esc_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]) )
-				Sql_ShowDebug(sql_handle);
-		}
-		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
-		return -2;
-	} // for now we have checked: stat points used <31, char slot is less then 9, hair style/color values are acceptable
-
-	// check individual stat value
-	for(i = 24; i <= 29; i++) {
-		if (dat[i] < 1 || dat[i] > 9) {
-			if (log_char) {
-				// char.log to charlog
-				if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-					"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-					charlog_db, "make new char error", sd->account_id, dat[30], esc_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]) )
-					Sql_ShowDebug(sql_handle);
-			}
-			ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
-			return -2;
-		}
-	} // now we know that every stat has proper value but we have to check if str/int agi/luk vit/dex pairs are correct
-
-	if( ((dat[24]+dat[27]) > 10) || ((dat[25]+dat[29]) > 10) || ((dat[26]+dat[28]) > 10) ) {
-		if (log_char) {
-			// char.log to charlog
-			if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-				"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-				charlog_db, "make new char error", sd->account_id, dat[30], esc_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]) )
-				Sql_ShowDebug(sql_handle);
-		}
-		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
-		return -2;
-	} // now when we have passed all stat checks
-
-	if (log_char) {
-		// char.log to charlog
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s`(`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			charlog_db, "make new char", sd->account_id, dat[30], esc_name, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]) )
-			Sql_ShowDebug(sql_handle);
-	}
-	//printf("make new char %d-%d %s %d, %d, %d, %d, %d, %d - %d, %d\n",
-	//	fd, dat[30], dat, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29], dat[33], dat[31]);
-
-	//Check Name (already in use?)
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `name` = '%s'", char_db, esc_name) )
-	{
+	// check name (already in use?)
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `name` = '%s'", char_db, esc_name) ) {
 		Sql_ShowDebug(sql_handle);
 		return -2;
 	}
-	if( Sql_NumRows(sql_handle) > 0 )
-	{
+	if( Sql_NumRows(sql_handle) > 0 ) {
 		ShowInfo("Create char failed: charname already in use\n");
 		return -1;
 	}
 
-	// check char slot.
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`, `char_num` FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'", char_db, sd->account_id, dat[30]) )
-		Sql_ShowDebug(sql_handle);
-	if( Sql_NumRows(sql_handle) > 0 )
-	{
-		ShowWarning("Create char failed (%d, slot: %d), slot already in use\n", sd->account_id, dat[30]);
+	//check other inputs
+	if((char_num >= MAX_CHARS) // slots
+	|| (hair_style >= 24) // hair style
+	|| (hair_color >= 9) // hair color
+	|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
+	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
+	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
+		valid = false;
+	else
+		valid = true;
+
+	// log result
+	if (log_char) {
+		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+			charlog_db,(valid?"make new char":"make new char error"), sd->account_id, char_num, esc_name, str, agi, vit, int_, dex, luk, hair_style, hair_color) )
+			Sql_ShowDebug(sql_handle);
+	}
+
+	if( !valid ) {
+		ShowWarning("Create char failed (%d): stats error (bot cheat?!)\n", sd->account_id);
 		return -2;
 	}
 
-	//New Querys [Sirius]
 	//Insert the char to the 'chardb' ^^
 	if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`account_id`, `char_num`, `name`, `zeny`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `max_hp`, `hp`,"
 		"`max_sp`, `sp`, `hair`, `hair_color`, `last_map`, `last_x`, `last_y`, `save_map`, `save_x`, `save_y`) VALUES ("
 		"'%d', '%d', '%s', '%d',  '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d','%d', '%d','%d', '%d', '%s', '%d', '%d', '%s', '%d', '%d')",
-		char_db, sd->account_id , dat[30] , esc_name, start_zeny, dat[24], dat[25], dat[26], dat[27], dat[28], dat[29],
-		(40 * (100 + dat[26])/100) , (40 * (100 + dat[26])/100 ),  (11 * (100 + dat[27])/100), (11 * (100 + dat[27])/100), dat[33], dat[31],
+		char_db, sd->account_id , char_num, esc_name, start_zeny, str, agi, vit, int_, dex, luk,
+		(40 * (100 + vit)/100) , (40 * (100 + vit)/100 ),  (11 * (100 + int_)/100), (11 * (100 + int_)/100), hair_style, hair_color,
 		mapindex_id2name(start_point.map), start_point.x, start_point.y, mapindex_id2name(start_point.map), start_point.x, start_point.y) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -1240,7 +1205,7 @@ int make_new_char_sql(int fd, unsigned char *dat)
 			Sql_ShowDebug(sql_handle);
 	}
 
-	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, dat[30], name);
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, char_num, name);
 	return char_id;
 }
 
@@ -1307,39 +1272,13 @@ int delete_char_sql(int char_id, int partner_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d' AND `incuvate` = '0'", pet_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
-	// Komurka's suggested way to clear pets, modified by [Skotlex] (because I always personalize what I do :X)
-	//Removing pets that are in the char's inventory....
-	{	//NOTE: The syntax for multi-table deletes is a bit changed between 4.0 and 4.1 regarding aliases, so we have to consider the version... [Skotlex]
-		//Since we only care about the major and minor version, a double conversion is good enough. (4.1.20 -> 4.10000)
-		//double mysql_version = atof(mysql_get_server_info(&mysql_handle));
-		//
-		//sprintf(tmp_sql,
-		//"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-		//	(mysql_version<4.1?pet_db:"p"), char_db, inventory_db, pet_db, char_id);
-		//
-		//if(mysql_query(&mysql_handle, tmp_sql)) {
-		//	ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		//	ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		//}
-
-		////Removing pets that are in the char's cart....
-		//sprintf(tmp_sql,
-		//"delete FROM `%s` USING `%s` as c LEFT JOIN `%s` as i ON c.char_id = i.char_id, `%s` as p WHERE c.char_id = '%d' AND i.card0 = -256 AND p.pet_id = (i.card1|(i.card2<<2))",
-		//	(mysql_version<4.1?pet_db:"p"), char_db, cart_db, pet_db, char_id);
-		//
-		//if(mysql_query(&mysql_handle, tmp_sql)) {
-		//	ShowSQL("DB error - %s\n",mysql_error(&mysql_handle));
-		//	ShowDebug("at %s:%d - %s\n", __FILE__,__LINE__,tmp_sql);
-		//}
-
-		//## TODO double-check the functionality of this query
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE pet_id IN "
-			"(SELECT card1|card2<<2 FROM `%s` WHERE char_id = '%d' AND card0 = -256"
-			" UNION"
-			" SELECT card1|card2<<2 FROM `%s` WHERE char_id = '%d' AND card0 = -256)",
-			pet_db, inventory_db, char_id, cart_db, char_id) )
-			Sql_ShowDebug(sql_handle);
-	}
+	//Delete all pets that are stored in eggs (inventory + cart)
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE pet_id IN "
+		"(SELECT card1|card2<<2 FROM `%s` WHERE char_id = '%d' AND card0 = -256"
+		" UNION"
+		" SELECT card1|card2<<2 FROM `%s` WHERE char_id = '%d' AND card0 = -256)",
+		pet_db, inventory_db, char_id, cart_db, char_id) )
+		Sql_ShowDebug(sql_handle);
 
 	/* remove homunculus */ 
 	if (hom_id)
@@ -1586,9 +1525,12 @@ int parse_fromlogin(int fd)
 
 	while(RFIFOREST(fd) >= 2)
 	{
-//		printf("parse_fromlogin : %d %d %x\n", fd, RFIFOREST(fd), RFIFOW(fd, 0));
+		uint16 command = RFIFOW(fd,0);
 
-		switch(RFIFOW(fd,0)) {
+		switch( command )
+		{
+
+		// acknowledgement of connect-to-loginserver request
 		case 0x2711:
 			if (RFIFOREST(fd) < 3)
 				return 0;
@@ -1894,7 +1836,7 @@ int parse_fromlogin(int fd)
 		break;
 
 		default:
-			ShowError("Unknown packet 0x%04x received from login server, disconnecting.\n", RFIFOW(fd,0));
+			ShowError("Unknown packet 0x%04x received from login server, disconnecting.\n", command);
 			set_eof(fd);
 			return 0;
 		}
@@ -2780,12 +2722,14 @@ int parse_char(int fd)
 			if (sd) {
 				//Received again auth packet for already authentified account?? Discard it.
 				//TODO: Perhaps log this as a hack attempt?
+				//TODO: and perhaps send back a reply?
 				RFIFOSKIP(fd,17);
 				break;
 			}
 			
 			CREATE(session[fd]->session_data, struct char_session_data, 1);
 			sd = (struct char_session_data*)session[fd]->session_data;
+			sd->fd = fd;
 			sd->connect_until_time = 0; // unknown or unlimited (not displaying on map-server)
 			sd->account_id = RFIFOL(fd,2);
 			sd->login_id1 = RFIFOL(fd,6);
@@ -2976,7 +2920,7 @@ int parse_char(int fd)
 			if( !char_new ) //turn character creation on/off [Kevin]
 				i = -2;
 			else
-				i = make_new_char_sql(fd, RFIFOP(fd,2));
+				i = make_new_char_sql(sd, (char*)RFIFOP(fd,2),RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
 
 			//'Charname already exists' (-1), 'Char creation denied' (-2) and 'You are underaged' (-3)
 			if (i < 0)
@@ -3008,7 +2952,7 @@ int parse_char(int fd)
 				// add new entry to the chars list
 				ARR_FIND( 0, MAX_CHARS, ch, sd->found_char[ch] == -1 );
 				if( ch < MAX_CHARS )
-						sd->found_char[ch] = i;
+						sd->found_char[ch] = i; // the char_id of the new char
 			}
 
 			RFIFOSKIP(fd,37);
@@ -3588,7 +3532,7 @@ int char_config_read(const char* cfgName)
 		} else if (strcmpi(w1, "char_maintenance") == 0) {
 			char_maintenance = atoi(w2);
 		} else if (strcmpi(w1, "char_new") == 0) {
-			char_new = atoi(w2);
+			char_new = (bool)atoi(w2);
 		} else if (strcmpi(w1, "char_new_display") == 0) {
 			char_new_display = atoi(w2);
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
