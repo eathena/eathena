@@ -8,6 +8,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	* Merges from trunk
 	- r11271 - safestrnlen(), improvements to clif_parse_globalmessage()
 	- r11386, r11387 - various max. text width corrections
+	- r11289 - Added back log_chat's "1 - log everything" setting
 	* Merged the mapserver part of r11245 - Sql wrapper update [ultramage]
 	- startup code, logging code, mail code, mapreg code, itemdb/mobdb code
 	- merged a lot of (internal) updates that followed the sql change

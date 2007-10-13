@@ -1,5 +1,8 @@
 Date	Added
 
+2007/10/13
+	* Added back log_chat's "1 - log everything" (revert from r10850)
+	- don't forget to adjust your config file ... again.
 2007/10/12
 	* Merged maps_athena.conf [Playtester]
 	- removed .gat ending (hope this doesn't cause problems)
