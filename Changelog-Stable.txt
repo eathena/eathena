@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/10/14
+	* Merged the vending code cleanup (r11344 and r11355)
 	* Merged the charserver crashfix (r11466)
 	* Merged the major cleanup of skill unit code
 	- r11347, r11354, r11361, r11399
