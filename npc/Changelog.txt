@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/10/14
+	* Merged remaining quest files [Playtester]
 2007/10/13
 	* Rev. 11463 Removed Metto quest entry from scripts_athena. [L0ne_W0lf]
 	* Rev. 11462 Continuation of the /Quests folder merger. [L0ne_W0lf]
