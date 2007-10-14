@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/10/13
+	* Rev. 11461 Continuing to merge changes from trunk's /Quests folder. [L0ne_W0lf]
+	- Updated Alberta, Comodo, Geffen and Izlude quest files.
 	* Rev. 11460 Starting to merge changes from trunk's /Quests folder. [L0ne_W0lf]
 	- Moved bungunsword quest to custom folder.
 	- Implemented Geffen Bard quest, and alternate Doomed Sword quest.
