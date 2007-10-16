@@ -738,7 +738,7 @@ const char* skip_space(const char* p)
 			{
 				if( *p == '\0' )
 					disp_error_message("script:skip_space: end of file while parsing block comment. expected "CL_BOLD"*/"CL_NORM, p);
-				if( *p == '*' || p[1] == '/' )
+				if( *p == '*' && p[1] == '/' )
 				{// end of block comment
 					p += 2;
 					break;
