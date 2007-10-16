@@ -1,3 +1,11 @@
+10/16
+	* Merged create_arrow_db, item_db, mob_skill_db, pet_db, skill_cast_db [Playtester]
+	- fixed arrow names in create_arrow_db
+	- updated and fixed some items
+	- fixed used levels of NPC_CRITICALWOUND
+	- added new pets
+	- removed aftercast delay on some skills
+	- fixed various skill durations
 10/12
 	* Merged item_db, map_index, mob_avail, mob_db2, mob_db, mob_skill_db2 [Playtester]
 	- fixed up various items
