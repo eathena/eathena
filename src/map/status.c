@@ -281,8 +281,8 @@ void initChangeTables(void)
 	set_sc(NPC_WEAPONBRAKER, SC_BROKENWEAPON, SI_BROKENWEAPON, SCB_NONE);
 	set_sc(NPC_ARMORBRAKE, SC_BROKENARMOR, SI_BROKENARMOR, SCB_NONE);
 	set_sc(NPC_CHANGEUNDEAD, SC_CHANGEUNDEAD, SI_UNDEAD, SCB_DEF_ELE);
-	set_sc(NPC_POWERUP, SC_INCDEXRATE, SI_BLANK, SCB_DEX);
-	set_sc(NPC_AGIUP, SC_INCFLEERATE, SI_BLANK, SCB_AGI);
+	set_sc(NPC_POWERUP, SC_INCHITRATE, SI_BLANK, SCB_HIT);
+	set_sc(NPC_AGIUP, SC_INCFLEERATE, SI_BLANK, SCB_FLEE);
 	add_sc(NPC_INVISIBLE, SC_CLOAKING);
 	set_sc(LK_AURABLADE, SC_AURABLADE, SI_AURABLADE, SCB_NONE);
 	set_sc(LK_PARRYING, SC_PARRYING, SI_PARRYING, SCB_NONE);
@@ -5786,7 +5786,7 @@ int status_change_start(struct block_list *bl,int type,int rate,int val1,int val
 				val2 = rand()%ELE_MAX;
 			break;
 		case SC_CRITICALWOUND:
-			val2 = 10*val1; //Heal effectiveness decrease
+			val2 = 20*val1; //Heal effectiveness decrease
 			break;
 		case SC_MAGICMIRROR:
 		case SC_SLOWCAST:

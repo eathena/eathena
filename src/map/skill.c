@@ -5113,9 +5113,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case NPC_POWERUP:
-		sc_start(bl,SC_INCATKRATE,100,40*skilllv,skill_get_time(skillid, skilllv));
+		sc_start(bl,SC_INCATKRATE,100,200,skill_get_time(skillid, skilllv));
 		clif_skill_nodamage(src,bl,skillid,skilllv,
-			sc_start(bl,type,100,40*skilllv,skill_get_time(skillid, skilllv)));
+			sc_start(bl,type,100,100,skill_get_time(skillid, skilllv)));
 		break;
 		
 	case NPC_AGIUP:
@@ -5903,7 +5903,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 		ud->canact_tick = tick + skill_delayfix(src, ud->skillid, ud->skilllv);
 	
 		if (skill_get_state(ud->skillid) != ST_MOVE_ENABLE)
-			unit_set_walkdelay(src, tick, battle_config.default_skill_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
+			unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
 		
 		if(battle_config.skill_log && battle_config.skill_log&src->type)
 			ShowInfo("Type %d, ID %d skill castend id [id =%d, lv=%d, target ID %d)\n",
@@ -6070,7 +6070,7 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 				src->type, src->id, ud->skillid, ud->skilllv, ud->skillx, ud->skilly);
 		unit_stop_walking(src,1);
 		ud->canact_tick = tick + skill_delayfix(src, ud->skillid, ud->skilllv);
-		unit_set_walkdelay(src, tick, battle_config.default_skill_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
+		unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
 
 		map_freeblock_lock();
 		skill_castend_pos2(src,ud->skillx,ud->skilly,ud->skillid,ud->skilllv,tick,0);
@@ -8858,15 +8858,10 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 	if (bl->type&battle_config.no_skill_delay)
 		return battle_config.min_skill_delay_limit; 
 
-	// instant cast attack skills depend on aspd as delay [celest]
-	if (time == 0) {
-		if (skill_get_type(skill_id)&(BF_WEAPON|BF_MISC) && !(skill_get_nk(skill_id)&NK_NO_DAMAGE))
-			time = status_get_adelay(bl); //Use attack delay as default delay.
-		else
-			time = battle_config.default_skill_delay;
-	} else if (time < 0)
-		time = -time + status_get_amotion(bl);	// if set to <0, the attack motion is added.
-	else //Agi reduction should apply only to non-zero delay skills.
+	if (time < 0)
+		time = -time + status_get_amotion(bl);	// If set to <0, add to attack motion.
+
+	// Delay reductions
 	switch (skill_id)
   	{	//Monk combo skills have their delay reduced by agi/dex.
 	case MO_TRIPLEATTACK:
@@ -8922,6 +8917,9 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 
 	if (battle_config.delay_rate != 100)
 		time = time * battle_config.delay_rate / 100;
+
+	if (time < status_get_amotion(bl))
+		time = status_get_amotion(bl); // Delay can never be below amotion [Playtester]
 
 	return max(time, battle_config.min_skill_delay_limit);
 }
