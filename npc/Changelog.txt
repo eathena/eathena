@@ -22,6 +22,10 @@ Playtester
 
 Date		Added
 ======
+2007/10/17
+	* Merged Socket Enchanter [Playtester]
+	- fixed two bugs
+	- added new 12.1 socket enchant items
 2007/10/14
 	* Merged remaining quest files [Playtester]
 2007/10/13
