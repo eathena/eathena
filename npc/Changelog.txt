@@ -22,7 +22,8 @@ Playtester
 
 Date		Added
 ======
-2007/10/20
+2007/10/21
+	* Rev.  11542 Merging updated 2-2 job quests from trunk. (update 3/4) [L0ne_W0lf]
 	* Rev.  11541 Merging updated 2-1 job quests from trunk. (update 2/4) [L0ne_W0lf]
 	* Rev.  11540 Merging updated 1-1 job quests from trunk. (update 1/4) [L0ne_W0lf]
 2007/10/20
