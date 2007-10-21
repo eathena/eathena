@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/10/20
+	* Rev.  11540 Merging updated 1-1 job quests from trunk. (update 1/4) [L0ne_W0lf]
+2007/10/20
 	* Small fixes to Hugel and Lighthalzen quests. [SinSloth]
 	- 'gettimetick' checking in Schwartzvalt Trilogy now looks for both positive and negative values.
 2007/10/17
