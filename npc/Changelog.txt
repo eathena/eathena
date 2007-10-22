@@ -22,7 +22,8 @@ Playtester
 
 Date		Added
 ======
-2007/10/21
+2007/10/22
+	* Rev. 11556 Merging updated Rebirth 2-2a NPCs from trunk. (update 6/4) [L0ne_W0lf]
 	* Rev. 11555 Merging updated Rebirth 2-1a NPCs from trunk. (update 5/4) [L0ne_W0lf]
 2007/10/21
 	* Rev. 11543 Merging updated Rebirth and job quest warps from trunk. (update 4/4) [L0ne_W0lf]
