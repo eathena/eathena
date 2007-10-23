@@ -1,3 +1,7 @@
+10/23
+	* Merged skill_db, skill_unit_db [Playtester]
+	- Bowling Bash and Fire Formation now have 1 tile knockback (on all levels)
+	- set Heat's interval to 20ms (50 hits a second)
 10/16
 	* Merged create_arrow_db, item_db, mob_skill_db, pet_db, skill_cast_db [Playtester]
 	- fixed arrow names in create_arrow_db
