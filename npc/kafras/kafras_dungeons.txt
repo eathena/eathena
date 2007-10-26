@@ -3,7 +3,7 @@
 //===== By: ============================
 //= eAthena Dev Team
 //===== Current Version: =======================
-//= 2.5
+//= 2.7
 //===== Compatible With: ============================
 //= eAthena 1.0
 //===== Description: ============================================
@@ -24,6 +24,7 @@
 //= 2.4 Now Baby Merchant can pass Merch Job Quest w/o probs [Lupus]
 //= 2.41 Removed useless warp points, already nullified by func call [Evera]
 //= 2.5 Allowed Culvert save point [Evera]
+//= 2.6 Updated Merchant quest portion of Biliban kafra. [L0ne_W0lf]
 //===============================================================
 
 
@@ -54,7 +55,7 @@ moc_fild15,264,260,3	script	Kafra::kaf_moc_fild15	115,{
 izlu2dun,106,58,8	script	Kafra::kaf_izlu2dun	115,{
 
 	cutin "kafra_03",2;
-	if(BaseJob==Job_Novice && job_merchant_q3>0) callfunc "F_MercKafra";  //F_MercKafra found in merchant.txt
+	if(BaseJob==Job_Novice && job_merchant_q2>0) callfunc "F_MercKafra";  //F_MercKafra found in merchant.txt
 	callfunc "F_Kafra",0,2,1;
 
 	M_Save:
