@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/10/27
+	* Rev. 11591 Small update to divorce NPC. [L0ne_W0lf] 
 2007/10/26
 	* Rev. 11582 Minor update to the Biliban Kafra (was checking non-existant var.) [L0ne_W0lf]
 2007/10/25
