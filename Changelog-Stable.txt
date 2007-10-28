@@ -4,6 +4,16 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+
+2007/10/23
+	* Added SCs: SC_INCASPDRATE, SC_INCFLEE2, SC_INCCRI, SC_INCDEF,
+	  SC_INCBASEATK, SC_FASTCAST required for newer items.
+	* Merged the script commands bonusautoscript and bonusautoscript2 (see
+	  script_commands.txt for usage).
+	* Merged monster_ai&0x40: Make mobs chase players through warps.
+	* Merged cleanup which should fix infinite endure ending sometimes.
+	* Merged the CELL_NOVENDING code (allows to specify areas where vending is
+	  forbidden) [Skotlex]
 2007/10/23
 	* Merged parts of the skill unit code [Playtester]
 	- renamed SKILLUNITTIMER_INVERVAL to SKILLUNITTIMER_INTERVAL

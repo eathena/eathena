@@ -31,8 +31,8 @@
 #include <string.h>
 
 
-const int dirx[8]={0,-1,-1,-1,0,1,1,1};
-const int diry[8]={1,1,0,-1,-1,-1,0,1};
+const short dirx[8]={0,-1,-1,-1,0,1,1,1};
+const short diry[8]={1,1,0,-1,-1,-1,0,1};
 
 struct unit_data* unit_bl2ud(struct block_list *bl)
 {
@@ -103,7 +103,8 @@ int unit_walktoxy_sub(struct block_list *bl)
 static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 {
 	int i;
-	int x,y,dx,dy,dir;
+	int x,y,dx,dy;
+	uint8 dir;
 	struct block_list       *bl;
 	struct map_session_data *sd = NULL;
 	struct mob_data         *md = NULL;
@@ -233,6 +234,8 @@ static int unit_walktoxy_timer(int tid,unsigned int tick,int id,int data)
 		if (!tbl || !status_check_visibility(bl, tbl)) {	//Cancel chase.
 			ud->to_x = bl->x;
 			ud->to_y = bl->y;
+			if (tbl && bl->type == BL_MOB) //See if the mob can do a warp chase.
+				mob_warpchase((TBL_MOB*)bl, tbl);
 			return 0;
 		}
 		if (tbl->m == bl->m && check_distance_bl(bl, tbl, ud->chaserange))
@@ -268,7 +271,7 @@ static int unit_delay_walktoxy_timer(int tid, unsigned int tick, int id, int dat
 //&1 -> 1/0 = easy/hard
 //&2 -> force walking
 //&4 -> Delay walking if the reason you can't walk is the canwalk delay
-int unit_walktoxy( struct block_list *bl, int x, int y, int flag)
+int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 {
 	struct unit_data* ud = NULL;
 	struct status_change* sc = NULL;
@@ -397,7 +400,8 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 int unit_run(struct block_list *bl)
 {
 	struct status_change *sc = status_get_sc(bl);
-	int i,to_x,to_y,dir_x,dir_y;
+	short to_x,to_y,dir_x,dir_y;
+	int i;
 
 	if (!sc || !sc->count || sc->data[SC_RUN].timer == -1)
 		return 0;
@@ -450,7 +454,7 @@ int unit_run(struct block_list *bl)
 }
 
 //Makes bl attempt to run dist cells away from target. Uses hard-paths.
-int unit_escape(struct block_list *bl, struct block_list *target, int dist)
+int unit_escape(struct block_list *bl, struct block_list *target, short dist)
 {
 	int dir = map_calc_dir(target, bl->x, bl->y);
 	while( dist > 0 && map_getcell(bl->m, bl->x + dist*dirx[dir], bl->y + dist*diry[dir], CELL_CHKNOREACH) )
@@ -459,9 +463,10 @@ int unit_escape(struct block_list *bl, struct block_list *target, int dist)
 }
 
 //Instant warp function.
-int unit_movepos(struct block_list *bl,int dst_x,int dst_y, int easy, int checkpath)
+int unit_movepos(struct block_list *bl, short dst_x, short dst_y, int easy, bool checkpath)
 {
-	int dx,dy,dir;
+	short dx,dy;
+	uint8 dir;
 	struct unit_data        *ud = NULL;
 	struct map_session_data *sd = NULL;
 	struct walkpath_data wpd;
@@ -531,7 +536,7 @@ int unit_setdir(struct block_list *bl,unsigned char dir)
 	return 0;
 }
 
-int unit_getdir(struct block_list *bl)
+uint8 unit_getdir(struct block_list *bl)
 {
 	struct unit_data *ud;
 	nullpo_retr( 0, bl );
@@ -543,7 +548,7 @@ int unit_getdir(struct block_list *bl)
 //Warps a unit/ud to a given map/position. 
 //In the case of players, pc_setpos is used.
 //it respects the no warp flags, so it is safe to call this without doing nowarpto/nowarp checks.
-int unit_warp(struct block_list *bl,int m,short x,short y,int type)
+int unit_warp(struct block_list *bl,short m,short x,short y,int type)
 {
 	struct unit_data *ud;
 	nullpo_retr(0, bl);
@@ -898,7 +903,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 			break;
 		}
 		if (!skill_check_condition(sd, skill_num, skill_lv, 0))
-			return 0;	
+			return 0;
 	}
 	//TODO: Add type-independant skill_check_condition function.
 	if (src->type == BL_MOB) {
@@ -1043,7 +1048,7 @@ int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int 
 	return 1;
 }
 
-int unit_skilluse_pos(struct block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv)
+int unit_skilluse_pos(struct block_list *src, short skill_x, short skill_y, int skill_num, int skill_lv)
 {
 	if(skill_num < 0)
 		return 0;
@@ -1054,7 +1059,7 @@ int unit_skilluse_pos(struct block_list *src, int skill_x, int skill_y, int skil
 	);
 }
 
-int unit_skilluse_pos2( struct block_list *src, int skill_x, int skill_y, int skill_num, int skill_lv, int casttime, int castcancel)
+int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, int skill_num, int skill_lv, int casttime, int castcancel)
 {
 	struct map_session_data *sd = NULL;
 	struct unit_data        *ud = NULL;
@@ -1353,8 +1358,15 @@ static int unit_attack_timer_sub(struct block_list* src, int tid, unsigned int t
 	if(src == NULL || src->prev == NULL || target==NULL || target->prev == NULL)
 		return 0;
 
-	if(src->m != target->m || status_isdead(src) || status_isdead(target) || !status_check_skilluse(src, target, 0, 0))
+	if(status_isdead(src) || status_isdead(target) || !status_check_skilluse(src, target, 0, 0))
 		return 0; // can't attack under these conditions
+
+	if (src->m != target->m)
+	{
+		if (src->type == BL_MOB && mob_warpchase((TBL_MOB*)src, target))
+			return 1; // Follow up.
+		return 0;
+	}
 
 	if(ud->skilltimer != -1 && !(sd && pc_checkskill(sd,SA_FREECAST) > 0))
 		return 0; // can't attack while casting
@@ -1785,6 +1797,10 @@ int unit_free(struct block_list *bl, int clrtype)
 					status_change_end(bl,SC_STEELBODY,-1);
 			}
 		}
+	
+		pc_autoscript_clear(sd->autoscript, ARRAYLENGTH(sd->autoscript));
+		pc_autoscript_clear(sd->autoscript2, ARRAYLENGTH(sd->autoscript2));
+
 		if (sd->followtimer != -1)
 			pc_stop_following(sd);
 		// Force exiting from duel and rejecting all duel invitations when player quit [LuzZza]

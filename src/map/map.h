@@ -690,6 +690,12 @@ struct map_session_data {
 		int rate;
 	} itemhealrate[MAX_PC_BONUS];
 	// zeroed structures end here
+	// manually zeroed structures start here.
+	struct s_autoscript {
+		unsigned short rate, flag;
+		struct script_code *script;
+	} autoscript[5], autoscript2[5]; //Auto script on attack, when attacked
+	// manually zeroed structures end here.
 	// zeroed vars start here.
 	int arrow_atk,arrow_ele,arrow_cri,arrow_hit;
 	int nsshealhp,nsshealsp;
@@ -1212,6 +1218,7 @@ enum _look {
 #define CELL_SAFETYWALL	0x8
 #define CELL_LANDPROTECTOR	0x10
 #define CELL_BASILICA	0x20
+#define CELL_NOVENDING	0x40
 #define CELL_ICEWALL	0x80
 /*
  * map_getcell()で使用されるフラグ
@@ -1234,6 +1241,7 @@ typedef enum {
 	CELL_CHKLANDPROTECTOR,
 	CELL_CHKICEWALL,
 	CELL_CHKSTACK,
+	CELL_CHKNOVENDING,
 } cell_t;
 // map_setcell()で使用されるフラグ
 enum {
@@ -1250,6 +1258,8 @@ enum {
 	CELL_CLRSAFETYWALL,
 	CELL_SETICEWALL,
 	CELL_CLRICEWALL,
+	CELL_SETNOVENDING,
+	CELL_CLRNOVENDING,
 };
 
 extern struct map_data map[];

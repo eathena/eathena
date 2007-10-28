@@ -244,7 +244,7 @@ struct mob_data* mob_spawn_dataset(struct spawn_data *data)
  * &1: Apply the summon success chance found in the list (otherwise get any monster from the db)
  * &2: Apply a monster check level.
  * &4: Selected monster should not be a boss type
- * &8: Selected monster must give base exp.
+ * &8: Selected monster must have normal spawn.
  * lv: Mob level to check against
  *------------------------------------------*/
 int mob_get_random_id(int type, int flag, int lv)
@@ -267,7 +267,7 @@ int mob_get_random_id(int type, int flag, int lv)
 		(flag&1 && mob->summonper[type] <= rand() % 1000000) ||
 		(flag&2 && lv < mob->lv) ||
 		(flag&4 && mob->status.mode&MD_BOSS) ||
-		(flag&8 && mob->base_exp < 1)
+		(flag&8 && mob->spawn[0].qty < 1)
 	) && (i++) < MAX_MOB_DB);
 
 	if(i >= MAX_MOB_DB)
@@ -873,6 +873,36 @@ static int mob_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	return 0;
 }
 
+static int mob_warpchase_sub(struct block_list *bl,va_list ap)
+{
+	struct mob_data* md;
+	struct block_list *target;
+	struct npc_data **target_nd;
+	struct npc_data *nd;
+	int *min_distance;
+	int cur_distance;
+
+	md=va_arg(ap,struct mob_data *);
+	target= va_arg(ap, struct block_list*);
+	target_nd= va_arg(ap, struct npc_data**);
+	min_distance= va_arg(ap, int*);
+
+	if(bl->subtype != WARP)
+		return 0; //Not a warp
+	nd = (TBL_NPC*) bl;
+
+	if(nd->u.warp.mapindex != map[target->m].index)
+		return 0; //Does not lead to the same map.
+
+	cur_distance = distance_blxy(target, nd->u.warp.x, nd->u.warp.y);
+	if (cur_distance < *min_distance)
+	{	//Pick warp that leads closest to target.
+		*target_nd = nd;
+		*min_distance = cur_distance;
+		return 1;
+	}	
+	return 0;
+}
 /*==========================================
  * Processing of slave monsters
  *------------------------------------------*/
@@ -1048,6 +1078,29 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 	return 1;
 }
 
+int mob_warpchase(struct mob_data *md, struct block_list *target)
+{
+	struct npc_data *warp = NULL;
+	int distance = AREA_SIZE;
+	if (!(target && battle_config.mob_ai&0x40 && battle_config.mob_warp&1))
+		return 0; //Can't warp chase.
+
+	if (target->m == md->bl.m && check_distance_bl(&md->bl, target, AREA_SIZE))
+		return 0; //No need to do a warp chase.
+
+	if (md->ud.walktimer != -1 &&
+		map_getcell(md->bl.m,md->ud.to_x,md->ud.to_y,CELL_CHKNPC))
+		return 1; //Already walking to a warp.
+
+	//Search for warps within mob's viewing range.
+	map_foreachinrange (mob_warpchase_sub, &md->bl,
+		md->db->range2, BL_NPC, md, target, &warp, &distance);
+
+	if (warp && unit_walktobl(&md->bl, &warp->bl, 0, 1))
+		return 1;
+	return 0;
+}
+
 /*==========================================
  * AI of MOB whose is near a Player
  *------------------------------------------*/
@@ -1106,6 +1159,8 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				((((TBL_PC*)tbl)->state.gangsterparadise && !(mode&MD_BOSS)) ||
 				((TBL_PC*)tbl)->invincible_timer != INVALID_TIMER)
 		)) {	//Unlock current target.
+			if (mob_warpchase(md, tbl))
+				return 0; //Chasing this target.
 			mob_unlocktarget(md, tick-(battle_config.mob_ai&0x8?3000:0)); //Imediately do random walk.
 			tbl = NULL;
 		}
@@ -2884,8 +2939,8 @@ int mob_clone_spawn(struct map_session_data *sd, int m, int x, int y, const char
 		ms[i].permillage = 500*battle_config.mob_skill_rate/100; //Default chance of all skills: 5%
 		ms[i].emotion = -1;
 		ms[i].cancel = 0;
-		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv);
 		ms[i].casttime = skill_castfix(&sd->bl,skill_id, ms[i].skill_lv);
+		ms[i].delay = 5000+skill_delayfix(&sd->bl,skill_id, ms[i].skill_lv);
 
 		inf = skill_get_inf(skill_id);
 		if (inf&INF_ATTACK_SKILL) {

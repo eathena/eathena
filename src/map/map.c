@@ -2264,6 +2264,8 @@ int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
 			return (type2&CELL_REGEN);
 		case CELL_CHKICEWALL:
 			return (type2&CELL_ICEWALL);
+		case CELL_CHKNOVENDING:
+			return (type2&CELL_NOVENDING);
 		default:
 			return 0;
 	}
@@ -2280,45 +2282,21 @@ void map_setcell(int m,int x,int y,int cell)
 	j=x+y*map[m].xs;
 
 	switch (cell) {
-		case CELL_SETNPC:
-			map[m].cell[j] |= CELL_NPC;
-			break;
-		case CELL_CLRNPC:
-			map[m].cell[j] &= ~CELL_NPC;
-			break;
-		case CELL_SETICEWALL:
-			map[m].cell[j] |= CELL_ICEWALL;
-			break;
-		case CELL_CLRICEWALL:
-			map[m].cell[j] &= ~CELL_ICEWALL;
-			break;
-		case CELL_SETBASILICA:
-			map[m].cell[j] |= CELL_BASILICA;
-			break;
-		case CELL_CLRBASILICA:
-			map[m].cell[j] &= ~CELL_BASILICA;
-			break;
-		case CELL_SETPNEUMA:
-			map[m].cell[j] |= CELL_PNEUMA;
-			break;
-		case CELL_CLRPNEUMA:
-			map[m].cell[j] &= ~CELL_PNEUMA;
-			break;
-		case CELL_SETSAFETYWALL:
-			map[m].cell[j] |= CELL_SAFETYWALL;
-			break;
-		case CELL_CLRSAFETYWALL:
-			map[m].cell[j] &= ~CELL_SAFETYWALL;
-			break;
-		case CELL_SETLANDPROTECTOR:
-			map[m].cell[j] |= CELL_LANDPROTECTOR;
-			break;
-		case CELL_CLRLANDPROTECTOR:
-			map[m].cell[j] &= ~CELL_LANDPROTECTOR;
-			break;
-		case CELL_SETREGEN:
-			map[m].cell[j] |= CELL_REGEN;
-			break;
+		case CELL_SETNPC:           map[m].cell[j] |= CELL_NPC;            break;
+		case CELL_CLRNPC:           map[m].cell[j] &= ~CELL_NPC;           break;
+		case CELL_SETICEWALL:       map[m].cell[j] |= CELL_ICEWALL;        break;
+		case CELL_CLRICEWALL:       map[m].cell[j] &= ~CELL_ICEWALL;       break;
+		case CELL_SETBASILICA:      map[m].cell[j] |= CELL_BASILICA;       break;
+		case CELL_CLRBASILICA:      map[m].cell[j] &= ~CELL_BASILICA;      break;
+		case CELL_SETPNEUMA:        map[m].cell[j] |= CELL_PNEUMA;         break;
+		case CELL_CLRPNEUMA:        map[m].cell[j] &= ~CELL_PNEUMA;        break;
+		case CELL_SETSAFETYWALL:    map[m].cell[j] |= CELL_SAFETYWALL;     break;
+		case CELL_CLRSAFETYWALL:    map[m].cell[j] &= ~CELL_SAFETYWALL;    break;
+		case CELL_SETLANDPROTECTOR: map[m].cell[j] |= CELL_LANDPROTECTOR;  break;
+		case CELL_CLRLANDPROTECTOR: map[m].cell[j] &= ~CELL_LANDPROTECTOR; break;
+		case CELL_SETREGEN:         map[m].cell[j] |= CELL_REGEN;          break;
+		case CELL_SETNOVENDING:     map[m].cell[j] |= CELL_NOVENDING;      break;
+		case CELL_CLRNOVENDING:     map[m].cell[j] &= ~CELL_NOVENDING;     break;
 		default:
 			map[m].gat[j] = cell;
 			break;
