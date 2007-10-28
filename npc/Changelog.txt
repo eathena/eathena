@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/10/28
+	* Updated Veins Field spawn amounts to official [Playtester]
 2007/10/27
 	* Rev. 11591 Small update to divorce NPC. [L0ne_W0lf] 
 2007/10/26
