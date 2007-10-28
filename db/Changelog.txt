@@ -1,4 +1,11 @@
 10/28
+	* Merged item_db, mob_db, skill_db, skill_unit_db [Playtester]
+	- updated various items
+	- implemented the remaining 11.2 cards
+	- added the new cards to drops
+	- Fire Wall now has 2 tiles knockback
+	- set interval value of Fire Wall and Fire Formation to 20ms
+	- updated sql files
 	* Rev. 11599 Corrected Cross Shield bonus. [L0ne_W0lf]
 10/23
 	* Merged skill_db, skill_unit_db [Playtester]
