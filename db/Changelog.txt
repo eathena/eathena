@@ -1,3 +1,5 @@
+10/29
+	* Rev. 11616 Updated to fix errors reported by Zephyrus_CR. bugreport:334 [L0ne_W0lf]
 10/28
 	* Merged item_db, mob_db, skill_db, skill_unit_db [Playtester]
 	- updated various items
