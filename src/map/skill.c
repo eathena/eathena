@@ -1024,8 +1024,8 @@ struct s_skill_unit_layout* skill_get_unit_layout (int skillid, int skilllv, str
  *------------------------------------------*/
 int skill_additional_effect (struct block_list* src, struct block_list *bl, int skillid, int skilllv, int attack_type, unsigned int tick)
 {
-	struct map_session_data *sd=NULL, *dstsd=NULL;
-	struct mob_data *md=NULL, *dstmd=NULL;
+	struct map_session_data *sd=NULL, *dstsd;
+	struct mob_data *md=NULL, *dstmd;
 	struct status_data *sstatus, *tstatus;
 	struct status_change *sc, *tsc;
 
@@ -1037,29 +1037,16 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 	if(skillid < 0) 
 	{	// remove the debug print when this case is finished
-		ShowDebug("skill_additional_effect: skillid=%i\ncall: %p %p %i %i %i %i",skillid,
-						src, bl,skillid,skilllv,attack_type,tick);
+		ShowDebug("skill_additional_effect: skillid=%i\ncall: %p %p %i %i %i %i",skillid,src,bl,skillid,skilllv,attack_type,tick);
 		return 0;
 	}
 	if(skillid > 0 && skilllv <= 0) return 0;	// don't forget auto attacks! - celest
 
-	switch (src->type) {
-	case BL_PC:
-		sd = (struct map_session_data *)src;
-		break;
-	case BL_MOB:
-		md = (struct mob_data *)src;
-		break;
-	}
+	BL_CAST(BL_PC, src, sd);
+	BL_CAST(BL_MOB, src, md);
+	BL_CAST(BL_PC, bl, dstsd);
+	BL_CAST(BL_MOB, bl, dstmd);
 
-	switch (bl->type) {
-	case BL_PC:
-		dstsd=(struct map_session_data *)bl;
-		break;
-	case BL_MOB:
-		dstmd=(struct mob_data *)bl;
-		break;
-	}
 	sc = status_get_sc(src);
 	tsc = status_get_sc(bl);
 	sstatus = status_get_status_data(src);
@@ -1067,10 +1054,9 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	if (!tsc) //skill additional effect is about adding effects to the target...
 		//So if the target can't be inflicted with statuses, this is pointless.
 		return 0;	
-	if (sc && !sc->count)
-		sc = NULL;
 
-	switch(skillid){
+	switch(skillid)
+	{
 	case 0: // Normal attacks (no skill used)
 	{
 		if(sd) {
@@ -2207,9 +2193,9 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		break;
 	default:
 		//Disabling skill animation doesn't works on multi-hit.
-		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion,
-			damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv,
-			(flag&SD_ANIMATION && dmg.div_ < 2?5:type));
+		if( flag&SD_ANIMATION && dmg.div_ < 2 ) //Disabling skill animation doesn't works on multi-hit.
+			type = 5;
+		dmg.dmotion = clif_skill_damage(dsrc,bl,tick, dmg.amotion, dmg.dmotion, damage, dmg.div_, skillid, flag&SD_LEVEL?-1:skilllv, type);
 		break;
 	}
 	
@@ -3176,11 +3162,9 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 	case KN_BRANDISHSPEAR:
 		//Coded apart for it needs the flag passed to the damage calculation.
 		if (skill_area_temp[1] != bl->id)
-			skill_attack(skill_get_type(skillid), src, src, bl,
-				skillid, skilllv, tick, flag|SD_ANIMATION);
+			skill_attack(skill_get_type(skillid), src, src, bl, skillid, skilllv, tick, flag|SD_ANIMATION);
 		else 
-			skill_attack(skill_get_type(skillid), src, src, bl,
-				skillid, skilllv, tick, flag);
+			skill_attack(skill_get_type(skillid), src, src, bl, skillid, skilllv, tick, flag);
 		break;
 
 	case KN_BOWLINGBASH:
@@ -3197,16 +3181,13 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 			for(i=0;i<c;i++){
 				if (!skill_blown(src,bl,1,(unit_getdir(src)+4)%8,0x1))
 					break; //Can't knockback
-				skill_area_temp[0]=0;
-				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), BL_CHAR,
-					src, skillid, skilllv, tick, flag|BCT_ENEMY, skill_area_sub_count);
-				if(skill_area_temp[0]>1) break; // collision
+				skill_area_temp[0] = map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), BL_CHAR, src, skillid, skilllv, tick, flag|BCT_ENEMY, skill_area_sub_count);
+				if( skill_area_temp[0] > 1 ) break; // collision
 			}
 			clif_blown(bl); //Update target pos.
 			if (i!=c) { //Splash
-				skill_area_temp[1]=bl->id;
-				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), splash_target(src),
-					src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
+				skill_area_temp[1] = bl->id;
+				map_foreachinrange(skill_area_sub, bl, skill_get_splash(skillid, skilllv), splash_target(src), src, skillid, skilllv, tick, flag|BCT_ENEMY|1, skill_castend_damage_id);
 			}
 			//Weirdo dual-hit property, two attacks for 500%
 			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,0);
@@ -5742,6 +5723,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (hd)
 			skill_blockmerc_start(hd, skillid, skill_get_time2(skillid,skilllv));
 		break;
+
 	case NPC_DRAGONFEAR:
 		if (flag&1) {
 			const int sc[] = { SC_STUN, SC_CURSE, SC_SILENCE, SC_BLEEDING };
@@ -5966,6 +5948,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 		map_freeblock_unlock();
 		return 1;
 	} while(0);
+
 	//Skill failed.
 	if (ud->skillid == MO_EXTREMITYFIST && sd && !(sc && sc->count && sc->data[SC_FOGWALL].timer != -1))
   	{	//When Asura fails... (except when it fails from Fog of Wall)

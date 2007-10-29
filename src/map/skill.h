@@ -267,8 +267,7 @@ int skill_blockpc_start (struct map_session_data*,int,int);	// [celest]
 int skill_blockmerc_start (struct homun_data*,int,int);	//[orn]
 
 // ƒXƒLƒ‹U?ˆêŠ‡?—
-int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc,
-	 struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
+int skill_attack( int attack_type, struct block_list* src, struct block_list *dsrc, struct block_list *bl,int skillid,int skilllv,unsigned int tick,int flag );
 
 void skill_reload(void);
 
@@ -289,7 +288,7 @@ enum {
 	ST_WATER,
 };
 
-enum _skill {
+enum s_skill {
 	NV_BASIC = 1,
 
 	SM_SWORD,

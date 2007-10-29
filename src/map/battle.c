@@ -2433,8 +2433,7 @@ struct Damage battle_calc_magic_attack(
 /*==========================================
  * ‚»‚Ì‘¼ƒ_ƒ??[ƒWŒvŽZ
  *------------------------------------------*/
-struct Damage  battle_calc_misc_attack(
-	struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag)
+struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *target,int skill_num,int skill_lv,int mflag)
 {
 	int skill;
 	short i, nk;
@@ -2659,13 +2658,13 @@ struct Damage  battle_calc_misc_attack(
 /*==========================================
  * ƒ_ƒ??[ƒWŒvŽZˆêŠ‡?ˆ—?—p
  *------------------------------------------*/
-struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int flag)
+struct Damage battle_calc_attack(int attack_type,struct block_list *bl,struct block_list *target,int skill_num,int skill_lv,int count)
 {
 	struct Damage d;
 	switch(attack_type) {
-	case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,flag); break;
-	case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,flag);  break;
-	case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_num,skill_lv,flag);   break;
+	case BF_WEAPON: d = battle_calc_weapon_attack(bl,target,skill_num,skill_lv,count); break;
+	case BF_MAGIC:  d = battle_calc_magic_attack(bl,target,skill_num,skill_lv,count);  break;
+	case BF_MISC:   d = battle_calc_misc_attack(bl,target,skill_num,skill_lv,count);   break;
 	default:
 		if (battle_config.error_log)
 			ShowError("battle_calc_attack: unknown attack type! %d\n",attack_type);

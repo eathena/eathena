@@ -6317,11 +6317,11 @@ int status_change_end( struct block_list* bl , int type,int tid )
 			if (sd && sd->status.manner < 0 && tid != -1)
 				sd->status.manner = 0;
 			break;
-		case SC_SPLASHER:	
+		case SC_SPLASHER:
 			{
 				struct block_list *src=map_id2bl(sc->data[type].val3);
 				if(src && tid!=-1)
-					skill_castend_damage_id(src, bl,sc->data[type].val2,sc->data[type].val1,gettick(),0 );
+					skill_castend_damage_id(src, bl, sc->data[type].val2, sc->data[type].val1, gettick(), 0 );
 			}
 			break;
 		case SC_CLOSECONFINE2:
