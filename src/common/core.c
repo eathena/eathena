@@ -77,7 +77,7 @@ static void sig_proc(int sn)
 	case SIGINT:
 	case SIGTERM:
 		if (++is_called > 3)
-			exit(0);
+			exit(EXIT_SUCCESS);
 		runflag = 0;
 		break;
 	case SIGSEGV:
