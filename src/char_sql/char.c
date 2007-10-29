@@ -3075,12 +3075,13 @@ int parse_char(int fd)
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
 
-				session[fd]->func_parse = parse_frommap;
 				server_fd[i] = fd;
 				server[i].ip = ntohl(RFIFOL(fd,54));
 				server[i].port = ntohs(RFIFOW(fd,58));
 				server[i].users = 0;
 				memset(server[i].map, 0, sizeof(server[i].map));
+				session[fd]->func_parse = parse_frommap;
+				session[fd]->client_addr = 0;
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 				char_mapif_init(fd);
 				// send gm acccounts level to map-servers
@@ -3235,15 +3236,14 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data)
 	return 0;
 }
 
+/// load this char's account id into the 'online accounts' packet
 static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
 {
 	struct online_char_data* character = (struct online_char_data*)data;
-	int *i = va_arg(ap, int*);
-	int count = va_arg(ap, int);
-	if ((*i) >= count)
-		return 0; //This is an error that shouldn't happen....
-	if(character->server > -1) {
-		WFIFOHEAD(login_fd,8+count*4);
+	int* i = va_arg(ap, int*);
+
+	if(character->server > -1)
+	{
 		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
 		(*i)++;
 		return 1;
@@ -3253,15 +3253,17 @@ static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
 
 int send_accounts_tologin(int tid, unsigned int tick, int id, int data)
 {
-	int users = count_users(), i=0;
-
-	if (login_fd > 0 && session[login_fd]) {
+	if (login_fd > 0 && session[login_fd])
+	{
 		// send account list to login server
+		int users = online_char_db->size(online_char_db);
+		int i = 0;
+
 		WFIFOHEAD(login_fd,8+users*4);
 		WFIFOW(login_fd,0) = 0x272d;
-		WFIFOL(login_fd,4) = users;
 		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i, users);
 		WFIFOW(login_fd,2) = 8+ i*4;
+		WFIFOL(login_fd,4) = i;
 		WFIFOSET(login_fd,WFIFOW(login_fd,2));
 	}
 	return 0;
@@ -3280,6 +3282,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data)
 		return 0;
 	}
 	session[login_fd]->func_parse = parse_fromlogin;
+	session[login_fd]->client_addr = 0;
 	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 	
 	WFIFOHEAD(login_fd,86);

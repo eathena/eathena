@@ -6,6 +6,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 
 2007/10/29
+	* Merged r11503 and followup fixes to the socket code
 	* Merged r11507 - better message packet checking (clif_process_message)
 	* Merged r11290 and r11499 - timers are now more precise (no caching)
 2007/10/23

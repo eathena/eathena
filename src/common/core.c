@@ -251,8 +251,7 @@ int main (int argc, char **argv)
 		int next;
 		while (runflag) {
 			next = do_timer(gettick_nocache());
-			do_sendrecv(next);
-			do_parsepacket();
+			do_sockets(next);
 		}
 	}
 
