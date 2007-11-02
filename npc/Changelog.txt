@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/11/01
+	* Rev. 11636 Fixed an incorrect answer in the blacksmith quiz. (Trojal) [L0ne_W0lf]
 2007/10/30
 	* Fixed a possible exploit in Thanatos Tower quest. [SinSloth]
 	- Thanatos can only be summoned every 2 hours, no matter how you get there.
