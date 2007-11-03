@@ -4,7 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
-
+2007/11/03
+	* Removed the temp. command compatibility code as it breaks commands
+	  sent from langtype 10 / multilanguage clients [ultramage]
 2007/10/29
 	* Merged r11503 and followup fixes to the socket code
 	* Merged r11507 - better message packet checking (clif_process_message)

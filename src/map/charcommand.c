@@ -187,22 +187,11 @@ is_charcommand(const int fd, struct map_session_data* sd, const char* message) {
 	if (!message || !*message)
 		return CharCommand_None;
 
-	// temporary compatibility layer for previous implementation
-	if( *message != charcommand_symbol )
-	{
-		str += strlen(sd->status.name);
-		while (*str && (ISSPACE(*str) || (s_flag == 0 && *str == ':'))) {
-			if (*str == ':')
-				s_flag = 1;
-			str++;
-		}
-	}
+	if(str[0] == '|' && strlen(str) >= 4 && str[3] == charcommand_symbol)
+		str += 3; // skip 10/11-langtype's codepage indicator, if detected
 
 	if (!*str)
 		return CharCommand_None;
-
-	if(str[0] == '|' && strlen(str) >= 4 && str[3] == charcommand_symbol)
-		str += 3; // skip 10/11-langtype's codepage indicator, if detected
 
 	return is_charcommand_sub(fd,sd,str,pc_isGM(sd));
 }

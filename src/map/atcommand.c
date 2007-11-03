@@ -785,22 +785,11 @@ AtCommandType is_atcommand(const int fd, struct map_session_data* sd, const char
 	if (!message || !*message)
 		return AtCommand_None;
 
-	// temporary compatibility layer for previous implementation
-	if( *message != atcommand_symbol )
-	{
-		str += strlen(sd->status.name);
-		while (*str && (ISSPACE(*str) || (s_flag == 0 && *str == ':'))) {
-			if (*str == ':')
-				s_flag = 1;
-			str++;
-		}
-	}
+	if(str[0] == '|' && strlen(str) >= 4 && str[3] == atcommand_symbol)
+		str += 3; // skip 10/11-langtype's codepage indicator, if detected
 
 	if (!*str)
 		return AtCommand_None;
-
-	if(str[0] == '|' && strlen(str) >= 4 && str[3] == atcommand_symbol)
-		str += 3; // skip 10/11-langtype's codepage indicator, if detected
 
 	return is_atcommand_sub(fd,sd,str,pc_isGM(sd));
 }
