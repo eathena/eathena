@@ -2158,7 +2158,7 @@ struct Damage battle_calc_magic_attack(
 		case MG_FIREWALL:
 		case NJ_KAENSIN:
 			ad.dmotion = 0; //No flinch animation.
-			if(mflag) //mflag has a value when it was checked against an undead in skill.c [Skotlex]
+			if ( tstatus->def_ele == ELE_FIRE || battle_check_undead(tstatus->race, tstatus->def_ele) )
 				ad.blewcount = 0; //No knockback
 			break;
 		case PR_SANCTUARY:
@@ -3631,7 +3631,6 @@ static const struct _battle_data {
 	{ "mob_max_skilllvl",                   &battle_config.mob_max_skilllvl,                MAX_SKILL_LEVEL, 1, MAX_SKILL_LEVEL, },
 	{ "retaliate_to_master",                &battle_config.retaliate_to_master,             1,      0,      1,              },
 	{ "rare_drop_announce",                 &battle_config.rare_drop_announce,              0,      0,      10000,          },
-	{ "firewall_hits_on_undead",            &battle_config.firewall_hits_on_undead,         1,      1,      255,            },
 	{ "title_lvl1",                         &battle_config.title_lvl1,                      1,      0,      100,            },
 	{ "title_lvl2",                         &battle_config.title_lvl2,                      10,     0,      100,            },
 	{ "title_lvl3",                         &battle_config.title_lvl3,                      20,     0,      100,            },

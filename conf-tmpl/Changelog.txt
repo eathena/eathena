@@ -1,5 +1,7 @@
 Date	Added
 
+2007/11/05
+	* Removed config setting firewall_hits_on_undead [ultramage]
 2007/10/16
 	* Renamed the config default_skill_delay to default_walk_delay as that is
 	  the only thing it does now.
