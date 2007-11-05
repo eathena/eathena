@@ -1,3 +1,10 @@
+11/05
+	* Merged item_db, mob_db, mob_skill_db, skill_nocast_db [Playtester]
+	- updated some items and item names
+	- updated DEF and MDEF of Moscovia mobs
+	- fixed Imp using a too high level of Firebolt
+	- disabled Teleport and Snatch in Zone 3 maps
+	- updated sql files
 10/29
 	* Rev. 11616 Updated to fix errors reported by Zephyrus_CR. bugreport:334 [L0ne_W0lf]
 10/28
