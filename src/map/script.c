@@ -5983,7 +5983,7 @@ BUILDIN_FUNC(getitem)
 	else if( (flag=pc_additem(sd,&it,amount)) ){
 		clif_additem(sd,0,0,flag);
 		if( pc_candrop(sd,&it) )
-			map_addflooritem(&it,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			map_addflooritem(&it,amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 	}
 
 	//Logs items, got from (N)PC scripts [Lupus]
@@ -6067,7 +6067,7 @@ BUILDIN_FUNC(getitem2)
 		item_tmp.card[3]=c4;
 		if((flag = pc_additem(sd,&item_tmp,amount))) {
 			clif_additem(sd,0,0,flag);
-			map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			map_addflooritem(&item_tmp,amount,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 		}
 
 		//Logs items, got from (N)PC scripts [Lupus]
@@ -6214,7 +6214,7 @@ BUILDIN_FUNC(makeitem)
 		else
 			item_tmp.identify=itemdb_isidentified(nameid);
 
-		map_addflooritem(&item_tmp,amount,m,x,y,NULL,NULL,NULL,0);
+		map_addflooritem(&item_tmp,amount,m,x,y,0,0,0,0);
 	}
 
 	return 0;
@@ -9782,7 +9782,7 @@ BUILDIN_FUNC(successremovecards)
 
 			if((flag=pc_additem(sd,&item_tmp,1))){	// 持てないならドロップ
 				clif_additem(sd,0,0,flag);
-				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
 		}
 	}while(c--);
@@ -9807,7 +9807,7 @@ BUILDIN_FUNC(successremovecards)
 
 		if((flag=pc_additem(sd,&item_tmp,1))){	// もてないならドロップ
 			clif_additem(sd,0,0,flag);
-			map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+			map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 		}
 		clif_misceffect(&sd->bl,3);
 		return 0;
@@ -9859,7 +9859,7 @@ BUILDIN_FUNC(failedremovecards)
 
 				if((flag=pc_additem(sd,&item_tmp,1))){
 					clif_additem(sd,0,0,flag);
-					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+					map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 				}
 			}
 		}
@@ -9896,7 +9896,7 @@ BUILDIN_FUNC(failedremovecards)
 
 			if((flag=pc_additem(sd,&item_tmp,1))){
 				clif_additem(sd,0,0,flag);
-				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,NULL,NULL,NULL,0);
+				map_addflooritem(&item_tmp,1,sd->bl.m,sd->bl.x,sd->bl.y,0,0,0,0);
 			}
 		}
 		clif_misceffect(&sd->bl,2);
