@@ -533,7 +533,7 @@ int npc_timerevent_stop(struct npc_data* nd)
 		return 0;
 	td = get_timer(*tid);
 	if (td && td->data) 
-		ers_free(timer_event_ers, (struct event_timer_data*)td->data);
+		ers_free(timer_event_ers, (void*)td->data);
 	delete_timer(*tid,npc_timerevent);
 	*tid = -1;
 	//Set the timer tick to the time that has passed since the beginning of the timers and now.
@@ -1317,7 +1317,7 @@ int npc_unload(struct npc_data* nd)
 			struct TimerData *td = NULL;
 			td = get_timer(nd->u.scr.timerid);
 			if (td && td->data) 
-				ers_free(timer_event_ers, (struct event_timer_data*)td->data);
+				ers_free(timer_event_ers, (void*)td->data);
 			delete_timer(nd->u.scr.timerid, npc_timerevent);
 		}
 		if (nd->u.scr.timer_event)

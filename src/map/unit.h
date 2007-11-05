@@ -43,12 +43,12 @@ int unit_attack(struct block_list *src,int target_id,int continuous);
 int unit_cancel_combo(struct block_list *bl);
 
 // スキル使用
-int unit_skilluse_id(struct block_list *src, int target_id, int skill_num, int skill_lv);
-int unit_skilluse_pos(struct block_list *src, short skill_x, short skill_y, int skill_num, int skill_lv);
+int unit_skilluse_id(struct block_list *src, int target_id, short skill_num, short skill_lv);
+int unit_skilluse_pos(struct block_list *src, short skill_x, short skill_y, short skill_num, short skill_lv);
 
 // スキル使用( 補正済みキャスト時間、キャンセル不可設定付き )
-int unit_skilluse_id2(struct block_list *src, int target_id, int skill_num, int skill_lv, int casttime, int castcancel);
-int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, int skill_num, int skill_lv, int casttime, int castcancel);
+int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, short skill_lv, int casttime, int castcancel);
+int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, short skill_num, short skill_lv, int casttime, int castcancel);
 
 // 詠唱キャンセル
 int unit_skillcastcancel(struct block_list *bl,int type);

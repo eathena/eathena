@@ -4589,12 +4589,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if(skilllv == 1) {
 				// possibility to skip menu [LuzZza]
 				if(!battle_config.skip_teleport_lv1_menu && sd->skillitem != AL_TELEPORT)
-					clif_skill_warppoint(sd,skillid,skilllv, -1,0,0,0);
+					clif_skill_warppoint(sd,skillid,skilllv, (unsigned short)-1,0,0,0);
 				else
 					pc_randomwarp(sd,3);
 			} else {
 				if (sd->skillitem != AL_TELEPORT)
-					clif_skill_warppoint(sd,skillid,skilllv, -1,sd->status.save_point.map,0,0);
+					clif_skill_warppoint(sd,skillid,skilllv, (unsigned short)-1,sd->status.save_point.map,0,0);
 				else //Autocasted Teleport level 2??
 					pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
 			}
@@ -6490,7 +6490,7 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 /*==========================================
  * 
  *------------------------------------------*/
-int skill_castend_map (struct map_session_data *sd, int skill_num, const char *map)
+int skill_castend_map (struct map_session_data *sd, short skill_num, const char *map)
 {
 	int x=0,y=0;
 
@@ -6714,7 +6714,7 @@ static bool skill_dance_switch(struct skill_unit* unit, int flag)
  * flag&1 is used to determine when the skill 'morphs' (Warp portal becomes active, or Fire Pillar becomes active)
  * flag&2 is used to determine if this skill was casted with Magic Power active.
  *------------------------------------------*/
-struct skill_unit_group *skill_unitsetting (struct block_list *src, int skillid, int skilllv, int x, int y, int flag)
+struct skill_unit_group* skill_unitsetting (struct block_list *src, short skillid, short skilllv, short x, short y, int flag)
 {
 	struct skill_unit_group *group;
 	int i,limit,val1=0,val2=0,val3=0;
@@ -7963,13 +7963,13 @@ static int skill_check_condition_char_sub (struct block_list *bl, va_list ap)
 			}
 			break;
 	}
-	return 0;
+	//return 0;
 }
 
 /*==========================================
  * Checks and stores partners for ensemble skills [Skotlex]
  *------------------------------------------*/
-int skill_check_pc_partner (struct map_session_data *sd, int skill_id, int* skill_lv, int range, int cast_flag)
+int skill_check_pc_partner (struct map_session_data *sd, short skill_id, short* skill_lv, int range, int cast_flag)
 {
 	static int c=0;
 	static int p_sd[2] = { 0, 0 };
@@ -8060,7 +8060,7 @@ int skill_isammotype (struct map_session_data *sd, int skill)
  * &1: finished casting the skill (invoke hp/sp/item consumption)
  * &2: picked menu entry (Warp Portal, Teleport and other menu based skills)
  *------------------------------------------*/
-int skill_check_condition (struct map_session_data *sd, int skill, int lv, int type)
+int skill_check_condition(struct map_session_data* sd, short skill, short lv, int type)
 {
 	struct status_data *status;
 	struct status_change *sc;
@@ -9970,7 +9970,7 @@ int skill_delunit (struct skill_unit* unit)
  *------------------------------------------*/
 static int skill_unit_group_newid = MAX_SKILL_DB;
 
-struct skill_unit_group *skill_initunitgroup (struct block_list *src, int count, int skillid, int skilllv, int unit_id, int limit, int interval)
+struct skill_unit_group* skill_initunitgroup (struct block_list* src, int count, short skillid, short skilllv, int unit_id, int limit, int interval)
 {
 	struct unit_data* ud = unit_bl2ud( src );
 	struct skill_unit_group* group;
@@ -10416,7 +10416,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 	{
 		if( flag&1 )
 		{
-			unsigned int result = skill_unit_onplace(unit,target,tick);
+			int result = skill_unit_onplace(unit,target,tick);
 			if( flag&2 && result )
 			{	//Clear skill ids we have stored in onout.
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == result );
@@ -10426,7 +10426,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 		}
 		else
 		{
-			unsigned int result = skill_unit_onout(unit,target,tick);
+			int result = skill_unit_onout(unit,target,tick);
 			if( flag&2 && result )
 			{	//Store this unit id.
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
