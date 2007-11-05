@@ -106,6 +106,7 @@ char *GRF_PATH_FILENAME;
 static struct dbt * id_db=NULL;// id -> struct block_list
 static struct dbt * pc_db=NULL;// id -> struct map_session_data
 static struct dbt * map_db=NULL;
+static struct dbt * nick_db=NULL;// charid -> struct charid2nick (requested names of offline characters)
 static struct dbt * charid_db=NULL;// charid -> struct map_session_data
 
 static int map_users=0;
@@ -131,9 +132,13 @@ int save_settings = 0xFFFF;
 int agit_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
 
+struct charid_request {
+	struct charid_request* next;
+	int charid;// who want to be notified of the nick
+};
 struct charid2nick {
 	char nick[NAME_LENGTH];
-	int req_id;
+	struct charid_request* requests;// requests of notification on this nick
 };
 
 char map_cache_file[256]="db/map.info"; // ｫﾞｫﾃｫﾗｫｭｫ罩ﾃｫｷｫ雖ﾕｫ｡ｫ､ｫ・｣
@@ -1555,45 +1560,88 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,int fir
 static void* create_charid2nick(DBKey key, va_list args)
 {
 	struct charid2nick *p;
-	p = (struct charid2nick *)aCallocA(1, sizeof (struct charid2nick));
+	CREATE(p, struct charid2nick, 1);
 	return p;
 }
 
-/*==========================================
- * charid_dbへ追加(返信待ちがあれば返信)
- *------------------------------------------*/
-void map_addchariddb(int charid, char* name)
+/// Adds(or replaces) the nick of charid to nick_db and fullfils pending requests.
+/// Does nothing if the character is online.
+void map_addnickdb(int charid, const char* nick)
 {
 	struct charid2nick* p;
-	int req = 0;
+	struct charid_request* req;
+	struct map_session_data* sd;
 
-	p = idb_ensure(charid_db, charid, create_charid2nick);
-	req = p->req_id;
-	p->req_id = 0;
-	//We overwrite the nick anyway in case a different one arrived.
-	memcpy(p->nick, name, NAME_LENGTH);
+	if( map_charid2sd(charid) )
+		return;// already online
 
-	if (req) {
-		struct map_session_data* sd = map_id2sd(req);
-		if (sd) clif_solved_charname(sd,charid);
+	p = idb_ensure(nick_db, charid, create_charid2nick);
+	safestrncpy(p->nick, nick, sizeof(p->nick));
+
+	while( p->requests )
+	{
+		req = p->requests;
+		p->requests = req->next;
+		sd = map_charid2sd(req->charid);
+		if( sd )
+			clif_solved_charname(sd->fd, charid, p->nick);
+		aFree(req);
 	}
 }
 
-/*==========================================
- * charid_dbへ追加（返信要求のみ）
- *------------------------------------------*/
-int map_reqchariddb(struct map_session_data * sd,int charid)
+/// Removes the nick of charid from nick_db.
+/// Sends name to all pending requests on charid.
+void map_delnickdb(int charid, const char* name)
 {
-	struct charid2nick *p=NULL;
+	struct charid2nick* p;
+	struct charid_request* req;
+	struct map_session_data* sd;
 
-	nullpo_retr(0, sd);
+	p = idb_remove(nick_db, charid);
+	if( p == NULL )
+		return;
 
-	p = (struct charid2nick*)idb_get(charid_db,charid);
-	if(p) return 0; //Nothing to request, we already have the name!
-	p = (struct charid2nick *)aCalloc(1,sizeof(struct charid2nick));
-	p->req_id=sd->bl.id;
-	idb_put(charid_db,charid,p);
-	return 0;
+	while( p->requests )
+	{
+		req = p->requests;
+		p->requests = req->next;
+		sd = map_charid2sd(req->charid);
+		if( sd )
+			clif_solved_charname(sd->fd, charid, name);
+		aFree(req);
+	}
+	aFree(p);
+}
+
+/// Notifies sd of the nick of charid.
+/// Uses the name in the character if online.
+/// Uses the name in nick_db if offline.
+void map_reqnickdb(struct map_session_data * sd, int charid)
+{
+	struct charid2nick* p;
+	struct charid_request* req;
+	struct map_session_data* tsd;
+
+	nullpo_retv(sd);
+
+	tsd = map_charid2sd(charid);
+	if( tsd )
+	{
+		clif_solved_charname(sd->fd, charid, tsd->status.name);
+		return;
+	}
+
+	p = (struct charid2nick*)idb_ensure(nick_db, charid, create_charid2nick);
+	if( *p->nick )
+	{
+		clif_solved_charname(sd->fd, charid, p->nick);
+		return;
+	}
+	// not in cache, request it
+	CREATE(req, struct charid_request, 1);
+	req->next = p->requests;
+	p->requests = req;
+	chrif_searchcharid(charid);
 }
 
 /*==========================================
@@ -1604,7 +1652,11 @@ void map_addiddb(struct block_list *bl)
 	nullpo_retv(bl);
 
 	if (bl->type == BL_PC)
-		idb_put(pc_db,bl->id,bl);
+	{
+		TBL_PC* sd = (TBL_PC*)bl;
+		idb_put(pc_db,sd->bl.id,sd);
+		idb_put(charid_db,sd->status.char_id,sd);
+	}
 	idb_put(id_db,bl->id,bl);
 }
 
@@ -1616,7 +1668,11 @@ void map_deliddb(struct block_list *bl)
 	nullpo_retv(bl);
 
 	if (bl->type == BL_PC)
-		idb_remove(pc_db,bl->id);
+	{
+		TBL_PC* sd = (TBL_PC*)bl;
+		idb_remove(pc_db,sd->bl.id);
+		idb_remove(charid_db,sd->status.char_id);
+	}
 	idb_remove(id_db,bl->id);
 }
 
@@ -1634,9 +1690,7 @@ int map_quit(struct map_session_data *sd)
 		//Double login, let original do the cleanups below.
 		if (sd2 && sd2 != sd)
 			return 0;
-		idb_remove(id_db,sd->bl.id);
-		idb_remove(pc_db,sd->status.account_id);
-		idb_remove(charid_db,sd->status.char_id);
+		map_deliddb(&sd->bl);
 		return 0;
 	}
 	if(!sd->state.waitingdisconnect) {
@@ -1659,8 +1713,6 @@ int map_quit(struct map_session_data *sd)
 			unit_remove_map(&sd->hd->bl, 0);
 	}
 
-	//Do we really need to remove the name?
-	idb_remove(charid_db,sd->status.char_id);
 	idb_remove(id_db,sd->bl.id);
 
 	if(sd->reg)
@@ -1695,6 +1747,7 @@ void map_quit_ack(struct map_session_data *sd)
 {
 	if (sd && sd->state.finalsave) {
 		idb_remove(pc_db,sd->status.account_id);
+		idb_remove(charid_db,sd->status.char_id);
 		aFree(sd);
 	}
 }
@@ -1724,31 +1777,28 @@ struct map_session_data * map_id2sd(int id)
 	return (struct map_session_data*)idb_get(pc_db,id);
 }
 
-/*==========================================
- * char_id番?の名前を探す
- *------------------------------------------*/
-const char * map_charid2nick(int id)
+/// Returns the nick of the target charid or NULL if unknown (requests the nick to the char server).
+const char* map_charid2nick(int charid)
 {
-	struct charid2nick *p = (struct charid2nick*)idb_get(charid_db,id);
+	struct charid2nick *p;
+	struct map_session_data* sd;
 
-	if(p==NULL)
-		return NULL;
-	return p->nick;
+	sd = map_charid2sd(charid);
+	if( sd )
+		return sd->status.name;// character is online, return it's name
+
+	p = (struct charid2nick*)idb_ensure(nick_db, charid, create_charid2nick);
+	if( *p->nick )
+		return p->nick;// name in nick_db
+
+	chrif_searchcharid(charid);// request the name
+	return NULL;
 }
 
-struct map_session_data * map_charid2sd(int id)
+/// Returns the struct map_session_data of the charid or NULL if the char is not online.
+struct map_session_data* map_charid2sd(int charid)
 {
-	int i, users;
-	struct map_session_data **all_sd;
-
-	if (id <= 0) return 0;
-
-	all_sd = map_getallusers(&users);
-	for(i = 0; i < users; i++)
-		if (all_sd[i] && all_sd[i]->status.char_id == id)
-			return all_sd[i];
-
-	return NULL;
+	return (struct map_session_data*)idb_get(charid_db, charid);
 }
 
 /*==========================================
@@ -3262,10 +3312,20 @@ int map_db_final(DBKey k,void *d,va_list ap)
 	return 0;
 }
 
-int nick_db_final(void *k,void *d,va_list ap)
+int nick_db_final(DBKey key, void *data, va_list args)
 {
-	char *p = (char *) d;
-	if (p) aFree(p);
+	struct charid2nick* p = (struct charid2nick*)data;
+	struct charid_request* req;
+
+	if( p == NULL )
+		return 0;
+	while( p->requests )
+	{
+		req = p->requests;
+		p->requests = req->next;
+		aFree(req);
+	}
+	aFree(p);
 	return 0;
 }
 
@@ -3381,6 +3441,7 @@ void do_final(void)
 
 	id_db->destroy(id_db, NULL);
 	pc_db->destroy(pc_db, NULL);
+	nick_db->destroy(nick_db, nick_db_final);
 	charid_db->destroy(charid_db, NULL);
 
 #ifndef TXT_ONLY
@@ -3561,7 +3622,8 @@ int do_init(int argc, char *argv[])
 	id_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 	pc_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));	//Added for reliable map_id2sd() use. [Skotlex]
 	map_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
-	charid_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	nick_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
+	charid_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int));
 #ifndef TXT_ONLY
 	map_sql_init();
 #endif /* not TXT_ONLY */
