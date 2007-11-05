@@ -13,11 +13,12 @@
 #include "../common/utils.h"
 
 #include "atcommand.h"
-#include "log.h"
+#include "battle.h"
 #include "clif.h"
 #include "chrif.h"
 #include "intif.h"
 #include "itemdb.h"
+#include "log.h"
 #include "map.h"
 #include "pc.h"
 #include "status.h"
@@ -25,12 +26,10 @@
 #include "mob.h"
 #include "npc.h"
 #include "pet.h"
-#include "mercenary.h" //[orn]
-#include "battle.h"
+#include "mercenary.h"
 #include "party.h"
 #include "guild.h"
 #include "script.h"
-#include "npc.h"
 #include "trade.h"
 #include "unit.h"
 
@@ -43,613 +42,32 @@
 #include <string.h>
 #include <math.h>
 
-char atcommand_symbol = '@'; // first char of the commands (by [Yor])
+// extern variables
+char atcommand_symbol = '@'; // first char of the commands
+char* msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
 
-char *msg_table[MAX_MSG]; // Server messages (0-499 reserved for GM commands, 500-999 reserved for others)
-
+// local declarations
 #define ACMD_FUNC(x) int atcommand_ ## x (const int fd, struct map_session_data* sd, const char* command, const char* message)
-ACMD_FUNC(broadcast);
-ACMD_FUNC(localbroadcast);
-ACMD_FUNC(rura);
-ACMD_FUNC(where);
-ACMD_FUNC(jumpto);
-ACMD_FUNC(jump);
-ACMD_FUNC(who);
-ACMD_FUNC(who2);
-ACMD_FUNC(who3);
-ACMD_FUNC(whomap);
-ACMD_FUNC(whomap2);
-ACMD_FUNC(whomap3);
-ACMD_FUNC(whogm); // by Yor
-ACMD_FUNC(whozeny); // [Valaris]
-ACMD_FUNC(save);
-ACMD_FUNC(load);
-ACMD_FUNC(speed);
-ACMD_FUNC(charspeed);
-ACMD_FUNC(storage);
-ACMD_FUNC(guildstorage);
-ACMD_FUNC(option);
-ACMD_FUNC(hide);
-ACMD_FUNC(jobchange);
-ACMD_FUNC(die);
-ACMD_FUNC(kill);
-ACMD_FUNC(alive);
-ACMD_FUNC(kami);
-ACMD_FUNC(heal);
-ACMD_FUNC(item);
-ACMD_FUNC(item2);
-ACMD_FUNC(itemreset);
-ACMD_FUNC(baselevelup);
-ACMD_FUNC(joblevelup);
-ACMD_FUNC(help);
-ACMD_FUNC(help2);
-ACMD_FUNC(gm);
-ACMD_FUNC(pvpoff);
-ACMD_FUNC(pvpon);
-ACMD_FUNC(gvgoff);
-ACMD_FUNC(gvgon);
-ACMD_FUNC(model);
-ACMD_FUNC(go);
-ACMD_FUNC(monster);
-ACMD_FUNC(monstersmall);
-ACMD_FUNC(monsterbig);
-ACMD_FUNC(spawn);
-ACMD_FUNC(killmonster);
-ACMD_FUNC(killmonster2);
-ACMD_FUNC(refine);
-ACMD_FUNC(produce);
-ACMD_FUNC(memo);
-ACMD_FUNC(gat);
-ACMD_FUNC(packet);
-ACMD_FUNC(statuspoint);
-ACMD_FUNC(skillpoint);
-ACMD_FUNC(zeny);
-ACMD_FUNC(param);
-ACMD_FUNC(guildlevelup);
-ACMD_FUNC(makeegg);
-ACMD_FUNC(hatch);
-ACMD_FUNC(petfriendly);
-ACMD_FUNC(pethungry);
-ACMD_FUNC(petrename);
-ACMD_FUNC(recall);
-ACMD_FUNC(recallall);
-ACMD_FUNC(revive);
-ACMD_FUNC(night);
-ACMD_FUNC(day);
-ACMD_FUNC(doom);
-ACMD_FUNC(doommap);
-ACMD_FUNC(raise);
-ACMD_FUNC(raisemap);
-ACMD_FUNC(kick);
-ACMD_FUNC(kickall);
-ACMD_FUNC(allskill);
-ACMD_FUNC(questskill);
-ACMD_FUNC(lostskill);
-ACMD_FUNC(spiritball);
-ACMD_FUNC(party);
-ACMD_FUNC(guild);
-ACMD_FUNC(agitstart);
-ACMD_FUNC(agitend);
-ACMD_FUNC(reloaditemdb);
-ACMD_FUNC(reloadmobdb);
-ACMD_FUNC(reloadskilldb);
-ACMD_FUNC(reloadscript);
-ACMD_FUNC(reloadgmdb); // by Yor
-ACMD_FUNC(reloadatcommand);
-ACMD_FUNC(reloadbattleconf);
-ACMD_FUNC(reloadstatusdb);
-ACMD_FUNC(reloadpcdb);
-ACMD_FUNC(reloadmotd); // [Valaris]
-ACMD_FUNC(mapexit);
-ACMD_FUNC(idsearch);
-ACMD_FUNC(mapinfo);
-ACMD_FUNC(dye); //** by fritz
-ACMD_FUNC(hair_style); //** by fritz
-ACMD_FUNC(hair_color); //** by fritz
-ACMD_FUNC(stat_all); //** by fritz
-ACMD_FUNC(char_block); // by Yor
-ACMD_FUNC(char_ban); // by Yor
-ACMD_FUNC(char_unblock); // by Yor
-ACMD_FUNC(char_unban); // by Yor
-ACMD_FUNC(mount_peco); // by Valaris
-ACMD_FUNC(char_mount_peco); // by Yor
-ACMD_FUNC(guildspy); // [Syrus22]
-ACMD_FUNC(partyspy); // [Syrus22]
-ACMD_FUNC(repairall); // [Valaris]
-ACMD_FUNC(guildrecall); // by Yor
-ACMD_FUNC(partyrecall); // by Yor
-ACMD_FUNC(nuke); // [Valaris]
-ACMD_FUNC(shownpc);
-ACMD_FUNC(hidenpc);
-ACMD_FUNC(loadnpc);
-ACMD_FUNC(unloadnpc);
-ACMD_FUNC(servertime); // by Yor
-ACMD_FUNC(chardelitem); // by Yor
-ACMD_FUNC(jail); // by Yor
-ACMD_FUNC(unjail); // by Yor
-ACMD_FUNC(jailfor); // Alias Meruru
-ACMD_FUNC(jailtime); // Coltaro
-ACMD_FUNC(charjailtime); // Coltaro
-ACMD_FUNC(disguise); // [Valaris]
-ACMD_FUNC(undisguise); // by Yor
-ACMD_FUNC(chardisguise); // Kalaspuff
-ACMD_FUNC(charundisguise); // Kalaspuff
-ACMD_FUNC(email); // by Yor
-ACMD_FUNC(effect);//by Apple
-ACMD_FUNC(character_cart_list); // by Yor
-ACMD_FUNC(addwarp); // by MouseJstr
-ACMD_FUNC(follow); // by MouseJstr
-ACMD_FUNC(skillon); // by MouseJstr
-ACMD_FUNC(skilloff); // by MouseJstr
-ACMD_FUNC(killer); // by MouseJstr
-ACMD_FUNC(npcmove); // by MouseJstr
-ACMD_FUNC(killable); // by MouseJstr
-ACMD_FUNC(charkillable); // by MouseJstr
-ACMD_FUNC(dropall); // by MouseJstr
-ACMD_FUNC(chardropall); // by MouseJstr
-ACMD_FUNC(storeall); // by MouseJstr
-ACMD_FUNC(charstoreall); // by MouseJstr
-ACMD_FUNC(skillid); // by MouseJstr
-ACMD_FUNC(useskill); // by MouseJstr
-ACMD_FUNC(summon);
-ACMD_FUNC(rain);
-ACMD_FUNC(snow);
-ACMD_FUNC(sakura);
-ACMD_FUNC(clouds);
-ACMD_FUNC(clouds2); // [Valaris]
-ACMD_FUNC(fog);
-ACMD_FUNC(fireworks);
-ACMD_FUNC(leaves);
-ACMD_FUNC(adjgmlvl); // by MouseJstr
-ACMD_FUNC(adjcmdlvl); // by MouseJstr
-ACMD_FUNC(trade); // by MouseJstr
-ACMD_FUNC(send); // by davidsiaw
-ACMD_FUNC(setbattleflag); // by MouseJstr
-ACMD_FUNC(unmute); // [Valaris]
-ACMD_FUNC(clearweather); // Dexity
-ACMD_FUNC(uptime); // by MC Cameri
-ACMD_FUNC(changesex); // by MC Cameri
-ACMD_FUNC(mute); // celest
-ACMD_FUNC(refresh); // by MC Cameri
-ACMD_FUNC(petid); // by MC Cameri
-ACMD_FUNC(identify); // by MC Cameri
-ACMD_FUNC(gmotd); // Added by MC Cameri, created by davidsiaw
-ACMD_FUNC(misceffect); // by MC Cameri
-ACMD_FUNC(mobsearch);
-ACMD_FUNC(cleanmap);
-ACMD_FUNC(npctalk);
-ACMD_FUNC(pettalk);
-ACMD_FUNC(users);
-ACMD_FUNC(reset);
-ACMD_FUNC(autoloot);  // Improved version imported from Freya.
 
-#ifndef TXT_ONLY
-ACMD_FUNC(checkmail); // [Valaris]
-ACMD_FUNC(listmail); // [Valaris]
-ACMD_FUNC(listnewmail); // [Valaris]
-ACMD_FUNC(readmail); // [Valaris]
-ACMD_FUNC(deletemail); // [Valaris]
-ACMD_FUNC(sendmail); // [Valaris]
-ACMD_FUNC(sendprioritymail); // [Valaris]
-ACMD_FUNC(refreshonline); // [Valaris]
-#endif /* TXT_ONLY */
+typedef struct AtCommandInfo
+{
+	const char* command;
+	int level;
+	AtCommandFunc func;
+} AtCommandInfo;
 
-ACMD_FUNC(skilltree); // by MouseJstr
+static AtCommandInfo* get_atcommandinfo_byname(const char* name);
+static AtCommandInfo* get_atcommandinfo_byfunc(const AtCommandFunc func);
 
-ACMD_FUNC(marry); // by MouseJstr
-ACMD_FUNC(divorce); // by MouseJstr
+int atcommand_commands(const int fd, struct map_session_data* sd, const char* command, const char* message);
 
-ACMD_FUNC(grind); // by MouseJstr
-ACMD_FUNC(grind2); // by MouseJstr
-
-#ifdef DMALLOC
-ACMD_FUNC(dmstart); // by MouseJstr
-ACMD_FUNC(dmtick); // by MouseJstr
-#endif
-
-ACMD_FUNC(jumptoid2); // by Dino9021
-ACMD_FUNC(recallid2); // by Dino9021
-ACMD_FUNC(kickid2); // by Dino9021
-ACMD_FUNC(reviveid2); // by Dino9021
-ACMD_FUNC(killid2); // by Dino9021
-ACMD_FUNC(charkillableid); // by Dino9021
-ACMD_FUNC(charkillableid2);  // by Dino9021
-ACMD_FUNC(sound);
-ACMD_FUNC(undisguiseall);
-ACMD_FUNC(disguiseall);
-ACMD_FUNC(changelook);
-ACMD_FUNC(mobinfo); //by Lupus
-ACMD_FUNC(exp); // by Skotlex
-ACMD_FUNC(adopt); // by Veider
-
-ACMD_FUNC(version); // by Ancyker
-
-ACMD_FUNC(mutearea); // by MouseJstr
-ACMD_FUNC(rates); // by MouseJstr
-
-ACMD_FUNC(iteminfo); // Lupus
-ACMD_FUNC(whodrops); //Skotlex 
-ACMD_FUNC(whereis); //Skotlex 
-ACMD_FUNC(mapflag); // Lupus
-ACMD_FUNC(me); //added by massdriller, code by lordalfa
-ACMD_FUNC(monsterignore); // [Valaris]
-ACMD_FUNC(fakename); //[Valaris]
-ACMD_FUNC(size); //[Valaris]
-ACMD_FUNC(showexp); //moved from charcommand [Kevin]
-ACMD_FUNC(showzeny); 
-ACMD_FUNC(showdelay); //moved from charcommand [Kevin]
-ACMD_FUNC(autotrade);// durf
-ACMD_FUNC(changeleader);// [Skotlex]
-ACMD_FUNC(partyoption);// [Skotlex]
-ACMD_FUNC(changegm);// durf
-
-// Duel [LuzZza]
-ACMD_FUNC(invite);
-ACMD_FUNC(duel);
-ACMD_FUNC(leave);
-ACMD_FUNC(accept);
-ACMD_FUNC(reject);
-
-ACMD_FUNC(away); // LuzZza
-ACMD_FUNC(main); // LuzZza
-
-ACMD_FUNC(clone); // [Valaris]
-ACMD_FUNC(tonpc); // LuzZza
-ACMD_FUNC(commands); // [Skotlex]
-ACMD_FUNC(noask); //LuzZza
-ACMD_FUNC(request); //[Skotlex]
-
-ACMD_FUNC(homlevel); //[orn]
-ACMD_FUNC(homevolution); //[orn]
-ACMD_FUNC(makehomun); //[orn]
-ACMD_FUNC(homfriendly); //[orn]
-ACMD_FUNC(homhungry); //[orn]
-ACMD_FUNC(homtalk); //[orn]
-ACMD_FUNC(hominfo); //[Toms]
-ACMD_FUNC(homstats); //[Skotlex]
-ACMD_FUNC(homshuffle); //[Skotlex]
-ACMD_FUNC(showmobs); //KarLaeda
-
-/*==========================================
- *AtCommandInfo atcommand_info[] structure definition
- *------------------------------------------*/
-
-// First char of commands is configured in atcommand_athena.conf. Leave @ in this list for default value.
-// to set default level, read atcommand_athena.conf first please.
-static AtCommandInfo atcommand_info[] = {
-	{ AtCommand_Rura,               "@rura",            40, atcommand_rura },
-	{ AtCommand_Warp,               "@warp",            40, atcommand_rura },
-	{ AtCommand_MapMove,            "@mapmove",         40, atcommand_rura }, // /mm command
-	{ AtCommand_Where,              "@where",            1, atcommand_where },
-	{ AtCommand_JumpTo,             "@jumpto",          20, atcommand_jumpto }, // + /shift
-	{ AtCommand_JumpTo,             "@warpto",          20, atcommand_jumpto },
-	{ AtCommand_JumpTo,             "@goto",            20, atcommand_jumpto },
-	{ AtCommand_Jump,               "@jump",            40, atcommand_jump },
-	{ AtCommand_Who,                "@who",             20, atcommand_who },
-	{ AtCommand_Who,                "@whois",           20, atcommand_who },
-	{ AtCommand_Who2,               "@who2",            20, atcommand_who2 },
-	{ AtCommand_Who3,               "@who3",            20, atcommand_who3 },
-	{ AtCommand_WhoMap,             "@whomap",          20, atcommand_whomap },
-	{ AtCommand_WhoMap2,            "@whomap2",         20, atcommand_whomap2 },
-	{ AtCommand_WhoMap3,            "@whomap3",         20, atcommand_whomap3 },
-	{ AtCommand_WhoGM,              "@whogm",           20, atcommand_whogm }, // by Yor
-	{ AtCommand_Save,               "@save",            40, atcommand_save },
-	{ AtCommand_Load,               "@return",          40, atcommand_load },
-	{ AtCommand_Load,               "@load",            40, atcommand_load },
-	{ AtCommand_Speed,              "@speed",           40, atcommand_speed },
-	{ AtCommand_CharSpeed,          "@charspeed",       40, atcommand_charspeed },
-	{ AtCommand_Storage,            "@storage",          1, atcommand_storage },
-	{ AtCommand_GuildStorage,       "@gstorage",        50, atcommand_guildstorage },
-	{ AtCommand_Option,             "@option",          40, atcommand_option },
-	{ AtCommand_Hide,               "@hide",            40, atcommand_hide }, // + /hide
-	{ AtCommand_JobChange,          "@jobchange",       40, atcommand_jobchange },
-	{ AtCommand_JobChange,          "@job",             40, atcommand_jobchange },
-	{ AtCommand_Die,                "@die",              1, atcommand_die },
-	{ AtCommand_Kill,               "@kill",            60, atcommand_kill },
-	{ AtCommand_Alive,              "@alive",           60, atcommand_alive },
-	{ AtCommand_Kami,               "@kami",            40, atcommand_kami },
-	{ AtCommand_KamiB,              "@kamib",           40, atcommand_kami },
-	{ AtCommand_KamiC,              "@kamic",           40, atcommand_kami }, //[LuzZza]
-	{ AtCommand_Heal,               "@heal",            40, atcommand_heal },
-	{ AtCommand_Item,               "@item",            60, atcommand_item },
-	{ AtCommand_Item2,              "@item2",           60, atcommand_item2 },
-	{ AtCommand_ItemReset,          "@itemreset",       40, atcommand_itemreset },
-	{ AtCommand_BaseLevelUp,        "@lvup",            60, atcommand_baselevelup },
-	{ AtCommand_BaseLevelUp,        "@blevel",          60, atcommand_baselevelup },
-	{ AtCommand_BaseLevelUp,        "@baselvlup",       60, atcommand_baselevelup },
-	{ AtCommand_JobLevelUp,         "@jlevel",          60, atcommand_joblevelup },
-	{ AtCommand_JobLevelUp,         "@joblvup",         60, atcommand_joblevelup },
-	{ AtCommand_JobLevelUp,         "@joblvlup",        60, atcommand_joblevelup },
-	{ AtCommand_H,                  "@h",               20, atcommand_help },
-	{ AtCommand_Help,               "@help",            20, atcommand_help },
-	{ AtCommand_H2,                 "@h2",              20, atcommand_help2 },
-	{ AtCommand_Help2,              "@help2",           20, atcommand_help2 },
-	{ AtCommand_GM,                 "@gm",             100, atcommand_gm },
-	{ AtCommand_PvPOff,             "@pvpoff",          40, atcommand_pvpoff },
-	{ AtCommand_PvPOn,              "@pvpon",           40, atcommand_pvpon },
-	{ AtCommand_GvGOff,             "@gvgoff",          40, atcommand_gvgoff },
-	{ AtCommand_GvGOff,             "@gpvpoff",         40, atcommand_gvgoff },
-	{ AtCommand_GvGOn,              "@gvgon",           40, atcommand_gvgon },
-	{ AtCommand_GvGOn,              "@gpvpon",          40, atcommand_gvgon },
-	{ AtCommand_Model,              "@model",           20, atcommand_model },
-	{ AtCommand_Go,                 "@go",              10, atcommand_go },
-	{ AtCommand_Spawn,              "@monster",         50, atcommand_monster },
-	{ AtCommand_Spawn,              "@spawn",           50, atcommand_monster },
-	{ AtCommand_MonsterSmall,       "@monstersmall",    50, atcommand_monstersmall },
-	{ AtCommand_MonsterBig,         "@monsterbig",      50, atcommand_monsterbig },
-	{ AtCommand_KillMonster,        "@killmonster",     60, atcommand_killmonster },
-	{ AtCommand_KillMonster2,       "@killmonster2",    40, atcommand_killmonster2 },
-	{ AtCommand_Refine,             "@refine",          60, atcommand_refine },
-	{ AtCommand_Produce,            "@produce",         60, atcommand_produce },
-	{ AtCommand_Memo,               "@memo",            40, atcommand_memo },
-	{ AtCommand_GAT,                "@gat",             99, atcommand_gat }, // debug function
-	{ AtCommand_Packet,             "@packet",          99, atcommand_packet }, // debug function
-	{ AtCommand_Packet,             "@packetmode",      99, atcommand_packet }, // debug function
-	{ AtCommand_StatusPoint,        "@stpoint",         60, atcommand_statuspoint },
-	{ AtCommand_SkillPoint,         "@skpoint",         60, atcommand_skillpoint },
-	{ AtCommand_Zeny,               "@zeny",            60, atcommand_zeny },
-	{ AtCommand_Strength,           "@str",             60, atcommand_param },
-	{ AtCommand_Agility,            "@agi",             60, atcommand_param },
-	{ AtCommand_Vitality,           "@vit",             60, atcommand_param },
-	{ AtCommand_Intelligence,       "@int",             60, atcommand_param },
-	{ AtCommand_Dexterity,          "@dex",             60, atcommand_param },
-	{ AtCommand_Luck,               "@luk",             60, atcommand_param },
-	{ AtCommand_GuildLevelUp,       "@guildlvup",       60, atcommand_guildlevelup },
-	{ AtCommand_GuildLevelUp,       "@guildlvlup",      60, atcommand_guildlevelup },
-	{ AtCommand_MakeEgg,            "@makeegg",         60, atcommand_makeegg },
-	{ AtCommand_Hatch,              "@hatch",           60, atcommand_hatch },
-	{ AtCommand_PetFriendly,        "@petfriendly",     40, atcommand_petfriendly },
-	{ AtCommand_PetHungry,          "@pethungry",       40, atcommand_pethungry },
-	{ AtCommand_PetRename,          "@petrename",        1, atcommand_petrename },
-	{ AtCommand_Recall,             "@recall",          60, atcommand_recall }, // + /recall
-	{ AtCommand_Revive,             "@revive",          60, atcommand_revive },
-	{ AtCommand_Night,              "@night",           80, atcommand_night },
-	{ AtCommand_Day,                "@day",             80, atcommand_day },
-	{ AtCommand_Doom,               "@doom",            80, atcommand_doom },
-	{ AtCommand_DoomMap,            "@doommap",         80, atcommand_doommap },
-	{ AtCommand_Raise,              "@raise",           80, atcommand_raise },
-	{ AtCommand_RaiseMap,           "@raisemap",        80, atcommand_raisemap },
-	{ AtCommand_Kick,               "@kick",            20, atcommand_kick }, // + right click menu for GM "(name) force to quit"
-	{ AtCommand_KickAll,            "@kickall",         99, atcommand_kickall },
-	{ AtCommand_AllSkill,           "@allskill",        60, atcommand_allskill },
-	{ AtCommand_AllSkill,           "@allskills",       60, atcommand_allskill },
-	{ AtCommand_AllSkill,           "@skillall",        60, atcommand_allskill },
-	{ AtCommand_AllSkill,           "@skillsall",       60, atcommand_allskill },
-	{ AtCommand_QuestSkill,         "@questskill",      40, atcommand_questskill },
-	{ AtCommand_LostSkill,          "@lostskill",       40, atcommand_lostskill },
-	{ AtCommand_SpiritBall,         "@spiritball",      40, atcommand_spiritball },
-	{ AtCommand_Party,              "@party",            1, atcommand_party },
-	{ AtCommand_Guild,              "@guild",           50, atcommand_guild },
-	{ AtCommand_AgitStart,          "@agitstart",       60, atcommand_agitstart },
-	{ AtCommand_AgitEnd,            "@agitend",         60, atcommand_agitend },
-	{ AtCommand_MapExit,            "@mapexit",         99, atcommand_mapexit },
-	{ AtCommand_IDSearch,           "@idsearch",        60, atcommand_idsearch },
-	{ AtCommand_Broadcast,          "@broadcast",       40, atcommand_broadcast }, // /b and /nb command
-	{ AtCommand_LocalBroadcast,     "@localbroadcast",  40, atcommand_localbroadcast }, // /lb and /nlb command
-	{ AtCommand_RecallAll,          "@recallall",       80, atcommand_recallall },
-	{ AtCommand_ReloadItemDB,       "@reloaditemdb",    99, atcommand_reloaditemdb }, // admin command
-	{ AtCommand_ReloadMobDB,        "@reloadmobdb",     99, atcommand_reloadmobdb }, // admin command
-	{ AtCommand_ReloadSkillDB,      "@reloadskilldb",   99, atcommand_reloadskilldb }, // admin command
-	{ AtCommand_ReloadScript,       "@reloadscript",    99, atcommand_reloadscript }, // admin command
-	{ AtCommand_ReloadGMDB,         "@reloadgmdb",      99, atcommand_reloadgmdb }, // admin command
-	{ AtCommand_ReloadAtcommand,    "@reloadatcommand", 99, atcommand_reloadatcommand },
-	{ AtCommand_ReloadBattleConf,   "@reloadbattleconf",99, atcommand_reloadbattleconf },
-	{ AtCommand_ReloadStatusDB,     "@reloadstatusdb",  99, atcommand_reloadstatusdb },
-	{ AtCommand_ReloadPcDB,         "@reloadpcdb",      99, atcommand_reloadpcdb },
-	{ AtCommand_ReloadMOTD,         "@reloadmotd",      99, atcommand_reloadmotd }, // [Valaris]
-	{ AtCommand_MapInfo,            "@mapinfo",         99, atcommand_mapinfo },
-	{ AtCommand_Dye,                "@dye",             40, atcommand_dye }, // by fritz
-	{ AtCommand_Dye,                "@ccolor",          40, atcommand_dye }, // by fritz
-	{ AtCommand_Hstyle,             "@hairstyle",       40, atcommand_hair_style }, // by fritz
-	{ AtCommand_Hstyle,             "@hstyle",          40, atcommand_hair_style }, // by fritz
-	{ AtCommand_Hcolor,             "@haircolor",       40, atcommand_hair_color }, // by fritz
-	{ AtCommand_Hcolor,             "@hcolor",          40, atcommand_hair_color }, // by fritz
-	{ AtCommand_StatAll,            "@statall",         60, atcommand_stat_all }, // by fritz
-	{ AtCommand_StatAll,            "@statsall",        60, atcommand_stat_all },
-	{ AtCommand_StatAll,            "@allstats",        60, atcommand_stat_all }, // by fritz
-	{ AtCommand_StatAll,            "@allstat",         60, atcommand_stat_all }, // by fritz
-	{ AtCommand_CharBlock,          "@block",           60, atcommand_char_block }, // by Yor
-	{ AtCommand_CharBlock,          "@charblock",       60, atcommand_char_block }, // by Yor
-	{ AtCommand_CharBan,            "@ban",             60, atcommand_char_ban }, // by Yor
-	{ AtCommand_CharBan,            "@banish",          60, atcommand_char_ban }, // by Yor
-	{ AtCommand_CharBan,            "@charban",         60, atcommand_char_ban }, // by Yor
-	{ AtCommand_CharBan,            "@charbanish",      60, atcommand_char_ban }, // by Yor
-	{ AtCommand_CharUnBlock,        "@unblock",         60, atcommand_char_unblock }, // by Yor
-	{ AtCommand_CharUnBlock,        "@charunblock",     60, atcommand_char_unblock }, // by Yor
-	{ AtCommand_CharUnBan,          "@unban",           60, atcommand_char_unban }, // by Yor
-	{ AtCommand_CharUnBan,          "@unbanish",        60, atcommand_char_unban }, // by Yor
-	{ AtCommand_CharUnBan,          "@charunban",       60, atcommand_char_unban }, // by Yor
-	{ AtCommand_CharUnBan,          "@charunbanish",    60, atcommand_char_unban }, // by Yor
-	{ AtCommand_MountPeco,          "@mountpeco",       20, atcommand_mount_peco }, // by Valaris
-	{ AtCommand_CharMountPeco,      "@charmountpeco",   50, atcommand_char_mount_peco }, // by Yor
-	{ AtCommand_GuildSpy,           "@guildspy",        60, atcommand_guildspy }, // [Syrus22]
-	{ AtCommand_PartySpy,           "@partyspy",        60, atcommand_partyspy }, // [Syrus22]
-	{ AtCommand_RepairAll,          "@repairall",       60, atcommand_repairall }, // [Valaris]
-	{ AtCommand_GuildRecall,        "@guildrecall",     60, atcommand_guildrecall }, // by Yor
-	{ AtCommand_PartyRecall,        "@partyrecall",     60, atcommand_partyrecall }, // by Yor
-	{ AtCommand_Nuke,               "@nuke",            60, atcommand_nuke }, // [Valaris]
-	{ AtCommand_Shownpc,            "@shownpc",         80, atcommand_shownpc }, // []
-	{ AtCommand_Hidenpc,            "@hidenpc",         80, atcommand_hidenpc }, // []
-	{ AtCommand_Loadnpc,            "@loadnpc",         80, atcommand_loadnpc }, // []
-	{ AtCommand_Unloadnpc,          "@unloadnpc",       80, atcommand_unloadnpc }, // []
-	{ AtCommand_ServerTime,         "@time",             1, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,         "@date",             1, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,         "@serverdate",       1, atcommand_servertime }, // by Yor
-	{ AtCommand_ServerTime,         "@servertime",       1, atcommand_servertime }, // by Yor
-	{ AtCommand_CharDelItem,        "@chardelitem",     60, atcommand_chardelitem }, // by Yor
-	{ AtCommand_Jail,               "@jail",            60, atcommand_jail }, // by Yor
-	{ AtCommand_UnJail,             "@unjail",          60, atcommand_unjail }, // by Yor
-	{ AtCommand_UnJail,             "@discharge",       60, atcommand_unjail }, // by Yor
-	{ AtCommand_JailFor,            "@jailfor",         60, atcommand_jailfor }, //Meruru
-	{ AtCommand_JailTime,           "@jailtime",         1, atcommand_jailtime },
-	{ AtCommand_CharJailTime,       "@charjailtime",    60, atcommand_charjailtime },
-	{ AtCommand_Disguise,           "@disguise",        20, atcommand_disguise }, // [Valaris]
-	{ AtCommand_UnDisguise,         "@undisguise",      20, atcommand_undisguise }, // by Yor
-	{ AtCommand_CharDisguise,       "@chardisguise",    60, atcommand_chardisguise }, // Kalaspuff
-	{ AtCommand_CharUnDisguise,     "@charundisguise",  60, atcommand_charundisguise }, // Kalaspuff
-	{ AtCommand_EMail,              "@email",            1, atcommand_email }, // by Yor
-	{ AtCommand_Effect,             "@effect",          40, atcommand_effect }, // by Apple
-	{ AtCommand_Char_Cart_List,     "@charcartlist",    40, atcommand_character_cart_list }, // by Yor
-	{ AtCommand_Follow,             "@follow",          20, atcommand_follow }, // by MouseJstr
-	{ AtCommand_AddWarp,            "@addwarp",         60, atcommand_addwarp }, // by MouseJstr
-	{ AtCommand_SkillOn,            "@skillon",         80, atcommand_skillon }, // by MouseJstr
-	{ AtCommand_SkillOff,           "@skilloff",        80, atcommand_skilloff }, // by MouseJstr
-	{ AtCommand_Killer,             "@killer",          60, atcommand_killer }, // by MouseJstr
-	{ AtCommand_NpcMove,            "@npcmove",         80, atcommand_npcmove }, // by MouseJstr
-	{ AtCommand_Killable,           "@killable",        40, atcommand_killable }, // by MouseJstr
-	{ AtCommand_CharKillable,       "@charkillable",    40, atcommand_charkillable }, // by MouseJstr
-	{ AtCommand_Dropall,            "@dropall",         40, atcommand_dropall }, // MouseJstr
-	{ AtCommand_Chardropall,        "@chardropall",     60, atcommand_chardropall }, // MouseJstr
-	{ AtCommand_Storeall,           "@storeall",        40, atcommand_storeall }, // MouseJstr
-	{ AtCommand_Charstoreall,       "@charstoreall",    60, atcommand_charstoreall }, // MouseJstr
-	{ AtCommand_Skillid,            "@skillid",         40, atcommand_skillid }, // MouseJstr
-	{ AtCommand_Useskill,           "@useskill",        40, atcommand_useskill }, // MouseJstr
-//	{ AtCommand_Rain,               "@rain",            99, atcommand_rain }, //Client no longer supports rain!
-	{ AtCommand_Snow,               "@snow",            99, atcommand_snow },
-	{ AtCommand_Sakura,             "@sakura",          99, atcommand_sakura },
-	{ AtCommand_Clouds,             "@clouds",          99, atcommand_clouds },
-	{ AtCommand_Clouds2,            "@clouds2",         99, atcommand_clouds2 },
-	{ AtCommand_Fog,                "@fog",             99, atcommand_fog },
-	{ AtCommand_Fireworks,          "@fireworks",       99, atcommand_fireworks },
-	{ AtCommand_Leaves,             "@leaves",          99, atcommand_leaves },
-	{ AtCommand_Summon,             "@summon",          60, atcommand_summon },
-	{ AtCommand_AdjGmLvl,           "@adjgmlvl",        99, atcommand_adjgmlvl },
-	{ AtCommand_AdjCmdLvl,          "@adjcmdlvl",       99, atcommand_adjcmdlvl },
-	{ AtCommand_Trade,              "@trade",           60, atcommand_trade },
-	{ AtCommand_Send,               "@send",            99, atcommand_send },
-	{ AtCommand_SetBattleFlag,      "@setbattleflag",   99, atcommand_setbattleflag },
-	{ AtCommand_UnMute,             "@unmute",          80, atcommand_unmute }, // [Valaris]
-	{ AtCommand_Clearweather,       "@clearweather",    99, atcommand_clearweather }, // Dexity
-	{ AtCommand_UpTime,             "@uptime",           1, atcommand_uptime }, // by MC Cameri
-	{ AtCommand_ChangeSex,          "@changesex",       60, atcommand_changesex }, // by MC Cameri
-	{ AtCommand_Mute,               "@mute",            80, atcommand_mute }, // [celest]
-	{ AtCommand_WhoZeny,            "@whozeny",         20, atcommand_whozeny }, // [Valaris]
-	{ AtCommand_Refresh,            "@refresh",          1, atcommand_refresh }, // by MC Cameri
-	{ AtCommand_PetId,              "@petid",           40, atcommand_petid }, // by MC Cameri
-	{ AtCommand_Identify,           "@identify",        40, atcommand_identify }, // by MC Cameri
-	{ AtCommand_Gmotd,              "@gmotd",           20, atcommand_gmotd }, // Added by MC Cameri, created by davidsiaw
-	{ AtCommand_MiscEffect,         "@misceffect",      50, atcommand_misceffect }, // by MC Cameri
-	{ AtCommand_MobSearch,          "@mobsearch",       10, atcommand_mobsearch },
-	{ AtCommand_CleanMap,           "@cleanmap",        40, atcommand_cleanmap },
-	{ AtCommand_NpcTalk,            "@npctalk",         20, atcommand_npctalk },
-	{ AtCommand_PetTalk,            "@pettalk",         10, atcommand_pettalk },
-	{ AtCommand_Users,              "@users",           40, atcommand_users },
-	{ AtCommand_ResetState,         "@reset",           40, atcommand_reset },
-
-#ifndef TXT_ONLY // sql-only commands
-	{ AtCommand_CheckMail,          "@checkmail",        1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ListMail,           "@listmail",         1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ListNewMail,        "@listnewmail",      1, atcommand_listmail }, // [Valaris]
-	{ AtCommand_ReadMail,           "@readmail",         1, atcommand_readmail }, // [Valaris]
-	{ AtCommand_DeleteMail,         "@deletemail",       1, atcommand_deletemail }, // [Valaris]
-	{ AtCommand_SendMail,           "@sendmail",         1, atcommand_sendmail }, // [Valaris]
-	{ AtCommand_SendPriorityMail,   "@sendprioritymail",80, atcommand_sendmail }, // [Valaris]
-	{ AtCommand_RefreshOnline,      "@refreshonline",   99, atcommand_refreshonline }, // [Valaris]
-
-#endif /* TXT_ONLY */
-	{ AtCommand_SkillTree,          "@skilltree",       40, atcommand_skilltree }, // [MouseJstr]
-	{ AtCommand_Marry,              "@marry",           40, atcommand_marry }, // [MouseJstr]
-	{ AtCommand_Divorce,            "@divorce",         40, atcommand_divorce }, // [MouseJstr]
-	{ AtCommand_Grind,              "@grind",           99, atcommand_grind }, // [MouseJstr]
-	{ AtCommand_Grind2,             "@grind2",          99, atcommand_grind2 }, // [MouseJstr]
-
-#ifdef DMALLOC
-	{ AtCommand_DMStart,            "@dmstart",         99, atcommand_dmstart }, // [MouseJstr]
-	{ AtCommand_DMTick,             "@dmtick",          99, atcommand_dmtick }, // [MouseJstr]
-#endif
-
-	{ AtCommand_JumpToId2,          "@jumptoid2",       20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_JumpToId2,          "@warptoid2",       20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_JumpToId2,          "@gotoid2",         20, atcommand_jumptoid2 }, // [Dino9021]
-	{ AtCommand_RecallId2,          "@recallid2",       60, atcommand_recallid2 }, // [Dino9021]
-	{ AtCommand_KickId2,            "@kickid2",         99, atcommand_kickid2 }, // [Dino9021]
-	{ AtCommand_ReviveId2,          "@reviveid2",       60, atcommand_reviveid2 }, // [Dino9021]
-	{ AtCommand_KillId2,            "@killid2",         60, atcommand_killid2 }, // [Dino9021]
-
-	{ AtCommand_Sound,              "@sound",           40, atcommand_sound },
-	{ AtCommand_UndisguiseAll,      "@undisguiseall",   99, atcommand_undisguiseall },
-	{ AtCommand_DisguiseAll,        "@disguiseall",     99, atcommand_disguiseall },
-	{ AtCommand_ChangeLook,         "@changelook",      60, atcommand_changelook },
-	{ AtCommand_AutoLoot,           "@autoloot",        10, atcommand_autoloot }, // Upa-Kun
-	{ AtCommand_MobInfo,            "@mobinfo",          1, atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,            "@monsterinfo",      1, atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_MobInfo,            "@mi",               1, atcommand_mobinfo }, // [Lupus]
-	{ AtCommand_Exp,                "@exp",              1, atcommand_exp }, // [Skotlex]
-	{ AtCommand_Adopt,              "@adopt",           40, atcommand_adopt }, // [Veider]
-	{ AtCommand_Version,            "@version",          1, atcommand_version },
-
-	{ AtCommand_MuteArea,           "@mutearea",        99, atcommand_mutearea }, // MouseJstr
-	{ AtCommand_MuteArea,           "@stfu",            99, atcommand_mutearea }, // MouseJstr
-	{ AtCommand_Rates,              "@rates",            1, atcommand_rates }, // MouseJstr
-
-	{ AtCommand_ItemInfo,           "@iteminfo",         1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_ItemInfo,           "@ii",               1, atcommand_iteminfo }, // [Lupus]
-	{ AtCommand_WhoDrops,           "@whodrops",         1, atcommand_whodrops }, // [Skotlex]
-	{ AtCommand_WhereIs,            "@whereis",         10, atcommand_whereis }, // [Skotlex]
-	{ AtCommand_MapFlag,            "@mapflag",         99, atcommand_mapflag }, // [Lupus]
-
-	{ AtCommand_Me,                 "@me",              20, atcommand_me }, //added by massdriller, code by lordalfa
-	{ AtCommand_MonsterIgnore,      "@monsterignore",   99, atcommand_monsterignore }, // [Valaris]
-	{ AtCommand_MonsterIgnore,      "@battleignore",    99, atcommand_monsterignore },
-	{ AtCommand_FakeName,           "@fakename",        20, atcommand_fakename }, // [Valaris]
-	{ AtCommand_Size,               "@size",            20, atcommand_size },
-	{ AtCommand_ShowExp,            "@showexp",         10, atcommand_showexp},
-	{ AtCommand_ShowZeny,           "@showzeny",        10, atcommand_showzeny},
-	{ AtCommand_ShowDelay,          "@showdelay",        1, atcommand_showdelay},
-	{ AtCommand_AutoTrade,          "@autotrade",       10, atcommand_autotrade }, // durf
-	{ AtCommand_AutoTrade,          "@at",              10, atcommand_autotrade },
-	{ AtCommand_ChangeGM,           "@changegm",        10, atcommand_changegm }, // durf
-	{ AtCommand_ChangeLeader,       "@changeleader",    10, atcommand_changeleader }, // durf
-	{ AtCommand_PartyOption,        "@partyoption",     10, atcommand_partyoption}, // durf
-	{ AtCommand_Invite,             "@invite",           1, atcommand_invite }, // By LuzZza
-	{ AtCommand_Duel,               "@duel",             1, atcommand_duel }, // By LuzZza
-	{ AtCommand_Leave,              "@leave",            1, atcommand_leave }, // By LuzZza
-	{ AtCommand_Accept,             "@accept",           1, atcommand_accept }, // By LuzZza
-	{ AtCommand_Reject,             "@reject",           1, atcommand_reject }, // By LuzZza
-	{ AtCommand_Away,               "@away",             1, atcommand_away }, // [LuzZza]
-	{ AtCommand_Away,               "@aw",               1, atcommand_away }, // [LuzZza]
-	{ AtCommand_Main,               "@main",             1, atcommand_main }, // [LuzZza]
-	{ AtCommand_Clone,              "@clone",           50, atcommand_clone },
-	{ AtCommand_Clone,              "@slaveclone",      50, atcommand_clone },
-	{ AtCommand_Clone,              "@evilclone",       50, atcommand_clone }, // [Valaris]
-	{ AtCommand_ToNPC,              "@tonpc",           40, atcommand_tonpc }, // LuzZza
-	{ AtCommand_Commands,           "@commands",         1, atcommand_commands }, // [Skotlex]
-	{ AtCommand_NoAsk,              "@noask",            1, atcommand_noask }, // [LuzZza]
-	{ AtCommand_Request,            "@request",         20, atcommand_request }, // [Skotlex]
-
-	{ AtCommand_HomLevel,           "@homlvup",         60, atcommand_homlevel	},
-	{ AtCommand_HomEvolution,       "@homevolution",    60, atcommand_homevolution	},
-	{ AtCommand_MakeHomun,          "@makehomun",       60, atcommand_makehomun	},
-	{ AtCommand_HomFriendly,        "@homfriendly",     60, atcommand_homfriendly },
-	{ AtCommand_HomHungry,          "@homhungry",       60, atcommand_homhungry },
-	{ AtCommand_HomTalk,            "@homtalk",         10, atcommand_homtalk },
-	{ AtCommand_HomInfo,            "@hominfo",          1, atcommand_hominfo },
-	{ AtCommand_HomStats,           "@homstats",         1, atcommand_homstats },
-	{ AtCommand_HomShuffle,         "@homshuffle",      60, atcommand_homshuffle },
-	{ AtCommand_ShowMobs,           "@showmobs",        10, atcommand_showmobs },  //KarLaeda
-// add new commands before this line
-	{ AtCommand_Unknown,            NULL,                1, NULL }
-};
 
 /*=========================================
  * Generic variables
  *-----------------------------------------*/
 char atcmd_output[200];
-char atcmd_player_name[100];
+char atcmd_player_name[NAME_LENGTH];
 char atcmd_temp[100];
-
-/*==========================================
- * estr_lower (replace strlwr, non ANSI function that doesn't exist in all C compilator)
- *------------------------------------------*/
-char *estr_lower(char *str)
-{
-	int i;
-
-	for (i=0; str[i]; i++)
-		if ((str[i] >= 65) && (str[i] <= 90))
-			str[i] += 32;
-	return str;
-}
 
 // compare function for sorting high to lowest
 int hightolow_compare (const void * a, const void * b)
@@ -666,7 +84,7 @@ int lowtohigh_compare (const void * a, const void * b)
 //-----------------------------------------------------------
 // Return the message string of the specified number by [Yor]
 //-----------------------------------------------------------
-char * msg_txt(int msg_number)
+char* msg_txt(int msg_number)
 {
 	if (msg_number >= 0 && msg_number < MAX_MSG &&
 	    msg_table[msg_number] != NULL && msg_table[msg_number][0] != '\0')
@@ -678,174 +96,27 @@ char * msg_txt(int msg_number)
 //-----------------------------------------------------------
 // Returns Players title (from msg_athena.conf) [Lupus]
 //-----------------------------------------------------------
-char * player_title_txt(int level) {
-	if (level < battle_config.title_lvl1)
-		return ""; //w/o any titles
-
-	if (level >= battle_config.title_lvl8)
-		sprintf(atcmd_temp, msg_txt(332), level);
-	else
-	if (level >= battle_config.title_lvl7)
-		sprintf(atcmd_temp, msg_txt(331), level);
-	else
-	if (level >= battle_config.title_lvl6)
-		sprintf(atcmd_temp, msg_txt(330), level);
-	else
-	if (level >= battle_config.title_lvl5)
-		sprintf(atcmd_temp, msg_txt(329), level);
-	else
-	if (level >= battle_config.title_lvl4)
-		sprintf(atcmd_temp, msg_txt(328), level);
-	else
-	if (level >= battle_config.title_lvl3)
-		sprintf(atcmd_temp, msg_txt(327), level);
-	else
-	if (level >= battle_config.title_lvl2)
-		sprintf(atcmd_temp, msg_txt(326), level);
-	else
-		sprintf(atcmd_temp, msg_txt(325), level); //lvl1
+static char* player_title_txt(int level)
+{
+	const char* format;
+	format = (level >= battle_config.title_lvl8) ? msg_txt(332)
+	       : (level >= battle_config.title_lvl7) ? msg_txt(331)
+	       : (level >= battle_config.title_lvl6) ? msg_txt(330)
+	       : (level >= battle_config.title_lvl5) ? msg_txt(329)
+	       : (level >= battle_config.title_lvl4) ? msg_txt(328)
+	       : (level >= battle_config.title_lvl3) ? msg_txt(327)
+	       : (level >= battle_config.title_lvl2) ? msg_txt(326)
+	       : (level >= battle_config.title_lvl1) ? msg_txt(325)
+	       : "";
+	sprintf(atcmd_temp, format, level);
 	return atcmd_temp;
 }
 
-/*==========================================
- * Retrieve the atcommand's required gm level
- *------------------------------------------*/
-int get_atcommand_level(const AtCommandType type)
-{
-	int i;
-
-	for (i = 0; atcommand_info[i].type != AtCommand_None; i++)
-		if (atcommand_info[i].type == type)
-			return atcommand_info[i].level;
-
-	return 100; // 100: command can not be used
-}
-
-AtCommandType is_atcommand_sub(const int fd, struct map_session_data* sd, const char* str, int gmlvl)
-{
-	AtCommandInfo info;
-	AtCommandType type;
-
-	memset(&info, 0, sizeof(info));
-
-	type = atcommand(sd, gmlvl, str, &info);
-	if (type != AtCommand_None) {
-		char command[100];
-		const char* p = str;
-
-		if (map[sd->bl.m].nocommand &&
-			gmlvl < map[sd->bl.m].nocommand)
-		{	//Command not allowed on this map.
-			sprintf(atcmd_output, msg_txt(143)); 
-			clif_displaymessage(fd, atcmd_output);
-			return AtCommand_None;
-		}
-
-		memset(command, '\0', sizeof(command));
-		memset(atcmd_output, '\0', sizeof(atcmd_output));
-		while (*p && !ISSPACE(*p))
-			p++;
-		if (p - str >= sizeof(command)) // too long
-			return AtCommand_Unknown;
-		strncpy(command, str, p - str);
-		while (ISSPACE(*p))
-			p++;
-
-		if (type == AtCommand_Unknown || info.proc == NULL) {
-			sprintf(atcmd_output, msg_txt(153), command); // %s is Unknown Command.
-			clif_displaymessage(fd, atcmd_output);
-		} else {
-			if (info.proc(fd, sd, command, p) != 0) {
-				// Command can not be executed
-				sprintf(atcmd_output, msg_txt(154), command); // %s failed.
-				clif_displaymessage(fd, atcmd_output);
-			}
-		}
-
-		return info.type;
-	}
-
-	return AtCommand_None;
-}
-
-/*==========================================
- * 
- *------------------------------------------*/
-AtCommandType is_atcommand(const int fd, struct map_session_data* sd, const char* message)
-{
-	const char* str = message;
-	int s_flag = 0;
-
-	nullpo_retr(AtCommand_None, sd);
-
-	if (sd->sc.count && sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCOMMAND) {
-		return AtCommand_Unknown;
-	}
-
-	if (!message || !*message)
-		return AtCommand_None;
-
-	if(str[0] == '|' && strlen(str) >= 4 && str[3] == atcommand_symbol)
-		str += 3; // skip 10/11-langtype's codepage indicator, if detected
-
-	if (!*str)
-		return AtCommand_None;
-
-	return is_atcommand_sub(fd,sd,str,pc_isGM(sd));
-}
-
-/*==========================================
- *
- *------------------------------------------*/
-AtCommandType atcommand(struct map_session_data* sd, const int level, const char* message, struct AtCommandInfo* info)
-{
-	char* p = (char *)message; // it's 'char' and not 'const char' to have possibility to modify the first character if necessary
-
-	if (!info)
-		return AtCommand_None;
-	if (battle_config.atc_gmonly != 0 && !level) // level = pc_isGM(sd)
-		return AtCommand_None;
-	if (!p || !*p) {
-		ShowError("at command message is empty\n");
-		return AtCommand_None;
-	}
-
-	if (*p == atcommand_symbol) { // check first char
-		char command[101];
-		int i = 0;
-		memset(info, 0, sizeof(AtCommandInfo));
-		sscanf(p, "%100s", command);
-		command[100] = '\0';
-
-		while (atcommand_info[i].type != AtCommand_Unknown) {
-			if (strcmpi(command+1, atcommand_info[i].command+1) == 0 && level >= atcommand_info[i].level) {
-				p[0] = atcommand_info[i].command[0]; // set correct first symbol for after.
-				break;
-			}
-			i++;
-		}
-
-		if (atcommand_info[i].type == AtCommand_Unknown) {
-			// doesn't return Unknown if player is normal player (display the text, not display: unknown command)
-			if (level == 0)
-				return AtCommand_None;
-			else
-				return AtCommand_Unknown;
-		} else if((log_config.gm) && (atcommand_info[i].level >= log_config.gm)) {
-			log_atcommand(sd, message);
-		}
-		memcpy(info, &atcommand_info[i], sizeof atcommand_info[i]);
-	} else {
-		return AtCommand_None;
-	}
-
-	return info->type;
-}
 
 /*==========================================
  * Read Message Data
  *------------------------------------------*/
-int msg_config_read(const char *cfgName)
+int msg_config_read(const char* cfgName)
 {
 	int msg_number;
 	char line[1024], w1[1024], w2[1024];
@@ -859,25 +130,29 @@ int msg_config_read(const char *cfgName)
 
 	if ((--called) == 0)
 		memset(msg_table, 0, sizeof(msg_table[0]) * MAX_MSG);
+
 	while(fgets(line, sizeof(line), fp))
 	{
 		if (line[0] == '/' && line[1] == '/')
 			continue;
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) == 2) {
-			if (strcmpi(w1, "import") == 0) {
-				msg_config_read(w2);
-			} else {
-				msg_number = atoi(w1);
-				if (msg_number >= 0 && msg_number < MAX_MSG) {
-					if (msg_table[msg_number] != NULL)
-						aFree(msg_table[msg_number]);
-					msg_table[msg_number] = (char *)aMalloc((strlen(w2) + 1)*sizeof (char));
-					strcpy(msg_table[msg_number],w2);
-				//	printf("message #%d: '%s'.\n", msg_number, msg_table[msg_number]);
-				}
+		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
+			continue;
+
+		if (strcmpi(w1, "import") == 0)
+			msg_config_read(w2);
+		else
+		{
+			msg_number = atoi(w1);
+			if (msg_number >= 0 && msg_number < MAX_MSG)
+			{
+				if (msg_table[msg_number] != NULL)
+					aFree(msg_table[msg_number]);
+				msg_table[msg_number] = (char *)aMalloc((strlen(w2) + 1)*sizeof (char));
+				strcpy(msg_table[msg_number],w2);
 			}
 		}
 	}
+
 	fclose(fp);
 
 	return 0;
@@ -886,119 +161,13 @@ int msg_config_read(const char *cfgName)
 /*==========================================
  * Cleanup Message Data
  *------------------------------------------*/
-void do_final_msg (void)
+void do_final_msg(void)
 {
 	int i;
 	for (i = 0; i < MAX_MSG; i++)
 		aFree(msg_table[i]);
-	return;
 }
 
-/*==========================================
- *
- *------------------------------------------*/
-static AtCommandInfo* get_atcommandinfo_byname(const char* name)
-{
-	int i;
-
-	for (i = 0; atcommand_info[i].type != AtCommand_Unknown; i++)
-		if (strcmpi(atcommand_info[i].command + 1, name) == 0)
-			return &atcommand_info[i];
-
-	return NULL;
-}
-
-/*==========================================
- *
- *------------------------------------------*/
-int atcommand_config_read(const char *cfgName)
-{
-	char line[1024], w1[1024], w2[1024];
-	AtCommandInfo* p;
-	FILE* fp;
-
-	if ((fp = fopen(cfgName, "r")) == NULL) {
-		ShowError("At commands configuration file not found: %s\n", cfgName);
-		return 1;
-	}
-
-	while(fgets(line, sizeof(line), fp))
-	{
-		if (line[0] == '/' && line[1] == '/')
-			continue;
-
-		if (sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2)
-			continue;
-		p = get_atcommandinfo_byname(w1);
-		if (p != NULL) {
-			p->level = atoi(w2);
-			if (p->level > 100)
-				p->level = 100;
-			else if (p->level < 0)
-				p->level = 0;
-		}
-
-		if (strcmpi(w1, "import") == 0)
-			atcommand_config_read(w2);
-		else if (strcmpi(w1, "command_symbol") == 0 && w2[0] > 31 &&
-				w2[0] != '/' && // symbol of standard ragnarok GM commands
-				w2[0] != '%' && // symbol of party chat speaking
-				w2[0] != '$' && // symbol of guild chat
-				w2[0] != '#')	// symbol of charcommand
-			atcommand_symbol = w2[0];
-	}
-	fclose(fp);
-
-	return 0;
-}
-
-/*==========================================
-// @ command processing functions
- *------------------------------------------*/
-
-/*==========================================
- * @commands Lists available @ commands to you (code 98% from Meruru)
- *------------------------------------------*/
-int atcommand_commands(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	char cz_line_buff[CHATBOX_SIZE];
-
-	register char *lpcz_cur = cz_line_buff;
-	register unsigned int ui_slen;
-
-	int i_cur_cmd,gm_lvl = pc_isGM(sd), count = 0;
-
-	memset(cz_line_buff,' ',CHATBOX_SIZE);
-	cz_line_buff[CHATBOX_SIZE-1] = 0;
-
-	clif_displaymessage(fd, msg_txt(273));
-
-	for (i_cur_cmd = 0;atcommand_info[i_cur_cmd].type != AtCommand_Unknown;i_cur_cmd++)
-	{
-		if(gm_lvl  < atcommand_info[i_cur_cmd].level)
-		continue;
-
-		count++;
-		ui_slen = (unsigned int)strlen(atcommand_info[i_cur_cmd].command);
-
-		//remember not <= bc we need null terminator
-		if(((CHATBOX_SIZE+(int)cz_line_buff)-(int)lpcz_cur) < (int)ui_slen)
-		{
-			clif_displaymessage(fd,(char*)cz_line_buff);
-			lpcz_cur = cz_line_buff;
-			memset(cz_line_buff,' ',CHATBOX_SIZE);
-			cz_line_buff[CHATBOX_SIZE-1] = 0;
-		}
-
-		memcpy(lpcz_cur,atcommand_info[i_cur_cmd].command,ui_slen);
-		lpcz_cur += ui_slen+(10-ui_slen%10);
-	}
-
-	clif_displaymessage(fd,(char*)cz_line_buff);
-	sprintf(atcmd_output, msg_txt(274), count); //There will always be at least 1 command (@commands)
-	clif_displaymessage(fd, atcmd_output);	
-	return 0;
-}
 
 /*==========================================
  * @send (used for testing packet sends from the client)
@@ -1236,9 +405,9 @@ int atcommand_send(const int fd, struct map_session_data* sd, const char* comman
 }
 
 /*==========================================
- * @rura
+ * @rura, @warp, @mapmove
  *------------------------------------------*/
-int atcommand_rura( const int fd, struct map_session_data* sd, const char* command, const char* message)
+int atcommand_mapmove(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char map_name[MAP_NAME_LENGTH_EXT];
 	unsigned short mapindex;
@@ -1293,8 +462,7 @@ int atcommand_rura( const int fd, struct map_session_data* sd, const char* comma
  *------------------------------------------*/
 int atcommand_where(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct map_session_data *pl_sd = NULL;
-	int GM_level, pl_GM_level;
+	struct map_session_data* pl_sd;
 
 	nullpo_retr(-1, sd);
 	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
@@ -1303,27 +471,17 @@ int atcommand_where(const int fd, struct map_session_data* sd, const char* comma
 		clif_displaymessage(fd, "Please, enter a player name (usage: @where <char name>).");
 		return -1;
 	}
+
 	pl_sd = map_nick2sd(atcmd_player_name);
-
-	if (pl_sd == NULL) 
+	if( pl_sd == NULL
+	||  strncmp(pl_sd->status.name,atcmd_player_name,NAME_LENGTH) != 0
+	||  (battle_config.hide_GM_session && pc_isGM(sd) < pc_isGM(pl_sd) && !(battle_config.who_display_aid && pc_isGM(sd) >= battle_config.who_display_aid))
+	) {
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
-
-	if(strncmp(pl_sd->status.name,atcmd_player_name,NAME_LENGTH)!=0)
-		return -1;
-		
-	GM_level = pc_isGM(sd);//also hide gms depending on settings in battle_athena.conf, show if they are aid [Kevin]
-	pl_GM_level = pc_isGM(pl_sd);
-	
-	if (battle_config.hide_GM_session) {
-		if(GM_level < pl_GM_level) {
-			if (!(battle_config.who_display_aid && GM_level >= battle_config.who_display_aid)) {
-				return -1;
-			}
-		}
 	}
 
-	snprintf(atcmd_output, sizeof atcmd_output, "%s %s %d %d",
-		pl_sd->status.name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
+	snprintf(atcmd_output, sizeof atcmd_output, "%s %s %d %d", pl_sd->status.name, mapindex_id2name(pl_sd->mapindex), pl_sd->bl.x, pl_sd->bl.y);
 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
@@ -1338,30 +496,38 @@ int atcommand_jumpto(const int fd, struct map_session_data* sd, const char* comm
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @jumpto/@warpto/@goto <char name>).");
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @jumpto/@warpto/@goto <player name/id>).");
 		return -1;
 	}
 
-	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)==0) //Yourself mate? Tsk tsk tsk.
-		return -1;
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_txt(247));
-			return -1;
-		}
-		if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_txt(248));
-			return -1;
-		}
-		pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
-		sprintf(atcmd_output, msg_txt(4), atcmd_player_name); // Jump to %s
-		clif_displaymessage(fd, atcmd_output);
-	} else {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL)
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
+	
+	if (pl_sd == sd)
+	{
+		clif_displaymessage(fd, "But you are already where you are...");
+		return -1;
+	}
+	
+	if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+	{
+		clif_displaymessage(fd, msg_txt(247));	// You are not authorized to warp to this map.
+		return -1;
+	}
+	
+	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
+	{
+		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
+		return -1;
+	}
+	
+	pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
+	sprintf(atcmd_output, msg_txt(4), pl_sd->status.name); // Jumped to %s
+ 	clif_displaymessage(fd, atcmd_output);
 
 	return 0;
 }
@@ -2009,61 +1175,9 @@ int atcommand_speed(const int fd, struct map_session_data* sd, const char* comma
 		return -1;
 	}
 
-	speed = atoi(message);
-	if (speed >= MIN_WALK_SPEED && speed <= MAX_WALK_SPEED) {
-		sd->base_status.speed = speed;
-		status_calc_bl(&sd->bl, SCB_SPEED);
-		clif_displaymessage(fd, msg_txt(8)); // Speed changed.
-	} else {
-		sprintf(atcmd_output, "Please, enter a valid speed value (usage: @speed <%d-%d>).", MIN_WALK_SPEED, MAX_WALK_SPEED);
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------*/
-int atcommand_charspeed(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	int speed;
-
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%d %23[^\n]", &speed, atcmd_player_name) < 2) {
-		sprintf(atcmd_output, "Please, enter a speed and a player name (usage: @charspeed <speed <%d-%d>> <char name>).", MIN_WALK_SPEED, MAX_WALK_SPEED);
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) == NULL) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-
-	if (pc_isGM(sd) < pc_isGM(pl_sd))
-  	{	//GM level check
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-		return -1;
-	}
-
-	if (speed >= MIN_WALK_SPEED && speed <= MAX_WALK_SPEED) {
-		pl_sd->base_status.speed = speed;
-		status_calc_bl(&pl_sd->bl, SCB_SPEED);
-		clif_displaymessage(fd, msg_txt(8)); // Speed changed.
-		if(pl_sd->fd)
-			clif_displaymessage(pl_sd->fd, msg_txt(8)); // Speed changed.
-	} else {
-		sprintf(atcmd_output, "Please, enter a valid speed value (usage: @speed <%d-%d>).", MIN_WALK_SPEED, MAX_WALK_SPEED);
-		clif_displaymessage(fd, atcmd_output);
-		return -1;
-	}
+	sd->base_status.speed = cap_value(speed, MIN_WALK_SPEED, MAX_WALK_SPEED);
+	status_calc_bl(&sd->bl, SCB_SPEED);
+	clif_displaymessage(fd, msg_txt(8)); // Speed changed.
 	return 0;
 }
 
@@ -2082,6 +1196,9 @@ int atcommand_storage(const int fd, struct map_session_data* sd, const char* com
 		clif_displaymessage(fd, msg_txt(250));
 		return -1;
 	}
+	
+	clif_displaymessage(fd, "Storage opened.");
+	
 	return 0;
 }
 
@@ -2112,6 +1229,7 @@ int atcommand_guildstorage(const int fd, struct map_session_data* sd, const char
 		return -1;
 	}
 	storage_guild_storageopen(sd);
+	clif_displaymessage(fd, "Guild storage opened.");
 	return 0;
 }
 
@@ -2165,6 +1283,7 @@ int atcommand_hide(const int fd, struct map_session_data* sd, const char* comman
  *------------------------------------------*/
 int atcommand_jobchange(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+	//FIXME: redundancy, potentially wrong code, should use job_name() or similar instead of hardcoding the table [ultramage]
 	int job = 0, upper = 0;
 	nullpo_retr(-1, sd);
 
@@ -2258,7 +1377,29 @@ int atcommand_jobchange(const int fd, struct map_session_data* sd, const char* c
 		}
 
 		if (!found) {
-			clif_displaymessage(fd, "Please, enter job ID (usage: @job/@jobchange <job ID>).");
+			clif_displaymessage(fd, "Please, enter job ID (usage: @job/@jobchange <job name/ID>).");
+			clif_displaymessage(fd, "   0 Novice            7 Knight           14 Crusader         21 Peco Crusader");
+			clif_displaymessage(fd, "   1 Swordman          8 Priest           15 Monk             22 N/A");
+			clif_displaymessage(fd, "   2 Mage              9 Wizard           16 Sage             23 Super Novice");
+			clif_displaymessage(fd, "   3 Archer           10 Blacksmith       17 Rogue            24 Gunslinger");
+			clif_displaymessage(fd, "   4 Acolyte          11 Hunter           18 Alchemist        25 Ninja");
+			clif_displaymessage(fd, "   5 Merchant         12 Assassin         19 Bard             26 N/A");
+			clif_displaymessage(fd, "   6 Thief            13 Peco Knight      20 Dancer");
+			clif_displaymessage(fd, "4001 Novice High    4008 Lord Knight      4015 Paladin        4022 Peco Paladin");
+			clif_displaymessage(fd, "4002 Swordman High  4009 High Priest      4016 Champion");
+			clif_displaymessage(fd, "4003 Mage High      4010 High Wizard      4017 Professor");
+			clif_displaymessage(fd, "4004 Archer High    4011 Whitesmith       4018 Stalker");
+			clif_displaymessage(fd, "4005 Acolyte High   4012 Sniper           4019 Creator");
+			clif_displaymessage(fd, "4006 Merchant High  4013 Assassin Cross   4020 Clown");
+			clif_displaymessage(fd, "4007 Thief High     4014 Peco Lord Knight 4021 Gypsy");
+			clif_displaymessage(fd, "4023 Baby Novice    4030 Baby Knight      4037 Baby Crusader  4044 Baby Peco Crusader");
+			clif_displaymessage(fd, "4024 Baby Swordsman 4031 Baby Priest      4038 Baby Monk      4045 Super Baby");
+			clif_displaymessage(fd, "4025 Baby Mage      4032 Baby Wizard      4039 Baby Sage      4046 Taekwon Kid");
+			clif_displaymessage(fd, "4026 Baby Archer    4033 Baby Blacksmith  4040 Baby Rogue     4047 Taekwon Master");
+			clif_displaymessage(fd, "4027 Baby Acolyte   4034 Baby Hunter      4041 Baby Alchemist 4048 N/A");
+			clif_displaymessage(fd, "4028 Baby Merchant  4035 Baby Assassin    4042 Baby Bard      4049 Soul Linker");
+			clif_displaymessage(fd, "4029 Baby Thief     4036 Baby Peco-Knight 4043 Baby Dancer");
+			clif_displaymessage(fd, "[upper]: -1 (default) to automatically determine the 'level', 0 to force normal job, 1 to force high job.");
 			return -1;
 		}
 	}
@@ -2266,14 +1407,8 @@ int atcommand_jobchange(const int fd, struct map_session_data* sd, const char* c
 	if (job == 37 ||job == 45)
 		return 0;
 
-	if ((job >= 0 && job < MAX_PC_CLASS))
+	if (pcdb_checkid(job))
 	{
-		int j;
-
-		for (j=0; j < MAX_INVENTORY; j++) {
-			if(sd->status.inventory[j].nameid>0 && sd->status.inventory[j].equip!=0)
-				pc_unequipitem(sd, j, 3);
-		}
 		if (pc_jobchange(sd, job, upper) == 0)
 			clif_displaymessage(fd, msg_txt(12)); // Your job has been changed.
 		else {
@@ -2281,7 +1416,29 @@ int atcommand_jobchange(const int fd, struct map_session_data* sd, const char* c
 			return -1;
 		}
 	} else {
-		clif_displaymessage(fd, "Please, enter a valid job ID (usage: @job/@jobchange <job ID>).");
+		clif_displaymessage(fd, "Please, enter a valid job ID (usage: @job/@jobchange <job name/ID>).");
+		clif_displaymessage(fd, "   0 Novice            7 Knight           14 Crusader         21 Peco Crusader");
+		clif_displaymessage(fd, "   1 Swordman          8 Priest           15 Monk             22 N/A");
+		clif_displaymessage(fd, "   2 Mage              9 Wizard           16 Sage             23 Super Novice");
+		clif_displaymessage(fd, "   3 Archer           10 Blacksmith       17 Rogue            24 Gunslinger");
+		clif_displaymessage(fd, "   4 Acolyte          11 Hunter           18 Alchemist        25 Ninja");
+		clif_displaymessage(fd, "   5 Merchant         12 Assassin         19 Bard             26 N/A");
+		clif_displaymessage(fd, "   6 Thief            13 Peco Knight      20 Dancer");
+		clif_displaymessage(fd, "4001 Novice High    4008 Lord Knight      4015 Paladin        4022 Peco Paladin");
+		clif_displaymessage(fd, "4002 Swordman High  4009 High Priest      4016 Champion");
+		clif_displaymessage(fd, "4003 Mage High      4010 High Wizard      4017 Professor");
+		clif_displaymessage(fd, "4004 Archer High    4011 Whitesmith       4018 Stalker");
+		clif_displaymessage(fd, "4005 Acolyte High   4012 Sniper           4019 Creator");
+		clif_displaymessage(fd, "4006 Merchant High  4013 Assassin Cross   4020 Clown");
+		clif_displaymessage(fd, "4007 Thief High     4014 Peco Lord Knight 4021 Gypsy");
+		clif_displaymessage(fd, "4023 Baby Novice    4030 Baby Knight      4037 Baby Crusader  4044 Baby Peco Crusader");
+		clif_displaymessage(fd, "4024 Baby Swordsman 4031 Baby Priest      4038 Baby Monk      4045 Super Baby");
+		clif_displaymessage(fd, "4025 Baby Mage      4032 Baby Wizard      4039 Baby Sage      4046 Taekwon Kid");
+		clif_displaymessage(fd, "4026 Baby Archer    4033 Baby Blacksmith  4040 Baby Rogue     4047 Taekwon Master");
+		clif_displaymessage(fd, "4027 Baby Acolyte   4034 Baby Hunter      4041 Baby Alchemist 4048 N/A");
+		clif_displaymessage(fd, "4028 Baby Merchant  4035 Baby Assassin    4042 Baby Bard      4049 Soul Linker");
+		clif_displaymessage(fd, "4029 Baby Thief     4036 Baby Peco-Knight 4043 Baby Dancer");
+		clif_displaymessage(fd, "[upper]: -1 (default) to automatically determine the 'level', 0 to force normal job, 1 to force high job.");
 		return -1;
 	}
 
@@ -2311,23 +1468,27 @@ int atcommand_kill(const int fd, struct map_session_data* sd, const char* comman
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @kill <char name>).");
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @kill <player name/id>).");
 		return -1;
 	}
 
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same level
-			status_kill(&pl_sd->bl);
-			clif_displaymessage(fd, msg_txt(14)); // Character killed.
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL)
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
+	
+	if (pc_isGM(sd) < pc_isGM(pl_sd))
+	{ // you can kill only lower or same level
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		return -1;
+	}
+	
+	status_kill(&pl_sd->bl);
+	clif_displaymessage(pl_sd->fd, msg_txt(13)); // A pity! You've died.
+	if (fd != pl_sd->fd)
+		clif_displaymessage(fd, msg_txt(14)); // Character killed.
 
 	return 0;
 }
@@ -2339,7 +1500,10 @@ int atcommand_alive(const int fd, struct map_session_data* sd, const char* comma
 {
 	nullpo_retr(-1, sd);
 	if (!status_revive(&sd->bl, 100, 100))
+	{
+		clif_displaymessage(fd, "You're not dead.");
 		return -1;
+	}
 	clif_skill_nodamage(&sd->bl,&sd->bl,ALL_RESURRECTION,4,1);
 	clif_displaymessage(fd, msg_txt(16)); // You've been revived! It's a miracle!
 	return 0;
@@ -2846,10 +2010,10 @@ int atcommand_pvpoff(const int fd, struct map_session_data* sd, const char* comm
 {
 	nullpo_retr(-1, sd);
 
-	if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
-		clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
-		return -1;
-	}
+	//if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
+	//	clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
+	//	return -1;
+	//}
 
 	if (!map[sd->bl.m].flag.pvp) {
 		clif_displaymessage(fd, msg_txt(160)); // PvP is already Off.
@@ -2857,7 +2021,9 @@ int atcommand_pvpoff(const int fd, struct map_session_data* sd, const char* comm
 	}
 
 	map[sd->bl.m].flag.pvp = 0;
-	clif_send0199(sd->bl.m, 0);
+
+	if (!battle_config.pk_mode)
+		clif_send0199(sd->bl.m, 0);
 	map_foreachinmap(atcommand_pvpoff_sub,sd->bl.m, BL_PC);
 	map_foreachinmap(atcommand_stopattack,sd->bl.m, BL_CHAR, 0);
 	clif_displaymessage(fd, msg_txt(31)); // PvP: Off.
@@ -2873,23 +2039,26 @@ int atcommand_pvpon(const int fd, struct map_session_data* sd, const char* comma
 	int i, users;
 	nullpo_retr(-1, sd);
 
-	if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
-		clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
-		return -1;
-	}
+	//if (battle_config.pk_mode) { //disable command if server is in PK mode [Valaris]
+	//	clif_displaymessage(fd, msg_txt(52)); // This option cannot be used in PK Mode.
+	//	return -1;
+	//}
 
 	if (!map[sd->bl.m].flag.pvp) {
 		map[sd->bl.m].flag.pvp = 1;
-		clif_send0199(sd->bl.m, 1);
-		pl_allsd = map_getallusers(&users);
-		for (i = 0; i < users; i++) {
-			if ((pl_sd = pl_allsd[i]) && sd->bl.m == pl_sd->bl.m && pl_sd->pvp_timer == -1) {
-				pl_sd->pvp_timer = add_timer(gettick() + 200, pc_calc_pvprank_timer, pl_sd->bl.id, 0);
-				pl_sd->pvp_rank = 0;
-				pl_sd->pvp_lastusers = 0;
-				pl_sd->pvp_point = 5;
-				pl_sd->pvp_won = 0;
-				pl_sd->pvp_lost = 0;
+		if (!battle_config.pk_mode)
+		{
+			clif_send0199(sd->bl.m, 1);
+			pl_allsd = map_getallusers(&users);
+			for (i = 0; i < users; i++) {
+				if ((pl_sd = pl_allsd[i]) && sd->bl.m == pl_sd->bl.m && pl_sd->pvp_timer == -1) {
+					pl_sd->pvp_timer = add_timer(gettick() + 200, pc_calc_pvprank_timer, pl_sd->bl.id, 0);
+					pl_sd->pvp_rank = 0;
+					pl_sd->pvp_lastusers = 0;
+					pl_sd->pvp_point = 5;
+					pl_sd->pvp_won = 0;
+					pl_sd->pvp_lost = 0;
+				}
 			}
 		}
 		clif_displaymessage(fd, msg_txt(32)); // PvP: On.
@@ -3058,35 +2227,38 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 {
 	int i;
 	int town;
-	char map_name[MAP_NAME_LENGTH_EXT];
+	char map_name[MAP_NAME_LENGTH];
 	int m;
  
-	const struct { char map[MAP_NAME_LENGTH_EXT]; int x,   y; } data[] = {
-		{ MAP_PRONTERA,	156, 191  },		//	 0=Prontera
-		{ MAP_MORROC,		156, 93  },			//	 1=Morroc
-		{ MAP_GEFFEN,		119, 59  },			//	 2=Geffen
-		{ MAP_PAYON,		162, 233  },		//	 3=Payon
-		{ MAP_ALBERTA,		192, 147  },	//	 4=Alberta
-		{ MAP_IZLUDE,		128, 114  },		//	 5=Izlude
-		{ MAP_ALDEBARAN,	140, 131  },		//	 6=Al de Baran
-		{ MAP_LUTIE,		147, 134  },		//	 7=Lutie
-		{ MAP_COMODO,		209, 143  },		//	 8=Comodo
-		{ MAP_YUNO,		157,  51  },		//	 9=Yuno
-		{ MAP_AMATSU,		198,  84  },		//	10=Amatsu
-		{ MAP_GONRYUN,		160, 120  },	//	11=Gon Ryun
-		{ MAP_UMBALA,		89,  157  },		//	12=Umbala
-		{ MAP_NIFLHEIM,	21,  153  },		//	13=Niflheim
-		{ MAP_LOUYANG,		217,  40  },	//	14=Lou Yang
-		{ MAP_NOVICE,		53,  111  },	//	15=Training Grounds
-		{ MAP_JAIL,		23,   61  },	//	16=Prison
-		{ MAP_JAWAII,		249, 127  },		//  17=Jawaii
-		{ MAP_AYOTHAYA,	151, 117  },		//  18=Ayothaya
-		{ MAP_EINBROCH,	64,  200  },		//  19=Einbroch
-		{ MAP_LIGHTHALZEN,	158,  92  },	//  20=Lighthalzen
-		{ MAP_EINBECH,		70,   95  },	//  21=Einbech
-		{ MAP_HUGEL,		96,  145  },		//  22=Hugel
-		{ MAP_RACHEL,		130,  110  },		//  23=Rachel
-		{ MAP_VEINS,		216,  123  },		//  24=Veins
+	const struct {
+		char map[MAP_NAME_LENGTH];
+		int x, y;
+	} data[] = {
+		{ MAP_PRONTERA,    156, 191 }, //  0=Prontera
+		{ MAP_MORROC,      156,  93 }, //  1=Morroc
+		{ MAP_GEFFEN,      119,  59 }, //  2=Geffen
+		{ MAP_PAYON,       162, 233 }, //  3=Payon
+		{ MAP_ALBERTA,     192, 147 }, //  4=Alberta
+		{ MAP_IZLUDE,      128, 114 }, //  5=Izlude
+		{ MAP_ALDEBARAN,   140, 131 }, //  6=Al de Baran
+		{ MAP_LUTIE,       147, 134 }, //  7=Lutie
+		{ MAP_COMODO,      209, 143 }, //  8=Comodo
+		{ MAP_YUNO,        157,  51 }, //  9=Yuno
+		{ MAP_AMATSU,      198,  84 }, // 10=Amatsu
+		{ MAP_GONRYUN,     160, 120 }, // 11=Gonryun
+		{ MAP_UMBALA,       89, 157 }, // 12=Umbala
+		{ MAP_NIFLHEIM,     21, 153 }, // 13=Niflheim
+		{ MAP_LOUYANG,     217,  40 }, // 14=Louyang
+		{ MAP_NOVICE,       53, 111 }, // 15=Training Grounds
+		{ MAP_JAIL,         23,  61 }, // 16=Prison
+		{ MAP_JAWAII,      249, 127 }, // 17=Jawaii
+		{ MAP_AYOTHAYA,    151, 117 }, // 18=Ayothaya
+		{ MAP_EINBROCH,     64, 200 }, // 19=Einbroch
+		{ MAP_LIGHTHALZEN, 158,  92 }, // 20=Lighthalzen
+		{ MAP_EINBECH,      70,  95 }, // 21=Einbech
+		{ MAP_HUGEL,        96, 145 }, // 22=Hugel
+		{ MAP_RACHEL,      130, 110 }, // 23=Rachel
+		{ MAP_VEINS,       216, 123 }, // 24=Veins
 	};
  
 	nullpo_retr(-1, sd);
@@ -3103,134 +2275,111 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 	town = atoi(message);
  
 	// if no value, display all value
-	if (!message || !*message || sscanf(message, "%15s", map_name) < 1 || town < -3 || town >= ARRAYLENGTH(data)) {
+	if (!message || !*message || sscanf(message, "%11s", map_name) < 1 || town < 0 || town >= ARRAYLENGTH(data)) {
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
 		clif_displaymessage(fd, msg_txt(82)); // Please, use one of this number/name:
 		clif_displaymessage(fd, " 0=Prontera         1=Morroc       2=Geffen");
 		clif_displaymessage(fd, " 3=Payon            4=Alberta      5=Izlude");
 		clif_displaymessage(fd, " 6=Al De Baran      7=Lutie        8=Comodo");
-		clif_displaymessage(fd, " 9=Yuno             10=Amatsu      11=Gon Ryun");
-		clif_displaymessage(fd, " 12=Umbala          13=Niflheim    14=Lou Yang");
+		clif_displaymessage(fd, " 9=Yuno             10=Amatsu      11=Gonryun");
+		clif_displaymessage(fd, " 12=Umbala          13=Niflheim    14=Louyang");
 		clif_displaymessage(fd, " 15=Novice Grounds  16=Prison      17=Jawaii");
 		clif_displaymessage(fd, " 18=Ayothaya        19=Einbroch    20=Lighthalzen");
 		clif_displaymessage(fd, " 21=Einbech         22=Hugel       23=Rachel");
 		clif_displaymessage(fd, " 24=Veins");
 		return -1;
-	} else {
-		// get possible name of the city
-		map_name[MAP_NAME_LENGTH_EXT-1] = '\0';
-		for (i = 0; map_name[i]; i++)
-			map_name[i] = TOLOWER(map_name[i]);
-		// try to see if it's a name, and not a number (try a lot of possibilities, write errors and abbreviations too)
-		if (strncmp(map_name, "prontera", 3) == 0) { // 3 first characters
-			town = 0;
-		} else if (strncmp(map_name, "morocc", 3) == 0) { // 3 first characters
-			town = 1;
-		} else if (strncmp(map_name, "geffen", 3) == 0) { // 3 first characters
-			town = 2;
-		} else if (strncmp(map_name, "payon", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "paion", 3) == 0) { // writing error (3 first characters)
-			town = 3;
-		} else if (strncmp(map_name, "alberta", 3) == 0) { // 3 first characters
-			town = 4;
-		} else if (strncmp(map_name, "izlude", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "islude", 3) == 0) { // writing error (3 first characters)
-			town = 5;
-		} else if (strncmp(map_name, "aldebaran", 3) == 0 || // 3 first characters
-		           strcmp(map_name,  "al") == 0) { // al (de baran)
-			town = 6;
-		} else if (strncmp(map_name, "lutie", 3) == 0 || // name of the city, not name of the map (3 first characters)
-		           strcmp(map_name,  "christmas") == 0 || // name of the symbol
-		           strncmp(map_name, "xmas", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "x-mas", 3) == 0) { // writing error (3 first characters)
-			town = 7;
-		} else if (strncmp(map_name, "comodo", 3) == 0) { // 3 first characters
-			town = 8;
-		} else if (strncmp(map_name, "yuno", 3) == 0) { // 3 first characters
-			town = 9;
-		} else if (strncmp(map_name, "amatsu", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "ammatsu", 3) == 0) { // writing error (3 first characters)
-			town = 10;
-		} else if (strncmp(map_name, "gonryun", 3) == 0) { // 3 first characters
-			town = 11;
-		} else if (strncmp(map_name, "umbala", 3) == 0) { // 3 first characters
-			town = 12;
-		} else if (strncmp(map_name, "niflheim", 3) == 0) { // 3 first characters
-			town = 13;
-		} else if (strncmp(map_name, "louyang", 3) == 0) { // 3 first characters
-			town = 14;
-		} else if (strncmp(map_name, "new_zone01", 3) == 0 || // 3 first characters (or "newbies")
-		           strncmp(map_name, "startpoint", 3) == 0 || // name of the position (3 first characters)
-		           strncmp(map_name, "begining", 3) == 0) { // name of the position (3 first characters)
-			town = 15;
-		} else if (strncmp(map_name, "sec_pri", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "prison", 3) == 0 || // name of the position (3 first characters)
-		           strncmp(map_name, "jails", 3) == 0) { // name of the position
-			town = 16;
-		} else if (strncmp(map_name, "jawaii", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "jawai", 3) == 0) { // writing error (3 first characters)
-			town = 17;
-		} else if (strncmp(map_name, "ayothaya", 2) == 0 || // 2 first characters
-		           strncmp(map_name, "ayotaya", 2) == 0) { // writing error (2 first characters)
-			town = 18;
-		} else if (strncmp(map_name, "einbroch", 5) == 0 || // 5 first characters
-		           strncmp(map_name, "ainbroch", 5) == 0) { // writing error (5 first characters)
-			town = 19;
-		} else if (strncmp(map_name, "lighthalzen", 3) == 0 || // 3 first characters
-		           strncmp(map_name, "reichthalzen", 3) == 0) { // 'alternative' name (3 first characters)
-			town = 20;
-		} else if (strncmp(map_name, "einbech", 3) == 0) {		// 3 first characters
-			town = 21;
-		} else if (strncmp(map_name, "hugel", 3) == 0) {		// 3 first characters
-			town = 22;
-		} else if (strncmp(map_name, "rachel", 3) == 0) {		// 3 first characters
-			town = 23;
-		} else if (strncmp(map_name, "veins", 3) == 0) {		// 3 first characters
-			town = 24;
-		}
- 
-		if (town >= -3 && town <= -1) {
-			if (sd->status.memo_point[-town-1].map) {
-				m = map_mapindex2mapid(sd->status.memo_point[-town-1].map);
-				if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-					clif_displaymessage(fd, msg_txt(247));
-					return -1;
-				}
-				if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-					clif_displaymessage(fd, msg_txt(248));
-					return -1;
-				}
-				if (pc_setpos(sd, sd->status.memo_point[-town-1].map, sd->status.memo_point[-town-1].x, sd->status.memo_point[-town-1].y, 3) == 0) {
-					clif_displaymessage(fd, msg_txt(0)); // Warped.
-				} else {
-					clif_displaymessage(fd, msg_txt(1)); // Map not found.
-					return -1;
-				}
-			} else {
-				sprintf(atcmd_output, msg_txt(164), -town-1); // Your memo point #%d doesn't exist.
-				clif_displaymessage(fd, atcmd_output);
-				return -1;
-			}
-		} else if (town >= 0 && town < ARRAYLENGTH(data)) {
-			m = map_mapname2mapid((char *)data[town].map);
-			if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-				clif_displaymessage(fd, msg_txt(247));
-				return -1;
-			}
-			if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-				clif_displaymessage(fd, msg_txt(248));
-				return -1;
-			}
-			if (pc_setpos(sd, mapindex_name2id((char *)data[town].map), data[town].x, data[town].y, 3) == 0) {
-				clif_displaymessage(fd, msg_txt(0)); // Warped.
-			} else {
-				clif_displaymessage(fd, msg_txt(1)); // Map not found.
-				return -1;
-			}
-		} else { // if you arrive here, you have an error in town variable when reading of names
-			clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+	}
+
+	// get possible name of the city
+	map_name[MAP_NAME_LENGTH-1] = '\0';
+	for (i = 0; map_name[i]; i++)
+		map_name[i] = TOLOWER(map_name[i]);
+	// try to identify the map name
+	if (strncmp(map_name, "prontera", 3) == 0) {
+		town = 0;
+	} else if (strncmp(map_name, "morocc", 3) == 0) {
+		town = 1;
+	} else if (strncmp(map_name, "geffen", 3) == 0) {
+		town = 2;
+	} else if (strncmp(map_name, "payon", 3) == 0 ||
+	           strncmp(map_name, "paion", 3) == 0) {
+		town = 3;
+	} else if (strncmp(map_name, "alberta", 3) == 0) {
+		town = 4;
+	} else if (strncmp(map_name, "izlude", 3) == 0 ||
+	           strncmp(map_name, "islude", 3) == 0) {
+		town = 5;
+	} else if (strncmp(map_name, "aldebaran", 3) == 0 ||
+	           strcmp(map_name,  "al") == 0) {
+		town = 6;
+	} else if (strncmp(map_name, "lutie", 3) == 0 ||
+	           strcmp(map_name,  "christmas") == 0 ||
+	           strncmp(map_name, "xmas", 3) == 0 ||
+	           strncmp(map_name, "x-mas", 3) == 0) {
+		town = 7;
+	} else if (strncmp(map_name, "comodo", 3) == 0) {
+		town = 8;
+	} else if (strncmp(map_name, "yuno", 3) == 0) {
+		town = 9;
+	} else if (strncmp(map_name, "amatsu", 3) == 0) {
+		town = 10;
+	} else if (strncmp(map_name, "gonryun", 3) == 0) {
+		town = 11;
+	} else if (strncmp(map_name, "umbala", 3) == 0) {
+		town = 12;
+	} else if (strncmp(map_name, "niflheim", 3) == 0) {
+		town = 13;
+	} else if (strncmp(map_name, "louyang", 3) == 0) {
+		town = 14;
+	} else if (strncmp(map_name, "new_zone01", 3) == 0 ||
+	           strncmp(map_name, "startpoint", 3) == 0 ||
+	           strncmp(map_name, "begining", 3) == 0) {
+		town = 15;
+	} else if (strncmp(map_name, "sec_pri", 3) == 0 ||
+	           strncmp(map_name, "prison", 3) == 0 ||
+	           strncmp(map_name, "jails", 3) == 0) {
+		town = 16;
+	} else if (strncmp(map_name, "jawaii", 3) == 0 ||
+	           strncmp(map_name, "jawai", 3) == 0) {
+		town = 17;
+	} else if (strncmp(map_name, "ayothaya", 3) == 0 ||
+	           strncmp(map_name, "ayotaya", 3) == 0) {
+		town = 18;
+	} else if (strncmp(map_name, "einbroch", 5) == 0 ||
+	           strncmp(map_name, "ainbroch", 5) == 0) {
+		town = 19;
+	} else if (strncmp(map_name, "lighthalzen", 3) == 0) {
+		town = 20;
+	} else if (strncmp(map_name, "einbech", 3) == 0) {
+		town = 21;
+	} else if (strncmp(map_name, "hugel", 3) == 0) {
+		town = 22;
+	} else if (strncmp(map_name, "rachel", 3) == 0) {
+		town = 23;
+	} else if (strncmp(map_name, "veins", 3) == 0) {
+		town = 24;
+	}
+
+	if (town >= 0 && town < ARRAYLENGTH(data))
+	{
+		m = map_mapname2mapid(data[town].map);
+		if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			clif_displaymessage(fd, msg_txt(247));
 			return -1;
 		}
+		if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+			clif_displaymessage(fd, msg_txt(248));
+			return -1;
+		}
+		if (pc_setpos(sd, mapindex_name2id(data[town].map), data[town].x, data[town].y, 3) == 0) {
+			clif_displaymessage(fd, msg_txt(0)); // Warped.
+		} else {
+			clif_displaymessage(fd, msg_txt(1)); // Map not found.
+			return -1;
+		}
+	} else { // if you arrive here, you have an error in town variable when reading of names
+		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+		return -1;
 	}
  
 	return 0;
@@ -3524,9 +2673,7 @@ void atcommand_killmonster_sub(const int fd, struct map_session_data* sd, const 
 
 int atcommand_killmonster(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	if (!sd) return 0;
 	atcommand_killmonster_sub(fd, sd, message, 1);
-
 	return 0;
 }
 
@@ -3535,9 +2682,7 @@ int atcommand_killmonster(const int fd, struct map_session_data* sd, const char*
  *------------------------------------------*/
 int atcommand_killmonster2(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	if (!sd) return 0;
 	atcommand_killmonster_sub(fd, sd, message, 0);
-
 	return 0;
 }
 
@@ -3554,15 +2699,30 @@ int atcommand_refine(const int fd, struct map_session_data* sd, const char* comm
 
 	if (!message || !*message || sscanf(message, "%d %d", &position, &refine) < 2) {
 		clif_displaymessage(fd, "Please, enter a position and a amount (usage: @refine <equip position> <+/- amount>).");
+		sprintf(atcmd_output, "%d: Left Accessory", EQI_ACC_L);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Right Accessory", EQI_ACC_R);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Shoes", EQI_SHOES);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Garment", EQI_GARMENT);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Lower Headgear", EQI_HEAD_LOW);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Mid Headgear", EQI_HEAD_MID);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Top Headgear", EQI_HEAD_TOP);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Body Armor", EQI_ARMOR);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Left Hand", EQI_HAND_L);
+		clif_displaymessage(fd, atcmd_output);
+		sprintf(atcmd_output, "%d: Right Hand", EQI_HAND_R);
+		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
 
-	if (refine < -MAX_REFINE)
-		refine = -MAX_REFINE;
-	else if (refine > MAX_REFINE)
-		refine = MAX_REFINE;
-	else if (refine == 0)
-		refine = 1;
+	refine = cap_value(refine, -MAX_REFINE, MAX_REFINE);
 
 	count = 0;
 	for (j = 0; j < EQI_MAX-1; j++) {
@@ -3578,11 +2738,7 @@ int atcommand_refine(const int fd, struct map_session_data* sd, const char* comm
 		if(position && !(sd->status.inventory[i].equip & position))
 			continue;
 
-		final_refine = sd->status.inventory[i].refine + refine;
-		if (final_refine > MAX_REFINE)
-			final_refine = MAX_REFINE;
-		else if (final_refine < 0)
-			final_refine = 0;
+		final_refine = cap_value(sd->status.inventory[i].refine + refine, 0, MAX_REFINE);
 		if (sd->status.inventory[i].refine != final_refine) {
 			sd->status.inventory[i].refine = final_refine;
 			current_position = sd->status.inventory[i].equip;
@@ -3673,28 +2829,8 @@ int atcommand_produce(const int fd, struct map_session_data* sd, const char* com
 }
 
 /*==========================================
- * Sub-function to display actual memo points
+ *
  *------------------------------------------*/
-void atcommand_memo_sub(struct map_session_data* sd)
-{
-	int i;
-
-	if (!sd) return;
-
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	clif_displaymessage(sd->fd,  "Your actual memo positions are (except respawn point):");
-	for (i = MIN_PORTAL_MEMO; i <= MAX_PORTAL_MEMO; i++) {
-		if (sd->status.memo_point[i].map)
-			sprintf(atcmd_output, "%d - %s (%d,%d)", i, mapindex_id2name(sd->status.memo_point[i].map), sd->status.memo_point[i].x, sd->status.memo_point[i].y);
-		else
-			sprintf(atcmd_output, msg_txt(171), i); // %d - void
-		clif_displaymessage(sd->fd, atcmd_output);
-	}
-
-	return;
-}
-
 int atcommand_memo(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	int position = 0;
@@ -3702,33 +2838,29 @@ int atcommand_memo(const int fd, struct map_session_data* sd, const char* comman
 
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
-	if (!message || !*message || sscanf(message, "%d", &position) < 1)
-		atcommand_memo_sub(sd);
-	else {
-		if (position >= MIN_PORTAL_MEMO && position <= MAX_PORTAL_MEMO) {
-			if (sd->bl.m >= 0 && (map[sd->bl.m].flag.nowarpto || map[sd->bl.m].flag.nomemo) && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-				clif_displaymessage(fd, msg_txt(253));
-				return -1;
-			}
-			if (sd->status.memo_point[position].map) {
-				sprintf(atcmd_output, msg_txt(172), position, mapindex_id2name(sd->status.memo_point[position].map), sd->status.memo_point[position].x, sd->status.memo_point[position].y); // You replace previous memo position %d - %s (%d,%d).
-				clif_displaymessage(fd, atcmd_output);
-			}
-			sd->status.memo_point[position].map = map[sd->bl.m].index;
-			sd->status.memo_point[position].x = sd->bl.x;
-			sd->status.memo_point[position].y = sd->bl.y;
-			clif_skill_memo(sd, 0);
-			if (pc_checkskill(sd, AL_WARP) <= (position + 1))
-				clif_displaymessage(fd, msg_txt(173)); // Note: you don't have the 'Warp' skill level to use it.
-			atcommand_memo_sub(sd);
-		} else {
-			sprintf(atcmd_output, "Please, enter a valid position (usage: @memo <memo_position:%d-%d>).", MIN_PORTAL_MEMO, MAX_PORTAL_MEMO);
-			clif_displaymessage(fd, atcmd_output);
-			atcommand_memo_sub(sd);
-			return -1;
-		}
+	if( !message || !*message || sscanf(message, "%d", &position) < 1 )
+	{
+		int i;
+		clif_displaymessage(sd->fd,  "Your actual memo positions are:");
+		for( i = 0; i < MAX_MEMOPOINTS; i++ )
+		{
+			if( sd->status.memo_point[i].map )
+				sprintf(atcmd_output, "%d - %s (%d,%d)", i, mapindex_id2name(sd->status.memo_point[i].map), sd->status.memo_point[i].x, sd->status.memo_point[i].y);
+			else
+				sprintf(atcmd_output, msg_txt(171), i); // %d - void
+			clif_displaymessage(sd->fd, atcmd_output);
+ 		}
+		return 0;
+ 	}
+ 
+	if( position < 0 && position >= MAX_MEMOPOINTS )
+	{
+		sprintf(atcmd_output, "Please, enter a valid position (usage: @memo <memo_position:%d-%d>).", 0, MAX_MEMOPOINTS-1);
+		clif_displaymessage(fd, atcmd_output);
+		return -1;
 	}
 
+	pc_memo(sd, position);
 	return 0;
 }
 
@@ -3760,47 +2892,18 @@ int atcommand_gat(const int fd, struct map_session_data* sd, const char* command
 /*==========================================
  *
  *------------------------------------------*/
-int atcommand_packet(const int fd, struct map_session_data* sd, const char* command, const char* message)
+int atcommand_displaystatus(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	static int packet_mode = 0;
-	int i, x = 0, y = 0;
+	int i, type, flag;
 	nullpo_retr(-1, sd);
-
-	if (strstr(command, "packetmode")) {
-		packet_mode = atoi(message);
-		clif_displaymessage(fd, "Packet mode changed.");
-		return 0;
-	}
 	
-	if (!message || !*message || (i = sscanf(message, "%d %d", &x, &y)) < 1) {
-		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @packet <status type> <flag>).");
+	if (!message || !*message || (i = sscanf(message, "%d %d", &type, &flag)) < 1) {
+		clif_displaymessage(fd, "Please, enter a status type/flag (usage: @displaystatus <status type> <flag>).");
 		return -1;
 	}
-	if (i == 1) y = 1;
+	if (i == 1) flag = 1;
 
-	switch (packet_mode)
-	{
-	case 0:
-		clif_status_change(&sd->bl, x, y);
-		break;
-	case 1:
-		sd->status.skill[sd->cloneskill_id].id=0;
-		sd->status.skill[sd->cloneskill_id].lv=0;
-		sd->status.skill[sd->cloneskill_id].flag=0;
-		sd->cloneskill_id = x;
-		sd->status.skill[x].id = x;
-		sd->status.skill[x].lv = skill_get_max(x);
-		sd->status.skill[x].flag = 13;//cloneskill flag
-		clif_skillinfoblock(sd);
-		break;
-	case 2:
-		clif_skill_nodamage(&sd->bl,&sd->bl,x,y,1);
-	case 3:
-		clif_skill_poseffect(&sd->bl,x,y,sd->bl.x,sd->bl.y,gettick());
-	default:
-		break;
-		//added later
-	}
+	clif_status_change(&sd->bl, type, flag);
 
 	return 0;
 }
@@ -3944,7 +3047,7 @@ int atcommand_param(const int fd, struct map_session_data* sd, const char* comma
 	status[4] = &sd->status.dex;
 	status[5] = &sd->status.luk;
 
-	max = pc_maxparameter(sd);
+	max = SHRT_MAX;
 	new_value = cap_value(*status[i] + value, 1, max);
 	
 	if (new_value != (int)*status[i]) {
@@ -4039,10 +3142,10 @@ int atcommand_guildlevelup(const int fd, struct map_session_data* sd, const char
 		clif_displaymessage(fd, msg_txt(43)); // You're not in a guild.
 		return -1;
 	}
-	if (strcmp(sd->status.name, guild_info->master) != 0) {
-		clif_displaymessage(fd, msg_txt(44)); // You're not the master of your guild.
-		return -1;
-	}
+	//if (strcmp(sd->status.name, guild_info->master) != 0) {
+	//	clif_displaymessage(fd, msg_txt(44)); // You're not the master of your guild.
+	//	return -1;
+	//}
 
 	added_level = (short)level;
 	if (level > 0 && (level > MAX_GUILDLEVEL || added_level > ((short)MAX_GUILDLEVEL - guild_info->guild_lv))) // fix positiv overflow
@@ -4071,13 +3174,16 @@ int atcommand_makeegg(const int fd, struct map_session_data* sd, const char* com
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a monster/egg name/id (usage: @makeegg <pet_id>).");
+		clif_displaymessage(fd, "Please, enter a monster/egg name/id (usage: @makeegg <pet>).");
 		return -1;
 	}
 
 	if ((item_data = itemdb_searchname(message)) != NULL) // for egg name
 		id = item_data->nameid;
-	else if ((id = mobdb_searchname(message)) == 0) // for monster name
+	else
+	if ((id = mobdb_searchname(message)) != 0) // for monster name
+		;
+	else
 		id = atoi(message);
 
 	pet_id = search_petDB_index(id, PET_CLASS);
@@ -4219,67 +3325,41 @@ int atcommand_recall(const int fd, struct map_session_data* sd, const char* comm
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @recall <char name>).");
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @recall <player name/id>).");
 		return -1;
 	}
 
-	if(strncmp(sd->status.name,atcmd_player_name,NAME_LENGTH)==0)
-		return -1;
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can recall only lower or same level
-			if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-				clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
-				return -1;
-			}
-			if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-				clif_displaymessage(fd, "You are not authorized to warp this player from its actual map.");
-				return -1;
-			}
-			pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
-			sprintf(atcmd_output, msg_txt(46), atcmd_player_name); // %s recalled!
-			clif_displaymessage(fd, atcmd_output);
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL)
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
+		
+	if (pl_sd == sd)
+	{
+		clif_displaymessage(fd, "You are already where you are...");
+		return -1;
+	}
 
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------
- */
-int atcommand_revive(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @revive <char name>).");
+	if ( pc_isGM(sd) < pc_isGM(pl_sd) )
+	{
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
 	
-	pl_sd = map_nick2sd(atcmd_player_name);
-	
-	if (!pl_sd) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
 		return -1;
 	}
-	
-	if (!status_revive(&pl_sd->bl, 100, 0))
+	if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
+		clif_displaymessage(fd, "You are not authorized to warp this player from its actual map.");
 		return -1;
-	
-	clif_skill_nodamage(&sd->bl,&pl_sd->bl,ALL_RESURRECTION,4,1);
-	clif_displaymessage(fd, msg_txt(51)); // Character revived.
+	}
+	pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
+	sprintf(atcmd_output, msg_txt(46), pl_sd->status.name); // %s recalled!
+	clif_displaymessage(fd, atcmd_output);
+
 	return 0;
 }
 
@@ -4298,17 +3378,8 @@ int atcommand_char_block(const int fd, struct map_session_data* sd, const char* 
 		return -1;
 	}
 
-	// check player name
-	if (strlen(atcmd_player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
-		return -1;
-	} else if (strlen(atcmd_player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
-		return -1;
-	} else {
-		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
-		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
-	}
+	chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
+	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 
 	return 0;
 }
@@ -4337,7 +3408,7 @@ int atcommand_char_ban(const int fd, struct map_session_data* sd, const char* co
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	if (!message || !*message || sscanf(message, "%199s %99[^\n]", atcmd_output, atcmd_player_name) < 2) {
+	if (!message || !*message || sscanf(message, "%s %23[^\n]", atcmd_output, atcmd_player_name) < 2) {
 		clif_displaymessage(fd, "Please, enter ban time and a player name (usage: @charban/@ban/@banish/@charbanish <time> <name>).");
 		return -1;
 	}
@@ -4383,17 +3454,8 @@ int atcommand_char_ban(const int fd, struct map_session_data* sd, const char* co
 		return -1;
 	}
 
-	// check player name
-	if (strlen(atcmd_player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
-		return -1;
-	} else if (strlen(atcmd_player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
-		return -1;
-	} else {
-		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 2, year, month, day, hour, minute, second); // type: 2 - ban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
-	}
+	chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 2, year, month, day, hour, minute, second); // type: 2 - ban
+	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 
 	return 0;
 }
@@ -4412,18 +3474,9 @@ int atcommand_char_unblock(const int fd, struct map_session_data* sd, const char
 		return -1;
 	}
 
-	// check player name
-	if (strlen(atcmd_player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
-		return -1;
-	} else if (strlen(atcmd_player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
-		return -1;
-	} else {
-		// send answer to login server via char-server
-		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 3, 0, 0, 0, 0, 0, 0); // type: 3 - unblock
-		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
-	}
+	// send answer to login server via char-server
+	chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 3, 0, 0, 0, 0, 0, 0); // type: 3 - unblock
+	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 
 	return 0;
 }
@@ -4442,18 +3495,9 @@ int atcommand_char_unban(const int fd, struct map_session_data* sd, const char* 
 		return -1;
 	}
 
-	// check player name
-	if (strlen(atcmd_player_name) < 4) {
-		clif_displaymessage(fd, msg_txt(86)); // Sorry, but a player name have at least 4 characters.
-		return -1;
-	} else if (strlen(atcmd_player_name) > 23) {
-		clif_displaymessage(fd, msg_txt(87)); // Sorry, but a player name have 23 characters maximum.
-		return -1;
-	} else {
-		// send answer to login server via char-server
-		chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 4, 0, 0, 0, 0, 0, 0); // type: 4 - unban
-		clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
-	}
+	// send answer to login server via char-server
+	chrif_char_ask_name(sd->status.account_id, atcmd_player_name, 4, 0, 0, 0, 0, 0, 0); // type: 4 - unban
+	clif_displaymessage(fd, msg_txt(88)); // Character name sent to char-server to ask it.
 
 	return 0;
 }
@@ -4602,23 +3646,25 @@ int atcommand_kick(const int fd, struct map_session_data* sd, const char* comman
 
 	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @kick <charname>).");
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @kick <player name/id>).");
 		return -1;
 	}
 
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) // you can kick only lower or same gm level
-			clif_GM_kick(sd, pl_sd, 1);
-		else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
+	if((pl_sd=map_nick2sd((char *)message)) == NULL && (pl_sd=map_charid2sd(atoi(message))) == NULL)
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
 
+	if ( pc_isGM(sd) < pc_isGM(pl_sd) )
+	{
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		return -1;
+	}
+	
+	clif_GM_kick(sd, pl_sd, 1);
+	
 	return 0;
 }
 
@@ -4671,24 +3717,21 @@ int atcommand_questskill(const int fd, struct map_session_data* sd, const char* 
 		clif_displaymessage(fd, "Please, enter a quest skill number (usage: @questskill <#:0+>).");
 		return -1;
 	}
-
-	if (skill_id >= 0 && skill_id < MAX_SKILL_DB) {
-		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
-			if (pc_checkskill(sd, skill_id) == 0) {
-				pc_skill(sd, skill_id, 1, 0);
-				clif_displaymessage(fd, msg_txt(70)); // You have learned the skill.
-			} else {
-				clif_displaymessage(fd, msg_txt(196)); // You already have this quest skill.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
-			return -1;
-		}
-	} else {
+	if (skill_id < 0 && skill_id >= MAX_SKILL_DB) {
 		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
 		return -1;
 	}
+	if (!(skill_get_inf2(skill_id) & INF2_QUEST_SKILL)) {
+		clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
+		return -1;
+	}
+	if (pc_checkskill(sd, skill_id) > 0) {
+		clif_displaymessage(fd, msg_txt(196)); // You already have this quest skill.
+		return -1;
+	}
+
+	pc_skill(sd, skill_id, 1, 0);
+	clif_displaymessage(fd, msg_txt(70)); // You have learned the skill.
 
 	return 0;
 }
@@ -4705,26 +3748,23 @@ int atcommand_lostskill(const int fd, struct map_session_data* sd, const char* c
 		clif_displaymessage(fd, "Please, enter a quest skill number (usage: @lostskill <#:0+>).");
 		return -1;
 	}
-
-	if (skill_id >= 0 && skill_id < MAX_SKILL) {
-		if (skill_get_inf2(skill_id) & INF2_QUEST_SKILL) {
-			if (pc_checkskill(sd, skill_id) > 0) {
-				sd->status.skill[skill_id].lv = 0;
-				sd->status.skill[skill_id].flag = 0;
-				clif_skillinfoblock(sd);
-				clif_displaymessage(fd, msg_txt(71)); // You have forgotten the skill.
-			} else {
-				clif_displaymessage(fd, msg_txt(201)); // You don't have this quest skill.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
-			return -1;
-		}
-	} else {
+	if (skill_id < 0 && skill_id >= MAX_SKILL) {
 		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
 		return -1;
 	}
+	if (!(skill_get_inf2(skill_id) & INF2_QUEST_SKILL)) {
+		clif_displaymessage(fd, msg_txt(197)); // This skill number doesn't exist or isn't a quest skill.
+		return -1;
+	}
+	if (pc_checkskill(sd, skill_id) == 0) {
+		clif_displaymessage(fd, msg_txt(201)); // You don't have this quest skill.
+		return -1;
+	}
+
+	sd->status.skill[skill_id].lv = 0;
+	sd->status.skill[skill_id].flag = 0;
+	clif_skillinfoblock(sd);
+	clif_displaymessage(fd, msg_txt(71)); // You have forgotten the skill.
 
 	return 0;
 }
@@ -5244,8 +4284,7 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 	}
 
 	if (atcmd_player_name[0] == '\0') {
-		memcpy(atcmd_player_name, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH_EXT);
-		atcmd_player_name[MAP_NAME_LENGTH_EXT-1] = '\0';
+		safestrncpy(atcmd_player_name, mapindex_id2name(sd->mapindex), MAP_NAME_LENGTH);
 		m_id =  map_mapindex2mapid(sd->mapindex);
 	} else {
 		m_id = map_mapname2mapid(atcmd_player_name);
@@ -5446,53 +4485,23 @@ int atcommand_mount_peco(const int fd, struct map_session_data* sd, const char* 
 	nullpo_retr(-1, sd);
 
 	if (!pc_isriding(sd)) { // if actually no peco
-		if (pc_checkskill(sd, KN_RIDING)) {
-			pc_setoption(sd, sd->sc.option | OPTION_RIDING);
-			clif_displaymessage(fd, msg_txt(102)); // Mounted Peco.
-		} else {
+		if (!pc_checkskill(sd, KN_RIDING))
+		{
 			clif_displaymessage(fd, msg_txt(213)); // You can not mount a peco with your job.
 			return -1;
 		}
+
+		if (sd->disguise)
+		{
+			clif_displaymessage(fd, msg_txt(212)); // Cannot mount a Peco while in disguise.
+			return -1;
+		}
+
+		pc_setoption(sd, sd->sc.option | OPTION_RIDING);
+		clif_displaymessage(fd, msg_txt(102)); // Mounted Peco.
 	} else {	//Dismount
 		pc_setoption(sd, sd->sc.option & ~OPTION_RIDING);
 		clif_displaymessage(fd, msg_txt(214)); // Unmounted Peco.
-	}
-
-	return 0;
-}
-
-/*==========================================
- *
- *------------------------------------------*/
-int atcommand_char_mount_peco(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charmountpeco <char_name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-
-		if (!pc_isriding(pl_sd)) { // if actually no peco
-			if (pc_checkskill(pl_sd, KN_RIDING)) {
-				pc_setoption(pl_sd, pl_sd->sc.option | OPTION_RIDING);
-				clif_displaymessage(fd, msg_txt(216)); // Mounted Peco.
-			} else {
-				clif_displaymessage(fd, msg_txt(217)); // You can not mount a peco with your job.
-				return -1;
-			}
-		} else {	//Dismount
-			pc_setoption(pl_sd, pl_sd->sc.option & ~OPTION_RIDING);
-			clif_displaymessage(fd, msg_txt(218)); // Unmounted Peco.
-		}
-	} else {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
 	}
 
 	return 0;
@@ -5659,7 +4668,7 @@ int atcommand_tonpc(const int fd, struct map_session_data* sd, const char* comma
 	}
 
 	if ((nd = npc_name2id(npcname)) != NULL) {
-		if (pc_setpos(sd, map[nd->bl.m].index, nd->bl.x, nd->bl.y, 3) == 0)
+		if (pc_setpos(sd, map_id2index(nd->bl.m), nd->bl.x, nd->bl.y, 3) == 0)
 			clif_displaymessage(fd, msg_txt(0)); // Warped.
 		else
 			return -1;
@@ -5712,14 +4721,13 @@ int atcommand_hidenpc(const int fd, struct map_session_data* sd, const char* com
 		return -1;
 	}
 
-	if (npc_name2id(NPCname) != NULL) {
-		npc_enable(NPCname, 0);
-		clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
-	} else {
+	if (npc_name2id(NPCname) == NULL) {
 		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
 		return -1;
 	}
 
+	npc_enable(NPCname, 0);
+	clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
 	return 0;
 }
 
@@ -5762,15 +4770,14 @@ int atcommand_unloadnpc(const int fd, struct map_session_data* sd, const char* c
 		return -1;
 	}
 
-	if ((nd = npc_name2id(NPCname)) != NULL) {
-		npc_unload_duplicates(nd);
-		npc_unload(nd);
-		clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
-	} else {
+	if ((nd = npc_name2id(NPCname)) == NULL) {
 		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
 		return -1;
 	}
 
+	npc_unload_duplicates(nd);
+	npc_unload(nd);
+	clif_displaymessage(fd, msg_txt(112)); // Npc Disabled.
 	return 0;
 }
 
@@ -5814,7 +4821,7 @@ char* txt_time(unsigned int duration)
 }
 
 /*==========================================
- * @time/@date/@server_date/@serverdate/@server_time/@servertime: Display the date/time of the server (by [Yor]
+ * @time/@date/@serverdate/@servertime: Display the date/time of the server (by [Yor]
  * Calculation management of GM modification (@day/@night GM commands) is done
  *------------------------------------------*/
 int atcommand_servertime(const int fd, struct map_session_data* sd, const char* command, const char* message)
@@ -5881,81 +4888,6 @@ int atcommand_servertime(const int fd, struct map_session_data* sd, const char* 
 			sprintf(temp, msg_txt(238), txt_time(timer_data->interval / 1000)); // Game time: A day cycle has a normal duration of %s.
 			clif_displaymessage(fd, temp);
 		}
-	}
-
-	return 0;
-}
-
-/*==========================================
- * @chardelitem <item_name_or_ID> <quantity> <player> (by [Yor]
- * removes <quantity> item from a character
- * item can be equiped or not.
- * Inspired from a old command created by RoVeRT
- *------------------------------------------
- */
-int atcommand_chardelitem(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd;
-	char item_name[100];
-	int i, number = 0, item_id, item_position, count;
-	struct item_data *item_data;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(item_name, '\0', sizeof(item_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-	if (!message || !*message || (
-		sscanf(message, "\"%99[^\"]\" %d %99[^\n]", item_name, &number, atcmd_player_name) < 3 &&
-		sscanf(message, "%99s %d %99[^\n]", item_name, &number, atcmd_player_name) < 3
-	) || number < 1) {
-		clif_displaymessage(fd, "Please, enter an item name/id, a quantity and a player name (usage: @chardelitem <item_name_or_ID> <quantity> <player>).");
-		return -1;
-	}
-
-	item_id = 0;
-	if ((item_data = itemdb_searchname(item_name)) != NULL ||
-	    (item_data = itemdb_exists(atoi(item_name))) != NULL)
-		item_id = item_data->nameid;
-
-	if (item_id > 500) {
-		if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-			if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can kill only lower or same level
-				item_position = pc_search_inventory(pl_sd, item_id);
-				if (item_position >= 0) {
-					count = 0;
-					for(i = 0; i < number && item_position >= 0; i++) {
-
-						//Logs (A)dmins items [Lupus]
-						if(log_config.enable_logs&0x400)
-							log_pick_pc(pl_sd, "A", pl_sd->status.inventory[item_position].nameid, -1, &pl_sd->status.inventory[item_position]);
-
-						pc_delitem(pl_sd, item_position, 1, 0);
-						count++;
-						item_position = pc_search_inventory(pl_sd, item_id); // for next loop
-					}
-					sprintf(atcmd_output, msg_txt(113), count); // %d item(s) removed by a GM.
-					clif_displaymessage(pl_sd->fd, atcmd_output);
-					if (number == count)
-						sprintf(atcmd_output, msg_txt(114), count); // %d item(s) removed from the player.
-					else
-						sprintf(atcmd_output, msg_txt(115), count, count, number); // %d item(s) removed. Player had only %d on %d items.
-					clif_displaymessage(fd, atcmd_output);
-				} else {
-					clif_displaymessage(fd, msg_txt(116)); // Character does not have the item.
-					return -1;
-				}
-			} else {
-				clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_txt(3)); // Character not found.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_txt(19)); // Invalid item ID or name.
-		return -1;
 	}
 
 	return 0;
@@ -6092,8 +5024,8 @@ int atcommand_jailfor(const int fd, struct map_session_data* sd, const char* com
 	short m_index = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%199s %99[^\n]",atcmd_output,atcmd_player_name) < 2) {
-		clif_displaymessage(fd, msg_txt(400));  //Usage: @jailfor <time> <character name>
+	if (!message || !*message || sscanf(message, "%s %23[^\n]",atcmd_output,atcmd_player_name) < 2) {
+		clif_displaymessage(fd, msg_txt(400));	//Usage: @jailfor <time> <character name>
 		return -1;
 	}
 
@@ -6223,47 +5155,6 @@ int atcommand_jailtime(const int fd, struct map_session_data* sd, const char* co
 	return 0;
 }
 
-//By Coltaro
-int atcommand_charjailtime(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data* pl_sd;
-	int year, month, day, hour, minute;
-
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charjailtime <character name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) == NULL) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-	if (pc_isGM(pl_sd) >= pc_isGM(sd)) {
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorize you to do this action on this player.
-		return -1;
-	}
-	if (!pl_sd->sc.count || pl_sd->sc.data[SC_JAILED].timer == -1 ) {
-		clif_displaymessage(fd, "This player is not in jail."); // You are not in jail.
-		return -1;
-	}
-	if (pl_sd->sc.data[SC_JAILED].val2) {
-		clif_displaymessage(fd, "This player has been jailed indefinitely.");
-		return 0;
-	}
-
-	if (pl_sd->sc.data[SC_JAILED].val1 <= 0) { // Was not jailed with @jailfor (maybe @jail?)
-		clif_displaymessage(fd, "This player has been jailed for an unknown amount of time.");
-		return -1;
-	}
-	//Get remaining jail time
-	get_jail_time(pl_sd->sc.data[SC_JAILED].val1,&year,&month,&day,&hour,&minute);
-	sprintf(atcmd_output,msg_txt(402),"This player will remain",year,month,day,hour,minute); 
-	clif_displaymessage(fd, atcmd_output);
-	return 0;
-}
-
 /*==========================================
  * @disguise <mob_id> by [Valaris] (simplified by [Yor])
  *------------------------------------------*/
@@ -6291,8 +5182,15 @@ int atcommand_disguise(const int fd, struct map_session_data* sd, const char* co
 	}
 
 	if (id == 0)
-	{	// Monster/NPC name/id hasn't been found.
-		clif_displaymessage(fd, msg_txt(123)); 
+	{
+		clif_displaymessage(fd, msg_txt(123));	// Monster/NPC name/id hasn't been found.
+		return -1;
+	}
+
+	if(pc_isriding(sd))
+	{
+		//FIXME: wrong message [ultramage]
+		//clif_displaymessage(fd, msg_txt(227)); // Character cannot wear disguise while riding a PecoPeco.
 		return -1;
 	}
 
@@ -6312,24 +5210,25 @@ int atcommand_disguiseall(const int fd, struct map_session_data* sd, const char*
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message) {
-		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id (usage: @disguiseall <monster_name_or_monster_ID>).");
+		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id (usage: @disguiseall <monster name or monster ID>).");
 		return -1;
 	}
 
 	if ((mob_id = mobdb_searchname(message)) == 0) // check name first (to avoid possible name begining by a number)
 		mob_id = atoi(message);
 
-	if (mobdb_checkid(mob_id) || npcdb_checkid(mob_id)) { //if mob or npc...
-		pl_allsd = map_getallusers(&users);
-		for(i=0; i < users; i++) {
-			if((pl_sd = pl_allsd[i]))
-				pc_disguise(pl_sd, mob_id);
-		}
-		clif_displaymessage(fd, msg_txt(122)); // Disguise applied.
-	} else {
+	if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id)) { //if mob or npc...
+		clif_displaymessage(fd, msg_txt(123)); // Monster/NPC name/id not found.
 		return -1;
 	}
 
+	pl_allsd = map_getallusers(&users);
+	for(i=0; i < users; i++)
+	{
+		if((pl_sd = pl_allsd[i]))
+			pc_disguise(pl_sd, mob_id);
+	}
+	clif_displaymessage(fd, msg_txt(122)); // Disguise applied.
 	return 0;
 }
 
@@ -6408,7 +5307,7 @@ int atcommand_broadcast(const int fd, struct map_session_data* sd, const char* c
 		return -1;
 	}
 
-	sprintf(atcmd_output, "%s : %s", sd->status.name, message);
+	sprintf(atcmd_output, "%s: %s", sd->status.name, message);
 	intif_GMmessage(atcmd_output, strlen(atcmd_output) + 1, 0);
 
 	return 0;
@@ -6428,98 +5327,9 @@ int atcommand_localbroadcast(const int fd, struct map_session_data* sd, const ch
 		return -1;
 	}
 
-	sprintf(atcmd_output, "%s : %s", sd->status.name, message);
+	sprintf(atcmd_output, "%s: %s", sd->status.name, message);
 
 	clif_GMmessage(&sd->bl, atcmd_output, strlen(atcmd_output) + 1, 1); // 1: ALL_SAMEMAP
-
-	return 0;
-}
-
-/*==========================================
- * @chardisguise <mob_id> <character> by Kalaspuff (based off Valaris' and Yor's work)
- *------------------------------------------*/
-int atcommand_chardisguise(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	int mob_id;
-	char mob_name[NAME_LENGTH];
-	struct map_session_data* pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(mob_name, '\0', sizeof(mob_name));
-
-	if (!message || !*message || sscanf(message, "%23s %23[^\n]", mob_name, atcmd_player_name) < 2) {
-		clif_displaymessage(fd, "Please, enter a Monster/NPC name/id and a player name (usage: @chardisguise <monster_name_or_monster_ID> <char name>).");
-		return -1;
-	}
-
-	if ((mob_id = atoi(mob_name)) > 0)
-	{	//Acquired an ID
-		if (!mobdb_checkid(mob_id) && !npcdb_checkid(mob_id))
-			mob_id = 0; //Invalid id for either mobs or npcs.
-	}	else	{ //Acquired a Name
-		if ((mob_id = mobdb_searchname(mob_name)) == 0)
-		{
-			struct npc_data* nd = npc_name2id(mob_name);
-			if (nd != NULL)
-				mob_id = nd->n;
-		}
-	}
-
-	if (mob_id == 0)
-	{
-		clif_displaymessage(fd, msg_txt(123)); // Monster/NPC name/id hasn't been found.
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can disguise only lower or same level
-			pc_disguise(pl_sd, mob_id);
-			clif_displaymessage(fd, msg_txt(140)); // Character's disguise applied.
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- * @charundisguise <character> by Kalaspuff (based off Yor's work)
- *------------------------------------------
- */
-int atcommand_charundisguise(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data* pl_sd;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @charundisguise <char name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can undisguise only lower or same level
-			if (pl_sd->disguise)
-				pc_disguise(pl_sd, 0);
-			else {
-				clif_displaymessage(fd, msg_txt(142)); // Character is not disguised.
-				return -1;
-			}
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
 
 	return 0;
 }
@@ -6553,11 +5363,10 @@ int atcommand_email(const int fd, struct map_session_data* sd, const char* comma
 	} else if (strcmpi(actual_email, new_email) == 0) {
 		clif_displaymessage(fd, msg_txt(147)); // New email must be different of the actual e-mail.
 		return -1;
-	} else {
-		chrif_changeemail(sd->status.account_id, actual_email, new_email);
-		clif_displaymessage(fd, msg_txt(148)); // Information sended to login-server via char-server.
 	}
 
+	chrif_changeemail(sd->status.account_id, actual_email, new_email);
+	clif_displaymessage(fd, msg_txt(148)); // Information sended to login-server via char-server.
 	return 0;
 }
 
@@ -6569,90 +5378,13 @@ int atcommand_effect(const int fd, struct map_session_data* sd, const char* comm
 	int type = 0, flag = 0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %d", &type,&flag) < 2) {
-		clif_displaymessage(fd, "Please, enter a type and a send flag (usage: @effect <type> <flag>).");
+	if (!message || !*message || sscanf(message, "%d", &type) < 1) {
+		clif_displaymessage(fd, "Please, enter an effect number (usage: @effect <effect number>).");
 		return -1;
 	}
 
 	clif_specialeffect(&sd->bl, type, flag);
 	clif_displaymessage(fd, msg_txt(229)); // Your effect has changed.
-
-	return 0;
-}
-
-/*==========================================
- * @charcartlist <character>: Displays the items list of a player's cart.
- *------------------------------------------
- */
-int atcommand_character_cart_list(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	char outputtmp[200];
-	struct map_session_data *pl_sd;
-	struct item_data *item_data, *item_temp;
-	int i, j, count, counter, counter2;
-	nullpo_retr(-1, sd);
-
-	memset(atcmd_player_name, '\0', sizeof(atcmd_player_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-	memset(outputtmp, '\0', sizeof(outputtmp));
-
-	if (!message || !*message || sscanf(message, "%23[^\n]", atcmd_player_name) < 1) {
-		clif_displaymessage(fd, "Please, enter a player name (usage: @cartlist <char name>).");
-		return -1;
-	}
-
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(sd) >= pc_isGM(pl_sd)) { // you can look items only lower or same level
-			counter = 0;
-			count = 0;
-			for (i = 0; i < MAX_CART; i++) {
-				if (pl_sd->status.cart[i].nameid > 0 && (item_data = itemdb_search(pl_sd->status.cart[i].nameid)) != NULL) {
-					counter = counter + pl_sd->status.cart[i].amount;
-					count++;
-					if (count == 1) {
-						sprintf(atcmd_output, "------ Cart items list of '%s' ------", pl_sd->status.name);
-						clif_displaymessage(fd, atcmd_output);
-					}
-					if (pl_sd->status.cart[i].refine)
-						sprintf(atcmd_output, "%d %s %+d (%s %+d, id: %d)", pl_sd->status.cart[i].amount, item_data->name, pl_sd->status.cart[i].refine, item_data->jname, pl_sd->status.cart[i].refine, pl_sd->status.cart[i].nameid);
-					else
-						sprintf(atcmd_output, "%d %s (%s, id: %d)", pl_sd->status.cart[i].amount, item_data->name, item_data->jname, pl_sd->status.cart[i].nameid);
-					clif_displaymessage(fd, atcmd_output);
-					memset(atcmd_output, '\0', sizeof(atcmd_output));
-					counter2 = 0;
-					for (j = 0; j < item_data->slot; j++) {
-						if (pl_sd->status.cart[i].card[j]) {
-							if ( (item_temp = itemdb_search(pl_sd->status.cart[i].card[j])) != NULL) {
-								if (atcmd_output[0] == '\0')
-									sprintf(outputtmp, " -> (card(s): #%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
-								else
-									sprintf(outputtmp, "#%d %s (%s), ", ++counter2, item_temp->name, item_temp->jname);
-								strcat(atcmd_output, outputtmp);
-							}
-						}
-					}
-					if (atcmd_output[0] != '\0') {
-						atcmd_output[strlen(atcmd_output) - 2] = ')';
-						atcmd_output[strlen(atcmd_output) - 1] = '\0';
-						clif_displaymessage(fd, atcmd_output);
-					}
-				}
-			}
-			if (count == 0)
-				clif_displaymessage(fd, "No item found in the cart of this player.");
-			else {
-				sprintf(atcmd_output, "%d item(s) found in %d kind(s) of items.", counter, count);
-				clif_displaymessage(fd, atcmd_output);
-			}
-		} else {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-	} else {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-
 	return 0;
 }
 
@@ -6693,32 +5425,6 @@ int atcommand_killable(const int fd, struct map_session_data* sd, const char* co
 }
 
 /*==========================================
- * @charkillable by MouseJstr
- * enable another player to be killed
- *------------------------------------------
- */
-int atcommand_charkillable(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd = NULL;
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message)
-		return -1;
-
-	if((pl_sd=map_nick2sd((char *) message)) == NULL)
-		return -1;
-
-	pl_sd->state.killable = !pl_sd->state.killable;
-
-	if(pl_sd->state.killable)
-		clif_displaymessage(fd, msg_txt(289));
-	else
-		clif_displaymessage(fd, msg_txt(290));
-
-	return 0;
-}
-
-/*==========================================
  * @skillon by MouseJstr
  * turn skills on for the map
  *------------------------------------------*/
@@ -6751,32 +5457,31 @@ int atcommand_npcmove(const int fd, struct map_session_data* sd, const char* com
 	int x = 0, y = 0, m;
 	struct npc_data *nd = 0;
 	nullpo_retr(-1, sd);
-
-
-	if (!message || !*message)
-		return -1;
-
 	memset(atcmd_player_name, '\0', sizeof atcmd_player_name);
 
-	if (sscanf(message, "%d %d %23[^\n]", &x, &y, atcmd_player_name) < 3) {
+	if (!message || !*message || sscanf(message, "%d %d %23[^\n]", &x, &y, atcmd_player_name) < 3) {
 		clif_displaymessage(fd, "Usage: @npcmove <X> <Y> <npc_name>");
 		return -1;
 	}
 
-	//Who's idea was this? nullpo's are meant to check pointers that SHOULDN'T be null unless there's a bug... [Skotlex]
-//	nullpo_retr(-1, (nd = npc_name2id(atcmd_player_name)));
-
 	if ((nd = npc_name2id(atcmd_player_name)) == NULL)
+	{
+		clif_displaymessage(fd, msg_txt(111)); // This NPC doesn't exist.
 		return -1;
+	}
 
 	if ((m=nd->bl.m) < 0 || nd->bl.prev == NULL)
+	{
+		clif_displaymessage(fd, "NPC is not on this map.");
 		return -1;	//Not on a map.
+	}
 	
 	x = cap_value(x, 0, map[m].xs-1);
 	y = cap_value(y, 0, map[m].ys-1);
 	map_foreachinrange(clif_outsight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
 	map_moveblock(&nd->bl, x, y, gettick());
 	map_foreachinrange(clif_insight, &nd->bl, AREA_SIZE, BL_PC, &nd->bl);
+	clif_displaymessage(fd, "NPC moved.");
 
 	return 0;
 }
@@ -6788,20 +5493,19 @@ int atcommand_npcmove(const int fd, struct map_session_data* sd, const char* com
 int atcommand_addwarp(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char w1[64], w3[64], w4[64];
-	int x,y,ret;
+	int x,y,ret=0;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
+	if (!message || !*message || sscanf(message, "%23s %d %d[^\n]", atcmd_player_name, &x, &y) < 3) {
+		clif_displaymessage(fd, "usage: @addwarp <mapname> <X> <Y>.");
 		return -1;
-
-	if (sscanf(message, "%23s %d %d[^\n]", atcmd_player_name, &x, &y ) < 3)
-		return -1;
+	}
 
 	sprintf(w1,"%s,%d,%d", mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y);
 	sprintf(w3,"%s%d%d%d%d", atcmd_player_name,sd->bl.x, sd->bl.y, x, y);
-	sprintf(w4,"1,1,%s.gat,%d,%d", atcmd_player_name, x, y);
+	sprintf(w4,"1,1,%s,%d,%d", atcmd_player_name, x, y);
 
-	ret = npc_parse_warp(w1, "warp", w3, w4);
+	npc_parse_warp(w1, "warp", w3, w4);
 
 	sprintf(atcmd_output, "New warp NPC => %s",w3);
 
@@ -6827,21 +5531,22 @@ int atcommand_follow(const int fd, struct map_session_data* sd, const char* comm
 		clif_displaymessage(fd, "Follow mode OFF."); 
 		return 0; 
 	} 
-	if ((pl_sd = map_nick2sd((char *) message)) != NULL) {
-		if (sd->followtarget == pl_sd->bl.id) {
-			pc_stop_following (sd);
-			clif_displaymessage(fd, "Follow mode OFF.");
-		} else {
-			pc_follow(sd, pl_sd->bl.id);
-			clif_displaymessage(fd, "Follow mode ON.");
-		}
-		return 0;
-	} else {
-		clif_displaymessage(fd, "Character not found.");
+	
+	if ( (pl_sd = map_nick2sd((char *)message)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
+
+	if (sd->followtarget == pl_sd->bl.id) {
+		pc_stop_following (sd);
+		clif_displaymessage(fd, "Follow mode OFF.");
+	} else {
+		pc_follow(sd, pl_sd->bl.id);
+		clif_displaymessage(fd, "Follow mode ON.");
+	}
 	
-	return 1;
+	return 0;
 }
 
 
@@ -6863,34 +5568,6 @@ int atcommand_dropall(const int fd, struct map_session_data* sd, const char* com
 	return 0;
 }
 
-/*==========================================
- * @chardropall by [MouseJstr]
- * Drop all of the target's possessions on the ground
- *------------------------------------------
- */
-int atcommand_chardropall(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	int i;
-	struct map_session_data *pl_sd = NULL;
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message)
-		return -1;
-	if((pl_sd=map_nick2sd((char *) message)) == NULL)
-		return -1;
-	for (i = 0; i < MAX_INVENTORY; i++) {
-		if (pl_sd->status.inventory[i].amount) {
-			if(pl_sd->status.inventory[i].equip != 0)
-				pc_unequipitem(pl_sd, i, 3);
-			pc_dropitem(pl_sd,  i, pl_sd->status.inventory[i].amount);
-		}
-	}
-
-	clif_displaymessage(pl_sd->fd, "Ever play 52 card pickup?");
-	clif_displaymessage(fd, "It is done");
-
-	return 0;
-}
 /*==========================================
  * @storeall by [MouseJstr]
  * Put everything into storage
@@ -6923,52 +5600,7 @@ int atcommand_storeall(const int fd, struct map_session_data* sd, const char* co
 	clif_displaymessage(fd, "It is done");
 	return 0;
 }
-/*==========================================
- * @charstoreall by [MouseJstr]
- * A way to screw with players who piss you off
- *------------------------------------------
- */
-int atcommand_charstoreall(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	int i;
-	struct map_session_data *pl_sd = NULL;
-	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-		return -1;
-	if((pl_sd=map_nick2sd((char *) message)) == NULL)
-		return -1;
-
-	if (pl_sd->state.storage_flag != 1)
-  	{	//Open storage.
-		switch (storage_storageopen(pl_sd)) {
-		case 2: //Try again
-			clif_displaymessage(fd, "Had to open the characters storage window...");
-			clif_displaymessage(fd, "run this command again..");
-			return 0;
-		case 1: //Failure
-			clif_displaymessage(fd, "The character currently can't use the storage.");
-			return 1;
-		}
-	}
-
-	for (i = 0; i < MAX_INVENTORY; i++) {
-		if (pl_sd->status.inventory[i].amount) {
-			if(pl_sd->status.inventory[i].equip != 0)
-				pc_unequipitem(pl_sd, i, 3);
-			storage_storageadd(pl_sd,  i, sd->status.inventory[i].amount);
-		}
-	}
-	storage_storageclose(pl_sd);
-
-	clif_displaymessage(pl_sd->fd, "Everything you own has been put away for safe keeping.");
-	clif_displaymessage(pl_sd->fd, "go to the nearest kafka to retrieve it..");
-	clif_displaymessage(pl_sd->fd, "   -- the management");
-
-	clif_displaymessage(fd, "It is done");
-
-	return 0;
-}
 /*==========================================
  * @skillid by [MouseJstr]
  * lookup a skill by name
@@ -6979,12 +5611,15 @@ int atcommand_skillid(const int fd, struct map_session_data* sd, const char* com
 	nullpo_retr(-1, sd);
 
 	if (!message || !*message)
+	{
+		clif_displaymessage(fd, "Please enter a skill name to look up (usage: @skillid <skill name>).");
 		return -1;
+	}
+
 	skillen = strlen(message);
 
 	for (idx = 0; idx < MAX_SKILL_DB; idx++) {
-		if ((skill_db[idx].name != NULL && strnicmp(skill_db[idx].name, message, skillen) == 0) ||
-			(skill_db[idx].desc != NULL && strnicmp(skill_db[idx].desc, message, skillen) == 0))
+		if (strnicmp(skill_db[idx].name, message, skillen) == 0 || strnicmp(skill_db[idx].desc, message, skillen) == 0)
 		{
 			sprintf(atcmd_output, "skill %d: %s", idx, skill_db[idx].desc);
 			clif_displaymessage(fd, atcmd_output);
@@ -7007,13 +5642,20 @@ int atcommand_useskill(const int fd, struct map_session_data* sd, const char* co
 	char target[100];
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-		return -1;
-	if(sscanf(message, "%d %d %99[^\n]", &skillnum, &skilllv, target) != 3) {
+	if(!message || !*message || sscanf(message, "%d %d %23[^\n]", &skillnum, &skilllv, target) != 3) {
 		clif_displaymessage(fd, "Usage: @useskill <skillnum> <skillv> <target>");
 		return -1;
 	}
-	if((pl_sd=map_nick2sd(target)) == NULL) {
+
+	if ( (pl_sd = map_nick2sd(target)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		return -1;
+	}
+
+	if ( pc_isGM(sd) < pc_isGM(pl_sd) )
+	{
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
 		return -1;
 	}
 
@@ -7070,15 +5712,16 @@ int atcommand_skilltree(const int fd, struct map_session_data* sd, const char* c
 	struct skill_tree_entry *ent;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-		return -1;
-
-	if(sscanf(message, "%d %23[^\r\n]", &skillnum, target) != 2) {
+	if(!message || !*message || sscanf(message, "%d %23[^\r\n]", &skillnum, target) != 2) {
 		clif_displaymessage(fd, "Usage: @skilltree <skillnum> <target>");
 		return -1;
 	}
-	if((pl_sd=map_nick2sd(target)) == NULL)
+
+	if ( (pl_sd = map_nick2sd(target)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
+	}
 
 	c = pc_calc_skilltree_normalize_job(pl_sd);
 	c = pc_mapid2jobid(c, pl_sd->status.sex);
@@ -7105,12 +5748,9 @@ int atcommand_skilltree(const int fd, struct map_session_data* sd, const char* c
 	ent = &skill_tree[c][skillidx];
 
 	for(j=0;j<5;j++)
-		if( ent->need[j].id &&
-			pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
+		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
 		{
-			char *desc = (skill_db[ ent->need[j].id ].desc) ? skill_db[ ent->need[j].id ].desc : "Unknown skill";
-			sprintf(atcmd_output, "player requires level %d of skill %s",
-				ent->need[j].lv, desc);
+			sprintf(atcmd_output, "player requires level %d of skill %s", ent->need[j].lv, skill_db[ent->need[j].id].desc);
 			clif_displaymessage(fd, atcmd_output);
 			meets = 0;
 		}
@@ -7184,7 +5824,9 @@ int atcommand_marry(const int fd, struct map_session_data* sd, const char* comma
 	getring (pl_sd2);
 	return 0;
   }
-  return -1;
+
+	clif_displaymessage(fd, "The two cannot wed because one of them is either a baby or is already married.");
+	return -1;
 }
 
 /*==========================================
@@ -7202,95 +5844,20 @@ int atcommand_divorce(const int fd, struct map_session_data* sd, const char* com
 	return -1;
   }
 
-  if((pl_sd=map_nick2sd((char *) atcmd_player_name)) != NULL) {
+	if ( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		return -1;
+	}
+
 	if (pc_divorce(pl_sd) != 0) {
 		sprintf(atcmd_output, "The divorce has failed.. Cannot find player '%s' or his(her) partner online.", atcmd_player_name);
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
-	} else {
-		sprintf(atcmd_output, "'%s' and his(her) partner are now divorced.", atcmd_player_name);
-		clif_displaymessage(fd, atcmd_output);
-		return 0;
 	}
-  }
-  sprintf(atcmd_output, "Cannot find player '%s' online", atcmd_player_name);
-  clif_displaymessage(fd, atcmd_output);
-  return -1;
-}
-
-
-#ifdef DMALLOC
-unsigned long dmark_;
-int atcommand_dmstart(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-  dmark_ = dmalloc_mark();
-
-  clif_displaymessage(fd, "debug mark set");
-
-  return 0;
-}
-
-int atcommand_dmtick(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-  dmalloc_log_changed ( dmark_, 1, 0, 1 ) ;
-  dmark_ = dmalloc_mark();
-  clif_displaymessage(fd, "malloc changes logged");
-
-  return 0;
-}
-#endif
-
-/*==========================================
- * @grind by [MouseJstr]
- *------------------------------------------*/
-int atcommand_grind(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	struct map_session_data *pl_sd = NULL;
-	int skillnum;
-	int inf;
-	char target[NAME_LENGTH];
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message)
-		return -1;
-	if(sscanf(message, "%23s", target) != 1) {
-		clif_displaymessage(fd, "Usage: @grind <target>");
-		return -1;
-	}
-	if((pl_sd=map_nick2sd(target)) == NULL)
-		return -1;
-
-	for (skillnum = 1; skillnum < 500; skillnum++) {
-		sd->status.sp = sd->status.max_sp;
-		atcommand_alive(fd, sd, command, message);
-
-		inf = skill_get_inf(skillnum);
-
-		if (inf & INF_GROUND_SKILL)
-			unit_skilluse_pos(&sd->bl, pl_sd->bl.x, pl_sd->bl.y, skillnum, 1);
-		else if (!(inf & INF_SUPPORT_SKILL))
-			unit_skilluse_id(&sd->bl, pl_sd->bl.id, skillnum, 1);
-	}
-
-	return 0;
-}
-
-/*==========================================
- * @grind2 by [MouseJstr]
- *------------------------------------------
- */
-int atcommand_grind2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	int i;
-	short x, y;
-
-	for (i = 1000; i < MAX_MOB_DB; i++) {
-		if (!mobdb_checkid(i))
-			continue;
-		map_search_freecell(&sd->bl, 0, &x,  &y, 5, 5, 0);
-		mob_once_spawn(sd, "this", x, y, "--ja--", i, 1, "");
-	}
-
+	
+	sprintf(atcmd_output, "'%s' and his(her) partner are now divorced.", atcmd_player_name);
+	clif_displaymessage(fd, atcmd_output);
 	return 0;
 }
 
@@ -7684,14 +6251,12 @@ int atcommand_sound(const int fd, struct map_session_data *sd, const char *comma
 {
 	char sound_file[100];
 
-	if(!message || !*message || sscanf(message, "%99[^\n]", sound_file) < 1) {
+	memset(sound_file, '\0', sizeof(sound_file));
+
+		if(!message || !*message || sscanf(message, "%99[^\n]", sound_file) < 1) {
 		clif_displaymessage(fd, "Please, enter a sound filename. (usage: @sound <filename>)");
 		return -1;
 	}
-
-	memset(sound_file, '\0', sizeof(sound_file));
-	if(sscanf(message, "%99[^\n]", sound_file) < 1)
-		return -1;
 
 	if(strstr(sound_file, ".wav") == NULL)
 		strcat(sound_file, ".wav");
@@ -7736,8 +6301,10 @@ int atcommand_mobsearch(const int fd, struct map_session_data* sd, const char* c
 
 	nullpo_retr(-1, sd);
 
-	if (sscanf(message, "%99[^\n]", mob_name) < 0)
+	if (!message || !*message || sscanf(message, "%99[^\n]", mob_name) < 1) {
+		clif_displaymessage(fd, "Please, enter a monster name (usage: @mobsearch <monster name>).");
 		return -1;
+	}
 
 	if ((mob_id = atoi(mob_name)) == 0)
 		 mob_id = mobdb_searchname(mob_name);
@@ -7920,10 +6487,11 @@ int atcommand_summon(const int fd, struct map_session_data* sd, const char* comm
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
+	if (!message || !*message || sscanf(message, "%23s %d", name, &duration) < 1)
+	{
+		clif_displaymessage(fd, "Please, enter a monster name (usage: @summon <monster name> [duration]");
 		return -1;
-	if (sscanf(message, "%23s %d", name, &duration) < 1)
-		return -1;
+	}
 
 	if (duration < 1)
 		duration =1;
@@ -7933,20 +6501,25 @@ int atcommand_summon(const int fd, struct map_session_data* sd, const char* comm
 	if ((mob_id = atoi(name)) == 0)
 		mob_id = mobdb_searchname(name);
 	if(mob_id == 0 || mobdb_checkid(mob_id) == 0)
+	{
+		clif_displaymessage(fd, msg_txt(40));	// Invalid monster ID or name.
 		return -1;
+	}
 
 	md = mob_once_spawn_sub(&sd->bl, sd->bl.m, -1, -1, "--ja--", mob_id, "");
 
-	if(md){
-		md->master_id=sd->bl.id;
-		md->special_state.ai=1;
-		md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,md->bl.id,0);
-		clif_misceffect2(&md->bl,344);
-		mob_spawn(md);
-		sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
-		clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,md->bl.x,md->bl.y,tick);
-	}
-
+	if(!md)
+		return -1;
+	
+	md->master_id=sd->bl.id;
+	md->special_state.ai=1;
+	md->deletetimer=add_timer(tick+(duration*60000),mob_timer_delete,md->bl.id,0);
+	clif_misceffect2(&md->bl,344);
+	mob_spawn(md);
+	sc_start4(&md->bl, SC_MODECHANGE, 100, 1, 0, MD_AGGRESSIVE, 0, 60000);
+	clif_skill_poseffect(&sd->bl,AM_CALLHOMUN,1,md->bl.x,md->bl.y,tick);
+	clif_displaymessage(fd, msg_txt(39));	// All monster summoned!
+	
 	return 0;
 }
 
@@ -7958,38 +6531,40 @@ int atcommand_summon(const int fd, struct map_session_data* sd, const char* comm
  *------------------------------------------*/
 int atcommand_adjcmdlvl(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	int i, newlev;
-	char cmd[100];
+	int newlev;
+	char name[100];
+	AtCommandInfo* cmd;
+
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message || sscanf(message, "%d %99s", &newlev, cmd) != 2)
+	if (!message || !*message || sscanf(message, "%d %99s", &newlev, name) != 2)
 	{
 		clif_displaymessage(fd, "Usage: @adjcmdlvl <lvl> <command>.");
 		return -1;
 	}
 
-	if (newlev > pc_isGM(sd))
+	cmd = get_atcommandinfo_byname(name);
+	if (cmd == NULL)
+	{
+		clif_displaymessage(fd, "@command not found.");
+		return -1;
+	}
+	else if (newlev > pc_isGM(sd))
 	{
 		clif_displaymessage(fd, "You can't make a command require higher GM level than your own.");
 		return -1;
 	}
-
-	for (i = 0; atcommand_info[i].command && atcommand_info[i].type != AtCommand_None; i++)
+	else if (cmd->level > pc_isGM(sd))
 	{
-		if (strcmpi(cmd, atcommand_info[i].command+1) != 0)
-			continue;
-		if (atcommand_info[i].level > pc_isGM(sd))
-		{
-			clif_displaymessage(fd, "You can't adjust the level of a command which's level is above your own.");
-			return -1;
-		}
-		atcommand_info[i].level = newlev;
+		clif_displaymessage(fd, "You can't adjust the level of a command which's level is above your own.");
+		return -1;
+	}
+	else
+	{
+		cmd->level = newlev;
 		clif_displaymessage(fd, "@command level changed.");
 		return 0;
 	}
-
-	clif_displaymessage(fd, "@command not found.");
-	return -1;
 }
 
 /*==========================================
@@ -8009,8 +6584,11 @@ int atcommand_adjgmlvl(const int fd, struct map_session_data* sd, const char* co
         return -1;
     }
 
-    if((pl_sd=map_nick2sd((char *) user)) == NULL)
-        return -1;
+	if ( (pl_sd = map_nick2sd(user)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		return -1;
+	}
 
     pc_set_gm_level(pl_sd->status.account_id, newlev);
 
@@ -8026,13 +6604,19 @@ int atcommand_trade(const int fd, struct map_session_data* sd, const char* comma
     struct map_session_data *pl_sd = NULL;
 	nullpo_retr(-1, sd);
 
-    if (!message || !*message)
-        return -1;
-    if((pl_sd=map_nick2sd((char *) message)) != NULL) {
-        trade_traderequest(sd, pl_sd);
-        return 0;
-    }
-    return -1;
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @trade <player>).");
+		return -1;
+	}
+
+	if ( (pl_sd = map_nick2sd((char *)message)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		return -1;
+	}
+
+	trade_traderequest(sd, pl_sd);
+	return 0;
 }
 
 /*==========================================
@@ -8050,9 +6634,12 @@ int atcommand_setbattleflag(const int fd, struct map_session_data* sd, const cha
     	}
 
 	if (battle_set_value(flag, value) == 0)
-        	clif_displaymessage(fd, "unknown battle_config flag");
-	else
-        	clif_displaymessage(fd, "battle_config set as requested");
+	{
+		clif_displaymessage(fd, "unknown battle_config flag");
+		return -1;
+	}
+
+	clif_displaymessage(fd, "battle_config set as requested");
 
 	return 0;
 }
@@ -8065,19 +6652,26 @@ int atcommand_unmute(const int fd, struct map_session_data* sd, const char* comm
 	struct map_session_data *pl_sd = NULL;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-        	return -1;
-
-	if((pl_sd=map_nick2sd((char *) message)) != NULL) {
-		if(pl_sd->sc.data[SC_NOCHAT].timer!=-1) {
-			pl_sd->status.manner = 0;
-			status_change_end(&pl_sd->bl,SC_NOCHAT,-1);
-			clif_displaymessage(sd->fd,"Player unmuted");
-		}
-		else
-			clif_displaymessage(sd->fd,"Player is not muted");
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a player name (usage: @unmute <player>).");
+		return -1;
 	}
 
+	if ( (pl_sd = map_nick2sd((char *)message)) == NULL )
+	{
+		clif_displaymessage(fd, msg_txt(3)); // Character not found.
+		return -1;
+	}
+
+	if(pl_sd->sc.data[SC_NOCHAT].timer == -1) {
+		clif_displaymessage(sd->fd,"Player is not muted");
+		return -1;
+	}
+
+	pl_sd->status.manner = 0;
+	status_change_end(&pl_sd->bl,SC_NOCHAT,-1);
+	clif_displaymessage(sd->fd,"Player unmuted");
+	
 	return 0;
 }
 
@@ -8129,20 +6723,22 @@ int atcommand_mute(const int fd, struct map_session_data* sd, const char* comman
 		return -1;
 	}
 
-	if ((pl_sd = map_nick2sd(atcmd_player_name)) != NULL) {
-		if (pc_isGM(pl_sd) > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-			return -1;
-		}
-		clif_GM_silence(sd, pl_sd, 0);
-		pl_sd->status.manner -= manner;
-		if(pl_sd->status.manner < 0)
-			sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
-	}
-	else {
+	if ( (pl_sd = map_nick2sd(atcmd_player_name)) == NULL )
+	{
 		clif_displaymessage(fd, msg_txt(3)); // Character not found.
 		return -1;
 	}
+
+	if ( pc_isGM(sd) < pc_isGM(pl_sd) )
+	{
+		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
+		return -1;
+	}
+
+	clif_GM_silence(sd, pl_sd, 0);
+	pl_sd->status.manner -= manner;
+	if(pl_sd->status.manner < 0)
+		sc_start(&pl_sd->bl,SC_NOCHAT,100,0,0);
 
 	return 0;
 }
@@ -8154,49 +6750,6 @@ int atcommand_refresh(const int fd, struct map_session_data* sd, const char* com
 {
 	nullpo_retr(-1, sd);
 	clif_refresh(sd);
-	return 0;
-}
-
-/*==========================================
- * @petid <part of pet name>
- * => Displays a list of matching pets.
- *------------------------------------------*/
-int atcommand_petid(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	char searchtext[100];
-	char temp0[100];
-	char temp1[100];
-	int cnt = 0, i = 0;
-
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message)
-		return -1;
-	if (sscanf(message, "%99s", searchtext) < 1)
-		return -1;
-	estr_lower(searchtext);
-	snprintf(temp0, sizeof(temp0), "Search results for: %s", searchtext);
-	clif_displaymessage(fd,temp0);
-	while (i < MAX_PET_DB) {
-		strcpy(temp1,pet_db[i].name);
-		strcpy(temp1, estr_lower(temp1));
-		strcpy(temp0,pet_db[i].jname);
-		strcpy(temp0, estr_lower(temp1));
-		if (strstr(temp1, searchtext) || strstr(temp0, searchtext) ) {
-  			snprintf(temp0, sizeof(temp0), "ID: %i -- Name: %s", pet_db[i].class_,
-     			pet_db[i].jname);
-  			if (cnt >= 100) { // Only if there are custom pets
-	  			clif_displaymessage(fd, "Be more specific, can't send more than"
-					" 100 results.");
-			} else {
-				clif_displaymessage(fd, temp0);
-			}
-    		cnt++;
-		}
-	i++;
-	}
-	snprintf(temp0, sizeof(temp0),"%i pets have '%s' in their name.", cnt, searchtext);
-	clif_displaymessage(fd, temp0);
 	return 0;
 }
 
@@ -8264,190 +6817,8 @@ int atcommand_misceffect(const int fd, struct map_session_data* sd, const char* 
 	return 0;
 }
 
-/*==========================================
- * Jump to a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------*/
-int atcommand_jumptoid2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-   int aid=0;
-   struct map_session_data *pl_sd;
-
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-   if (!message || (aid = atoi(message)) == 0) {
-      clif_displaymessage(fd, "Please, enter a player AID (usage: @jumptoid/@warptoid/@gotoid <account id>).");
-      return -1;
-   }
-
-	pl_sd = map_id2sd(aid);
-	if (!pl_sd) {
-		clif_displaymessage(fd, msg_txt(154)); // Character not found.
-		return -1;
-	}
-
-	if (map[pl_sd->bl.m].flag.nowarpto &&
-		battle_config.any_warp_GM_min_level > pc_isGM(sd))
-  	{
-		clif_displaymessage(fd, msg_txt(247));
-		return -1;
-	}
-	if (map[sd->bl.m].flag.nowarp &&
-		battle_config.any_warp_GM_min_level > pc_isGM(sd))
-  	{
-		clif_displaymessage(fd, msg_txt(248));
-		return -1;
-	}
-	pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
-	sprintf(atcmd_output, msg_txt(4), pl_sd->status.name); // Jump to %s
-	clif_displaymessage(fd, atcmd_output);
-   return 0;
-}
-
-/*==========================================
- * Recall a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------*/
-int atcommand_recallid2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-   int aid=0;
-   struct map_session_data *pl_sd;
-
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
-   if (!message || (aid = atoi(message)) == 0) {
-      clif_displaymessage(fd, "Please, enter a player AID (usage: @recallid2 <account id>).");
-      return -1;
-   }
-
-	pl_sd = map_id2sd(aid);
-	if (!pl_sd) {
-		clif_displaymessage(fd, msg_txt(154)); // Character not found.
-		return -1;
-	}
-	if (pc_isGM(sd) < pc_isGM(pl_sd))
-  	{	// you can recall only lower or same level
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-		return -1;
-	}
-
-	if (map[pl_sd->bl.m].flag.nowarpto &&
-		battle_config.any_warp_GM_min_level > pc_isGM(sd))
-	{
-		clif_displaymessage(fd, msg_txt(247));
-		return -1;
-	}
-	if (map[sd->bl.m].flag.nowarp &&
-		battle_config.any_warp_GM_min_level > pc_isGM(sd))
-	{
-		clif_displaymessage(fd, msg_txt(248));
-		return -1;
-	}
-
-	pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, 2);
-	sprintf(atcmd_output, msg_txt(46), pl_sd->status.name); // Jump to %s
-	clif_displaymessage(fd, atcmd_output);
-   return 0;
-}
-
-/*==========================================
- * Kick a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------*/
-int atcommand_kickid2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-   struct map_session_data *pl_sd;
-   int aid=0;
-
-   if (!message || (aid = atoi(message)) == 0) {
-      clif_displaymessage(fd, "Please, enter a player AID (usage: @kickid2 <account id>).");
-      return -1;
-   }
-
-	pl_sd = map_id2sd(aid);
-	if (!pl_sd) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-	if (pc_isGM(sd) < pc_isGM(pl_sd)) 
-	{	// you can kick only lower or same gm level
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-		return -1;
-	}
-	clif_GM_kick(sd, pl_sd, 1);
-   return 0;
-}
-
-/*==========================================
- * Revive a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------*/
-int atcommand_reviveid2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-   int aid=0;
-   struct map_session_data *pl_sd;
-
-   if (!message || (aid = atoi(message)) == 0) {
-      clif_displaymessage(fd, "Please, enter a player AID (usage: @reviveid2 <account id>).");
-      return -1;
-   }
-
-	pl_sd = map_id2sd(aid);
-
-	if(!pl_sd) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-
-	if(!status_revive(&pl_sd->bl, 100, 100))
-		return -1;
-
-	clif_skill_nodamage(&pl_sd->bl,&pl_sd->bl,ALL_RESURRECTION,4,1);
-	clif_displaymessage(fd, msg_txt(51)); // Character revived.
-   return 0;
-}
-
-/*==========================================
- * Kill a player by PID number
- * Original by Dino9021
- * Added in by nsstrunks
- *------------------------------------------*/
-int atcommand_killid2(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-   int aid=0;
-   struct map_session_data *pl_sd;
-
-   if (!message || (aid = atoi(message)) == 0) {
-      clif_displaymessage(fd, "Please, enter a player AID (usage: @killid2 <account id>).");
-      return -1;
-   }
-
-	pl_sd = map_id2sd(aid);
-	if (!pl_sd) {
-		clif_displaymessage(fd, msg_txt(3)); // Character not found.
-		return -1;
-	}
-
-	if (pc_isGM(sd) < pc_isGM(pl_sd))
-	{ // you can kill only lower or same level
-		clif_displaymessage(fd, msg_txt(81)); // Your GM level don't authorise you to do this action on this player.
-		return -1;
-	}
-	
-	status_kill(&pl_sd->bl);
-	clif_displaymessage(fd, msg_txt(14)); // Character killed.
-   return 0;
-}
-
 #ifndef TXT_ONLY  /* Begin SQL-Only commands */
 
-/*==========================================
- * Mail System commands by [Valaris]
- *------------------------------------------*/
 int atcommand_listmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	if(!mail_server_enable)
@@ -8784,17 +7155,18 @@ int atcommand_homlevel(const int fd, struct map_session_data* sd, const char* co
 int atcommand_homevolution(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	
+
 	if ( !merc_is_hom_active(sd->hd) ) {
 		clif_displaymessage(fd, "You do not have a homunculus.");
 		return -1;
 	}
 
-	if ( merc_hom_evolution(sd->hd) )
-		return 0;
-	
-	clif_displaymessage(fd, "Your homunculus doesn't evolve.");
-	return -1;
+	if ( !merc_hom_evolution(sd->hd) ) {
+		clif_displaymessage(fd, "Your homunculus doesn't evolve.");
+		return -1;
+	}
+
+	return 0;
 }
 
 /*==========================================
@@ -8804,7 +7176,7 @@ int atcommand_makehomun(const int fd, struct map_session_data* sd, const char* c
 {
 	int homunid;
 	nullpo_retr(-1, sd);
-	
+
 	if ( merc_is_hom_active(sd->hd) ) {
 		clif_displaymessage(fd, msg_txt(450));
 		return -1;
@@ -8814,7 +7186,7 @@ int atcommand_makehomun(const int fd, struct map_session_data* sd, const char* c
 		clif_displaymessage(fd, "Please, enter a homunculus id: (usage: @makehomun <homunculus id>.");
 		return -1;
 	}
-	
+
 	homunid = atoi(message);	
 	if( homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1 )
 	{
@@ -8846,10 +7218,7 @@ int atcommand_homfriendly(const int fd, struct map_session_data* sd, const char*
 	}
 
 	friendly = atoi(message);
-	if (friendly < 0)
-		friendly = 0;
-	else if (friendly > 1000)
-		friendly = 1000;
+	friendly = cap_value(friendly, 0, 1000);
 
 	sd->hd->homunculus.intimacy = friendly * 100 ;
 	clif_send_homdata(sd,SP_INTIMATE,friendly);
@@ -8876,10 +7245,7 @@ int atcommand_homhungry(const int fd, struct map_session_data* sd, const char* c
 	}
 
 	hungry = atoi(message);
-	if (hungry < 0)
-		hungry = 0;
-	else if (hungry > 100)
-		hungry = 100;
+	hungry = cap_value(hungry, 0, 100);
 
 	sd->hd->homunculus.hunger = hungry;
 	clif_send_homdata(sd,SP_HUNGRY,hungry);
@@ -8905,8 +7271,10 @@ int atcommand_homtalk(const int fd, struct map_session_data* sd, const char* com
 		return -1;
 	}
 
-	if (sscanf(message, "%99[^\n]", mes) < 1)
+	if (!message || !*message || sscanf(message, "%99[^\n]", mes) < 1) {
+		clif_displaymessage(fd, "Please, enter a message (usage: @homtalk <message>");
 		return -1;
+	}
 
 	snprintf(temp, sizeof temp ,"%s : %s", sd->hd->homunculus.name, mes);
 	clif_message(&sd->hd->bl, temp);
@@ -8956,7 +7324,7 @@ int atcommand_hominfo(const int fd, struct map_session_data* sd, const char* com
 int atcommand_homstats(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct homun_data *hd;
-	struct homunculus_db *db;
+	struct s_homunculus_db *db;
 	struct s_homunculus *hom;
 	int lv, min, max, evo;
 
@@ -9024,7 +7392,6 @@ int atcommand_homstats(const int fd, struct map_session_data* sd, const char* co
 
 int atcommand_homshuffle(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct homun_data *hd;
 	TBL_PC* tsd = sd;
 
 	nullpo_retr(-1, sd);
@@ -9047,11 +7414,10 @@ int atcommand_homshuffle(const int fd, struct map_session_data* sd, const char* 
 		}
 	}
 
-	hd = tsd->hd;
-
-	if(!merc_hom_shuffle(hd))
+	if(!merc_hom_shuffle(tsd->hd))
 		return -1;
 
+	clif_displaymessage(sd->fd, "[Homunculus Stats Altered]");
 	//Print out the new stats
 	//This will send the commands to the invoker since they all use this fd regardless of sd value.
 	atcommand_homstats(fd, tsd, command, message);
@@ -9220,13 +7586,10 @@ int atcommand_adopt(const int fd, struct map_session_data* sd, const char* comma
 	
         nullpo_retr(-1, sd);
 
-        if (!message || !*message)
-                return -1;
-
-        if (sscanf(message, "%23[^,],%23[^,],%23[^\r\n]", player1, player2, player3) != 3) {
-                clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
-                return -1;
-        }
+		if (!message || !*message || sscanf(message, "%23[^,],%23[^,],%23[^\r\n]", player1, player2, player3) < 3) {
+				clif_displaymessage(fd, "usage: @adopt <player1>,<player2>,<player3>.");
+				return -1;
+		}
 
 		  if (battle_config.etc_log)
 	        printf("Adopting: --%s--%s--%s--\n",player1,player2,player3);
@@ -9249,17 +7612,12 @@ int atcommand_adopt(const int fd, struct map_session_data* sd, const char* comma
                 return -1;
         }
 
-        if((pl_sd1->status.base_level < 70) || (pl_sd2->status.base_level < 70)){
-                clif_displaymessage(fd, "They are too young to be parents!");
-                return -1;
-        }
-
-        if (pc_adoption(pl_sd1, pl_sd2, pl_sd3) == 0) {
-                clif_displaymessage(fd, "They are family.. wish them luck");
-                return 0;
-        }
-        else
-                return -1;
+		if (pc_adoption(pl_sd1, pl_sd2, pl_sd3) == 0) {
+				clif_displaymessage(fd, "They are family.. wish them luck");
+				return 0;
+		}
+		else
+				return -1;
 }
 
 int atcommand_version(const int fd, struct map_session_data* sd, const char* command, const char* message)
@@ -9304,9 +7662,13 @@ int atcommand_mutearea(const int fd, struct map_session_data* sd, const char* co
 	int time;
 	nullpo_retr(0, sd);
 
+	if (!message || !*message) {
+		clif_displaymessage(fd, "Please, enter a time in minutes (usage: @mutearea/@stfu <time in minutes>.");
+		return -1;
+	}
+	
 	time = atoi(message);
-	if (!time)
-		time = 15; // 15 minutes default
+
 	map_foreachinarea(atcommand_mutearea_sub,sd->bl.m, 
 		sd->bl.x-AREA_SIZE, sd->bl.y-AREA_SIZE, 
 		sd->bl.x+AREA_SIZE, sd->bl.y+AREA_SIZE, BL_PC, sd->bl.id, time);
@@ -9346,15 +7708,14 @@ int atcommand_me(const int fd, struct map_session_data* sd, const char* command,
 		(sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT)))
 		return -1;
 
-	if (!message || !*message) {
+	if (!message || !*message || sscanf(message, "%199[^\n]", tempmes) < 0) {
 		clif_displaymessage(fd, "Please, enter a message (usage: @me <message>).");
 		return -1;
 	}
 	
-	sscanf(message, "%199[^\n]", tempmes);
-	sprintf(atcmd_output, msg_txt(270), sd->status.name, tempmes);
-	     clif_disp_overhead(sd, atcmd_output);
-    
+	sprintf(atcmd_output, msg_txt(270), sd->status.name, tempmes);	// *%s %s*
+	clif_disp_overhead(sd, atcmd_output);
+	
 	return 0;
 	
 }
@@ -9369,12 +7730,7 @@ int atcommand_size(const int fd, struct map_session_data* sd, const char* comman
 
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message)
-		return -1;
-
-	if (sscanf(message,"%d", &size) < 1)
-		return -1;
-
+	size = atoi(message);
 	if(sd->state.size) {
 		sd->state.size=0;
 		pc_setpos(sd, sd->mapindex, sd->bl.x, sd->bl.y, 3);
@@ -9425,16 +7781,11 @@ int atcommand_fakename(const int fd, struct map_session_data* sd, const char* co
 		return 0;
 	}
 
-	if (!message || !*message) {
+	if (!message || !*message || sscanf(message, "%23[^\n]", name) < 1) {
 		clif_displaymessage(sd->fd,"You must enter a name.");
 		return -1;
 	}
 
-
-	if (sscanf(message, "%23[^\n]", name) < 1) {
-		return 0;
-	}
-	
 	if(strlen(name) < 2) {
 		clif_displaymessage(sd->fd,"Fake name must be at least two characters.");
 		return -1;
@@ -9832,6 +8183,461 @@ int atcommand_feelreset(const int fd, struct map_session_data* sd, const char* c
 	return 0;
 }
 
+
+
+
+/*==========================================
+ * atcommand_info[] structure definition
+ *------------------------------------------*/
+
+AtCommandInfo atcommand_info[] = {
+	{ "rura",              40,     atcommand_mapmove },
+	{ "warp",              40,     atcommand_mapmove },
+	{ "mapmove",           40,     atcommand_mapmove }, // + /mm
+	{ "where",              1,     atcommand_where },
+	{ "jumpto",            20,     atcommand_jumpto }, // + /shift
+	{ "warpto",            20,     atcommand_jumpto },
+	{ "goto",              20,     atcommand_jumpto },
+	{ "jump",              40,     atcommand_jump },
+	{ "who",               20,     atcommand_who },
+	{ "whois",             20,     atcommand_who },
+	{ "who2",              20,     atcommand_who2 },
+	{ "who3",              20,     atcommand_who3 },
+	{ "whomap",            20,     atcommand_whomap },
+	{ "whomap2",           20,     atcommand_whomap2 },
+	{ "whomap3",           20,     atcommand_whomap3 },
+	{ "whogm",             20,     atcommand_whogm },
+	{ "save",              40,     atcommand_save },
+	{ "return",            40,     atcommand_load },
+	{ "load",              40,     atcommand_load },
+	{ "speed",             40,     atcommand_speed },
+	{ "storage",            1,     atcommand_storage },
+	{ "gstorage",          50,     atcommand_guildstorage },
+	{ "option",            40,     atcommand_option },
+	{ "hide",              40,     atcommand_hide }, // + /hide
+	{ "jobchange",         40,     atcommand_jobchange },
+	{ "job",               40,     atcommand_jobchange },
+	{ "die",                1,     atcommand_die },
+	{ "kill",              60,     atcommand_kill },
+	{ "alive",             60,     atcommand_alive },
+	{ "kami",              40,     atcommand_kami },
+	{ "kamib",             40,     atcommand_kami },
+	{ "kamic",             40,     atcommand_kami },
+	{ "heal",              40,     atcommand_heal },
+	{ "item",              60,     atcommand_item },
+	{ "item2",             60,     atcommand_item2 },
+	{ "itemreset",         40,     atcommand_itemreset },
+	{ "blvl",              60,     atcommand_baselevelup },
+	{ "lvup",              60,     atcommand_baselevelup },
+	{ "blevel",            60,     atcommand_baselevelup },
+	{ "baselvl",           60,     atcommand_baselevelup },
+	{ "baselvup",          60,     atcommand_baselevelup },
+	{ "baselevel",         60,     atcommand_baselevelup },
+	{ "baselvlup",         60,     atcommand_baselevelup },
+	{ "jlvl",              60,     atcommand_joblevelup },
+	{ "jlevel",            60,     atcommand_joblevelup },
+	{ "joblvl",            60,     atcommand_joblevelup },
+	{ "joblevel",          60,     atcommand_joblevelup },
+	{ "joblvup",           60,     atcommand_joblevelup },
+	{ "joblvlup",          60,     atcommand_joblevelup },
+	{ "h",                 20,     atcommand_help },
+	{ "help",              20,     atcommand_help },
+	{ "h2",                20,     atcommand_help2 },
+	{ "help2",             20,     atcommand_help2 },
+	{ "gm",               100,     atcommand_gm },
+	{ "pvpoff",            40,     atcommand_pvpoff },
+	{ "pvpon",             40,     atcommand_pvpon },
+	{ "gvgoff",            40,     atcommand_gvgoff },
+	{ "gpvpoff",           40,     atcommand_gvgoff },
+	{ "gvgon",             40,     atcommand_gvgon },
+	{ "gpvpon",            40,     atcommand_gvgon },
+	{ "model",             20,     atcommand_model },
+	{ "go",                10,     atcommand_go },
+	{ "monster",           50,     atcommand_monster },
+	{ "spawn",             50,     atcommand_monster },
+	{ "monstersmall",      50,     atcommand_monstersmall },
+	{ "monsterbig",        50,     atcommand_monsterbig },
+	{ "killmonster",       60,     atcommand_killmonster },
+	{ "killmonster2",      40,     atcommand_killmonster2 },
+	{ "refine",            60,     atcommand_refine },
+	{ "produce",           60,     atcommand_produce },
+	{ "memo",              40,     atcommand_memo },
+	{ "gat",               99,     atcommand_gat },
+	{ "displaystatus",     99,     atcommand_displaystatus },
+	{ "stpoint",           60,     atcommand_statuspoint },
+	{ "skpoint",           60,     atcommand_skillpoint },
+	{ "zeny",              60,     atcommand_zeny },
+	{ "str",               60,     atcommand_param },
+	{ "agi",               60,     atcommand_param },
+	{ "vit",               60,     atcommand_param },
+	{ "int",               60,     atcommand_param },
+	{ "dex",               60,     atcommand_param },
+	{ "luk",               60,     atcommand_param },
+	{ "glvl",              60,     atcommand_guildlevelup },
+	{ "glevel",            60,     atcommand_guildlevelup },
+	{ "guildlvl",          60,     atcommand_guildlevelup },
+	{ "guildlvup",         60,     atcommand_guildlevelup },
+	{ "guildlevel",        60,     atcommand_guildlevelup },
+	{ "guildlvlup",        60,     atcommand_guildlevelup },
+	{ "makeegg",           60,     atcommand_makeegg },
+	{ "hatch",             60,     atcommand_hatch },
+	{ "petfriendly",       40,     atcommand_petfriendly },
+	{ "pethungry",         40,     atcommand_pethungry },
+	{ "petrename",          1,     atcommand_petrename },
+	{ "recall",            60,     atcommand_recall }, // + /recall
+	{ "night",             80,     atcommand_night },
+	{ "day",               80,     atcommand_day },
+	{ "doom",              80,     atcommand_doom },
+	{ "doommap",           80,     atcommand_doommap },
+	{ "raise",             80,     atcommand_raise },
+	{ "raisemap",          80,     atcommand_raisemap },
+	{ "kick",              20,     atcommand_kick }, // + right click menu for GM "(name) force to quit"
+	{ "kickall",           99,     atcommand_kickall },
+	{ "allskill",          60,     atcommand_allskill },
+	{ "allskills",         60,     atcommand_allskill },
+	{ "skillall",          60,     atcommand_allskill },
+	{ "skillsall",         60,     atcommand_allskill },
+	{ "questskill",        40,     atcommand_questskill },
+	{ "lostskill",         40,     atcommand_lostskill },
+	{ "spiritball",        40,     atcommand_spiritball },
+	{ "party",              1,     atcommand_party },
+	{ "guild",             50,     atcommand_guild },
+	{ "agitstart",         60,     atcommand_agitstart },
+	{ "agitend",           60,     atcommand_agitend },
+	{ "mapexit",           99,     atcommand_mapexit },
+	{ "idsearch",          60,     atcommand_idsearch },
+	{ "broadcast",         40,     atcommand_broadcast }, // + /b and /nb
+	{ "localbroadcast",    40,     atcommand_localbroadcast }, // + /lb and /nlb
+	{ "recallall",         80,     atcommand_recallall },
+	{ "reloaditemdb",      99,     atcommand_reloaditemdb },
+	{ "reloadmobdb",       99,     atcommand_reloadmobdb },
+	{ "reloadskilldb",     99,     atcommand_reloadskilldb },
+	{ "reloadscript",      99,     atcommand_reloadscript },
+	{ "reloadgmdb",        99,     atcommand_reloadgmdb },
+	{ "reloadatcommand",   99,     atcommand_reloadatcommand },
+	{ "reloadbattleconf",  99,     atcommand_reloadbattleconf },
+	{ "reloadstatusdb",    99,     atcommand_reloadstatusdb },
+	{ "reloadpcdb",        99,     atcommand_reloadpcdb },
+	{ "reloadmotd",        99,     atcommand_reloadmotd },
+	{ "mapinfo",           99,     atcommand_mapinfo },
+	{ "dye",               40,     atcommand_dye },
+	{ "ccolor",            40,     atcommand_dye },
+	{ "hairstyle",         40,     atcommand_hair_style },
+	{ "hstyle",            40,     atcommand_hair_style },
+	{ "haircolor",         40,     atcommand_hair_color },
+	{ "hcolor",            40,     atcommand_hair_color },
+	{ "statall",           60,     atcommand_stat_all },
+	{ "statsall",          60,     atcommand_stat_all },
+	{ "allstats",          60,     atcommand_stat_all },
+	{ "allstat",           60,     atcommand_stat_all },
+	{ "block",             60,     atcommand_char_block },
+	{ "charblock",         60,     atcommand_char_block },
+	{ "ban",               60,     atcommand_char_ban },
+	{ "banish",            60,     atcommand_char_ban },
+	{ "charban",           60,     atcommand_char_ban },
+	{ "charbanish",        60,     atcommand_char_ban },
+	{ "unblock",           60,     atcommand_char_unblock },
+	{ "charunblock",       60,     atcommand_char_unblock },
+	{ "unban",             60,     atcommand_char_unban },
+	{ "unbanish",          60,     atcommand_char_unban },
+	{ "charunban",         60,     atcommand_char_unban },
+	{ "charunbanish",      60,     atcommand_char_unban },
+	{ "mount",             20,     atcommand_mount_peco },
+	{ "mountpeco",         20,     atcommand_mount_peco },
+	{ "guildspy",          60,     atcommand_guildspy },
+	{ "partyspy",          60,     atcommand_partyspy },
+	{ "repairall",         60,     atcommand_repairall },
+	{ "guildrecall",       60,     atcommand_guildrecall },
+	{ "partyrecall",       60,     atcommand_partyrecall },
+	{ "nuke",              60,     atcommand_nuke },
+	{ "shownpc",           80,     atcommand_shownpc },
+	{ "hidenpc",           80,     atcommand_hidenpc },
+	{ "loadnpc",           80,     atcommand_loadnpc },
+	{ "unloadnpc",         80,     atcommand_unloadnpc },
+	{ "time",               1,     atcommand_servertime },
+	{ "date",               1,     atcommand_servertime },
+	{ "serverdate",         1,     atcommand_servertime },
+	{ "servertime",         1,     atcommand_servertime },
+	{ "jail",              60,     atcommand_jail },
+	{ "unjail",            60,     atcommand_unjail },
+	{ "discharge",         60,     atcommand_unjail },
+	{ "jailfor",           60,     atcommand_jailfor },
+	{ "jailtime",           1,     atcommand_jailtime },
+	{ "disguise",          20,     atcommand_disguise },
+	{ "undisguise",        20,     atcommand_undisguise },
+	{ "email",              1,     atcommand_email },
+	{ "effect",            40,     atcommand_effect },
+	{ "follow",            20,     atcommand_follow },
+	{ "addwarp",           60,     atcommand_addwarp },
+	{ "skillon",           80,     atcommand_skillon },
+	{ "skilloff",          80,     atcommand_skilloff },
+	{ "killer",            60,     atcommand_killer },
+	{ "npcmove",           80,     atcommand_npcmove },
+	{ "killable",          40,     atcommand_killable },
+	{ "dropall",           40,     atcommand_dropall },
+	{ "storeall",          40,     atcommand_storeall },
+	{ "skillid",           40,     atcommand_skillid },
+	{ "useskill",          40,     atcommand_useskill },
+	{ "displayskill",      99,     atcommand_displayskill },
+	{ "snow",              99,     atcommand_snow },
+	{ "sakura",            99,     atcommand_sakura },
+	{ "clouds",            99,     atcommand_clouds },
+	{ "clouds2",           99,     atcommand_clouds2 },
+	{ "fog",               99,     atcommand_fog },
+	{ "fireworks",         99,     atcommand_fireworks },
+	{ "leaves",            99,     atcommand_leaves },
+	{ "summon",            60,     atcommand_summon },
+	{ "adjgmlvl",          99,     atcommand_adjgmlvl },
+	{ "adjcmdlvl",         99,     atcommand_adjcmdlvl },
+	{ "trade",             60,     atcommand_trade },
+	{ "send",              99,     atcommand_send },
+	{ "setbattleflag",     99,     atcommand_setbattleflag },
+	{ "unmute",            80,     atcommand_unmute },
+	{ "clearweather",      99,     atcommand_clearweather },
+	{ "uptime",             1,     atcommand_uptime },
+	{ "changesex",         60,     atcommand_changesex },
+	{ "mute",              80,     atcommand_mute },
+	{ "whozeny",           20,     atcommand_whozeny },
+	{ "refresh",            1,     atcommand_refresh },
+	{ "identify",          40,     atcommand_identify },
+	{ "gmotd",             20,     atcommand_gmotd },
+	{ "misceffect",        50,     atcommand_misceffect },
+	{ "mobsearch",         10,     atcommand_mobsearch },
+	{ "cleanmap",          40,     atcommand_cleanmap },
+	{ "npctalk",           20,     atcommand_npctalk },
+	{ "pettalk",           10,     atcommand_pettalk },
+	{ "users",             40,     atcommand_users },
+	{ "reset",             40,     atcommand_reset },
+	{ "skilltree",         40,     atcommand_skilltree },
+	{ "marry",             40,     atcommand_marry },
+	{ "divorce",           40,     atcommand_divorce },
+	{ "sound",             40,     atcommand_sound },
+	{ "undisguiseall",     99,     atcommand_undisguiseall },
+	{ "disguiseall",       99,     atcommand_disguiseall },
+	{ "changelook",        60,     atcommand_changelook },
+	{ "autoloot",          10,     atcommand_autoloot },
+	{ "mobinfo",            1,     atcommand_mobinfo },
+	{ "monsterinfo",        1,     atcommand_mobinfo },
+	{ "mi",                 1,     atcommand_mobinfo },
+	{ "exp",                1,     atcommand_exp },
+	{ "adopt",             40,     atcommand_adopt },
+	{ "version",            1,     atcommand_version },
+	{ "mutearea",          99,     atcommand_mutearea },
+	{ "stfu",              99,     atcommand_mutearea },
+	{ "rates",              1,     atcommand_rates },
+	{ "iteminfo",           1,     atcommand_iteminfo },
+	{ "ii",                 1,     atcommand_iteminfo },
+	{ "whodrops",           1,     atcommand_whodrops },
+	{ "whereis",           10,     atcommand_whereis },
+	{ "mapflag",           99,     atcommand_mapflag },
+	{ "me",                20,     atcommand_me },
+	{ "monsterignore",     99,     atcommand_monsterignore },
+	{ "battleignore",      99,     atcommand_monsterignore },
+	{ "fakename",          20,     atcommand_fakename },
+	{ "size",              20,     atcommand_size },
+	{ "showexp",           10,     atcommand_showexp},
+	{ "showzeny",          10,     atcommand_showzeny},
+	{ "showdelay",          1,     atcommand_showdelay},
+	{ "autotrade",         10,     atcommand_autotrade },
+	{ "at",                10,     atcommand_autotrade },
+	{ "changegm",          10,     atcommand_changegm },
+	{ "changeleader",      10,     atcommand_changeleader },
+	{ "partyoption",       10,     atcommand_partyoption},
+	{ "invite",             1,     atcommand_invite },
+	{ "duel",               1,     atcommand_duel },
+	{ "leave",              1,     atcommand_leave },
+	{ "accept",             1,     atcommand_accept },
+	{ "reject",             1,     atcommand_reject },
+	{ "away",               1,     atcommand_away },
+	{ "aw",                 1,     atcommand_away },
+	{ "main",               1,     atcommand_main },
+	{ "clone",             50,     atcommand_clone },
+	{ "slaveclone",        50,     atcommand_clone },
+	{ "evilclone",         50,     atcommand_clone },
+	{ "tonpc",             40,     atcommand_tonpc },
+	{ "commands",           1,     atcommand_commands },
+	{ "noask",              1,     atcommand_noask },
+	{ "request",           20,     atcommand_request },
+	{ "hlvl",              60,     atcommand_homlevel },
+	{ "hlevel",            60,     atcommand_homlevel },
+	{ "homlvl",            60,     atcommand_homlevel },
+	{ "homlvup",           60,     atcommand_homlevel },
+	{ "homlevel",          60,     atcommand_homlevel },
+	{ "homevolve",         60,     atcommand_homevolution },
+	{ "homevolution",      60,     atcommand_homevolution },
+	{ "makehomun",         60,     atcommand_makehomun },
+	{ "homfriendly",       60,     atcommand_homfriendly },
+	{ "homhungry",         60,     atcommand_homhungry },
+	{ "homtalk",           10,     atcommand_homtalk },
+	{ "hominfo",            1,     atcommand_hominfo },
+	{ "homstats",           1,     atcommand_homstats },
+	{ "homshuffle",        60,     atcommand_homshuffle },
+	{ "showmobs",          10,     atcommand_showmobs },
+	{ "feelreset",         10,     atcommand_feelreset },
+#ifndef TXT_ONLY
+	{ "checkmail",          1,     atcommand_listmail },
+	{ "listmail",           1,     atcommand_listmail },
+	{ "listnewmail",        1,     atcommand_listmail },
+	{ "readmail",           1,     atcommand_readmail },
+	{ "deletemail",         1,     atcommand_deletemail },
+	{ "sendmail",           1,     atcommand_sendmail },
+	{ "sendprioritymail",  80,     atcommand_sendmail },
+	{ "refreshonline",     99,     atcommand_refreshonline },
+#endif
+};
+
+
+/*==========================================
+ * Command lookup functions
+ *------------------------------------------*/
+static AtCommandInfo* get_atcommandinfo_byname(const char* name)
+{
+	int i;
+	if( *name == atcommand_symbol ) name++; // for backwards compatibility
+	ARR_FIND( 0, ARRAYLENGTH(atcommand_info), i, strcmpi(atcommand_info[i].command, name) == 0 );
+	return ( i != ARRAYLENGTH(atcommand_info) ) ? &atcommand_info[i] : NULL;
+}
+
+static AtCommandInfo* get_atcommandinfo_byfunc(const AtCommandFunc func)
+{
+	int i;
+	ARR_FIND( 0, ARRAYLENGTH(atcommand_info), i, atcommand_info[i].func == func );
+	return ( i != ARRAYLENGTH(atcommand_info) ) ? &atcommand_info[i] : NULL;
+}
+
+
+/*==========================================
+ * Retrieve the command's required gm level
+ *------------------------------------------*/
+int get_atcommand_level(const AtCommandFunc func)
+{
+	AtCommandInfo* info = get_atcommandinfo_byfunc(func);
+	return ( info != NULL ) ? info->level : 100; // 100: command can not be used
+}
+
+
+/// Executes an at-command.
+/// To be called by internal server code (bypasses various restrictions).
+bool is_atcommand_sub(const int fd, struct map_session_data* sd, const char* str, int gmlvl)
+{
+	AtCommandInfo* info;
+	char command[100];
+	char args[100];
+	char output[200];
+	
+	if( !str || !*str )
+		return false;
+
+	if( *str != atcommand_symbol ) // check first char
+		return false;
+
+	if( sscanf(str, "%99s %99[^\n]", command, args) < 2 )
+		args[0] = '\0';
+
+	info = get_atcommandinfo_byname(command);
+	if( info == NULL || info->func == NULL || gmlvl < info->level )
+	{
+		if( gmlvl == 0 )
+			return false; // will just display as normal text
+		else
+		{
+			sprintf(output, msg_txt(153), command); // "%s is Unknown Command."
+			clif_displaymessage(fd, output);
+			return true;
+		}
+	}
+
+	if( log_config.gm && info->level >= log_config.gm )
+		log_atcommand(sd, str);
+
+	if( info->func(fd, sd, command, args) != 0 )
+	{
+		sprintf(output, msg_txt(154), command); // "%s failed."
+		clif_displaymessage(fd, output);
+	}
+	
+	return true;
+}
+
+/// Executes an at-command.
+/// To be used by player-invoked code (restrictions will be applied).
+bool is_atcommand(const int fd, struct map_session_data* sd, const char* message)
+{
+	int gmlvl = pc_isGM(sd);
+	
+	nullpo_retr(false, sd);
+	
+	if( !message || !*message )
+		return false; // shouldn't happen
+	
+	if( sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCOMMAND )
+		return true; // so that it won't display as normal message
+	
+	if( battle_config.atc_gmonly != 0 && gmlvl == 0 )
+		return false;
+	
+	if( map[sd->bl.m].nocommand && gmlvl < map[sd->bl.m].nocommand )
+	{
+		clif_displaymessage(fd, msg_txt(143)); // "Commands are disabled on this map."
+		return false;
+	}
+	
+	// skip 10/11-langtype's codepage indicator, if detected
+	if( message[0] == '|' && strlen(message) >= 4 && message[3] == atcommand_symbol )
+		message += 3;
+	
+	return is_atcommand_sub(fd,sd,message,gmlvl);
+}
+
+
+/*==========================================
+ *
+ *------------------------------------------*/
+int atcommand_config_read(const char* cfgName)
+{
+	char line[1024], w1[1024], w2[1024];
+	AtCommandInfo* p;
+	FILE* fp;
+	
+	if( (fp = fopen(cfgName, "r")) == NULL )
+	{
+		ShowError("AtCommand configuration file not found: %s\n", cfgName);
+		return 1;
+	}
+	
+	while( fgets(line, sizeof(line), fp) )
+	{
+		if( line[0] == '/' && line[1] == '/' )
+			continue;
+		
+		if( sscanf(line, "%1023[^:]:%1023s", w1, w2) != 2 )
+			continue;
+		
+		p = get_atcommandinfo_byname(w1);
+		if( p != NULL )
+		{
+			p->level = atoi(w2);
+			p->level = cap_value(p->level, 0, 100);
+		}
+		else
+		if( strcmpi(w1, "import") == 0 )
+			atcommand_config_read(w2);
+		else
+		if( strcmpi(w1, "command_symbol") == 0 &&
+			w2[0] > 31   && // control characters
+			w2[0] != '/' && // symbol of standard ragnarok GM commands
+			w2[0] != '%' && // symbol of party chat speaking
+			w2[0] != '$' && // symbol of guild chat speaking
+			w2[0] != '#' )  // symbol of charcommand
+			atcommand_symbol = w2[0];
+		else
+			ShowWarning("Unknown setting '%s' in file %s\n", w1, cfgName);
+	}
+	fclose(fp);
+
+	return 0;
+}
+
 void do_init_atcommand()
 {
 	users_db = db_alloc(__FILE__,__LINE__,DB_UINT,DB_OPT_BASE,sizeof(int));
@@ -9844,4 +8650,52 @@ void do_init_atcommand()
 void do_final_atcommand()
 {
 	users_db->destroy(users_db,NULL);
+}
+
+
+// commands that need to go _after_ the commands table
+
+/*==========================================
+ * @commands Lists available @ commands to you
+ *------------------------------------------*/
+int atcommand_commands(const int fd, struct map_session_data* sd, const char* command, const char* message)
+{
+	char line_buff[CHATBOX_SIZE];
+	int i, gm_lvl = pc_isGM(sd), count = 0;
+	char* cur = line_buff;
+
+	memset(line_buff,' ',CHATBOX_SIZE);
+	line_buff[CHATBOX_SIZE-1] = 0;
+
+	clif_displaymessage(fd, msg_txt(273)); // "Commands available:"
+
+	for( i = 0; i < ARRAYLENGTH(atcommand_info); i++ )
+	{
+		unsigned int slen;
+
+		if( gm_lvl < atcommand_info[i].level )
+			continue;
+
+		slen = (unsigned int)strlen(atcommand_info[i].command);
+
+		// flush the text buffer if this command won't fit into it
+		if( ((CHATBOX_SIZE-1+(int)line_buff)-(int)cur) < (int)slen )
+		{
+			clif_displaymessage(fd,line_buff);
+			cur = line_buff;
+			memset(line_buff,' ',CHATBOX_SIZE);
+			line_buff[CHATBOX_SIZE-1] = 0;
+		}
+
+		memcpy(cur,atcommand_info[i].command,slen);
+		cur += slen+(10-slen%10);
+
+		count++;
+	}
+	clif_displaymessage(fd,line_buff);
+
+	sprintf(atcmd_output, msg_txt(274), count); // "%d commands found."
+	clif_displaymessage(fd, atcmd_output);
+	
+	return 0;
 }

@@ -955,7 +955,7 @@ struct homun_data {
 	struct status_data base_status, battle_status;
 	struct status_change sc;
 	struct regen_data regen;
-	struct homunculus_db *homunculusDB;	//[orn]
+	struct s_homunculus_db *homunculusDB;	//[orn]
 	struct s_homunculus homunculus ;	//[orn]
 
 	struct map_session_data *master; //pointer back to its master

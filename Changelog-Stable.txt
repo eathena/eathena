@@ -5,6 +5,11 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/11/05
+	* Merged the long overdue series of (at)command cleanups and fixes
+	- removal of a load of redundant code and useless commands
+	- migration of char_ atcommand functions to charcommand.c
+	- various fixes, tweaks, enhancements and additions by HiddenDragon
+	- see topic:169759 for extended information
 	* Merged r11514,r11515,r11520,r11525 - /W4 cleanup
 	* Merged r11578 and r11594 - proper firewall knockback calculation
 	* Merged r11312 - loot code using charid's instead of account id's

@@ -1,6 +1,11 @@
 Date	Added
 
 2007/11/05
+	* Updated atcommands and charcommands list (new added, useless removed)
+	- char- atcommands were converted to their #-command versions
+	- added many new charcommands that were missing up till now
+	- new: feelreset, misceffect, various new aliases for existing commands
+	- removed: *_id2 commands, petid
 	* Removed config setting firewall_hits_on_undead [ultramage]
 2007/10/16
 	* Renamed the config default_skill_delay to default_walk_delay as that is
