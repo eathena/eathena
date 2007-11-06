@@ -1,5 +1,7 @@
 Date	Added
 
+2007/11/06
+	* Added 'quest_exp_rate', adjusts exp gained by 'getexp' in scripts
 2007/11/05
 	* Updated atcommands and charcommands list (new added, useless removed)
 	- char- atcommands were converted to their #-command versions
