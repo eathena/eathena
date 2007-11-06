@@ -10259,6 +10259,8 @@ int skill_unit_timer_sub (struct block_list* bl, va_list ap)
 				}
 				skill_delunit(unit);
 			}
+			break;
+
 			case UNT_WARP_ACTIVE:
 				// warp portal opens (morph to a UNT_WARP_WAITING cell)
 				group->unit_id = skill_get_unit_id(group->skill_id, 1); // UNT_WARP_WAITING
