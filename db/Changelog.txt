@@ -1,4 +1,5 @@
 11/06
+	* Rev. 11687 Fixed Aesprika's item ID. [L0ne_W0lf]
 	* Rev. 11679 Merged recent item_db changes from trunk. [L0ne_W0lf]
 11/05
 	* Merged item_db, mob_db, mob_skill_db, skill_nocast_db [Playtester]
