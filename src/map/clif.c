@@ -3944,7 +3944,7 @@ static void clif_getareachar_skillunit(struct map_session_data *sd, struct skill
 		WFIFOB(fd,14)=UNT_ATTACK_SKILLS; //Use invisible unit id for traps.
 	else
 		WFIFOB(fd,14)=unit->group->unit_id;
-	WFIFOB(fd,15)=0;
+	WFIFOB(fd,15)=1; // ignored by client (always gets set to 1)
 	WFIFOSET(fd,packet_len(0x11f));
 
 	if(unit->group->skill_id == WZ_ICEWALL)
@@ -3983,19 +3983,19 @@ void clif_skill_delunit(struct skill_unit *unit)
 
 /*==========================================
  * Unknown... trap related?
+ * Sent when an object gets ankle-snared
  * Only affects units with class [139,153] client-side
+ * R 01ac <object id>.l
  *------------------------------------------*/
-int clif_01ac(struct block_list *bl)
+void clif_01ac(struct block_list* bl)
 {
-	unsigned char buf[32];
+	unsigned char buf[6];
+	nullpo_retv(bl);
 
-	nullpo_retr(0, bl);
-
-	WBUFW(buf, 0) = 0x1ac;
-	WBUFL(buf, 2) = bl->id;
+	WBUFW(buf,0) = 0x1ac;
+	WBUFL(buf,2) = bl->id;
 
 	clif_send(buf,packet_len(0x1ac),bl,AREA);
-	return 0;
 }
 
 /*==========================================
@@ -4556,7 +4556,7 @@ void clif_skill_setunit(struct skill_unit *unit)
 		WBUFB(buf,14)=unit->val2&UF_SONG?UNT_DISSONANCE:UNT_UGLYDANCE;
 	else
 		WBUFB(buf,14)=unit->group->unit_id;
-	WBUFB(buf,15)=0;
+	WBUFB(buf,15)=1; // ignored by client (always gets set to 1)
 	clif_send(buf,packet_len(0x11f),&unit->bl,AREA);
 }
 
