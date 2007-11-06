@@ -108,8 +108,8 @@ enum {
 #define pc_is90overweight(sd) ( (sd)->weight*10 >= (sd)->max_weight*9 )
 #define pc_maxparameter(sd)   ( (sd)->class_&JOBL_BABY ? battle_config.max_baby_parameter : battle_config.max_parameter )
 
-#define pc_stop_attack(sd) { if( (sd)->ud.attacktimer != -1 ) { unit_stop_attack(&(sd)->bl); (sd)->ud.target = 0; } }
-#define pc_stop_walking(sd, type) { if( (sd)->ud.walktimer != -1 ) unit_stop_walking(&(sd)->bl, type); }
+#define pc_stop_walking(sd, type) unit_stop_walking(&(sd)->bl, type)
+#define pc_stop_attack(sd) { if((sd)->ud.attacktimer != -1) { unit_stop_attack(&(sd)->bl); (sd)->ud.target = 0; } }
 
 //Weapon check considering dual wielding.
 #define pc_check_weapontype(sd, type) ((type)&((sd)->status.weapon < MAX_WEAPON_TYPE? \
@@ -145,7 +145,7 @@ int pc_clean_skilltree(struct map_session_data *sd);
 int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y, uint8 clrtype);
 int pc_setsavepoint(struct map_session_data*,short,int,int);
 int pc_randomwarp(struct map_session_data *sd,int type);
-int pc_memo(struct map_session_data *sd,int i);
+int pc_memo(struct map_session_data* sd, int pos);
 int pc_remove_map(struct map_session_data *sd,int clrtype);
 
 int pc_checkadditem(struct map_session_data*,int,int);

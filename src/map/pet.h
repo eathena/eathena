@@ -7,7 +7,7 @@
 #define MAX_PET_DB	300
 #define MAX_PETLOOT_SIZE	30
 
-struct pet_db {
+struct s_pet_db {
 	short class_;
 	char name[NAME_LENGTH],jname[NAME_LENGTH];
 	short itemID;
@@ -29,7 +29,7 @@ struct pet_db {
 	int change_target_rate;
 	struct script_code *script;
 };
-extern struct pet_db pet_db[MAX_PET_DB];
+extern struct s_pet_db pet_db[MAX_PET_DB];
 
 enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
 
@@ -58,7 +58,7 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data); // [Valari
 int pet_recovery_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 int pet_heal_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
 
-#define pet_stop_walking(pd, type) { if((pd)->ud.walktimer != -1) unit_stop_walking(&(pd)->bl, type); }
+#define pet_stop_walking(pd, type) unit_stop_walking(&(pd)->bl, type)
 #define pet_stop_attack(pd) { if((pd)->ud.attacktimer != -1) unit_stop_attack(&(pd)->bl); }
 
 int read_petdb(void);

@@ -5195,21 +5195,26 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 
 	case HT_REMOVETRAP:
+		//FIXME: I think clif_skill_fail() is supposed to be sent if it fails below [ultramage]
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		{
-			struct skill_unit *su=NULL;
-			struct item item_tmp;
-			int flag;
-			if((bl->type==BL_SKILL) &&
-			   (su=(struct skill_unit *)bl) &&
-			   (su->group->src_id == src->id || map_flag_vs(bl->m)) &&
-				(skill_get_inf2(su->group->skill_id) & INF2_TRAP))
-			{	
-				if(sd && !su->group->state.into_abyss)
-				{	//Avoid collecting traps when it does not costs to place them down. [Skotlex]
-					if(battle_config.skill_removetrap_type){
+			struct skill_unit* su;
+			struct skill_unit_group* sg;
+			BL_CAST(BL_SKILL, bl, su);
+
+			if( (su)
+			&&  (sg = su->group)
+			&&  (sg->src_id == src->id || map_flag_vs(bl->m))
+			&&	(skill_get_inf2(sg->skill_id)&INF2_TRAP) )
+			{	// prevent picking up expired traps
+				if( !(sg->unit_id == UNT_USED_TRAPS || (sg->unit_id == UNT_ANKLESNARE && sg->val2 != 0 )) )
+				{
+					if( battle_config.skill_removetrap_type )
+					{	// get back all items used to deploy the trap
 						for(i=0;i<10;i++) {
 							if(skill_db[su->group->skill_id].itemid[i] > 0){
+								int flag;
+								struct item item_tmp;
 								memset(&item_tmp,0,sizeof(item_tmp));
 								item_tmp.nameid = skill_db[su->group->skill_id].itemid[i];
 								item_tmp.identify = 1;
@@ -5219,9 +5224,10 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 								}
 							}
 						}
-					}else{
+					} else { // get back 1 trap
+						struct item item_tmp;
 						memset(&item_tmp,0,sizeof(item_tmp));
-						item_tmp.nameid = 1065;
+						item_tmp.nameid = ITEMID_TRAP;
 						item_tmp.identify = 1;
 						if(item_tmp.nameid && (flag=pc_additem(sd,&item_tmp,1))){
 							clif_additem(sd,0,0,flag);
@@ -5597,7 +5603,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 						continue;
 					if(map_getcell(src->m,src->x+dx[j],src->y+dy[j],CELL_CHKNOREACH))
 						dx[j] = dy[j] = 0;
-					pc_setpos(dstsd, map[src->m].index, src->x+dx[j], src->y+dy[j], 2);
+					pc_setpos(dstsd, map_id2index(src->m), src->x+dx[j], src->y+dy[j], 2);
 				}
 			}
 			if (sd)
@@ -6801,8 +6807,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 	case HT_BLASTMINE:
 		if( map_flag_gvg(src->m) )
 			limit *= 4; // longer trap times in WOE [celest]
-		if (battle_config.vs_traps_bctall && map_flag_vs(src->m)
-			&& (src->type&battle_config.vs_traps_bctall))
+		if( battle_config.vs_traps_bctall && map_flag_vs(src->m) && (src->type&battle_config.vs_traps_bctall) )
 			target = BCT_ALL;
 		break;
 
@@ -6960,7 +6965,6 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 	group->val3=val3;
 	group->target_flag=target;
 	group->bl_flag= skill_get_unit_bl_target(skillid);
-	group->state.into_abyss = (sc && sc->data[SC_INTOABYSS].timer != -1); //Store into abyss state, to know it shouldn't give traps back. [Skotlex]
 	group->state.magic_power = (flag&2 || (sc && sc->data[SC_MAGICPOWER].timer != -1)); //Store the magic power flag. [Skotlex]
 	group->state.ammo_consume = (sd && sd->state.arrow_atk && skillid != GS_GROUNDDRIFT); //Store if this skill needs to consume ammo.
 	group->state.song_dance = (unit_flag&(UF_DANCE|UF_SONG)?1:0)|(unit_flag&UF_ENSEMBLE?2:0); //Signals if this is a song/dance/duet
@@ -7423,7 +7427,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				sg->unit_id = UNT_USED_TRAPS;
 				clif_changetraplook(&src->bl, UNT_USED_TRAPS);
 				sg->limit=DIFF_TICK(tick,sg->tick)+1500;
-				sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 			}
 			break;
 
@@ -7447,7 +7450,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				sg->limit = DIFF_TICK(tick,sg->tick)+sec;
 				sg->interval = -1;
 				src->range = 0;
-				sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 			}
 			break;
 
@@ -7461,7 +7463,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&src->bl, UNT_FIREPILLAR_ACTIVE);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
-			sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 			break;
 
 		case UNT_CLAYMORETRAP:
@@ -7479,7 +7480,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&src->bl, UNT_USED_TRAPS);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
-			sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 			break;
 
 		case UNT_TALKIEBOX:
@@ -7491,7 +7491,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				clif_changetraplook(&src->bl, UNT_USED_TRAPS);
 				sg->limit = DIFF_TICK(tick, sg->tick) + 5000;
 				sg->val2 = -1;
-				sg->state.into_abyss = 1; //Prevent Remove Trap from giving you the trap back. [Skotlex]
 			}
 			break;
 
@@ -7648,7 +7647,6 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&src->bl, UNT_FIREPILLAR_ACTIVE);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
-			sg->state.into_abyss = 1;
 			break;
 	}
 
@@ -8006,8 +8004,7 @@ int skill_check_pc_partner (struct map_session_data *sd, short skill_id, short* 
 	//Else: new search for partners.
 	c = 0;
 	memset (p_sd, 0, sizeof(p_sd));
-	i = map_foreachinrange(skill_check_condition_char_sub, &sd->bl,
-			range, BL_PC, &sd->bl, &c, &p_sd, skill_id);
+	i = map_foreachinrange(skill_check_condition_char_sub, &sd->bl, range, BL_PC, &sd->bl, &c, &p_sd, skill_id);
 
 	if (skill_id != PR_BENEDICTIO) //Apply the average lv to encore skills.
 		*skill_lv = (i+(*skill_lv))/(c+1); //I know c should be one, but this shows how it could be used for the average of n partners.
@@ -8743,9 +8740,9 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		for(i=0;i<10;i++) {
 			int x = lv%11 - 1;
 			index[i] = -1;
-			if(itemid[i] <= 0)
-				continue;
-			if(itemid[i] >= 715 && itemid[i] <= 717 && skill != HW_GANBANTEIN)
+			if( itemid[i] <= 0 )
+				continue;// no item
+			if( itemid_isgemstone(itemid[i]) && skill != HW_GANBANTEIN )
 			{
 				if (sd->special_state.no_gemstone)
 				{	//Make it substract 1 gem rather than skipping the cost.
@@ -8754,9 +8751,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 				}
 				if(sc && sc->data[SC_INTOABYSS].timer != -1)
 					continue;
-			} else
-			if(itemid[i] == 1065 && sc && sc->data[SC_INTOABYSS].timer != -1)
-				continue;
+			}
 
 			if((skill == AM_POTIONPITCHER ||
 				skill == CR_SLIMPITCHER ||
@@ -8765,13 +8760,15 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 
 			index[i] = pc_search_inventory(sd,itemid[i]);
 			if(index[i] < 0 || sd->status.inventory[index[i]].amount < amount[i]) {
-				if(itemid[i] == 716 || itemid[i] == 717)
-					clif_skill_fail(sd,skill,(7+(itemid[i]-716)),0);
+				if( itemid[i] == ITEMID_RED_GEMSTONE )
+					clif_skill_fail(sd,skill,7,0);// red gemstone required
+				else if( itemid[i] == ITEMID_BLUE_GEMSTONE )
+					clif_skill_fail(sd,skill,8,0);// blue gemstone required
 				else
 					clif_skill_fail(sd,skill,0,0);
 				return 0;
 			}
-			if(itemid[i] >= 715 && itemid[i] <= 717 && skill != HW_GANBANTEIN &&
+			if( itemid_isgemstone(itemid[i]) && skill != HW_GANBANTEIN &&
 				sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_WIZARD)
 				index[i] = -1; //Gemstones are checked, but not substracted from inventory.
 		}
@@ -10264,17 +10261,15 @@ int skill_unit_timer_sub (struct block_list* bl, va_list ap)
 			case UNT_TALKIEBOX:
 			{
 				struct block_list* src = map_id2bl(group->src_id);
-				// revert unit back into a trap
-				if( src && src->type == BL_PC && !group->state.into_abyss ) // but only when it cost a trap to deploy it
-				{
+				if( src && src->type == BL_PC )
+				{	// revert unit back into a trap
 					struct item item_tmp;
 					memset(&item_tmp,0,sizeof(item_tmp));
-					item_tmp.nameid=1065;
-					item_tmp.identify=1;
+					item_tmp.nameid = ITEMID_TRAP;
+					item_tmp.identify = 1;
 					map_addflooritem(&item_tmp,1,bl->m,bl->x,bl->y,0,0,0,0);
 				}
 				skill_delunit(unit);
-				break;
 			}
 			case UNT_WARP_ACTIVE:
 				skill_unitsetting(&unit->bl,group->skill_id,group->skill_lv,unit->bl.x,unit->bl.y,1);
@@ -10288,13 +10283,13 @@ int skill_unit_timer_sub (struct block_list* bl, va_list ap)
 		  			sd = map_charid2sd(group->val1);
 					group->val1 = 0;
 					if (sd && !map[sd->bl.m].flag.nowarp)
-						pc_setpos(sd,map[unit->bl.m].index,unit->bl.x,unit->bl.y,3);
+						pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,3);
 				}
 				if(group->val2) {
 					sd = map_charid2sd(group->val2);
 					group->val2 = 0;
 					if (sd && !map[sd->bl.m].flag.nowarp)
-						pc_setpos(sd,map[unit->bl.m].index,unit->bl.x,unit->bl.y,3);
+						pc_setpos(sd,map_id2index(unit->bl.m),unit->bl.x,unit->bl.y,3);
 				}
 				skill_delunit(unit);
 			}

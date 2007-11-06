@@ -33,7 +33,7 @@
 
 #define MIN_PETTHINKTIME 100
 
-struct pet_db pet_db[MAX_PET_DB];
+struct s_pet_db pet_db[MAX_PET_DB];
 
 static struct eri *item_drop_ers; //For loot drops delay structures.
 static struct eri *item_drop_list_ers;
@@ -1362,7 +1362,7 @@ int do_init_pet(void)
 int do_final_pet(void)
 {
 	int i;
-	for( i = 0;i < MAX_PET_DB; i++ ) {
+	for( i = 0; i < MAX_PET_DB; i++ ) {
 		if(pet_db[i].script) {
 			script_free_code(pet_db[i].script);
 			pet_db[i].script = NULL;

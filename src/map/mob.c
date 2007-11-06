@@ -276,8 +276,7 @@ int mob_get_random_id(int type, int flag, int lv)
 }
 
 
-struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m,
-	short x, short y, const char *mobname, int class_, const char *event)
+struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m, short x, short y, const char *mobname, int class_, const char *event)
 {
 	struct spawn_data data;
 	
@@ -497,8 +496,8 @@ int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobnam
 	}
 	data.x = x;
 	data.y = y;
-	strncpy(data.name, mobname, NAME_LENGTH-1);
-	strncpy(data.eventname, event, 50);
+	safestrncpy(data.name, mobname, sizeof(data.name));
+	safestrncpy(data.eventname, event, sizeof(data.eventname));
 	if (!mob_parse_dataset(&data))
 		return 0;
 	
@@ -990,7 +989,7 @@ static int mob_ai_sub_hard_slavemob(struct mob_data *md,unsigned int tick)
  * when trying to pick new targets when the current chosen target is
  * unreachable.
  *------------------------------------------*/
-int mob_unlocktarget(struct mob_data *md,int tick)
+int mob_unlocktarget(struct mob_data *md, unsigned int tick)
 {
 	nullpo_retr(0, md);
 
@@ -3158,7 +3157,7 @@ static bool mob_parse_dbrow(char** str)
 	}
 	
 	if (class_ >= MOB_CLONE_START && class_ < MOB_CLONE_END) {
-		ShowWarning("Mob with ID: %d not loaded. That ID is reserved for player clones. Please increase MAX_MOB_DB (%d)\n", MAX_MOB_DB);
+		ShowWarning("Mob with ID: %d not loaded. Range %d-%d is reserved for player clones. Please increase MAX_MOB_DB (%d)\n", class_, MOB_CLONE_START, MOB_CLONE_END-1, MAX_MOB_DB);
 		return false;
 	}
 

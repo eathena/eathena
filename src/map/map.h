@@ -37,12 +37,6 @@
 #define AREA_SIZE battle_config.area_size
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
-//Quick defines to know which are the min-max common ailments. [Skotlex]
-//Because of the way the headers are included.. these must be replaced for actual values.
-//Remember to update as needed! Min is SC_STONE and max is SC_DPOISON currently.
-#define SC_COMMON_MIN 0
-#define SC_COMMON_MAX 10
-
 #define MAX_SKILL_LEVEL 100
 #define MAX_SKILLUNITGROUP 25
 #define MAX_SKILLUNITGROUPTICKSET 25
@@ -62,8 +56,6 @@
 
 #define MAX_PC_BONUS 10
 #define MAX_DUEL 1024
-
-#define map_id2index(id) map[(id)].index
 
 //The following system marks a different job ID system used by the map server,
 //which makes a lot more sense than the normal one. [Skotlex]
@@ -300,7 +292,6 @@ struct skill_unit_group {
 	struct {
 		unsigned ammo_consume : 1;
 		unsigned magic_power : 1;
-		unsigned into_abyss : 1;
 		unsigned song_dance : 2; //0x1 Song/Dance, 0x2 Ensemble
 	} state;
 };
@@ -971,7 +962,7 @@ struct pet_data {
 	struct s_pet pet;
 	struct status_data status;
 	struct mob_db *db;
-	struct pet_db *petDB;
+	struct s_pet_db *petDB;
 	int pet_hungry_timer;
 	int target_id;
 	struct {
@@ -1334,6 +1325,8 @@ struct map_session_data* map_charid2sd(int charid);
 
 struct map_session_data * map_id2sd(int);
 struct block_list * map_id2bl(int);
+
+#define map_id2index(id) map[(id)].index
 int map_mapindex2mapid(unsigned short mapindex);
 int map_mapname2mapid(const char* name);
 int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port);

@@ -171,7 +171,7 @@ int recv_to_fifo(int fd)
 	if( len == SOCKET_ERROR )
 	{//An exception has occured
 		if( s_errno != S_EWOULDBLOCK ) {
-			ShowDebug("recv_to_fifo: code %d, closing connection #%d\n", s_errno, fd);
+			//ShowDebug("recv_to_fifo: code %d, closing connection #%d\n", s_errno, fd);
 			set_eof(fd);
 		}
 		return 0;
@@ -201,9 +201,9 @@ int send_from_fifo(int fd)
 	len = send(fd, (const char *) session[fd]->wdata, (int)session[fd]->wdata_size, 0);
 
 	if( len == SOCKET_ERROR )
-	{
+	{//An exception has occured
 		if( s_errno != S_EWOULDBLOCK ) {
-			ShowDebug("send_from_fifo: error %d, ending connection #%d\n", s_errno, fd);
+			//ShowDebug("send_from_fifo: error %d, ending connection #%d\n", s_errno, fd);
 			session[fd]->wdata_size = 0; //Clear the send queue as we can't send anymore. [Skotlex]
 			set_eof(fd);
 		}
@@ -452,7 +452,7 @@ int realloc_writefifo(int fd, size_t addition)
 		return 0;
 
 	// crash prevention for bugs that cause the send queue to fill up in an infinite loop
-	if( newsize > 5*1024*1024 ) // 5 megabytes is way beyond reasonable
+	if( newsize > 5*1024*1024 ) // 5 MB is way beyond reasonable
 	{
 		ShowError("realloc_writefifo: session #%d's send buffer was overloaded! Disconnecting...\n", fd);
 		// drop all data (but the space will still be available)

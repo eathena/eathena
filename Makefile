@@ -25,7 +25,7 @@ OPT += -ffast-math
 # OPT += -fbounds-checking
 # OPT += -fstack-protector
 # OPT += -fomit-frame-pointer
-OPT += -Wall -Wno-sign-compare
+OPT += -Wall -Wno-sign-compare -Wno-switch
 ifeq ($(GCC_VERSION), 4)
 	OPT += -Wno-unused-parameter -Wno-pointer-sign
 endif
