@@ -236,8 +236,8 @@ struct block_list {
 	struct block_list *next,*prev;
 	int id;
 	short m,x,y;
-	unsigned char type;
-	unsigned char subtype;
+	enum bl_type type;
+	enum bl_subtype subtype;
 };
 
 struct walkpath_data {
@@ -257,7 +257,7 @@ struct skill_timerskill {
 	int map;
 	short x,y;
 	short skill_id,skill_lv;
-	int type;
+	int type; // a BF_ type (NOTE: some places use this as general-purpose storage...)
 	int flag;
 };
 
@@ -845,7 +845,7 @@ struct npc_data {
 			struct npc_label_list *label_list;
 			int src_id;
 		} scr;
-		struct npc_item_list shop_item[1];
+		struct npc_item_list shop_item[1];// dynamic array, allocated with extra entries (last one has nameid 0)
 		struct {
 			short xs,ys;
 			short x,y;

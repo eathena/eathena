@@ -215,10 +215,10 @@ int pet_sc_check(struct map_session_data *sd, int type)
 	pd = sd->pd;
 
 	if( pd == NULL
-	|| (battle_config.pet_equip_required && pd->pet.equip == 0)
-	|| pd->recovery == NULL
-	|| pd->recovery->timer != -1
-	|| pd->recovery->type != type )
+	||  (battle_config.pet_equip_required && pd->pet.equip == 0)
+	||  pd->recovery == NULL
+	||  pd->recovery->timer != -1
+	||  pd->recovery->type != type )
 		return 1;
 
 	pd->recovery->timer = add_timer(gettick()+pd->recovery->delay*1000,pet_recovery_timer,sd->bl.id,0);

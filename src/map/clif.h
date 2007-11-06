@@ -122,7 +122,7 @@ int clif_damage(struct block_list* src,struct block_list *dst,unsigned int tick,
 void clif_takeitem(struct block_list* src,struct block_list* dst);
 void clif_sitting(struct block_list* bl);
 void clif_standing(struct block_list* bl);
-void clif_changelook(struct block_list *bl,int type,int val);	// area
+int clif_changelook(struct block_list *bl,int type,int val);	// area
 void clif_changetraplook(struct block_list *bl,int val); // area
 void clif_refreshlook(struct block_list *bl,int id,int type,int val,int area); //area specified in 'area'
 int clif_arrowequip(struct map_session_data *sd,int val); //self
@@ -269,7 +269,7 @@ void clif_vendingreport(struct map_session_data* sd, int index, int amount);
 int clif_movetoattack(struct map_session_data *sd,struct block_list *bl);
 
 // party
-int clif_party_created(struct map_session_data *sd,int flag);
+int clif_party_created(struct map_session_data *sd,int result);
 int clif_party_member_info(struct party_data *p, struct map_session_data *sd);
 int clif_party_info(struct party_data *p, struct map_session_data *sd);
 int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd);
