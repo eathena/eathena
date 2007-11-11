@@ -1,3 +1,5 @@
+11/12
+	* Rev. 11712 Fixed an item giving 24 of the 'Gladius' item. :P [L0ne_W0lf]
 11/06
 	* Rev. 11687 Fixed Aesprika's item ID. [L0ne_W0lf]
 	* Rev. 11679 Merged recent item_db changes from trunk. [L0ne_W0lf]
