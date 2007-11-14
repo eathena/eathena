@@ -167,7 +167,7 @@ S_MakeDye:
 	}
 	next;
 	if (select("Make Dyestuffs:Cancel") == 1) {
-		set .@size, getarraysize(.@item);
+		set .@size, (getarraysize(.@item)-1);
 		// check requirements
 		for( set .@i,0 ; .@i < .@size && countitem(.@item[.@i]) >= .@count[.@i] ; set .@i,.@i+1 );
 		if( .@i < .@size || Zeny < .@cost ) {

@@ -1,3 +1,5 @@
+11/15
+	* Rev. 11734 Merged fixes for several items from trunk. [L0ne_W0lf]
 11/12
 	* Rev. 11712 Fixed an item giving 24 of the 'Gladius' item. :P [L0ne_W0lf]
 11/06
