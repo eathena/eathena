@@ -143,7 +143,7 @@ int merc_hom_calc_skilltree(struct homun_data *hd)
 	
 	for(i=0;i < MAX_SKILL_TREE && (id = hskill_tree[c][i].id) > 0;i++)
 	{
-		if(hd->homunculus.hskill[id-HM_SKILLBASE-1].id)
+		if(hd->homunculus.hskill[id-HM_SKILLBASE].id)
 			continue; //Skill already known.
 		if(!battle_config.skillfree)
 		{
@@ -158,14 +158,14 @@ int merc_hom_calc_skilltree(struct homun_data *hd)
 			}
 		}
 		if (f)
-			hd->homunculus.hskill[id-HM_SKILLBASE-1].id = id ;
+			hd->homunculus.hskill[id-HM_SKILLBASE].id = id ;
 	}
 	return 0;
 }
 
 int merc_hom_checkskill(struct homun_data *hd,int skill_id)
 {
-	int i = skill_id - HM_SKILLBASE - 1;
+	int i = skill_id - HM_SKILLBASE;
 	if(!hd)
 		return 0;
 
@@ -192,7 +192,7 @@ void merc_hom_skillup(struct homun_data *hd,int skillnum)
 	if(hd->homunculus.vaporize)
 		return;
 	
-	i = skillnum - HM_SKILLBASE - 1;
+	i = skillnum - HM_SKILLBASE;
 	if(hd->homunculus.skillpts > 0 &&
 		hd->homunculus.hskill[i].id &&
 		hd->homunculus.hskill[i].flag == 0 && //Don't allow raising while you have granted skills. [Skotlex]
@@ -836,7 +836,7 @@ void merc_reset_stats(struct homun_data *hd)
 
 int merc_hom_shuffle(struct homun_data *hd)
 {
-	struct map_session_data *sd = hd->master;
+	struct map_session_data *sd;
 	int lv, i, skillpts;
 	unsigned int exp;
 	struct skill b_skill[MAX_HOMUNSKILL];
@@ -844,6 +844,7 @@ int merc_hom_shuffle(struct homun_data *hd)
 	if (!merc_is_hom_active(hd))
 		return 0;
 
+	sd = hd->master;
 	lv = hd->homunculus.level;
 	exp = hd->homunculus.exp;
 	memcpy(&b_skill, &hd->homunculus.hskill, sizeof(b_skill));
@@ -856,10 +857,8 @@ int merc_hom_shuffle(struct homun_data *hd)
 		merc_hom_levelup(hd);
 	}
 
-	clif_displaymessage(sd->fd, "[Homunculus Stats Altered]");
-
-	if(!hd->homunculusDB->evo_class || hd->homunculus.class_ == hd->homunculusDB->evo_class) {
-		// Homunculus Evolucionado
+	if(hd->homunculus.class_ == hd->homunculusDB->evo_class) {
+		//Evolved bonuses
 		struct s_homunculus *hom = &hd->homunculus;
 		struct h_stats *max = &hd->homunculusDB->emax, *min = &hd->homunculusDB->emin;
 		hom->max_hp += rand(min->HP, max->HP);
@@ -870,7 +869,6 @@ int merc_hom_shuffle(struct homun_data *hd)
 		hom->int_+= 10*rand(min->int_,max->int_);
 		hom->dex += 10*rand(min->dex, max->dex);
 		hom->luk += 10*rand(min->luk, max->luk);
-		clif_displaymessage(sd->fd, "[Adding Bonus Stats for Evolved Homunculus]");
 	}
 
 	hd->homunculus.exp = exp;

@@ -4,6 +4,17 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/11/17
+	* Some merges from trunk: [Skotlex]
+	- cleanup/packet-fixing for splash skills
+	- AL_DP protecting only against undead mobs.
+	- the correct triggering of splash traps
+	- ammo/state checks being done both on castbegin and cast end now.
+	- Sage create convertors having a 100% success chance
+	- Violent Gale adding a fixed flee bonus rather than %
+	- Forget ME Not no longer cancelling cart boost.
+	- Longing for Freedom in ensembles having normal walking speed.
+	- job change removing plagiarized skill, and wiping out SC's from skills you currently have active.
 2007/11/06
 	* Merged r11404 and r11406 - official Warp Portal behavior
 	* Merged r11171 - quest_exp_rate setting to adjust npc-gained exp

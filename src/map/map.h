@@ -28,10 +28,6 @@
 //  but is not the official behaviour.
 //#define CIRCULAR_AREA
 
-#define MAX_PC_CLASS 4050
-#define PC_CLASS_BASE 0
-#define PC_CLASS_BASE2 (PC_CLASS_BASE + 4001)
-#define PC_CLASS_BASE3 (PC_CLASS_BASE2 + 22)
 #define MAX_NPC_PER_MAP 512
 #define BLOCK_SIZE 8
 #define AREA_SIZE battle_config.area_size
@@ -825,8 +821,8 @@ struct npc_data {
 	short n;
 	short class_;
 	short speed;
-	char name[NAME_LENGTH];
-	char exname[NAME_LENGTH];
+	char name[NAME_LENGTH+1];// display name
+	char exname[NAME_LENGTH+1];// unique npc name
 	int chat_id;
 	unsigned int next_walktime;
 

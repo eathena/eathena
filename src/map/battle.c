@@ -1244,7 +1244,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					if(wflag>0)
 						wd.damage/= wflag;
 					else if(battle_config.error_log)
-						ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
+						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_num, skill_get_name(skill_num));
 				}
 
 				//Add any bonuses that modify the base baseatk+watk (pre-skills)
@@ -1463,9 +1463,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 					skillratio += 100+100*skill_lv;
 					break;
 				case AS_SPLASHER:
-					i = 400+50*skill_lv;
-					if (wflag>1) i /= 4; // FIXME: Should be 25% of damage inflicted to target, not 25% of skillratio bonus
-					skillratio += i;
+					skillratio += 400+50*skill_lv;
+					if(sd)
+						skillratio += 30 * pc_checkskill(sd,AS_POISONREACT);
 					break;
 				case ASC_BREAKER:
 					skillratio += 100*skill_lv-100;
@@ -1703,7 +1703,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				vit_def = def2/2 + (vit_def>0?rand()%vit_def:0);
 				
 				if((battle_check_undead(sstatus->race,sstatus->def_ele) || sstatus->race==RC_DEMON) &&
-					(skill=pc_checkskill(tsd,AL_DP)) >0)
+					src->type == BL_MOB && (skill=pc_checkskill(tsd,AL_DP)) > 0)
 					vit_def += skill*(int)(3 +(tsd->status.base_level+1)*0.04);   // submitted by orn
 			} else { //Mob-Pet vit-eq
 				//VIT + rnd(0,[VIT/20]^2-1)
@@ -2221,7 +2221,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					if(mflag>0)
 						ad.damage/= mflag;
 					else if(battle_config.error_log)
-						ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
+						ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_num, skill_get_name(skill_num));
 				}
 
 				switch(skill_num){
@@ -2493,14 +2493,15 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		if(mflag > 1) //Autocasted Blitz.
 			nk|=NK_SPLASHSPLIT;
 		
-		if (skill_num == HT_BLITZBEAT)
-			break;
-		//Div fix of Blitzbeat
-		skill = skill_get_num(HT_BLITZBEAT, 5);
-		damage_div_fix(md.damage, skill); 
+		if (skill_num == SN_FALCONASSAULT)
+		{
+			//Div fix of Blitzbeat
+			skill = skill_get_num(HT_BLITZBEAT, 5);
+			damage_div_fix(md.damage, skill); 
 
-		//Falcon Assault Modifier
-		md.damage=md.damage*(150+70*skill_lv)/100;
+			//Falcon Assault Modifier
+			md.damage=md.damage*(150+70*skill_lv)/100;
+		}
 		break;
 	case TF_THROWSTONE:
 		md.damage=50;
@@ -2563,7 +2564,7 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 		if(mflag>0)
 			md.damage/= mflag;
 		else if(battle_config.error_log)
-			ShowError("0 enemies targeted by %s, divide per 0 avoided!\n", skill_get_name(skill_num));
+			ShowError("0 enemies targeted by %d:%s, divide per 0 avoided!\n", skill_num, skill_get_name(skill_num));
 	}
 
 	damage_div_fix(md.damage, md.div_);
@@ -3293,6 +3294,9 @@ int battle_check_range(struct block_list *src,struct block_list *bl,int range)
 	if(src->m != bl->m)	// ˆá‚¤ƒ}ƒbƒv
 		return 0;
 
+	if(src->type == BL_HOM && battle_config.hom_setting&0x2)
+		range = battle_config.area_size + 1; //WTF, way to go Aegis and your awesome bugs.
+
 	if (!check_distance_bl(src, bl, range))
 		return 0;
 
@@ -3364,6 +3368,7 @@ static const struct _battle_data {
 	{ "chase_range_rate",                   &battle_config.chase_range_rate,                100,    0,      INT_MAX,        },
 	{ "gtb_sc_immunity",                    &battle_config.gtb_sc_immunity,                 50,     0,      INT_MAX,        },
 	{ "guild_max_castles",                  &battle_config.guild_max_castles,               0,      0,      INT_MAX,        },
+	{ "guild_skill_relog_delay",            &battle_config.guild_skill_relog_delay,         0,      0,      1,              },
 	{ "emergency_call",                     &battle_config.emergency_call,                  11,     0,      31,             },
 	{ "atcommand_gm_only",                  &battle_config.atc_gmonly,                      0,      0,      1,              },
 	{ "atcommand_spawn_quantity_limit",     &battle_config.atc_spawn_quantity_limit,        100,    0,      INT_MAX,        },

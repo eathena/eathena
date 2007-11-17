@@ -96,7 +96,7 @@
 #define DEFAULT_MAX_CHAR_ID 250000
 
 //Base Homun skill.
-#define HM_SKILLBASE 8000
+#define HM_SKILLBASE 8001
 #define MAX_HOMUNSKILL 16
 #define MAX_HOMUNCULUS_CLASS	16	//[orn]
 #define HM_CLASS_BASE 6001
@@ -106,14 +106,14 @@ struct item {
 	int id;
 	short nameid;
 	short amount;
-	unsigned short equip;
+	unsigned short equip; // location(s) where item is equipped (using enum equip_pos for bitmasking)
 	char identify;
 	char refine;
 	char attribute;
 	short card[MAX_SLOTS];
 };
 
-struct point{
+struct point {
 	unsigned short map;
 	short x,y;
 };
@@ -212,7 +212,8 @@ struct mmo_charstatus {
 	int party_id,guild_id,pet_id,hom_id;
 	int fame;
 
-	short weapon,shield;
+	short weapon; // enum weapon_type
+	short shield; // view-id
 	short head_top,head_mid,head_bottom;
 
 	char name[NAME_LENGTH];
@@ -444,6 +445,7 @@ enum {
 	JOB_NINJA,
 	JOB_XMAS,
 	JOB_SUMMER,
+	JOB_MAX_BASIC,
 
 	JOB_NOVICE_HIGH = 4001,
 	JOB_SWORDMAN_HIGH,
@@ -496,6 +498,7 @@ enum {
 	JOB_STAR_GLADIATOR,
 	JOB_STAR_GLADIATOR2,
 	JOB_SOUL_LINKER,
+	JOB_MAX,
 };
 
 // sanity checks...

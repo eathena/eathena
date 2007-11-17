@@ -73,7 +73,7 @@ static int guild_send_xy_timer(int tid,unsigned int tick,int id,int data);
  // Modified [Komurka]
 int guild_skill_get_max (int id)
 {
-	if (id  < GD_SKILLBASE || id > GD_SKILLBASE+MAX_GUILDSKILL)
+	if (id < GD_SKILLBASE || id >= GD_SKILLBASE+MAX_GUILDSKILL)
 		return 0;
 	return guild_skill_tree[id-GD_SKILLBASE].max;
 }
@@ -555,10 +555,10 @@ int guild_recv_info(struct guild *sg)
 		guild_check_member(sg);
 		if ((sd = map_nick2sd(sg->master)) != NULL)
 		{
-			//If the guild master is online the first time the guild_info is received, that means he was the first to join,
-			//and as such, his guild skills should be blocked to avoid login/logout abuse [Skotlex]
-			//(optionally)
-			//guild_block_skill(sd, 300000);
+			//If the guild master is online the first time the guild_info is received,
+			//that means he was the first to join, so apply guild skill blocking here.
+			if( battle_config.guild_skill_relog_delay )
+				guild_block_skill(sd, 300000);
 
 			//Also set the guild master flag.
 			sd->state.gmaster_flag = g;
