@@ -11343,7 +11343,7 @@ int skill_readdb (void)
 		if(j < 15 || split[14]==NULL)
 			continue;
 
-		i=atoi(split[0]);
+		k=i=atoi(split[0]);
 		if (i >= GD_SKILLRANGEMIN && i <= GD_SKILLRANGEMAX) {
 			ShowWarning("read skill_db: Can't use skill id %d as guild skills are placed there!\n");
 			continue;
@@ -11382,7 +11382,7 @@ int skill_readdb (void)
 		skill_split_atoi(split[14],skill_db[i].blewcount);
 
 		for (j = 0; skill_names[j].id != 0; j++)
-			if (skill_names[j].id == i) {
+			if (skill_names[j].id == k) {
 				skill_db[i].name = skill_names[j].name;
 				skill_db[i].desc = skill_names[j].desc;
 				break;
