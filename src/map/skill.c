@@ -194,6 +194,7 @@ const struct skill_name_db skill_names[] = {
  { GD_GLORYGUILD, "GD_GLORYGUILD", "Glory of Guild" } ,
  { GD_GLORYWOUNDS, "GD_GLORYWOUNDS", "Glorious Wounds" } ,
  { GD_GUARDUP, "GD_GUARDUP", "Strengthen Guardian" } ,
+ { GD_GUARDIANRESEARCH, "GD_GUARDIANRESEARCH", "Guardian Research" } ,
  { GD_HAWKEYES, "GD_HAWKEYES", "Sharp Gaze" } ,
  { GD_KAFRACONTRACT, "GD_KAFRACONTRACT", "Contract with Kafra" } ,
  { GD_LEADERSHIP, "GD_LEADERSHIP", "Great Leadership" } ,
@@ -574,6 +575,7 @@ const struct skill_name_db skill_names[] = {
  { SM_MOVINGRECOVERY, "SM_MOVINGRECOVERY", "HP Recovery While Moving" } ,
  { SM_PROVOKE, "SM_PROVOKE", "Provoke" } ,
  { SM_RECOVERY, "SM_RECOVERY", "Increase HP Recovery" } ,
+ { SM_SELFPROVOKE, "SM_SELFPROVOKE", "Auto Provoke" } ,
  { SM_SWORD, "SM_SWORD", "Sword Mastery" } ,
  { SM_TWOHAND, "SM_TWOHAND", "Two-Handed Sword Mastery" } ,
  { SN_FALCONASSAULT, "SN_FALCONASSAULT", "Falcon Assault" } ,
@@ -11387,6 +11389,13 @@ int skill_readdb (void)
 				skill_db[i].desc = skill_names[j].desc;
 				break;
 			}
+		if (!skill_db[i].name)
+		{
+			ShowWarning("No skill name found for skill %d!\n", k);
+			//j should point to the last entry of skill_names, 'Unknown skill'
+			skill_db[i].name = skill_names[j].name;
+			skill_db[i].desc = skill_names[j].desc;
+		}
 	}
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n",path);
