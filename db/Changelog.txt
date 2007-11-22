@@ -1,3 +1,6 @@
+11/22
+	* Rev. 11780 Applied fixes from trunk (revision 11734 and 11778) [L0ne_W0lf]
+	- Fixes premium taming items and clock card. 
 11/15
 	* Rev. 11734 Merged fixes for several items from trunk. [L0ne_W0lf]
 11/12

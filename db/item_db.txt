@@ -1680,7 +1680,7 @@
 4296,Cramp_Card,Cramp Card,6,,10,10,,,,,,,,769,,,,,{ bonus2 bGetZenyNum,500,1; if(isequipped(4028)) bonus bStr,3; },{},{}
 4297,Cruiser_Card,Cruiser Card,6,,10,10,,,,,,,,2,,,,,{ bonus bCritAtkRate,10; bonus2 bCriticalAddRace,RC_Brute,7; },{},{}
 4298,Cremy_Fear_Card,Creamy Fear Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Confusion,600; },{},{}
-4299,Clock_Card,Clock Card,6,,10,10,,,,,,,,16,,,,,{ bonus3 bAutoSpellWhenHit,249,3+7*(getskilllv(249)==10),30; },{},{}
+4299,Clock_Card,Clock Card,6,,10,10,,,,,,,,16,,,,,{ bonus3 bAutoSpellWhenHit,249,3+7*(getskilllv(249)==10),30; },{},{ sc_end SC_AUTOGUARD; }
 4300,Chimera_Card,Chimera Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Poison,300+600*(BaseJob==Job_Assassin); },{},{}
 4301,Killer_Mantis_Card,Killer Mantis Card,6,,10,10,,,,,,,,16,,,,,{ bonus2 bAddEffWhenHit,Eff_Bleeding,600; },{},{}
 4302,Tao_Gunka_Card,Tao Gunka Card,6,,10,10,,,,,,,,16,,,,,{ bonus bMaxHPrate,100; bonus bDef,-50; bonus bMdef,-50; },{},{}
@@ -3651,7 +3651,7 @@
 13642,2_Hour_Package_Vol_3,2_Hour Package Vol 3,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12252,4; getitem 12253,4; getitem 12208,4; getitem 12215,30; getitem 12216,30; getitem 12211,2; getitem 7621,2; },{},{}
 13643,2_Hour_Package_Vol_4,2_Hour Package Vol 4,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12252,4; getitem 12255,4; getitem 12208,4; getitem 12215,30; getitem 12216,30; getitem 12211,2; getitem 7621,2; },{},{}
 13644,2_Hour_Package_Vol_5,2_Hour Package Vol 5,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12252,4; getitem 12250,4; getitem 12208,4; getitem 12215,30; getitem 12216,30; getitem 12211,2; getitem 7621,2; },{},{}
-13645,2_Hour_Package_Vol_6,2_Hour Package Vol 6,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12250,4; getitem 12251,4; getitem 12208,4; getitem 1220,48; getitem 12217,40; getitem 12211,2; getitem 7621,2; },{},{}
+13645,2_Hour_Package_Vol_6,2_Hour Package Vol 6,2,20,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 12250,4; getitem 12251,4; getitem 12208,4; getitem 12215,30; getitem 12217,40; getitem 12211,2; getitem 7621,2; },{},{}
 13646,Infiltrator_Box_,Refined Infiltrator Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 1267,1; },{},{}
 13647,Muramasa_Box_,Refined Muramasa Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 1173,1; },{},{}
 13648,Excalibur_Box_,Refined Excalibur Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 13401,1; },{},{}
@@ -3822,11 +3822,11 @@
 13813,Food_Box_Vol_3,Food Box Vol 3,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14553,1; getitem 14556,1; getitem 14559,1; getitem 14562,1; getitem 14565,1; getitem 14568,1; },{},{}
 13814,Healing_Box,Healing Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{},{},{}
 13815,Goblin_1_Taming_Box,Goblin Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
-13816,Goblin_2_Taming_Box,Goblin Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
-13817,Goblin_4_Taming_Box,Goblin Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
-13818,Deleter_Taming_Box,Deleter Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
-13819,Diabolic_Taming_Box,Diabolic Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
-13820,Wanderer_Taming_Box,Wanderer Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14569,10; },{},{}
+13816,Goblin_2_Taming_Box,Goblin Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14570,10; },{},{}
+13817,Goblin_4_Taming_Box,Goblin Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14571,10; },{},{}
+13818,Deleter_Taming_Box,Deleter Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14572,10; },{},{}
+13819,Diabolic_Taming_Box,Diabolic Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14573,10; },{},{}
+13820,Wanderer_Taming_Box,Wanderer Taming Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 14574,10; },{},{}
 13821,Green_Apple_Box,Green_Apple_Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 7821,10; },{},{}
 13822,Whole_Roast_Box,Whole_Roast_Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 7822,10; },{},{}
 13823,Meat_Kabob_Box,Meat_Kabob_Box,2,,,10,,,,,0xFFFFFFFF,7,2,,,,,,{ getitem 7823,10; },{},{}
