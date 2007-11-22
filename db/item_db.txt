@@ -989,8 +989,8 @@
 2127,Sakray_Test_Shield,Sakray Test Shield,5,,10,0,,10,,0,0xFFFFFFFF,7,2,32,1,1,0,1,{ bonus2 bSubRace,RC_NonBoss,-25; bonus2 bSubRace,RC_Boss,-25; },{},{}
 2128,Herald_Of_GOD_,Sacred Mission,5,128000,,1600,,5,,1,0x00004000,7,2,32,,83,1,3,{ bonus bVit,3; bonus bInt,2; bonus bMdef,3; bonus bUnbreakableShield,0; },{},{}
 2129,Sacred_Scripture,Sacred Scripture,5,,,600,,5,,0,0x00008100,7,2,32,,50,1,1,{ bonus bHPrecovRate,3; bonus bSPrecovRate,3; bonus bInt,1; if(isequipped(1631)) bonus2 bSkillAtk,79,20; bonus3 bAutoSpellWhenHit,77,1,10; },{},{}
-2130,Cross_Shield,Cross Shield,5,,,2000,,6,,0,0x00004000,7,2,32,,80,1,1,{ bonus bStr,1; bonus2 bSkillAtk,480,30; bonus2 bSkillAtk,251,30; bonus bUseSPrate,10; },{},{}
-2131,Book_of_Charms_Volume_1,Book of Chars Vol. 1,5,,,1000,,2,,0,0x00010204,2,2,32,,80,1,1,{ bonus bMDef,3; bonus bInt,2; bonus2 bAddEffWhenHit,Eff_Stun,300; },{},{}
+2130,Cross_Shield,Cross Shield,5,,,2000,,6,,1,0x00004000,7,2,32,,80,1,1,{ bonus bStr,1; bonus2 bSkillAtk,480,30; bonus2 bSkillAtk,251,30; bonus bUseSPrate,10; },{},{}
+2131,Book_of_Charms_Volume_1,Book of Chars Vol. 1,5,,,1000,,2,,1,0x00010204,2,2,32,,80,1,1,{ bonus bMDef,3; bonus bInt,2; bonus2 bAddEffWhenHit,Eff_Stun,300; },{},{}
 2199,Ahura_Mazda,Ahura Mazdah,5,1,,10,,100,,0,0xFFFFFFFF,7,2,32,,1,1,0,{ bonus bAllStats,50; bonus bMdef,99; bonus bShortWeaponDamageReturn,100; bonus2 bSubRace,RC_DemiHuman,95; skill 479,5; },{},{}
 // Headgears
 //===================================================================
@@ -1170,7 +1170,7 @@
 2373,Holy_Robe_,Holy Robe,5,,10,1700,,7,,1,0x00008110,7,2,16,,60,1,0,{ bonus bMdef,5; bonus2 bSubRace,RC_Demon,15; bonus2 bSubEle,Ele_Dark,10; },{},{}
 2374,Diablos_Robe,Diablos Robe,5,,,300,,6,,1,0x00098B1C,2,2,16,55,0,1,0,{ bonus bMaxSP,150; bonus bMdef,5; bonus2 bSkillheal,28,6; bonus bDelayRate,-10; if (isequipped(2729)) bonus bAtkRate,3; bonus bMatkRate,3; },{},{}
 2375,Diablos_Armor,Diablos Armor,5,,,600,,7,,1,0x000654E2,2,2,16,,0,1,0,{ bonus bStr,2; bonus bDex,1; bonus bMaxHP,150; bonus2 bResEff,Eff_Stun,500; bonus2 bResEff,Eff_Stone,500; if (isequipped(2729)) bonus bAtkRate,3; bonus bMatkRate,3; },{},{}
-2383,Brynhildr,Brynhildr,5,,10,400,,10,,0,0xFFFFFFFF,7,2,16,,94,0,0,{ bonus bMdef,10; bonus bMaxHP,20*BaseLevel; bonus bMaxSP,5*BaseLevel; bonus2 bAddRace,RC_NonBoss,10; bonus2 bAddRace,RC_Boss,10; bonus2 bAddRace2,10,5; bonus bMatkRate,10; bonus bUnbreakableArmor,0; },{},{}
+2383,Brynhildr,Brynhildr,5,,10,400,,10,,0,0xFFFFFFFF,7,2,16,,94,0,0,{ bonus bMdef,10; bonus bMaxHP,20*BaseLevel; bonus bMaxSP,5*BaseLevel; bonus2 bAddRace,RC_NonBoss,10; bonus2 bAddRace,RC_Boss,10; bonus2 bAddRace2,5,10; bonus bMatkRate,10; bonus bUnbreakableArmor,0; },{},{}
 // Footgears
 //===================================================================
 2401,Sandals,Sandals,5,400,,200,,1,,0,0xFFFFFFFF,7,2,64,,0,1,0,{},{},{}

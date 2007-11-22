@@ -1,4 +1,6 @@
 11/22
+	* Rev. 11785 Added slots to Cross Shield and Book of Charms (bugreport:429) [L0ne_W0lf]
+	- Fixed the brynhildr item script. (bugreport:429)
 	* Rev. 11780 Applied fixes from trunk (revision 11734 and 11778) [L0ne_W0lf]
 	- Fixes premium taming items and clock card. 
 11/15
