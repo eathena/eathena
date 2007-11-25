@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/11/25
+	* Applied Fixes for 2-2 Job Quests. [Samuray22] 
 2007/11/15
 	* Rev. 11741 Applied changes from rev. 11740 fixes bugreport:417 [L0ne_W0lf]
 2007/11/15
