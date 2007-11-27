@@ -1266,6 +1266,7 @@ int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, i
 	memcpy(&char_dat[i].status.save_point, &start_point, sizeof(start_point));
 	char_num++;
 
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, i, slot, name);
 	mmo_char_sync();
 	return i;
 }
@@ -2774,11 +2775,6 @@ int parse_frommap(int fd)
 				character->char_id = cid;
 				character->server = id;
 			}
-			if (update_online < time(NULL)) { // Time is done
-				update_online = time(NULL) + 8;
-				create_online_files(); // only every 8 sec. (normally, 1 server send users every 5 sec.) Don't update every time, because that takes time, but only every 2 connection.
-				                       // it set to 8 sec because is more than 5 (sec) and if we have more than 1 map-server, informations can be received in shifted.
-			}
 			//If any chars remain in -2, they will be cleaned in the cleanup timer.
 			RFIFOSKIP(fd,6+i*8);
 		break;
@@ -3668,7 +3664,7 @@ int parse_char(int fd)
 
 			RFIFOSKIP(fd,60);
 		}
-		break;
+		return 0; // avoid processing of followup packets here
 
 		// Athena info get
 		case 0x7530:
@@ -3793,7 +3789,8 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data)
 	int users = count_users();
 	unsigned char buf[16];
 
-	if (login_fd > 0 && session[login_fd]) {
+	if( login_fd > 0 && session[login_fd] )
+	{
 		// send number of user to login server
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x2714;
@@ -3804,7 +3801,10 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data)
 	// send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;
 	WBUFL(buf,2) = users;
-	mapif_sendall(buf, 6);
+	mapif_sendall(buf,6);
+
+	// refresh online files (txt and html)
+	create_online_files();
 
 	return 0;
 }
@@ -3892,6 +3892,8 @@ static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int dat
 static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
+	if (character->fd != -1)
+		return 0; //Character still connected
 	if (character->server == -2) //Unknown server.. set them offline
 		set_char_offline(character->char_id, character->account_id);
 	if (character->server < 0)
@@ -4208,7 +4210,13 @@ int do_init(int argc, char **argv)
 {
 	int i;
 
-	mapindex_init(); //Needed here for the start-point reading.
+	for(i = 0; i < MAX_MAP_SERVERS; i++) {
+		memset(&server[i], 0, sizeof(struct mmo_map_server));
+		server_fd[i] = -1;
+	}
+
+	//Read map indexes
+	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
@@ -4226,6 +4234,18 @@ int do_init(int argc, char **argv)
 	char_log("");
 	// moved behind char_config_read in case we changed the filename [celest]
 	char_log("The char-server starting...\n");
+
+	ShowInfo("Initializing char server.\n");
+	online_char_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
+	mmo_char_init();
+	char_read_fame_list(); //Read fame lists.
+#ifdef ENABLE_SC_SAVING
+	status_init();
+#endif
+	inter_init_txt((argc > 2) ? argv[2] : inter_cfgName);	// inter server ‰Šú‰»
+	ShowInfo("char server initialized.\n");
+
+	set_defaultparse(parse_char);
 
 	if ((naddr_ != 0) && (!login_ip || !char_ip))
 	{
@@ -4246,38 +4266,24 @@ int do_init(int argc, char **argv)
 		}
 	}
 
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		memset(&server[i], 0, sizeof(struct mmo_map_server));
-		server_fd[i] = -1;
-	}
-
-	online_char_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
-
-	mmo_char_init();
-#ifdef ENABLE_SC_SAVING
-	status_init();
-#endif
-	update_online = time(NULL);
-	create_online_files(); // update online players files at start of the server
-
-	inter_init_txt((argc > 2) ? argv[2] : inter_cfgName);	// inter server ‰Šú‰»
-
-	set_defaultparse(parse_char);
-
+	// establish char-login connection if not present
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
-	add_timer_func_list(send_users_tologin, "send_users_tologin");
-	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
-	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
-	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
-	
-	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600 * 1000);
 	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
-	add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
-	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600*1000); //Sync online accounts every hour
-	add_timer_interval(gettick() + autosave_interval, mmo_char_sync_timer, 0, 0, autosave_interval);
 
-	char_read_fame_list(); //Read fame lists.
+	// periodically update the overall user count on all mapservers + login server
+	add_timer_func_list(send_users_tologin, "send_users_tologin");
+	add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
+	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
+	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600*1000); //Sync online accounts every hour
+
+	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
+
+	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
+	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600 * 1000);
+
+	// periodic flush of all saved data to disk
+	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
+	add_timer_interval(gettick() + autosave_interval, mmo_char_sync_timer, 0, 0, autosave_interval);
 
 	if( console )
 	{

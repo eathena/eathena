@@ -193,10 +193,10 @@ struct online_char_data {
 
 struct dbt *online_char_db; //Holds all online characters.
 
-static void * create_online_char_data(DBKey key, va_list args)
+static void* create_online_char_data(DBKey key, va_list args)
 {
 	struct online_char_data* character;
-	character = aCalloc(1, sizeof(struct online_char_data));
+	CREATE(character, struct online_char_data, 1);
 	character->account_id = key.i;
 	character->char_id = -1;
   	character->server = -1;
@@ -460,8 +460,8 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	char esc_name[NAME_LENGTH*2+1];
 
 	Sql_EscapeStringLen(sql_handle, esc_name, p->name, strnlen(p->name, NAME_LENGTH));
-	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`account_id`, `char_num`, `name`)  VALUES ('%d', '%d', '%s')",
-		char_db, p->account_id, p->slot, esc_name) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`char_id`, `account_id`, `char_num`, `name`)  VALUES ('%d', '%d', '%d', '%s')",
+		char_db, p->char_id, p->account_id, p->slot, esc_name) )
 	{
 		Sql_ShowDebug(sql_handle);
 	}
@@ -761,7 +761,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 						tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute);
 					for( j = 0; j < MAX_SLOTS; ++j )
 						StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
-					StringBuf_Printf(&buf, ", `amount`='%d' WHERE `id`='%d' LIMIT 1", items[i].amount, item.id);
+					StringBuf_Printf(&buf, " WHERE `id`='%d' LIMIT 1", item.id);
 					
 					if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 						Sql_ShowDebug(sql_handle);
@@ -814,7 +814,83 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	return 0;
 }
 
+int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
+
 #ifndef TXT_SQL_CONVERT
+//=====================================================================================================
+// Loads the basic character rooster for the given account. Returns total buffer used.
+int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf)
+{
+	SqlStmt* stmt;
+	struct mmo_charstatus p;
+	int j = 0, i;
+
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( stmt == NULL )
+	{
+		SqlStmt_ShowDebug(stmt);
+		return 0;
+	}
+	memset(&p, 0, sizeof(p));
+
+	// read char data
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT "
+		"`char_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
+		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
+		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`hair`,`hair_color`,"
+		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`"
+		" FROM `%s` WHERE `account_id`='%d' AND `char_num` < '%d'", char_db, sd->account_id, MAX_CHARS)
+	||	SQL_ERROR == SqlStmt_Execute(stmt)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0,  SQLDT_INT,    &p.char_id, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1,  SQLDT_UCHAR,  &p.slot, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2,  SQLDT_STRING, &p.name, sizeof(p.name), NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3,  SQLDT_SHORT,  &p.class_, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4,  SQLDT_UINT,   &p.base_level, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5,  SQLDT_UINT,   &p.job_level, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6,  SQLDT_UINT,   &p.base_exp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7,  SQLDT_UINT,   &p.job_exp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 8,  SQLDT_INT,    &p.zeny, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 9,  SQLDT_SHORT,  &p.str, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 10, SQLDT_SHORT,  &p.agi, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 11, SQLDT_SHORT,  &p.vit, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 12, SQLDT_SHORT,  &p.int_, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 13, SQLDT_SHORT,  &p.dex, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 14, SQLDT_SHORT,  &p.luk, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 15, SQLDT_INT,    &p.max_hp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 16, SQLDT_INT,    &p.hp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 17, SQLDT_INT,    &p.max_sp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 18, SQLDT_INT,    &p.sp, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 19, SQLDT_USHORT, &p.status_point, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 20, SQLDT_USHORT, &p.skill_point, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 21, SQLDT_UINT,   &p.option, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 22, SQLDT_UCHAR,  &p.karma, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 23, SQLDT_SHORT,  &p.manner, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 24, SQLDT_SHORT,  &p.hair, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 25, SQLDT_SHORT,  &p.hair_color, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 26, SQLDT_SHORT,  &p.clothes_color, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 27, SQLDT_SHORT,  &p.weapon, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 28, SQLDT_SHORT,  &p.shield, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 29, SQLDT_SHORT,  &p.head_top, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 30, SQLDT_SHORT,  &p.head_mid, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 31, SQLDT_SHORT,  &p.head_bottom, 0, NULL, NULL)
+	)
+	{
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		return 0;
+	}
+	for( i = 0; i < MAX_CHARS && SQL_SUCCESS == SqlStmt_NextRow(stmt); i++ )
+	{
+		sd->found_char[i] = p.char_id;
+		j += mmo_char_tobuf(WBUFP(buf, j), &p);
+	}
+	for( ; i < MAX_CHARS; i++ )
+		sd->found_char[i] = -1;
+
+	SqlStmt_Free(stmt);
+	return j;
+}
+
 //=====================================================================================================
 int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything)
 {
@@ -1403,36 +1479,18 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 
 int mmo_char_send006b(int fd, struct char_session_data* sd)
 {
-	int i, j, found_num = 0;
-	char* data;
+	int j;
 
 	set_char_online(-1, 99, sd->account_id);
-
-	// load the char_ids of all chars on this account
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id` = '%d' AND `char_num` < '%d'", char_db, sd->account_id, MAX_CHARS) )
-		Sql_ShowDebug(sql_handle);
-	for( i = 0; i < MAX_CHARS && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
-	{
-		Sql_GetData(sql_handle, 0, &data, NULL); sd->found_char[i] = atoi(data); // char_id
-	}
-	found_num = i;
-	for( ; i < MAX_CHARS; ++i )
-		sd->found_char[i] = -1;
 
 	if (save_log)
 		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 
-
 	j = 24; // offset
-	WFIFOHEAD(fd,j + found_num*108); // or 106(!)
+	WFIFOHEAD(fd,j + MAX_CHARS*108); // or 106(!)
 	WFIFOW(fd,0) = 0x6b;
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
-	for(i = 0; i < found_num; i++)
-	{
-		struct mmo_charstatus char_dat;
-		mmo_char_fromsql(sd->found_char[i], &char_dat, false);
-		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat);
-	}
+	j+=mmo_chars_fromsql(sd, WFIFOP(fd,j));
 	WFIFOW(fd,2) = j; // packet len
 	WFIFOSET(fd,j);
 
@@ -3151,7 +3209,7 @@ int parse_char(int fd)
 			
 			RFIFOSKIP(fd,60);
 		}
-		break;
+		return 0; // avoid processing of followup packets here
 
 		// Athena info get
 		case 0x7530:
@@ -3275,17 +3333,19 @@ int send_users_tologin(int tid, unsigned int tick, int id, int data)
 	int users = count_users();
 	unsigned char buf[16];
 
-	if (login_fd > 0 && session[login_fd]) {
+	if( login_fd > 0 && session[login_fd] )
+	{
 		// send number of user to login server
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x2714;
 		WFIFOL(login_fd,2) = users;
 		WFIFOSET(login_fd,6);
 	}
+
 	// send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;
 	WBUFL(buf,2) = users;
-	mapif_sendall(buf, 6);
+	mapif_sendall(buf,6);
 
 	return 0;
 }
@@ -3373,6 +3433,8 @@ static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int dat
 static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 {
 	struct online_char_data *character= (struct online_char_data*)data;
+	if (character->fd != -1)
+		return 0; //Still connected
 	if (character->server == -2) //Unknown server.. set them offline
 		set_char_offline(character->char_id, character->account_id);
 	if (character->server < 0)
@@ -3776,6 +3838,9 @@ int do_init(int argc, char **argv)
 	ShowInfo("Initializing char server.\n");
 	online_char_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_RELEASE_DATA,sizeof(int));
 	mmo_char_sql_init();
+	char_read_fame_list(); //Read fame lists.
+	if(char_gm_read)
+		read_gm_account();
 	ShowInfo("char server initialized.\n");
 
 	set_defaultparse(parse_char);
@@ -3799,24 +3864,19 @@ int do_init(int argc, char **argv)
 		}
 	}
 
+	// establish char-login connection if not present
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
+	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
+
 	add_timer_func_list(send_users_tologin, "send_users_tologin");
+	add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
 	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
+	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
+
 	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
 
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600 * 1000);
-
-	// send ALIVE PING to login server.
-	add_timer_interval(gettick() + 10, check_connect_login_server, 0, 0, 10 * 1000);
-	// send USER COUNT PING to login server.
-	add_timer_interval(gettick() + 10, send_users_tologin, 0, 0, 5 * 1000);
-	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
-
-	char_read_fame_list(); //Read fame lists.
-
-	if(char_gm_read)
-		read_gm_account();
 
 	if( console )
 	{
