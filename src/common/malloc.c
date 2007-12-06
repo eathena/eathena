@@ -1,15 +1,18 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "../common/malloc.h"
 #include "../common/core.h"
 #include "../common/showmsg.h"
 
-#ifdef MINICORE
-	#undef LOG_MEMMGR
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+// no logging for minicore
+#if defined(MINICORE) && defined(LOG_MEMMGR)
+#undef LOG_MEMMGR
 #endif
 
 void* aMalloc_(size_t size, const char *file, int line, const char *func)

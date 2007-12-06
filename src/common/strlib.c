@@ -316,6 +316,51 @@ size_t safestrnlen(const char* string, size_t maxlen)
 	return ( string != NULL ) ? strnlen(string, maxlen) : 0;
 }
 
+/// Works like snprintf, but always nul-terminates the buffer.
+/// Returns the size of the string (without nul-terminator)
+/// or -1 if the buffer is too small.
+///
+/// @param buf Target buffer
+/// @param sz Size of the buffer (including nul-terminator)
+/// @param fmt Format string
+/// @param ... Format arguments
+/// @return The size of the string or -1 if the buffer is too small
+int safesnprintf(char* buf, size_t sz, const char* fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap,fmt);
+	ret = vsnprintf(buf, sz, fmt, ap);
+	va_end(ap);
+	if( ret < 0 || (size_t)ret >= sz )
+	{// overflow
+		buf[sz-1] = '\0';// always nul-terminate
+		return -1;
+	}
+	return ret;
+}
+
+/// Returns the line of the target position in the string.
+/// Lines start at 1.
+int strline(const char* str, size_t pos)
+{
+	const char* target;
+	int line;
+
+	if( str == NULL || pos == 0 )
+		return 1;
+
+	target = str+pos;
+	for( line = 1; ; ++line )
+	{
+		str = strchr(str, '\n');
+		if( str == NULL || target <= str )
+			break;// found target line
+		++str;// skip newline
+	}
+	return line;
+}
 
 /////////////////////////////////////////////////////////////////////
 // StringBuf - dynamic string
