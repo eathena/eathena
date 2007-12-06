@@ -198,6 +198,7 @@ enum curly_type {
 	TYPE_USERFUNC,
 	TYPE_ARGLIST // function argument list
 };
+
 #define ARGLIST_UNDEFINED 0
 #define ARGLIST_NO_PAREN  1
 #define ARGLIST_PAREN     2
@@ -212,13 +213,14 @@ static struct {
 	int curly_count;	// 右カッコの数
 	int index;			// スクリプト内で使用した構文の数
 } syntax;
+
 const char* parse_curly_close(const char* p);
 const char* parse_syntax_close(const char* p);
 const char* parse_syntax_close_sub(const char* p,int* flag);
 const char* parse_syntax(const char* p);
 static int parse_syntax_for_flag = 0;
 
-extern int current_equip_item_index; //for New CARS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
+extern int current_equip_item_index; //for New CARDS Scripts. It contains Inventory Index of the EQUIP_SCRIPT caller item. [Lupus]
 int potion_flag=0; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
 int potion_hp=0, potion_per_hp=0, potion_sp=0, potion_per_sp=0;
 int potion_target=0;
@@ -1081,8 +1083,8 @@ const char* parse_line(const char* p)
 	p=skip_space(p);
 	if(*p==';') {
 		// if(); for(); while(); のために閉じ判定
-		p = parse_syntax_close(p);
-		return p+1;
+		p = parse_syntax_close(p + 1);
+		return p;
 	}
 	if(*p==')' && parse_syntax_for_flag)
 		return p+1;
@@ -1212,10 +1214,8 @@ const char* parse_syntax(const char* p)
 				syntax.curly_count--;
 			}
 			p = skip_space(p2);
-			if(*p != ';') {
+			if(*p != ';')
 				disp_error_message("parse_syntax: need ';'",p);
-			}
-			p++;
 			// if, for , while の閉じ判定
 			p = parse_syntax_close(p + 1);
 			return p;
@@ -1326,7 +1326,6 @@ const char* parse_syntax(const char* p)
 			p = skip_space(p2);
 			if(*p != ';')
 				disp_error_message("parse_syntax: need ';'",p);
-			p++;
 			// if, for , while の閉じ判定
 			p = parse_syntax_close(p + 1);
 			return p;
@@ -1470,16 +1469,19 @@ const char* parse_syntax(const char* p)
 			p = skip_word(func_name);
 			if( p == func_name )
 				disp_error_message("parse_syntax:function: function name is missing or invalid", p);
-			if( *skip_space(p) == ';' )
+			p2 = skip_space(p);
+			if( *p2 == ';' )
 			{// function <name> ;
 				// function declaration - just register the name
 				int l;
 				l = add_word(func_name);
 				if( str_data[l].type == C_NOP )//## ??? [FlavioJS]
 					str_data[l].type = C_USERFUNC;
-				return skip_space(p) + 1;
-			}
-			else
+
+				// if, for , while の閉じ判定
+				p = parse_syntax_close(p2 + 1);
+				return p;			}
+			else if(*p2 == '{')
 			{// function <name> <line/block of code>
 				char label[256];
 				int l;
@@ -1505,6 +1507,10 @@ const char* parse_syntax(const char* p)
 				if( parse_options&SCRIPT_USE_LABEL_DB )
 					strdb_put(scriptlabel_db, GETSTRING(str_data[l].str), (void*)script_pos);
 				return skip_space(p);
+			}
+			else
+			{
+				disp_error_message("expect ';' or '{' at function syntax",p);
 			}
 		}
 		break;
@@ -1761,7 +1767,7 @@ const char* parse_syntax_close_sub(const char* p,int* flag)
 		l=add_str(label);
 		set_label(l,script_pos,p);
 		syntax.curly_count--;
-		return p + 1;
+		return p;
 	} else {
 		*flag = 0;
 		return p;
@@ -4238,23 +4244,29 @@ BUILDIN_FUNC(rand)
  *------------------------------------------*/
 BUILDIN_FUNC(warp)
 {
+	int ret;
 	int x,y;
-	const char *str;
-	TBL_PC *sd=script_rid2sd(st);
+	const char* str;
+	TBL_PC* sd = script_rid2sd(st);
 
 	nullpo_retr(0, sd);
 
-	str=script_getstr(st,2);
-	x=script_getnum(st,3);
-	y=script_getnum(st,4);
+	str = script_getstr(st,2);
+	x = script_getnum(st,3);
+	y = script_getnum(st,4);
+
 	if(strcmp(str,"Random")==0)
-		pc_randomwarp(sd,3);
-	else if(strcmp(str,"SavePoint")==0){
-		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-	}else if(strcmp(str,"Save")==0){
-		pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
-	}else
-		pc_setpos(sd,mapindex_name2id(str),x,y,0);
+		ret = pc_randomwarp(sd,3);
+	else if(strcmp(str,"SavePoint")==0 || strcmp(str,"Save")==0)
+		ret = pc_setpos(sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
+	else
+		ret = pc_setpos(sd,mapindex_name2id(str),x,y,0);
+
+	if( ret ) {
+		ShowError("buildin_warp: moving player '%s' to \"%s\",%d,%d failed.\n", sd->status.name, str, x, y);
+		script_reportsrc(st);
+	}
+
 	return 0;
 }
 /*==========================================
@@ -6054,6 +6066,51 @@ BUILDIN_FUNC(strcharinfo)
 
 	return 0;
 }
+
+/*==========================================
+ * 呼び出し元のNPC情報を取得する
+ *------------------------------------------*/
+BUILDIN_FUNC(strnpcinfo)
+{
+	TBL_NPC* nd;
+	int num;
+	char *buf,*name=NULL;
+
+	nd = map_id2nd(st->oid);
+	if (!nd) {
+		script_pushconststr(st, "");
+		return 0;
+	}
+
+	num = script_getnum(st,2);
+	switch(num){
+		case 0: // display name
+			name = aStrdup(nd->name);
+			break;
+		case 1: // visible part of display name name
+			if((buf = strchr(nd->name,'#')) != NULL)
+			{
+				name = aStrdup(nd->name);
+				name[buf - nd->name] = 0;
+			}
+			break;
+		case 2: // # fragment
+			if((buf = strchr(nd->name,'#')) != NULL)
+				name = aStrdup(buf+1);
+			break;
+		case 3: // unique name
+			name = aStrdup(nd->exname);
+			break;
+	}
+
+	if(name)
+		script_pushstr(st, name);
+	else
+		script_pushconststr(st, "");
+
+	return 0;
+}
+
 
 unsigned int equip[10]={EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_GARMENT,EQP_SHOES,EQP_ACC_L,EQP_ACC_R,EQP_HEAD_MID,EQP_HEAD_LOW};
 
@@ -10718,7 +10775,7 @@ BUILDIN_FUNC(getsavepoint)
 /*==========================================
   * Get position for  char/npc/pet/mob objects. Added by Lorky
   *
-  *     int getMapXY(MapName$,MaxX,MapY,type,[CharName$]);
+  *     int getMapXY(MapName$,MapX,MapY,type,[CharName$]);
   *             where type:
   *                     MapName$ - String variable for output map name
   *                     MapX     - Integer variable for output coord X
@@ -11221,11 +11278,11 @@ BUILDIN_FUNC(unequip)
 	size_t num;
 	TBL_PC *sd;
 
-	num = script_getnum(st,2) - 1;
-	sd=script_rid2sd(st);
-	if(sd!=NULL && num > 0 && num <= ARRAYLENGTH(equip))
+	num = script_getnum(st,2);
+	sd = script_rid2sd(st);
+	if( sd != NULL && num >= 1 && num <= ARRAYLENGTH(equip) )
 	{
-		i=pc_checkequip(sd,equip[num-1]);
+		i = pc_checkequip(sd,equip[num-1]);
 		if (i >= 0)
 			pc_unequipitem(sd,i,2);
 		return 0;
@@ -11305,20 +11362,56 @@ BUILDIN_FUNC(charisalpha)
 	return 0;
 }
 
-// [Lance]
-BUILDIN_FUNC(fakenpcname)
+/// Changes the display name and/or display class of the npc.
+/// Returns 0 is successful, 1 if the npc does not exist.
+///
+/// setnpcdisplay("<npc name>", "<new display name>", <new class id>) -> <int>
+/// setnpcdisplay("<npc name>", "<new display name>") -> <int>
+/// setnpcdisplay("<npc name>", <new class id>) -> <int>
+BUILDIN_FUNC(setnpcdisplay)
 {
-	const char *name;
-	const char *newname;
-	int look;
+	const char* name;
+	const char* newname = NULL;
+	int class_ = -1;
+	struct script_data* data;
+	struct npc_data* nd;
+
 	name = script_getstr(st,2);
-	newname = script_getstr(st,3);
-	look = script_getnum(st,4);
-	if(look > 32767 || look < -32768) {
-		ShowError("buildin_fakenpcname: Invalid look value %d\n",look);
-		return 1; // Safety measure to prevent runtime errors
+	data = script_getdata(st,3);
+	get_val(st, data);
+	if( script_hasdata(st,4) )
+	{
+		newname = conv_str(st,data);
+		class_ = script_getnum(st,4);
 	}
-	npc_changename(name,newname,(short)look);
+	else if( data_isstring(data) )
+	{
+		newname = conv_str(st,data);
+	}
+	else if( data_isint(data) )
+	{
+		class_ = conv_num(st,data);
+	}
+	else
+	{
+		ShowError("script:setnpcdisplay: expected a string or number\n");
+		script_reportdata(data);
+		return 1;
+	}
+
+	nd = npc_name2id(name);
+	if( nd == NULL )
+	{// not found
+		script_pushint(st,1);
+		return 0;
+	}
+
+	// update npc
+	if( newname )
+		npc_setdisplayname(nd, newname);
+	if( class_ != -1 )
+		npc_setclass(nd, class_);
+	script_pushint(st,0);
 	return 0;
 }
 
@@ -11463,7 +11556,7 @@ BUILDIN_FUNC(query_sql)
 
 	// Execute the query
 	query = script_getstr(st,2);
-	if( SQL_ERROR == Sql_Query(mmysql_handle, query) )
+	if( SQL_ERROR == Sql_QueryStr(mmysql_handle, query) )
 	{
 		Sql_ShowDebug(mmysql_handle);
 		script_pushint(st, 0);
@@ -11481,7 +11574,7 @@ BUILDIN_FUNC(query_sql)
 	num_cols = Sql_NumColumns(mmysql_handle);
 	if( num_vars < num_cols )
 	{
-		ShowWarning("script:query_sql: Too many columns, discarting last %u columns.\n", (unsigned int)(num_cols-num_vars));
+		ShowWarning("script:query_sql: Too many columns, discarding last %u columns.\n", (unsigned int)(num_cols-num_vars));
 		script_reportsrc(st);
 	}
 	else if( num_vars > num_cols )
@@ -11548,7 +11641,6 @@ BUILDIN_FUNC(getd)
 {
 	char varname[100];
 	const char *buffer;
-	//struct script_data dat;
 	int elem;
 
 	buffer = script_getstr(st, 2);
@@ -11557,8 +11649,7 @@ BUILDIN_FUNC(getd)
 		elem = 0;
 
 	// Push the 'pointer' so it's more flexible [Lance]
-	push_val(st->stack,C_NAME,
-				(elem<<24) | add_str(varname));
+	push_val(st->stack, C_NAME, (elem<<24) | add_str(varname));
 
 	return 0;
 }
@@ -12563,6 +12654,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(getguildmaster,"i"),
 	BUILDIN_DEF(getguildmasterid,"i"),
 	BUILDIN_DEF(strcharinfo,"i"),
+	BUILDIN_DEF(strnpcinfo,"i"),
 	BUILDIN_DEF(getequipid,"i"),
 	BUILDIN_DEF(getequipname,"i"),
 	BUILDIN_DEF(getbrokenid,"i"), // [Valaris]
@@ -12767,7 +12859,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(unequip,"i"), // unequip command [Spectre]
 	BUILDIN_DEF(getstrlen,"s"), //strlen [Valaris]
 	BUILDIN_DEF(charisalpha,"si"), //isalpha [Valaris]
-	BUILDIN_DEF(fakenpcname,"ssi"), // [Lance]
+	BUILDIN_DEF(setnpcdisplay,"sv?"),
 	BUILDIN_DEF(compare,"ss"), // Lordalfa - To bring strstr to scripting Engine.
 	BUILDIN_DEF(getiteminfo,"ii"), //[Lupus] returns Items Buy / sell Price, etc info
 	BUILDIN_DEF(setiteminfo,"iii"), //[Lupus] set Items Buy / sell Price, etc info
