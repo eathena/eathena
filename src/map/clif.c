@@ -350,7 +350,7 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 		for(i=1; i<fd_max; i++) {
 			if (session[i] && session[i]->func_parse == clif_parse &&
 				(sd = (struct map_session_data*)session[i]->session_data) != NULL &&
-				sd->state.mainchat && (fd=sd->fd))
+				sd->state.mainchat && !sd->chatID && (fd=sd->fd))
 			{
 				WFIFOHEAD(fd,len);
 				memcpy(WFIFOP(fd,0), buf, len);
@@ -701,10 +701,6 @@ int clif_clearunit_delayed(struct block_list* bl, unsigned int tick)
 
 void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, unsigned short *lhand)
 {
-#if PACKETVER > 3
-	struct item_data *id;
-#endif
-
 	if(sd->sc.option&(OPTION_WEDDING|OPTION_XMAS|OPTION_SUMMER))
 	{
 		*rhand = *lhand = 0;
@@ -718,7 +714,7 @@ void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, un
 	if (sd->equip_index[EQI_HAND_R] >= 0 &&
 		sd->inventory_data[sd->equip_index[EQI_HAND_R]]) 
 	{
-		id = sd->inventory_data[sd->equip_index[EQI_HAND_R]];
+		struct item_data* id = sd->inventory_data[sd->equip_index[EQI_HAND_R]];
 		if (id->view_id > 0)
 			*rhand = id->view_id;
 		else
@@ -730,7 +726,7 @@ void clif_get_weapon_view(struct map_session_data* sd, unsigned short *rhand, un
 		sd->equip_index[EQI_HAND_L] != sd->equip_index[EQI_HAND_R] &&
 		sd->inventory_data[sd->equip_index[EQI_HAND_L]]) 
 	{
-		id = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
+		struct item_data* id = sd->inventory_data[sd->equip_index[EQI_HAND_L]];
 		if (id->view_id > 0)
 			*lhand = id->view_id;
 		else
@@ -1534,6 +1530,7 @@ void clif_move(struct unit_data *ud)
 	unsigned char buf[16];
 	struct view_data* vd;
 	struct block_list* bl = ud->bl;
+
 	vd = status_get_viewdata(bl);
 	if (!vd || vd->class_ == INVISIBLE_CLASS)
 		return; //This performance check is needed to keep GM-hidden objects from being notified to bots.
@@ -1698,29 +1695,26 @@ int clif_npcbuysell(struct map_session_data* sd, int id)
  *------------------------------------------*/
 int clif_buylist(struct map_session_data *sd, struct npc_data *nd)
 {
-	struct item_data *id;
-	int fd,i,val;
+	int fd,i;
 
 	nullpo_retr(0, sd);
 	nullpo_retr(0, nd);
 
-	fd=sd->fd;
+	fd = sd->fd;
  	WFIFOHEAD(fd, 200 * 11 + 4);
-	WFIFOW(fd,0)=0xc6;
-	for(i=0;nd->u.shop_item[i].nameid > 0;i++){
-		id = itemdb_search(nd->u.shop_item[i].nameid);
-		val=nd->u.shop_item[i].value;
-		WFIFOL(fd,4+i*11)=val;
+	WFIFOW(fd,0) = 0xc6;
+	WFIFOW(fd,2) = 4 + nd->u.shop.count*11;
+	for( i = 0; i < nd->u.shop.count; i++ )
+	{
+		struct item_data* id = itemdb_search(nd->u.shop.shop_item[i].nameid);
+		int val = nd->u.shop.shop_item[i].value;
+		WFIFOL(fd,4+i*11) = val;
 		if (!id->flag.value_notdc)
-			val=pc_modifybuyvalue(sd,val);
-		WFIFOL(fd,8+i*11)=val;
-		WFIFOB(fd,12+i*11)=itemtype(id->type);
-		if (id->view_id > 0)
-			WFIFOW(fd,13+i*11)=id->view_id;
-		else
-			WFIFOW(fd,13+i*11)=nd->u.shop_item[i].nameid;
+			val = pc_modifybuyvalue(sd,val);
+		WFIFOL(fd,8+i*11) = val;
+		WFIFOB(fd,12+i*11) = itemtype(id->type);
+		WFIFOW(fd,13+i*11) = ( id->view_id > 0 ) ? id->view_id : id->nameid;
 	}
-	WFIFOW(fd,2)=i*11+4;
 	WFIFOSET(fd,WFIFOW(fd,2));
 
 	return 0;
@@ -3781,22 +3775,20 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 	}
 	WBUFW(buf,24)=div;
 	WBUFB(buf,26)=type;
-	clif_send(buf,packet_len(0x8a),src,AREA);
+	if(disguised(dst)) {
+		clif_send(buf,packet_len(0x8a),dst,AREA_WOS);
+		WBUFL(buf,6) = -dst->id;
+		clif_send(buf,packet_len(0x8a),dst,SELF);
+	} else
+		clif_send(buf,packet_len(0x8a),dst,AREA);
 
 	if(disguised(src)) {
 		WBUFL(buf,2) = -src->id;
+		if (disguised(dst))
+			WBUFL(buf,6) = dst->id;
 		if(damage > 0) WBUFW(buf,22) = -1;
 		if(damage2 > 0) WBUFW(buf,27) = -1;
 		clif_send(buf,packet_len(0x8a),src,SELF);
-	}
-	if (disguised(dst)) {
-		WBUFL(buf,6) = -dst->id;
-		if (disguised(src)) WBUFL(buf,2) = src->id;
-		else {
-			if(damage > 0) WBUFW(buf,22) = -1;
-			if(damage2 > 0) WBUFW(buf,27) = -1;
-		}
-		clif_send(buf,packet_len(0x8a),dst,SELF);
 	}
 	//Return adjusted can't walk delay for further processing.
 	return clif_calc_walkdelay(dst,ddelay,type,damage+damage2,div);
@@ -4222,12 +4214,12 @@ int clif_skillcasting(struct block_list* bl,
 	WBUFW(buf,14) = skill_num;
 	WBUFL(buf,16) = pl<0?0:pl; //Avoid sending negatives as element [Skotlex]
 	WBUFL(buf,20) = casttime;
-	clif_send(buf,packet_len(0x13e), bl, AREA);
 	if (disguised(bl)) {
+		clif_send(buf,packet_len(0x13e), bl, AREA_WOS);
 		WBUFL(buf,2) = -src_id;
-		WBUFL(buf,20) = 0;
 		clif_send(buf,packet_len(0x13e), bl, SELF);
-	}
+	} else
+		clif_send(buf,packet_len(0x13e), bl, AREA);
 
 	return 0;
 }
@@ -4352,20 +4344,20 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	WBUFW(buf,26)=skill_lv;
 	WBUFW(buf,28)=div;
 	WBUFB(buf,30)=type;
-	clif_send(buf,packet_len(0x114),src,AREA);
+	if (disguised(dst)) {
+		clif_send(buf,packet_len(0x114),dst,AREA_WOS);
+		WBUFL(buf,8)=-dst->id;
+		clif_send(buf,packet_len(0x114),dst,SELF);
+	} else
+		clif_send(buf,packet_len(0x114),dst,AREA);
+
 	if(disguised(src)) {
 		WBUFL(buf,4)=-src->id;
+		if (disguised(dst)) 
+			WBUFL(buf,8)=dst->id;
 		if(damage > 0)
 			WBUFW(buf,24)=-1;
 		clif_send(buf,packet_len(0x114),src,SELF);
-	}
-	if (disguised(dst)) {
-		WBUFL(buf,8)=-dst->id;
-		if (disguised(src))
-			WBUFL(buf,4)=src->id;
-		else if(damage > 0)
-			WBUFW(buf,24)=-1;
-		clif_send(buf,packet_len(0x114),dst,SELF);
 	}
 #else
 	WBUFW(buf,0)=0x1de;
@@ -4383,20 +4375,20 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	WBUFW(buf,28)=skill_lv;
 	WBUFW(buf,30)=div;
 	WBUFB(buf,32)=type;
-	clif_send(buf,packet_len(0x1de),src,AREA);
+	if (disguised(dst)) {
+		clif_send(buf,packet_len(0x1de),dst,AREA_WOS);
+		WBUFL(buf,8)=-dst->id;
+		clif_send(buf,packet_len(0x1de),dst,SELF);
+	} else
+		clif_send(buf,packet_len(0x1de),dst,AREA);
+
 	if(disguised(src)) {
 		WBUFL(buf,4)=-src->id;
+		if (disguised(dst))
+			WBUFL(buf,8)=dst->id;
 		if(damage > 0)
 			WBUFL(buf,24)=-1;
 		clif_send(buf,packet_len(0x1de),src,SELF);
-	}
-	if (disguised(dst)) {
-		WBUFL(buf,8)=-dst->id;
-		if (disguised(src))
-			WBUFL(buf,4)=src->id;
-		else if(damage > 0)
-			WBUFL(buf,24)=-1;
-		clif_send(buf,packet_len(0x1de),dst,SELF);
 	}
 #endif
 
@@ -4478,12 +4470,13 @@ int clif_skill_nodamage(struct block_list *src,struct block_list *dst,int skill_
 	WBUFL(buf,6)=dst->id;
 	WBUFL(buf,10)=src?src->id:0;
 	WBUFB(buf,14)=fail;
-	clif_send(buf,packet_len(0x11a),dst,AREA);
 
 	if (disguised(dst)) {
+		clif_send(buf,packet_len(0x11a),dst,AREA_WOS);
 		WBUFL(buf,6)=-dst->id;
 		clif_send(buf,packet_len(0x11a),dst,SELF);
-	}
+	} else
+		clif_send(buf,packet_len(0x11a),dst,AREA);
 
 	if(src && disguised(src)) {
 		WBUFL(buf,10)=-src->id;
@@ -4511,11 +4504,12 @@ int clif_skill_poseffect(struct block_list *src,int skill_id,int val,int x,int y
 	WBUFW(buf,10)=x;
 	WBUFW(buf,12)=y;
 	WBUFL(buf,14)=tick;
-	clif_send(buf,packet_len(0x117),src,AREA);
 	if(disguised(src)) {
+		clif_send(buf,packet_len(0x117),src,AREA_WOS);
 		WBUFL(buf,4)=-src->id;
 		clif_send(buf,packet_len(0x117),src,SELF);
-	}
+	} else
+		clif_send(buf,packet_len(0x117),src,AREA);
 
 	return 0;
 }
@@ -8735,28 +8729,29 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd)
 void clif_parse_DropItem(int fd, struct map_session_data *sd)
 {
 	int item_index, item_amount;
+	do {
+		if (pc_isdead(sd))
+			break;
 
-	if (pc_isdead(sd)) {
-		clif_clearunit_area(&sd->bl, 1);
+		if (pc_cant_act(sd))
+			break;
+
+		if (sd->sc.count && (
+			sd->sc.data[SC_AUTOCOUNTER].timer != -1 ||
+			sd->sc.data[SC_BLADESTOP].timer != -1 ||
+			(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOITEM)
+		))
+			break;
+
+		item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
+		item_amount = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
+		if (!pc_dropitem(sd, item_index, item_amount))
+			break;
+
 		return;
-	}
-
-	if (pc_cant_act(sd))
-		return;
-
-	if (sd->sc.count && (
-		sd->sc.data[SC_AUTOCOUNTER].timer != -1 ||
-		sd->sc.data[SC_BLADESTOP].timer != -1 ||
-		(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOITEM)
-	))
-		return;
-
-	item_index = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[0])-2;
-	item_amount = RFIFOW(fd,packet_db[sd->packet_ver][RFIFOW(fd,0)].pos[1]);
-	if (!pc_dropitem(sd, item_index, item_amount))
+	} while (0);
 	//Because the client does not likes being ignored.
-		clif_delitem(sd, item_index,0);
-
+	clif_delitem(sd, item_index,0);
 }
 
 /*==========================================

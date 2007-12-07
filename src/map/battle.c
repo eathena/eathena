@@ -155,6 +155,7 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 	if (target && dat && map_id2bl(id) == dat->src && target->prev != NULL && !status_isdead(target) &&
 		target->m == dat->src->m && check_distance_bl(dat->src, target, dat->distance)) //Check to see if you haven't teleported. [Skotlex]
 	{
+		map_freeblock_lock();
 		status_fix_damage(dat->src, target, dat->damage, dat->delay);
 		if ((dat->dmg_lv == ATK_DEF || dat->damage > 0) && dat->attack_type)
 		{
@@ -162,7 +163,7 @@ int battle_delay_damage_sub (int tid, unsigned int tick, int id, int data)
 				skill_additional_effect(dat->src,target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
 			skill_counter_additional_effect(dat->src,target,dat->skill_id,dat->skill_lv,dat->attack_type,tick);
 		}
-
+		map_freeblock_unlock();
 	}
 	ers_free(delay_damage_ers, dat);
 	return 0;
@@ -175,6 +176,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 	nullpo_retr(0, target);
 
 	if (!battle_config.delay_battle_damage) {
+		map_freeblock_lock();
 		status_fix_damage(src, target, damage, ddelay);
 		if ((damage > 0 || dmg_lv == ATK_DEF) && attack_type)
 		{
@@ -182,6 +184,7 @@ int battle_delay_damage (unsigned int tick, struct block_list *src, struct block
 				skill_additional_effect(src, target, skill_id, skill_lv, attack_type, gettick());
 			skill_counter_additional_effect(src, target, skill_id, skill_lv, attack_type, gettick());
 		}
+		map_freeblock_unlock();
 		return 0;
 	}
 	dat = ers_alloc(delay_damage_ers, struct delay_damage);
@@ -1677,7 +1680,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 		if (!flag.idef || !flag.idef2)
 		{	//Defense reduction
 			short vit_def;
-			signed char def1 = (signed char)status_get_def(target); //Don't use tstatus->def1 due to skill timer reductions.
+			signed char def1 = status_get_def(target); //Don't use tstatus->def1 due to skill timer reductions.
 			short def2 = (short)tstatus->def2;
 			if(battle_config.vit_penalty_type &&
 				battle_config.vit_penalty_target&target->type)
@@ -1693,7 +1696,7 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 						def2 -= (target_count - (battle_config.vit_penalty_count - 1))*battle_config.vit_penalty_num;
 					}
 				}
-				if(def1 < 0 || skill_num == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
+				if(skill_num == AM_ACIDTERROR) def1 = 0; //Acid Terror ignores only armor defense. [Skotlex]
 				if(def2 < 1) def2 = 1;
 			}
 			//Vitality reduction from rodatazone: http://rodatazone.simgaming.net/mechanics/substats.php#def	
@@ -2330,7 +2333,7 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 		}
 
 		if(!flag.imdef){
-			int mdef = tstatus->mdef;
+			char mdef = tstatus->mdef;
 			int mdef2= tstatus->mdef2;
 			if(sd) {
 				i = sd->ignore_mdef[is_boss(target)?RC_BOSS:RC_NONBOSS];
@@ -2342,6 +2345,8 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 					//mdef2-= mdef2* i/100;
 				}
 			}
+			if (skill_num == NPC_EARTHQUAKE)
+				mdef>>=1; //Halves MDEF (stupid overpowered skill)
 			if(battle_config.magic_defense_type)
 				ad.damage = ad.damage - mdef*battle_config.magic_defense_type - mdef2;
 			else
@@ -2899,12 +2904,8 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 
 	wd.dmotion = clif_damage(src, target, tick, wd.amotion, wd.dmotion, wd.damage, wd.div_ , wd.type, wd.damage2);
 
-// Eh, battle_calc_damage should take care of not making the off-hand dmg miss.
-//	if(sd && sd->status.weapon > MAX_WEAPON_TYPE && wd.damage2 == 0)
-//		clif_damage(src, target, tick+10, wd.amotion, wd.dmotion,0, 1, 0, 0);
-
 	if (sd && sd->splash_range > 0 && damage > 0)
-		skill_castend_damage_id(src, target, 0, -1, tick, 0);
+		skill_castend_damage_id(src, target, 0, 1, tick, 0);
 
 	map_freeblock_lock();
 

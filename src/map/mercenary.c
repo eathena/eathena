@@ -609,7 +609,6 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 		return 1;
 	}
 	sd->hd = hd = aCalloc(1,sizeof(struct homun_data));
-	hd->bl.subtype = MONS;
 	hd->bl.type = BL_HOM;
 	hd->bl.id = npc_get_new_npc_id();
 

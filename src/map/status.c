@@ -2028,7 +2028,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 	// Basic MaxHP value
 	//We hold the standard Max HP here to make it faster to recalculate on vit changes.
 	sd->status.max_hp = status_base_pc_maxhp(sd,status);
-	status->max_hp += sd->status.max_hp;
+	//This is done to handle underflows from negative Max HP bonuses
+	i = sd->status.max_hp + (int)status->max_hp;
+	status->max_hp = cap_value(i, 0, INT_MAX);
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,CR_TRUST))>0)
@@ -2051,7 +2053,9 @@ int status_calc_pc(struct map_session_data* sd,int first)
 
 	// Basic MaxSP value
 	sd->status.max_sp = status_base_pc_maxsp(sd,status);
-	status->max_sp += sd->status.max_sp;
+	//This is done to handle underflows from negative Max SP bonuses
+	i = sd->status.max_sp + (int)status->max_sp;
+	status->max_sp = cap_value(i, 0, INT_MAX);
 
 	// Absolute modifiers from passive skills
 	if((skill=pc_checkskill(sd,SL_KAINA))>0)
@@ -3563,7 +3567,7 @@ static signed short status_calc_flee2(struct block_list *bl, struct status_chang
 static signed char status_calc_def(struct block_list *bl, struct status_change *sc, int def)
 {
 	if(!sc || !sc->count)
-		return cap_value(def,0,CHAR_MAX);
+		return (signed char)cap_value(def,CHAR_MIN,CHAR_MAX);
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
@@ -3602,7 +3606,7 @@ static signed char status_calc_def(struct block_list *bl, struct status_change *
 	if (sc->data[SC_FLING].timer!=-1)
 		def -= def * (sc->data[SC_FLING].val2)/100;
 
-	return (char)cap_value(def,0,CHAR_MAX);
+	return (signed char)cap_value(def,CHAR_MIN,CHAR_MAX);
 }
 
 static signed short status_calc_def2(struct block_list *bl, struct status_change *sc, int def2)
@@ -3642,7 +3646,7 @@ static signed short status_calc_def2(struct block_list *bl, struct status_change
 static signed char status_calc_mdef(struct block_list *bl, struct status_change *sc, int mdef)
 {
 	if(!sc || !sc->count)
-		return cap_value(mdef,0,CHAR_MAX);
+		return (signed char)cap_value(mdef,CHAR_MIN,CHAR_MAX);
 
 	if(sc->data[SC_BERSERK].timer!=-1)
 		return 0;
@@ -3661,7 +3665,7 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 	if(sc->data[SC_ENDURE].timer!=-1 && sc->data[SC_ENDURE].val4 == 0)
 		mdef += sc->data[SC_ENDURE].val1;
 
-	return (char)cap_value(mdef,0,CHAR_MAX);
+	return (signed char)cap_value(mdef,CHAR_MIN,CHAR_MAX);
 }
 
 static signed short status_calc_mdef2(struct block_list *bl, struct status_change *sc, int mdef2)
@@ -4095,7 +4099,7 @@ unsigned short status_get_lwatk2(struct block_list *bl)
 	return status->lhw?status->lhw->atk2:0;
 }
 
-unsigned char status_get_def(struct block_list *bl)
+signed char status_get_def(struct block_list *bl)
 {
 	struct unit_data *ud;
 	struct status_data *status = status_get_status_data(bl);
@@ -4103,8 +4107,7 @@ unsigned char status_get_def(struct block_list *bl)
 	ud = unit_bl2ud(bl);
 	if (ud && ud->skilltimer != -1)
 		def -= def * skill_get_castdef(ud->skillid)/100;
-	if(def < 0) def = 0;
-	return def;
+	return cap_value(def, CHAR_MIN, CHAR_MAX);
 }
 
 unsigned short status_get_speed(struct block_list *bl)
@@ -4177,7 +4180,7 @@ int status_get_guild_id(struct block_list *bl)
 			return ((TBL_HOM*)bl)->master->status.guild_id;
 		break;
 	case BL_NPC:
-	  	if (bl->subtype == SCRIPT)
+	  	if (((TBL_NPC*)bl)->subtype == SCRIPT)
 			return ((TBL_NPC*)bl)->u.scr.guild_id;
 		break;
 	case BL_SKILL:
@@ -4211,7 +4214,7 @@ int status_get_emblem_id(struct block_list *bl)
 			return ((TBL_HOM*)bl)->master->guild_emblem_id;
 		break;
 	case BL_NPC:
-		if (bl->subtype == SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
+		if (((TBL_NPC*)bl)->subtype == SCRIPT && ((TBL_NPC*)bl)->u.scr.guild_id > 0) {
 			struct guild *g = guild_search(((TBL_NPC*)bl)->u.scr.guild_id);
 			if (g)
 				return g->emblem_id;

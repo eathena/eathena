@@ -11698,8 +11698,8 @@ BUILDIN_FUNC(callshop)
 	if( script_hasdata(st,3) )
 		flag = script_getnum(st,3);
 	nd = npc_name2id(shopname);
-	if (!nd || nd->bl.type!=BL_NPC || nd->bl.subtype!=SHOP) {
-		ShowError("buildin_callshop: Shop [%s] not found (or NPC is not shop type)", shopname);
+	if (!nd || nd->bl.type!=BL_NPC || nd->subtype!=SHOP) {
+		ShowError("buildin_callshop: Shop [%s] not found (or NPC is not shop type)\n", shopname);
 		script_pushint(st,0);
 		return 1;
 	}
@@ -11720,86 +11720,59 @@ BUILDIN_FUNC(callshop)
 	return 0;
 }
 
-#ifndef MAX_SHOPITEM
-	#define MAX_SHOPITEM 100
-#endif
 BUILDIN_FUNC(npcshopitem)
 {
-	struct npc_data *nd= NULL;
-	int n = 0;
-	int i = 3;
+	const char* npcname = script_getstr(st, 2);
+	struct npc_data* nd = npc_name2id(npcname);
+	int n, i;
 	int amount;
 
-	const char* npcname = script_getstr(st, 2);
-	nd = npc_name2id(npcname);
-
-	if(!nd || nd->bl.subtype!=SHOP)
+	if( !nd || nd->subtype != SHOP )
 	{	//Not found.
 		script_pushint(st,0);
 		return 0;
 	}
 
-	// st->end - 2 = nameid + value # ... / 2 = number of items ... + 1 to end it
-	amount = ((st->end-2)/2)+1;
+	// get the count of new entries
+	amount = (script_lastdata(st)-2)/2;
 
-	//Reinsert as realloc could change the pointer address.
-	map_deliddb(&nd->bl);
-	nd = (struct npc_data *)aRealloc(nd,sizeof(struct npc_data) +
-		sizeof(nd->u.shop_item[0]) * amount);
-	map_addiddb(&nd->bl);
-
-	// Reset sell list.
-	memset(nd->u.shop_item, 0, sizeof(nd->u.shop_item[0]) * amount);
-
-	n = 0;
-
-	while (script_hasdata(st,i)) {
-		nd->u.shop_item[n].nameid = script_getnum(st,i);
-		i++;
-		nd->u.shop_item[n].value = script_getnum(st,i);
-		i++;
-		n++;
+	// generate new shop item list
+	RECREATE(nd->u.shop.shop_item, struct npc_item_list, amount);
+	for( n = 0, i = 3; n < amount; n++, i+=2 )
+	{
+		nd->u.shop.shop_item[n].nameid = script_getnum(st,i);
+		nd->u.shop.shop_item[n].value = script_getnum(st,i+1);
 	}
+	nd->u.shop.count = n;
+
+	script_pushint(st,1);
 	return 0;
 }
 
 BUILDIN_FUNC(npcshopadditem)
 {
-	struct npc_data *nd=NULL;
-	int n = 0;
-	int i = 3;
+	const char* npcname = script_getstr(st,2);
+	struct npc_data* nd = npc_name2id(npcname);
+	int n, i;
 	int amount;
 
-	const char* npcname = script_getstr(st, 2);
-	nd = npc_name2id(npcname);
-
-	if (!nd || nd->bl.subtype!=SHOP)
+	if( !nd || nd->subtype != SHOP )
 	{	//Not found.
 		script_pushint(st,0);
 		return 0;
 	}
-	amount = ((st->end-2)/2)+1;
-	while (nd->u.shop_item[n].nameid && n < MAX_SHOPITEM)
-		n++;
 
+	// get the count of new entries
+	amount = (script_lastdata(st)-2)/2;
 
-	//Reinsert as realloc could change the pointer address.
-	map_deliddb(&nd->bl);
-	nd = (struct npc_data *)aRealloc(nd,sizeof(struct npc_data) +
-		sizeof(nd->u.shop_item[0]) * (amount+n));
-	map_addiddb(&nd->bl);
-
-	while(script_hasdata(st,i)){
-		nd->u.shop_item[n].nameid = script_getnum(st,i);
-		i++;
-		nd->u.shop_item[n].value = script_getnum(st,i);
-		i++;
-		n++;
+	// append new items to existing shop item list
+	RECREATE(nd->u.shop.shop_item, struct npc_item_list, nd->u.shop.count+amount);
+	for( n = nd->u.shop.count, i = 3; n < nd->u.shop.count+amount; n++, i+=2 )
+	{
+		nd->u.shop.shop_item[n].nameid = script_getnum(st,i);
+		nd->u.shop.shop_item[n].value = script_getnum(st,i+1);
 	}
-
-	// Marks the last of our stuff..
-	nd->u.shop_item[n].value = 0;
-	nd->u.shop_item[n].nameid = 0;
+	nd->u.shop.count = n;
 
 	script_pushint(st,1);
 	return 0;
@@ -11807,61 +11780,50 @@ BUILDIN_FUNC(npcshopadditem)
 
 BUILDIN_FUNC(npcshopdelitem)
 {
-	struct npc_data *nd=NULL;
-	int n=0;
-	int i=3;
-	int size = 0;
+	const char* npcname = script_getstr(st,2);
+	struct npc_data* nd = npc_name2id(npcname);
+	int n, i;
+	int amount;
+	int size;
 
-	const char* npcname = script_getstr(st, 2);
-	nd = npc_name2id(npcname);
-
-	if (!nd || nd->bl.subtype!=SHOP)
+	if( !nd || nd->subtype != SHOP )
 	{	//Not found.
 		script_pushint(st,0);
 		return 0;
 	}
 
-	while (nd->u.shop_item[size].nameid)
-		size++;
+	amount = script_lastdata(st)-2;
+	size = nd->u.shop.count;
 
-	while (script_hasdata(st,i)) {
-		for(n=0;nd->u.shop_item[n].nameid && n < MAX_SHOPITEM;n++) {
-			if (nd->u.shop_item[n].nameid == script_getnum(st,i)) {
-				// We're moving 1 extra empty block. Junk data is eliminated later.
-				memmove(&nd->u.shop_item[n], &nd->u.shop_item[n+1], sizeof(nd->u.shop_item[0])*(size-n));
-			}
+	// remove specified items from the shop item list
+	for( i = 3; i < 3 + amount; i++ )
+	{
+		ARR_FIND( 0, size, n, nd->u.shop.shop_item[n].nameid == script_getnum(st,i) );
+		if( n < size )
+		{
+			memmove(&nd->u.shop.shop_item[n], &nd->u.shop.shop_item[n+1], sizeof(nd->u.shop.shop_item[0])*(size-n));
+			size--;
 		}
-		i++;
 	}
 
-	size = 0;
-
-	while (nd->u.shop_item[size].nameid)
-		size++;
-
-	//Reinsert as realloc could change the pointer address.
-	map_deliddb(&nd->bl);
-	nd = (struct npc_data *)aRealloc(nd,sizeof(struct npc_data) +
-		sizeof(nd->u.shop_item[0]) * (size+1));
-	map_addiddb(&nd->bl);
+	RECREATE(nd->u.shop.shop_item, struct npc_item_list, size);
+	nd->u.shop.count = size;
 
 	script_pushint(st,1);
 	return 0;
 }
 
-//Sets a script to attach to an npc.
+//Sets a script to attach to a shop npc.
 BUILDIN_FUNC(npcshopattach)
 {
-	struct npc_data *nd=NULL;
-	const char* npcname = script_getstr(st, 2);
+	const char* npcname = script_getstr(st,2);
+	struct npc_data* nd = npc_name2id(npcname);
 	int flag = 1;
 
 	if( script_hasdata(st,3) )
 		flag = script_getnum(st,3);
 
-	nd = npc_name2id(npcname);
-
-	if (!nd || nd->bl.subtype!=SHOP)
+	if( !nd || nd->subtype != SHOP )
 	{	//Not found.
 		script_pushint(st,0);
 		return 0;
@@ -11871,6 +11833,7 @@ BUILDIN_FUNC(npcshopattach)
 		nd->master_nd = ((struct npc_data *)map_id2bl(st->oid));
 	else
 		nd->master_nd = NULL;
+
 	script_pushint(st,1);
 	return 0;
 }
@@ -12533,7 +12496,7 @@ BUILDIN_FUNC(getvariableofnpc)
 	}
 
 	nd = npc_name2id(script_getstr(st,3));
-	if( nd == NULL || nd->bl.subtype != SCRIPT || nd->u.scr.script == NULL )
+	if( nd == NULL || nd->subtype != SCRIPT || nd->u.scr.script == NULL )
 	{// NPC not found or has no script
 		ShowError("script:getvariableofnpc: can't find npc %s\n", script_getstr(st,3));
 		script_pushnil(st);

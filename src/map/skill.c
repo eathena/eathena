@@ -5491,6 +5491,13 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_fail(sd,skillid,0,0);
 			break;
 		}
+		if (skillid == SL_SUPERNOVICE && dstsd && dstsd->die_counter && !(rand()%100))
+		{	//Erase death count 1% of the casts
+			dstsd->die_counter = 0;
+			pc_setglobalreg(dstsd,"PC_DIE_COUNTER", 0);
+			clif_misceffect2(bl, 0x152);
+			//SC_SPIRIT invokes status_calc_pc for us.
+		}
 		clif_skill_nodamage(src,bl,skillid,skilllv,
 			sc_start4(bl,SC_SPIRIT,100,skilllv,skillid,0,0,skill_get_time(skillid,skilllv)));
 		sc_start(src,SC_SMA,100,skilllv,skill_get_time(SL_SMA,skilllv));
@@ -6030,14 +6037,18 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 			skill_get_unit_flag(ud->skillid)&UF_NOREITERATION &&
 			skill_check_unit_range(src,ud->skillx,ud->skilly,ud->skillid,ud->skilllv)
 		  ) 
+		{
+			if (sd) clif_skill_fail(sd,ud->skillid,0,0);
 			break;
-
+		}
 		if( src->type&battle_config.skill_nofootset &&
 			skill_get_unit_flag(ud->skillid)&UF_NOFOOTSET &&
 			skill_check_unit_range2(src,ud->skillx,ud->skilly,ud->skillid,ud->skilllv)
 		  )
+		{
+			if (sd) clif_skill_fail(sd,ud->skillid,0,0);
 			break;
-		
+		}
 		if( src->type&battle_config.land_skill_limit &&
 			(maxcount = skill_get_maxcount(ud->skillid, ud->skilllv)) > 0
 		  ) {
@@ -6047,7 +6058,10 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 					maxcount--;
 			}
 			if( maxcount == 0 )
+			{
+				if (sd) clif_skill_fail(sd,ud->skillid,0,0);
 				break;
+			}
 		}
 
 		if(tid != -1)
@@ -6095,12 +6109,8 @@ int skill_castend_pos (int tid, unsigned int tick, int id, int data)
 
 	ud->canact_tick = tick;
 	ud->skillid = ud->skilllv = 0;
-	if(sd) {
-		clif_skill_fail(sd,ud->skillid,0,0);
+	if(sd)
 		sd->skillitem = sd->skillitemlv = 0;
-	}
-	else if (hd && hd->master)
-		clif_skill_fail(hd->master, ud->skillid, 0, 0);
 	else if(md)
 		md->skillidx  = -1;
 	return 0;

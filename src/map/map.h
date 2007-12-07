@@ -189,7 +189,7 @@ enum bl_type {
 #define BL_CHAR (BL_PC|BL_MOB|BL_HOM)
 #define BL_ALL 0xfff
 
-enum bl_subtype { WARP, SHOP, SCRIPT, MONS };
+enum npc_subtype { WARP, SHOP, SCRIPT };
 
 enum {
 	RC_FORMLESS=0,
@@ -233,7 +233,6 @@ struct block_list {
 	int id;
 	short m,x,y;
 	enum bl_type type;
-	enum bl_subtype subtype;
 };
 
 struct walkpath_data {
@@ -818,6 +817,7 @@ struct npc_data {
 	struct unit_data  ud; //Because they need to be able to move....
 	struct view_data *vd;
 	struct status_change sc; //They can't have status changes, but.. they want the visual opt values.
+	struct npc_data *master_nd;
 	short n;
 	short class_;
 	short speed;
@@ -827,12 +827,11 @@ struct npc_data {
 	unsigned int next_walktime;
 
 	void* chatdb; // pointer to a npc_parse struct (see npc_chat.c)
-	struct npc_data *master_nd;
-
+	enum npc_subtype subtype;
 	union {
 		struct {
 			struct script_code *script;
-			short xs,ys;
+			short xs,ys; // OnTouch area radius
 			int guild_id;
 			int timer,timerid,timeramount,rid;
 			unsigned int timertick;
@@ -841,14 +840,16 @@ struct npc_data {
 			struct npc_label_list *label_list;
 			int src_id;
 		} scr;
-		struct npc_item_list shop_item[1];// dynamic array, allocated with extra entries (last one has nameid 0)
 		struct {
-			short xs,ys;
-			short x,y;
-			unsigned short mapindex;
+			struct npc_item_list* shop_item;
+			int count;
+		} shop;
+		struct {
+			short xs,ys; // OnTouch area radius
+			short x,y; // destination coords
+			unsigned short mapindex; // destination map
 		} warp;
 	} u;
-	//Do NOT place anything afterwards... shop data NPC will override any variables from here and on! [Skotlex]
 };
 
 //For quick linking to a guardian's info. [Skotlex]

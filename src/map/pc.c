@@ -1214,7 +1214,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 {
 	if (!class_ && !sd->disguise)
 		return 0;
-	if (class_ && (sd->disguise == class_ || pc_isriding(sd)))
+	if (class_ && sd->disguise == class_)
 		return 0;
 
 	if(sd->sc.option&OPTION_INVISIBLE)
@@ -1222,9 +1222,11 @@ int pc_disguise(struct map_session_data *sd, int class_)
 		sd->disguise = class_; //viewdata is set on uncloaking.
 		return 2;
 	}
-	
-	pc_stop_walking(sd, 0);
-	clif_clearunit_area(&sd->bl, 0);
+
+	if (sd->bl.prev != NULL) {
+		pc_stop_walking(sd, 0);
+		clif_clearunit_area(&sd->bl, 0);
+	}
 
 	if (!class_) {
 		sd->disguise = 0;
@@ -1234,13 +1236,15 @@ int pc_disguise(struct map_session_data *sd, int class_)
 
 	status_set_viewdata(&sd->bl, class_);
 	clif_changeoption(&sd->bl);
-	clif_spawn(&sd->bl);
-	if (class_ == sd->status.class_ && pc_iscarton(sd))
-	{	//It seems the cart info is lost on undisguise.
-		clif_cartlist(sd);
-		clif_updatestatus(sd,SP_CARTINFO);
-	}
 
+	if (sd->bl.prev != NULL) {
+		clif_spawn(&sd->bl);
+		if (class_ == sd->status.class_ && pc_iscarton(sd))
+		{	//It seems the cart info is lost on undisguise.
+			clif_cartlist(sd);
+			clif_updatestatus(sd,SP_CARTINFO);
+		}
+	}
 	return 1;
 }
 
@@ -1558,20 +1562,18 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 			status->def_ele=val;
 		break;
 	case SP_MAXHP:
-		if(sd->state.lr_flag != 2) {
-			if (val < 0 && status->max_hp <= (unsigned int)(-val))
-				status->max_hp = 1;
-			else
-				status->max_hp+=val;
-		}
+		if(sd->state.lr_flag == 2)
+			break;
+		val += (int)status->max_hp;
+		//Negative bonuses will underflow, this will be handled in status_calc_pc through casting 
+		//If this is called outside of status_calc_pc, you'd better pray they do not underflow and end with UINT_MAX max_hp.
+		status->max_hp = (unsigned int)val;
 		break;
 	case SP_MAXSP:
-		if(sd->state.lr_flag != 2) {
-			if (val < 0 && status->max_sp <= (unsigned int)(-val))
-				status->max_sp = 1;
-			else
-				status->max_sp+=val;
-		}
+		if(sd->state.lr_flag == 2) 
+			break;
+		val += (int)status->max_sp;
+		status->max_sp = (unsigned int)val;
 		break;
 	case SP_CASTRATE:
 		if(sd->state.lr_flag != 2)
@@ -4305,24 +4307,26 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 		}
 	}
 	
-	//Overflow checks... think we'll ever really need'em? [Skotlex]
-	if (base_exp && sd->status.base_exp > UINT_MAX - base_exp)
-		sd->status.base_exp = UINT_MAX;
-	else
-		sd->status.base_exp += base_exp;
-	
-	pc_checkbaselevelup(sd);
+	//Cap exp to the level up requirement of the previous level when you are at max level, otherwise cap at UINT_MAX (this is required for some S. Novice bonuses). [Skotlex]
+	if (base_exp) {
+		nextb = nextb?UINT_MAX:pc_thisbaseexp(sd);
+		if(sd->status.base_exp > nextb - base_exp)
+			sd->status.base_exp = nextb;
+		else
+			sd->status.base_exp += base_exp;
+		pc_checkbaselevelup(sd);
+		clif_updatestatus(sd,SP_BASEEXP);
+	}
 
-	clif_updatestatus(sd,SP_BASEEXP);
-
-	if (job_exp && sd->status.job_exp > UINT_MAX - job_exp)
-		sd->status.job_exp = UINT_MAX;
-	else
-		sd->status.job_exp += job_exp;
-
-	pc_checkjoblevelup(sd);
-
-	clif_updatestatus(sd,SP_JOBEXP);
+	if (job_exp) {
+		nextj = nextj?UINT_MAX:pc_thisjobexp(sd);
+		if(sd->status.job_exp > nextj - job_exp)
+			sd->status.job_exp = nextj;
+		else
+			sd->status.job_exp += job_exp;
+		pc_checkjoblevelup(sd);
+		clif_updatestatus(sd,SP_JOBEXP);
+	}
 
 	if(sd->state.showexp){
 		sprintf(output,
@@ -4359,6 +4363,15 @@ unsigned int pc_nextbaseexp(struct map_session_data *sd)
 	return exp_table[pc_class2idx(sd->status.class_)][0][sd->status.base_level-1];
 }
 
+unsigned int pc_thisbaseexp(struct map_session_data *sd)
+{
+	if(sd->status.base_level>pc_maxbaselv(sd) || sd->status.base_level<=1)
+		return 0;
+
+	return exp_table[pc_class2idx(sd->status.class_)][0][sd->status.base_level-2];
+}
+
+
 /*==========================================
  * job level側必要??値計算
  *------------------------------------------*/
@@ -4369,6 +4382,13 @@ unsigned int pc_nextjobexp(struct map_session_data *sd)
 	if(sd->status.job_level>=pc_maxjoblv(sd) || sd->status.job_level<=0)
 		return 0;
 	return exp_table[pc_class2idx(sd->status.class_)][1][sd->status.job_level-1];
+}
+
+unsigned int pc_thisjobexp(struct map_session_data *sd)
+{
+	if(sd->status.job_level>pc_maxjoblv(sd) || sd->status.job_level<=1)
+		return 0;
+	return exp_table[pc_class2idx(sd->status.class_)][1][sd->status.job_level-2];
 }
 
 /*==========================================
@@ -4724,10 +4744,8 @@ int pc_resetstate(struct map_session_data* sd)
 		int stat;
 		if (sd->status.base_level > MAX_LEVEL)
 		{	//statp[] goes out of bounds, can't reset!
-			if (battle_config.error_log)
-				ShowError("pc_resetstate: Can't reset stats of %d:%d, the base level (%d) is greater than the max level supported (%d)\n",
-					sd->status.account_id, sd->status.char_id, sd->status.base_level,
-					MAX_LEVEL);
+			ShowError("pc_resetstate: Can't reset stats of %d:%d, the base level (%d) is greater than the max level supported (%d)\n",
+				sd->status.account_id, sd->status.char_id, sd->status.base_level, MAX_LEVEL);
 			return 0;
 		}
 		stat = statp[sd->status.base_level];
@@ -5840,6 +5858,9 @@ int pc_setoption(struct map_session_data *sd,int type)
 		new_look = JOB_SUMMER;
 	else if (!(type&OPTION_SUMMER) && p_type&OPTION_SUMMER)
 		new_look = -1;
+
+	if (sd->disguise)
+		return 0; //Disguises break sprite changes
 
 	if (new_look < 0) { //Restore normal look.
 		status_set_viewdata(&sd->bl, sd->status.class_);
