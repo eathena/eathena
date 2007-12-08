@@ -9683,6 +9683,7 @@ int skill_trap_splash (struct block_list *bl, va_list ap)
 		case UNT_FLASHER:        
 			skill_additional_effect(ss,bl,sg->skill_id,sg->skill_lv,BF_MISC,tick);
 			break;
+		case UNT_LANDMINE:
 		case UNT_BLASTMINE:
 		case UNT_CLAYMORETRAP:
 		case UNT_FREEZINGTRAP:
