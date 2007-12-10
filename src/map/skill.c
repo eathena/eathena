@@ -1415,7 +1415,8 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 	if(sd && attack_type&BF_WEAPON &&
 		skillid != WS_CARTTERMINATION &&
 		skillid != AM_DEMONSTRATION &&
-		skillid != CR_REFLECTSHIELD
+		skillid != CR_REFLECTSHIELD &&
+		skillid != ASC_BREAKER
 	){	//Trigger status effects
 		int i, type;
 		for(i=0; i < ARRAYLENGTH(sd->addeff) && sd->addeff[i].flag; i++)
@@ -2247,7 +2248,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	}
 
 	//Only knockback if it's still alive, otherwise a "ghost" is left behind. [Skotlex]
-	if (dmg.blewcount > 0 && !status_isdead(bl))
+	//Reflected spells do not bounce back (bl == dsrc since it only happens for direct skills)
+	if (dmg.blewcount > 0 && bl!=dsrc && !status_isdead(bl))
 	{
 		int direction = -1; // default
 		switch(skillid)
@@ -2286,7 +2288,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
 		if (tsd && src != bl)
 			battle_drain(tsd, src, rdamage, rdamage, sstatus->race, is_boss(src));
-		skill_additional_effect(bl,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
+		skill_additional_effect(bl,src,CR_REFLECTSHIELD,1,BF_WEAPON|BF_SHORT|BF_NORMAL,tick);
 	}
 
 	if (!(flag&2) &&
@@ -2493,11 +2495,9 @@ int skill_guildaura_sub (struct block_list *bl, va_list ap)
 static int skill_check_condition_hom (struct homun_data *hd, int skill, int lv, int type)
 {
 	struct status_data *status;
-	struct status_change *sc;
 	TBL_PC * sd;
 	int i,j,hp,sp,hp_rate,sp_rate,state,mhp ;
-	int index[10],itemid[10],amount[10];
-	int checkitem_flag = 1, delitem_flag = 1;
+	int itemid[10],amount[ARRAYLENGTH(itemid)],index[ARRAYLENGTH(itemid)];
 	
 	nullpo_retr(0, hd);
 	sd = hd->master;
@@ -2505,10 +2505,7 @@ static int skill_check_condition_hom (struct homun_data *hd, int skill, int lv, 
 	if (lv <= 0) return 0;
 
 	status = &hd->battle_status;
-	sc = &hd->sc;
-	if (!sc->count)
-		sc = NULL;
-	
+
 	//Code speedup, rather than using skill_get_* over and over again.
 	j = skill_get_index(skill);
 	if( j == 0 )
@@ -2570,29 +2567,29 @@ static int skill_check_condition_hom (struct homun_data *hd, int skill, int lv, 
 		break;
 	}
 
-	if (checkitem_flag) {
-		for(i=0;i<10;i++) {
-			index[i] = -1;
-			if(itemid[i] <= 0)
-				continue;// no item
-
-			index[i] = pc_search_inventory(sd,itemid[i]);
-			if(index[i] < 0 || sd->status.inventory[index[i]].amount < amount[i])
-			{
-				clif_skill_fail(sd,skill,0,0);
-				return 0;
-			}
-		}
-	}
-
 	if(!(type&1))
 		return 1;
 
-	if(delitem_flag) {
-		for(i=0;i<10;i++) {
-			if(index[i] >= 0)
-				pc_delitem(sd,index[i],amount[i],0);
+	// Check items and reduce required amounts
+	for( i = 0; i < ARRAYLENGTH(itemid); ++i )
+	{
+		index[i] = -1;
+		if(itemid[i] <= 0)
+			continue;// no item
+
+		index[i] = pc_search_inventory(sd,itemid[i]);
+		if(index[i] < 0 || sd->status.inventory[index[i]].amount < amount[i])
+		{
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
 		}
+	}
+
+	// Consume items
+	for( i = 0; i < ARRAYLENGTH(itemid); ++i )
+	{
+		if(index[i] >= 0)
+			pc_delitem(sd,index[i],amount[i],0);
 	}
 
 	if(type&2)
@@ -4783,12 +4780,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		if (flag&1 || (i = skill_get_splash(skillid, skilllv)) < 1)
 		{
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			i = tstatus->mdef;
-			if (i >= 100 ||
-				(dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER) ||
-				tsc == NULL || (tsc->data[SC_SPIRIT].timer != -1 && tsc->data[SC_SPIRIT].val2 == SL_ROGUE) || //Rogue's spirit defends againt dispel.
-			//Fixed & changed to use a proportionnal reduction (no info, but seems far more logical) [DracoRPG]
-				rand()%100 >= (100-i)*(50+10*skilllv)/100)
+			if((dstsd && (dstsd->class_&MAPID_UPPERMASK) == MAPID_SOUL_LINKER)
+				|| (tsc && tsc->data[SC_SPIRIT].timer != -1 && tsc->data[SC_SPIRIT].val2 == SL_ROGUE) //Rogue's spirit defends againt dispel.
+				|| rand()%100 >= 50+10*skilllv)
 			{
 				if (sd)
 					clif_skill_fail(sd,skillid,0,0);
@@ -5922,7 +5916,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			unit_set_walkdelay(src, tick, battle_config.default_walk_delay+skill_get_walkdelay(ud->skillid, ud->skilllv), 1);
 		
 		if(battle_config.skill_log && battle_config.skill_log&src->type)
-			ShowInfo("Type %d, ID %d skill castend id [id =%d, lv=%d, target ID %d)\n",
+			ShowInfo("Type %d, ID %d skill castend id [id =%d, lv=%d, target ID %d]\n",
 				src->type, src->id, ud->skillid, ud->skilllv, target->id);
 
 		map_freeblock_lock();
@@ -8049,8 +8043,8 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 	struct status_data *status;
 	struct status_change *sc;
 	int i,j,hp,sp,hp_rate,sp_rate,zeny,weapon,ammo,ammo_qty,state,spiritball,mhp;
-	int index[10],itemid[10],amount[10];
-	int delitem_flag = 1, checkitem_flag = 1;
+	int itemid[10],amount[10];
+	char item_flag = 2; //0 - no item checking. 1 - only check if you have items. 2 - check and delete
 
 	nullpo_retr(0, sd);
 
@@ -8217,7 +8211,9 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 	if(sd->dsprate!=100)
 		sp=sp*sd->dsprate/100;
 
-	switch(skill) {
+	// perform skill-specific checks (and actions)
+	switch( skill )
+	{
 	case SA_CASTCANCEL:
 		if(sd->ud.skilltimer == -1) {
 			clif_skill_fail(sd,skill,0,0);
@@ -8241,7 +8237,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 
 	case AL_WARP:
 		if(!(type&2)) //Delete the item when the portal has been selected (type&2). [Skotlex]
-			delitem_flag = 0;
+			item_flag = 1;
 		if(!battle_config.duel_allow_teleport && sd->duel_group) { // duel restriction [LuzZza]
 			clif_displaymessage(sd->fd, "Duel: Can't use warp in duel.");
 			return 0;
@@ -8356,7 +8352,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		//Cancel combo wait.
 		unit_cancel_combo(&sd->bl);
 		return 0;
-	case BD_ADAPTATION:				/* アドリブ */
+	case BD_ADAPTATION:
 		{
 			int time;
 			if(!sc || sc->data[SC_DANCING].timer==-1)
@@ -8375,22 +8371,21 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 			}
 		}
 		break;
+
 	case PR_BENEDICTIO:
-		{
-			if (!(type&1))
-			{	//Started casting.
-				if (skill_check_pc_partner(sd, skill, &lv, 1, 0) < 2)
-				{
-					clif_skill_fail(sd,skill,0,0);
-					return 0;
-				}
+		if (!(type&1))
+		{	//Started casting.
+			if (skill_check_pc_partner(sd, skill, &lv, 1, 0) < 2)
+			{
+				clif_skill_fail(sd,skill,0,0);
+				return 0;
 			}
-			else
-				//Should I repeat the check? If so, it would be best to only do
-				//this on cast-ending. [Skotlex]
-				skill_check_pc_partner(sd, skill, &lv, 1, 1);
 		}
+		else
+			//Should I repeat the check? If so, it would be best to only do this on cast-ending. [Skotlex]
+			skill_check_pc_partner(sd, skill, &lv, 1, 1);
 		break;
+
 	case AM_CANNIBALIZE:
 	case AM_SPHEREMINE:
 		if(type&1){
@@ -8433,7 +8428,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 	case SA_FROSTWEAPON:
 	case SA_LIGHTNINGLOADER:
 	case SA_SEISMICWEAPON:
-		delitem_flag = 0;
+		item_flag = 1;
 		break;
 	case SA_DELUGE:
 	case SA_VOLCANO:
@@ -8447,7 +8442,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 			sg->skill_id == SA_VIOLENTGALE
 		)) {
 			if (sg->limit - DIFF_TICK(gettick(), sg->tick) > 0)
-				checkitem_flag = delitem_flag = 0;
+				item_flag = 0;
 			else
 				sg->limit = 0; //Disable it.
 		}
@@ -8580,7 +8575,7 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 			return 0;
 		}
 		if (sd->status.hom_id) //Don't delete items when hom is already out.
-			checkitem_flag = delitem_flag = 0;
+			item_flag = 0;
 		break;
 	case AM_REST: //Can't vapo homun if you don't have an active homunc or it's hp is < 80%
 		if (!merc_is_hom_active(sd->hd) || sd->hd->battle_status.hp < (sd->hd->battle_status.max_hp*80/100))
@@ -8662,6 +8657,11 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 			return 0;
 		}
 		break;
+	case ST_CARTBOOST:
+		if(!sc || sc->data[SC_CARTBOOST].timer == -1) {
+			clif_skill_fail(sd,skill,0,0);
+			return 0;
+		}
 	case ST_CART:
 		if(!pc_iscarton(sd)) {
 			clif_skill_fail(sd,skill,0,0);
@@ -8682,12 +8682,6 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		break;
 	case ST_EXPLOSIONSPIRITS:
 		if(!sc || sc->data[SC_EXPLOSIONSPIRITS].timer == -1) {
-			clif_skill_fail(sd,skill,0,0);
-			return 0;
-		}
-		break;
-	case ST_CARTBOOST:
-		if(!pc_iscarton(sd) || !sc || sc->data[SC_CARTBOOST].timer == -1) {
 			clif_skill_fail(sd,skill,0,0);
 			return 0;
 		}
@@ -8716,8 +8710,16 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		return 0;
 	}
 
-	if (checkitem_flag) {
-		for(i=0;i<10;i++) {
+	if(!(type&1))
+		return 1; // consumption only happens on cast-end
+
+	if( item_flag )
+	{
+		int index[ARRAYLENGTH(itemid)];
+
+		// Check consumed items and reduce required amounts
+		for( i = 0; i < ARRAYLENGTH(itemid); ++i )
+		{
 			index[i] = -1;
 			if( itemid[i] <= 0 )
 				continue;// no item
@@ -8751,13 +8753,11 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 				sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_WIZARD)
 				index[i] = -1; //Gemstones are checked, but not substracted from inventory.
 		}
-	}
 
-	if(!(type&1))
-		return 1;
-
-	if(delitem_flag) {
-		for(i=0;i<10;i++) {
+		// Consume items
+		if (item_flag==2)
+		for( i = 0; i < ARRAYLENGTH(itemid); ++i )
+		{
 			if(index[i] >= 0)
 				pc_delitem(sd,index[i],amount[i],0);
 		}

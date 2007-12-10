@@ -2705,7 +2705,7 @@ int battle_calc_return_damage(struct block_list* bl, int damage, int flag)
 			rdamage += damage * sc->data[SC_REFLECTSHIELD].val2 / 100;
 			if (rdamage < 1) rdamage = 1;
 		}
-	} else if (flag & BF_LONG) {
+	} else {
 		if (sd && sd->long_weapon_damage_return)
 		{
 			rdamage += damage * sd->long_weapon_damage_return / 100;
@@ -2898,7 +2898,7 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 		if (rdamage > 0) {
 			rdelay = clif_damage(src, src, tick, wd.amotion, sstatus->dmotion, rdamage, 1, 4, 0);
 			//Use Reflect Shield to signal this kind of skill trigger. [Skotlex]
-			skill_additional_effect(target,src,CR_REFLECTSHIELD, 1,BF_WEAPON,tick);
+			skill_additional_effect(target,src,CR_REFLECTSHIELD,1,BF_WEAPON|BF_SHORT|BF_NORMAL,tick);
 		}
 	}
 
