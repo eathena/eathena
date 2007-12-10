@@ -258,7 +258,7 @@ packet_ver: 5
 0x0158,-1
 0x0159,54,guildleave,2:6:10:14
 0x015a,66
-0x015b,54,guildexplusion,2:6:10:14
+0x015b,54,guildexpulsion,2:6:10:14
 0x015c,90
 0x015d,42,guildbreak,2
 0x015e,6
@@ -1048,6 +1048,10 @@ packet_ver: 22
 0x02de,6
 0x02df,36
 0x02e0,34
+
+//2007-10-23aSakexe
+0x02cb,65
+0x02cd,71
 
 //Add new packets here
 //packet_ver: 23

@@ -6,6 +6,14 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 
 2007/12/10
+	* Merged most of clif.c:
+	- Support for PACKETVER 9 (packet_db would have to be merged, too, but I do
+	  not know if thart would break older packet versions)
+	- Cleanup of idle/movement packets
+	- Cleanup of the disguise packets
+	- New trade window
+	- Crashfix when disguised chars die in pvp
+	- Fixed vanishing characters when warping (if CIRCULAR_AREA is defined)
 	* Added missing range/skill-mask info to reflected damage (fixes autospells
 	  not triggering on it)
 	* ASC_BREAKER no longer triggers auto-effects.
