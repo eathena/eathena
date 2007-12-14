@@ -1,3 +1,5 @@
+12/13
+	* Rev. 11909 Fixed Big Defense Potion 10ea Box. (was giving small def pot.) [L0ne_W0lf]
 11/22
 	* Rev. 11785 Added slots to Cross Shield and Book of Charms (bugreport:429) [L0ne_W0lf]
 	- Fixed the brynhildr item script. (bugreport:429)
