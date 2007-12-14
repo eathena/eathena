@@ -3,7 +3,7 @@
 //===== By ===================================================
 //= Fredzilla, MasterOfMuppets
 //===== Version ==============================================
-//= 1.8
+//= 1.9
 //===== Compatible With ======================================
 //= eAthena 1.0
 //===== Description ==========================================
@@ -30,6 +30,7 @@
 //= Shrimp, Dungeon, Tom Yum Goong [Evera]
 //= 1.7 Updated the Ayothaya Ring quest to the official one [MasterOfMuppets]
 //= 1.8 Fixed experience gains to match upcoming rate adjustments. [SinSloth]
+//= 1.9 Fixed misplayed NPC footprint2. [L0ne_W0lf]
 //============================================================
 
 //============================================================
@@ -1120,7 +1121,7 @@ OnTouch:
 	
 }
 	
-ayo_dun01,74,132,0	script	AyoFootprint2	139,2,0,{
+ayo_dun01,74,142,0	script	AyoFootprint2	139,2,0,{
 OnTouch:
 	if(thai_find == 5)
 	{

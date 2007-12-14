@@ -23,6 +23,8 @@ Playtester
 Date		Added
 ======
 2007/12/13
+	* Rev. 11904 Fixed Footprint2 error in Ayothaya Quest reported in bugreport:586
+
 	* Rev. 11899 Updated Dungeon spawn file names to match trunk. [L0ne_w0lf]
 	* Rev. 11898 Updated Dungeon warp file names to match trunk. [L0ne_w0lf]
 2007/11/25
