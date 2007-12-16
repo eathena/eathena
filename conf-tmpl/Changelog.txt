@@ -1,5 +1,7 @@
 Date	Added
 
+2007/12/16
+	* Removed atcommand 'refreshonline' as it is no longer needed [ultramage]
 2007/11/17
 	* Merged config option guild_skill_relog_delay
 	* Merged hom_setting&2 to ignore skill ranges for hom skills. [Skotlex]

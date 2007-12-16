@@ -6826,7 +6826,6 @@ int atcommand_listmail(const int fd, struct map_session_data* sd, const char* co
 {
 	if(!mail_server_enable)
 		return 0;
-
 	nullpo_retr(-1, sd);
 
 	if(strlen(command)==12) // @listnewmail
@@ -6911,16 +6910,6 @@ int atcommand_sendmail(const int fd, struct map_session_data* sd, const char* co
 	else
 		mail_send(sd,name,text,0);
 
-	return 0;
-}
-
-/*==========================================
- * Refresh online command for SQL [Valaris]
- * Will refresh and check online column of players and set correctly.
- *------------------------------------------*/
-int atcommand_refreshonline(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	send_users_tochar(-1, gettick(), 0, 0);
 	return 0;
 }
 
@@ -8485,7 +8474,6 @@ AtCommandInfo atcommand_info[] = {
 	{ "deletemail",         1,     atcommand_deletemail },
 	{ "sendmail",           1,     atcommand_sendmail },
 	{ "sendprioritymail",  80,     atcommand_sendmail },
-	{ "refreshonline",     99,     atcommand_refreshonline },
 #endif
 };
 

@@ -245,6 +245,9 @@ void set_char_online(int map_id, int char_id, int account_id)
 	character->char_id = (char_id==99)?-1:char_id;
 	character->server = (char_id==99)?-1:map_id;
 
+	if( character->server > -1 )
+		server[character->server].users++;
+
 	if(character->waiting_disconnect != -1) {
 		delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
 		character->waiting_disconnect = -1;
@@ -288,6 +291,9 @@ void set_char_offline(int char_id, int account_id)
 
 	if ((character = idb_get(online_char_db, account_id)) != NULL)
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
+		if( character->server > -1 )
+			server[character->server].users--;
+		
 		character->char_id = -1;
 		character->server = -1;
 		if(character->waiting_disconnect != -1){
@@ -2155,10 +2161,6 @@ int parse_frommap(int fd)
 		switch(RFIFOW(fd, 0))
 		{
 
-		case 0x2718: // map-server alive packet
-			RFIFOSKIP(fd,2);
-		break;
-
 		case 0x2af7: // request from map-server to reload GM accounts. Transmission to login-server
 			if(char_gm_read) //Re-read gm accounts.
 				read_gm_account();
@@ -3330,10 +3332,16 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 	return 0;
 }
 
-int send_users_tologin(int tid, unsigned int tick, int id, int data)
+int broadcast_user_count(int tid, unsigned int tick, int id, int data)
 {
+	uint8 buf[6];
 	int users = count_users();
-	unsigned char buf[16];
+
+	// only send an update when needed
+	static prev_users = 0;
+	if( prev_users == users )
+		return 0;
+	prev_users = users;
 
 	if( login_fd > 0 && session[login_fd] )
 	{
@@ -3415,6 +3423,18 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data)
 	WFIFOSET(login_fd,86);
 	
 	return 1;
+}
+
+// sends a ping packet to login server (will receive pong 0x2718)
+int ping_login_server(int tid, unsigned int tick, int id, int data)
+{
+	if (login_fd > 0 && session[login_fd] != NULL)
+	{
+		WFIFOHEAD(login_fd,2);
+		WFIFOW(login_fd,0) = 0x2719;
+		WFIFOSET(login_fd,2);
+	}
+	return 0;
 }
 
 //------------------------------------------------
@@ -3870,15 +3890,24 @@ int do_init(int argc, char **argv)
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
 	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
 
-	add_timer_func_list(send_users_tologin, "send_users_tologin");
-	add_timer_interval(gettick() + 1000, send_users_tologin, 0, 0, 5 * 1000);
-	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
-	add_timer_interval(gettick() + 3600*1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
+	// keep the char-login connection alive
+	add_timer_func_list(ping_login_server, "ping_login_server");
+	add_timer_interval(gettick() + 1000, ping_login_server, 0, 0, ((int)stall_time-2) * 1000);
 
+	// periodically update the overall user count on all mapservers + login server
+	add_timer_func_list(broadcast_user_count, "broadcast_user_count");
+	add_timer_interval(gettick() + 1000, broadcast_user_count, 0, 0, 5 * 1000);
+
+	// send a list of all online account IDs to login server
+	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
+	add_timer_interval(gettick() + 1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour.
+
+	// ???
 	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
 
+	// ???
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
-	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600 * 1000);
+	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
 
 	if( console )
 	{
