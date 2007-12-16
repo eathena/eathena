@@ -50,8 +50,8 @@ static int npc_cache_mob=0;
 const char *current_file = NULL;
 int npc_get_new_npc_id(void){ return npc_id++; }
 
-static struct dbt *ev_db;
-static struct dbt *npcname_db;
+static DBMap* ev_db; // const char* event_name -> struct event_data*
+static DBMap* npcname_db; // const char* npc_name -> struct npc_data*
 
 struct event_data {
 	struct npc_data *nd;
@@ -1722,7 +1722,7 @@ static int npc_parse_script(char* w1, char* w2, char* w3, char* w4, char* first_
 	char line[1024];
 	int i;
 	struct npc_data *nd, *dnd;
-	DB label_db;
+	DBMap* label_db;
 	char *p;
 	struct npc_label_list *label_dup = NULL;
 	int label_dupnum = 0;
@@ -2066,7 +2066,7 @@ static int npc_parse_function(char* w1, char* w2, char* w3, char* w4, char* firs
 	int startline = 0;
 	char line[1024];
 	int curly_count = 0;
-	struct dbt *user_db;
+	DBMap* user_db;
 	
 	// スクリプトの解析
 	srcbuf = (char *) aMallocA (srcsize*sizeof(char));
@@ -2885,8 +2885,8 @@ int do_init_npc(void)
 	for( i = 1; i < MAX_NPC_CLASS; i++ ) 
 		npc_viewdb[i].class_ = i;
 
-	ev_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,2*NAME_LENGTH+2+1);
-	npcname_db = db_alloc(__FILE__,__LINE__,DB_STRING,DB_OPT_BASE,NAME_LENGTH);
+	ev_db = strdb_alloc(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA,2*NAME_LENGTH+2+1);
+	npcname_db = strdb_alloc(DB_OPT_BASE,NAME_LENGTH);
 
 	memset(&ev_tm_b, -1, sizeof(ev_tm_b));
 	timer_event_ers = ers_new(sizeof(struct timer_event_data));

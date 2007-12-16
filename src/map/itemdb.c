@@ -16,7 +16,7 @@
 #include <string.h>
 
 
-static struct dbt* item_db;
+static DBMap* item_db;
 
 static struct item_group itemgroup_db[MAX_ITEMGROUP];
 
@@ -945,7 +945,7 @@ void do_final_itemdb(void)
 
 int do_init_itemdb(void)
 {
-	item_db = db_alloc(__FILE__,__LINE__,DB_INT,DB_OPT_BASE,sizeof(int)); 
+	item_db = idb_alloc(DB_OPT_BASE);
 	create_dummy_data(); //Dummy data item.
 	itemdb_read();
 
