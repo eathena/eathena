@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2007/12/16
+	* Rev. 11923 Touched up Merchant quest Biliban Kafra function [L0ne_W0lf]
+	- Will now return to the previous script execution if all conditions fail.
 2007/12/13
 	* Rev. 11907 Minor tweak to the assassin job quest, and a typo fix in hunter. [L0ne_W0lf]
 	* Rev. 11904 Fixed Footprint2 error in Ayothaya Quest reported in bugreport:586
