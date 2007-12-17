@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/12/17
+	* Merged the improved/cleaned skill db file loading function (r11659)
 	* Merged the addition of the 'name' and 'desc' skill db column (r11657)
 	* Merged the corrections to @changesex (r11867)
 	* Merged the cleanup of left-hand attack data structure (r11858)
