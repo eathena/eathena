@@ -4327,35 +4327,44 @@ void clif_skill_warppoint(struct map_session_data* sd, short skill_num, short sk
 	else
 		sd->menuskill_val = skill_lv;
 }
-/*==========================================
- * ƒƒ‚‰ž“š
- *------------------------------------------*/
-int clif_skill_memo(struct map_session_data *sd,int flag)
+
+/// Memo message.
+/// type=0 : "Saved location as a Memo Point for Warp skill." in color 0xFFFF00 (cyan)
+/// type=1 : "Skill Level is not high enough." in color 0x0000FF (red)
+/// type=2 : "You haven't learned Warp." in color 0x0000FF (red)
+///
+/// @param sd Who receives the message
+/// @param type What message
+void clif_skill_memomessage(struct map_session_data* sd, int type)
 {
 	int fd;
 
-	nullpo_retr(0, sd);
+	nullpo_retv(sd);
 
 	fd=sd->fd;
-
 	WFIFOHEAD(fd,packet_len(0x11e));
 	WFIFOW(fd,0)=0x11e;
-	WFIFOB(fd,2)=flag;
+	WFIFOB(fd,2)=type;
 	WFIFOSET(fd,packet_len(0x11e));
-	return 0;
 }
-int clif_skill_teleportmessage(struct map_session_data *sd,int flag)
+
+/// Teleport message.
+/// type=0 : "Unable to Teleport in this area" in color 0xFFFF00 (cyan)
+/// type=1 : "Saved point cannot be memorized." in color 0x0000FF (red)
+///
+/// @param sd Who receives the message
+/// @param type What message
+void clif_skill_teleportmessage(struct map_session_data *sd, int type)
 {
 	int fd;
 
-	nullpo_retr(0, sd);
+	nullpo_retv(sd);
 
 	fd=sd->fd;
 	WFIFOHEAD(fd,packet_len(0x189));
 	WFIFOW(fd,0)=0x189;
-	WFIFOW(fd,2)=flag;
+	WFIFOW(fd,2)=type;
 	WFIFOSET(fd,packet_len(0x189));
-	return 0;
 }
 
 /*==========================================
@@ -4647,7 +4656,6 @@ void clif_set0199(struct map_session_data* sd, int mode)
 	WFIFOW(fd,0)=0x199;
 	WFIFOW(fd,2)=mode;
 	WFIFOSET(fd,packet_len(0x199));
-
 }
 
 /*==========================================

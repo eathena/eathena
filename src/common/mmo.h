@@ -212,7 +212,7 @@ struct mmo_charstatus {
 	int party_id,guild_id,pet_id,hom_id;
 	int fame;
 
-	short weapon; // enum weapon_type
+	enum weapon_type weapon;
 	short shield; // view-id
 	short head_top,head_mid,head_bottom;
 
@@ -272,7 +272,7 @@ struct party_member {
 	unsigned short map;
 	unsigned short lv;
 	unsigned leader : 1,
-				online : 1;
+	         online : 1;
 };
 
 struct party {

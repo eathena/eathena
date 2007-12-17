@@ -3600,11 +3600,11 @@ int pc_memo(struct map_session_data* sd, int pos)
 	// check required skill level
 	skill = pc_checkskill(sd, AL_WARP);
 	if( skill < 1 ) {
-		clif_skill_memo(sd,2); // "You haven't learned Warp."
+		clif_skill_memomessage(sd,2); // "You haven't learned Warp."
 		return 0;
 	}
 	if( skill < 2 || skill - 2 < pos ) {
-		clif_skill_memo(sd,1); // "Skill Level is not high enough."
+		clif_skill_memomessage(sd,1); // "Skill Level is not high enough."
 		return 0;
 	}
 
@@ -3621,7 +3621,7 @@ int pc_memo(struct map_session_data* sd, int pos)
 	sd->status.memo_point[pos].x = sd->bl.x;
 	sd->status.memo_point[pos].y = sd->bl.y;
 
-	clif_skill_memo(sd, 0);
+	clif_skill_memomessage(sd, 0);
 
 	return 1;
 }
