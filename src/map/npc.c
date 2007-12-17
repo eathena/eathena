@@ -409,8 +409,7 @@ int npc_timerevent(int tid, unsigned int tick, int id, int data)
 	if (ted->rid) {
 		sd = map_id2sd(ted->rid);
 		if (!sd) {
-			if(battle_config.error_log)
-				ShowError("npc_timerevent: Attached player not found.\n");
+			ShowError("npc_timerevent: Attached player not found.\n");
 			ers_free(timer_event_ers, ted);
 			return 0;
 		}
@@ -475,8 +474,7 @@ int npc_timerevent_start(struct npc_data* nd, int rid)
 		//Try to attach timer to this player.
 		sd = map_id2sd(nd->u.scr.rid);
 		if (!sd) {
-			if(battle_config.error_log)
-				ShowError("npc_timerevent_start: Attached player not found!\n");
+			ShowError("npc_timerevent_start: Attached player not found!\n");
 			return 1;
 		}
 	}
@@ -518,8 +516,7 @@ int npc_timerevent_stop(struct npc_data* nd)
 	if (nd->u.scr.rid) {
 		sd = map_id2sd(nd->u.scr.rid);
 		if (!sd) {
-			if(battle_config.error_log)
-				ShowError("npc_timerevent_stop: Attached player not found!\n");
+			ShowError("npc_timerevent_stop: Attached player not found!\n");
 			return 1;
 		}
 	}
@@ -618,8 +615,7 @@ int npc_settimerevent_tick(struct npc_data* nd, int newtimer)
 	if (nd->u.scr.rid) {
 		sd = map_id2sd(nd->u.scr.rid);
 		if (!sd) {
-			if(battle_config.error_log)
-				ShowError("npc_settimerevent_tick: Attached player not found!\n");
+			ShowError("npc_settimerevent_tick: Attached player not found!\n");
 			return 1;
 		}
 		flag= sd->npc_timer_id != -1 ;
@@ -644,8 +640,7 @@ int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char
 		if( i < MAX_EVENTQUEUE )
 			safestrncpy(sd->eventqueue[i],eventname,50); //Event enqueued.
 		else
-			if( battle_config.error_log )
-				ShowWarning("npc_event: event queue is full !\n");
+			ShowWarning("npc_event: event queue is full !\n");
 		
 		return 1;
 	}
@@ -688,8 +683,7 @@ int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill)
 				return 0;
 			}
 		} else {
-			if (battle_config.error_log)
-				ShowError("npc_event: event not found [%s]\n", eventname);
+			ShowError("npc_event: event not found [%s]\n", eventname);
 			return 0;
 		}
 	}
@@ -748,10 +742,8 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 			break;
 	}
 	if (i==map[m].npc_num) {
-		if (f) {
-			if (battle_config.error_log)
-				ShowError("npc_touch_areanpc : some bug \n");
-		}
+		if (f)
+			ShowError("npc_touch_areanpc : some bug \n");
 		return 1;
 	}
 	switch(map[m].npc[i]->subtype) {
@@ -947,8 +939,7 @@ int npc_click(struct map_session_data* sd, struct npc_data* nd)
 	nullpo_retr(1, sd);
 
 	if (sd->npc_id != 0) {
-		if (battle_config.error_log)
-			ShowError("npc_click: npc_id != 0\n");
+		ShowError("npc_click: npc_id != 0\n");
 		return 1;
 	}
 
@@ -1011,8 +1002,7 @@ int npc_buysellsel(struct map_session_data* sd, int id, int type)
 		return 1;
 	
 	if (nd->subtype!=SHOP) {
-		if (battle_config.error_log)
-			ShowError("no such shop npc : %d\n",id);
+		ShowError("no such shop npc : %d\n",id);
 		if (sd->npc_id == id)
 			sd->npc_id=0;
 		return 1;
@@ -2655,8 +2645,7 @@ int npc_script_event(struct map_session_data* sd, int type)
 	if (type < 0 || type >= NPCE_MAX)
 		return 0;
 	if (!sd) {
-		if (battle_config.error_log)
-			ShowError("npc_script_event: NULL sd. Event Type %d\n", type);
+		ShowError("npc_script_event: NULL sd. Event Type %d\n", type);
 		return 0;
 	}
 	if (script_event[type].nd) {
@@ -2770,7 +2759,7 @@ int npc_reload(void)
 				if (map[m].moblist[i]) aFree(map[m].moblist[i]);
 			memset (map[m].moblist, 0, sizeof(map[m].moblist));
 		}
-		if (map[m].npc_num > 0 && battle_config.error_log)
+		if (map[m].npc_num > 0)
 			ShowWarning("npc_reload: %d npcs weren't removed at map %s!\n", map[m].npc_num, map[m].name);
 	}
 	mob_clear_spawninfo();

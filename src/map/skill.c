@@ -7269,8 +7269,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 			case UNT_FIREPILLAR_ACTIVE:
 				return 0;
 			default:
-				if (battle_config.error_log)
-					ShowError("skill_unit_onplace_timer: interval error (unit id %x)\n", sg->unit_id);
+				ShowError("skill_unit_onplace_timer: interval error (unit id %x)\n", sg->unit_id);
 				return 0;
 		}
 	}
@@ -10119,9 +10118,7 @@ struct skill_unit_group_tickset *skill_unitgrouptickset_search (struct block_lis
 	}
 
 	if (j == -1) {
-		if(battle_config.error_log) {
-			ShowWarning ("skill_unitgrouptickset_search: tickset is full\n");
-		}
+		ShowWarning ("skill_unitgrouptickset_search: tickset is full\n");
 		j = id % MAX_SKILLUNITGROUPTICKSET;
 	}
 
@@ -10367,7 +10364,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 					ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
 					if( i < ARRAYLENGTH(skill_unit_temp) )
 						skill_unit_temp[i] = skill_id;
-					else if( battle_config.error_log )
+					else
 						ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
 				}
 
@@ -10401,7 +10398,7 @@ int skill_unit_move_sub (struct block_list* bl, va_list ap)
 				ARR_FIND( 0, ARRAYLENGTH(skill_unit_temp), i, skill_unit_temp[i] == 0 );
 				if( i < ARRAYLENGTH(skill_unit_temp) )
 					skill_unit_temp[i] = skill_id;
-				else if( battle_config.error_log )
+				else
 					ShowError("skill_unit_move_sub: Reached limit of unit objects per cell!\n");
 			}
 		}
@@ -10650,10 +10647,8 @@ int skill_produce_mix (struct map_session_data *sd, int skill_id, int nameid, in
 				y = sd->status.inventory[j].amount;
 				if(y>x)y=x;
 				pc_delitem(sd,j,y,0);
-			}else {
-				if(battle_config.error_log)
-					ShowError("skill_produce_mix: material item error\n");
-			}
+			} else
+				ShowError("skill_produce_mix: material item error\n");
 
 			x-=y;
 		}while( j>=0 && x>0 );

@@ -281,8 +281,7 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 		sd->state.reg_dirty &= ~0x1;
 	break;
 	default: //Broken code?
-		if (battle_config.error_log)
-			ShowError("intif_saveregistry: Invalid type %d\n", type);
+		ShowError("intif_saveregistry: Invalid type %d\n", type);
 		return -1;
 	}
 	WFIFOHEAD(inter_fd, 288 * MAX_REG_NUM+13);
@@ -961,8 +960,7 @@ int intif_parse_Registers(int fd)
 			max = ACCOUNT_REG2_NUM;
 		break;
 		default:
-			if (battle_config.error_log)
-				ShowError("intif_parse_Registers: Unrecognized type %d\n",RFIFOB(fd,12));
+			ShowError("intif_parse_Registers: Unrecognized type %d\n",RFIFOB(fd,12));
 			return 0;
 	}
 	for(j=0,p=13;j<max && p<RFIFOW(fd,2);j++){
@@ -988,8 +986,7 @@ int intif_parse_LoadStorage(int fd)
 
 	sd=map_id2sd( RFIFOL(fd,4) );
 	if(sd==NULL){
-		if(battle_config.error_log)
-			ShowError("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
+		ShowError("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
 		return 1;
 	}
 
@@ -999,18 +996,15 @@ int intif_parse_LoadStorage(int fd)
 	stor = account2storage( RFIFOL(fd,4));
 
 	if (stor->storage_status == 1) { // Already open.. lets ignore this update
-		if (battle_config.error_log)
-			ShowWarning("intif_parse_LoadStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
+		ShowWarning("intif_parse_LoadStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
 		return 1;
 	}
 	if (stor->dirty) { // Already have storage, and it has been modified and not saved yet! Exploit! [Skotlex]
-		if (battle_config.error_log)
-			ShowWarning("intif_parse_LoadStorage: received storage for an already modified non-saved storage! (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
+		ShowWarning("intif_parse_LoadStorage: received storage for an already modified non-saved storage! (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
 		return 1;
 	}
 	if (RFIFOW(fd,2)-8 != sizeof(struct storage)) {
-		if (battle_config.error_log)
-			ShowError("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct storage));
+		ShowError("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct storage));
 		return 1;
 	}
 	if(battle_config.save_log)
@@ -1045,30 +1039,24 @@ int intif_parse_LoadGuildStorage(int fd)
 		return 1;
 	sd=map_id2sd( RFIFOL(fd,4) );
 	if(sd==NULL){
-		if(battle_config.error_log)
-			ShowError("intif_parse_LoadGuildStorage: user not found %d\n",RFIFOL(fd,4));
+		ShowError("intif_parse_LoadGuildStorage: user not found %d\n",RFIFOL(fd,4));
 		return 1;
 	}
 	gstor=guild2storage(guild_id);
 	if(!gstor) {
-		if(battle_config.error_log)
-			ShowWarning("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
-		return 1;
+		ShowWarning("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
 	}
 	if (gstor->storage_status == 1) { // Already open.. lets ignore this update
-		if (battle_config.error_log)
-			ShowWarning("intif_parse_LoadGuildStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
+		ShowWarning("intif_parse_LoadGuildStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
 		return 1;
 	}
 	if (gstor->dirty) { // Already have storage, and it has been modified and not saved yet! Exploit! [Skotlex]
-		if (battle_config.error_log)
-			ShowWarning("intif_parse_LoadGuildStorage: received storage for an already modified non-saved storage! (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
+		ShowWarning("intif_parse_LoadGuildStorage: received storage for an already modified non-saved storage! (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
 		return 1;
 	}
 	if( RFIFOW(fd,2)-12 != sizeof(struct guild_storage) ){
+		ShowError("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
 		gstor->storage_status = 0;
-		if(battle_config.error_log)
-			ShowError("intif_parse_LoadGuildStorage: data size error %d %d\n",RFIFOW(fd,2)-12 , sizeof(struct guild_storage));
 		return 1;
 	}
 	if(battle_config.save_log)
@@ -1101,17 +1089,14 @@ int intif_parse_PartyCreated(int fd)
 int intif_parse_PartyInfo(int fd)
 {
 	if( RFIFOW(fd,2)==8){
-		if(battle_config.error_log)
-			ShowWarning("intif: party noinfo %d\n",RFIFOL(fd,4));
+		ShowWarning("intif: party noinfo %d\n",RFIFOL(fd,4));
 		party_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
 
 //	printf("intif: party info %d\n",RFIFOL(fd,4));
-	if( RFIFOW(fd,2)!=sizeof(struct party)+4 ){
-		if(battle_config.error_log)
-			ShowError("intif: party info : data size error %d %d %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct party)+4);
-	}
+	if( RFIFOW(fd,2)!=sizeof(struct party)+4 )
+		ShowError("intif: party info : data size error %d %d %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct party)+4);
 	party_recv_info((struct party *)RFIFOP(fd,4));
 	return 0;
 }
@@ -1166,18 +1151,13 @@ int intif_parse_GuildCreated(int fd)
 int intif_parse_GuildInfo(int fd)
 {
 	if(RFIFOW(fd,2) == 8) {
-		if(battle_config.error_log)
-			ShowWarning("intif: guild noinfo %d\n",RFIFOL(fd,4));
+		ShowWarning("intif: guild noinfo %d\n",RFIFOL(fd,4));
 		guild_recv_noinfo(RFIFOL(fd,4));
 		return 0;
 	}
 
-//	if(battle_config.etc_log)
-//		printf("intif: guild info %d\n",RFIFOL(fd,4));
-	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 ){
-		if(battle_config.error_log)
-			ShowError("intif: guild info : data size error Gid: %d recv size: %d Expected size: %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
-	}
+	if( RFIFOW(fd,2)!=sizeof(struct guild)+4 )
+		ShowError("intif: guild info : data size error Gid: %d recv size: %d Expected size: %d\n",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild)+4);
 	guild_recv_info((struct guild *)RFIFOP(fd,4));
 	return 0;
 }
@@ -1269,10 +1249,8 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 // ギルド役職変更通知
 int intif_parse_GuildPosition(int fd)
 {
-	if( RFIFOW(fd,2)!=sizeof(struct guild_position)+12 ){
-		if(battle_config.error_log)
-			ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild_position)+12);
-	}
+	if( RFIFOW(fd,2)!=sizeof(struct guild_position)+12 )
+		ShowError("intif: guild info : data size error\n %d %d %d",RFIFOL(fd,4),RFIFOW(fd,2),sizeof(struct guild_position)+12);
 	guild_position_changed(RFIFOL(fd,4),RFIFOL(fd,8),(struct guild_position *)RFIFOP(fd,12));
 	return 0;
 }
@@ -1353,20 +1331,16 @@ int intif_parse_RecvPetData(int fd)
 }
 int intif_parse_SavePetOk(int fd)
 {
-	if(RFIFOB(fd,6) == 1) {
-		if(battle_config.error_log)
-			ShowError("pet data save failure\n");
-	}
+	if(RFIFOB(fd,6) == 1)
+		ShowError("pet data save failure\n");
 
 	return 0;
 }
 
 int intif_parse_DeletePetOk(int fd)
 {
-	if(RFIFOB(fd,2) == 1) {
-		if(battle_config.error_log)
-			ShowError("pet data delete failure\n");
-	}
+	if(RFIFOB(fd,2) == 1)
+		ShowError("pet data delete failure\n");
 
 	return 0;
 }
@@ -1424,19 +1398,16 @@ int intif_parse_RecvHomunculusData(int fd)
 
 int intif_parse_SaveHomunculusOk(int fd)
 {
-	if(RFIFOB(fd,6) != 1) {
-		if(battle_config.error_log)
-			ShowError("homunculus data save failure for account %d\n", RFIFOL(fd,2));
-	}
+	if(RFIFOB(fd,6) != 1)
+		ShowError("homunculus data save failure for account %d\n", RFIFOL(fd,2));
+
 	return 0;
 }
 
 int intif_parse_DeleteHomunculusOk(int fd)
 {
-	if(RFIFOB(fd,2) != 1) {
-		if(battle_config.error_log)
-			ShowError("Homunculus data delete failure\n");
-	}
+	if(RFIFOB(fd,2) != 1)
+		ShowError("Homunculus data delete failure\n");
 
 	return 0;
 }
@@ -1520,8 +1491,7 @@ int intif_parse(int fd)
 	case 0x3892:	intif_parse_SaveHomunculusOk(fd); break;
 	case 0x3893:	intif_parse_DeleteHomunculusOk(fd); break;
 	default:
-		if(battle_config.error_log)
-			ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
+		ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
 		return 0;
 	}
 	// パケット読み飛ばし
