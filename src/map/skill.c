@@ -5058,12 +5058,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case HVAN_CHAOTIC:	//[orn]
 		{
-			static const int per[10][2]={{20,50},{50,60},{25,75},{60,64},{34,67},
-										 {34,67},{34,67},{34,67},{34,67},{34,67}};
+			static const int per[5][2]={{20,50},{50,60},{25,75},{60,64},{34,67}};
 			int rnd = rand()%100;
-			if(rnd<per[skilllv-1][0]) //Self
+			i = (skilllv-1)%5; 
+			if(rnd<per[i][0]) //Self
 				bl = src;
-			else if(rnd<per[skilllv-1][1]) //Master
+			else if(rnd<per[i][1]) //Master
 				bl = battle_get_master(src);
 			else //Enemy
 				bl = map_id2bl(battle_gettarget(src));
@@ -5076,8 +5076,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			clif_skill_nodamage(src,bl,AL_HEAL,i,1);
 			clif_skill_nodamage(src,bl,skillid,i,1);
 			status_heal(bl, i, 0, 0);
-			if (hd)
-				skill_blockmerc_start(hd, skillid, skill_get_time2(skillid,skilllv)) ;
 		}
 		break;
 	//Homun single-target support skills [orn]
@@ -6533,6 +6531,10 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 			0,0,sg->limit);
 		break;
 
+	case UNT_HERMODE:
+		if (sg->src_id!=bl->id && battle_check_target(&src->bl,bl,BCT_PARTY|BCT_GUILD) > 0)
+			status_change_clear_buffs(bl,1); //Should dispell only allies.
+			break;
 	case UNT_RICHMANKIM:
 	case UNT_ETERNALCHAOS:
 	case UNT_DRUMBATTLEFIELD:
@@ -6540,7 +6542,6 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 	case UNT_ROKISWEIL:
 	case UNT_INTOABYSS:
 	case UNT_SIEGFRIED:
-	case UNT_HERMODE:
 		 //Needed to check when a dancer/bard leaves their ensemble area.
 		if (sg->src_id==bl->id && !(sc && sc->data[SC_SPIRIT].timer != -1 && sc->data[SC_SPIRIT].val2 == SL_BARDDANCER))
 			return skillid;
@@ -6835,7 +6836,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_SANDMAN:
 		case UNT_FLASHER:
 		case UNT_FREEZINGTRAP:
-			map_foreachinrange(skill_trap_splash,&src->bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &src->bl,tick,type);
+			map_foreachinrange(skill_trap_splash,&src->bl, skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag, &src->bl,tick);
 			clif_changetraplook(&src->bl, sg->unit_id==UNT_LANDMINE?UNT_FIREPILLAR_ACTIVE:UNT_USED_TRAPS);
 			src->range = -1; //Disable range so it does not invoke a for each in area again.
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;
@@ -7002,7 +7003,7 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_GROUNDDRIFT_FIRE:
 			map_foreachinrange(skill_trap_splash,&src->bl,
 				skill_get_splash(sg->skill_id, sg->skill_lv), sg->bl_flag,
-				&src->bl,tick,0);
+				&src->bl,tick);
 			sg->unit_id = UNT_USED_TRAPS;
 			clif_changetraplook(&src->bl, UNT_FIREPILLAR_ACTIVE);
 			sg->limit=DIFF_TICK(tick,sg->tick)+1500;

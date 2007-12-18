@@ -5,6 +5,13 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/12/18
+	* Merged several gameplay fixes from trunk
+	- can't use giant fly wings in duel (r11804)
+	- don't unload the fake npc when reloading scripts (r11816)
+	- Signum Crucis now works on bosses (r11867)
+	- homunculus skill corrections (r11870, r11875)
+	- do not start status changes on players that are logging out (r11891)
+	- bad xmas suit option; wand of hermode dispells only allies (r11910)
 	* Merged the cleaning & documentation of party code (r11761)
 	* Merged the improved tick function for freebsd 5.1+ (r11912)
 2007/12/17

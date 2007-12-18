@@ -423,7 +423,6 @@ int inter_guild_init() {
 			ShowFatalError("int_guild: out of memory!\n");
 			exit(EXIT_FAILURE);
 		}
-//		memset(gc, 0, sizeof(struct guild_castle)); No need...
 		if (inter_guildcastle_fromstr(line, gc) == 0) {
 			idb_put(castle_db, gc->castle_id, gc);
 		} else {
