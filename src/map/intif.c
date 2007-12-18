@@ -1045,6 +1045,7 @@ int intif_parse_LoadGuildStorage(int fd)
 	gstor=guild2storage(guild_id);
 	if(!gstor) {
 		ShowWarning("intif_parse_LoadGuildStorage: error guild_id %d not exist\n",guild_id);
+		return 1;
 	}
 	if (gstor->storage_status == 1) { // Already open.. lets ignore this update
 		ShowWarning("intif_parse_LoadGuildStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
@@ -1451,7 +1452,7 @@ int intif_parse(int fd)
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;
 	case 0x3804:	intif_parse_Registers(fd); break;
-	case 0x3806:   intif_parse_ChangeNameOk(fd); break;
+	case 0x3806:	intif_parse_ChangeNameOk(fd); break;
 	case 0x3810:	intif_parse_LoadStorage(fd); break;
 	case 0x3811:	intif_parse_SaveStorage(fd); break;
 	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
