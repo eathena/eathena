@@ -432,6 +432,8 @@ int inter_guild_init() {
 		c++;
 	}
 
+	fclose(fp);
+
 	if (!c) {
 		ShowStatus(" %s - making Default Data...\n", castle_txt);
 		//デフォルトデータを作成
@@ -447,8 +449,6 @@ int inter_guild_init() {
 		ShowStatus(" %s - making done\n",castle_txt);
 		return 0;
 	}
-
-	fclose(fp);
 
 	return 0;
 }
