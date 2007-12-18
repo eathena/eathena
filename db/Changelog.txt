@@ -1,4 +1,6 @@
 12/18
+	* Firepillar ignores target's defense cards.
+	* Venom Splasher ignores caster's cards. [Skotlex]
 	* Merged skill files from trunk [ultramage]
 	- heat now only does 10 hits per second
 	- homunculi should now have more correct skill cast/duration/delay times

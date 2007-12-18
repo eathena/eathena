@@ -7874,17 +7874,13 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		return 0;
 		break;
 	case SG_SUN_COMFORT:
-		if ((sd->bl.m == sd->feel_map[0].m && (battle_config.allow_skill_without_day || is_day_of_sun())) || (sc && sc->data[SC_MIRACLE].timer!=-1))
-			break;
-		clif_skill_fail(sd,skill,0,0);
-		return 0;
 	case SG_MOON_COMFORT:
-		if ((sd->bl.m == sd->feel_map[1].m && (battle_config.allow_skill_without_day || is_day_of_moon())) || (sc && sc->data[SC_MIRACLE].timer!=-1))
-			break;
-		clif_skill_fail(sd,skill,0,0);
-		return 0;
 	case SG_STAR_COMFORT:
-		if ((sd->bl.m == sd->feel_map[2].m && (battle_config.allow_skill_without_day || is_day_of_star())) || (sc && sc->data[SC_MIRACLE].timer!=-1))
+		if (sc && sc->data[SC_MIRACLE].timer!=-1)
+			break;
+		i = skill-SG_SUN_COMFORT;
+		if (sd->bl.m == sd->feel_map[i].m &&
+			(battle_config.allow_skill_without_day || sg_info[i].day_func()))
 			break;
 		clif_skill_fail(sd,skill,0,0);
 		return 0;
@@ -10803,8 +10799,8 @@ static bool skill_parse_row_skilldb(char* split[], int columns, int current)
 	else
 		skill_db[i].skill_type = 0;
 	skill_split_atoi(split[14],skill_db[i].blewcount);
-	safestrncpy(skill_db[i].name, split[15], sizeof(skill_db[i].name));
-	safestrncpy(skill_db[i].desc, split[16], sizeof(skill_db[i].desc));
+	safestrncpy(skill_db[i].name, trim(split[15]), sizeof(skill_db[i].name));
+	safestrncpy(skill_db[i].desc, trim(split[16]), sizeof(skill_db[i].desc));
 
 	return true;
 }
