@@ -1,3 +1,7 @@
+12/18
+	* Merged skill files from trunk [ultramage]
+	- heat now only does 10 hits per second
+	- homunculi should now have more correct skill cast/duration/delay times
 12/13
 	* Rev. 11909 Fixed Big Defense Potion 10ea Box. (was giving small def pot.) [L0ne_W0lf]
 11/22

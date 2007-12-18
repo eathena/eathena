@@ -212,7 +212,7 @@ struct mmo_charstatus {
 	int party_id,guild_id,pet_id,hom_id;
 	int fame;
 
-	enum weapon_type weapon;
+	short weapon; // enum weapon_type
 	short shield; // view-id
 	short head_top,head_mid,head_bottom;
 
@@ -399,7 +399,7 @@ enum {
 	GD_SKILLBASE=10000,
 	GD_APPROVAL=10000,
 	GD_KAFRACONTRACT=10001,
-	GD_GUARDIANRESEARCH=10002,
+	GD_GUARDRESEARCH=10002,
 	GD_GUARDUP=10003,
 	GD_EXTENSION=10004,
 	GD_GLORYGUILD=10005,
