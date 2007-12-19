@@ -2143,7 +2143,7 @@ int npc_parse_mob2(struct spawn_data* mob, int index)
 
 int npc_parse_mob(char* w1, char* w2, char* w3, char* w4)
 {
-	int level, num, class_, mode, x,y,xs,ys;
+	int level, num, class_, mode, x,y,xs,ys, temp;
 	char mapname[MAP_NAME_LENGTH_EXT];
 	char mobname[NAME_LENGTH];
 	struct spawn_data mob, *data;
@@ -2182,9 +2182,10 @@ int npc_parse_mob(char* w1, char* w2, char* w3, char* w4)
 		return 1;
 	}
 
-	//Fix for previously wrong interpretation of the delays
-	mob.delay2 = mob.delay1;
-	mob.delay1 = 0;
+	//Fixed according to latest kRO update (needs optimization)
+	temp = mob.delay1;
+	mob.delay1 += mob.delay2;
+	mob.delay2 = temp;
 
 	mob.num = (unsigned short)num;
 	mob.class_ = (short) class_;
