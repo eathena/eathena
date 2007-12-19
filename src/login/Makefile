@@ -14,8 +14,8 @@ COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h ../common/mmo.h
 %.o: %.c
 	$(COMPILE.c) -DTXT_ONLY $(OUTPUT_OPTION) $<
 
-login-server: login.o $(COMMON_OBJ)
-	$(CC) -o ../../$@ login.o $(COMMON_OBJ) $(LIB_S)
+login-server: login.o admin.o $(COMMON_OBJ)
+	$(CC) -o ../../$@ login.o admin.o $(COMMON_OBJ) $(LIB_S)
 	
 clean:
 	rm -f *.o ../../login-server GNUmakefile
@@ -23,3 +23,4 @@ clean:
 # DO NOT DELETE
 
 login.o: login.c login.h $(COMMON_H)
+admin.o: admin.c $(COMMON_H)
