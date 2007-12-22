@@ -297,7 +297,7 @@ int unit_walktoxy( struct block_list *bl, short x, short y, int flag)
 	ud->to_y = y;
 	
 	sc = status_get_sc(bl);
-	if (sc && sc->count && sc->data[SC_CONFUSION].timer != -1) //Randomize the target position
+	if (sc && sc->data[SC_CONFUSION]) //Randomize the target position
 		map_random_dir(bl, &ud->to_x, &ud->to_y);
 
 	if(ud->walktimer != -1) {
@@ -365,7 +365,7 @@ int unit_walktobl(struct block_list *bl, struct block_list *tbl, int range, int 
 	ud->state.attack_continue = flag&2?1:0; //Chase to attack.
 
 	sc = status_get_sc(bl);
-	if (sc && sc->count && sc->data[SC_CONFUSION].timer != -1) //Randomize the target position
+	if (sc && sc->data[SC_CONFUSION]) //Randomize the target position
 		map_random_dir(bl, &ud->to_x, &ud->to_y);
 
 	if(ud->walktimer != -1) {
@@ -400,22 +400,24 @@ int unit_run(struct block_list *bl)
 {
 	struct status_change *sc = status_get_sc(bl);
 	short to_x,to_y,dir_x,dir_y;
+	int lv;
 	int i;
 
-	if (!sc || !sc->count || sc->data[SC_RUN].timer == -1)
+	if (!(sc && sc->data[SC_RUN]))
 		return 0;
 	
 	if (!unit_can_move(bl)) {
-		if(sc->data[SC_RUN].timer!=-1)
-			status_change_end(bl,SC_RUN,-1);
+		status_change_end(bl,SC_RUN,-1);
 		return 0;
 	}
 	
+	lv = sc->data[SC_RUN]->val1;
+	dir_x = dirx[sc->data[SC_RUN]->val2];
+	dir_y = diry[sc->data[SC_RUN]->val2];
+
+	// determine destination cell
 	to_x = bl->x;
 	to_y = bl->y;
-	dir_x = dirx[sc->data[SC_RUN].val2];
-	dir_y = diry[sc->data[SC_RUN].val2];
-
 	for(i=0;i<AREA_SIZE;i++)
 	{
 		if(!map_getcell(bl->m,to_x+dir_x,to_y+dir_y,CELL_CHKPASS))
@@ -428,7 +430,7 @@ int unit_run(struct block_list *bl)
 		//If you can't run forward, you must be next to a wall, so bounce back. [Skotlex]
 		clif_status_change(bl, SI_BUMP, 1);
 		status_change_end(bl,SC_RUN,-1);
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1),unit_getdir(bl),0);
+		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,lv),unit_getdir(bl),0);
 		clif_fixpos(bl); //Why is a clif_slide (skill_blown) AND a fixpos needed? Ask Aegis.
 		clif_status_change(bl, SI_BUMP, 0);
 		return 0;
@@ -444,7 +446,7 @@ int unit_run(struct block_list *bl)
 		// copy-paste from above
 		clif_status_change(bl, SI_BUMP, 1);
 		status_change_end(bl,SC_RUN,-1);
-		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,sc->data[SC_RUN].val1),unit_getdir(bl),0);
+		skill_blown(bl,bl,skill_get_blewcount(TK_RUN,lv),unit_getdir(bl),0);
 		clif_fixpos(bl);
 		clif_status_change(bl, SI_BUMP, 0);
 		return 0;
@@ -714,25 +716,25 @@ int unit_can_move(struct block_list *bl)
 			return 0;
 
 		if (sc->count && (
-			sc->data[SC_ANKLE].timer != -1
-			|| sc->data[SC_AUTOCOUNTER].timer !=-1
-			|| sc->data[SC_TRICKDEAD].timer !=-1
-			|| sc->data[SC_BLADESTOP].timer !=-1
-			|| sc->data[SC_BLADESTOP_WAIT].timer !=-1
-			|| sc->data[SC_SPIDERWEB].timer !=-1
-			|| (sc->data[SC_DANCING].timer !=-1 && sc->data[SC_DANCING].val4 && (
-				sc->data[SC_LONGING].timer == -1 ||
-				(sc->data[SC_DANCING].val1&0xFFFF) == CG_MOONLIT ||
-				(sc->data[SC_DANCING].val1&0xFFFF) == CG_HERMODE
+			sc->data[SC_ANKLE]
+			|| sc->data[SC_AUTOCOUNTER]
+			|| sc->data[SC_TRICKDEAD]
+			|| sc->data[SC_BLADESTOP]
+			|| sc->data[SC_BLADESTOP_WAIT]
+			|| sc->data[SC_SPIDERWEB]
+			|| (sc->data[SC_DANCING] && sc->data[SC_DANCING]->val4 && (
+				!sc->data[SC_LONGING] ||
+				(sc->data[SC_DANCING]->val1&0xFFFF) == CG_MOONLIT ||
+				(sc->data[SC_DANCING]->val1&0xFFFF) == CG_HERMODE
 			))
-			|| (sc->data[SC_GOSPEL].timer !=-1 && sc->data[SC_GOSPEL].val4 == BCT_SELF)	// cannot move while gospel is in effect
-			|| sc->data[SC_STOP].timer != -1
-			|| sc->data[SC_CLOSECONFINE].timer != -1
-			|| sc->data[SC_CLOSECONFINE2].timer != -1
-			|| (sc->data[SC_CLOAKING].timer != -1 && //Need wall at level 1-2
-				sc->data[SC_CLOAKING].val1 < 3 && !(sc->data[SC_CLOAKING].val4&1))
-			|| sc->data[SC_MADNESSCANCEL].timer != -1
-			|| (sc->data[SC_GRAVITATION].timer != -1 && sc->data[SC_GRAVITATION].val3 == BCT_SELF)
+			|| (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)	// cannot move while gospel is in effect
+			|| sc->data[SC_STOP]
+			|| sc->data[SC_CLOSECONFINE]
+			|| sc->data[SC_CLOSECONFINE2]
+			|| (sc->data[SC_CLOAKING] && //Need wall at level 1-2
+				sc->data[SC_CLOAKING]->val1 < 3 && !(sc->data[SC_CLOAKING]->val4&1))
+			|| sc->data[SC_MADNESSCANCEL]
+			|| (sc->data[SC_GRAVITATION] && sc->data[SC_GRAVITATION]->val3 == BCT_SELF)
 		))
 			return 0;
 	}
@@ -809,16 +811,16 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 		switch(skill_num)
 		{	//Check for skills that auto-select target
 		case MO_CHAINCOMBO:
-			if (sc && sc->data[SC_BLADESTOP].timer != -1){
-				if ((target=(struct block_list *)sc->data[SC_BLADESTOP].val4) == NULL)
+			if (sc && sc->data[SC_BLADESTOP]){
+				if ((target=(struct block_list *)sc->data[SC_BLADESTOP]->val4) == NULL)
 					return 0;
 			}
 			break;
 		case TK_JUMPKICK:
 		case TK_COUNTER:
 		case HT_POWER:
-			if (sc && sc->data[SC_COMBO].timer != -1 && sc->data[SC_COMBO].val1 == skill_num)
-				target_id = sc->data[SC_COMBO].val2;
+			if (sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_num)
+				target_id = sc->data[SC_COMBO]->val2;
 			break;
 		case WE_MALE:
 		case WE_FEMALE:
@@ -889,10 +891,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 		case BD_INTOABYSS:
 		case BD_SIEGFRIED:
 		case CG_MOONLIT:
-			if (battle_config.player_skill_partner_check &&
-				(!battle_config.gm_skilluncond || pc_isGM(sd) < battle_config.gm_skilluncond) &&
-				(skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1)
-			) {
+			if (skill_check_pc_partner(sd, skill_num, &skill_lv, 1, 0) < 1)
+			{
 				clif_skill_fail(sd,skill_num,0,0);
 				return 0;
 			}
@@ -950,10 +950,10 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 			casttime += casttime * min(skill_lv, sd->spiritball);
 	break;
 	case MO_EXTREMITYFIST:
-		if (sc && sc->data[SC_COMBO].timer != -1 &&
-		   (sc->data[SC_COMBO].val1 == MO_COMBOFINISH ||
-			sc->data[SC_COMBO].val1 == CH_TIGERFIST ||
-			sc->data[SC_COMBO].val1 == CH_CHAINCRUSH))
+		if (sc && sc->data[SC_COMBO] &&
+		   (sc->data[SC_COMBO]->val1 == MO_COMBOFINISH ||
+			sc->data[SC_COMBO]->val1 == CH_TIGERFIST ||
+			sc->data[SC_COMBO]->val1 == CH_CHAINCRUSH))
 			casttime = 0;
 		temp = 1;
 	break;
@@ -961,11 +961,11 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 		temp = 1;
 	break;
 	case ST_CHASEWALK:
-		if (sc && sc->data[SC_CHASEWALK].timer != -1)
+		if (sc && sc->data[SC_CHASEWALK])
 			casttime = 0;
 	break;
 	case TK_RUN:
-		if (sc && sc->data[SC_RUN].timer != -1)
+		if (sc && sc->data[SC_RUN])
 			casttime = 0;
 	break;
 	case KN_CHARGEATK:
@@ -1025,8 +1025,8 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 	ud->skillid      = skill_num;
 	ud->skilllv      = skill_lv;
 
- 	if(sc && sc->data[SC_CLOAKING].timer != -1 &&
-		!(sc->data[SC_CLOAKING].val4&4) && skill_num != AS_CLOAKING)
+ 	if(sc && sc->data[SC_CLOAKING] &&
+		!(sc->data[SC_CLOAKING]->val4&4) && skill_num != AS_CLOAKING)
 	{
 		status_change_end(src,SC_CLOAKING,-1);
 		if (!src->prev) return 0; //Warped away!
@@ -1082,8 +1082,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, sh
 		sc = NULL;
 	
 	if(sd) {
-		if (skillnotok(skill_num, sd) ||
-			!skill_check_condition(sd, skill_num, skill_lv,0))
+		if (skillnotok(skill_num, sd) || !skill_check_condition(sd, skill_num, skill_lv,0))
 		return 0;
 	} 
 	
@@ -1130,8 +1129,7 @@ int unit_skilluse_pos2( struct block_list *src, short skill_x, short skill_y, sh
 	ud->skilly       = skill_y;
 	ud->skilltarget  = 0;
 
-	if (sc && sc->data[SC_CLOAKING].timer != -1 &&
-		!(sc->data[SC_CLOAKING].val4&4))
+	if (sc && sc->data[SC_CLOAKING] && !(sc->data[SC_CLOAKING]->val4&4))
 	{
 		status_change_end(src,SC_CLOAKING,-1);
 		if (!src->prev) return 0; //Warped away!
@@ -1614,43 +1612,43 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 	ud->attackabletime = ud->canmove_tick /*= ud->canact_tick*/ = gettick();
 	
 	if(sc && sc->count ) { //map-change/warp dispells.
-		if(sc->data[SC_BLADESTOP].timer!=-1)
+		if(sc->data[SC_BLADESTOP])
 			status_change_end(bl,SC_BLADESTOP,-1);
-		if(sc->data[SC_BASILICA].timer!=-1)
+		if(sc->data[SC_BASILICA])
 			status_change_end(bl,SC_BASILICA,-1);
-		if(sc->data[SC_ANKLE].timer != -1)
+		if(sc->data[SC_ANKLE])
 			status_change_end(bl, SC_ANKLE, -1);
-		if (sc->data[SC_TRICKDEAD].timer != -1)
+		if (sc->data[SC_TRICKDEAD])
 			status_change_end(bl, SC_TRICKDEAD, -1);
-		if (sc->data[SC_BLADESTOP].timer!=-1)
+		if (sc->data[SC_BLADESTOP])
 			status_change_end(bl,SC_BLADESTOP,-1);
-		if (sc->data[SC_RUN].timer!=-1)
+		if (sc->data[SC_RUN])
 			status_change_end(bl,SC_RUN,-1);
-		if (sc->data[SC_DANCING].timer!=-1) // clear dance effect when warping [Valaris]
+		if (sc->data[SC_DANCING]) // clear dance effect when warping [Valaris]
 			skill_stop_dancing(bl);
-		if (sc->data[SC_WARM].timer!=-1)
+		if (sc->data[SC_WARM])
 			status_change_end(bl, SC_WARM, -1);
-		if (sc->data[SC_DEVOTION].timer!=-1)
+		if (sc->data[SC_DEVOTION])
 			status_change_end(bl,SC_DEVOTION,-1);
-		if (sc->data[SC_MARIONETTE].timer!=-1)
+		if (sc->data[SC_MARIONETTE])
 			status_change_end(bl,SC_MARIONETTE,-1);
-		if (sc->data[SC_MARIONETTE2].timer!=-1)
+		if (sc->data[SC_MARIONETTE2])
 			status_change_end(bl,SC_MARIONETTE2,-1);
-		if (sc->data[SC_CLOSECONFINE].timer!=-1)
+		if (sc->data[SC_CLOSECONFINE])
 			status_change_end(bl,SC_CLOSECONFINE,-1);
-		if (sc->data[SC_CLOSECONFINE2].timer!=-1)
+		if (sc->data[SC_CLOSECONFINE2])
 			status_change_end(bl,SC_CLOSECONFINE2,-1);
-		if (sc->data[SC_HIDING].timer!=-1)
+		if (sc->data[SC_HIDING])
 			status_change_end(bl, SC_HIDING, -1);
-		if (sc->data[SC_CLOAKING].timer!=-1)
+		if (sc->data[SC_CLOAKING])
 			status_change_end(bl, SC_CLOAKING, -1);
-		if (sc->data[SC_CHASEWALK].timer!=-1)
+		if (sc->data[SC_CHASEWALK])
 			status_change_end(bl, SC_CHASEWALK, -1);
-		if (sc->data[SC_GOSPEL].timer != -1 && sc->data[SC_GOSPEL].val4 == BCT_SELF)
+		if (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)
 			status_change_end(bl, SC_GOSPEL, -1);
-		if (sc->data[SC_CHANGE].timer!=-1)
+		if (sc->data[SC_CHANGE])
 			status_change_end(bl, SC_CHANGE, -1);
-		if (sc->data[SC_MIRACLE].timer!=-1)
+		if (sc->data[SC_MIRACLE])
 			status_change_end(bl, SC_MIRACLE, -1);
 	}
 
@@ -1693,6 +1691,8 @@ int unit_remove_map(struct block_list *bl, int clrtype)
 			sd->pvp_timer = -1;
 			sd->pvp_rank = 0;
 		}
+		if(sd->duel_group > 0)
+			duel_leave(sd->duel_group, sd);
 
 		if(pc_issit(sd)) {
 			pc_setstand(sd);
@@ -1758,39 +1758,39 @@ int unit_free(struct block_list *bl, int clrtype)
 
 		//Status that are not saved...
 		if(sd->sc.count) {
-			if(sd->sc.data[SC_SPURT].timer!=-1)
+			if(sd->sc.data[SC_SPURT])
 				status_change_end(bl,SC_SPURT,-1);
-			if(sd->sc.data[SC_BERSERK].timer!=-1)
+			if(sd->sc.data[SC_BERSERK])
 				status_change_end(bl,SC_BERSERK,-1);
-			if(sd->sc.data[SC_TRICKDEAD].timer!=-1)
+			if(sd->sc.data[SC_TRICKDEAD])
 				status_change_end(bl,SC_TRICKDEAD,-1);
-			if(sd->sc.data[SC_GUILDAURA].timer!=-1)
+			if(sd->sc.data[SC_GUILDAURA])
 				status_change_end(bl,SC_GUILDAURA,-1);
 			if (battle_config.debuff_on_logout&1) {
-				if(sd->sc.data[SC_ORCISH].timer!=-1)
+				if(sd->sc.data[SC_ORCISH])
 					status_change_end(bl,SC_ORCISH,-1);
-				if(sd->sc.data[SC_STRIPWEAPON].timer!=-1)
+				if(sd->sc.data[SC_STRIPWEAPON])
 					status_change_end(bl,SC_STRIPWEAPON,-1);
-				if(sd->sc.data[SC_STRIPARMOR].timer!=-1)
+				if(sd->sc.data[SC_STRIPARMOR])
 					status_change_end(bl,SC_STRIPARMOR,-1);
-				if(sd->sc.data[SC_STRIPSHIELD].timer!=-1)
+				if(sd->sc.data[SC_STRIPSHIELD])
 					status_change_end(bl,SC_STRIPSHIELD,-1);
-				if(sd->sc.data[SC_STRIPHELM].timer!=-1)
+				if(sd->sc.data[SC_STRIPHELM])
 					status_change_end(bl,SC_STRIPHELM,-1);
-				if(sd->sc.data[SC_EXTREMITYFIST].timer!=-1)
+				if(sd->sc.data[SC_EXTREMITYFIST])
 					status_change_end(bl,SC_EXTREMITYFIST,-1);
-				if(sd->sc.data[SC_EXPLOSIONSPIRITS].timer!=-1)
+				if(sd->sc.data[SC_EXPLOSIONSPIRITS])
 					status_change_end(bl,SC_EXPLOSIONSPIRITS,-1);
-				if(sd->sc.data[SC_REGENERATION].timer!=-1 && sd->sc.data[SC_REGENERATION].val4)
+				if(sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
 					status_change_end(bl,SC_REGENERATION,-1);
 			}
 			if (battle_config.debuff_on_logout&2)
 			{
-				if(sd->sc.data[SC_MAXIMIZEPOWER].timer!=-1)
+				if(sd->sc.data[SC_MAXIMIZEPOWER])
 					status_change_end(bl,SC_MAXIMIZEPOWER,-1);
-				if(sd->sc.data[SC_MAXOVERTHRUST].timer!=-1)
+				if(sd->sc.data[SC_MAXOVERTHRUST])
 					status_change_end(bl,SC_MAXOVERTHRUST,-1);
-				if(sd->sc.data[SC_STEELBODY].timer!=-1)
+				if(sd->sc.data[SC_STEELBODY])
 					status_change_end(bl,SC_STEELBODY,-1);
 			}
 		}
@@ -1800,9 +1800,6 @@ int unit_free(struct block_list *bl, int clrtype)
 
 		if (sd->followtimer != -1)
 			pc_stop_following(sd);
-		// Force exiting from duel and rejecting all duel invitations when player quit [LuzZza]
-		if(sd->duel_group > 0)
-			duel_leave(sd->duel_group, sd);
 			
 		if(sd->duel_invite > 0)
 			duel_reject(sd->duel_invite, sd);
@@ -1811,7 +1808,7 @@ int unit_free(struct block_list *bl, int clrtype)
 		clif_foreachclient(clif_friendslist_toggle_sub, sd->status.account_id, sd->status.char_id, 0);
 		party_send_logout(sd);
 		guild_send_memberinfoshort(sd,0);
-		pc_cleareventtimer(sd);		
+		pc_cleareventtimer(sd);
 		pc_delspiritball(sd,sd->spiritball,1);
 		if (clrtype >= 0) {
 			chrif_save_scdata(sd); //Save status changes, then clear'em out from memory. [Skotlex]

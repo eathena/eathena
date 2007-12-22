@@ -443,17 +443,17 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		skill_unit_move(bl,tick,2);
 		sc = status_get_sc(bl);
 		if (sc && sc->count) {
-			if (sc->data[SC_CLOSECONFINE].timer != -1)
+			if (sc->data[SC_CLOSECONFINE])
 				status_change_end(bl, SC_CLOSECONFINE, -1);
-			if (sc->data[SC_CLOSECONFINE2].timer != -1)
+			if (sc->data[SC_CLOSECONFINE2])
 				status_change_end(bl, SC_CLOSECONFINE2, -1);
-//			if (sc->data[SC_BLADESTOP].timer != -1) //Won't stop when you are knocked away, go figure...
+//			if (sc->data[SC_BLADESTOP]) //Won't stop when you are knocked away, go figure...
 //				status_change_end(bl, SC_BLADESTOP, -1);
-			if (sc->data[SC_BASILICA].timer != -1)
+			if (sc->data[SC_BASILICA])
 				status_change_end(bl, SC_BASILICA, -1);
-			if (sc->data[SC_TATAMIGAESHI].timer != -1)
+			if (sc->data[SC_TATAMIGAESHI])
 				status_change_end(bl, SC_TATAMIGAESHI, -1);
-			if (sc->data[SC_MAGICROD].timer != -1)
+			if (sc->data[SC_MAGICROD])
 				status_change_end(bl, SC_MAGICROD, -1);
 		}
 	}
@@ -471,12 +471,12 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		skill_unit_move(bl,tick,3);
 		if (sc) {
 			if (sc->count) {
-				if (sc->data[SC_CLOAKING].timer != -1)
-					skill_check_cloaking(bl, sc);
-				if (sc->data[SC_DANCING].timer != -1)
-					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING].val2, bl->m, x1-x0, y1-y0);
-				if (sc->data[SC_WARM].timer != -1)
-					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM].val4, bl->m, x1-x0, y1-y0);
+				if (sc->data[SC_CLOAKING])
+					skill_check_cloaking(bl, sc->data[SC_CLOAKING]);
+				if (sc->data[SC_DANCING])
+					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING]->val2, bl->m, x1-x0, y1-y0);
+				if (sc->data[SC_WARM])
+					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM]->val4, bl->m, x1-x0, y1-y0);
 			}
 		}
 	}
@@ -3391,6 +3391,7 @@ void do_final(void)
 	do_final_mob();
 	do_final_msg();
 	do_final_skill();
+	do_final_status();
 	do_final_unit();
 
 	map_getallusers(NULL); //Clear the memory allocated for this array.

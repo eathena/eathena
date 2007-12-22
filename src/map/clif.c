@@ -3505,9 +3505,9 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 
 	sc = status_get_sc(dst);
 	if(sc && sc->count) {
-		if(sc->data[SC_HALLUCINATION].timer != -1) {
-			if(damage > 0) damage = damage*(5+sc->data[SC_HALLUCINATION].val1) + rand()%100;
-			if(damage2 > 0) damage2 = damage2*(5+sc->data[SC_HALLUCINATION].val1) + rand()%100;
+		if(sc->data[SC_HALLUCINATION]) {
+			if(damage) damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
+			if(damage2) damage2 = damage2*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
 		}
 	}
 
@@ -4074,8 +4074,8 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	type = clif_calc_delay(type, ddelay);
 	sc = status_get_sc(dst);
 	if(sc && sc->count) {
-		if(sc->data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc->data[SC_HALLUCINATION].val1) + rand()%100;
+		if(sc->data[SC_HALLUCINATION] && damage)
+			damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
 	}
 
 #if PACKETVER < 3
@@ -4163,8 +4163,8 @@ int clif_skill_damage2(struct block_list *src,struct block_list *dst,unsigned in
 	sc = status_get_sc(dst);
 
 	if(sc && sc->count) {
-		if(sc->data[SC_HALLUCINATION].timer != -1 && damage > 0)
-			damage = damage*(5+sc->data[SC_HALLUCINATION].val1) + rand()%100;
+		if(sc->data[SC_HALLUCINATION] && damage)
+			damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
 	}
 
 	WBUFW(buf,0)=0x115;
@@ -7922,7 +7922,7 @@ void clif_parse_WalkToXY(int fd, struct map_session_data *sd)
 	else if (pc_cant_act(sd))
 		return;
 
-	if(sd->sc.count && sd->sc.data[SC_RUN].timer != -1)
+	if(sd->sc.data[SC_RUN])
 		return;
 
 	pc_delinvincibletimer(sd);
@@ -7947,7 +7947,7 @@ void clif_parse_QuitGame(int fd, struct map_session_data *sd)
 	WFIFOW(fd,0) = 0x18b;
 
 	/*	Rovert's prevent logout option fixed [Valaris]	*/
-	if (sd->sc.data[SC_CLOAKING].timer==-1 && sd->sc.data[SC_HIDING].timer==-1 &&
+	if (!sd->sc.data[SC_CLOAKING] && !sd->sc.data[SC_HIDING] &&
 		(!battle_config.prevent_logout || DIFF_TICK(gettick(), sd->canlog_tick) > battle_config.prevent_logout)
 	) {
 		clif_setwaitclose(fd);
@@ -7994,7 +7994,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	if( is_atcommand(fd, sd, message) || is_charcommand(fd, sd, message) )
 		return;
 
-	if( sd->sc.data[SC_BERSERK].timer != -1 || (sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT) )
+	if( sd->sc.data[SC_BERSERK] || (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) )
 		return;
 
 	if( battle_config.min_chat_delay )
@@ -8172,9 +8172,9 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 	}
 
 	if (sd->sc.count &&
-		(sd->sc.data[SC_TRICKDEAD].timer != -1 ||
-	 	sd->sc.data[SC_AUTOCOUNTER].timer != -1 ||
-		sd->sc.data[SC_BLADESTOP].timer != -1))
+		(sd->sc.data[SC_TRICKDEAD] ||
+	 	sd->sc.data[SC_AUTOCOUNTER] ||
+		sd->sc.data[SC_BLADESTOP]))
 		return;
 
 	pc_stop_walking(sd, 1);
@@ -8221,8 +8221,8 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 			break;
 
 		if (sd->sc.count && (
-			sd->sc.data[SC_DANCING].timer != -1 ||
-			(sd->sc.data[SC_GRAVITATION].timer != -1 && sd->sc.data[SC_GRAVITATION].val3 == BCT_SELF)
+			sd->sc.data[SC_DANCING] ||
+			(sd->sc.data[SC_GRAVITATION] && sd->sc.data[SC_GRAVITATION]->val3 == BCT_SELF)
 		)) //No sitting during these states either.
 			break;
 
@@ -8304,7 +8304,7 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 	if (is_atcommand(fd, sd, message) || is_charcommand(fd, sd, message) )
 		return;
 
-	if (sd->sc.data[SC_BERSERK].timer!=-1 || (sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT))
+	if (sd->sc.data[SC_BERSERK] || (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT))
 		return;
 
 	if (battle_config.min_chat_delay)
@@ -8482,9 +8482,9 @@ void clif_parse_TakeItem(int fd, struct map_session_data *sd)
 			break;
 		
 		if(sd->sc.count && (
-			sd->sc.data[SC_TRICKDEAD].timer != -1 ||
-			sd->sc.data[SC_BLADESTOP].timer != -1 ||
-			(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOITEM))
+			sd->sc.data[SC_TRICKDEAD] ||
+			sd->sc.data[SC_BLADESTOP] ||
+			(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM))
 		)
 			break;
 
@@ -8513,9 +8513,9 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd)
 			break;
 
 		if (sd->sc.count && (
-			sd->sc.data[SC_AUTOCOUNTER].timer != -1 ||
-			sd->sc.data[SC_BLADESTOP].timer != -1 ||
-			(sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOITEM)
+			sd->sc.data[SC_AUTOCOUNTER] ||
+			sd->sc.data[SC_BLADESTOP] ||
+			(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOITEM)
 		))
 			break;
 
@@ -8524,7 +8524,8 @@ void clif_parse_DropItem(int fd, struct map_session_data *sd)
 
 		return;
 	} while (0);
-	//Because the client does not likes being ignored.
+
+	//Because the client does not like being ignored.
 	clif_delitem(sd, item_index,0);
 }
 
@@ -8584,9 +8585,6 @@ void clif_parse_EquipItem(int fd,struct map_session_data *sd)
 	} else if (sd->state.storage_flag || sd->sc.opt1)
 		; //You can equip/unequip stuff while storage is open/under status changes
 	else if (pc_cant_act(sd))
-		return;
-
-	if(sd->sc.data[SC_BLADESTOP].timer!=-1 || sd->sc.data[SC_BERSERK].timer!=-1 )
 		return;
 
 	if(!sd->status.inventory[index].identify) {
@@ -8733,7 +8731,7 @@ void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 	char s_title[CHATROOM_TITLE_SIZE];
 	char s_password[CHATROOM_PASS_SIZE];
 
-	if (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOROOM)
+	if (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOROOM)
 		return;
 	if(battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
 		clif_skill_fail(sd,1,0,3);
@@ -9047,10 +9045,10 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 
 	sd->skillitem = sd->skillitemlv = 0;
 	if (skillnum == MO_EXTREMITYFIST) {
-		if ((sd->sc.data[SC_COMBO].timer == -1 ||
-			(sd->sc.data[SC_COMBO].val1 != MO_COMBOFINISH &&
-			sd->sc.data[SC_COMBO].val1 != CH_TIGERFIST &&
-			sd->sc.data[SC_COMBO].val1 != CH_CHAINCRUSH))) {
+		if ((!sd->sc.data[SC_COMBO] ||
+			(sd->sc.data[SC_COMBO]->val1 != MO_COMBOFINISH &&
+			sd->sc.data[SC_COMBO]->val1 != CH_TIGERFIST &&
+			sd->sc.data[SC_COMBO]->val1 != CH_CHAINCRUSH))) {
 			if (!sd->state.skill_flag ) {
 				sd->state.skill_flag = 1;
 				clif_skillinfo(sd, MO_EXTREMITYFIST, INF_ATTACK_SKILL, -1);
@@ -9062,8 +9060,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 		}
 	}
 	if (skillnum == TK_JUMPKICK) {
-		if (sd->sc.data[SC_COMBO].timer == -1 ||
-			sd->sc.data[SC_COMBO].val1 != TK_JUMPKICK) {
+		if (!sd->sc.data[SC_COMBO] || sd->sc.data[SC_COMBO]->val1 != TK_JUMPKICK) {
 			if (!sd->state.skill_flag ) {
 				sd->state.skill_flag = 1;
 				clif_skillinfo(sd, TK_JUMPKICK, INF_ATTACK_SKILL, -1);
@@ -9699,7 +9696,7 @@ void clif_parse_PartyMessage(int fd, struct map_session_data* sd)
 	if( is_atcommand(fd, sd, message) || is_charcommand(fd, sd, message) )
 		return;
 
-	if( sd->sc.data[SC_BERSERK].timer!=-1 || (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT) )
+	if( sd->sc.data[SC_BERSERK] || (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) )
 		return;
 
 	if( battle_config.min_chat_delay )
@@ -9756,7 +9753,7 @@ void clif_parse_OpenVending(int fd, struct map_session_data* sd)
 	bool flag = (bool)RFIFOB(fd,84);
 	const uint8* data = (uint8*)RFIFOP(fd,85);
 
-	if( sd->sc.data[SC_NOCHAT].timer != -1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOROOM )
+	if( sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOROOM )
 		return;
 	if( map[sd->bl.m].flag.novending || map_getcell(sd->bl.m,sd->bl.x,sd->bl.y,CELL_CHKNOVENDING) ) {
 		clif_displaymessage (sd->fd, msg_txt(276)); // "You can't open shop on this map"
@@ -9940,7 +9937,8 @@ void clif_parse_GuildLeave(int fd,struct map_session_data *sd)
 }
 
 /*==========================================
- * ƒMƒ‹ƒh’Ç•ú
+ * Request to expel a member of a guild
+ * S 015b <guild_id>.L <account_id>.L <char_id>.L <reason>.39B 00
  *------------------------------------------*/
 void clif_parse_GuildExpulsion(int fd,struct map_session_data *sd)
 {
@@ -9971,7 +9969,7 @@ void clif_parse_GuildMessage(int fd, struct map_session_data* sd)
 	if( is_atcommand(fd, sd, message) || is_charcommand(fd, sd, message) )
 		return;
 
-	if( sd->sc.data[SC_BERSERK].timer!=-1 || (sd->sc.data[SC_NOCHAT].timer!=-1 && sd->sc.data[SC_NOCHAT].val1&MANNER_NOCHAT) )
+	if( sd->sc.data[SC_BERSERK] || (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT) )
 		return;
 
 	if( battle_config.min_chat_delay )

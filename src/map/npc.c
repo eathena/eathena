@@ -751,8 +751,7 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 	switch(map[m].npc[i]->subtype) {
 		case WARP:
 			// hidden chars cannot use warps -- is it the same for scripts too?
-			if (sd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK) ||
-				(!battle_config.duel_allow_teleport && sd->duel_group)) // duel rstrct [LuzZza]
+			if (sd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))
 				break;
 			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
 			break;
@@ -2143,7 +2142,7 @@ int npc_parse_mob2(struct spawn_data* mob, int index)
 
 int npc_parse_mob(char* w1, char* w2, char* w3, char* w4)
 {
-	int level, num, class_, mode, x,y,xs,ys, temp;
+	int level, num, class_, mode, x,y,xs,ys;
 	char mapname[MAP_NAME_LENGTH_EXT];
 	char mobname[NAME_LENGTH];
 	struct spawn_data mob, *data;
@@ -2181,11 +2180,6 @@ int npc_parse_mob(char* w1, char* w2, char* w3, char* w4)
 		ShowError("wrong number of monsters : %s %s (file %s)\n", w3, w4, current_file);
 		return 1;
 	}
-
-	//Fixed according to latest kRO update (needs optimization)
-	temp = mob.delay1;
-	mob.delay1 += mob.delay2;
-	mob.delay2 = temp;
 
 	mob.num = (unsigned short)num;
 	mob.class_ = (short) class_;

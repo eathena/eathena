@@ -4,6 +4,13 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/12/22
+	* Merged using an ers system for individual status changes (saves a lot of
+	  memory). NOTE: this is a pretty large merge, so be sure to test before
+	  updating, and report any problems that may have arisen.
+	* Duels are now cancelled when a person warps to another map.
+	* Being in a duel no longer blocks stepping into warps
+	* Merged correct implementation of the mob spawn delays. [Skotlex]
 2007/12/19
 	* Fixed yet another buffer overflow, in @adopt [ultramage]
 	* Updated respawn time interpretation according to latest kRO update [Playtester]

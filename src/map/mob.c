@@ -612,24 +612,19 @@ static int mob_delayspawn(int tid, unsigned int tick, int m, int n)
  *------------------------------------------*/
 int mob_setdelayspawn(struct mob_data *md)
 {
-	unsigned int spawntime, spawntime1, spawntime2, spawntime3;
-
+	unsigned int spawntime;
 
 	if (!md->spawn) //Doesn't has respawn data!
 		return unit_free(&md->bl,1);
 
-	spawntime1 = md->last_spawntime + md->spawn->delay1;
-	spawntime2 = md->last_deadtime + md->spawn->delay2;
-	spawntime3 = gettick() + 5000 + rand()%5000; //Lupus
-	// spawntime = max(spawntime1,spawntime2,spawntime3);
-	if (DIFF_TICK(spawntime1, spawntime2) > 0)
-		spawntime = spawntime1;
-	else
-		spawntime = spawntime2;
-	if (DIFF_TICK(spawntime3, spawntime) > 0)
-		spawntime = spawntime3;
+	spawntime = md->spawn->delay1; //Base respawn time
+	if (md->spawn->delay2) //random variance
+		spawntime+= rand()%md->spawn->delay2;
 
-	add_timer(spawntime, mob_delayspawn, md->bl.id, 0);
+	if (spawntime < 5000) //Min respawn time (is it needed?)
+		spawntime = 5000;
+
+	add_timer(gettick()+spawntime, mob_delayspawn, md->bl.id, 0);
 	return 0;
 }
 
@@ -646,7 +641,6 @@ int mob_spawn (struct mob_data *md)
 	int i=0;
 	unsigned int c =0, tick = gettick();
 
-	md->last_spawntime = md->last_thinktime = tick;
 	if (md->bl.prev != NULL)
 		unit_remove_map(&md->bl,2);
 	else
@@ -1131,13 +1125,13 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 		return 0;
 
 	// Abnormalities
-	if((md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->sc.data[SC_BLADESTOP].timer != -1)
+	if((md->sc.opt1 > 0 && md->sc.opt1 != OPT1_STONEWAIT) || md->sc.data[SC_BLADESTOP])
   	{	//Should reset targets.
 		md->target_id = md->attacked_id = 0;
 		return 0;
 	}
 
-	if (md->sc.count && md->sc.data[SC_BLIND].timer != -1)
+	if (md->sc.count && md->sc.data[SC_BLIND])
 		view_range = 3;
 	else
 		view_range = md->db->range2;
@@ -1171,7 +1165,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 			if (!battle_check_range(&md->bl, tbl, md->status.rhw.range) &&
 				(	//Can't attack back and can't reach back.
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
-					  	(battle_config.mob_ai&0x2 || md->sc.data[SC_SPIDERWEB].timer != -1)) ||
+					  	(battle_config.mob_ai&0x2 || md->sc.data[SC_SPIDERWEB])) ||
 					(!mob_can_reach(md, tbl, md->min_chase, MSS_RUSH))
 				) &&
 				md->state.attacked_count++ >= RUDE_ATTACKED_COUNT &&
@@ -1190,7 +1184,7 @@ static int mob_ai_sub_hard(struct block_list *bl,va_list ap)
 				(!battle_check_range(&md->bl, abl, md->status.rhw.range) &&
 					( //Reach check
 					(!can_move && DIFF_TICK(tick, md->ud.canmove_tick) > 0 &&
-							(battle_config.mob_ai&0x2 || md->sc.data[SC_SPIDERWEB].timer != -1)) ||
+							(battle_config.mob_ai&0x2 || md->sc.data[SC_SPIDERWEB])) ||
 						!mob_can_reach(md, abl, dist+md->db->range3, MSS_RUSH)
 					)
 				)
@@ -1746,9 +1740,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	md->state.skillstate = MSS_DEAD;	
 	mobskill_use(md,tick,-1);	//On Dead skill.
 
-	if (md->sc.data[SC_KAIZEL].timer != -1)
+	if (md->sc.data[SC_KAIZEL])
 	{	//Revive in a bit.
-		add_timer(gettick()+3000, mob_respawn, md->bl.id, 10*md->sc.data[SC_KAIZEL].val1); //% of life to rebirth with
+		add_timer(gettick()+3000, mob_respawn, md->bl.id, md->sc.data[SC_KAIZEL]->val2); //% of life to rebirth with
 		map_delblock(&md->bl);
 		return 1; //Return 1 to only clear the object.
 	}
@@ -1825,18 +1819,17 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		(!md->master_id || !md->special_state.ai) && //Only player-summoned mobs do not give exp. [Skotlex]
 		(!map[m].flag.nobaseexp || !map[m].flag.nojobexp) //Gives Exp
 	) { //Experience calculation.
-		int bonus = 100; //Bonus on top of your share.
-		if (md->sc.data[SC_RICHMANKIM].timer != -1)
-			bonus += md->sc.data[SC_RICHMANKIM].val2;
+		int bonus = 100; //Bonus on top of your share (common to all attackers).
+		if (md->sc.data[SC_RICHMANKIM])
+			bonus += md->sc.data[SC_RICHMANKIM]->val2;
 		if(sd) {
 			temp = status_get_class(&md->bl);
-			ARR_FIND(0, 3, i, temp == sd->hate_mob[i]);
-			if (i < 3 && (
-				battle_config.allow_skill_without_day ||
-				sg_info[i].day_func() ||
-				(i==2 && sd->sc.data[SC_MIRACLE].timer!=-1) //Miracle only applies to Star target
-			))
-				bonus += (i==2?20:10)*pc_checkskill(sd,sg_info[i].bless_id);
+			if(sd->sc.data[SC_MIRACLE]) i = 2; //All mobs are Star Targets
+			else
+			ARR_FIND(0, 3, i, temp == sd->hate_mob[i] &&
+				(battle_config.allow_skill_without_day || sg_info[i].day_func()));
+			if(i<3 && (temp=pc_checkskill(sd,sg_info[i].bless_id)))
+				bonus += (i==2?20:10)*temp;
 		}
 		if(battle_config.mobs_level_up && md->level > md->db->lv) // [Valaris]
 			bonus += (md->level-md->db->lv)*battle_config.mobs_level_up_exp_rate;
@@ -1983,13 +1976,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 			// attempt to drop the item
 			if (rand() % 10000 >= drop_rate)
-			{
-				if (sd && sd->sc.data[SC_ITEMBOOST].timer != -1)
-				{
-					if (rand() % 10000 >= drop_rate)
-						continue; // Double try by Bubble Gum
-				}
-				else
+			{	// Double try by Bubble Gum
+				if (!(sd && sd->sc.data[SC_ITEMBOOST] && rand() % 10000 < drop_rate))
 					continue;
 			}
 
@@ -2189,7 +2177,6 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	}
 
 	mob_deleteslave(md);
-	md->last_deadtime=tick;
 	
 	map_freeblock_unlock();
 
@@ -2618,11 +2605,11 @@ int mob_getfriendstatus_sub(struct block_list *bl,va_list ap)
 	if( cond2==-1 ){
 		int j;
 		for(j=SC_COMMON_MIN;j<=SC_COMMON_MAX && !flag;j++){
-			if ((flag=(md->sc.data[j].timer!=-1))) //Once an effect was found, break out. [Skotlex]
+			if ((flag=(md->sc.data[j] != NULL))) //Once an effect was found, break out. [Skotlex]
 				break;
 		}
 	}else
-		flag=( md->sc.data[cond2].timer!=-1 );
+		flag=( md->sc.data[cond2] != NULL );
 	if( flag^( cond1==MSC_FRIENDSTATUSOFF ) )
 		(*fr)=md;
 
@@ -2706,10 +2693,10 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 						flag = 0;
 					} else if (ms[i].cond2 == -1) {
 						for (j = SC_COMMON_MIN; j <= SC_COMMON_MAX; j++)
-							if ((flag = (md->sc.data[j].timer != -1)) != 0)
+							if ((flag = (md->sc.data[j]!=NULL)) != 0)
 								break;
 					} else {
-						flag = (md->sc.data[ms[i].cond2].timer != -1);
+						flag = (md->sc.data[ms[i].cond2]!=NULL);
 					}
 					flag ^= (ms[i].cond1 == MSC_MYSTATUSOFF); break;
 				case MSC_FRIENDHPLTMAXRATE:	// friend HP < maxhp%
@@ -2736,7 +2723,7 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 				case MSC_MASTERHPLTMAXRATE:
 					flag = ((fbl = mob_getmasterhpltmaxrate(md, ms[i].cond2)) != NULL); break;
 				case MSC_MASTERATTACKED:
-					flag = (md->master_id > 0 && unit_counttargeted(map_id2bl(md->master_id), 0) > 0); break;
+					flag = (md->master_id > 0 && (fbl=map_id2bl(md->master_id)) && unit_counttargeted(fbl, 0) > 0); break;
 				case MSC_ALCHEMIST:
 					flag = (md->state.alchemist);
 					break;
@@ -3170,7 +3157,7 @@ static bool mob_parse_dbrow(char** str)
 	}
 
 	if (mob_db_data[class_] == NULL)
-		mob_db_data[class_] = aCalloc(1, sizeof (struct mob_data));
+		mob_db_data[class_] = aCalloc(1, sizeof (struct mob_db));
 	
 	db = mob_db_data[class_];
 	status = &db->status;
