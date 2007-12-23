@@ -3016,16 +3016,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		{
 			int abra_skillid = 0, abra_skilllv;
 			do {
-				abra_skillid = rand() % MAX_SKILL_ABRA_DB;
-				if (
-//Unneeded check, use the "per" field to know if the skill is valid.
-//					skill_get_inf2(abra_skillid)&(INF2_NPC_SKILL|INF2_SONG_DANCE|INF2_ENSEMBLE_SKILL) || //NPC/Song/Dance skills are out
-					!skill_get_inf(abra_skillid) || //Passive skills cannot be casted
-					skill_abra_db[abra_skillid].req_lv > skilllv || //Required lv for it to appear
-					rand()%10000 >= skill_abra_db[abra_skillid].per
-				)
-					abra_skillid = 0;	// reset to get a new id
-			} while (abra_skillid == 0);
+				i = rand() % MAX_SKILL_ABRA_DB;
+				abra_skillid = skill_abra_db[i].skillid;
+			} while (abra_skillid == 0 ||
+				skill_abra_db[i].req_lv > skilllv || //Required lv for it to appear
+				rand()%10000 >= skill_abra_db[i].per
+			);
 			abra_skilllv = min(skilllv, skill_get_max(abra_skillid));
 			clif_skill_nodamage (src, bl, skillid, skilllv, 1);
 			
@@ -10996,14 +10992,18 @@ static bool skill_parse_row_createarrowdb(char* split[], int columns, int curren
 static bool skill_parse_row_abradb(char* split[], int columns, int current)
 {// SkillID,DummyName,RequiredHocusPocusLevel,Rate
 	int i = atoi(split[0]);
-	i = skill_get_index(i);
-	if( !i )
-		return false;
-	if( current == MAX_SKILL_ABRA_DB )
+	if( !skill_get_index(i) || !skill_get_max(i) )
 		return false;
 
-	skill_abra_db[i].req_lv = atoi(split[2]);
-	skill_abra_db[i].per = atoi(split[3]);
+	if ( !skill_get_inf(i) )
+		return false;
+
+	if( current == MAX_SKILL_ABRA_DB )
+		return false;
+	
+	skill_abra_db[current].skillid = i;
+	skill_abra_db[current].req_lv = atoi(split[2]);
+	skill_abra_db[current].per = atoi(split[3]);
 
 	//TODO?: add capacity warning here
 
@@ -11018,9 +11018,8 @@ static bool skill_parse_row_castnodexdb(char* split[], int columns, int current)
 		return false;
 	
 	skill_split_atoi(split[1],skill_db[i].castnodex);
-	if( !split[2] ) // optional column
-		return false;
-	skill_split_atoi(split[2],skill_db[i].delaynodex);
+	if( split[2] ) // optional column
+		skill_split_atoi(split[2],skill_db[i].delaynodex);
 
 	return true;
 }

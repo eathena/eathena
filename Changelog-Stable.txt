@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2007/12/23
+	* Fixed horrible handling of skill_abra_db which leads to memory corruption
+	  (depending on the contents of yor abra_db.txt file) [Skotlex]
 	* Merged new configure script, makefiles, conf-tmpl renamed to conf and 
 	  import renamed to import-tmpl (see topic:174369). [FlavioJS]
 2007/12/22
