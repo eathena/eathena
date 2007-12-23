@@ -3236,7 +3236,7 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
 
 	nullpo_retr(0, sd);
 
-	if (idx < 0 || idx >= MAX_CART) //Invalid index check [Skotlex]
+	if (idx < 0 || idx >= MAX_INVENTORY) //Invalid index check [Skotlex]
 		return 1;
 	
 	item_data = &sd->status.inventory[idx];
@@ -4110,7 +4110,6 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 
 	if (!next || sd->status.base_exp < next)
 		return 0;
-	
 	do {
 		sd->status.base_exp -= next;
 		//Kyoki pointed out that the max overcarry exp is the exp needed for the previous level -1. [Skotlex]

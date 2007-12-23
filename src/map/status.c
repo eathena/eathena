@@ -6611,19 +6611,18 @@ int kaahi_heal_timer(int tid, unsigned int tick, int id, int data)
 	struct status_data *status;
 	int hp;
 
-	bl=map_id2bl(id);
-	sc=status_get_sc(bl);
-	status=status_get_status_data(bl);
-	
-	if (!(sc && status && data == SC_KAAHI && sc->data[data]))
+	if(!((bl=map_id2bl(id))&&
+		(sc=status_get_sc(bl)) &&
+		(sce = sc->data[SC_KAAHI])))
 		return 0;
-	sce = sc->data[data];
+
 	if(sce->val4 != tid) {
 		ShowError("kaahi_heal_timer: Timer mismatch: %d != %d\n", tid, sce->val4);
 		sce->val4=-1;
 		return 0;
 	}
-		
+
+	status=status_get_status_data(bl);
 	if(!status_charge(bl, 0, sce->val3)) {
 		sce->val4=-1;
 		return 0;
