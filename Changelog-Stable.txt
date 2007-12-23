@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2007/12/23
+	* Merged new configure script, makefiles, conf-tmpl renamed to conf and 
+	  import renamed to import-tmpl (see topic:174369). [FlavioJS]
 2007/12/22
 	* Merged using an ers system for individual status changes (saves a lot of
 	  memory). NOTE: this is a pretty large merge, so be sure to test before

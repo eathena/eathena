@@ -1,0 +1,26 @@
+
+@SET_MAKE@
+
+#####################################################################
+.PHONY : all adduser convert clean help
+
+all: adduser convert
+
+adduser:
+	@CC@ -o ../../tools/adduser@EXEEXT@ adduser.c
+
+convert:
+	@CC@ -o ../../tools/convert@EXEEXT@ convert.c
+
+clean:
+	rm -rf *.o ../../tools/adduser@EXEEXT@ ../../tools/convert@EXEEXT@ ../../mapcache@EXEEXT@
+
+help:
+	@echo "possible targets are 'adduser' 'convert' 'all' 'clean' 'help'"
+	@echo "'adduser'   - ???"
+	@echo "'convert'   - ???"
+	@echo "'all'       - builds all above targets"
+	@echo "'clean'     - cleans builds and objects"
+	@echo "'help'      - outputs this message"
+
+#####################################################################
