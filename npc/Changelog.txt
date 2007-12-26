@@ -22,6 +22,8 @@ Playtester
 
 Date		Added
 ======
+2007/12/26
+	* More official Veins spawns [Playtester]
 2007/12/16
 	* Rev. 11923 Touched up Merchant quest Biliban Kafra function [L0ne_W0lf]
 	- Will now return to the previous script execution if all conditions fail.
