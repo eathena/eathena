@@ -2078,8 +2078,11 @@ TBL_PC *script_rid2sd(struct script_state *st)
 	return sd;
 }
 
-/// Retrieves the value of a script data
-int get_val(struct script_state* st, struct script_data* data)
+/// Dereferences a variable/constant, replacing it with a copy of the value.
+///
+/// @param st Script state
+/// @param data Variable/constant
+void get_val(struct script_state* st, struct script_data* data)
 {
 	char* name;
 	char prefix;
@@ -2087,7 +2090,7 @@ int get_val(struct script_state* st, struct script_data* data)
 	TBL_PC* sd = NULL;
 
 	if( !data_isreference(data) )
-		return 0;// not a variable
+		return;// not a variable/constant
 
 	name = reference_getname(data);
 	prefix = name[0];
@@ -2101,24 +2104,22 @@ int get_val(struct script_state* st, struct script_data* data)
 		{// needs player attached
 			if( postfix == '$' )
 			{// string variable
-				ShowError("script:get_val: cannot access player variable '%s', defaulting to \"\"\n", name);
+				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to \"\"\n", name);
 				data->type = C_CONSTSTR;
 				data->u.str = "";
 			}
 			else
 			{// integer variable
-				ShowError("script:get_val: cannot access player variable '%s', defaulting to 0\n", name);
+				ShowWarning("script:get_val: cannot access player variable '%s', defaulting to 0\n", name);
 				data->type = C_INT;
 				data->u.num = 0;
 			}
-			return 0;
+			return;
 		}
 	}
 
 	if( postfix == '$' )
 	{// string variable
-
-		data->type = C_CONSTSTR;
 
 		switch( prefix )
 		{
@@ -2148,8 +2149,16 @@ int get_val(struct script_state* st, struct script_data* data)
 			break;
 		}
 
-		if( data->u.str == NULL )
+		if( data->u.str == NULL || data->u.str[0] == '\0' )
+		{// empty string
+			data->type = C_CONSTSTR;
 			data->u.str = "";
+		}
+		else
+		{// duplicate string
+			data->type = C_STR;
+			data->u.str = aStrdup(data->u.str);
+		}
 
 	}
 	else
@@ -2196,7 +2205,7 @@ int get_val(struct script_state* st, struct script_data* data)
 
 	}
 
-	return 0;
+	return;
 }
 
 /// Retrieves the value of a reference identified by uid (variable, constant, param)
