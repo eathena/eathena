@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2008/01/05
+	* Rev. 12016 Updated warps for Lutie, Comodo, Ayotaya, [L0ne_W0lf]
+	  Kunlun, Amatsu, and Louyang. Semi-resolved bugreport:479 XD
 2007/12/26
 	* More official Veins spawns [Playtester]
 2007/12/16
