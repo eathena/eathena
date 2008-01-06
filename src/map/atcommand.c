@@ -6816,10 +6816,9 @@ int atcommand_misceffect(const int fd, struct map_session_data* sd, const char* 
 	return 0;
 }
 
-#ifndef TXT_ONLY  /* Begin SQL-Only commands */
-
 int atcommand_listmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+#ifndef TXT_ONLY
 	if(!mail_server_enable)
 		return 0;
 	nullpo_retr(-1, sd);
@@ -6830,11 +6829,13 @@ int atcommand_listmail(const int fd, struct map_session_data* sd, const char* co
 		mail_check(sd,2);
 	else // @checkmail
 		mail_check(sd,1);
+#endif
 	return 0;
 }
 
 int atcommand_readmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+#ifndef TXT_ONLY
 	int index;
 	if(!mail_server_enable)
 		return 0;
@@ -6853,12 +6854,13 @@ int atcommand_readmail(const int fd, struct map_session_data* sd, const char* co
 	}
 
 	mail_read(sd,index);
-
+#endif
 	return 0;
 }
 
 int atcommand_deletemail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+#ifndef TXT_ONLY
 	int index;
 	if(!mail_server_enable)
 		return 0;
@@ -6877,12 +6879,13 @@ int atcommand_deletemail(const int fd, struct map_session_data* sd, const char* 
 	}
 
 	mail_delete(sd,index);
-
+#endif
 	return 0;
 }
 
 int atcommand_sendmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+#ifndef TXT_ONLY
 	char name[NAME_LENGTH],text[80];
 
 	if(!mail_server_enable)
@@ -6905,11 +6908,9 @@ int atcommand_sendmail(const int fd, struct map_session_data* sd, const char* co
 		mail_send(sd,name,text,1);
 	else
 		mail_send(sd,name,text,0);
-
+#endif
 	return 0;
 }
-
-#endif /* end sql only */
 
 /*==========================================
  * Show Monster DB Info   v 1.0
@@ -8463,7 +8464,6 @@ AtCommandInfo atcommand_info[] = {
 	{ "homshuffle",        60,     atcommand_homshuffle },
 	{ "showmobs",          10,     atcommand_showmobs },
 	{ "feelreset",         10,     atcommand_feelreset },
-#ifndef TXT_ONLY
 	{ "checkmail",          1,     atcommand_listmail },
 	{ "listmail",           1,     atcommand_listmail },
 	{ "listnewmail",        1,     atcommand_listmail },
@@ -8471,7 +8471,6 @@ AtCommandInfo atcommand_info[] = {
 	{ "deletemail",         1,     atcommand_deletemail },
 	{ "sendmail",           1,     atcommand_sendmail },
 	{ "sendprioritymail",  80,     atcommand_sendmail },
-#endif
 };
 
 
