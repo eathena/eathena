@@ -22,6 +22,9 @@ Playtester
 
 Date		Added
 ======
+2008/01/06
+	* Rev. 12019 Updated dungeon warps for Lutie, Comodo, [L0ne_W0lf]
+	  Ayotaya, Kunlun, Amatsu, and Louyang.
 2008/01/05
 	* Rev. 12016 Updated warps for Lutie, Comodo, Ayotaya, [L0ne_W0lf]
 	  Kunlun, Amatsu, and Louyang. Semi-resolved bugreport:479 XD
