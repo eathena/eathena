@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/09
+	* Fixed a memleak when using string variables (r11997)
 	* The memory manager can now destroy deleted data (r11994 and followups)
 2008/01/07
 	* Corrected clones not copying over a player's skills properly.
