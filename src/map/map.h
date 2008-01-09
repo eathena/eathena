@@ -1027,7 +1027,6 @@ struct map_data {
 	int m;
 	short xs,ys; // map dimensions (in cells)
 	short bxs,bys; // map dimensions (in blocks)
-	int water_height; // water level value, needed because of mapcache saving
 	int npc_num;
 	int users;
 	struct map_flag {
