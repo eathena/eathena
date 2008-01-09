@@ -104,9 +104,9 @@ struct s_subnet {
 int subnet_count = 0;
 
 struct char_session_data {
-	int fd;
+	bool auth; // whether the session is authed or not
 	int account_id, login_id1, login_id2, sex;
-	int found_char[MAX_CHARS];
+	int found_char[MAX_CHARS]; // ids of chars on this account
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t connect_until_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 };
@@ -1736,8 +1736,6 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 {
 	int i, j, found_num;
 
-	set_char_online(-1, 99, sd->account_id);
-
 	found_num = 0;
 	for(i = 0; i < char_num; i++) {
 		if (char_dat[i].status.account_id == sd->account_id) {
@@ -1913,7 +1911,7 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 		return;
 	}
 
-	if (online_check && (character = idb_get(online_char_db, sd->account_id)))
+	if( online_check && (character = idb_get(online_char_db, sd->account_id)) != NULL )
 	{	// check if character is not online already. [Skotlex]
 		if (character->server > -1)
 		{	//Character already online. KICK KICK KICK
@@ -1934,6 +1932,7 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 		}
 		character->fd = fd;
 	}
+
 	if (login_fd > 0) {
 		// request to login-server to obtain e-mail/time limit
 		WFIFOHEAD(login_fd,6);
@@ -1941,6 +1940,13 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 		WFIFOL(login_fd,2) = sd->account_id;
 		WFIFOSET(login_fd,6);
 	}
+
+	// mark session as 'authed'
+	sd->auth = true;
+
+	// set char online on charserver
+	set_char_online(-1, 99, sd->account_id);
+
 	// send characters to player
 	mmo_char_send006b(fd, sd);
 }
@@ -3242,7 +3248,7 @@ int parse_char(int fd)
 	while( RFIFOREST(fd) >= 2 )
 	{
 		//For use in packets that depend on an sd being present [Skotlex]
-		#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd==NULL) { RFIFOSKIP(fd,rest); return 0; } }
+		#define FIFOSD_CHECK(rest) { if(RFIFOREST(fd) < rest) return 0; if (sd==NULL || !sd->auth) { RFIFOSKIP(fd,rest); return 0; } }
 
 		cmd = RFIFOW(fd,0);
 		switch( cmd )
@@ -3270,13 +3276,13 @@ int parse_char(int fd)
 			
 			CREATE(session[fd]->session_data, struct char_session_data, 1);
 			sd = (struct char_session_data*)session[fd]->session_data;
-			sd->fd = fd;
 			strncpy(sd->email, "no mail", 40); // put here a mail without '@' to refuse deletion if we don't receive the e-mail
 			sd->connect_until_time = 0; // unknown or unlimited (not displaying on map-server)
 			sd->account_id = RFIFOL(fd,2);
 			sd->login_id1 = RFIFOL(fd,6);
 			sd->login_id2 = RFIFOL(fd,10);
 			sd->sex = RFIFOB(fd,16);
+			sd->auth = false; // not authed yet
 
 			// send back account_id
 			WFIFOHEAD(fd,4);
@@ -3607,8 +3613,7 @@ int parse_char(int fd)
 		// char rename request
 		// R 028d <account ID>.l <char ID>.l <new name>.24B
 		case 0x28d:
-			if (RFIFOREST(fd) < 34)
-				return 0;
+			FIFOSD_CHECK(34);
 			//not implemented
 			RFIFOSKIP(fd,34);
 		break;
