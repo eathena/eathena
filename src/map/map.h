@@ -1322,9 +1322,10 @@ void map_reqnickdb(struct map_session_data* sd,int charid);
 const char* map_charid2nick(int charid);
 struct map_session_data* map_charid2sd(int charid);
 
-struct map_session_data * map_id2sd(int);
-struct npc_data * map_id2nd(int);
-struct block_list * map_id2bl(int);
+struct map_session_data * map_id2sd(int id);
+struct mob_data * map_id2md(int id);
+struct npc_data * map_id2nd(int id);
+struct block_list * map_id2bl(int id);
 
 #define map_id2index(id) map[(id)].index
 int map_mapindex2mapid(unsigned short mapindex);
@@ -1337,6 +1338,7 @@ void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
 struct map_session_data** map_getallusers(int *users);
 void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
+void map_foreachmob(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);
 struct map_session_data * map_nick2sd(const char*);
 

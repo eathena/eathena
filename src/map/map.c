@@ -105,6 +105,7 @@ char *GRF_PATH_FILENAME;
 // ‹É—Í static‚Åƒ?ƒJƒ‹‚É?‚ß‚é
 static DBMap* id_db=NULL; // int id -> struct block_list*
 static DBMap* pc_db=NULL; // int id -> struct map_session_data*
+static DBMap* mobid_db=NULL; // int id -> struct mob_data*
 static DBMap* map_db=NULL; // unsigned int mapindex -> struct map_data*
 static DBMap* nick_db=NULL; // int char_id -> struct charid2nick* (requested names of offline characters)
 static DBMap* charid_db=NULL; // int char_id -> struct map_session_data*
@@ -1629,7 +1630,9 @@ void map_addiddb(struct block_list *bl)
 		TBL_PC* sd = (TBL_PC*)bl;
 		idb_put(pc_db,sd->bl.id,sd);
 		idb_put(charid_db,sd->status.char_id,sd);
-	}
+	} else if (bl->type == BL_MOB)
+		idb_put(mobid_db,bl->id,bl);
+
 	idb_put(id_db,bl->id,bl);
 }
 
@@ -1645,7 +1648,8 @@ void map_deliddb(struct block_list *bl)
 		TBL_PC* sd = (TBL_PC*)bl;
 		idb_remove(pc_db,sd->bl.id);
 		idb_remove(charid_db,sd->status.char_id);
-	}
+	} else if (bl->type == BL_MOB)
+		idb_remove(mobid_db,bl->id);
 	idb_remove(id_db,bl->id);
 }
 
@@ -1748,6 +1752,12 @@ struct map_session_data * map_id2sd(int id)
 {
 	if (id <= 0) return NULL;
 	return (struct map_session_data*)idb_get(pc_db,id);
+}
+
+struct mob_data * map_id2md(int id)
+{
+	if (id <= 0) return NULL;
+	return (struct mob_data*)idb_get(mobid_db,id);
 }
 
 struct npc_data * map_id2nd(int id)
@@ -1887,6 +1897,14 @@ void map_foreachpc(int (*func)(DBKey,void*,va_list),...)
 	va_list ap;
 	va_start(ap,func);
 	pc_db->vforeach(pc_db,func,ap);
+	va_end(ap);
+}
+
+void map_foreachmob(int (*func)(DBKey,void*,va_list),...)
+{
+	va_list ap;
+	va_start(ap,func);
+	mobid_db->vforeach(mobid_db,func,ap);
 	va_end(ap);
 }
 
@@ -3420,6 +3438,7 @@ void do_final(void)
 
 	id_db->destroy(id_db, NULL);
 	pc_db->destroy(pc_db, NULL);
+	mobid_db->destroy(mobid_db, NULL);
 	nick_db->destroy(nick_db, nick_db_final);
 	charid_db->destroy(charid_db, NULL);
 
@@ -3600,6 +3619,7 @@ int do_init(int argc, char *argv[])
 
 	id_db = idb_alloc(DB_OPT_BASE);
 	pc_db = idb_alloc(DB_OPT_BASE);	//Added for reliable map_id2sd() use. [Skotlex]
+	mobid_db = idb_alloc(DB_OPT_BASE);	//Added to lower the load of the lazy mob ai. [Skotlex]
 	map_db = uidb_alloc(DB_OPT_BASE);
 	nick_db = idb_alloc(DB_OPT_BASE);
 	charid_db = idb_alloc(DB_OPT_BASE);
