@@ -1,27 +1,7 @@
-Person	Working On
-======
-Lupus
-	* Looking for exploits, optimization, bugs hunt
-	* Adding new cards, checking/adding mobs/items
-	* EXP quests for Blacksmith, Merchant, Alchemist
-erKURITA
-	* Warps maintainment
-Evera
-	* Everything.
-	* Dungeon Teleport System NPCs.
-	* iRO information gathering.
-	* Kafra maintainment.
-	* Taking requests.
-Musashiden
-	*Scripting iRO latest towns (warps, NPCs, ect.)
-	*iRO information gathering.
-Playtester
-	* Monsters spawn, warps maintainment
-
-== Changelog ==
-
 Date		Added
 ======
+2008/01/10
+	* Cleaned the script conf files (see topic:171384 for details) [ultramage]
 2008/01/06
 	* Rev. 12019 Updated dungeon warps for Lutie, Comodo, [L0ne_W0lf]
 	  Ayotaya, Kunlun, Amatsu, and Louyang.

@@ -712,8 +712,9 @@ int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill)
  *------------------------------------------*/
 int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 {
-	int i,f=1;
 	int xs,ys;
+	int f = 1;
+	int i;
 
 	nullpo_retr(1, sd);
 
@@ -722,8 +723,8 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 
 	for(i=0;i<map[m].npc_num;i++)
 	{
-		if (map[m].npc[i]->sc.option&OPTION_INVISIBLE) {	// –³Œø‰»‚³‚ê‚Ä‚¢‚é
-			f=0;
+		if (map[m].npc[i]->sc.option&OPTION_INVISIBLE) {
+			f=0; // a npc was found, but it is disabled; don't print warning
 			continue;
 		}
 
@@ -743,9 +744,10 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 		   y >= map[m].npc[i]->bl.y-ys/2 && y < map[m].npc[i]->bl.y-ys/2+ys)
 			break;
 	}
-	if (i==map[m].npc_num) {
-		if (f)
-			ShowError("npc_touch_areanpc : some bug \n");
+	if( i == map[m].npc_num )
+	{
+		if( f == 1 ) // no npc found
+			ShowError("npc_touch_areanpc : stray NPC cell on coordinates '%s',%d,%d\n", map[m].name, x, y);
 		return 1;
 	}
 	switch(map[m].npc[i]->subtype) {

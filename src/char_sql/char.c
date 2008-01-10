@@ -269,7 +269,6 @@ void set_char_online(int map_id, int char_id, int account_id)
 
 void set_char_offline(int char_id, int account_id)
 {
-	struct mmo_charstatus *cp;
 	struct online_char_data* character;
 
 	//FIXME: usage of 'magic constant'; this needs to go! [ultramage]
@@ -280,7 +279,7 @@ void set_char_offline(int char_id, int account_id)
 	}
 	else
 	{
-		cp = idb_get(char_db_,char_id);
+		struct mmo_charstatus* cp = idb_get(char_db_,char_id);
 		inter_guild_CharOffline(char_id, cp?cp->guild_id:-1);
 		if (cp)
 			idb_remove(char_db_,char_id);
@@ -340,7 +339,9 @@ static int char_db_kickoffline(DBKey key, void* data, va_list ap)
 		mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 1);
 	else if (character->waiting_disconnect == -1)
 		set_char_offline(character->char_id, character->account_id);
-	else return 0;
+	else
+		return 0; // fail
+
 	return 1;
 }
 
