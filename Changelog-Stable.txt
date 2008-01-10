@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/10
+	* Merged fixes to skill db and abra db (r11949, r11960, r11970, r11974)
+	- Fixed Abracadabra unable to cast non-targeted skills (r12044)
 	* Merged mobid_db for faster mob ai processing (r11943, r11957)
 	* Merges of various bugfixes from trunk
 	- main chat logging for 'whisper to Main npc' method (r12030)
