@@ -1560,17 +1560,25 @@ int clif_scriptclose(struct map_session_data *sd, int npcid)
  *------------------------------------------*/
 void clif_sendfakenpc(struct map_session_data *sd, int npcid)
 {
+	unsigned char *buf;
 	int fd = sd->fd;
-	WFIFOHEAD(fd, packet_len(0x78));
 	sd->state.using_fake_npc = 1;
-	memset(WFIFOP(fd,0), 0, packet_len(0x78));
-	WFIFOW(fd,0)=0x78;
-	WFIFOL(fd,2)=npcid;
-	WFIFOW(fd,14)=111;
-	WFIFOPOS(fd,46,sd->bl.x,sd->bl.y,sd->ud.dir);
-	WFIFOB(fd,49)=5;
-	WFIFOB(fd,50)=5;
+
+	WFIFOHEAD(fd, packet_len(0x78));
+	buf = WFIFOP(fd,0);
+	memset(WBUFP(buf,0), 0, packet_len(0x78));
+	WBUFW(buf,0)=0x78;
+#if PACKETVER >=9
+	WBUFB(buf,2) = 0; //Unknown bit
+	buf = WFIFOP(fd,1);
+#endif
+	WBUFL(buf,2)=npcid;
+	WBUFW(buf,14)=111;
+	WBUFPOS(buf,46,sd->bl.x,sd->bl.y,sd->ud.dir);
+	WBUFB(buf,49)=5;
+	WBUFB(buf,50)=5;
 	WFIFOSET(fd, packet_len(0x78));
+
 	return;
 }
 
@@ -5632,7 +5640,7 @@ int clif_movetoattack(struct map_session_data *sd,struct block_list *bl)
  *------------------------------------------*/
 int clif_produceeffect(struct map_session_data* sd,int flag,int nameid)
 {
-	int fd;
+	int view,fd;
 
 	nullpo_retr(0, sd);
 
@@ -5641,7 +5649,10 @@ int clif_produceeffect(struct map_session_data* sd,int flag,int nameid)
 	WFIFOHEAD(fd,packet_len(0x18f));
 	WFIFOW(fd, 0)=0x18f;
 	WFIFOW(fd, 2)=flag;
-	WFIFOW(fd, 4)=(itemdb_viewid(nameid)||nameid);
+	if((view = itemdb_viewid(nameid)) > 0)
+		WFIFOW(fd, 4)=view;
+	else
+		WFIFOW(fd, 4)=nameid;
 	WFIFOSET(fd,packet_len(0x18f));
 	return 0;
 }
@@ -8371,6 +8382,11 @@ void clif_parse_WisMessage(int fd, struct map_session_data* sd)
 			snprintf(output, ARRAYLENGTH(output), msg_txt(386), sd->status.name, message);
 			intif_announce(output, strlen(output) + 1, 0xFE000000, 0);
 		}
+
+		// Chat logging type 'M' / Main Chat
+		if( log_config.chat&1 || (log_config.chat&32 && !(agit_flag && log_config.chat&64)) )
+			log_chat("M", 0, sd->status.char_id, sd->status.account_id, mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, message);
+
 		return;
 	}
 
