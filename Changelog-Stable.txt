@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/12
+	* Merged the fix for freezing mob AI, bugged since r11965 (see r11986)
 	* Possible fix to ers/status_change crashing. [FlavioJS]
 	- this patch is untested. Didn't find anyone willing to test it and I can't 
 	  reproduce the crash so can't test the patch.
