@@ -1,5 +1,7 @@
 Date	Added
 
+2008/01/15
+	* Added 'hide debug messages' for setting 'console_silent' [ultramage]
 2007/12/16
 	* Removed atcommand 'refreshonline' as it is no longer needed [ultramage]
 2007/11/17

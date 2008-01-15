@@ -6,6 +6,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/15
 	* Some mass code cleaning merges from trunk
+	- total replacment of printf by ShowMessage (r12020)
 	- removal of the wasteful block_list entry counters (r12001)
 	- cleaning of map_addblock/delblock (r11737, r11964, r12002)
 	- simplification of macros that use unit_stop_attack (r11957)

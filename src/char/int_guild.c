@@ -408,7 +408,6 @@ int inter_guild_init() {
 		c++;
 	}
 	fclose(fp);
-//	printf("int_guild: %s read done (%d guilds)\n", guild_txt, c);
 
 	c = 0;//ƒJƒEƒ“ƒ^‰Šú‰»
 
