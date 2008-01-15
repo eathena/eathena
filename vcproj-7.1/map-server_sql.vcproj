@@ -253,6 +253,9 @@
 				RelativePath="..\src\map\path.c">
 			</File>
 			<File
+				RelativePath="..\src\map\path.h">
+			</File>
+			<File
 				RelativePath="..\src\map\pc.c">
 			</File>
 			<File

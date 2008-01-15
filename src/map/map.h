@@ -236,7 +236,7 @@ struct block_list {
 };
 
 struct walkpath_data {
-	unsigned char path_len,path_pos,path_half;
+	unsigned char path_len,path_pos;
 	unsigned char path[MAX_WALKPATH];
 };
 struct shootpath_data {
@@ -1346,27 +1346,6 @@ struct map_session_data * map_nick2sd(const char*);
 int map_check_dir(int s_dir,int t_dir);
 unsigned char map_calc_dir( struct block_list *src,int x,int y);
 int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
-
-// path.c‚æ‚è
-int path_search_real(struct walkpath_data *wpd,int m,int x0,int y0,int x1,int y1,int flag,cell_t flag2);
-#define path_search(wpd,m,x0,y0,x1,y1,flag)  path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKNOPASS)
-#define path_search2(wpd,m,x0,y0,x1,y1,flag) path_search_real(wpd,m,x0,y0,x1,y1,flag,CELL_CHKWALL)
-
-bool path_search_long_real(struct shootpath_data *spd,int m,int x0,int y0,int x1,int y1,cell_t flag);
-#define path_search_long(spd,m,x0,y0,x1,y1) path_search_long_real(spd,m,x0,y0,x1,y1,CELL_CHKWALL)
-
-int path_blownpos(int m,int x0,int y0,int dx,int dy,int count);
-
-// distance related functions [Skotlex]
-#define check_distance_bl(bl1, bl2, distance) check_distance((bl1)->x - (bl2)->x, (bl1)->y - (bl2)->y, distance)
-#define check_distance_blxy(bl, x1, y1, distance) check_distance((bl)->x-(x1), (bl)->y-(y1), distance)
-#define check_distance_xy(x0, y0, x1, y1, distance) check_distance((x0)-(x1), (y0)-(y1), distance)
-int check_distance(int dx, int dy, int distance);
-
-#define distance_bl(bl1, bl2) distance((bl1)->x - (bl2)->x, (bl1)->y - (bl2)->y)
-#define distance_blxy(bl, x1, y1) distance((bl)->x-(x1), (bl)->y-(y1))
-#define distance_xy(x0, y0, x1, y1) distance((x0)-(x1), (y0)-(y1))
-unsigned int distance(int dx, int dy);
 
 int cleanup_sub(struct block_list *bl, va_list ap);
 
