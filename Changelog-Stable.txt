@@ -5,6 +5,19 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/15
+	* Skill code corrections:
+	- Fixed 'getmonsterinfo' not following its documentation (r12051)
+	- Fixed Abracadabra not casting non-targeted skills (r12044, r12054)
+	- Modified SC_ARMOR_ELEMENT to stack correctly with others (r12041)
+	- Changed duration of summoned Sphere Mine mobs to 30 seconds (r12036)
+	- Fixed script command 'warpportal' not working
+	- Dispell no longer removes Hindsight, NPC_POWERUP, Nen, TK stances,
+	  Tumbling, Warmth and sppedup1
+	- Chase-walking characters can now loot
+	- Hiding characters can't drop items anymore
+	- Fixed Wand of Hermod not starting SC_HERMOD (to block spells) (r12033)
+	- Fixed a missing break; in cast cancel code
+	- Fixed potion effect boosting items not affecting Potion Pitcher (r12031)
 	* Some mass code cleaning merges from trunk
 	- total replacment of printf by ShowMessage (r12020)
 	- removal of the wasteful block_list entry counters (r12001)

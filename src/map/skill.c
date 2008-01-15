@@ -3029,15 +3029,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if( sd )
 			{// player-casted
 				sd->state.abra_flag = 1;
-				if( skill_get_inf(abra_skillid)&INF_SELF_SKILL )
-					// non-targeted, execute immediately
-					unit_skilluse_id(src, bl->id, abra_skillid, abra_skilllv);
-				else
-				{// targeted, delay and let player pick target
-					sd->skillitem = abra_skillid;
-					sd->skillitemlv = abra_skilllv;
-					clif_item_skill(sd, abra_skillid, abra_skilllv);
-				}
+				sd->skillitem = abra_skillid;
+				sd->skillitemlv = abra_skilllv;
+				clif_item_skill(sd, abra_skillid, abra_skilllv);
 			}
 			else
 			{// mob-casted
@@ -3667,7 +3661,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case BS_OVERTHRUST:
 		if (sd == NULL || sd->status.party_id == 0 || (flag & 1)) {
 			clif_skill_nodamage(bl,bl,skillid,skilllv,
-				sc_start4(bl,type,100,skilllv,(src == bl)? 1:0,0,0,skill_get_time(skillid,skilllv)));
+				sc_start2(bl,type,100,skilllv,(src == bl)? 1:0,skill_get_time(skillid,skilllv)));
 		} else if (sd) {
 			party_foreachsamemap(skill_area_sub,
 				sd,skill_get_splash(skillid, skilllv),
@@ -4092,10 +4086,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 							sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10) / 100;
 					}
 				}
-				if (sd->itemgrouphealrate[37]>0)
+
+				if (sd->itemgrouphealrate[IG_POTION]>0)
 				{
-					hp += hp * sd->itemgrouphealrate[37] / 100;
-					sp += sp * sd->itemgrouphealrate[37] / 100;
+					hp += hp * sd->itemgrouphealrate[IG_POTION] / 100;
+					sp += sp * sd->itemgrouphealrate[IG_POTION] / 100;
 				}
 
 				if ((i = pc_skillheal_bonus(sd, skillid)))
@@ -4198,7 +4193,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_SMA:         case SC_SPEEDUP0:    case SC_NOCHAT:
 				case SC_ANKLE:       case SC_SPIDERWEB:   case SC_JAILED:
 				case SC_ITEMBOOST:   case SC_EXPBOOST:    case SC_LIFEINSURANCE:
-				case SC_BOSSMAPINFO:
+				case SC_BOSSMAPINFO:                      case SC_AUTOSPELL:
+				case SC_INCHITRATE:  case SC_INCATKRATE:  case SC_NEN:
+				case SC_READYSTORM:  case SC_READYDOWN:   case SC_READYTURN:
+				case SC_READYCOUNTER:case SC_DODGE:       case SC_WARM:
+				case SC_SPEEDUP1:
 					continue;
 				}
 				if(i==SC_BERSERK) tsc->data[i]->val2=0; //Mark a dispelled berserk to avoid setting hp to 100 by setting hp penalty to 0.
@@ -6551,7 +6550,6 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 	case UNT_HERMODE:
 		if (sg->src_id!=bl->id && battle_check_target(&src->bl,bl,BCT_PARTY|BCT_GUILD) > 0)
 			status_change_clear_buffs(bl,1); //Should dispell only allies.
-			break;
 	case UNT_RICHMANKIM:
 	case UNT_ETERNALCHAOS:
 	case UNT_DRUMBATTLEFIELD:
@@ -8248,6 +8246,9 @@ int skill_delayfix (struct block_list *bl, int skill_id, int skill_lv)
 	int time = skill_get_delay(skill_id, skill_lv);
 	
 	nullpo_retr(0, bl);
+
+	if (skill_id == SA_ABRACADABRA)
+		return 0; //Will use picked skill's delay.
 
 	if (bl->type&battle_config.no_skill_delay)
 		return battle_config.min_skill_delay_limit; 

@@ -11912,7 +11912,10 @@ BUILDIN_FUNC(getmonsterinfo)
 	mob_id	= script_getnum(st,2);
 	if (!mobdb_checkid(mob_id)) {
 		ShowError("buildin_getmonsterinfo: Wrong Monster ID: %i", mob_id);
-		script_pushint(st,-1);
+		if ( !script_getnum(st,3) ) //requested a string
+			script_pushconststr(st,"null");
+		else
+			script_pushint(st,-1);
 		return -1;
 	}
 	mob = mob_db(mob_id);
@@ -12529,7 +12532,7 @@ BUILDIN_FUNC(warpportal)
 	if( mapindex == 0 )
 		return 0;// map not found
 
-	group = skill_unitsetting(bl, AL_WARP, 4, spx, spy, 1);
+	group = skill_unitsetting(bl, AL_WARP, 4, spx, spy, 0);
 	if( group == NULL )
 		return 0;// failed
 	group->val2 = (tpx<<16) | tpy;

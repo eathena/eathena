@@ -66,6 +66,9 @@ static int GM_num = 0;
 #define MOTD_LINE_SIZE 128
 char motd_text[MOTD_LINE_SIZE][256]; // Message of the day buffer [Valaris]
 
+struct duel duel_list[MAX_DUEL];
+int duel_count = 0;
+
 //Links related info to the sd->hate_mob[]/sd->feel_map[] entries
 const struct sg_data sg_info[3] = {
 		{ SG_SUN_ANGER, SG_SUN_BLESS, SG_SUN_COMFORT, "PC_FEEL_SUN", "PC_HATE_MOB_SUN", is_day_of_sun },
@@ -1302,7 +1305,7 @@ static int pc_bonus_autospell_del(struct s_autospell *spell, int max, short id, 
 		spell[j].id = id;
 		spell[j].lv = lv;
 		spell[j].rate = -rate;
-		spell[j].card_id = 0;
+		spell[j].card_id = card_id;
 	}
 	return rate;
 }
@@ -1314,13 +1317,12 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 		pc_bonus_autospell_del(spell, max, id, lv, -rate, card_id);
 
 	for (i = 0; i < max && spell[i].id; i++) {
-		if ((spell[i].card_id == card_id || !spell[i].card_id) &&
+		if ((spell[i].card_id == card_id || spell[i].rate < 0) &&
 			spell[i].id == id && spell[i].lv == lv)
 		{
 			if (!battle_config.autospell_stacking && spell[i].rate > 0)
 				return 0;
 			rate += spell[i].rate;
-			if (rate < 0) card_id = 0; //Reduced from debted autospell.
 			break;
 		}
 	}
@@ -7580,6 +7582,8 @@ int do_init_pc(void)
 {
 	pc_readdb();
 	pc_read_motd(); // Read MOTD [Valaris]
+
+	memset(&duel_list[0], 0, sizeof(duel_list));
 
 	add_timer_func_list(pc_invincible_timer, "pc_invincible_timer");
 	add_timer_func_list(pc_eventtimer, "pc_eventtimer");
