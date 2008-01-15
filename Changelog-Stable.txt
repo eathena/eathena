@@ -5,6 +5,11 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/15
+	* Some mass code cleaning merges from trunk
+	- removal of the wasteful block_list entry counters (r12001)
+	- cleaning of map_addblock/delblock (r11737, r11964, r12002)
+	- simplification of macros that use unit_stop_attack (r11957)
+	- minor npc event code simplification (part of r11895)
 	* Merged the path code cleaning / removal from trunk [ultramage]
 	- related changesets: r11958, r11959, r11981, r11991, r12010
 2008/01/14

@@ -269,11 +269,9 @@ void map_delblcell(struct block_list *bl)
 
 /*==========================================
  * Adds a block to the map.
- * If flag is 1, then the block was just added,
- * otherwise it is part of a transition.
  * Returns 0 on success, 1 on failure (illegal coordinates).
  *------------------------------------------*/
-int map_addblock_sub (struct block_list *bl, int flag)
+int map_addblock(struct block_list* bl)
 {
 	int m, x, y, pos;
 
@@ -281,59 +279,50 @@ int map_addblock_sub (struct block_list *bl, int flag)
 
 	if (bl->prev != NULL) {
 		ShowError("map_addblock: bl->prev != NULL\n");
-		return 0;
+		return 1;
 	}
 
 	m = bl->m;
 	x = bl->x;
 	y = bl->y;
-	if (m < 0 || m >= map_num ||
-		x < 0 || x >= map[m].xs ||
-		y < 0 || y >= map[m].ys)
+	if( m < 0 || m >= map_num )
+	{
+		ShowError("map_addblock: invalid map id (%d), only %d are loaded.\n", m, map_num);
 		return 1;
-	
-#ifdef CELL_NOSTACK
-	map_addblcell(bl);
-#endif
-	
+	}
+	if( x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys )
+	{
+		ShowError("map_addblock: out-of-bounds coordinates (\"%s\",%d,%d), map is %dx%d\n", map[m].name, x, y, map[m].xs, map[m].ys);
+		return 1;
+	}
+
 	pos = x/BLOCK_SIZE+(y/BLOCK_SIZE)*map[m].bxs;
+
 	if (bl->type == BL_MOB) {
 		bl->next = map[m].block_mob[pos];
 		bl->prev = &bl_head;
 		if (bl->next) bl->next->prev = bl;
 		map[m].block_mob[pos] = bl;
-		map[m].block_mob_count[pos]++;
 	} else {
 		bl->next = map[m].block[pos];
 		bl->prev = &bl_head;
 		if (bl->next) bl->next->prev = bl;
 		map[m].block[pos] = bl;
-		map[m].block_count[pos]++;
-		if (bl->type == BL_PC && flag)
-		{
-			struct map_session_data* sd;
-			if (map[m].users++ == 0 && battle_config.dynamic_mobs)	//Skotlex
-				map_spawnmobs(m);
-			sd = (struct map_session_data*)bl;
-			if (battle_config.pet_no_gvg && map_flag_gvg(m) && sd->pd)
-			{	//Return the pet to egg. [Skotlex]
-				clif_displaymessage(sd->fd, "Pets are not allowed in Guild Wars.");
-				pet_menu(sd, 3); //Option 3 is return to egg.
-			}
-		}
 	}
 
+#ifdef CELL_NOSTACK
+	map_addblcell(bl);
+#endif
+	
 	return 0;
 }
 
 /*==========================================
  * Removes a block from the map.
- * If flag is 1, then the block is removed for good
- * otherwise it is part of a transition.
  *------------------------------------------*/
-int map_delblock_sub (struct block_list *bl, int flag)
+int map_delblock(struct block_list* bl)
 {
-	int b;
+	int pos;
 	nullpo_retr(0, bl);
 
 	// ?にblocklistから?けている
@@ -349,24 +338,16 @@ int map_delblock_sub (struct block_list *bl, int flag)
 	map_delblcell(bl);
 #endif
 	
-	b = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
-
-	if (bl->type == BL_PC && flag)
-		if (--map[bl->m].users == 0 && battle_config.dynamic_mobs)	//[Skotlex]
-			map_removemobs(bl->m);
+	pos = bl->x/BLOCK_SIZE+(bl->y/BLOCK_SIZE)*map[bl->m].bxs;
 
 	if (bl->next)
 		bl->next->prev = bl->prev;
 	if (bl->prev == &bl_head) {
 		// リストの頭なので、map[]のblock_listを更新する
 		if (bl->type == BL_MOB) {
-			map[bl->m].block_mob[b] = bl->next;
-			if ((map[bl->m].block_mob_count[b]--) < 0)
-				map[bl->m].block_mob_count[b] = 0;
+			map[bl->m].block_mob[pos] = bl->next;
 		} else {
-			map[bl->m].block[b] = bl->next;
-			if((map[bl->m].block_count[b]--) < 0)
-				map[bl->m].block_count[b] = 0;
+			map[bl->m].block[pos] = bl->next;
 		}
 	} else {
 		bl->prev->next = bl->next;
@@ -394,6 +375,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 		bl->y = y1;
 		return 0;	
 	}
+
 	//TODO: Perhaps some outs of bounds checking should be placed here?
 	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,2);
@@ -413,16 +395,18 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				status_change_end(bl, SC_MAGICROD, -1);
 		}
 	}
-	if (moveblock) map_delblock_sub(bl,0);
+
+	if (moveblock) map_delblock(bl);
 #ifdef CELL_NOSTACK
 	else map_delblcell(bl);
 #endif
 	bl->x = x1;
 	bl->y = y1;
-	if (moveblock) map_addblock_sub(bl,0);
+	if (moveblock) map_addblock(bl);
 #ifdef CELL_NOSTACK
 	else map_addblcell(bl);
 #endif
+
 	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,3);
 		if (sc) {
@@ -436,45 +420,17 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 			}
 		}
 	}
+
 	return 0;
 }
 	
-/*==========================================
- * 周?のPC人?を?える (unused)
- *------------------------------------------*/
-int map_countnearpc (int m, int x, int y)
-{
-	int bx, by, c = 0;
-	struct block_list *bl=NULL;
-
-	if (map[m].users == 0)
-		return 0;
-	for (by = y/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1; by<=y/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1; by++) {
-		if (by < 0 || by >= map[m].bys)
-			continue;
-		for (bx = x/BLOCK_SIZE-AREA_SIZE/BLOCK_SIZE-1; bx <= x/BLOCK_SIZE+AREA_SIZE/BLOCK_SIZE+1; bx++) {
-			if (bx < 0 || bx >= map[m].bxs)
-				continue;
-			bl = map[m].block[bx+by*map[m].bxs];
-			while(bl) {
-				if (bl->type == BL_PC)
-					c++;
-				bl = bl->next;
-			}
-		}
-	}
-
-	return c;
-}
-
 /*==========================================
  * Counts specified number of objects on given cell.
  *------------------------------------------*/
 int map_count_oncell(int m, int x, int y, int type)
 {
 	int bx,by;
-	struct block_list *bl=NULL;
-	int i,c;
+	struct block_list *bl;
 	int count = 0;
 
 	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
@@ -484,20 +440,15 @@ int map_count_oncell(int m, int x, int y, int type)
 	by = y/BLOCK_SIZE;
 
 	if (type&~BL_MOB)
-	{
-		bl = map[m].block[bx+by*map[m].bxs];
-		c = map[m].block_count[bx+by*map[m].bxs];
-		for(i=0;i<c && bl;i++,bl=bl->next)
-			if(bl->x == x && bl->y == y && bl->type&type) count++;
-	}
+		for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+			if(bl->x == x && bl->y == y && bl->type&type)
+				count++;
 	
 	if (type&BL_MOB)
-	{
-		bl = map[m].block_mob[bx+by*map[m].bxs];
-		c = map[m].block_mob_count[bx+by*map[m].bxs];
-		for(i=0;i<c && bl;i++,bl=bl->next)
-			if(bl->x == x && bl->y == y) count++;
-	}
+		for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+			if(bl->x == x && bl->y == y)
+				count++;
+
 	return count;
 }
 /*
@@ -507,23 +458,21 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 {
 	int m,bx,by;
 	struct block_list *bl;
-	int i,c;
 	struct skill_unit *unit;
 	m = target->m;
 
 	if (x < 0 || y < 0 || (x >= map[m].xs) || (y >= map[m].ys))
 		return NULL;
+
 	bx = x/BLOCK_SIZE;
 	by = y/BLOCK_SIZE;
 
-	bl = map[m].block[bx+by*map[m].bxs];
-	c = map[m].block_count[bx+by*map[m].bxs];
-	for(i=0;i<c && bl;i++,bl=bl->next){
+	for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+	{
 		if (bl->x != x || bl->y != y || bl->type != BL_SKILL)
 			continue;
 		unit = (struct skill_unit *) bl;
-		if (unit==out_unit || !unit->alive ||
-				!unit->group || unit->group->skill_id!=skill_id)
+		if (unit==out_unit || !unit->alive || !unit->group || unit->group->skill_id!=skill_id)
 			continue;
 		if (battle_check_target(&unit->bl,target,unit->group->target_flag)>0)
 			return unit;
@@ -539,8 +488,8 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_lis
 	va_list ap;
 	int bx,by,m;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
-	int blockcount=bl_list_count,i,c;
+	struct block_list *bl;
+	int blockcount=bl_list_count,i;
 	int x0,x1,y0,y1;
 	va_start(ap,type);
 
@@ -552,11 +501,10 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_lis
 	
 	if (type&~BL_MOB)
 		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->type&type
+			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++) {
+				for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if( bl->type&type
 						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
 #ifdef CIRCULAR_AREA
 						&& check_distance_bl(center, bl, range)
@@ -569,11 +517,9 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_lis
 	if(type&BL_MOB)
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl
-						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
+				for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if( bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
 #ifdef CIRCULAR_AREA
 						&& check_distance_bl(center, bl, range)
 #endif
@@ -607,12 +553,14 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 	va_list ap;
 	int bx,by,m;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
-	int blockcount=bl_list_count,i,c;
+	struct block_list *bl;
+	int blockcount=bl_list_count,i;
 	int x0,x1,y0,y1;
+
 	m = center->m;
 	if (m < 0)
 		return 0;
+
 	va_start(ap,type);
 
 	x0 = max(center->x-range, 0);
@@ -621,12 +569,11 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 	y1 = min(center->y+range, map[m].ys-1);
 
 	if (type&~BL_MOB)
-		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->type&type
+		for(by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
+			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++) {
+				for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if( bl->type&type
 						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
 #ifdef CIRCULAR_AREA
 						&& check_distance_bl(center, bl, range)
@@ -640,11 +587,9 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 	if(type&BL_MOB)
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl
-						&& bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
+				for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if( bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1
 #ifdef CIRCULAR_AREA
 						&& check_distance_bl(center, bl, range)
 #endif
@@ -681,8 +626,8 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, in
 	va_list ap;
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
-	int blockcount=bl_list_count,i,c;
+	struct block_list *bl;
+	int blockcount=bl_list_count,i;
 
 	if (m < 0)
 		return 0;
@@ -705,27 +650,18 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, in
 	if (y1 >= map[m].ys) y1 = map[m].ys-1;
 	
 	if (type&~BL_MOB)
-		for (by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++) {
-			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++) {
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->type&type && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+		for(by = y0 / BLOCK_SIZE; by <= y1 / BLOCK_SIZE; by++)
+			for(bx = x0 / BLOCK_SIZE; bx <= x1 / BLOCK_SIZE; bx++)
+				for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					if(bl->type&type && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
-				}
-			}
-		}
+
 	if(type&BL_MOB)
-		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
-			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
+		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++)
+			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++)
+				for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					if(bl->x>=x0 && bl->x<=x1 && bl->y>=y0 && bl->y<=y1 && bl_list_count<BL_LIST_MAX)
 						bl_list[bl_list_count++]=bl;
-				}
-			}
-		}
 
 	if(bl_list_count>=BL_LIST_MAX)
 		ShowWarning("map_foreachinarea: block count too many!\n");
@@ -754,9 +690,9 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 {
 	int bx,by,m;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
+	struct block_list *bl;
 	va_list ap;
-	int blockcount=bl_list_count,i,c;
+	int blockcount=bl_list_count,i;
 	int x0, x1, y0, y1;
 
 	if (!range) return 0;
@@ -801,9 +737,8 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
 				if (type&~BL_MOB) {
-					bl = map[m].block[bx+by*map[m].bxs];
-					c = map[m].block_count[bx+by*map[m].bxs];
-					for(i=0;i<c && bl;i++,bl=bl->next){
+					for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					{
 						if(bl->type&type &&
 							bl->x>=x0 && bl->x<=x1 &&
 							bl->y>=y0 && bl->y<=y1 &&
@@ -812,9 +747,8 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 					}
 				}
 				if (type&BL_MOB) {
-					bl = map[m].block_mob[bx+by*map[m].bxs];
-					c = map[m].block_mob_count[bx+by*map[m].bxs];
-					for(i=0;i<c && bl;i++,bl=bl->next){
+					for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					{
 						if(bl->x>=x0 && bl->x<=x1 &&
 							bl->y>=y0 && bl->y<=y1 &&
 							bl_list_count<BL_LIST_MAX)
@@ -832,14 +766,12 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 		for(by=y0/BLOCK_SIZE;by<=y1/BLOCK_SIZE;by++){
 			for(bx=x0/BLOCK_SIZE;bx<=x1/BLOCK_SIZE;bx++){
 				if (type & ~BL_MOB) {
-					bl = map[m].block[bx+by*map[m].bxs];
-					c = map[m].block_count[bx+by*map[m].bxs];
-					for(i=0;i<c && bl;i++,bl=bl->next){
-						if(!(bl->type&type &&
+					for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					{
+						if( bl->type&type &&
 							bl->x>=x0 && bl->x<=x1 &&
 							bl->y>=y0 && bl->y<=y1 &&
-							bl_list_count<BL_LIST_MAX))
-							continue;
+							bl_list_count<BL_LIST_MAX )
 						if((dx>0 && bl->x<x0+dx) ||
 							(dx<0 && bl->x>x1+dx) ||
 							(dy>0 && bl->y<y0+dy) ||
@@ -848,19 +780,16 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 					}
 				}
 				if (type & BL_MOB) {
-					bl = map[m].block_mob[bx+by*map[m].bxs];
-					c = map[m].block_mob_count[bx+by*map[m].bxs];
-					for(i=0;i<c && bl;i++,bl=bl->next){
-						if(!(
-							bl->x>=x0 && bl->x<=x1 &&
+					for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+					{
+						if( bl->x>=x0 && bl->x<=x1 &&
 							bl->y>=y0 && bl->y<=y1 &&
-							bl_list_count<BL_LIST_MAX))
-							continue;
+							bl_list_count<BL_LIST_MAX)
 						if((dx>0 && bl->x<x0+dx) ||
 							(dx<0 && bl->x>x1+dx) ||
 							(dy>0 && bl->y<y0+dy) ||
 							(dy<0 && bl->y>y1+dy))
-								bl_list[bl_list_count++]=bl;
+							bl_list[bl_list_count++]=bl;
 					}
 				}
 			}
@@ -892,9 +821,9 @@ int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int
 {
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
+	struct block_list *bl;
 	va_list ap;
-	int blockcount=bl_list_count,i,c;
+	int blockcount=bl_list_count,i;
 
 	if (x < 0 || y < 0 || x >= map[m].xs || y >= map[m].ys) return 0;
 
@@ -904,26 +833,14 @@ int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int
 	bx=x/BLOCK_SIZE;
 
 	if(type&~BL_MOB)
-	{
-		bl = map[m].block[bx+by*map[m].bxs];
-		c = map[m].block_count[bx+by*map[m].bxs];
-		for(i=0;i<c && bl;i++,bl=bl->next)
-		{
-			if(bl && bl->type&type && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
+		for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+			if(bl->type&type && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
 				bl_list[bl_list_count++]=bl;
-		}
-	}
 
 	if(type&BL_MOB)
-	{
-		bl = map[m].block_mob[bx+by*map[m].bxs];
-		c = map[m].block_mob_count[bx+by*map[m].bxs];
-		for(i=0;i<c && bl;i++,bl=bl->next)
-		{
-			if(bl && bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
+		for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+			if(bl->x==x && bl->y==y && bl_list_count<BL_LIST_MAX)
 				bl_list[bl_list_count++]=bl;
-		}
-	}
 
 	if(bl_list_count>=BL_LIST_MAX)
 		ShowWarning("map_foreachincell: block count too many!\n");
@@ -984,7 +901,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	va_list ap;
 	int i, blockcount = bl_list_count;
 	struct block_list *bl;
-	int c, bx, by;
+	int bx, by;
 	//method specific variables
 	int magnitude2, len_limit; //The square of the magnitude
 	int k, xi, yi, xu, yu;
@@ -1052,10 +969,9 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	if (type & ~BL_MOB)
 		for (by = my0 / BLOCK_SIZE; by <= my1 / BLOCK_SIZE; by++) {
 			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){
-				bl = map[m].block[bx+by*map[m].bxs];
-				c = map[m].block_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->prev && bl->type&type && bl_list_count<BL_LIST_MAX)
+				for( bl = map[m].block[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if(bl->prev && bl->type&type && bl_list_count<BL_LIST_MAX)
 					{
 						xi = bl->x;
 						yi = bl->y;
@@ -1085,13 +1001,13 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 				}
 			}
 		}
+
 	if(type&BL_MOB)
 		for(by=my0/BLOCK_SIZE;by<=my1/BLOCK_SIZE;by++){
 			for(bx=mx0/BLOCK_SIZE;bx<=mx1/BLOCK_SIZE;bx++){
-				bl = map[m].block_mob[bx+by*map[m].bxs];
-				c = map[m].block_mob_count[bx+by*map[m].bxs];
-				for(i=0;i<c && bl;i++,bl=bl->next){
-					if(bl && bl->prev && bl_list_count<BL_LIST_MAX)
+				for( bl = map[m].block_mob[bx+by*map[m].bxs] ; bl != NULL ; bl = bl->next )
+				{
+					if(bl->prev && bl_list_count<BL_LIST_MAX)
 					{
 						xi = bl->x;
 						yi = bl->y;
@@ -1141,38 +1057,25 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type,..
 {
 	int b, bsize;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
-	struct block_list *bl=NULL;
+	struct block_list *bl;
 	va_list ap;
-	int blockcount=bl_list_count,i,c;
+	int blockcount=bl_list_count,i;
 
 	va_start(ap,type);
 
 	bsize = map[m].bxs * map[m].bys;
+
 	if(type&~BL_MOB)
-	{
-		for(b=0;b<bsize;b++){
-			bl = map[m].block[b];
-			c = map[m].block_count[b];
-			for(i=0;i<c && bl;i++,bl=bl->next)
-			{
-				if(bl && bl->type&type && bl_list_count<BL_LIST_MAX)
+		for(b=0;b<bsize;b++)
+			for( bl = map[m].block[b] ; bl != NULL ; bl = bl->next )
+				if(bl->type&type && bl_list_count<BL_LIST_MAX)
 					bl_list[bl_list_count++]=bl;
-			}
-		}
-	}
 
 	if(type&BL_MOB)
-	{
-		for(b=0;b<bsize;b++){
-			bl = map[m].block_mob[b];
-			c = map[m].block_mob_count[b];
-			for(i=0;i<c && bl;i++,bl=bl->next)
-			{
-				if(bl && bl_list_count<BL_LIST_MAX)
+		for(b=0;b<bsize;b++)
+			for( bl = map[m].block_mob[b] ; bl != NULL ; bl = bl->next )
+				if(bl_list_count<BL_LIST_MAX)
 					bl_list[bl_list_count++]=bl;
-			}
-		}
-	}
 
 	if(bl_list_count>=BL_LIST_MAX)
 		ShowWarning("map_foreachinmap: block count too many!\n");
@@ -1793,7 +1696,7 @@ struct map_session_data * map_nick2sd(const char *nick)
  *------------------------------------------*/
 struct block_list * map_id2bl(int id)
 {
-	struct block_list *bl=NULL;
+	struct block_list *bl;
 	if(id >= 0 && id < ARRAYLENGTH(objects))
 		bl = objects[id];
 	else
@@ -2831,10 +2734,6 @@ int map_readallmaps (void)
 				map[i].block = (struct block_list**)aCalloc(size, 1);
 				map[i].block_mob = (struct block_list**)aCalloc(size, 1);
 
-				size = map[i].bxs * map[i].bys * sizeof(int);
-				map[i].block_count = (int*)aCallocA(size, 1);
-				map[i].block_mob_count = (int*)aCallocA(size, 1);
-
 				uidb_put(map_db, (unsigned int)map[i].index, &map[i]);
 
 				// cache our map if necessary
@@ -3379,8 +3278,6 @@ void do_final(void)
 #endif
 		if(map[i].block) aFree(map[i].block);
 		if(map[i].block_mob) aFree(map[i].block_mob);
-		if(map[i].block_count) aFree(map[i].block_count);
-		if(map[i].block_mob_count) aFree(map[i].block_mob_count);
 		if(battle_config.dynamic_mobs) { //Dynamic mobs flag by [random]
 			for (j=0; j<MAX_MOB_LIST_PER_MAP; j++)
 				if (map[i].moblist[j]) aFree(map[i].moblist[j]);
