@@ -1,5 +1,13 @@
 Date		Added
 ======
+2008/01/17
+	* Moved bongunsword to the Custom Quest Folders. [Samuray22]
+	* Moved Warper to the Custom main folder.
+	-Why we have a folder only for 1 script.
+	* Moved Poetry Ayothaya to Custom Main Folder.
+	-Again why a folder only for 1 script.
+	* Deleted Old Job Master.
+	-There's no reason to have an Old/Unsupported Script.
 2008/01/10
 	* Cleaned the script conf files (see topic:171384 for details) [ultramage]
 2008/01/06
