@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/20
+	* Merged the 'Delimiter-Separated Values' parser (r11878,r11879,r12059)
 	* Merged safety checks for many script commands (r11860 and r11861)
 	* Merged flavio's modifications to the script loading code to process
 	  entire npc files instead of reading them line by line, as well as to
