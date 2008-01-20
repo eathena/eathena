@@ -7,6 +7,8 @@ Date		Added
 	- corrected guild flag placement, dialogues and behavior (r10632)
 	- added treasure room protection against non-GLs (r10669)
 	- replaced getarg() calls with local variables (r11221, r11258, r11630)
+	- removed announces, guardian spawns, various guild npc dialogues
+	  (r11633, r11649, r11678, r11685, r11746, r11811, r11874, r11905)
 	* Kafra name, dialogue and placement update (r10810, r10812, r10940)
 	* Long overdue script-wide .gat removal
 	* Removed double tabs from various script object declarations (r11871)
