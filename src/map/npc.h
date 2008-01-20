@@ -52,9 +52,8 @@ int npc_checknear2(struct map_session_data* sd, struct block_list* bl);
 int npc_buysellsel(struct map_session_data* sd, int id, int type);
 int npc_buylist(struct map_session_data* sd,int n, unsigned short* item_list);
 int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list);
-int npc_parse_mob(char* w1, char* w2, char* w3, char* w4);
 int npc_parse_mob2(struct spawn_data* mob, int index); // [Wizputer]
-int npc_parse_warp(char* w1,char* w2,char* w3,char* w4);
+struct npc_data* npc_add_warp(short from_mapid, short from_x, short from_y, short xs, short ys, unsigned short to_mapindex, short to_x, short to_y);
 int npc_globalmessage(const char* name,const char* mes);
 
 void npc_setcells(struct npc_data* nd);
@@ -68,7 +67,7 @@ int npc_get_new_npc_id(void);
 
 void npc_addsrcfile(const char* name);
 void npc_delsrcfile(const char* name);
-void npc_parsesrcfile(const char* name);
+void npc_parsesrcfile(const char* filepath);
 int do_final_npc(void);
 int do_init_npc(void);
 void npc_event_do_oninit(void);
