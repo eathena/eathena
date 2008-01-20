@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/20
+	* Script command 'percentheal' can no longer kill you if the percentual
+	  value is not exactly -100 (prevents death in some situations) (r12051)
 	* Creator's mushrooms can no longer be cast on occupied cells, and
 	  will expire after 5 minutes (r12051, r12052, r12077)
 2008/01/19
