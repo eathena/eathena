@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/20
+	* Merged range-check that makes skills fail when attempted on someone out
+	  of your viewing range. [Skotlex]
 	* Script command 'percentheal' can no longer kill you if the percentual
 	  value is not exactly -100 (prevents death in some situations) (r12051)
 	* Creator's mushrooms can no longer be cast on occupied cells, and

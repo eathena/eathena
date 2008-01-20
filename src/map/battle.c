@@ -3266,20 +3266,25 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
  *------------------------------------------*/
 bool battle_check_range(struct block_list *src,struct block_list *bl,int range)
 {
+	int d;
 	nullpo_retr(false, src);
 	nullpo_retr(false, bl);
 
 	if(src->m != bl->m)	// ˆá‚¤ƒ}ƒbƒv
 		return false;
 
-	if(src->type == BL_HOM && battle_config.hom_setting&0x2)
-		range = battle_config.area_size + 1; //WTF, way to go Aegis and your awesome bugs.
 
+	if(src->type == BL_HOM && battle_config.hom_setting&0x2)
+		;	//WTF, way to go Aegis and your awesome bugs.
+	else	
 	if (!check_distance_bl(src, bl, range))
 		return false;
 
-	if(distance_bl(src, bl) < 2) //No need for path checking.
+	if((d=distance_bl(src, bl)) < 2) //No need for path checking.
 		return true;
+
+	if (d> AREA_SIZE)
+		return false; //Avoid targetting objects beyond your range of sight.
 
 	// ?áŠQ•¨”»’è
 	return path_search_long(NULL,src->m,src->x,src->y,bl->x,bl->y,CELL_CHKWALL);
