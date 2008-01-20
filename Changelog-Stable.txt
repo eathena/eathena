@@ -6,6 +6,10 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/20
 	* Fixed card removal script functions' 'extra card' bug (r12075)
+	* Removed the hardcoded limit for numeric npc input boxes (r12074)
+	* Fixed script command 'atcommand' not working (r12073)
+	* Added support for right-click-gm-menu kicking of NPC objects
+	* Extended the id range for npcs to start at 400 instead of 700 (r12025)
 	* Merged the 'Delimiter-Separated Values' parser (r11878,r11879,r12059)
 	* Merged safety checks for many script commands (r11860 and r11861)
 	* Merged flavio's modifications to the script loading code to process
