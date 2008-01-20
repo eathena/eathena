@@ -1,6 +1,10 @@
 Date		Added
 ======
 2008/01/20
+	* A year's worth of unmerged guild system updates
+	- corrected Permanent Development 'extra treasure box' bonus (r10106)
+	- corrected multiple "WoE has begun" announces (r10114)
+	- corrected guild flag placement, dialogues and behavior (r10632)
 	* Long overdue script-wide .gat removal
 	* Removed double tabs from various script object declarations (r11871)
 	* Merged the new script parser compatibility update (r11516) [ultramage]
