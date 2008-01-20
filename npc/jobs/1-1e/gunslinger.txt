@@ -27,7 +27,7 @@
 //= his first try [SinSloth]
 //============================================================ 
 
-que_ng.gat,152,167,3	script	Master Miller	901,{
+que_ng,152,167,3	script	Master Miller	901,{
 
 	if(Class == Job_Novice && JobLevel > 9)
 	{
@@ -245,7 +245,7 @@ que_ng.gat,152,167,3	script	Master Miller	901,{
 	}
 }
 
-payon.gat,184,65,3	script	The Wise Bull Horn	866,{
+payon,184,65,3	script	The Wise Bull Horn	866,{
 
 	switch(GUNS_Q)
 	{

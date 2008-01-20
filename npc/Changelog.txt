@@ -1,6 +1,7 @@
 Date		Added
 ======
 2008/01/20
+	* Long overdue script-wide .gat removal
 	* Removed double tabs from various script object declarations (r11871)
 	* Merged the new script parser compatibility update (r11516) [ultramage]
 	- also force-merged files that caused conflicts due to unmerged changes
