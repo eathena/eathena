@@ -5812,16 +5812,24 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 			int i = skilllv - 1;
 			int j = pc_search_inventory(sd,skill_db[skillid].itemid[i]);
 			if(j < 0 || skill_db[skillid].itemid[i] <= 0 || sd->inventory_data[j] == NULL ||
-				sd->status.inventory[j].amount < skill_db[skillid].amount[i]) {
+				sd->status.inventory[j].amount < skill_db[skillid].amount[i] ||
+				map_count_oncell(src->m,x,y,BL_CHAR) > 0
+			) {
 				clif_skill_fail(sd,skillid,0,0);
 				return 1;
 			}
+
 			pc_delitem(sd,j,skill_db[skillid].amount[i],0);
 			clif_skill_poseffect(src,skillid,skilllv,x,y,tick);
-			if (rand()%100 < 50)
-				mob_once_spawn(sd, sd->bl.m, x, y, "--ja--",(skilllv < 2 ? 1084+rand()%2 : 1078+rand()%6), 1, "");
-			else
+			if (rand()%100 < 50) {
 				clif_skill_fail(sd,skillid,0,0);
+			} else {
+				TBL_MOB* md = mob_once_spawn_sub(src, src->m, x, y, "--ja--",(skilllv < 2 ? 1084+rand()%2 : 1078+rand()%6),"");
+				if (!md) break;
+				if ((i = skill_get_time(skillid, skilllv)) > 0)
+					md->deletetimer = add_timer (tick + i, mob_timer_delete, md->bl.id, 0);
+				mob_spawn (md);
+			}
 		}
 		break;
 

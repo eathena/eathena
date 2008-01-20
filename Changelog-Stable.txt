@@ -4,6 +4,9 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2008/01/20
+	* Creator's mushrooms can no longer be cast on occupied cells, and
+	  will expire after 5 minutes (r12051, r12052, r12077)
 2008/01/19
 	* Merged session flag 'server' to mark interserver connections (r11930)
 	* Merged flavio's properly abstracted socket layer, now windows servers
