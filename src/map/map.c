@@ -22,6 +22,7 @@
 #include "pc.h"
 #include "status.h"
 #include "mob.h"
+#include "npc.h" // npc_setcells(), npc_unsetcells()
 #include "chat.h"
 #include "itemdb.h"
 #include "storage.h"
@@ -394,7 +395,9 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 			if (sc->data[SC_MAGICROD])
 				status_change_end(bl, SC_MAGICROD, -1);
 		}
-	}
+	} else
+	if (bl->type == BL_NPC) npc_unsetcells((TBL_NPC*)bl);
+
 
 	if (moveblock) map_delblock(bl);
 #ifdef CELL_NOSTACK
@@ -419,7 +422,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM]->val4, bl->m, x1-x0, y1-y0);
 			}
 		}
-	}
+	} else
+	if (bl->type == BL_NPC) npc_setcells((TBL_NPC*)bl);
 
 	return 0;
 }

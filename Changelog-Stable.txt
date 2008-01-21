@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/01/21
+	* Added support for walking OnTouch NPCs (r11713, r11714, r12004)
 	* Merged the big GvG system cleanup
 	- guardian hp saving removal (implies new savefile version)
 	- unused savefile/database columns removal (sql update script included)

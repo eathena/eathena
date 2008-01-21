@@ -56,6 +56,7 @@ struct npc_data* npc_add_warp(short from_mapid, short from_x, short from_y, shor
 int npc_globalmessage(const char* name,const char* mes);
 
 void npc_setcells(struct npc_data* nd);
+void npc_unsetcells(struct npc_data* nd);
 void npc_movenpc(struct npc_data* nd, int x, int y);
 int npc_enable(const char* name, int flag);
 void npc_setdisplayname(struct npc_data* nd, const char* newname);
