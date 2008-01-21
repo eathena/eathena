@@ -291,7 +291,6 @@ struct guild_member {
 	unsigned int exp;
 	int exp_payper;
 	short online,position;
-	int rsv1,rsv2;
 	char name[NAME_LENGTH];
 	struct map_session_data *sd;
 	unsigned char modified;
@@ -313,9 +312,7 @@ struct guild_alliance {
 struct guild_expulsion {
 	char name[NAME_LENGTH];
 	char mes[40];
-	char acc[40];
 	int account_id;
-	int rsv1,rsv2,rsv3;
 };
 
 struct guild_skill {
@@ -327,10 +324,6 @@ struct guild {
 	short guild_lv, connect_member, max_member, average_lv;
 	unsigned int exp,next_exp;
 	int skill_point;
-#ifdef TXT_ONLY
-	//FIXME: Gotta remove this variable completely, but doing so screws up the format of the txt save file...
-	int castle_id;
-#endif
 	char name[NAME_LENGTH],master[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];
@@ -347,7 +340,7 @@ struct guild {
 
 struct guild_castle {
 	int castle_id;
-	char map_name[MAP_NAME_LENGTH];
+	int mapindex;
 	char castle_name[NAME_LENGTH];
 	char castle_event[NAME_LENGTH];
 	int guild_id;
@@ -361,9 +354,8 @@ struct guild_castle {
 	int visibleC;
 	struct {
 		unsigned visible : 1;
-		int hp;
-		int id;
-	} guardian[MAX_GUARDIANS]; //New simplified structure. [Skotlex]
+		int id; // object id
+	} guardian[MAX_GUARDIANS];
 };
 
 // for Brandish Spear calculations

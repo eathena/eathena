@@ -1454,10 +1454,7 @@ int status_calc_mob(struct mob_data* md, int first)
 		else {
 			status->max_hp += 2000 * gc->defense;
 			status->max_sp += 200 * gc->defense;
-			if (md->guardian_data->number < MAX_GUARDIANS) //Spawn with saved HP
-				status->hp = gc->guardian[md->guardian_data->number].hp;
-			else //Emperium
-				status->hp = status->max_hp;
+			status->hp = status->max_hp;
 			status->sp = status->max_sp;
 		}
 		status->batk += status->batk * 10*md->guardian_data->guardup_lv/100;

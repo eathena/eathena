@@ -541,9 +541,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 		break;
 	default:
 		if (md && md->guardian_data) {
-			damage -= damage
-			  	* (md->guardian_data->castle->defense/100)
-				* battle_config.castle_defense_rate/100;
+			damage -= damage * (md->guardian_data->castle->defense/100) * battle_config.castle_defense_rate/100;
 		}
 		if (flag & BF_SKILL) { //Skills get a different reduction than non-skills. [Skotlex]
 			if (flag&BF_WEAPON)
@@ -3220,7 +3218,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			int t_guild = status_get_guild_id(t_bl);
 			if (
 				!(map[m].flag.pvp && map[m].flag.pvp_noguild) &&
-				s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild))
+				s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild))
 			)
 				state |= BCT_GUILD;
 			else
@@ -3248,7 +3246,7 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		if (flag&BCT_GUILD || state&BCT_ENEMY) {
 			int s_guild = status_get_guild_id(s_bl);
 			int t_guild = status_get_guild_id(t_bl);
-			if(s_guild && t_guild && (s_guild == t_guild || guild_idisallied(s_guild, t_guild)))
+			if(s_guild && t_guild && (s_guild == t_guild || guild_isallied(s_guild, t_guild)))
 				state |= BCT_GUILD;
 		}
 	}
