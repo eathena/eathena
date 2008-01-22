@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/01/22
+	* Merged formatting fixes to npcs (r10401 and r11605)
 2008/01/20
 	* A year's worth of unmerged guild system updates
 	- corrected Permanent Development 'extra treasure box' bonus (r10106)

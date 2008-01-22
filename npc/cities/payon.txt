@@ -1073,4 +1073,3 @@ pay_arche,77,131,2	script	Archer Joe#payon	88,{
 	}
 	close;
 }
-
