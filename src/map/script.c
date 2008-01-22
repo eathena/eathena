@@ -1865,6 +1865,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 	int i;
 	struct script_code* code = NULL;
 	static int first=1;
+	char end;
 
 	if( src == NULL )
 		return NULL;// empty script
@@ -1919,6 +1920,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 			script_buf  = NULL;
 			return NULL;
 		}
+		end = '\0';
 	}
 	else
 	{// requires brackets around the script
@@ -1933,6 +1935,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 			script_buf  = NULL;
 			return NULL;
 		}
+		end = '}';
 	}
 
 	// clear references of labels, variables and internal functions
@@ -1947,9 +1950,10 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 		}
 	}
 
-	while (*p && (*p != '}' || syntax.curly_count != 0) )
+	while( syntax.curly_count != 0 || *p != end )
 	{
-		p=skip_space(p);
+		if( *p == '\0' )
+			disp_error_message("unexpected end of script",p);
 		// labelÇæÇØì¡éÍèàóù
 		tmpp=skip_space(skip_word(p));
 		if(*tmpp==':' && !(!strncasecmp(p,"default:",8) && p + 7 == tmpp)){
@@ -1958,6 +1962,7 @@ struct script_code* parse_script(const char *src,const char *file,int line,int o
 			if( parse_options&SCRIPT_USE_LABEL_DB )
 				strdb_put(scriptlabel_db, GETSTRING(str_data[i].str), (void*)script_pos);
 			p=tmpp+1;
+			p=skip_space(p);
 			continue;
 		}
 
