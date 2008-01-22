@@ -9,6 +9,7 @@ WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 	  warps, shops and duplicates the same way as it does for npcs (r11508)
 	  (this also fixes the current npc loading problem)
 	- also merged a fix for item script processing code (r11487)
+	- and yet more forgotten npc parsing code fixes (r11512, r11573, r11603)
 2008/01/21
 	* Simplified OnTouch NPC area calculation (r11750)
 	* Added support for walking OnTouch NPCs (r11713, r11714, r12004)

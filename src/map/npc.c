@@ -1384,7 +1384,7 @@ void npc_delsrcfile(const char* name)
 static void npc_parsename(struct npc_data* nd, const char* name, const char* start, const char* buffer, const char* filepath)
 {
 	const char* p;
-	struct npc_data* dnd;
+	struct npc_data* dnd;// duplicate npc
 	char newname[NAME_LENGTH];
 
 	// parse name
@@ -1392,7 +1392,7 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 	if( p )
 	{// <Display name>::<Unique name>
 		size_t len = p-name;
-		if( len >= NAME_LENGTH )
+		if( len > NAME_LENGTH )
 		{
 			ShowWarning("npc_parsename: Display name of '%s' is too long (len=%u) in file '%s', line'%d'. Truncating to %u characters.\n", name, (unsigned int)len, filepath, strline(buffer,start-buffer), NAME_LENGTH);
 			safestrncpy(nd->name, name, sizeof(nd->name));
@@ -1403,14 +1403,14 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 			memset(nd->name+len, 0, sizeof(nd->name)-len);
 		}
 		len = strlen(p+2);
-		if( len >= NAME_LENGTH )
+		if( len > NAME_LENGTH )
 			ShowWarning("npc_parsename: Unique name of '%s' is too long (len=%u) in file '%s', line'%d'. Truncating to %u characters.\n", name, (unsigned int)len, filepath, strline(buffer,start-buffer), NAME_LENGTH);
 		safestrncpy(nd->exname, p+2, sizeof(nd->exname));
 	}
 	else
 	{// <Display name>
 		size_t len = strlen(name);
-		if( len >= NAME_LENGTH )
+		if( len > NAME_LENGTH )
 			ShowWarning("npc_parsename: Name '%s' is too long (len=%u) in file '%s', line'%d'. Truncating to %u characters.\n", name, (unsigned int)len, filepath, strline(buffer,start-buffer), NAME_LENGTH);
 		safestrncpy(nd->name, name, sizeof(nd->name));
 		safestrncpy(nd->exname, name, sizeof(nd->exname));
@@ -1423,11 +1423,12 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 		safestrncpy(nd->exname, newname, sizeof(nd->exname));
 	}
 
-	if( *nd->exname == '\0' || (dnd=npc_name2id(nd->exname)) != NULL )
+	if( (dnd=npc_name2id(nd->exname)) != NULL )
 	{// duplicate unique name, generate new one
 		char this_mapname[32];
 		char other_mapname[32];
 		int i = 0;
+
 		do
 		{
 			++i;
@@ -1435,8 +1436,8 @@ static void npc_parsename(struct npc_data* nd, const char* name, const char* sta
 		}
 		while( npc_name2id(newname) != NULL );
 
-		strcpy(this_mapname, (nd->bl.m==-1?"(not on a map)":mapindex_id2name(nd->bl.m)));
-		strcpy(other_mapname, (dnd->bl.m==-1?"(not on a map)":mapindex_id2name(dnd->bl.m)));
+		strcpy(this_mapname, (nd->bl.m==-1?"(not on a map)":mapindex_id2name(map[nd->bl.m].index)));
+		strcpy(other_mapname, (dnd->bl.m==-1?"(not on a map)":mapindex_id2name(map[dnd->bl.m].index)));
 
 		ShowWarning("npc_parsename: Duplicate unique name in file '%s', line'%d'. Renaming '%s' to '%s'.\n", filepath, strline(buffer,start-buffer), nd->exname, newname);
 		ShowDebug("this npc:\n   display name '%s'\n   unique name '%s'\n   map=%s, x=%d, y=%d\n", nd->name, nd->exname, this_mapname, nd->bl.x, nd->bl.y);
@@ -1741,6 +1742,11 @@ static const char* npc_skip_script(const char* start, const char* buffer, const 
 	return p+1;// return after the last '}'
 }
 
+/// Parses a npc script.
+///
+/// -%TAB%script%TAB%<NPC Name>%TAB%-1,{<code>}
+/// <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,{<code>}
+/// <map name>,<x>,<y>,<facing>%TAB%script%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>,{<code>}
 static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
 {
 	int x, y, dir = 0, m, xs = 0, ys = 0, class_ = 0;	// [Valaris] thanks to fov
@@ -1763,10 +1769,9 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	}
 	else
 	{// npc in a map
-		if( sscanf(w1, "%31[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4
-		||	(strcasecmp(w2, "script") == 0 && strchr(w4,',') == NULL) )
+		if( sscanf(w1, "%31[^,],%d,%d,%d", mapname, &x, &y, &dir) != 4 )
 		{
-			ShowError("npc_parse_script: Unkown format for a script in file '%s', line '%d'. Skipping the rest of file...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
+			ShowError("npc_parse_script: Invalid placement format for a script in file '%s', line '%d'. Skipping the rest of file...\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
 			return NULL;// unknown format, don't continue
 		}
 		m = map_mapname2mapid(mapname);
@@ -1774,14 +1779,20 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 
 	if( strcmp(w2, "script") == 0 )
 	{// parsing script with curly
-		const char* real_start;
+		const char* script_start;
 
-		end = npc_skip_script(start, buffer, filepath);
+		if( strstr(w4,",{") == NULL )
+		{
+			ShowError("npc_parse_script: Missing left curly ',{' in file '%s', line '%d'. Skipping the rest of the file.\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
+			return NULL;// can't continue
+		}
+		script_start = strstr(start,",{")+1;
+
+		end = npc_skip_script(script_start, buffer, filepath);
 		if( end == NULL )
 			return NULL;// (simple) parse error, don't continue
 
-		real_start = strchr(start,'{');
-		script = parse_script(real_start, filepath, strline(buffer,real_start-buffer), SCRIPT_USE_LABEL_DB);
+		script = parse_script(script_start, filepath, strline(buffer,script_start-buffer), SCRIPT_USE_LABEL_DB);
 		label_list = NULL;
 		label_list_num = 0;
 		src_id = 0;
