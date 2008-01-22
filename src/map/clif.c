@@ -8963,7 +8963,15 @@ void clif_parse_RemoveOption(int fd,struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_ChangeCart(int fd,struct map_session_data *sd)
 {
-	pc_setcart(sd,RFIFOW(fd,2));
+	int type;
+
+	type = (int)RFIFOW(fd,2);
+
+	if( (type == 5 && sd->status.base_level > 90) ||
+	    (type == 4 && sd->status.base_level > 80) ||
+	    (type == 3 && sd->status.base_level > 65) ||
+	    (type == 2 && sd->status.base_level > 40) )
+		pc_setcart(sd,type);
 }
 
 /*==========================================
@@ -11621,7 +11629,8 @@ int do_init_clif(void)
 	packetdb_readdb();
 
 	set_defaultparse(clif_parse);
-	if (!make_listen_bind(bind_ip,map_port)) {
+	if( make_listen_bind(bind_ip,map_port) == -1 )
+	{
 		ShowFatalError("can't bind game port\n");
 		exit(EXIT_FAILURE);
 	}
