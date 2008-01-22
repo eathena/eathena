@@ -135,8 +135,8 @@ int npc_enable(const char* name, int flag)
 	} else
 		clif_changeoption(&nd->bl);
 		
-	if(flag&3 && (nd->u.scr.xs > 0 || nd->u.scr.ys >0))
-		map_foreachinarea( npc_enable_sub,nd->bl.m,nd->bl.x-nd->u.scr.xs,nd->bl.y-nd->u.scr.ys,nd->bl.x+nd->u.scr.xs,nd->bl.y+nd->u.scr.ys,BL_PC,nd);
+	if( flag&3 && (nd->u.scr.xs >= 0 || nd->u.scr.ys >= 0) )
+		map_foreachinarea( npc_enable_sub, nd->bl.m, nd->bl.x-nd->u.scr.xs, nd->bl.y-nd->u.scr.ys, nd->bl.x+nd->u.scr.xs, nd->bl.y+nd->u.scr.ys, BL_PC, nd );
 
 	return 0;
 }
@@ -690,14 +690,15 @@ int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill)
 
 	xs=nd->u.scr.xs;
 	ys=nd->u.scr.ys;
-	if (xs>=0 && ys>=0 && (strcmp(((eventname)+strlen(eventname)-6),"Global") != 0) )
+	if( xs >= 0 && ys >= 0 && strcmp(((eventname)+strlen(eventname)-6),"Global") != 0 )
 	{
-		if (nd->bl.m >= 0) { //Non-invisible npc
-		  	if (nd->bl.m != sd->bl.m )
+		if( nd->bl.m >= 0 )
+		{// Non-invisible npc
+		  	if( nd->bl.m != sd->bl.m )
 				return 1;
-			if ( xs>0 && (sd->bl.x<nd->bl.x-xs/2 || nd->bl.x+xs/2<sd->bl.x) )
+			if( sd->bl.x < nd->bl.x-xs || sd->bl.x > nd->bl.x+xs )
 				return 1;
-			if ( ys>0 && (sd->bl.y<nd->bl.y-ys/2 || nd->bl.y+ys/2<sd->bl.y) )
+			if( sd->bl.y < nd->bl.y-ys || sd->bl.y > nd->bl.y+ys )
 				return 1;
 		}
 	}
@@ -738,8 +739,8 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 		default:
 			continue;
 		}
-		if (x >= map[m].npc[i]->bl.x-xs/2 && x < map[m].npc[i]->bl.x-xs/2+xs &&
-		   y >= map[m].npc[i]->bl.y-ys/2 && y < map[m].npc[i]->bl.y-ys/2+ys)
+		if( x >= map[m].npc[i]->bl.x-xs && x <= map[m].npc[i]->bl.x+xs
+		&&  y >= map[m].npc[i]->bl.y-ys && y <= map[m].npc[i]->bl.y+ys )
 			break;
 	}
 	if( i == map[m].npc_num )
@@ -793,8 +794,8 @@ int npc_touch_areanpc2(struct block_list* bl)
 		xs=map[m].npc[i]->u.warp.xs;
 		ys=map[m].npc[i]->u.warp.ys;
 
-		if (bl->x >= map[m].npc[i]->bl.x-xs/2 && bl->x < map[m].npc[i]->bl.x-xs/2+xs &&
-		   bl->y >= map[m].npc[i]->bl.y-ys/2 && bl->y < map[m].npc[i]->bl.y-ys/2+ys)
+		if( bl->x >= map[m].npc[i]->bl.x-xs && bl->x <= map[m].npc[i]->bl.x+xs
+		&&  bl->y >= map[m].npc[i]->bl.y-ys && bl->y <= map[m].npc[i]->bl.y+ys )
 			break;
 	}
 	if (i==map[m].npc_num)
@@ -860,8 +861,8 @@ int npc_check_areanpc(int flag, int m, int x, int y, int range)
 			continue;
 		}
 
-		if (x1 >= map[m].npc[i]->bl.x-xs/2 && x0 < map[m].npc[i]->bl.x-xs/2+xs &&
-			y1 >= map[m].npc[i]->bl.y-ys/2 && y0 < map[m].npc[i]->bl.y-ys/2+ys)
+		if( x1 >= map[m].npc[i]->bl.x-xs && x0 <= map[m].npc[i]->bl.x+xs
+		&&  y1 >= map[m].npc[i]->bl.y-ys && y0 <= map[m].npc[i]->bl.y+ys )
 			break; // found a npc
 	}
 	if (i==map[m].npc_num)
@@ -1211,8 +1212,8 @@ int npc_remove_map(struct npc_data* nd)
 	npc_unsetcells(nd);
 	map_delblock(&nd->bl);
 	//Remove npc from map[].npc list. [Skotlex]
-	for(i=0;i<map[m].npc_num && map[m].npc[i] != nd;i++);
-	if (i >= map[m].npc_num) return 2; //failed to find it?
+	ARR_FIND( 0, map[m].npc_num, i, map[m].npc[i] == nd );
+	if( i >= map[m].npc_num ) return 2; //failed to find it?
 
 	map[m].npc_num--;
 	memmove(&map[m].npc[i], &map[m].npc[i+1], (map[m].npc_num-i)*sizeof(map[m].npc[0]));
@@ -1405,8 +1406,8 @@ struct npc_data* npc_add_warp(short from_mapid, short from_x, short from_y, shor
 	nd->u.warp.mapindex = to_mapindex;
 	nd->u.warp.x = to_x;
 	nd->u.warp.y = to_y;
-	nd->u.warp.xs = xs+2;// TODO why +2? [FlavioJS]
-	nd->u.warp.ys = xs+2;
+	nd->u.warp.xs = xs;
+	nd->u.warp.ys = xs;
 	nd->bl.type = BL_NPC;
 	nd->subtype = WARP;
 	npc_setcells(nd);
@@ -1463,8 +1464,6 @@ static const char* npc_parse_warp(char* w1, char* w2, char* w3, char* w4, const 
 	nd->speed = 200;
 
 	nd->u.warp.mapindex = i;
-	xs += 2;
-	ys += 2;
 	nd->u.warp.x = to_x;
 	nd->u.warp.y = to_y;
 	nd->u.warp.xs = xs;
@@ -1753,16 +1752,14 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 
 	if( sscanf(w4, "%d,%d,%d", &class_, &xs, &ys) == 3 )
 	{// OnTouch area defined
-		if (xs >= 0) xs = xs * 2 + 1;
-		if (ys >= 0) ys = ys * 2 + 1;
 		nd->u.scr.xs = xs;
 		nd->u.scr.ys = ys;
 	}
 	else
-	{
+	{// no OnTouch area
 		class_ = atoi(w4);
-		nd->u.scr.xs = 0;
-		nd->u.scr.ys = 0;
+		nd->u.scr.xs = -1;
+		nd->u.scr.ys = -1;
 	}
 
 	// extended name
@@ -1906,14 +1903,14 @@ void npc_setcells(struct npc_data* nd)
 		ys = nd->u.scr.ys;
 	}
 
-	if (m < 0 || xs < 1 || ys < 1)
+	if (m < 0 || xs < 0 || ys < 0)
 		return;
 
-	for (i = 0; i < ys; i++) {
-		for (j = 0; j < xs; j++) {
-			if (map_getcell(m, x-xs/2+j, y-ys/2+i, CELL_CHKNOPASS))
+	for (i = y-ys; i <= y+ys; i++) {
+		for (j = x-xs; j <= x+xs; j++) {
+			if (map_getcell(m, j, i, CELL_CHKNOPASS))
 				continue;
-			map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_SETNPC);
+			map_setcell(m, j, i, CELL_SETNPC);
 		}
 	}
 }
@@ -1940,21 +1937,22 @@ void npc_unsetcells(struct npc_data* nd)
 		ys = nd->u.scr.ys;
 	}
 
-	if (m < 0 || xs < 1 || ys < 1)
+	if (m < 0 || xs < 0 || ys < 0)
 		return;
 
 	//Locate max range on which we can locate npc cells
-	for(x0 = x-xs/2; x0 > 0 && map_getcell(m, x0, y, CELL_CHKNPC); x0--);
-	for(x1 = x+xs/2-1; x1 < map[m].xs && map_getcell(m, x1, y, CELL_CHKNPC); x1++);
-	for(y0 = y-ys/2; y0 > 0 && map_getcell(m, x, y0, CELL_CHKNPC); y0--);
-	for(y1 = y+ys/2-1; y1 < map[m].xs && map_getcell(m, x, y1, CELL_CHKNPC); y1++);
+	for(x0 = x-xs; x0 > 0 && map_getcell(m, x0, y, CELL_CHKNPC); x0--);
+	for(x1 = x+xs; x1 < map[m].xs-1 && map_getcell(m, x1, y, CELL_CHKNPC); x1++);
+	for(y0 = y-ys; y0 > 0 && map_getcell(m, x, y0, CELL_CHKNPC); y0--);
+	for(y1 = y+ys; y1 < map[m].ys-1 && map_getcell(m, x, y1, CELL_CHKNPC); y1++);
 
-	for (i = 0; i < ys; i++) {
-		for (j = 0; j < xs; j++)
-			map_setcell(m, x-xs/2+j, y-ys/2+i, CELL_CLRNPC);
-	}
-	//Reset NPC cells for other nearby npcs.
-	map_foreachinarea( npc_unsetcells_sub, m, x0, y0, x1, y1, BL_NPC, nd->bl.id);
+	//Erase this npc's cells
+	for (i = y-ys; i <= y+ys; i++)
+		for (j = x-xs; j <= x+xs; j++)
+			map_setcell(m, j, i, CELL_CLRNPC);
+
+	//Re-deploy NPC cells for other nearby npcs.
+	map_foreachinarea( npc_unsetcells_sub, m, x0, y0, x1, y1, BL_NPC, nd->bl.id );
 }
 
 void npc_movenpc(struct npc_data* nd, int x, int y)
