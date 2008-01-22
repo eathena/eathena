@@ -4,6 +4,10 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2008/01/22
+	* Merged the update to the npc loader that checks the name lengths of
+	  warps, shops and duplicates the same way as it does for npcs (r11508)
+	  (this also fixes the current npc loading problem)
 2008/01/21
 	* Simplified OnTouch NPC area calculation (r11750)
 	* Added support for walking OnTouch NPCs (r11713, r11714, r12004)
