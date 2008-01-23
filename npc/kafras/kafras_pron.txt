@@ -25,6 +25,7 @@
 //= 2.4 Updated Kafras locations for the mini-map [Lupus]
 //= 2.41 New prices [Evera]
 //= 2.5 Can't save outside city [Evera]
+//= 2.6 Fixed central Kafra position (146,86 -> 146,98) [L0ne_W0lf]
 //= 2.7 Updated function calls with new arguments. [L0ne_W0lf]
 //=	Added unique Kafra Welcome messages.
 //=====================================================================
