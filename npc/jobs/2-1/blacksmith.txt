@@ -33,6 +33,7 @@
 //= 2.4a Changed a BaseJob to baseclass. [L0ne_W0lf]
 //= 2.4b Further bug fixes with teh hel of Barron-Monster. [L0ne_W0lf]
 //= 2.4c More fixes courtosy of Micktu. [L0ne_W0lf]
+//= 2.4d Fixed an incorrect answer in the quiz. (Trojal) [L0ne_W0lf]
 //==============================================================
 
 ein_in01,18,28,4	script	Guildsman#BLS	731,{

@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Dr.Evil & MasterOfMuppets
 //===== Current Version: ===================================== 
-//= 1.7
+//= 1.7c
 //===== Compatible With: ===================================== 
 //= eAthena SVN 3422+(Requires jA Script System)
 //===== Description: ========================================= 
@@ -19,6 +19,9 @@
 //= 1.5 Fixed warps, removed map duplicates, typos [Lupus]
 //= 1.6 Changed clone maps new_1-? -> new_zone0? [Lupus]
 //= 1.7 Now Kafra Tickets are given at correct NPC/Actions [Lupus]
+//= 1.7a a bit of optimization [Lupus]
+//= 1.7b Corrected a little Typo Error. (bugreport:728) [Samuray22]
+//= 1.7C Corrected another Typo Error. (bugreport:740) [Samuray22]
 //============================================================ 
 
 //====================================================================
@@ -767,6 +770,11 @@ new_zone02,115,111,4	script	Item Instructor	726,{
 				mes "a little reward";
 				mes "just for listening.";
 				set BaseExp,BaseExp+155;
+				next;
+			} else {
+				mes "[Alice]";
+				mes "Umm... You can drink";
+				mes "it later I guess.";
 				next;
 			}
 			disable_items;	
@@ -2077,7 +2085,7 @@ new_zone02,17,182,6	script	Helper#2	84,{
 			mes "Field Combat Training can be";
 			mes "actually pretty dangerous for";
 			mes "new adventurers. Let me give you";
-			mes "a little more strenght through the";
+			mes "a little more strength through the";
 			mes "power of my magic.";
 			next;
 			mes "[Elmeen]";
@@ -2601,8 +2609,8 @@ L_loop:
 }
 
 new_zone04,100,29,4	script	Final Instructor	46,{
+	mes "[Hanson]";
 	if (!(NEW_MES_FLAG6)) {
-		mes "[Hanson]";
 		mes "Nice to meet you.";
 		mes "My name is 'Hanson'";
 		mes "I am in charge of the third course,";
@@ -2617,7 +2625,6 @@ new_zone04,100,29,4	script	Final Instructor	46,{
 		close;
 	}
 	if (NEW_GETITEM) {
-		mes "[Hanson]";
 		mes "I understand.";
 		mes "I will now move you directly into the world of Ragnarok Online.";
 		next;
@@ -2633,7 +2640,6 @@ new_zone04,100,29,4	script	Final Instructor	46,{
 		next;
 		goto L_cancel;
 	}
-	mes "[Hanson]";
 	mes "You have made an effort to come";
 	mes "here. You have just finished";
 	mes "learning about job classes.";
@@ -2787,7 +2793,7 @@ L_cancel:
 	next;
 	switch ( select("Yes","No") ) {
 	case 1:	set NOV_3_MERCHANT,NOV_3_MERCHANT+1;break;
-	case 2:set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
+	case 2: set NOV_3_ACOLYTE,NOV_3_ACOLYTE+1;
 	}
 	mes "[Hanson]";
 	mes "You don't mind exploring dangerous";
@@ -2911,7 +2917,7 @@ L_cancel:
 		set NOV_3_ARCHER,NOV_3_ARCHER+1;break;
 	case 3:	set NOV_3_MAGICIAN,NOV_3_MAGICIAN+1;
 		set NOV_3_THIEF,NOV_3_THIEF+1;
-		set NOV_3_MERCHAN,NOV_3_MERCHAN+1;	
+		set NOV_3_MERCHANT,NOV_3_MERCHANT+1;	
 	}
 	mes "[Hanson]";
 	mes "You happened to pick up";
@@ -2941,14 +2947,13 @@ L_cancel:
 		mes "one. She asks you to buy a";
 		mes "souvenir that's not particularly";
 		mes "needed.";
-		mes "What would you do?";
 		break;
 	case 1:	mes "You're on a trip with your beloved";
 		mes "one. He asks you to buy a";
 		mes "souvenir that's not particularly";
 		mes "needed.";
-		mes "What would you do?";
 	}
+	mes "What would you do?";
 	next;
 	switch ( select("Buy the item for her/him.","Say 'no'.","Promise to buy it next time.") ) {
 	case 1:	set NOV_3_SWORDMAN,NOV_3_SWORDMAN+1;break;
@@ -3145,19 +3150,20 @@ L_loop2:
 		mes "about these items.";
 		next;
 		mes "[Hanson]";
+		mes "After you change your job,";
 		switch( @JOB_NUMBER_CHK ) {
-		case 0:	mes "After you change your job,";
+		case 0:
 			mes "you can use the 'Falchion'"; break;
-		case 1:	mes "After you change your job,";
+		case 1:
 			mes "you can use the 'Composite Bow'"; break;
-		case 2:	mes "After you change your job,";
+		case 2:
 			mes "you can use the 'Main Gauche'"; break;
-		case 3:	mes "After you change your job,";
-			mes "you can use the 'Rod'"; break;
-		case 4:	mes "After you change your job,";
+		case 3:
+			mes "you can use either 'Rod' or 'Cutter'"; break;
+		case 4:
 			mes "you can use the 'Mace'"; break;
-		case 5:	mes "After you change your job,";
-			mes "you can use the 'Battle Axe'";break;
+		case 5:	
+			mes "you can use the 'Battle Axe'";
 		}
 		mes "instead of the Novice Knife";
 		mes "which I offered you before.";
@@ -3316,7 +3322,7 @@ L_loop2:
 	mes "within Ragnarok Online.";
 	mes "Later, you can use the";
 	mes "'Adventurer's Suit'";
-	mes "instead of the Novice Plate";
+	mes "instead of the 'Novice Plate'";
 	mes "which I offered you before.";
 	next;
 L_warp:
@@ -3346,48 +3352,44 @@ L_warp:
 	}
 	end;
 L_place:
+	mes "The town you will be sent to";
 	switch( @JOB_NUMBER_CHK ) {
-	case 0:	mes "The town you will be sent to";
+	case 0:
 		mes "is 'Izlude'. The Swordsman";
 		mes "association is located in the";
 		mes "west side of the city.";
-		mes "Please remember this.";
 		break;
-	case 1:	mes "The town you will be sent to";
+	case 1:
 		mes "is named 'Payon'.";
 		mes "The Archer association can be";
 		mes "found in the small village";
 		mes "to the north-east.";
-		mes "Please remember this.";
 		break;
-	case 2:	mes "The town you will be sent to";
+	case 2:
 		mes "is called 'Morroc'.";
 		mes "The thief guild is in the";
 		mes "underground 1st floor of the";
 		mes "pyramid, which is North-west";
 		mes "of 'Morroc'.";
-		mes "Please remember this.";
 		break;
-	case 3:	mes "The town you will be sent to";
+	case 3:
 		mes "is called 'Geffen'.";
 		mes "The Mage association is located";
 		mes "to the north-west of the city.";
-		mes "Please remember this.";
 		break;
-	case 4:	mes "The town you will be sent to";
+	case 4:
 		mes "is called 'Prontera'.";
 		mes "The good father can be found";
 		mes "in the church located in the";
 		mes "north-east corner of 'Prontera'.";
-		mes "Please remember this.";
 		break;
-	case 5:	mes "The town you will be sent to";
+	case 5:
 		mes "is called 'Alberta'.";
 		mes "The Merchant association is";
 		mes "located in the south-western";
 		mes "section of the city.";
-		mes "Please remember this.";
 	}
+	mes "Please remember this.";
 	mes "You'll now be teleported.";
 	return;
 L_cleararg:

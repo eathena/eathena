@@ -452,3 +452,4 @@ prt_fild00,208,218,6	script	Ascetic#3aco	98,{
 		}
 	}
 }
+
