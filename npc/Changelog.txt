@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/01/25
+	* Merged the rest of the /npc directory from trunk
 2008/01/22
 	* Merged formatting fixes to npcs (r10401 and r11605)
 2008/01/20

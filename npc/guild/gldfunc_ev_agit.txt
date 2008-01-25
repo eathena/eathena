@@ -28,6 +28,7 @@
 //= 1.3a fixed Defence / Economy underflow [Lupus] thanks2 kyoki
 //= 1.4 updated a couple mapannounces in OnAgitBreak. [L0ne_W0lf]
 //= 1.5 Changed the names of the Kafra from "Service" to "Staff" [L0ne_W0lf]
+//= 1.6 Fixed the OnAgitBreak message being map-only and not global. (Lil DomX) [L0ne_W0lf]
 //= 1.7 Updated functions, got rid of the various gotos. [L0ne_W0lf]
 //=	Castles can be conquered as long as they un-owned.
 //= 1.8 Fixed Guardian data being overwritten when castle ownership changes. [L0ne_W0lf]
