@@ -1,3 +1,6 @@
+2008/01/25
+	* Changed cast time of Napalm Vulcan from 1,7s to 1s. [FlavioJS]
+	  Based on X.4 and 11.2 zones
 12/18
 	* Firepillar ignores target's defense cards.
 	* Venom Splasher ignores caster's cards. [Skotlex]
