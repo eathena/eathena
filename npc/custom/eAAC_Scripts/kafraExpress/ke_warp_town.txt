@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Skotlex 
 //===== Current Version: ===================================== 
-//= 2.1
+//= 2.2
 //===== Compatible With: ===================================== 
 //= eAthena SVN R3424+, RO Episode 8+ (Hugel)
 //===== Description: ========================================= 
@@ -33,6 +33,7 @@
 //= 0x00040000 Prontera
 //= 0x00080000 Umbala
 //= 0x00100000 Yuno
+//= 0x00200000 Rachel
 //============================================================ 
 
 -	script	keInit_warpTown	-1,{
@@ -82,6 +83,9 @@ function	script	F_keWarpTown	{
 					+" "+$@ked_users$+")",
 				"- Prontera ("+@cost+"z/"+(getmapusers("prontera")+getmapusers("prt_castle")
 					+getmapusers("prt_church")+getmapusers("prt_in"))+" "+$@ked_users$+")",
+				"- Rachel ("+@cost+"z/"+(getmapusers("rachel")+getmapusers("ra_in01")
+					+getmapusers("ra_temple")+getmapusers("ra_temin")+getmapusers("ra_temsky")
+					+getmapusers("que_rachel"))+" "+$@ked_users$+")",
 				"- Umbala ("+@cost+"z/"+(getmapusers("umbala")+getmapusers("um_in"))+" "+$@ked_users$+")",
 				"- Yuno ("+@cost+"z/"+(getmapusers("yuno")+getmapusers("yuno_in01")+getmapusers("yuno_in02")
 					+getmapusers("yuno_in03")+getmapusers("yuno_in04")+getmapusers("yuno_in05"))+" "+$@ked_users$+")"
@@ -108,6 +112,7 @@ function	script	F_keWarpTown	{
 				"- Niflheim ("+@niflcost+"z)",
 				"- Payon ("+@cost+"z)",
 				"- Prontera ("+@cost+"z)",
+				"- Rachel ("+@cost+"z)",
 				"- Umbala ("+@cost+"z)",
 				"- Yuno ("+@cost+"z)"
 			);
@@ -194,11 +199,15 @@ function	script	F_keWarpTown	{
 			if (SF_check(0x40000))
 				SF_warp $@kewt_cost,$@kewt_discount,e_yawn,"prontera",156,175;
 			break;
-		case 21: //Umbala
+		case 21: //Rachel
+			if (SF_check(0x200000))
+				SF_warp $@kewt_cost,$@kewt_discount,e_yawn,"rachel",137,133;
+			break;
+		case 22: //Umbala
 			if (SF_check(0x80000))
 				SF_warp $@kewt_cost,$@kewt_discount,e_yawn,"umbala",88,153;
 			break;
-		case 22: //Yuno
+		case 23: //Yuno
 			if (SF_check(0x100000))
 				SF_warp $@kewt_cost,$@kewt_discount,e_yawn,"yuno",158,77;
 			break;
@@ -206,7 +215,7 @@ function	script	F_keWarpTown	{
 	} while (@kmenu > 1);
 	return;
 	
-//SubFunction SF_check(char-flag, account_flag)
+//SubFunction SF_check(flag)
 //Checks if the character can warp to that town taking into consideration
 //traveller's mode.
 function SF_check {
@@ -452,6 +461,8 @@ function	script	F_keAddTravelTown	{
 			set #kewt_travel,#kewt_travel|0x80000;
 		if (@map$ == "yuno" || kewt_travel&0x100000)
 			set #kewt_travel,#kewt_travel|0x100000;
+		if (@map$ == "rachel" || kewt_travel&0x200000)
+			set #kewt_travel,#kewt_travel|0x200000;
 	} else {
 		if (@map$ == "alberta")
 			set kewt_travel,kewt_travel|0x1;
@@ -495,6 +506,8 @@ function	script	F_keAddTravelTown	{
 			set kewt_travel,kewt_travel|0x80000;
 		if (@map$ == "yuno")
 			set kewt_travel,kewt_travel|0x100000;
+		if (@map$ == "rachel")
+			set kewt_travel,kewt_travel|0x200000;
 	}
 	return;
 }

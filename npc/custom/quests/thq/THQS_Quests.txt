@@ -1,27 +1,28 @@
-//===== Athena Script =====================================
+//===== eAthena Script =======================================
 //= Treasure Hunter Script
-//===== Converted By ======================================
+//===== Converted By =========================================
 //= Fredzilla
 //= Original
-///////////////////////////////////////////////////////////
-//                 Treasure Hunter Quests                //
-//                      By: Ezekial                      //
-//                 for the use on nRO run by Newbe5      //
-//                   revised By Warlock                  //
-///////////////////////////////////////////////////////////
-//===== Version ===========================================
-//= 1.3
-//===== Compatible With ===================================
+//////////////////////////////////////////////////////////////
+//                  Treasure Hunter Quests                  //
+//                       By: Ezekial                        //
+//             for the use on nRO run by Newbe5             //
+//                    revised By Warlock                    //
+//////////////////////////////////////////////////////////////
+//===== Version ==============================================
+//= 1.4
+//===== Compatible With ======================================
 //= eAthena 1.0
-//===== Description =======================================
+//===== Description ==========================================
 //= Start for Treasure hunter quests
-//===== Comments ==========================================
-//= Event_THQS - Used to check if you have already registerd
+//===== Comments =============================================
+//= Event_THQS - Used to check if you have already registered
 //= #Treasure_Token - used to keep track of tokens
 //= 1.0 - Straight conversionof Aegis NPC file
 //= 1.2 some bugfixes, typos [Lupus]
 //= 1.3 Removed Duplicates [Silent]
-//////////////////////////////////////////////////////////
+//= 1.4 Further removed duplicates. [L0ne_W0lf]
+//============================================================
 
 
 ///////Job list 1///////
@@ -88,7 +89,7 @@ N_QuestStart:
 	close;
 }
 //1-4
-prontera,264,353,6	script	Old Lady	103,{
+prontera,264,353,6	script	Old Lady#thq	103,{
 	if (one_qset == 4 && countitem(934) > 14) goto N_QuestComp;
 	if (one_qset == 4) goto N_QuestStart;
 	mes "[Old Lady]";
