@@ -102,7 +102,6 @@ char *ATCOMMAND_CONF_FILENAME;
 char *CHARCOMMAND_CONF_FILENAME;
 char *SCRIPT_CONF_NAME;
 char *MSG_CONF_NAME;
-char *GRF_PATH_FILENAME;
 
 // 極力 staticでロ?カルに?める
 static DBMap* id_db=NULL; // int id -> struct block_list*
@@ -144,8 +143,21 @@ struct charid2nick {
 	struct charid_request* requests;// requests of notification on this nick
 };
 
-char map_cache_file[256]="db/map.info"; // ｫﾞｫﾃｫﾗｫｭｫ罩ﾃｫｷｫ雖ﾕｫ｡ｫ､ｫ・｣
-int  map_read_flag = READ_FROM_GAT;
+// This is the main header found at the very beginning of the map cache
+struct map_cache_main_header {
+	unsigned long file_size;
+	unsigned short map_count;
+};
+
+// This is the header appended before every compressed map cells info in the map cache
+struct map_cache_map_info {
+	char name[MAP_NAME_LENGTH];
+	short xs;
+	short ys;
+	long len;
+};
+
+char map_cache_file[256]="db/map_cache.dat";
 char db_path[256] = "db";
 char motd_txt[256] = "conf/motd.txt";
 char help_txt[256] = "conf/help.txt";
@@ -156,6 +168,7 @@ char wisp_server_name[NAME_LENGTH] = "Server"; // can be modified in char-server
 
 int console = 0;
 int enable_spy = 0; //To enable/disable @spy commands, which consume too much cpu time when sending packets. [Skotlex]
+int enable_grf = 0;	//To enable/disable reading maps from GRF files, bypassing mapcache [blackhole89]
 
 /*==========================================
  * server player count (of all mapservers)
@@ -2262,251 +2275,52 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 }
 
 /*==========================================
- * map cache system
- *==========================================*/
-#define MAX_MAP_CACHE 768
-
-struct map_cache_head {
-	int sizeof_header;
-	int sizeof_map;
-	int nmaps;
-	int filesize;
-};
-
-struct map_cache_entry {
-	char fn[32];		// file name
-	int xs,ys;			// width and height
-	int water_height;	// water level (unused)
-	int pos;			// offset in file
-	int compressed;     // compression mode (0:none 1:zlib)
-	int compressed_len; // compressed size (or 0)
-}; // 56 byte
-
-struct {
-	struct map_cache_head head;
-	struct map_cache_entry *map;
-	FILE *fp;
-	int dirty;
-} map_cache;
-
-static int map_cache_open(char *fn);
-static void map_cache_close(void);
-static int map_cache_read(struct map_data *m);
-static int map_cache_write(struct map_data *m);
-
-static int map_cache_open(char *fn)
+ * Map cache reading
+ *===========================================*/
+int map_readfromcache(struct map_data *m, FILE *fp)
 {
-	if (map_cache.fp)
-		map_cache_close();
-	map_cache.fp = fopen(fn, "r+b");
-	if (map_cache.fp) {
-		fread(&map_cache.head,1,sizeof(struct map_cache_head),map_cache.fp);
-		fseek(map_cache.fp,0,SEEK_END);
-		if(
-			map_cache.head.sizeof_header == sizeof(struct map_cache_head) &&
-			map_cache.head.sizeof_map    == sizeof(struct map_cache_entry) &&
-			map_cache.head.filesize      == ftell(map_cache.fp)
-		) {
-			// mapcache loading successful
-			map_cache.map = (struct map_cache_entry *) aMalloc(sizeof(struct map_cache_entry) * map_cache.head.nmaps);
-			fseek(map_cache.fp,sizeof(struct map_cache_head),SEEK_SET);
-			fread(map_cache.map,sizeof(struct map_cache_entry),map_cache.head.nmaps,map_cache.fp);
-			return 1;
-		}
-		fclose(map_cache.fp);
-	}
-	// loading failed, create new cache
-	map_cache.fp = fopen(fn,"wb");
-	if(map_cache.fp) {
-		memset(&map_cache.head,0,sizeof(struct map_cache_head));
-		map_cache.map   = (struct map_cache_entry *) aCalloc(sizeof(struct map_cache_entry),MAX_MAP_CACHE);
-		map_cache.head.nmaps         = MAX_MAP_CACHE;
-		map_cache.head.sizeof_header = sizeof(struct map_cache_head);
-		map_cache.head.sizeof_map    = sizeof(struct map_cache_entry);
-
-		map_cache.head.filesize  = sizeof(struct map_cache_head);
-		map_cache.head.filesize += sizeof(struct map_cache_entry) * map_cache.head.nmaps;
-
-		map_cache.dirty = 1;
-		return 1;
-	}
-	return 0;
-}
-
-static void map_cache_close(void)
-{
-	if(!map_cache.fp) { return; }
-	if(map_cache.dirty) {
-		fseek(map_cache.fp,0,SEEK_SET);
-		fwrite(&map_cache.head,1,sizeof(struct map_cache_head),map_cache.fp);
-		fwrite(map_cache.map,map_cache.head.nmaps,sizeof(struct map_cache_entry),map_cache.fp);
-	}
-	fclose(map_cache.fp);
-	aFree(map_cache.map);
-	map_cache.fp = NULL;
-	return;
-}
-
-/// finds the mapcache entry for the specified map name
-static int map_cache_find(const char* mapname)
-{
+	struct map_cache_main_header header;
+	struct map_cache_map_info info;
 	int i;
-	for(i = 0; i < map_cache.head.nmaps; i++)
-		if(strcmp(mapname,map_cache.map[i].fn) == 0)
-			return i;
-	return -1;
-}
-
-/// reads one map entry from the mapcache
-int map_cache_read(struct map_data* m)
-{
-	int i;
-	char map_name[MAP_NAME_LENGTH_EXT];
-
-	if(!map_cache.fp)
+	
+	if( !fp )
 		return 0;
 
-	// since the mapcache entries are loaded in one big raw binary read, the in-memory data still has .gat in map names
-	mapindex_getmapname_ext(m->name, map_name);
-	i = map_cache_find(map_name);
-	if (i == -1)
-		return 0;
+	fseek(fp, 0, SEEK_SET);
+	fread(&header, sizeof(struct map_cache_main_header), 1, fp);
 
-	if(map_cache.map[i].compressed == 0) {
-		// uncompressed data reading
-		int size = map_cache.map[i].xs * map_cache.map[i].ys;
-		m->xs = map_cache.map[i].xs;
-		m->ys = map_cache.map[i].ys;
-		m->gat = (unsigned char *)aCalloc(m->xs * m->ys,sizeof(unsigned char));
-		fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-		if(fread(m->gat,1,size,map_cache.fp) == size) {
-			return 1;
-		} else {
-			m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
-			return 0;
-		}
-	} else
-	if(map_cache.map[i].compressed == 1) {
-		// zlib-compressed data reading
+	for( i = 0; i < header.map_count; ++i )
+	{
+		fread(&info, sizeof(struct map_cache_map_info), 1, fp);
+
+		if( strcmp(m->name, info.name) == 0 )
+			break; // Map found
+
+		// Map not found, jump to the beginning of the next map info header
+		fseek(fp, info.len, SEEK_CUR);
+	}
+
+	if( i < header.map_count )
+	{
 		unsigned char *buf;
-		unsigned long dest_len;
-		int size_compress = map_cache.map[i].compressed_len;
-		m->xs = map_cache.map[i].xs;
-		m->ys = map_cache.map[i].ys;
-		m->gat = (unsigned char *)aMalloc(m->xs * m->ys * sizeof(unsigned char));
-		buf = (unsigned char*)aMalloc(size_compress);
-		fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-		if(fread(buf,1,size_compress,map_cache.fp) != size_compress) {
-			ShowError("fread error\n");
-			aFree(m->gat); m->xs = 0; m->ys = 0; m->gat = NULL;
-			aFree(buf);
-			return 0;
-		}
-		dest_len = m->xs * m->ys;
-		decode_zip(m->gat,&dest_len,buf,size_compress);
+		unsigned long size;
+
+		m->xs = info.xs;
+		m->ys = info.ys;
+		size = info.xs*info.ys;
+
+		buf = aMalloc(info.len); // temp buffer to read the zipped map
+		CREATE(m->gat, unsigned char, size);
+
+		fread(buf, info.len, 1, fp);
+		decode_zip(m->gat, &size, buf, info.len); // Unzip the map from the buffer
+
 		aFree(buf);
-		if(dest_len == map_cache.map[i].xs * map_cache.map[i].ys) {
-			return 1;
-		} else {
-			m->xs = 0; m->ys = 0; aFree(m->gat); m->gat = NULL;
-			return 0;
-		}
+		return 1;
 	}
 	return 0;
 }
 
-/// writes one map entry into the mapcache
-static int map_cache_write(struct map_data* m)
-{
-	int i;
-	unsigned long len_new, len_old;
-	char *write_buf;
-
-	if(!map_cache.fp)
-		return 0;
-
-	i = map_cache_find(m->name);
-	if (i != -1)
-	{	// entry already exists, overwrite it
-		if(map_cache.map[i].compressed == 0) {
-			len_old = map_cache.map[i].xs * map_cache.map[i].ys;
-		} else if(map_cache.map[i].compressed == 1) {
-			len_old = map_cache.map[i].compressed_len;
-		} else {
-			// unsupported format
-			len_old = 0;
-		}
-		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-			// saving in compressed format
-			write_buf = (char *) aMalloc(m->xs * m->ys + 12);
-			len_new = m->xs * m->ys + 12;
-			encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
-			map_cache.map[i].compressed     = 1;
-			map_cache.map[i].compressed_len = len_new;
-		} else {
-			len_new = m->xs * m->ys;
-			write_buf = (char *) m->gat;
-			map_cache.map[i].compressed     = 0;
-			map_cache.map[i].compressed_len = 0;
-		}
-		if(len_new <= len_old) {
-			// there's enough space to write the new entry over the old one
-			fseek(map_cache.fp,map_cache.map[i].pos,SEEK_SET);
-			fwrite(write_buf,1,len_new,map_cache.fp);
-		} else {
-			// need more space, append new entry to the end of file
-			fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
-			fwrite(write_buf,1,len_new,map_cache.fp);
-			map_cache.map[i].pos = map_cache.head.filesize;
-			map_cache.head.filesize += len_new;
-		}
-		map_cache.map[i].xs  = m->xs;
-		map_cache.map[i].ys  = m->ys;
-		map_cache.map[i].water_height = 0; // not used anymore
-		map_cache.dirty = 1;
-		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-			aFree(write_buf);
-		}
-		return 1;
-	}
-
-	// entry not present in cache, fund an empty spot and add it
-	i = map_cache_find(""); // empty name -> empty entry
-	if (i != -1)
-	{	// append new entry to the end of file
-		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED) {
-			write_buf = (char *) aMalloc(m->xs * m->ys + 12);
-			len_new = m->xs * m->ys + 12;
-			encode_zip((unsigned char *)write_buf, &len_new, m->gat, m->xs * m->ys);
-			map_cache.map[i].compressed     = 1;
-			map_cache.map[i].compressed_len = len_new;
-		} else {
-			len_new = m->xs * m->ys;
-			write_buf = (char *) m->gat;
-			map_cache.map[i].compressed     = 0;
-			map_cache.map[i].compressed_len = 0;
-		}
-		mapindex_getmapname_ext(m->name, map_cache.map[i].fn); // for backwards compatibility
-		fseek(map_cache.fp,map_cache.head.filesize,SEEK_SET);
-		fwrite(write_buf,1,len_new,map_cache.fp);
-		map_cache.map[i].pos = map_cache.head.filesize;
-		map_cache.map[i].xs  = m->xs;
-		map_cache.map[i].ys  = m->ys;
-		map_cache.map[i].water_height = 0; // not used anymore
-		map_cache.head.filesize += len_new;
-		map_cache.dirty = 1;
-		if(map_read_flag == READ_FROM_BITMAP_COMPRESSED)
-			aFree(write_buf);
-		return 1;
-	}
-
-	return 0;
-}
-
-/*==========================================
- * ?み?むmapを追加する
- *------------------------------------------
- */
 int map_addmap(char* mapname)
 {
 	if (strcmpi(mapname,"clear")==0) {
@@ -2553,7 +2367,7 @@ int map_delmap(char* mapname)
 
 #define NO_WATER 1000000
 
-/* 
+/*
  * Reads from the .rsw for each map
  * Returns water height (or NO_WATER if file doesn't exist) or other error is encountered.
  * Assumed path for file is data/mapname.rsw
@@ -2625,166 +2439,94 @@ int map_readgat (struct map_data* m)
 	return 1;
 }
 
-//////////////////////////////////////////////////////
-
-static int map_cache_init (void);
-static int map_readgat_init (void);
-
-// Todo: Properly implement this system as plugins/safer code [Celest]
-enum {
-	MAP_CACHE = 0,	// jAthena map cache
-	MAP_GAT,	// GRF map
-	MAP_MAXSOURCE
-};
-// in descending order
-int (*mapsource_init[MAP_MAXSOURCE])(void) = {
-	map_cache_init,
-	map_readgat_init
-};
-int (*mapsource_read[MAP_MAXSOURCE])(struct map_data *) = {
-	map_cache_read,
-	map_readgat
-};
-void (*mapsource_final[MAP_MAXSOURCE])(void) = {
-	map_cache_close,
-	NULL
-};
-
-static int map_cache_init (void)
-{
-	if (map_read_flag >= READ_FROM_BITMAP && map_cache_open(map_cache_file)) {
-		ShowMessage("[cache] ");
-		return 1;
-	}
-
-	return 0;
-}
-static int map_readgat_init (void)
-{
-	ShowMessage("[gat] ");
-	return 1;
-}
-
 /*======================================
  * Initiate maps loading stage
  *--------------------------------------*/
 int map_readallmaps (void)
 {
-	// pre-loading stage
 	int i;
+	FILE* fp=NULL;
 	int maps_removed = 0;
-	int maps_cached = 0;
 
-	ShowMessage(CL_GREEN"[Status]"CL_RESET": Loading Maps with... "CL_WHITE);
-
-	for (i = 0; i < MAP_MAXSOURCE; i++) {
-		if (mapsource_init[i] &&	// check if source requires initialisation
-			mapsource_init[i]() == 0)	// if init failed
+	if( enable_grf )
+		ShowStatus("Loading maps (using GRF files)...\n");
+	else
+	{
+		ShowStatus("Loading maps (using %s as map cache)...\n", map_cache_file);
+		if( (fp = fopen(map_cache_file, "rb")) == NULL )
 		{
-			// remove all loading methods associated with this source
-			mapsource_init[i] = NULL;
-			mapsource_read[i] = NULL;
-			mapsource_final[i] = NULL;
+			ShowFatalError("Unable to open map cache file "CL_WHITE"%s"CL_RESET"\n", map_cache_file);
+			exit(EXIT_FAILURE); //No use launching server if maps can't be read.
 		}
 	}
 
-	ShowMessage(CL_RESET"\n");
-
-	// initiate map loading
-	for (i = 0; i < map_num; i++)
+	for(i = 0; i < map_num; i++)
 	{
-		int success = 0;
-		int j;
+		size_t size;
 
 		// show progress
 		ShowStatus("Loading maps [%i/%i]: %s"CL_CLL"\r", i, map_num, map[i].name);
 
-		// pre-init some data
-		map[i].m = i;
-		memset (map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
-		if (battle_config.pk_mode)
-			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
-
-		for (j = 0; j < MAP_MAXSOURCE; j++)
-		{
-			if (mapsource_read[j] && mapsource_read[j](&map[i]))	// check if map source is available
-			{
-				// successful, now initialise map
-				size_t size;
-
-				map[i].index = mapindex_name2id(map[i].name);
-				
-				if (!map[i].index) {
-					ShowWarning("Map %s is not in the map-index cache!\n", map[i].name);
-					success = 0; //Can't load a map that isn't in our cache.
-					if (map[i].gat) {
-						aFree(map[i].gat);
-						map[i].gat = NULL;	
-					}
-					break;
-				}
-				if (uidb_get(map_db,(unsigned int)map[i].index) != NULL) {
-					ShowWarning("Map %s already loaded!\n", map[i].name);
-					success = 0; //Can't load a map already in the db
-					if (map[i].gat) {
-						aFree(map[i].gat);
-						map[i].gat = NULL;	
-					}
-					break;
-				}
-
-				map[i].cell = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
-#ifdef CELL_NOSTACK
-				map[i].cell_bl = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
-#endif
-
-				map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
-				map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
-				
-				// default experience multiplicator
-				map[i].jexp = 100;
-				map[i].bexp = 100;
-				
-				size = map[i].bxs * map[i].bys * sizeof(struct block_list*);
-				map[i].block = (struct block_list**)aCalloc(size, 1);
-				map[i].block_mob = (struct block_list**)aCalloc(size, 1);
-
-				uidb_put(map_db, (unsigned int)map[i].index, &map[i]);
-
-				// cache our map if necessary
-				if (j != MAP_CACHE && mapsource_read[MAP_CACHE] != NULL) {	// map data is not cached yet
-					map_cache_write(&map[i]);
-					maps_cached++;
-				}
-
-				// next map
-				success = 1;
-				break;
-			}
-		}
-
-		// no sources have been found, so remove map from list
-		if (!success) {
+		// try to load the map
+		if( !
+			(enable_grf?
+				 map_readgat(&map[i])
+				:map_readfromcache(&map[i], fp))
+			) {
 			map_delmapid(i);
 			maps_removed++;
 			i--;
+			continue;
 		}
+
+		map[i].index = mapindex_name2id(map[i].name);
+
+		if (uidb_get(map_db,(unsigned int)map[i].index) != NULL)
+		{
+			ShowWarning("Map %s already loaded!"CL_CLL"\n", map[i].name);
+			if (map[i].cell) {
+				aFree(map[i].cell);
+				map[i].cell = NULL;	
+			}
+			map_delmapid(i);
+			maps_removed++;
+			i--;
+			continue;
+		}
+
+		uidb_put(map_db, (unsigned int)map[i].index, &map[i]);
+
+		map[i].m = i;
+		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
+		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
+		if(battle_config.pk_mode)
+			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
+
+		map[i].cell = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
+#ifdef CELL_NOSTACK
+		map[i].cell_bl = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
+#endif
+
+		map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
+		map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
+		
+		// default experience multiplicators
+		map[i].jexp = 100;
+		map[i].bexp = 100;
+		
+		size = map[i].bxs * map[i].bys * sizeof(struct block_list*);
+		map[i].block = (struct block_list**)aCalloc(size, 1);
+		map[i].block_mob = (struct block_list**)aCalloc(size, 1);
 	}
 
-	// unload map sources
-	for (i = 0; i < MAP_MAXSOURCE; i++) {
-		if (mapsource_final[i])
-			mapsource_final[i]();
-	}
+	if( !enable_grf )
+		fclose(fp);
 
 	// finished map loading
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps."CL_CLL"\n",map_num);
 
 	if (maps_removed)
 		ShowNotice("Maps removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
-	if (maps_cached)
-		ShowNotice("Maps Added to Cache: '"CL_WHITE"%d"CL_RESET"'\n",maps_cached);
 
 	return 0;
 }
@@ -2937,13 +2679,6 @@ int map_config_read(char *cfgName)
 				strcpy(charhelp_txt, w2);
 			} else if (strcmpi(w1, "mapreg_txt") == 0) {
 				strcpy(mapreg_txt, w2);
-			} else if(strcmpi(w1,"read_map_from_cache") == 0){
-				if (atoi(w2) == 2)
-					map_read_flag = READ_FROM_BITMAP_COMPRESSED;
-				else if (atoi(w2) == 1)
-					map_read_flag = READ_FROM_BITMAP;
-				else
-					map_read_flag = READ_FROM_GAT;
 			} else if(strcmpi(w1,"map_cache_file") == 0) {
 				strncpy(map_cache_file,w2,255);
 			} else if(strcmpi(w1,"db_path") == 0) {
@@ -2954,6 +2689,8 @@ int map_config_read(char *cfgName)
 					ShowNotice("Console Commands are enabled.\n");
 			} else if (strcmpi(w1, "enable_spy") == 0) {
 				enable_spy = config_switch(w2);
+			} else if (strcmpi(w1, "use_grf") == 0) {
+				enable_grf = config_switch(w2);
 			} else if (strcmpi(w1, "import") == 0) {
 				map_config_read(w2);
 			} else
@@ -3301,6 +3038,8 @@ void do_final(void)
 	}
 
 	mapindex_final();
+	if(enable_grf)
+		grfio_final();
 
 	id_db->destroy(id_db, NULL);
 	pc_db->destroy(pc_db, NULL);
@@ -3415,7 +3154,6 @@ int do_init(int argc, char *argv[])
 	CHARCOMMAND_CONF_FILENAME = "conf/charcommand_athena.conf";
 	SCRIPT_CONF_NAME = "conf/script_athena.conf";
 	MSG_CONF_NAME = "conf/msg_athena.conf";
-	GRF_PATH_FILENAME = "conf/grf-files.txt";
 
 	srand(gettick());
 
@@ -3436,8 +3174,6 @@ int do_init(int argc, char *argv[])
 			SCRIPT_CONF_NAME = argv[i+1];
 		else if (strcmp(argv[i],"--msg_config") == 0 || strcmp(argv[i],"--msg-config") == 0)
 			MSG_CONF_NAME = argv[i+1];
-		else if (strcmp(argv[i],"--grf_path_file") == 0 || strcmp(argv[i],"--grf-path-file") == 0)
-			GRF_PATH_FILENAME = argv[i+1];
 #ifndef TXT_ONLY
 		else if (strcmp(argv[i],"--inter_config") == 0 || strcmp(argv[i],"--inter-config") == 0)
 			INTER_CONF_NAME = argv[i+1];
@@ -3489,7 +3225,8 @@ int do_init(int argc, char *argv[])
 #endif /* not TXT_ONLY */
 
 	mapindex_init();
-	grfio_init(GRF_PATH_FILENAME);
+	if(enable_grf)
+		grfio_init("conf/grf-files.txt");	//[blackhole89] - restore
 
 	map_readallmaps();
 
@@ -3526,9 +3263,6 @@ int do_init(int argc, char *argv[])
 #endif /* not TXT_ONLY */
 
 	npc_event_do_oninit();	// npcのOnInitイベント?行
-
-	//Done loading with the maps, no need for the grf module anymore.
-	grfio_final();
 
 	if( console )
 	{

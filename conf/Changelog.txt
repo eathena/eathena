@@ -1,5 +1,9 @@
 Date	Added
 
+2008/01/30
+	* Changes due to the new mapcache system
+	- map_cache_file path is now db/map_cache.dat
+	- removed read_map_from_cache option, added use_grf option
 2008/01/15
 	* Added 'hide debug messages' for setting 'console_silent' [ultramage]
 2007/12/16

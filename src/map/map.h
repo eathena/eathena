@@ -1249,12 +1249,6 @@ extern char db_path[256];
 int map_getcell(int,int,int,cell_t);
 int map_getcellp(struct map_data*,int,int,cell_t);
 void map_setcell(int,int,int,int);
-extern int map_read_flag; // 0: grf«Υ«΅«¤«E1: «­«γ«Γ«·«E2: «­«γ«Γ«·«E?υκ)
-enum {
-	READ_FROM_GAT,
-	READ_FROM_BITMAP, CREATE_BITMAP,
-	READ_FROM_BITMAP_COMPRESSED, CREATE_BITMAP_COMPRESSED
-};
 
 extern char motd_txt[];
 extern char help_txt[];
@@ -1352,7 +1346,6 @@ extern char *ATCOMMAND_CONF_FILENAME;
 extern char *CHARCOMMAND_CONF_FILENAME;
 extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
-extern char *GRF_PATH_FILENAME;
 
 extern char *map_server_dns;
 
