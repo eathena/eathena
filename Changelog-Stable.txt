@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/02/01
+	* Merged gm command and manner system fixes (r12076, r12079)
 	* Merged login server cleaning/fixing (r12043, r12049, r12055)
 	* Merged the script config setting removal from r11859 (topic:173980)
 	* Merged trunk's map cell system (see topic:175424)

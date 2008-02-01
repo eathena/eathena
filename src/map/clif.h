@@ -95,7 +95,7 @@ int clif_countusers(void);
 void clif_setwaitclose(int);
 
 int clif_authok(struct map_session_data *);
-int clif_authfail_fd(int,int);
+int clif_authfail_fd(int fd,int type);
 void clif_updatemaxid(int, int);
 int clif_charselectok(int);
 int clif_dropflooritem(struct flooritem_data *);
@@ -363,7 +363,8 @@ int clif_message(struct block_list *bl, const char* msg); // messages (from mobs
 
 int clif_GM_kickack(struct map_session_data *sd,int id);
 int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int type);
-int clif_GM_silence(struct map_session_data *sd,struct map_session_data *tsd,int type);
+void clif_manner_message(struct map_session_data* sd, uint32 type);
+void clif_GM_silence(struct map_session_data* sd, struct map_session_data* tsd, uint8 type);
 int clif_timedout(struct map_session_data *sd);
 
 int clif_disp_overhead(struct map_session_data *sd, const char* mes);

@@ -353,9 +353,9 @@ packet_ver: 5
 0x01b7,6
 0x01b8,3
 0x01b9,6
-0x01ba,26
+0x01ba,26,remove,2
 0x01bb,26,shift,2
-0x01bc,26
+0x01bc,26,recall,2
 0x01bd,26,summon,2
 0x01be,2
 0x01bf,3
@@ -390,7 +390,7 @@ packet_ver: 5
 0x01dc,-1
 0x01dd,47
 0x01de,33
-0x01df,6,gmreqnochatcount,2
+0x01df,6,gmreqaccname,2
 0x01e0,30
 0x01e1,8
 0x01e2,34
@@ -499,8 +499,8 @@ packet_ver: 9
 0x0193,18,actionrequest,7:17
 
 //2004-08-16aSakexe
-0x0212,26
-0x0213,26
+0x0212,26,rc,2
+0x0213,26,check,2
 0x0214,42
 
 //2004-08-17aSakexe
@@ -1052,6 +1052,44 @@ packet_ver: 22
 //2007-10-23aSakexe
 0x02cb,65
 0x02cd,71
+
+//2007-11-06aSakexe
+0x0078,55
+0x007c,42
+0x022c,65
+0x029b,80
+
+//2007-11-13aSakexe
+0x02e1,33
+
+//2007-11-20aSakexe
+//0x01df,10 <- ???
+0x02e2,14
+0x02e3,25
+0x02e4,8
+0x02e5,8
+0x02e6,6
+
+//2007-11-27aSakexe
+0x02e7,-1
+
+//2008-01-02aSakexe
+0x01df,6,gmreqaccname,2
+0x02e8,-1
+0x02e9,-1
+0x02ea,-1
+0x02eb,13
+0x02ec,67
+0x02ed,59
+0x02ee,60
+0x02ef,8
+
+//2008-01-08aSakexe
+//0x01df,0
+0x02a6,204
+0x02a7,204
+//0x02a8,0
+//0x02a9,0
 
 //Add new packets here
 //packet_ver: 23
