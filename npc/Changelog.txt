@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/01/31
+	* Rev. 12156 Started fixing bugreport:899 and fixed bugreport:875 [L0ne_W0lf]
 2008/01/25
 	* Merged the rest of the /npc directory from trunk
 2008/01/22
