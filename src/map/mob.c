@@ -1045,7 +1045,7 @@ int mob_randomwalk(struct mob_data *md,unsigned int tick)
 
 	nullpo_retr(0, md);
 
-	if(DIFF_TICK(md->next_walktime,tick)>0 || 
+	if(DIFF_TICK(md->next_walktime,tick)>0 ||
 	   !unit_can_move(&md->bl) ||
 	   !(status_get_mode(&md->bl)&MD_CANMOVE))
 		return 0;

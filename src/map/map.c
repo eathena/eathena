@@ -414,8 +414,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				status_change_end(bl, SC_MAGICROD, -1);
 		}
 	} else
-	if (bl->type == BL_NPC) npc_unsetcells((TBL_NPC*)bl);
-
+	if (bl->type == BL_NPC)
+		npc_unsetcells((TBL_NPC*)bl);
 
 	if (moveblock) map_delblock(bl);
 #ifdef CELL_NOSTACK
@@ -441,7 +441,8 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 			}
 		}
 	} else
-	if (bl->type == BL_NPC) npc_setcells((TBL_NPC*)bl);
+	if (bl->type == BL_NPC)
+		npc_setcells((TBL_NPC*)bl);
 
 	return 0;
 }
@@ -1155,6 +1156,7 @@ int map_delobjectnofree(int id)
 		ShowError("map_delobjectnofree: invalid object id '%d'!\n", id);
 		return 0;
 	}
+
 	if(objects[id]==NULL)
 		return 0;
 
@@ -1181,7 +1183,7 @@ int map_delobjectnofree(int id)
 int map_delobject(int id)
 {
 	struct block_list* bl;
- 
+
 	if( id < 0 || id >= MAX_FLOORITEM )
 	{
 		ShowError("map_delobject: invalid object id '%d'!\n", id);
@@ -1770,17 +1772,19 @@ struct map_session_data** map_getallusers(int *users)
 		all_count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
 		if (all_count < 1)
 			all_count = 10; //Allow room for at least 10 chars.
-		all_sd = aCalloc(all_count, sizeof(struct map_session_data*)); //it's actually just the size of a pointer.
+		CREATE(all_sd, struct map_session_data*, all_count);
 	}
 
 	if (all_count < pc_db->size(pc_db))
 	{
 		all_count = pc_db->size(pc_db)+10; //Give some room to prevent doing reallocs often.
-		all_sd = aRealloc(all_sd, all_count*sizeof(struct map_session_data*));
+		RECREATE(all_sd, struct map_session_data*, all_count);
 	}
+
 	*users = pc_db->getall(pc_db,(void**)all_sd,all_count,map_getallpc_sub);
 	if (*users > (signed int)all_count) //Which should be impossible...
 		*users = all_count;
+
 	return all_sd;
 }
 
@@ -1819,18 +1823,18 @@ int map_foreachiddb(int (*func)(DBKey,void*,va_list),...)
 int map_addnpc(int m,struct npc_data *nd)
 {
 	int i;
-	if(m<0 || m>=map_num)
+	if( m < 0 || m >= map_num )
 		return -1;
-	for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++)
-		if(map[m].npc[i]==NULL)
-			break;
-	if(i==MAX_NPC_PER_MAP){
+
+	ARR_FIND( 0, MAX_NPC_PER_MAP, i, map[m].npc[i] == NULL );
+	if( i == MAX_NPC_PER_MAP )
+	{
 		ShowWarning("too many NPCs in one map %s\n",map[m].name);
 		return -1;
 	}
-	if(i==map[m].npc_num){
+
+	if( i == map[m].npc_num )
 		map[m].npc_num++;
-	}
 
 	nullpo_retr(0, nd);
 
@@ -1841,44 +1845,19 @@ int map_addnpc(int m,struct npc_data *nd)
 	return i;
 }
 
-void map_removenpc(void)
-{
-	int i,m,n=0;
-
-	for(m=0;m<map_num;m++) {
-		for(i=0;i<map[m].npc_num && i<MAX_NPC_PER_MAP;i++) {
-			if(map[m].npc[i]!=NULL) {
-				clif_clearunit_area(&map[m].npc[i]->bl,2);
-				map_delblock(&map[m].npc[i]->bl);
-				idb_remove(id_db,map[m].npc[i]->bl.id);
-				if(map[m].npc[i]->subtype==SCRIPT) {
-					aFree(map[m].npc[i]->u.scr.script);
-					aFree(map[m].npc[i]->u.scr.label_list);
-				}
-				aFree(map[m].npc[i]);
-				map[m].npc[i] = NULL;
-				n++;
-			}
-		}
-	}
-	
-	ShowStatus("Successfully removed and freed from memory '"CL_WHITE"%d"CL_RESET"' NPCs.\n",n);
-}
-
 /*=========================================
  * Dynamic Mobs [Wizputer]
  *-----------------------------------------*/
-// allocates a struct when it there is place free in the cache,
-// and returns NULL otherwise
-// -- i'll just leave the old code in case it's needed ^^;
+// Stores the spawn data entry in the mob list.
+// Returns the index of successful, or -1 if the list was full.
 int map_addmobtolist(unsigned short m, struct spawn_data *spawn)
 {
 	size_t i;
-	for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++) {
-		if (map[m].moblist[i] == NULL) {
-			map[m].moblist[i] = spawn;
-			return i;
-		}
+	ARR_FIND( 0, MAX_MOB_LIST_PER_MAP, i, map[m].moblist[i] == NULL );
+	if( i < MAX_MOB_LIST_PER_MAP )
+	{
+		map[m].moblist[i] = spawn;
+		return i;
 	}
 	return -1;
 }
@@ -2327,7 +2306,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 
 /*==========================================
  * Map cache reading
- *===========================================*/
+ *==========================================*/
 int map_readfromcache(struct map_data *m, FILE *fp)
 {
 	struct map_cache_main_header header;

@@ -2267,11 +2267,8 @@ static int set_reg(struct script_state* st, TBL_PC* sd, int num, char* name, voi
 			char* p;
 			struct linkdb_node** n;
 			n = (ref) ? ref : (name[1] == '@') ? st->stack->var_function : &st->script->script_vars;
-			p = linkdb_search(n, (void*)num);
-			if (p) {
-				linkdb_erase(n, (void*)num);
-				aFree(p);
-			}
+			p = linkdb_erase(n, (void*)num);
+			if (p) aFree(p);
 			if (str[0]) linkdb_insert(n, (void*)num, aStrdup(str));
 			}
 			return 1;
@@ -11386,10 +11383,10 @@ BUILDIN_FUNC(equip)
 		ShowError("wrong item ID : equipitem(%i)\n",nameid);
 		return 1;
 	}
-	for(i=0;i<MAX_INVENTORY && sd->status.inventory[i].nameid!=nameid;i++);
-	if(i==MAX_INVENTORY) return 0;
+	ARR_FIND( 0, MAX_INVENTORY, i, sd->status.inventory[i].nameid == nameid );
+	if( i < MAX_INVENTORY )
+		pc_equipitem(sd,i,item_data->equip);
 
-	pc_equipitem(sd,i,item_data->equip);
 	return 0;
 }
 

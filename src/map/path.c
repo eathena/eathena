@@ -9,10 +9,6 @@
 #include "battle.h"
 #include "path.h"
 
-#ifdef MEMWATCH
-#include "memwatch.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

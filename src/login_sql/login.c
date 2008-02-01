@@ -604,10 +604,8 @@ static int online_db_setoffline(DBKey key, void* data, va_list ap)
 int parse_fromchar(int fd)
 {
 	int i, id;
-
-	uint32 ipl = session[fd]->client_addr;
+	uint32 ipl;
 	char ip[16];
-	ip2str(ipl, ip);
 
 	ARR_FIND( 0, MAX_SERVERS, id, server[id].fd == fd );
 	if( id == MAX_SERVERS )
@@ -628,6 +626,9 @@ int parse_fromchar(int fd)
 		do_close(fd);
 		return 0;
 	}
+
+	ipl = server[id].ip;
+	ip2str(ipl, ip);
 
 	while( RFIFOREST(fd) >= 2 )
 	{
@@ -1193,7 +1194,7 @@ int parse_login(int fd)
 	char esc_userid[NAME_LENGTH*2+1];// escaped username
 	struct mmo_account account;
 	int result, i;
-	uint32 ipl = session[fd]->client_addr;
+	uint32 ipl;
 	char ip[16];
 
 	if( session[fd]->flag.eof )
@@ -1202,6 +1203,7 @@ int parse_login(int fd)
 		return 0;
 	}
 
+	ipl = session[fd]->client_addr;
 	ip2str(ipl, ip);
 
 	while( RFIFOREST(fd) >= 2 )

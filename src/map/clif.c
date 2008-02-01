@@ -3459,9 +3459,6 @@ void clif_getareachar_unit(struct map_session_data* sd,struct block_list *bl)
 	}
 }
 
-//Modifies the type of damage according to status changes [Skotlex]
-#define clif_calc_delay(type,delay) (type==1||type==4||type==0x0a)?type:(delay==0?9:type)
-
 /*==========================================
  * Estimates walk delay based on the damage criteria. [Skotlex]
  *------------------------------------------*/
@@ -3505,10 +3502,10 @@ int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tic
 	nullpo_retr(0, src);
 	nullpo_retr(0, dst);
 
-	type = clif_calc_delay(type, ddelay); //Type defaults to 0 for normal attacks.
-
 	sc = status_get_sc(dst);
 	if(sc && sc->count) {
+		if(type != 4 && dst->type == BL_PC && sc->data[SC_ENDURE] && !map_flag_gvg(dst->m))
+			type = 9;
 		if(sc->data[SC_HALLUCINATION]) {
 			if(damage) damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
 			if(damage2) damage2 = damage2*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
@@ -4080,10 +4077,10 @@ int clif_skill_damage(struct block_list *src,struct block_list *dst,unsigned int
 	nullpo_retr(0, src);
 	nullpo_retr(0, dst);
 
-	if( type == 0 ) type = skill_get_hit(skill_id);
-	type = clif_calc_delay(type, ddelay);
 	sc = status_get_sc(dst);
 	if(sc && sc->count) {
+		if(type != 4 && dst->type == BL_PC && sc->data[SC_ENDURE] && !map_flag_gvg(dst->m))
+			type = 9;
 		if(sc->data[SC_HALLUCINATION] && damage)
 			damage = damage*(sc->data[SC_HALLUCINATION]->val2) + rand()%100;
 	}
@@ -6859,7 +6856,7 @@ int clif_GM_kickack(struct map_session_data *sd, int id)
 	return 0;
 }
 
-int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int type)
+void clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd)
 {
 	int fd = tsd->fd;
 
@@ -6868,10 +6865,8 @@ int clif_GM_kick(struct map_session_data *sd,struct map_session_data *tsd,int ty
 	else
 		map_quit(tsd);
 
-	if( type )
+	if( sd )
 		clif_GM_kickack(sd,tsd->status.account_id);
-
-	return 0;
 }
 
 /// Displays various manner-related status messages
@@ -7052,6 +7047,7 @@ int clif_message(struct block_list* bl, const char* msg)
 int clif_refresh(struct map_session_data *sd)
 {
 	nullpo_retr(-1, sd);
+
 	clif_changemap(sd,sd->mapindex,sd->bl.x,sd->bl.y);
 	clif_inventorylist(sd);
 	if(pc_iscarton(sd)) {
@@ -9334,7 +9330,7 @@ void clif_parse_NpcSelectMenu(int fd,struct map_session_data *sd)
 	select = RFIFOB(fd,6);
 	if((select > sd->npc_menu && select != 0xff) || !select){
 		ShowWarning("Hack on NPC Select Menu: %s (AID: %d)!\n",sd->status.name,sd->bl.id);
-		clif_GM_kick(sd,sd,0);
+		clif_GM_kick(NULL,sd);
 	} else {
 		sd->npc_menu=select;
 		npc_scriptcont(sd,RFIFOL(fd,2));
@@ -10189,7 +10185,7 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd)
 			clif_GM_kickack(sd, 0);
 			return;
 		}
-		clif_GM_kick(sd, tsd, 1);
+		clif_GM_kick(sd, tsd);
 		if(log_config.gm && lv >= log_config.gm) {
 			char message[256];
 			sprintf(message, "/kick %s (%d)", tsd->status.name, tsd->status.char_id);
@@ -11525,7 +11521,6 @@ static int packetdb_readdb(void)
 		{clif_parse_GMChangeMapType,"changemaptype"},
 		{clif_parse_GMRc,"rc"},
 
-		{clif_parse_GMChangeMapType,"changemaptype"},
 		{clif_parse_NoviceDoriDori,"sndoridori"},
 		{clif_parse_NoviceExplosionSpirits,"snexplosionspirits"},
 		{clif_parse_PMIgnore,"wisexin"},

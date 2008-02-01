@@ -4988,33 +4988,32 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			ssd->status.manner -= 5;
 			if(ssd->status.manner < 0)
 				sc_start(src,SC_NOCHAT,100,0,0);
-
-		// PK/Karma system code (not enabled yet) [celest]
-		// originally from Kade Online, so i don't know if any of these is correct ^^;
-		// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
-		// karma going down = more 'good' / more honourable.
-		// The Karma System way...
-		/*
+#if 0
+			// PK/Karma system code (not enabled yet) [celest]
+			// originally from Kade Online, so i don't know if any of these is correct ^^;
+			// note: karma is measured REVERSE, so more karma = more 'evil' / less honourable,
+			// karma going down = more 'good' / more honourable.
+			// The Karma System way...
+		
 			if (sd->status.karma > ssd->status.karma) {	// If player killed was more evil
 				sd->status.karma--;
 				ssd->status.karma--;
 			}
 			else if (sd->status.karma < ssd->status.karma)	// If player killed was more good
 				ssd->status.karma++;
-		*/
+	
 
-		// or the PK System way...
-		/*
+			// or the PK System way...
+	
 			if (sd->status.karma > 0)	// player killed is dishonourable?
 				ssd->status.karma--; // honour points earned
 			sd->status.karma++;	// honour points lost
-		*/
+		
 			// To-do: Receive exp on certain occasions
+#endif
 		}
 	}
-	break;
 	}
-
 
 	// PK/Karma system code (not enabled yet) [celest]
 	/*
@@ -5967,7 +5966,7 @@ int pc_readregistry(struct map_session_data *sd,const char *reg,int type)
 {
 	struct global_reg *sd_reg;
 	int i,max;
-	
+
 	nullpo_retr(0, sd);
 	switch (type) {
 	case 3: //Char reg

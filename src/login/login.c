@@ -1829,7 +1829,7 @@ int parse_login(int fd)
 	struct mmo_account account;
 	int result, j;
 	unsigned int i;
-	uint32 ipl = session[fd]->client_addr;
+	uint32 ipl;
 	char ip[16];
 
 	if( session[fd]->flag.eof )
@@ -1838,6 +1838,7 @@ int parse_login(int fd)
 		return 0;
 	}
 
+	ipl = session[fd]->client_addr;
 	ip2str(ipl, ip);
 
 	while( RFIFOREST(fd) >= 2 )

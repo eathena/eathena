@@ -1780,12 +1780,14 @@ static const char* npc_parse_script(char* w1, char* w2, char* w3, char* w4, cons
 	{// parsing script with curly
 		const char* script_start;
 
-		if( strstr(w4,",{") == NULL )
+		script_start = strstr(start,",{");
+		end = strchr(start,'\n');
+		if( strstr(w4,",{") == NULL || script_start == NULL || (end != NULL && script_start > end) )
 		{
 			ShowError("npc_parse_script: Missing left curly ',{' in file '%s', line '%d'. Skipping the rest of the file.\n * w1=%s\n * w2=%s\n * w3=%s\n * w4=%s\n", filepath, strline(buffer,start-buffer), w1, w2, w3, w4);
 			return NULL;// can't continue
 		}
-		script_start = strstr(start,",{")+1;
+		++script_start;
 
 		end = npc_skip_script(script_start, buffer, filepath);
 		if( end == NULL )
