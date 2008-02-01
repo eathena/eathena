@@ -187,6 +187,10 @@ int map_getusers(void)
 	return map_users;
 }
 
+//
+// block削除の安全性確保?理
+//
+
 /*==========================================
  * blockをfreeするときfreeの?わりに呼ぶ
  * ロックされているときはバッファにためる
@@ -270,7 +274,7 @@ void map_addblcell(struct block_list *bl)
 {
 	if( bl->m<0 || bl->x<0 || bl->x>=map[bl->m].xs || bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR) )
 		return;
-	map[bl->m].cell_bl[bl->x+bl->y*map[bl->m].xs]++;
+	map[bl->m].cell[bl->x+bl->y*map[bl->m].xs].cell_bl++;
 	return;
 }
 
@@ -278,7 +282,7 @@ void map_delblcell(struct block_list *bl)
 {
 	if( bl->m <0 || bl->x<0 || bl->x>=map[bl->m].xs || bl->y<0 || bl->y>=map[bl->m].ys || !(bl->type&BL_CHAR) )
 		return;
-	map[bl->m].cell_bl[bl->x+bl->y*map[bl->m].xs]--;
+	map[bl->m].cell[bl->x+bl->y*map[bl->m].xs].cell_bl--;
 }
 #endif
 
@@ -472,7 +476,7 @@ int map_count_oncell(int m, int x, int y, int type)
 /*
  * ｫｻｫ・ｾｪﾎｪﾋﾌｸｪﾄｪｱｪｿｫｹｫｭｫ・讚ﾋｫﾃｫﾈｪｹ
  */
-struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,int y,int skill_id,struct skill_unit *out_unit)
+struct skill_unit* map_find_skill_unit_oncell(struct block_list* target,int x,int y,int skill_id,struct skill_unit* out_unit)
 {
 	int m,bx,by;
 	struct block_list *bl;
@@ -489,10 +493,11 @@ struct skill_unit *map_find_skill_unit_oncell(struct block_list *target,int x,in
 	{
 		if (bl->x != x || bl->y != y || bl->type != BL_SKILL)
 			continue;
+
 		unit = (struct skill_unit *) bl;
-		if (unit==out_unit || !unit->alive || !unit->group || unit->group->skill_id!=skill_id)
+		if( unit == out_unit || !unit->alive || !unit->group || unit->group->skill_id != skill_id )
 			continue;
-		if (battle_check_target(&unit->bl,target,unit->group->target_flag)>0)
+		if( battle_check_target(&unit->bl,target,unit->group->target_flag) > 0 )
 			return unit;
 	}
 	return NULL;
@@ -1978,7 +1983,7 @@ int map_mapindex2mapid(unsigned short mapindex)
 		return -1;
 	
 	md = (struct map_data*)uidb_get(map_db,(unsigned int)mapindex);
-	if(md==NULL || md->gat==NULL)
+	if(md==NULL || md->cell==NULL)
 		return -1;
 	return md->m;
 }
@@ -1991,7 +1996,7 @@ int map_mapname2ipport(unsigned short name, uint32* ip, uint16* port)
 	struct map_data_other_server *mdos=NULL;
 
 	mdos = (struct map_data_other_server*)uidb_get(map_db,(unsigned int)name);
-	if(mdos==NULL || mdos->gat) //If gat isn't null, this is a local map.
+	if(mdos==NULL || mdos->cell) //If gat isn't null, this is a local map.
 		return -1;
 	*ip=mdos->ip;
 	*port=mdos->port;
@@ -2095,117 +2100,163 @@ int map_random_dir(struct block_list *bl, short *x, short *y)
 	}
 	return 0;
 }
+
 // gat系
+static struct mapcell map_gat2cell(int gat)
+{
+	struct mapcell cell;
+	memset(&cell, 0, sizeof(cell));
+
+	switch( gat )
+	{
+	case 0: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // walkable ground
+	case 1: cell.walkable = 0; cell.shootable = 0; cell.water = 0; break; // non-walkable ground
+	case 2: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+	case 3: cell.walkable = 1; cell.shootable = 1; cell.water = 1; break; // walkable water
+	case 4: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+	case 5: cell.walkable = 0; cell.shootable = 1; cell.water = 0; break; // gap (snipable)
+	case 6: cell.walkable = 1; cell.shootable = 1; cell.water = 0; break; // ???
+	default:
+		ShowWarning("map_gat2cell: unrecognized gat type '%d'\n", gat);
+		break;
+	}
+
+	return cell;
+}
+
+static int map_cell2gat(struct mapcell cell)
+{
+	if( cell.walkable == 1 && cell.shootable == 1 && cell.water == 0 ) return 0;
+	if( cell.walkable == 0 && cell.shootable == 0 && cell.water == 0 ) return 1;
+	if( cell.walkable == 1 && cell.shootable == 1 && cell.water == 1 ) return 3;
+	if( cell.walkable == 0 && cell.shootable == 1 && cell.water == 0 ) return 5;
+
+	ShowWarning("map_cell2gat: cell has no matching gat type\n");
+	return 1; // default to 'wall'
+}
+
 /*==========================================
  * (m,x,y)の状態を調べる
  *------------------------------------------*/
-int map_getcell(int m,int x,int y,cell_t cellchk)
+int map_getcell(int m,int x,int y,cell_chk cellchk)
 {
 	return (m < 0 || m >= MAX_MAP_PER_SERVER) ? 0 : map_getcellp(&map[m],x,y,cellchk);
 }
 
-int map_getcellp(struct map_data* m,int x,int y,cell_t cellchk)
+int map_getcellp(struct map_data* m,int x,int y,cell_chk cellchk)
 {
-	int type, type2;
-#ifdef CELL_NOSTACK
-	int type3;
-#endif
+	struct mapcell cell;
 
 	nullpo_ret(m);
 
+	//NOTE: this intentionally overrides the last row and column
 	if(x<0 || x>=m->xs-1 || y<0 || y>=m->ys-1)
-	{
-		if(cellchk==CELL_CHKNOPASS) return 1;
-		return 0;
-	}
-	type = m->gat[x+y*m->xs];
-	type2 = m->cell[x+y*m->xs];
-#ifdef CELL_NOSTACK
-	type3 = m->cell_bl[x+y*m->xs];
-#endif
+		return( cellchk == CELL_CHKNOPASS );
+
+	cell = m->cell[x + y*m->xs];
 
 	switch(cellchk)
 	{
+		// gat type retrieval
+		case CELL_GETTYPE:
+			return map_cell2gat(cell);
+
+		// base gat type checks
+		case CELL_CHKWALL:
+			return (!cell.walkable && !cell.shootable);
+			//return (map_cell2gat(cell) == 1);
+		case CELL_CHKWATER:
+			return (cell.water);
+			//return (map_cell2gat(cell) == 3);
+		case CELL_CHKCLIFF:
+			return (!cell.walkable && cell.shootable);
+			//return (map_cell2gat(cell) == 5);
+
+		// base cell type checks
+		case CELL_CHKNPC:
+			return (cell.npc);
+		case CELL_CHKBASILICA:
+			return (cell.basilica);
+		case CELL_CHKLANDPROTECTOR:
+			return (cell.landprotector);
+		case CELL_CHKICEWALL:
+			return (cell.icewall);
+		case CELL_CHKNOVENDING:
+			return (cell.novending);
+
+		// special checks
 		case CELL_CHKPASS:
 #ifdef CELL_NOSTACK
-			if (type3 >= battle_config.cell_stack_limit) return 0;
+			if (cell.cell_bl >= battle_config.cell_stack_limit) return 0;
 #endif
 		case CELL_CHKREACH:
-			return (type!=1 && type!=5 && !(type2&CELL_ICEWALL));
+			return (cell.walkable && !cell.icewall);
+
 		case CELL_CHKNOPASS:
 #ifdef CELL_NOSTACK
-			if (type3 >= battle_config.cell_stack_limit) return 1;
+			if (cell.cell_bl >= battle_config.cell_stack_limit) return 1;
 #endif
 		case CELL_CHKNOREACH:
-			return (type==1 || type==5 || type2&CELL_ICEWALL);
+			return (!cell.walkable || cell.icewall);
+
 		case CELL_CHKSTACK:
 #ifdef CELL_NOSTACK
-			return (type3 >= battle_config.cell_stack_limit);
+			return (cell.cell_bl >= battle_config.cell_stack_limit);
 #else
 			return 0;
 #endif
-		case CELL_CHKWALL:
-			return (type==1/* || type2&CELL_ICEWALL*/); //Uncomment to prevent sniping/casting through the icewall. [Skotlex]
-		case CELL_CHKWATER:
-			return (type==3);
-		case CELL_CHKGROUND:
-			return (type==5 || type2&CELL_ICEWALL);
-		case CELL_GETTYPE:
-			return type;
-		case CELL_GETCELLTYPE:
-			return type2;
-		case CELL_CHKNPC:
-			return (type2&CELL_NPC);
-		case CELL_CHKPNEUMA:
-			return (type2&CELL_PNEUMA);
-		case CELL_CHKSAFETYWALL:
-			return (type2&CELL_SAFETYWALL);
-		case CELL_CHKBASILICA:
-			return (type2&CELL_BASILICA);
-		case CELL_CHKLANDPROTECTOR:
-			return (type2&CELL_LANDPROTECTOR);
-		case CELL_CHKREGEN:
-			return (type2&CELL_REGEN);
-		case CELL_CHKICEWALL:
-			return (type2&CELL_ICEWALL);
-		case CELL_CHKNOVENDING:
-			return (type2&CELL_NOVENDING);
+
 		default:
 			return 0;
 	}
 }
 
 /*==========================================
- * (m,x,y)の状態を設定する
+ * Change the type/flags of a map cell
+ * 'cell' - which flag to modify
+ * 'flag' - true = on, false = off
  *------------------------------------------*/
-void map_setcell(int m,int x,int y,int cell)
+void map_setcell(int m, int x, int y, cell_t cell, bool flag)
 {
 	int j;
-	if(x<0 || x>=map[m].xs || y<0 || y>=map[m].ys)
-		return;
-	j=x+y*map[m].xs;
 
-	switch (cell) {
-		case CELL_SETNPC:           map[m].cell[j] |= CELL_NPC;            break;
-		case CELL_CLRNPC:           map[m].cell[j] &= ~CELL_NPC;           break;
-		case CELL_SETICEWALL:       map[m].cell[j] |= CELL_ICEWALL;        break;
-		case CELL_CLRICEWALL:       map[m].cell[j] &= ~CELL_ICEWALL;       break;
-		case CELL_SETBASILICA:      map[m].cell[j] |= CELL_BASILICA;       break;
-		case CELL_CLRBASILICA:      map[m].cell[j] &= ~CELL_BASILICA;      break;
-		case CELL_SETPNEUMA:        map[m].cell[j] |= CELL_PNEUMA;         break;
-		case CELL_CLRPNEUMA:        map[m].cell[j] &= ~CELL_PNEUMA;        break;
-		case CELL_SETSAFETYWALL:    map[m].cell[j] |= CELL_SAFETYWALL;     break;
-		case CELL_CLRSAFETYWALL:    map[m].cell[j] &= ~CELL_SAFETYWALL;    break;
-		case CELL_SETLANDPROTECTOR: map[m].cell[j] |= CELL_LANDPROTECTOR;  break;
-		case CELL_CLRLANDPROTECTOR: map[m].cell[j] &= ~CELL_LANDPROTECTOR; break;
-		case CELL_SETREGEN:         map[m].cell[j] |= CELL_REGEN;          break;
-		case CELL_SETNOVENDING:     map[m].cell[j] |= CELL_NOVENDING;      break;
-		case CELL_CLRNOVENDING:     map[m].cell[j] &= ~CELL_NOVENDING;     break;
+	if( m < 0 || m >= map_num || x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys )
+		return;
+
+	j = x + y*map[m].xs;
+
+	switch( cell ) {
+		case CELL_WALKABLE:      map[m].cell[j].walkable = flag;      break;
+		case CELL_SHOOTABLE:     map[m].cell[j].shootable = flag;     break;
+		case CELL_WATER:         map[m].cell[j].water = flag;         break;
+
+		case CELL_NPC:           map[m].cell[j].npc = flag;           break;
+		case CELL_ICEWALL:       map[m].cell[j].icewall = flag;       break;
+		case CELL_BASILICA:      map[m].cell[j].basilica = flag;      break;
+		case CELL_LANDPROTECTOR: map[m].cell[j].landprotector = flag; break;
+		case CELL_NOVENDING:     map[m].cell[j].novending = flag;     break;
 		default:
-			map[m].gat[j] = cell;
+			ShowWarning("map_setcell: invalid cell type '%d'\n", (int)cell);
 			break;
 	}
 }
+
+void map_setgatcell(int m, int x, int y, int gat)
+{
+	int j;
+	struct mapcell cell;
+
+	if( m < 0 || m >= map_num || x < 0 || x >= map[m].xs || y < 0 || y >= map[m].ys )
+		return;
+
+	j = x + y*map[m].xs;
+
+	cell = map_gat2cell(gat);
+	map[m].cell[j].walkable = cell.walkable;
+	map[m].cell[j].shootable = cell.shootable;
+	map[m].cell[j].water = cell.water;
+}
+
 static void* create_map_data_other_server(DBKey key, va_list args)
 {
 	struct map_data_other_server *mdos;
@@ -2225,7 +2276,7 @@ int map_setipport(unsigned short mapindex, uint32 ip, uint16 port)
 
 	mdos=(struct map_data_other_server *)uidb_ensure(map_db,(unsigned int)mapindex, create_map_data_other_server);
 	
-	if(mdos->gat) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
+	if(mdos->cell) //Local map,Do nothing. Give priority to our own local maps over ones from another server. [Skotlex]
 		return 0;
 	if(ip == clif_getip() && port == clif_getport()) {
 		//That's odd, we received info that we are the ones with this map, but... we don't have it.
@@ -2243,7 +2294,7 @@ int map_setipport(unsigned short mapindex, uint32 ip, uint16 port)
 int map_eraseallipport_sub(DBKey key,void *data,va_list va)
 {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)data;
-	if(mdos->gat == NULL) {
+	if(mdos->cell == NULL) {
 		db_remove(map_db,key);
 		aFree(mdos);
 	}
@@ -2264,7 +2315,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 	struct map_data_other_server *mdos;
 
 	mdos = uidb_get(map_db,(unsigned int)mapindex);
-	if(!mdos || mdos->gat) //Map either does not exists or is a local map.
+	if(!mdos || mdos->cell) //Map either does not exists or is a local map.
 		return 0;
 
 	if(mdos->ip==ip && mdos->port == port) {
@@ -2303,22 +2354,28 @@ int map_readfromcache(struct map_data *m, FILE *fp)
 
 	if( i < header.map_count )
 	{
-		unsigned char *buf;
-		unsigned long size;
+		unsigned char *buf, *buf2;
+		unsigned long size, xy;
 
 		m->xs = info.xs;
 		m->ys = info.ys;
 		size = info.xs*info.ys;
 
 		buf = aMalloc(info.len); // temp buffer to read the zipped map
-		CREATE(m->gat, unsigned char, size);
+		buf2 = aMalloc(size); // temp buffer to unpack the data
+		CREATE(m->cell, struct mapcell, size);
 
 		fread(buf, info.len, 1, fp);
-		decode_zip(m->gat, &size, buf, info.len); // Unzip the map from the buffer
+		decode_zip(buf2, &size, buf, info.len); // Unzip the map from the buffer
+
+		for( xy = 0; xy < size; ++xy )
+			m->cell[xy] = map_gat2cell(buf2[xy]);
 
 		aFree(buf);
+		aFree(buf2);
 		return 1;
 	}
+
 	return 0;
 }
 
@@ -2341,7 +2398,7 @@ int map_addmap(char* mapname)
 
 static void map_delmapid(int id)
 {
-	ShowNotice("Removing map [ %s ] from maplist\n"CL_CLL,map[id].name);
+	ShowNotice("Removing map [ %s ] from maplist"CL_CLL"\n",map[id].name);
 	memmove(map+id, map+id+1, sizeof(map[0])*(map_num-id-1));
 	map_num--;
 }
@@ -2416,7 +2473,7 @@ int map_readgat (struct map_data* m)
 	m->xs = *(int32*)(gat+6);
 	m->ys = *(int32*)(gat+10);
 	num_cells = m->xs * m->ys;
-	CREATE(m->gat, uint8, num_cells);
+	CREATE(m->cell, struct mapcell, num_cells);
 
 	water_height = map_waterheight(m->name);
 
@@ -2432,9 +2489,9 @@ int map_readgat (struct map_data* m)
 		if( type == 0 && water_height != NO_WATER && height > water_height )
 			type = 3; // Cell is 0 (walkable) but under water level, set to 3 (walkable water)
 
-		m->gat[xy] = (uint8)type;
+		m->cell[xy] = map_gat2cell(type);
 	}
-
+	
 	aFree(gat);
 
 	return 1;
@@ -2502,11 +2559,6 @@ int map_readallmaps (void)
 		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
 		if(battle_config.pk_mode)
 			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
-
-		map[i].cell = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
-#ifdef CELL_NOSTACK
-		map[i].cell_bl = (unsigned char *)aCalloc(map[i].xs * map[i].ys, sizeof(unsigned char));
-#endif
 
 		map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
 		map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
@@ -2909,7 +2961,7 @@ int sql_ping_init(void)
 int map_db_final(DBKey k,void *d,va_list ap)
 {
 	struct map_data_other_server *mdos = (struct map_data_other_server*)d;
-	if(mdos && mdos->gat == NULL)
+	if(mdos && mdos->cell == NULL)
 		aFree(mdos);
 	return 0;
 }
@@ -3025,11 +3077,7 @@ void do_final(void)
 	map_db->destroy(map_db, map_db_final);
 	
 	for (i=0; i<map_num; i++) {
-		if(map[i].gat) aFree(map[i].gat);
 		if(map[i].cell) aFree(map[i].cell);
-#ifdef CELL_NOSTACK
-		if(map[i].cell_bl) aFree(map[i].cell_bl);
-#endif
 		if(map[i].block) aFree(map[i].block);
 		if(map[i].block_mob) aFree(map[i].block_mob);
 		if(battle_config.dynamic_mobs) { //Dynamic mobs flag by [random]

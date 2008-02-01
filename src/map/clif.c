@@ -3613,16 +3613,15 @@ void clif_standing(struct block_list* bl)
 /*==========================================
  * Inform client(s) about a map-cell change
  *------------------------------------------*/
-void clif_changemapcell(int fd, struct block_list* pos, int type, enum send_target target)
+void clif_changemapcell(int fd, int m, int x, int y, int type, enum send_target target)
 {
 	unsigned char buf[32];
-	nullpo_retv(pos);
 
 	WBUFW(buf,0) = 0x192;
-	WBUFW(buf,2) = pos->x;
-	WBUFW(buf,4) = pos->y;
+	WBUFW(buf,2) = x;
+	WBUFW(buf,4) = y;
 	WBUFW(buf,6) = type;
-	mapindex_getmapname_ext(map[pos->m].name,(char*)WBUFP(buf,8));
+	mapindex_getmapname_ext(map[m].name,(char*)WBUFP(buf,8));
 
 	if( fd )
 	{
@@ -3631,7 +3630,14 @@ void clif_changemapcell(int fd, struct block_list* pos, int type, enum send_targ
 		WFIFOSET(fd,packet_len(0x192));
 	}
 	else
-		clif_send(buf,packet_len(0x192),pos,target);
+	{
+		struct block_list dummy_bl;
+		dummy_bl.type = BL_NUL;
+		dummy_bl.x = x;
+		dummy_bl.y = y;
+		dummy_bl.m = m;
+		clif_send(buf,packet_len(0x192),&dummy_bl,target);
+	}
 }
 
 /*==========================================
@@ -3696,7 +3702,7 @@ static void clif_getareachar_skillunit(struct map_session_data *sd, struct skill
 	WFIFOSET(fd,packet_len(0x11f));
 
 	if(unit->group->skill_id == WZ_ICEWALL)
-		clif_changemapcell(fd,&unit->bl,5,SELF);
+		clif_changemapcell(fd,unit->bl.m,unit->bl.x,unit->bl.y,5,SELF);
 }
 
 /*==========================================
@@ -3712,7 +3718,7 @@ static void clif_clearchar_skillunit(struct skill_unit *unit, int fd)
 	WFIFOSET(fd,packet_len(0x120));
 
 	if(unit->group && unit->group->skill_id == WZ_ICEWALL)
-		clif_changemapcell(fd,&unit->bl,unit->val2,SELF);
+		clif_changemapcell(fd,unit->bl.m,unit->bl.x,unit->bl.y,unit->val2,SELF);
 }
 
 /*==========================================
@@ -10380,6 +10386,29 @@ void clif_parse_GMReqNoChatCount(int fd, struct map_session_data *sd)
 	return;
 }
 
+/*==========================================
+ * GM single cell type change request
+ * /changemaptype <x> <y> <type>
+ * S 0198 <x>.W <y>.W <gat>.W
+ *------------------------------------------*/
+void clif_parse_GMChangeMapType(int fd, struct map_session_data *sd)
+{
+	int x,y,type;
+
+	if( battle_config.atc_gmonly && !pc_isGM(sd) )
+		return;
+
+	if( pc_isGM(sd) < 99 )
+		return;
+
+	x = RFIFOW(fd,2);
+	y = RFIFOW(fd,4);
+	type = RFIFOW(fd,6);
+
+	map_setgatcell(sd->bl.m,x,y,type);
+	clif_changemapcell(0,sd->bl.m,x,y,type,ALL_SAMEMAP);
+}
+
 static int pstrcmp(const void *a, const void *b)
 {
 	char *name1 = (char *)a;
@@ -11442,6 +11471,7 @@ static int packetdb_readdb(void)
 		{clif_parse_GMHide,"gmhide"},
 		{clif_parse_GMReqNoChat,"gmreqnochat"},
 		{clif_parse_GMReqNoChatCount,"gmreqnochatcount"},
+		{clif_parse_GMChangeMapType,"changemaptype"},
 		{clif_parse_NoviceDoriDori,"sndoridori"},
 		{clif_parse_NoviceExplosionSpirits,"snexplosionspirits"},
 		{clif_parse_PMIgnore,"wisexin"},

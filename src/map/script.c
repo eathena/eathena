@@ -12692,6 +12692,34 @@ BUILDIN_FUNC(warpportal)
 }
 
 
+/// Modifies flags of cells in the specified area.
+///
+/// setcell "<map name>",<x1>,<y1>,<x2>,<y2>,<type>,<flag>;
+///
+/// @see cell_* constants in const.txt for the types
+BUILDIN_FUNC(setcell)
+{
+	int m = map_mapname2mapid(script_getstr(st,2));
+	int x1 = script_getnum(st,3);
+	int y1 = script_getnum(st,4);
+	int x2 = script_getnum(st,5);
+	int y2 = script_getnum(st,6);
+	cell_t type = (cell_t)script_getnum(st,7);
+	bool flag = (bool)script_getnum(st,8);
+
+	int x,y;
+
+	if( x1 > x2 ) swap(x1,x2);
+	if( y1 > y2 ) swap(y1,y2);
+
+	for( y = y1; y <= y2; ++y )
+		for( x = x1; x <= x2; ++x )
+			map_setcell(m, x, y, type, flag);
+
+	return 0;
+}
+
+
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
@@ -13024,5 +13052,6 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(roclass,"i*"),	//[Skotlex]
 	BUILDIN_DEF(checkvending,"*"),
 	BUILDIN_DEF(checkchatting,"*"),
+	BUILDIN_DEF(setcell,"siiiiii"),
 	{NULL,NULL,NULL},
 };

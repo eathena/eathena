@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/02/01
+	* Merged trunk's map cell system (see topic:175424)
+	- related changesets: r12003, r12005, r12009, r12015, r12025, r12076
 	* Fixed sql charserver crashing sometimes (bugreport:870) [ultramage]
 2008/01/30
 	* Merged trunk's mapcache system [ultramage]

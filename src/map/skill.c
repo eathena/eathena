@@ -4184,7 +4184,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				case SC_SMA:         case SC_SPEEDUP0:    case SC_NOCHAT:
 				case SC_ANKLE:       case SC_SPIDERWEB:   case SC_JAILED:
 				case SC_ITEMBOOST:   case SC_EXPBOOST:    case SC_LIFEINSURANCE:
-				case SC_BOSSMAPINFO:                      case SC_AUTOSPELL:
+				case SC_BOSSMAPINFO: case SC_PNEUMA:      case SC_AUTOSPELL:
 				case SC_INCHITRATE:  case SC_INCATKRATE:  case SC_NEN:
 				case SC_READYSTORM:  case SC_READYDOWN:   case SC_READYTURN:
 				case SC_READYCOUNTER:case SC_DODGE:       case SC_WARM:
@@ -6413,18 +6413,10 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 			alive = 0; //no path between cell and center of casting.
 					
 		if(alive && skillid == WZ_ICEWALL) {
-				int celltype = map_getcell(src->m,ux,uy,CELL_GETTYPE);
-				if(celltype==5 || celltype==1)
+				if( map_getcell(src->m,ux,uy,CELL_CHKWALL) || map_getcell(src->m,ux,uy,CELL_CHKCLIFF) )
 					alive=0;
 				else
-				{
-					struct block_list bl;
-					bl.type = BL_NUL;
-					bl.m = src->m;
-					bl.x = ux;
-					bl.y = uy;
-					clif_changemapcell(0,&bl,5,AREA);
-				}
+					clif_changemapcell(0,src->m,ux,uy,5,AREA);
 		}
 
 		if(alive){
@@ -6506,6 +6498,11 @@ int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, unsigned 
 		//TODO: Find a more reliable way to handle the link to sg, this could cause dangling pointers. [Skotlex]
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,(int)sg,0,sg->limit);
+		break;
+
+	case UNT_PNEUMA:
+		if (!sce)
+			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,0,0,sg->limit);
 		break;
 
 	case UNT_WARP_WAITING:
@@ -7057,9 +7054,11 @@ int skill_unit_onout (struct skill_unit *src, struct block_list *bl, unsigned in
 
 	switch(sg->unit_id){
 	case UNT_SAFETYWALL:
+	case UNT_PNEUMA:
 		if (sce)
 			status_change_end(bl,type,-1);
 		break;
+
 	case UNT_HERMODE:	//Clear Hermode if the owner moved.
 		if (sce && sce->val3 == BCT_SELF && sce->val4 == sg->group_id)
 			status_change_end(bl,type,-1);
@@ -7233,7 +7232,7 @@ static int skill_unit_ondelete (struct skill_unit *src, unsigned int tick)
 	case UNT_ICEWALL:
 		// hack to prevent client from leaving cells unwalkable
 		//FIXME: this should be done individually in insight/outsight code instead [ultramage]
-		clif_changemapcell(0,&src->bl,src->val2,ALL_SAMEMAP);
+		clif_changemapcell(0,src->bl.m,src->bl.x,src->bl.y,src->val2,ALL_SAMEMAP);
 	break;
 
 	case UNT_ANKLESNARE:
@@ -8754,33 +8753,16 @@ int skill_frostjoke_scream (struct block_list *bl, va_list ap)
 /*==========================================
  *
  *------------------------------------------*/
-void skill_unitsetmapcell (struct skill_unit *src, int skill_num, int skill_lv, int flag)
+static void skill_unitsetmapcell (struct skill_unit *src, int skill_num, int skill_lv, cell_t cell, bool flag)
 {
-	int i,x,y,range = skill_get_unit_range(skill_num,skill_lv);
-	int size = range*2+1;
+	int range = skill_get_unit_range(skill_num,skill_lv);
+	int x,y;
 
-	for (i=0;i<size*size;i++) {
-		x = src->bl.x+(i%size-range);
-		y = src->bl.y+(i/size-range);
-		map_setcell(src->bl.m,x,y,flag);
-	}
+	for( y = src->bl.y - range; y <= src->bl.y + range; ++y )
+		for( x = src->bl.x - range; x <= src->bl.x + range; ++x )
+			map_setcell(src->bl.m, x, y, cell, flag);
 }
 
-/*==========================================
- * Sets a map cell around the caster, according to the skill's splash range.
- *------------------------------------------*/
-void skill_setmapcell (struct block_list *src, int skill_num, int skill_lv, int flag)
-{
-	int i,x,y,range = skill_get_splash(skill_num, skill_lv);
-	int size = range*2+1;
-
-	for (i=0;i<size*size;i++) {
-		x = src->x+(i%size-range);
-		y = src->y+(i/size-range);
-		map_setcell(src->m,x,y,flag);
-	}
-}
-	
 /*==========================================
  *
  *------------------------------------------*/
@@ -9236,20 +9218,14 @@ struct skill_unit *skill_initunit (struct skill_unit_group *group, int idx, int 
 	map_addblock(&unit->bl);
 
 	switch (group->skill_id) {
-	case AL_PNEUMA:
-		skill_unitsetmapcell(unit,AL_PNEUMA,group->skill_lv,CELL_SETPNEUMA);
-		break;
-	case MG_SAFETYWALL:
-		skill_unitsetmapcell(unit,MG_SAFETYWALL,group->skill_lv,CELL_SETSAFETYWALL);
-		break;
 	case SA_LANDPROTECTOR:
-		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,group->skill_lv,CELL_SETLANDPROTECTOR);
+		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,group->skill_lv,CELL_LANDPROTECTOR,true);
 		break;
 	case HP_BASILICA:
-		skill_unitsetmapcell(unit,HP_BASILICA,group->skill_lv,CELL_SETBASILICA);
+		skill_unitsetmapcell(unit,HP_BASILICA,group->skill_lv,CELL_BASILICA,true);
 		break;
 	case WZ_ICEWALL:
-		skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_SETICEWALL);
+		skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,true);
 		break;
 	default:
 		if (group->state.song_dance&0x1) //Check for dissonance.
@@ -9283,20 +9259,14 @@ int skill_delunit (struct skill_unit* unit)
 		map_foreachincell(skill_unit_effect,unit->bl.m,unit->bl.x,unit->bl.y,group->bl_flag,&unit->bl,gettick(),4);
 
 	switch (group->skill_id) {
-	case AL_PNEUMA:
-		skill_unitsetmapcell(unit,AL_PNEUMA,group->skill_lv,CELL_CLRPNEUMA);
-		break;
-	case MG_SAFETYWALL:
-		skill_unitsetmapcell(unit,MG_SAFETYWALL,group->skill_lv,CELL_CLRSAFETYWALL);
-		break;
 	case SA_LANDPROTECTOR:
-		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,group->skill_lv,CELL_CLRLANDPROTECTOR);
+		skill_unitsetmapcell(unit,SA_LANDPROTECTOR,group->skill_lv,CELL_LANDPROTECTOR,false);
 		break;
 	case HP_BASILICA:
-		skill_unitsetmapcell(unit,HP_BASILICA,group->skill_lv,CELL_CLRBASILICA);
+		skill_unitsetmapcell(unit,HP_BASILICA,group->skill_lv,CELL_BASILICA,false);
 		break;
 	case WZ_ICEWALL:
-		skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_CLRICEWALL);
+		skill_unitsetmapcell(unit,WZ_ICEWALL,group->skill_lv,CELL_ICEWALL,false);
 		break;
 	}
 

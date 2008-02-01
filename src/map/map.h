@@ -1004,93 +1004,6 @@ struct pet_data {
 	struct map_session_data *msd;
 };
 
-struct map_data {
-	char name[MAP_NAME_LENGTH];
-	unsigned short index; // The map index used by the mapindex* functions.
-	unsigned char *gat;   // Holds the type of each map cell (NULL if the map is not on this map-server).
-	unsigned char *cell;  // Contains temporary cell data that is set/unset on tiles.
-#ifdef CELL_NOSTACK
-	unsigned char *cell_bl; //Holds amount of bls in any given cell.
-#endif
-	struct block_list **block;
-	struct block_list **block_mob;
-	int m;
-	short xs,ys; // map dimensions (in cells)
-	short bxs,bys; // map dimensions (in blocks)
-	int npc_num;
-	int users;
-	struct map_flag {
-		unsigned nomemo : 1;
-		unsigned noteleport : 1;
-		unsigned noreturn : 1;
-		unsigned monster_noteleport : 1;
-		unsigned nosave : 1;
-		unsigned nobranch : 1;
-		unsigned noexppenalty : 1;
-		unsigned pvp : 1;
-		unsigned pvp_noparty : 1;
-		unsigned pvp_noguild : 1;
-		unsigned pvp_nightmaredrop :1;
-		unsigned pvp_nocalcrank : 1;
-		unsigned gvg_castle : 1;
-		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
-		unsigned gvg_dungeon : 1; // Celest
-		unsigned gvg_noparty : 1;
-		unsigned nozenypenalty : 1;
-		unsigned notrade : 1;
-		unsigned noskill : 1;
-		unsigned nowarp : 1;
-		unsigned nowarpto : 1;
-		unsigned noicewall : 1; // [Valaris]
-		unsigned snow : 1; // [Valaris]
-		unsigned clouds : 1;
-		unsigned clouds2 : 1; // [Valaris]
-		unsigned fog : 1; // [Valaris]
-		unsigned fireworks : 1;
-		unsigned sakura : 1; // [Valaris]
-		unsigned leaves : 1; // [Valaris]
-		unsigned rain : 1; // [Valaris]
-		unsigned indoors : 1; // celest
-		unsigned nogo : 1; // [Valaris]
-		unsigned nobaseexp	: 1; // [Lorky] added by Lupus
-		unsigned nojobexp	: 1; // [Lorky]
-		unsigned nomobloot	: 1; // [Lorky]
-		unsigned nomvploot	: 1; // [Lorky]
-		unsigned nightenabled :1; //For night display. [Skotlex]
-		unsigned restricted	: 1; // [Komurka]
-		unsigned nodrop : 1;
-		unsigned novending : 1;
-		unsigned loadevent : 1;
-		unsigned nochat :1;
-		unsigned partylock :1;
-		unsigned guildlock :1;
-	} flag;
-	struct point save;
-	struct npc_data *npc[MAX_NPC_PER_MAP];
-	struct {
-		int drop_id;
-		int drop_type;
-		int drop_per;
-	} drop_list[MAX_DROP_PER_MAP];
-
-	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
-	int mob_delete_timer;	// [Skotlex]
-	int zone;	// zone number (for item/skill restrictions)
-	int jexp;	// map experience multiplicator
-	int bexp;	// map experience multiplicator
-	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
-};
-
-/// Stores information about a remote map (for multi-mapserver setups).
-/// Beginning of data structure matches 'map_data', to allow typecasting.
-struct map_data_other_server {
-	char name[MAP_NAME_LENGTH];
-	unsigned short index; //Index is the map index used by the mapindex* functions.
-	unsigned char *gat; // If this is NULL, the map is not on this map-server
-	uint32 ip;
-	uint16 port;
-};
-
 struct flooritem_data {
 	struct block_list bl;
 	unsigned char subx,suby;
@@ -1184,59 +1097,152 @@ enum _look {
 	LOOK_SHOES
 };
 
-// CELLs for non-permanent cell-based effects (Pneuma, Basilica, Npcs, etc)
-#define CELL_NPC	0x1
-#define CELL_REGEN	0x2
-#define CELL_PNEUMA	0x4
-#define CELL_SAFETYWALL	0x8
-#define CELL_LANDPROTECTOR	0x10
-#define CELL_BASILICA	0x20
-#define CELL_NOVENDING	0x40
-#define CELL_ICEWALL	0x80
-/*
- * map_getcell()で使用されるフラグ
- */
+// used by map_setcell()
 typedef enum {
-	CELL_CHKWALL=0,		// 壁(セルタイプ1)
-	CELL_CHKWATER,		// 水場(セルタイプ3)
-	CELL_CHKGROUND,		// 地面障害物(セルタイプ5)
-	CELL_CHKPASS,		// 通過可能(セルタイプ1,5以外)
+	CELL_WALKABLE,
+	CELL_SHOOTABLE,
+	CELL_WATER,
+
+	CELL_NPC,
+	CELL_BASILICA,
+	CELL_LANDPROTECTOR,
+	CELL_ICEWALL,
+	CELL_NOVENDING,
+} cell_t;
+
+// used by map_getcell()
+typedef enum {
+	CELL_GETTYPE,		// retrieves a cell's 'gat' type
+
+	CELL_CHKWALL,		// wall (gat type 1)
+	CELL_CHKWATER,		// water (gat type 3)
+	CELL_CHKCLIFF,		// cliff/gap (gat type 5)
+
+	CELL_CHKPASS,		// passable cell (gat type non-1/5)
 	CELL_CHKREACH,		// Same as PASS, but ignores the cell-stacking mod.
-	CELL_CHKNOPASS,		// 通過不可(セルタイプ1,5)
+	CELL_CHKNOPASS,		// non-passable cell (gat types 1 and 5)
 	CELL_CHKNOREACH,	// Same as NOPASS, but ignores the cell-stacking mod.
-	CELL_GETTYPE,		// セルタイプを返す
-	CELL_GETCELLTYPE,
-	CELL_CHKNPC=0x10,	// タッチタイプのNPC(セルタイプ0x80フラグ)
-	CELL_CHKREGEN,		// cells that improve regeneration
-	CELL_CHKPNEUMA,
-	CELL_CHKSAFETYWALL,
-	CELL_CHKBASILICA,	// バジリカ(セルタイプ0x40フラグ)
+	CELL_CHKSTACK,		// whether cell is full (reached cell stacking limit) 
+
+	CELL_CHKNPC,
+	CELL_CHKBASILICA,
 	CELL_CHKLANDPROTECTOR,
 	CELL_CHKICEWALL,
-	CELL_CHKSTACK,
 	CELL_CHKNOVENDING,
-} cell_t;
-// map_setcell()で使用されるフラグ
-enum {
-	CELL_SETNPC=0x10,	// タッチタイプのNPCをセット
-	CELL_CLRNPC,
-	CELL_SETBASILICA,	// バジリカをセット
-	CELL_CLRBASILICA,	// バジリカをクリア
-	CELL_SETREGEN,		// set regen cell
-	CELL_SETLANDPROTECTOR, //Set/Clear Magnetic Earth
-	CELL_CLRLANDPROTECTOR,
-	CELL_SETPNEUMA,
-	CELL_CLRPNEUMA,
-	CELL_SETSAFETYWALL,
-	CELL_CLRSAFETYWALL,
-	CELL_SETICEWALL,
-	CELL_CLRICEWALL,
-	CELL_SETNOVENDING,
-	CELL_CLRNOVENDING,
+} cell_chk;
+
+struct mapcell
+{
+	// terrain flags
+	unsigned char
+		walkable : 1,
+		shootable : 1,
+		water : 1;
+
+	// dynamic flags
+	unsigned char
+		npc : 1,
+		landprotector : 1,
+		basilica : 1,
+		icewall : 1,
+		novending : 1;
+
+#ifdef CELL_NOSTACK
+	unsigned char cell_bl; //Holds amount of bls in this cell.
+#endif
 };
+
+struct map_data {
+	char name[MAP_NAME_LENGTH];
+	unsigned short index; // The map index used by the mapindex* functions.
+	struct mapcell* cell; // Holds the information of each map cell (NULL if the map is not on this map-server).
+	struct block_list **block;
+	struct block_list **block_mob;
+	int m;
+	short xs,ys; // map dimensions (in cells)
+	short bxs,bys; // map dimensions (in blocks)
+	int npc_num;
+	int users;
+	struct map_flag {
+		unsigned nomemo : 1;
+		unsigned noteleport : 1;
+		unsigned noreturn : 1;
+		unsigned monster_noteleport : 1;
+		unsigned nosave : 1;
+		unsigned nobranch : 1;
+		unsigned noexppenalty : 1;
+		unsigned pvp : 1;
+		unsigned pvp_noparty : 1;
+		unsigned pvp_noguild : 1;
+		unsigned pvp_nightmaredrop :1;
+		unsigned pvp_nocalcrank : 1;
+		unsigned gvg_castle : 1;
+		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
+		unsigned gvg_dungeon : 1; // Celest
+		unsigned gvg_noparty : 1;
+		unsigned nozenypenalty : 1;
+		unsigned notrade : 1;
+		unsigned noskill : 1;
+		unsigned nowarp : 1;
+		unsigned nowarpto : 1;
+		unsigned noicewall : 1; // [Valaris]
+		unsigned snow : 1; // [Valaris]
+		unsigned clouds : 1;
+		unsigned clouds2 : 1; // [Valaris]
+		unsigned fog : 1; // [Valaris]
+		unsigned fireworks : 1;
+		unsigned sakura : 1; // [Valaris]
+		unsigned leaves : 1; // [Valaris]
+		unsigned rain : 1; // [Valaris]
+		unsigned indoors : 1; // celest
+		unsigned nogo : 1; // [Valaris]
+		unsigned nobaseexp	: 1; // [Lorky] added by Lupus
+		unsigned nojobexp	: 1; // [Lorky]
+		unsigned nomobloot	: 1; // [Lorky]
+		unsigned nomvploot	: 1; // [Lorky]
+		unsigned nightenabled :1; //For night display. [Skotlex]
+		unsigned restricted	: 1; // [Komurka]
+		unsigned nodrop : 1;
+		unsigned novending : 1;
+		unsigned loadevent : 1;
+		unsigned nochat :1;
+		unsigned partylock :1;
+		unsigned guildlock :1;
+	} flag;
+	struct point save;
+	struct npc_data *npc[MAX_NPC_PER_MAP];
+	struct {
+		int drop_id;
+		int drop_type;
+		int drop_per;
+	} drop_list[MAX_DROP_PER_MAP];
+
+	struct spawn_data *moblist[MAX_MOB_LIST_PER_MAP]; // [Wizputer]
+	int mob_delete_timer;	// [Skotlex]
+	int zone;	// zone number (for item/skill restrictions)
+	int jexp;	// map experience multiplicator
+	int bexp;	// map experience multiplicator
+	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
+};
+
+/// Stores information about a remote map (for multi-mapserver setups).
+/// Beginning of data structure matches 'map_data', to allow typecasting.
+struct map_data_other_server {
+	char name[MAP_NAME_LENGTH];
+	unsigned short index; //Index is the map index used by the mapindex* functions.
+	struct mapcell* cell; // If this is NULL, the map is not on this map-server
+	uint32 ip;
+	uint16 port;
+};
+
+int map_getcell(int,int,int,cell_chk);
+int map_getcellp(struct map_data*,int,int,cell_chk);
+void map_setcell(int m, int x, int y, cell_t cell, bool flag);
+void map_setgatcell(int m, int x, int y, int gat);
 
 extern struct map_data map[];
 extern int map_num;
+
 extern int autosave_interval;
 extern int minsave_interval;
 extern int save_settings;
@@ -1244,11 +1250,6 @@ extern int agit_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 extern int enable_spy; //Determines if @spy commands are active.
 extern char db_path[256];
-
-// gat?ﾖｧ
-int map_getcell(int,int,int,cell_t);
-int map_getcellp(struct map_data*,int,int,cell_t);
-void map_setcell(int,int,int,int);
 
 extern char motd_txt[];
 extern char help_txt[];
