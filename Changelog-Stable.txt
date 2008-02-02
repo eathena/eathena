@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/02/02
+	* Merged the 'quit db' mechanism for better handling of connecting
+	  and disconnecting players (r11998)
 	* Merged various fixes from trunk
 	- Plagiarism can no longer copy high mob-only skill levels (r12151)
 	- passing of the homun/pet master's ID to script engine (r12150)
