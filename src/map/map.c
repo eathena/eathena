@@ -1826,17 +1826,17 @@ int map_addnpc(int m,struct npc_data *nd)
 	if( m < 0 || m >= map_num )
 		return -1;
 
-	ARR_FIND( 0, MAX_NPC_PER_MAP, i, map[m].npc[i] == NULL );
+	ARR_FIND( 0, map[m].npc_num, i, map[m].npc[i] == NULL );
 	if( i == MAX_NPC_PER_MAP )
 	{
 		ShowWarning("too many NPCs in one map %s\n",map[m].name);
 		return -1;
 	}
 
+	nullpo_retr(0, nd);
+
 	if( i == map[m].npc_num )
 		map[m].npc_num++;
-
-	nullpo_retr(0, nd);
 
 	map[m].npc[i]=nd;
 	nd->n = i;
