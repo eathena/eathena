@@ -310,10 +310,9 @@ int pc_setrestartvalue(struct map_session_data *sd,int type)
 			sc_start(&sd->bl,SkillStatusChangeTable(MO_STEELBODY),100,1,skill_get_time(MO_STEELBODY,1));
 		} else
 			status_heal(&sd->bl, b_status->hp, b_status->sp>status->sp?b_status->sp-status->sp:0, 1);
-	} else { //Just for saving on the char-server
+	} else { //Just for saving on the char-server (with values as if respawned)
 		sd->status.hp = b_status->hp;
-		if ((unsigned int)sd->status.sp < b_status->sp)
-			sd->status.sp = b_status->sp;
+		sd->status.sp = (status->sp < b_status->sp)?b_status->sp:status->sp;
 	}
 	return 0;
 }
@@ -4978,7 +4977,15 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 	break;
-	case BL_PC:
+	case BL_PET: //Pass on to master...
+		src = &((TBL_PET*)src)->msd->bl;
+	break;
+	case BL_HOM:
+		src = &((TBL_HOM*)src)->master->bl;
+	break;
+	}
+
+	if (src && src->type == BL_PC)
 	{
 		struct map_session_data *ssd = (struct map_session_data *)src;
 		pc_setglobalreg(ssd, "killedrid", sd->bl.id);
@@ -5012,7 +5019,6 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			// To-do: Receive exp on certain occasions
 #endif
 		}
-	}
 	}
 
 	// PK/Karma system code (not enabled yet) [celest]

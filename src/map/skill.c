@@ -1587,19 +1587,25 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 		if ((!tsd->status.skill[skillid].id || tsd->status.skill[skillid].flag >= 13) &&
 			can_copy(tsd,skillid))	// Split all the check into their own function [Aru]
 		{
+			int lv = skilllv;
 			if (tsd->cloneskill_id && tsd->status.skill[tsd->cloneskill_id].flag == 13){
 				tsd->status.skill[tsd->cloneskill_id].id = 0;
 				tsd->status.skill[tsd->cloneskill_id].lv = 0;
 				tsd->status.skill[tsd->cloneskill_id].flag = 0;
 			}
+
+			if ((type = pc_checkskill(tsd,RG_PLAGIARISM)) < lv)
+				lv = type;
+			//kRO Update makes it impossible to copy skills beyond the skill_db max.
+			if ((type = skill_get_max(RG_PLAGIARISM)) < lv)
+				lv = type;
+
 			tsd->cloneskill_id = skillid;
 			tsd->status.skill[skillid].id = skillid;
-			tsd->status.skill[skillid].lv = skilllv;
-			if ((type = pc_checkskill(tsd,RG_PLAGIARISM)) < skilllv)
-				tsd->status.skill[skillid].lv = type;
+			tsd->status.skill[skillid].lv = lv;
 			tsd->status.skill[skillid].flag = 13;//cloneskill flag
-			pc_setglobalreg(tsd, "CLONE_SKILL", tsd->cloneskill_id);
-			pc_setglobalreg(tsd, "CLONE_SKILL_LV", tsd->status.skill[skillid].lv);
+			pc_setglobalreg(tsd, "CLONE_SKILL", skillid);
+			pc_setglobalreg(tsd, "CLONE_SKILL_LV", lv);
 			clif_skillinfoblock(tsd);
 		}
 	}
@@ -3082,20 +3088,20 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		clif_skill_nodamage(src,bl,skillid,skilllv,1);
 		break;
 	case SA_CLASSCHANGE:
-		{
-			static int changeclass[]={1038,1039,1046,1059,1086,1087,1112,1115
-				,1157,1159,1190,1272,1312,1373,1492};
-			int class_ = mob_random_class (changeclass,ARRAYLENGTH(changeclass));
-			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd) mob_class_change(dstmd,class_);
-		}
-		break;
 	case SA_MONOCELL:
+		if (dstmd)
 		{
-			static int poringclass[]={1002};
-			int class_ = mob_random_class (poringclass,ARRAYLENGTH(poringclass));
+			int class_ = skillid==SA_MONOCELL?1002:mob_get_random_id(2, 1, 0);
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
-			if(dstmd) mob_class_change(dstmd,class_);
+			mob_class_change(dstmd,class_);
+			if( tsc && dstmd->status.mode&MD_BOSS )
+			{
+				const int scs[] = { SC_QUAGMIRE, SC_PROVOKE, SC_ROKISWEIL,	SC_GRAVITATION, SC_SUITON, SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC_BLADESTOP };
+				for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
+					if (tsc->data[i]) status_change_end(bl, i, -1);
+				for (i = 0; i < ARRAYLENGTH(scs); i++)
+					if (tsc->data[scs[i]]) status_change_end(bl, scs[i], -1);
+			}
 		}
 		break;
 	case SA_DEATH:
@@ -5156,7 +5162,7 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 	struct mob_data* md = NULL;
 	struct unit_data* ud = unit_bl2ud(src);
 	struct status_change *sc = NULL;
-	int inf,inf2;
+	int inf,inf2,flag=0;
 
 	nullpo_retr(0, ud);
 
@@ -5285,7 +5291,10 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 			
 		if(hd && !skill_check_condition_hom(hd,ud->skillid, ud->skilllv,1))	//[orn]
 			break;
-			
+
+		if (ud->state.running && ud->skillid == TK_JUMPKICK)
+			flag = 1;
+
 		if (ud->walktimer != -1 && ud->skillid != TK_RUN)
 			unit_stop_walking(src,1);
 		
@@ -5300,9 +5309,9 @@ int skill_castend_id (int tid, unsigned int tick, int id, int data)
 
 		map_freeblock_lock();
 		if (skill_get_casttype(ud->skillid) == CAST_NODAMAGE)
-			skill_castend_nodamage_id(src,target,ud->skillid,ud->skilllv,tick,0);
+			skill_castend_nodamage_id(src,target,ud->skillid,ud->skilllv,tick,flag);
 		else
-			skill_castend_damage_id(src,target,ud->skillid,ud->skilllv,tick,0);
+			skill_castend_damage_id(src,target,ud->skillid,ud->skilllv,tick,flag);
 
 		sc = status_get_sc(src);
 		if(sc && sc->count) {

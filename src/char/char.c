@@ -1257,13 +1257,11 @@ int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, i
 	char_dat[i].status.clothes_color = 0;
 	char_dat[i].status.inventory[0].nameid = start_weapon; // Knife
 	char_dat[i].status.inventory[0].amount = 1;
-	char_dat[i].status.inventory[0].equip = 0x02;
 	char_dat[i].status.inventory[0].identify = 1;
 	char_dat[i].status.inventory[1].nameid = start_armor; // Cotton Shirt
 	char_dat[i].status.inventory[1].amount = 1;
-	char_dat[i].status.inventory[1].equip = 0x10;
 	char_dat[i].status.inventory[1].identify = 1;
-	char_dat[i].status.weapon = 1;
+	char_dat[i].status.weapon = 0; // W_FIST
 	char_dat[i].status.shield = 0;
 	char_dat[i].status.head_top = 0;
 	char_dat[i].status.head_mid = 0;

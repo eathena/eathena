@@ -281,7 +281,7 @@ int battle_calc_damage(struct block_list *src,struct block_list *bl,int damage,i
 
 	if (sc && sc->count) {
 		//First, sc_*'s that reduce damage to 0.
-		if( sc->data[SC_SAFETYWALL] && flag&BF_SHORT && skill_num != NPC_GUIDEDATTACK )
+		if( sc->data[SC_SAFETYWALL] && (flag&(BF_SHORT|BF_MAGIC))==BF_SHORT && skill_num != NPC_GUIDEDATTACK )
 		{
 			struct skill_unit_group *group = (struct skill_unit_group *)sc->data[SC_SAFETYWALL]->val3;
 			if (group) {
@@ -1485,7 +1485,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 				case TK_JUMPKICK:
 					skillratio += -70 + 10*skill_lv;
 					if (sc && sc->data[SC_COMBO] && sc->data[SC_COMBO]->val1 == skill_num)
-						skillratio += 10*status_get_lv(src)/3;
+						skillratio += 10*status_get_lv(src)/3; //Tumble bonus
+					if (wflag)
+						skillratio += 10*status_get_lv(src)/3; //Running bonus
 					break;
 				case GS_TRIPLEACTION:
 					skillratio += 50*skill_lv;
