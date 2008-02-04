@@ -3020,6 +3020,9 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 			return -1;
 	}
 
+	if (flag&BCT_ENEMY && map_getcell(m,src->x,src->y,CELL_CHKNODAMAGE) || map_getcell(m,target->x,target->y,CELL_CHKNODAMAGE))
+		return -1; // [NoDamage]
+
 	//t_bl/s_bl hold the 'master' of the attack, while src/target are the actual
 	//objects involved.
 	if ((t_bl = battle_get_master(target)) == NULL)
@@ -3136,23 +3139,22 @@ int battle_check_target( struct block_list *src, struct block_list *target,int f
 		case BL_PC:
 		{
 			TBL_PC *sd = (TBL_PC*) s_bl;
-			if (sd->state.killer && s_bl != t_bl)
+			if( s_bl != t_bl )
 			{
-				state |= BCT_ENEMY; //Is on a killing rampage :O
-				strip_enemy = 0;
-			} else
-			if (sd->duel_group && t_bl != s_bl && // Duel [LuzZza]
-				!(
-					(!battle_config.duel_allow_pvp && map[m].flag.pvp) ||
-					(!battle_config.duel_allow_gvg && map_flag_gvg(m))
-				))
-		  	{
-				if (t_bl->type == BL_PC &&
-					(sd->duel_group == ((TBL_PC*)t_bl)->duel_group))
-					//Duel targets can ONLY be your enemy, nothing else.
-					return (BCT_ENEMY&flag)?1:-1;
-				else // You can't target anything out of your duel
-					return 0;
+				if( sd->state.killer )
+				{
+					state |= BCT_ENEMY; //Is on a killing rampage :O
+					strip_enemy = 0;
+				}
+				else if( sd->duel_group && !((!battle_config.duel_allow_pvp && map[m].flag.pvp) || (!battle_config.duel_allow_gvg && map_flag_gvg(m))) )
+		  		{
+					if (t_bl->type == BL_PC &&
+						(sd->duel_group == ((TBL_PC*)t_bl)->duel_group))
+						//Duel targets can ONLY be your enemy, nothing else.
+						return (BCT_ENEMY&flag)?1:-1;
+					else // You can't target anything out of your duel
+						return 0;
+				}
 			}
 			if (map_flag_gvg(m) && !sd->status.guild_id &&
 				t_bl->type == BL_MOB && ((TBL_MOB*)t_bl)->guardian_data)

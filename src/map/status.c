@@ -491,6 +491,7 @@ void initChangeTables(void)
 	StatusChangeFlagTable[SC_INCATKRATE] |= SCB_BATK|SCB_WATK;
 	StatusChangeFlagTable[SC_INCMATKRATE] |= SCB_MATK;
 	StatusChangeFlagTable[SC_INCDEFRATE] |= SCB_DEF;
+	StatusChangeFlagTable[SC_INCMDEFRATE] |= SCB_MDEF;
 	StatusChangeFlagTable[SC_INCBASEATK] |= SCB_BATK;
 	StatusChangeFlagTable[SC_STRFOOD] |= SCB_STR;
 	StatusChangeFlagTable[SC_AGIFOOD] |= SCB_AGI;
@@ -3674,6 +3675,8 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 		mdef += 25*mdef/100;
 	if(sc->data[SC_ENDURE] && sc->data[SC_ENDURE]->val4 == 0)
 		mdef += sc->data[SC_ENDURE]->val1;
+	if(sc->data[SC_INCMDEFRATE])
+		mdef += mdef * sc->data[SC_INCMDEFRATE]->val1/100;
 
 	return (signed char)cap_value(mdef,CHAR_MIN,CHAR_MAX);
 }
@@ -4936,6 +4939,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				if (sce->val2 > val2)
 					return 0;
 			break;
+			case SC_HPREGEN:
 			case SC_STUN:
 			case SC_SLEEP:
 			case SC_POISON:
@@ -5253,6 +5257,12 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val4 = tick/10000;
 			if (!val4) val4 = 1;
 			tick = 10000;
+			break;
+		case SC_HPREGEN:
+			// val1 = % of Max HP per tick
+			val4 = tick/(val2 * 1000);
+			if (!val4) val4 = 1;
+			tick = val2 * 1000; // val2 = seconds
 			break;
 
 		case SC_HIDING:
@@ -5855,6 +5865,10 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 		case SC_SUFFRAGIUM:
 			val2 = 15 * val1; //Speed cast decrease
+			break;
+		case SC_INCHEALRATE:
+			if (val1 < 1)
+				val1 = 1;
 			break;
 		case SC_HALLUCINATION:
 			val2 = 5+val1; //Factor by which displayed damage is increased by
@@ -6824,6 +6838,19 @@ int status_change_timer(int tid, unsigned int tick, int id, int data)
 			return 0;
 		}
 		break;
+
+	case SC_HPREGEN:
+		if( sd && --(sce->val4) >= 0 )
+		{
+			if( status->hp < status->max_hp ) {
+				int hp = (int)(sd->status.max_hp * sce->val1 / 100.);
+				status_heal(bl, hp, 0, 2);
+			}
+			sc_timer_next((sce->val2 * 1000) + tick, status_change_timer, bl->id, data );
+			return 0;
+		}
+		break;
+
 	case SC_DANCING: //ダンススキルの時間SP消費
 		{
 			int s = 0;

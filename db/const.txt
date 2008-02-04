@@ -232,6 +232,8 @@ cell_basilica	4
 cell_landprotector	5
 cell_icewall	6
 cell_novending	7
+cell_nodamage	8
+cell_nochat	9
 
 StatusPoint	9	1
 BaseLevel	11	1
@@ -764,6 +766,9 @@ SC_INCCRI	261
 SC_INCDEF	262
 SC_INCBASEATK	263
 SC_FASTCAST 264
+SC_INCMDEFRATE	265
+SC_HPREGEN	266
+SC_INCHEALRATE	267
 
 e_gasp	0
 e_what	1

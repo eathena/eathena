@@ -255,8 +255,13 @@ int skill_calc_heal (struct block_list *src, struct block_list *target, int skil
 		heal += heal * skill * 2 / 100;
 
 	sc = status_get_sc(target);
-	if( sc && sc->data[SC_CRITICALWOUND] )
-		heal -= heal * sc->data[SC_CRITICALWOUND]->val2/100;
+	if( sc && sc->count )
+	{
+		if( sc->data[SC_CRITICALWOUND] )
+			heal -= heal * sc->data[SC_CRITICALWOUND]->val2/100;
+		if( sc->data[SC_INCHEALRATE] )
+			heal += heal * sc->data[SC_INCHEALRATE]->val1/100;
+	}
 	return heal;
 }
 
@@ -3096,7 +3101,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			mob_class_change(dstmd,class_);
 			if( tsc && dstmd->status.mode&MD_BOSS )
 			{
-				const int scs[] = { SC_QUAGMIRE, SC_PROVOKE, SC_ROKISWEIL,	SC_GRAVITATION, SC_SUITON, SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC_BLADESTOP };
+				const int scs[] = { SC_QUAGMIRE, SC_PROVOKE, SC_ROKISWEIL, SC_GRAVITATION, SC_SUITON, SC_STRIPWEAPON, SC_STRIPSHIELD, SC_STRIPARMOR, SC_STRIPHELM, SC_BLADESTOP };
 				for (i = SC_COMMON_MIN; i <= SC_COMMON_MAX; i++)
 					if (tsc->data[i]) status_change_end(bl, i, -1);
 				for (i = 0; i < ARRAYLENGTH(scs); i++)
@@ -6720,8 +6725,13 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 				int heal = sg->val2;
 				if (tstatus->hp >= tstatus->max_hp)
 					break;
-				if( tsc && tsc->data[SC_CRITICALWOUND] )
-					heal -= heal * tsc->data[SC_CRITICALWOUND]->val2 / 100;
+				if( tsc )
+				{
+					if( tsc->data[SC_INCHEALRATE] )
+						heal += heal * tsc->data[SC_INCHEALRATE]->val1 / 100;
+					if( tsc->data[SC_CRITICALWOUND] )
+						heal -= heal * tsc->data[SC_CRITICALWOUND]->val2 / 100;
+				}
 				if (status_isimmune(bl))
 					heal = 0;	/* 黄金蟲カード（ヒール量０） */
 				clif_skill_nodamage(&src->bl, bl, AL_HEAL, heal, 1);

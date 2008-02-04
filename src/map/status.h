@@ -280,6 +280,9 @@ enum sc_type {
 	SC_INCDEF,
 	SC_INCBASEATK,
 	SC_FASTCAST,
+	SC_INCMDEFRATE,
+	SC_HPREGEN,
+	SC_INCHEALRATE,
 	SC_PNEUMA,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
 };
