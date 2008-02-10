@@ -4608,10 +4608,7 @@ BUILDIN_FUNC(input)
 		if( postfix == '$' )
 			set_reg(st,sd,num,name,(void*)sd->npc_str,script_getref(st,2));
 		else
-		{
-			sd->npc_amount = cap_value(sd->npc_amount, 0, INT_MAX);
 			set_reg(st,sd,num,name,(void*)sd->npc_amount,script_getref(st,2));
-		}
 	}
 	return 0;
 }

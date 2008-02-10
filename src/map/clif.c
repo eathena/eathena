@@ -9370,7 +9370,7 @@ void clif_parse_NpcAmountInput(int fd,struct map_session_data *sd)
 	int npcid = RFIFOL(fd,2);
 	int amount = (int)RFIFOL(fd,6);
 
-	sd->npc_amount = amount;
+	sd->npc_amount = cap_value(amount, 0, battle_config.vending_max_value);
 	npc_scriptcont(sd, npcid);
 }
 
