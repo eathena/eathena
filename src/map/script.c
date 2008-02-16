@@ -4252,32 +4252,26 @@ BUILDIN_FUNC(areawarp)
  *------------------------------------------*/
 BUILDIN_FUNC(warpchar)
 {
-	int x,y,a,i;
+	int x,y,a;
 	const char *str;
-	TBL_PC *sd, **pl_allsd;
-	int users;
+	TBL_PC *sd;
 	
 	str=script_getstr(st,2);
 	x=script_getnum(st,3);
 	y=script_getnum(st,4);
 	a=script_getnum(st,5);
-	
-	pl_allsd = map_getallusers(&users);
-	
-	for(i=0; i<users; i++) {
-		sd = pl_allsd[i];
-		if(sd->status.char_id == a) {
-		
-			if(strcmp(str, "Random") == 0)
-				pc_randomwarp(sd, 3);
-				
-			else if(strcmp(str, "SavePoint") == 0)
-				pc_setpos(sd, sd->status.save_point.map,sd->status.save_point.x, sd->status.save_point.y, 3);
-			
-			else	
-				pc_setpos(sd, mapindex_name2id(str), x, y, 3);
-		}
-	}
+
+	sd = map_charid2sd(a);
+	if( sd == NULL )
+		return 0;
+
+	if(strcmp(str, "Random") == 0)
+		pc_randomwarp(sd, 3);
+	else
+	if(strcmp(str, "SavePoint") == 0)
+		pc_setpos(sd, sd->status.save_point.map,sd->status.save_point.x, sd->status.save_point.y, 3);
+	else	
+		pc_setpos(sd, mapindex_name2id(str), x, y, 3);
 	
 	return 0;
 } 
@@ -4390,90 +4384,60 @@ BUILDIN_FUNC(warpparty)
  *------------------------------------------*/
 BUILDIN_FUNC(warpguild)
 {
-	int x,y;
-	unsigned short mapindex;
-	const char *str;
-	int g;
-	int i;
-	TBL_PC *pl_sd, **pl_allsd;
-	int users;
 	TBL_PC *sd;
-	str=script_getstr(st,2);
-	x=script_getnum(st,3);
-	y=script_getnum(st,4);
-	g=script_getnum(st,5);
+	TBL_PC *pl_sd;
+	struct guild* g;
+	struct s_mapiterator* iter;
+	int type;
+
+	const char* str = script_getstr(st,2);
+	int x           = script_getnum(st,3);
+	int y           = script_getnum(st,4);
+	int gid         = script_getnum(st,5);
+
 	sd=script_rid2sd(st);
 	if( sd == NULL )
 		return 0;
-
+	g = guild_search(gid);
+	if( g == NULL )
+		return 0;
 	
 	if(map[sd->bl.m].flag.noreturn || map[sd->bl.m].flag.nowarpto)
 		return 0;
 	
-	if(g < 1)
-		return 0;
+	type = ( strcmp(str,"Random")==0 ) ? 0
+	     : ( strcmp(str,"SavePointAll")==0 ) ? 1
+		 : ( strcmp(str,"SavePoint")==0 ) ? 2
+		 : 3;
 
-	pl_allsd = map_getallusers(&users);
-
-	if(strcmp(str,"Random")==0)
+	iter = mapit_getallusers();
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
 	{
-		
-		for (i = 0; i < users; i++)
+		if( pl_sd->status.guild_id != gid )
+			continue;
+
+		switch( type )
 		{
-			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
-			{
-				if(map[pl_sd->bl.m].flag.nowarp)
-					continue;
+		case 0: // Random
+			if(!map[pl_sd->bl.m].flag.nowarp)
 				pc_randomwarp(pl_sd,3);
-			}
-		}
-	}
-	else if(strcmp(str,"SavePointAll")==0)
-	{
-		if(map[sd->bl.m].flag.noreturn)
-			return 0;
-		
-		for (i = 0; i < users; i++)
-		{
-			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
-			{
-				if(map[pl_sd->bl.m].flag.noreturn)
-					continue;
+		break;
+		case 1: // SavePointAll
+			if(!map[pl_sd->bl.m].flag.noreturn)
 				pc_setpos(pl_sd,pl_sd->status.save_point.map,pl_sd->status.save_point.x,pl_sd->status.save_point.y,3);
-			}
+		break;
+		case 2: // SavePoint
+			if(!map[pl_sd->bl.m].flag.noreturn)
+				pc_setpos(pl_sd,sd->status.save_point.map,sd->status.save_point.x,sd->status.save_point.y,3);
+		break;
+		case 3: // m,x,y
+			if(!map[pl_sd->bl.m].flag.noreturn && !map[pl_sd->bl.m].flag.nowarp)
+				pc_setpos(pl_sd,mapindex_name2id(str),x,y,3);
+		break;
 		}
 	}
-	else if(strcmp(str,"SavePoint")==0)
-	{
-		if(map[sd->bl.m].flag.noreturn)
-			return 0;
-		
-		mapindex=sd->status.save_point.map;
-		x=sd->status.save_point.x;
-		y=sd->status.save_point.y;
-		for (i = 0; i < users; i++)
-		{
-			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
-			{
-				if(map[pl_sd->bl.m].flag.noreturn)
-					continue;
-				pc_setpos(pl_sd,mapindex,x,y,3);
-			}
-		}
-	}
-	else
-	{
-		mapindex = mapindex_name2id(str);
-		for (i = 0; i < users; i++)
-		{
-			if ((pl_sd = pl_allsd[i]) && pl_sd->status.guild_id == g)
-			{
-				if(map[pl_sd->bl.m].flag.noreturn || map[pl_sd->bl.m].flag.nowarp)
-					continue;
-				pc_setpos(pl_sd,mapindex,x,y,3);
-			}
-		}
-	}
+	mapit_free(iter);
+
 	return 0;
 }
 /*==========================================
@@ -7858,24 +7822,25 @@ BUILDIN_FUNC(getusers)
  *------------------------------------------*/
 BUILDIN_FUNC(getusersname)
 {
-	TBL_PC *sd, *pl_sd = NULL, **pl_allsd;
-	int i=0,disp_num=1, users;
+	TBL_PC *sd, *pl_sd;
+	int disp_num=1;
+	struct s_mapiterator* iter;
 
-	sd = 	script_rid2sd(st);
+	sd = script_rid2sd(st);
 	if (!sd) return 0;
 
-	pl_allsd = map_getallusers(&users);
-	
-	for (i=0;i<users;i++)
+	iter = mapit_getallusers();
+	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
 	{
-		pl_sd = pl_allsd[i];
-		if( !(battle_config.hide_GM_session && pc_isGM(pl_sd)) )
-		{
-			if((disp_num++)%10==0)
-				clif_scriptnext(sd,st->oid);
-			clif_scriptmes(sd,st->oid,pl_sd->status.name);
-		}
+		if( battle_config.hide_GM_session && pc_isGM(pl_sd) )
+			continue; // skip hidden GMs
+
+		if((disp_num++)%10==0)
+			clif_scriptnext(sd,st->oid);
+		clif_scriptmes(sd,st->oid,pl_sd->status.name);
 	}
+	mapit_free(iter);
+	
 	return 0;
 }
 /*==========================================
@@ -8934,34 +8899,37 @@ BUILDIN_FUNC(removemapflag)
 
 BUILDIN_FUNC(pvpon)
 {
-	int m,i,users;
+	int m;
 	const char *str;
-	TBL_PC *pl_sd=NULL, **pl_allsd;
+	TBL_PC* sd = NULL;
+	struct s_mapiterator* iter;
 
-	str=script_getstr(st,2);
+	str = script_getstr(st,2);
 	m = map_mapname2mapid(str);
-	if(m >= 0 && !map[m].flag.pvp) {
-		map[m].flag.pvp = 1;
-		clif_send0199(m,1);
+	if( m < 0 || map[m].flag.pvp )
+		return 0; // nothing to do
 
-		if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
-			return 0;
+	map[m].flag.pvp = 1;
+	clif_send0199(m,1);
 
-		pl_allsd = map_getallusers(&users);
-		
-		for(i=0;i<users;i++)
-		{
-			if ((pl_sd = pl_allsd[i]) && m == pl_sd->bl.m && pl_sd->pvp_timer == -1)
-			{
-				pl_sd->pvp_timer=add_timer(gettick()+200,pc_calc_pvprank_timer,pl_sd->bl.id,0);
-				pl_sd->pvp_rank=0;
-				pl_sd->pvp_lastusers=0;
-				pl_sd->pvp_point=5;
-				pl_sd->pvp_won = 0;
-				pl_sd->pvp_lost = 0;
-			}
-		}
+	if(battle_config.pk_mode) // disable ranking functions if pk_mode is on [Valaris]
+		return 0;
+
+	iter = mapit_getallusers();
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
+	{
+		if( sd->bl.m != m || sd->pvp_timer != -1 )
+			continue; // not applicable
+
+		sd->pvp_timer = add_timer(gettick()+200,pc_calc_pvprank_timer,sd->bl.id,0);
+		sd->pvp_rank = 0;
+		sd->pvp_lastusers = 0;
+		sd->pvp_point = 5;
+		sd->pvp_won = 0;
+		sd->pvp_lost = 0;
 	}
+	mapit_free(iter);
+
 	return 0;
 }
 
@@ -10575,20 +10543,19 @@ BUILDIN_FUNC(dispbottom)
  *------------------------------------------*/
 BUILDIN_FUNC(recovery)
 {
-	TBL_PC *sd, **all_sd;
-	int i = 0, users;
+	TBL_PC* sd;
+	struct s_mapiterator* iter;
 
-	all_sd = map_getallusers(&users);
-	
-	for (i = 0; i < users; i++)
+	iter = mapit_getallusers();
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 	{
-		sd = all_sd[i];
 		if(pc_isdead(sd))
 			status_revive(&sd->bl, 100, 100);
 		else
 			status_percent_heal(&sd->bl, 100, 100);
 		clif_displaymessage(sd->fd,"You have been recovered!");
 	}
+	mapit_free(iter);
 	return 0;
 }
 /*==========================================

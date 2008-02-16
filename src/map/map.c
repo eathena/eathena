@@ -1712,39 +1712,51 @@ struct map_session_data* map_charid2sd(int charid)
  *------------------------------------------*/
 struct map_session_data * map_nick2sd(const char *nick)
 {
-	int i, users;
-	struct map_session_data *pl_sd = NULL, **pl_allsd;
+	struct map_session_data* sd;
+	struct map_session_data* found_sd;
+	struct s_mapiterator* iter;
+	size_t nicklen;
 
-	if (nick == NULL)
+	if( nick == NULL )
 		return NULL;
 
-	pl_allsd = map_getallusers(&users);
-	if (battle_config.partial_name_scan)
+	nicklen = strlen(nick);
+	iter = mapit_getallusers();
+
+	found_sd = NULL;
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 	{
-		int qty = 0, nicklen = strlen(nick);
-		struct map_session_data *sd = NULL;
-		for (i = 0; i < users; i++) {
-			pl_sd = pl_allsd[i];
-			// Without case sensitive check (increase the number of similar character names found)
-			if (strnicmp(pl_sd->status.name, nick, nicklen) == 0) {
-				// Strict comparison (if found, we finish the function immediatly with correct value)
-				if (strcmp(pl_sd->status.name, nick) == 0)
-					return pl_sd;
-				qty++;
-				sd = pl_sd;
+		if( battle_config.partial_name_scan )
+		{// partial name search
+			if( strnicmp(sd->status.name, nick, nicklen) == 0 )
+			{
+				if( strcmp(sd->status.name, nick) == 0 )
+				{// perfect match found
+					found_sd = sd;
+					break;
+				}
+				if( found_sd != NULL )
+				{// collision
+					found_sd = NULL;
+					break;
+				}
+
+				found_sd = sd;
 			}
 		}
-		// We return the found index of a similar account ONLY if there is 1 similar character
-		if (qty == 1)
-			return sd;
-	} else { //Exact Search
-		for (i = 0; i < users; i++) {
-			if (strcasecmp(pl_allsd[i]->status.name, nick) == 0)
-				return pl_allsd[i];
+		else
+		{// exact search only
+			if( strcasecmp(sd->status.name, nick) == 0 )
+			{
+				found_sd = sd;
+				break;
+			}
 		}
 	}
-	//Not found.
-	return NULL;
+
+	mapit_free(iter);
+
+	return found_sd;
 }
 
 /*==========================================
@@ -1836,6 +1848,154 @@ int map_foreachiddb(int (*func)(DBKey,void*,va_list),...)
 	id_db->vforeach(id_db,func,ap);
 	va_end(ap);
 	return 0;
+}
+
+/// Iterator.
+/// Can filter by bl type.
+struct s_mapiterator
+{
+	enum e_mapitflags flags;// flags for special behaviour
+	enum bl_type types;// what bl types to return
+	DBIterator* dbi;// database iterator
+};
+
+/// Returns true if the block_list matches the description in the iterator.
+///
+/// @param _mapit_ Iterator
+/// @param _bl_ block_list
+/// @return true if it matches
+#define MAPIT_MATCHES(_mapit_,_bl_) \
+	( \
+		( (_bl_)->type & (_mapit_)->types /* type matches */ ) && \
+		( (_bl_)->type != BL_PC /* not a pc */ || !((_mapit_)->flags & MAPIT_PCISPLAYING) /* any pc state */ || pc_isplaying((TBL_PC*)(_bl_)) /* pc is playing */ ) \
+	)
+
+/// Allocates a new iterator.
+/// Returns the new iterator.
+/// types can represent several BL's as a bit field.
+/// TODO should this be expanded to allow filtering of map/guild/party/chat/cell/area/...?
+///
+/// @param flags Flags of the iterator
+/// @param type Target types
+/// @return Iterator
+struct s_mapiterator* mapit_alloc(enum e_mapitflags flags, enum bl_type types)
+{
+	struct s_mapiterator* mapit;
+
+	CREATE(mapit, struct s_mapiterator, 1);
+	if( !(types & BL_PC) && (flags & MAPIT_PCISPLAYING) ) flags ^= MAPIT_PCISPLAYING;// incompatible flag
+	mapit->flags = flags;
+	mapit->types = types;
+	if( types == BL_PC )       mapit->dbi = db_iterator(pc_db);
+	else if( types == BL_MOB ) mapit->dbi = db_iterator(mobid_db);
+	else                       mapit->dbi = db_iterator(id_db);
+	return mapit;
+}
+
+/// Frees the iterator.
+///
+/// @param mapit Iterator
+void mapit_free(struct s_mapiterator* mapit)
+{
+	nullpo_retv(mapit);
+
+	dbi_destroy(mapit->dbi);
+	aFree(mapit);
+}
+
+/// Returns the first block_list that matches the description.
+/// Returns NULL if not found.
+///
+/// @param mapit Iterator
+/// @return first block_list or NULL
+struct block_list* mapit_first(struct s_mapiterator* mapit)
+{
+	struct block_list* bl;
+
+	nullpo_retr(NULL,mapit);
+
+	for( bl = (struct block_list*)dbi_first(mapit->dbi); bl != NULL; bl = (struct block_list*)dbi_next(mapit->dbi) )
+	{
+		if( MAPIT_MATCHES(mapit,bl) )
+			break;// found match
+	}
+	return bl;
+}
+
+/// Returns the last block_list that matches the description.
+/// Returns NULL if not found.
+///
+/// @param mapit Iterator
+/// @return last block_list or NULL
+struct block_list* mapit_last(struct s_mapiterator* mapit)
+{
+	struct block_list* bl;
+
+	nullpo_retr(NULL,mapit);
+
+	for( bl = (struct block_list*)dbi_last(mapit->dbi); bl != NULL; bl = (struct block_list*)dbi_prev(mapit->dbi) )
+	{
+		if( MAPIT_MATCHES(mapit,bl) )
+			break;// found match
+	}
+	return bl;
+}
+
+/// Returns the next block_list that matches the description.
+/// Returns NULL if not found.
+///
+/// @param mapit Iterator
+/// @return next block_list or NULL
+struct block_list* mapit_next(struct s_mapiterator* mapit)
+{
+	struct block_list* bl;
+
+	nullpo_retr(NULL,mapit);
+
+	for( ; ; )
+	{
+		bl = (struct block_list*)dbi_next(mapit->dbi);
+		if( bl == NULL )
+			break;// end
+		if( MAPIT_MATCHES(mapit,bl) )
+			break;// found a match
+		// try next
+	}
+	return bl;
+}
+
+/// Returns the previous block_list that matches the description.
+/// Returns NULL if not found.
+///
+/// @param mapit Iterator
+/// @return previous block_list or NULL
+struct block_list* mapit_prev(struct s_mapiterator* mapit)
+{
+	struct block_list* bl;
+
+	nullpo_retr(NULL,mapit);
+
+	for( ; ; )
+	{
+		bl = (struct block_list*)dbi_prev(mapit->dbi);
+		if( bl == NULL )
+			break;// end
+		if( MAPIT_MATCHES(mapit,bl) )
+			break;// found a match
+		// try prev
+	}
+	return bl;
+}
+
+/// Returns true if the current block_list exists in the database.
+///
+/// @param mapit Iterator
+/// @return true if it exists
+bool mapit_exists(struct s_mapiterator* mapit)
+{
+	nullpo_retr(false,mapit);
+
+	return dbi_exists(mapit->dbi);
 }
 
 /*==========================================
@@ -3034,7 +3194,8 @@ static int cleanup_db_subpc(DBKey key,void *data,va_list va)
 void do_final(void)
 {
 	int i, j;
-	struct map_session_data **pl_allsd;
+	struct map_session_data* sd;
+	struct s_mapiterator* iter;
 
 	ShowStatus("Terminating...\n");
 
@@ -3043,9 +3204,10 @@ void do_final(void)
 			map_foreachinmap(cleanup_sub, i, BL_ALL);
 
 	//Scan any remaining players (between maps?) to kick them out. [Skotlex]
-	pl_allsd = map_getallusers(&j);
-	for (i = 0; i < j; i++)
-		map_quit(pl_allsd[i]);
+	iter = mapit_getallusers();
+	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
+		map_quit(sd);
+	mapit_free(iter);
 		
 	id_db->foreach(id_db,cleanup_db_sub);
 	chrif_char_reset_offline();
