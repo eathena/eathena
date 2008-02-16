@@ -5,6 +5,11 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/02/16
+	* Fixes to Devotion (see topic:153345)
+	- corrected a problem where a link could get 'stuck' on a character
+	- the link will now re-display when coming into view range
+	- the link will no longer break if the devotee walks away, but instead,
+	  if he receives damage while being out of Devotion's range
 	* Merged the map data iterator and related changes
 	- r12170, r12195, r12196, r12204, r12206
 	* Merged fixes from trunk [ultramage]
