@@ -364,7 +364,7 @@ struct script_reg {
 };
 struct script_regstr {
 	int index;
-	char data[256];
+	char* data;
 };
 
 struct status_change_entry {
@@ -804,7 +804,6 @@ struct npc_data {
 	struct view_data *vd;
 	struct status_change sc; //They can't have status changes, but.. they want the visual opt values.
 	struct npc_data *master_nd;
-	short n;
 	short class_;
 	short speed;
 	char name[NAME_LENGTH+1];// display name
@@ -1287,7 +1286,7 @@ bool map_knowsaccount(int account_id);
 int map_quit(struct map_session_data *);
 void map_quit_ack(int account_id, int char_id);
 // npc
-int map_addnpc(int,struct npc_data *);
+bool map_addnpc(int,struct npc_data *);
 
 // 床アイテム関連
 int map_clearflooritem_timer(int,unsigned int,int,int);

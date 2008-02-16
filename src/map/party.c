@@ -47,6 +47,26 @@ static void party_fill_member(struct party_member *member, struct map_session_da
 }
 
 /*==========================================
+ * Retrieves and validates the sd pointer for this party member [Skotlex]
+ *------------------------------------------*/
+
+static TBL_PC* party_sd_check(int party_id, int account_id, int char_id)
+{
+	TBL_PC* sd = map_id2sd(account_id);
+
+	if (!(sd && sd->status.char_id == char_id && sd->state.auth && !sd->state.waitingdisconnect))
+		return NULL;
+
+	if (sd->status.party_id != party_id)
+	{	//If player belongs to a different party, kick him out.
+		intif_party_leave(party_id,account_id,char_id);
+		return NULL;
+	}
+
+	return sd;
+}
+
+/*==========================================
  * I—¹
  *------------------------------------------*/
 void do_final_party(void)
@@ -108,9 +128,12 @@ int party_created(int account_id,int char_id,int fail,int party_id,char *name)
 	struct party_data *p;
 	sd=map_id2sd(account_id);
 
-	nullpo_retr(0, sd);
-	if (sd->status.char_id != char_id)
-		return 0; //unlikely failure...
+	if (!sd || sd->status.char_id != char_id)
+	{	//Character logged off before creation ack?
+		if (!fail) //break up party since player could not be added to it.
+			intif_party_leave(party_id,account_id,char_id);
+		return 0;
+	}
 	
 	if(fail){
 		clif_party_created(sd,1);
@@ -230,11 +253,7 @@ int party_recv_info(struct party *sp)
 	for(i=0;i<MAX_PARTY;i++){
 		if (!p->party.member[i].account_id)
 			continue;
-		sd = map_id2sd(p->party.member[i].account_id);
-		if (sd && sd->status.party_id==p->party.party_id
-			&& sd->status.char_id == p->party.member[i].char_id
-			&& sd->state.auth && !sd->state.waitingdisconnect)
-			p->data[i].sd = sd;
+		p->data[i].sd = party_sd_check(p->party.party_id, p->party.member[i].account_id, p->party.member[i].char_id);
 	}
 	party_check_state(p);
 	for(i=0;i<MAX_PARTY;i++){
@@ -337,10 +356,8 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 	int i;
 
 	if(sd == NULL || sd->status.char_id != char_id){
-		if (flag == 0) {
-			ShowError("party: member added error %d is not online\n",account_id);
+		if (!flag) //Char logged off before being accepted into party.
 			intif_party_leave(party_id,account_id,char_id);
-		}
 		return 0;
 	}
 	sd->party_invite=0;
@@ -504,7 +521,6 @@ int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 /// - gains a level (disabled)
 int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short map,int online,int lv)
 {
-	struct map_session_data* sd;
 	struct party_member* m;
 	struct party_data* p;
 	int i;
@@ -525,8 +541,7 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 	m->online = online;
 	m->lv = lv;
 	//Check if they still exist on this map server
-	sd = map_id2sd(m->account_id);
-	p->data[i].sd = (sd!=NULL && sd->status.party_id==p->party.party_id && sd->status.char_id == m->char_id && !sd->state.waitingdisconnect)?sd:NULL;
+	p->data[i].sd = party_sd_check(party_id, account_id, char_id);
 	
 	clif_party_info(p,NULL);
 	return 0;

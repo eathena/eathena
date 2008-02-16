@@ -4328,25 +4328,30 @@ unsigned int pc_thisjobexp(struct map_session_data *sd)
 	return exp_table[pc_class2idx(sd->status.class_)][1][sd->status.job_level-2];
 }
 
+static int pc_getstat(struct map_session_data* sd, int type)
+{
+	nullpo_retr(-1, sd);
+	switch( type ) {
+	case SP_STR: return sd->status.str;
+	case SP_AGI: return sd->status.agi;
+	case SP_VIT: return sd->status.vit;
+	case SP_INT: return sd->status.int_;
+	case SP_DEX: return sd->status.dex;
+	case SP_LUK: return sd->status.luk;
+	default:
+		return -1;
+	}
+}
+
 /*==========================================
  * 必要ステ?タスポイント計算
  *------------------------------------------*/
 int pc_need_status_point(struct map_session_data *sd,int type)
 {
-	int val;
-
 	nullpo_retr(-1, sd);
-
-	if(type<SP_STR || type>SP_LUK)
+	if( type < SP_STR || type > SP_LUK )
 		return -1;
-	val =
-		type==SP_STR ? sd->status.str :
-		type==SP_AGI ? sd->status.agi :
-		type==SP_VIT ? sd->status.vit :
-		type==SP_INT ? sd->status.int_:
-		type==SP_DEX ? sd->status.dex : sd->status.luk;
-
-	return (val+9)/10+1;
+	return ( 1 + (pc_getstat(sd,type) + 9) / 10 );
 }
 
 /*==========================================
@@ -4358,57 +4363,31 @@ int pc_statusup(struct map_session_data *sd,int type)
 
 	nullpo_retr(0, sd);
 
-	max = pc_maxparameter(sd);
-
-	need=pc_need_status_point(sd,type);
-	if(type<SP_STR || type>SP_LUK || need<0 || need>sd->status.status_point){
+	// check conditions
+	need = pc_need_status_point(sd,type);
+	if( type < SP_STR || type > SP_LUK || need < 0 || need > sd->status.status_point )
+	{
 		clif_statusupack(sd,type,0,0);
 		return 1;
 	}
-	switch(type){
-	case SP_STR:
-		if(sd->status.str >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.str;
-		break;
-	case SP_AGI:
-		if(sd->status.agi >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.agi;
-		break;
-	case SP_VIT:
-		if(sd->status.vit >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.vit;
-		break;
-	case SP_INT:
-		if(sd->status.int_ >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.int_;
-		break;
-	case SP_DEX:
-		if(sd->status.dex >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.dex;
-		break;
-	case SP_LUK:
-		if(sd->status.luk >= max) {
-			clif_statusupack(sd,type,0,0);
-			return 1;
-		}
-		val= ++sd->status.luk;
-		break;
+
+	// check limits
+	max = pc_maxparameter(sd);
+	if( pc_getstat(sd,type) >= max )
+	{
+		clif_statusupack(sd,type,0,0);
+		return 1;
 	}
+
+	switch(type){
+	case SP_STR: val= ++sd->status.str; break;
+	case SP_AGI: val= ++sd->status.agi; break;
+	case SP_VIT: val= ++sd->status.vit; break;
+	case SP_INT: val= ++sd->status.int_; break;
+	case SP_DEX: val= ++sd->status.dex; break;
+	case SP_LUK: val= ++sd->status.luk; break;
+	}
+
 	sd->status.status_point-=need;
 	if(need!=pc_need_status_point(sd,type)){
 		clif_updatestatus(sd,type-SP_STR+SP_USTR);
@@ -4431,66 +4410,18 @@ int pc_statusup2(struct map_session_data *sd,int type,int val)
 
 	max = pc_maxparameter(sd);
 	
-	if(type<SP_STR || type>SP_LUK){
+	switch(type){
+	case SP_STR: sd->status.str = cap_value(sd->status.str + val, 1, max); break;
+	case SP_AGI: sd->status.agi = cap_value(sd->status.agi + val, 1, max); break;
+	case SP_VIT: sd->status.vit = cap_value(sd->status.vit + val, 1, max); break;
+	case SP_INT: sd->status.int_= cap_value(sd->status.int_+ val, 1, max); break;
+	case SP_DEX: sd->status.dex = cap_value(sd->status.dex + val, 1, max); break;
+	case SP_LUK: sd->status.luk = cap_value(sd->status.luk + val, 1, max); break;
+	default:
 		clif_statusupack(sd,type,0,0);
 		return 1;
 	}
-	switch(type){
-	case SP_STR:
-		if(sd->status.str + val >= max)
-			val = max;
-		else if(sd->status.str + val < 1)
-			val = 1;
-		else
-			val += sd->status.str;
-		sd->status.str = val;
-		break;
-	case SP_AGI:
-		if(sd->status.agi + val >= max)
-			val = max;
-		else if(sd->status.agi + val < 1)
-			val = 1;
-		else
-			val += sd->status.agi;
-		sd->status.agi = val;
-		break;
-	case SP_VIT:
-		if(sd->status.vit + val >= max)
-			val = max;
-		else if(sd->status.vit + val < 1)
-			val = 1;
-		else
-			val += sd->status.vit;
-		sd->status.vit = val;
-		break;
-	case SP_INT:
-		if(sd->status.int_ + val >= max)
-			val = max;
-		else if(sd->status.int_ + val < 1)
-			val = 1;
-		else
-			val += sd->status.int_;
-		sd->status.int_ = val;
-		break;
-	case SP_DEX:
-		if(sd->status.dex + val >= max)
-			val = max;
-		else if(sd->status.dex + val < 1)
-			val = 1;
-		else
-			val += sd->status.dex;
-		sd->status.dex = val;
-		break;
-	case SP_LUK:
-		if(sd->status.luk + val >= max)
-			val = max;
-		else if(sd->status.luk + val < 1)
-			val = 1;
-		else
-			val = sd->status.luk + val;
-		sd->status.luk = val;
-		break;
-	}
+
 	status_calc_pc(sd,0);
 	clif_statusupack(sd,type,1,val);
 
@@ -4952,7 +4883,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 	//Reset ticks.
 	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
 
-	pc_setglobalreg(sd,"PC_DIE_COUNTER",++sd->die_counter);
+	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter+1);
 	pc_setglobalreg(sd,"killerrid",src?src->id:0);
 	npc_script_event(sd,NPCE_DIE);
 
@@ -5902,15 +5833,19 @@ int pc_setreg(struct map_session_data* sd, int reg, int val)
 
 	ARR_FIND( 0, sd->reg_num, i, sd->reg[i].index == reg );
 	if( i < sd->reg_num )
-		// overwrite existing entry
+	{// overwrite existing entry
 		sd->reg[i].data = val;
-	else {
-		// insert new entry
+		return 1;
+	}
+
+	ARR_FIND( 0, sd->reg_num, i, sd->reg[i].data == 0 );
+	if( i == sd->reg_num )
+	{// nothing free, increase size
 		sd->reg_num++;
 		RECREATE(sd->reg, struct script_reg, sd->reg_num);
-		sd->reg[i].index = reg;
-		sd->reg[i].data = val;
 	}
+	sd->reg[i].index = reg;
+	sd->reg[i].data = val;
 
 	return 1;
 }
@@ -5930,40 +5865,45 @@ char* pc_readregstr(struct map_session_data* sd, int reg)
 /*==========================================
  * script用文字列??の値を設定
  *------------------------------------------*/
-int pc_setregstr(struct map_session_data* sd, int reg, char* str)
+int pc_setregstr(struct map_session_data* sd, int reg, const char* str)
 {
 	int i;
 
 	nullpo_retr(0, sd);
 
-	if(str && strlen(str)+1 >= sizeof(sd->regstr[0].data)){
-		ShowWarning("pc_setregstr: string too long !\n");
-		return 0;
-	}
-
 	ARR_FIND( 0, sd->regstr_num, i, sd->regstr[i].index == reg );
 	if( i < sd->regstr_num )
-	{
-		if (str && strcmp(str,"")!=0)
-			safestrncpy(sd->regstr[i].data, str, sizeof(sd->regstr[i].data));
-		else {
-			sd->regstr_num--;
-			memcpy(&sd->regstr[i], &sd->regstr[sd->regstr_num], sizeof(sd->regstr[0]));
-			RECREATE(sd->regstr, struct script_regstr, sd->regstr_num);
+	{// found entry, update
+		if( str == NULL || *str == '\0' )
+		{// empty string
+			if( sd->regstr[i].data != NULL )
+				aFree(sd->regstr[i].data);
+			sd->regstr[i].data = NULL;
+		}
+		else if( sd->regstr[i].data )
+		{// recreate
+			size_t len = strlen(str)+1;
+			RECREATE(sd->regstr[i].data, char, len);
+			memcpy(sd->regstr[i].data, str, len*sizeof(char));
+		}
+		else
+		{// create
+			sd->regstr[i].data = aStrdup(str);
 		}
 		return 1;
 	}
 
-	if (!str) return 1;
+	if( str == NULL || *str == '\0' )
+		return 1;// nothing to add, empty string
 
-	sd->regstr_num++;
-	RECREATE(sd->regstr, struct script_regstr, sd->regstr_num);
-	if(sd->regstr==NULL){
-		ShowFatalError("out of memory : pc_setreg\n");
-		exit(EXIT_FAILURE);
+	ARR_FIND( 0, sd->regstr_num, i, sd->regstr[i].data == NULL );
+	if( i == sd->regstr_num )
+	{// nothing free, increase size
+		sd->regstr_num++;
+		RECREATE(sd->regstr, struct script_regstr, sd->regstr_num);
 	}
 	sd->regstr[i].index = reg;
-	safestrncpy(sd->regstr[i].data, str, sizeof(sd->regstr[i].data));
+	sd->regstr[i].data = aStrdup(str);
 
 	return 1;
 }
@@ -6108,7 +6048,7 @@ int pc_setregistry(struct map_session_data *sd,const char *reg,int val,int type)
 	return 0;
 }
 
-int pc_setregistry_str(struct map_session_data *sd,char *reg,char *val,int type)
+int pc_setregistry_str(struct map_session_data *sd,char *reg,const char *val,int type)
 {
 	struct global_reg *sd_reg;
 	int i,*max, regmax;
@@ -6216,15 +6156,13 @@ static int pc_eventtimer(int tid,unsigned int tick,int id,int data)
 int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
 {
 	int i;
-	char* evname;
 	nullpo_retr(0, sd);
 
 	ARR_FIND( 0, MAX_EVENTTIMER, i, sd->eventtimer[i] == -1 );
 	if( i == MAX_EVENTTIMER )
 		return 0;
 
-	evname = aStrdup(name);
-	sd->eventtimer[i] = add_timer(gettick()+tick, pc_eventtimer,sd->bl.id,(int)evname);
+	sd->eventtimer[i] = add_timer(gettick()+tick, pc_eventtimer, sd->bl.id, (int)aStrdup(name));
 	sd->eventcount++;
 
 	return 1;
@@ -6236,25 +6174,28 @@ int pc_addeventtimer(struct map_session_data *sd,int tick,const char *name)
 int pc_deleventtimer(struct map_session_data *sd,const char *name)
 {
 	int i;
+	char* p;
 
 	nullpo_retr(0, sd);
 
 	if (sd->eventcount <= 0)
 		return 0;
 
-	for(i=0;i<MAX_EVENTTIMER;i++)
-		if( sd->eventtimer[i]!=-1 ) {
-			char *p = (char *)(get_timer(sd->eventtimer[i])->data);
-			if(p && strcmp(p, name)==0) {
-				delete_timer(sd->eventtimer[i],pc_eventtimer);
-				sd->eventtimer[i]=-1;
-				sd->eventcount--;
-				aFree(p);
-				return 1;
-			}
-		}
+	// find the named event timer
+	ARR_FIND( 0, MAX_EVENTTIMER, i,
+		sd->eventtimer[i] != -1 &&
+		(p = (char *)(get_timer(sd->eventtimer[i])->data)) != NULL &&
+		strcmp(p, name) == 0
+	);
+	if( i == MAX_EVENTTIMER )
+		return 0; // not found
 
-	return 0;
+	delete_timer(sd->eventtimer[i],pc_eventtimer);
+	sd->eventtimer[i]=-1;
+	sd->eventcount--;
+	aFree(p);
+
+	return 1;
 }
 
 /*==========================================
@@ -6855,6 +6796,8 @@ void pc_bleeding (struct map_session_data *sd, unsigned int diff_tick)
 			hp += sd->hp_loss.value;
 			sd->hp_loss.tick -= sd->hp_loss.rate;
 		}
+		if(hp >= sd->battle_status.hp)
+			hp = sd->battle_status.hp-1; //Script drains cannot kill you.
 	}
 	
 	if (sd->sp_loss.value) {

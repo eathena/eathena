@@ -1,3 +1,8 @@
+2008/02/16
+	* Corrected Freezing Trap's type to weapon.
+	* Changed suiton's element to water.
+	* Changed Landmine's trigger area to 0 (1x1, to match its splash range).
+	  [Skotlex]
 2008/02/07
 	* Rev. 12184 Corrected NPC_BLEEDING being SELF and not TARGET in mob_skill_db. [L0ne_W0lf]
 2008/01/25
