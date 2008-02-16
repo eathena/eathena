@@ -3388,6 +3388,7 @@ int clif_storageclose(struct map_session_data *sd)
 static void clif_getareachar_pc(struct map_session_data* sd,struct map_session_data* dstsd)
 {
 	int gmlvl;
+	int i;
 	
 	if(dstsd->chatID)
 	{
