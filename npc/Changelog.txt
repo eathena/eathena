@@ -1,5 +1,8 @@
 Date		Added
 ======
+2008/03/01
+	* Rev 12276 Resolves bugreport:1025, bugreport:1062, [L0ne_W0lf]
+	  and bugreport:1077.
 2008/02/22
 	* Rev. 12228 Several bugfixes merged from trunk. [L0ne_W0lf]
 	- "The Sign" quest is now enabled by default. (bugreport:1011)
