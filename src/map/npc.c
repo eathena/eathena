@@ -2317,6 +2317,8 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		}
 		map[m].flag.nosave = state;
 	}
+	else if (!strcmpi(w3,"town"))
+		map[m].flag.town=state;
 	else if (!strcmpi(w3,"nomemo"))
 		map[m].flag.nomemo=state;
 	else if (!strcmpi(w3,"noteleport"))
