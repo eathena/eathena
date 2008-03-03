@@ -4,11 +4,18 @@
 #ifndef _MAIL_H_
 #define _MAIL_H_
 
-int mail_check(struct map_session_data *sd, int type);
-int mail_read(struct map_session_data *sd, int index);
-int mail_delete(struct map_session_data *sd, int index);
-int mail_send(struct map_session_data *sd, char *name, char *message, int flag);
+#include "../common/mmo.h"
 
-int do_init_mail(void);
+time_t mail_calctimes(void);
+
+void mail_clear(struct map_session_data *sd);
+int mail_removeitem(struct map_session_data *sd, short flag);
+int mail_removezeny(struct map_session_data *sd, short flag);
+unsigned char mail_setitem(struct map_session_data *sd, int idx, int amount);
+bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg);
+void mail_getattachment(struct map_session_data* sd, int zeny, struct item* item);
+int mail_openmail(struct map_session_data *sd);
+void mail_deliveryfail(struct map_session_data *sd, struct mail_message *msg);
+bool mail_invalid_operation(struct map_session_data *sd);
 
 #endif /* _MAIL_H_ */

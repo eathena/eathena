@@ -611,6 +611,7 @@ struct map_session_data {
 	unsigned int canlog_tick;
 	unsigned int canuseitem_tick;	// [Skotlex]
 	unsigned int cantalk_tick;
+	unsigned int cansendmail_tick; // [Mail System Flood Protection]
 
 	short weapontype1,weapontype2;
 	short disguise; // [Valaris]
@@ -777,15 +778,17 @@ struct map_session_data {
 
 	char fakename[NAME_LENGTH]; // fake names [Valaris]
 
-#ifndef TXT_ONLY
-	int mail_counter;	// mail counter for mail system (antiflood protection)
-#endif
-
 	int duel_group; // duel vars [LuzZza]
 	int duel_invite;
 
 	char away_message[128]; // [LuzZza]
 
+	// Mail System [Zephyrus]
+	struct {
+		short nameid;
+		int index, amount, zeny;
+		struct mail_data inbox;
+	} mail;
 };
 
 struct npc_timerevent_list {
@@ -1160,6 +1163,7 @@ struct map_data {
 	int npc_num;
 	int users;
 	struct map_flag {
+		unsigned town : 1; // [Suggestion to protect Mail System]
 		unsigned nomemo : 1;
 		unsigned noteleport : 1;
 		unsigned noreturn : 1;
@@ -1389,18 +1393,15 @@ extern char main_chat_nick[16];
 #include "../common/sql.h"
 
 extern int db_use_sqldbs;
-extern int mail_server_enable;
 
 extern Sql* mmysql_handle;
 extern Sql* logmysql_handle;
-extern Sql* mail_handle;
 
 extern char item_db_db[32];
 extern char item_db2_db[32];
 extern char mob_db_db[32];
 extern char mob_db2_db[32];
 extern char char_db[32];
-extern char mail_db[32];
 
 #endif /* not TXT_ONLY */
 

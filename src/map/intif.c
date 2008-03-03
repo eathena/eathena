@@ -19,6 +19,7 @@
 #include "pet.h"
 #include "atcommand.h"
 #include "mercenary.h" //albator
+#include "mail.h"
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -33,7 +34,7 @@ static const int packet_len_table[]={
 	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
-	 9, 9,-1,14,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3840
+	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
@@ -1396,6 +1397,293 @@ int intif_parse_DeleteHomunculusOk(int fd)
 	return 0;
 }
 
+#ifndef TXT_ONLY
+/*==========================================
+ * MAIL SYSTEM
+ * By Zephyrus
+ *==========================================*/
+
+/*------------------------------------------
+ * Inbox Request
+ * flag: 0 Update Inbox | 1 OpenMail
+ *------------------------------------------*/
+int intif_Mail_requestinbox(int char_id, unsigned char flag)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,7);
+	WFIFOW(inter_fd,0) = 0x3048;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOB(inter_fd,6) = flag;
+	WFIFOSET(inter_fd,7);
+
+	return 0;
+}
+
+int intif_parse_Mail_inboxreceived(int fd)
+{
+	struct map_session_data *sd;
+	unsigned char flag = RFIFOB(fd,8);
+
+	sd = map_charid2sd(RFIFOL(fd,4));
+
+	if (sd == NULL)
+	{
+		ShowError("intif_parse_Mail_inboxreceived: char not found %d\n",RFIFOL(fd,4));
+		return 1;
+	}
+
+	if (sd->state.finalsave)
+		return 1;
+
+	if (RFIFOW(fd,2) - 9 != sizeof(struct mail_data))
+	{
+		ShowError("intif_parse_Mail_inboxreceived: data size error %d %d\n", RFIFOW(fd,2) - 9, sizeof(struct mail_data));
+		return 1;
+	}
+
+	//FIXME: this operation is not safe [ultramage]
+	memcpy(&sd->mail.inbox, RFIFOP(fd,9), sizeof(struct mail_data));
+
+	if (flag)
+		clif_Mail_refreshinbox(sd);
+	else
+	{
+		char output[128];
+		sprintf(output, "You have %d new emails (%d unread)", sd->mail.inbox.unchecked, sd->mail.inbox.unread + sd->mail.inbox.unchecked);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
+	return 0;
+}
+/*------------------------------------------
+ * Mail Readed
+ *------------------------------------------*/
+int intif_Mail_read(int mail_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,6);
+	WFIFOW(inter_fd,0) = 0x3049;
+	WFIFOL(inter_fd,2) = mail_id;
+	WFIFOSET(inter_fd,6);
+
+	return 0;
+}
+/*------------------------------------------
+ * Get Attachment
+ *------------------------------------------*/
+int intif_Mail_getattach(int char_id, int mail_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x304a;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = mail_id;
+	WFIFOSET(inter_fd, 10);
+
+	return 0;
+}
+
+int intif_parse_Mail_getattach(int fd)
+{
+	struct map_session_data *sd;
+	struct item item;
+	int zeny = RFIFOL(fd,8);
+
+	sd = map_charid2sd( RFIFOL(fd,4) );
+
+	if (sd == NULL)
+	{
+		ShowError("intif_parse_Mail_getattach: char not found %d\n",RFIFOL(fd,4));
+		return 1;
+	}
+
+	if (sd->state.finalsave)
+		return 1;
+
+	if (RFIFOW(fd,2) - 12 != sizeof(struct item))
+	{
+		ShowError("intif_parse_Mail_getattach: data size error %d %d\n", RFIFOW(fd,2) - 16, sizeof(struct item));
+		return 1;
+	}
+
+	memcpy(&item, RFIFOP(fd,12), sizeof(struct item));
+
+	mail_getattachment(sd, zeny, &item);
+	return 0;
+}
+/*------------------------------------------
+ * Delete Message
+ *------------------------------------------*/
+int intif_Mail_delete(int char_id, int mail_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x304b;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = mail_id;
+	WFIFOSET(inter_fd,10);
+
+	return 0;
+}
+
+int intif_parse_Mail_delete(int fd)
+{
+	int char_id = RFIFOL(fd,2);
+	int mail_id = RFIFOL(fd,6);
+	bool failed = RFIFOB(fd,10);
+
+	struct map_session_data *sd = map_charid2sd(char_id);
+	if (sd == NULL)
+	{
+		ShowError("intif_parse_Mail_delete: char not found %d\n", char_id);
+		return 1;
+	}
+
+	if (sd->state.finalsave)
+		return 1;
+
+	if (!failed)
+	{
+		int i;
+		ARR_FIND(0, MAIL_MAX_INBOX, i, sd->mail.inbox.msg[i].id == mail_id);
+		if( i < MAIL_MAX_INBOX )
+		{
+			memset(&sd->mail.inbox.msg[i], 0, sizeof(struct mail_message));
+			sd->mail.inbox.amount--;
+		}
+
+		if( sd->mail.inbox.full )
+			intif_Mail_requestinbox(sd->status.char_id, 1); // Free space is available for new mails
+	}
+
+	clif_Mail_delete(sd->fd, mail_id, failed);
+	return 0;
+}
+/*------------------------------------------
+ * Return Message
+ *------------------------------------------*/
+int intif_Mail_return(int char_id, int mail_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x304c;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = mail_id;
+	WFIFOSET(inter_fd,10);
+
+	return 0;
+}
+
+int intif_parse_Mail_return(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	int mail_id = RFIFOL(fd,6);
+	short fail = RFIFOB(fd,10);
+
+	if( sd == NULL )
+	{
+		ShowError("intif_parse_Mail_return: char not found %d\n",RFIFOL(fd,2));
+		return 1;
+	}
+
+	if( sd->state.finalsave )
+		return 1;
+
+	if( !fail )
+	{
+		int i;
+		ARR_FIND(0, MAIL_MAX_INBOX, i, sd->mail.inbox.msg[i].id == mail_id);
+		if( i < MAIL_MAX_INBOX )
+		{
+			memset(&sd->mail.inbox.msg[i], 0, sizeof(struct mail_message));
+			sd->mail.inbox.amount--;
+		}
+
+		if( sd->mail.inbox.full )
+			intif_Mail_requestinbox(sd->status.char_id, 1); // Free space is available for new mails
+	}
+
+	clif_Mail_return(sd->fd, mail_id, fail);
+	return 0;
+}
+/*------------------------------------------
+ * Send Mail
+ *------------------------------------------*/
+int intif_Mail_send(int account_id, struct mail_message *msg)
+{
+	int len = sizeof(struct mail_message) + 8;
+
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,len);
+	WFIFOW(inter_fd,0) = 0x304d;
+	WFIFOW(inter_fd,2) = len;
+	WFIFOL(inter_fd,4) = account_id;
+	memcpy(WFIFOP(inter_fd,8), msg, sizeof(struct mail_message));
+	WFIFOSET(inter_fd,len);
+
+	return 1;
+}
+
+static void intif_parse_Mail_send(int fd)
+{
+	struct mail_message msg;
+	struct map_session_data *sd;
+	bool fail;
+
+	if( RFIFOW(fd,2) - 4 != sizeof(struct mail_message) )
+	{
+		ShowError("intif_parse_Mail_send: data size error %d %d\n", RFIFOW(fd,2) - 4, sizeof(struct mail_message));
+		return;
+	}
+
+	memcpy(&msg, RFIFOP(fd,4), sizeof(struct mail_message));
+	fail = (msg.id == 0);
+
+	if( (sd = map_charid2sd(msg.send_id)) )
+	{
+		if( fail )
+			mail_deliveryfail(sd, &msg);
+		else
+			clif_Mail_send(sd->fd, false);
+	}
+
+	if( fail )
+		return;
+
+	if( (sd = map_charid2sd(msg.dest_id)) )
+	{
+		sd->mail.inbox.changed = true;
+		clif_Mail_new(sd->fd, msg.id, msg.send_name, msg.title);
+	}
+}
+
+static void intif_parse_Mail_new(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	int mail_id = RFIFOL(fd,6);
+	const char* sender_name = (char*)RFIFOP(fd,10);
+	const char* title = (char*)RFIFOP(fd,34);
+
+	if( sd == NULL )
+		return;
+
+	sd->mail.inbox.changed = true;
+	clif_Mail_new(sd->fd, mail_id, sender_name, title);
+}
+
+#endif
+
 //-----------------------------------------------------------------
 // inter server‚©‚ç‚Ì’ÊM
 // ƒGƒ‰[‚ª‚ ‚ê‚Î0(false)‚ğ•Ô‚·‚±‚Æ
@@ -1464,6 +1752,16 @@ int intif_parse(int fd)
 	case 0x3841:	intif_parse_GuildCastleDataSave(fd); break;
 	case 0x3842:	intif_parse_GuildCastleAllDataLoad(fd); break;
 	case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
+// Mail System
+#ifndef TXT_ONLY
+	case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
+	case 0x3849:	intif_parse_Mail_new(fd); break;
+	case 0x384a:	intif_parse_Mail_getattach(fd); break;
+	case 0x384b:	intif_parse_Mail_delete(fd); break;
+	case 0x384c:	intif_parse_Mail_return(fd); break;
+	case 0x384d:	intif_parse_Mail_send(fd); break;
+#endif
+// End of Mail System
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;

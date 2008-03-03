@@ -76,16 +76,6 @@ char log_db_pw[32] = "ragnarok";
 char log_db[32] = "log";
 Sql* logmysql_handle;
 
-// mail system
-int mail_server_enable = 0;
-char mail_server_ip[32] = "127.0.0.1";
-int mail_server_port = 3306;
-char mail_server_id[32] = "ragnarok";
-char mail_server_pw[32] = "ragnarok";
-char mail_server_db[32] = "ragnarok";
-char mail_db[32] = "mail";
-Sql* mail_handle;
-
 #endif /* not TXT_ONLY */
 
 int lowest_gm_level = 1;
@@ -2980,22 +2970,6 @@ int inter_config_read(char *cfgName)
 			strcpy(log_db_pw, w2);
 		} else if(strcmpi(w1,"log_db_port")==0) {
 			log_db_port = atoi(w2);
-		// Mail Server SQL 
-		} else if(strcmpi(w1,"mail_server_enable")==0){
-			mail_server_enable = config_switch(w2);
-			ShowStatus ("Using Mail Server: %s\n",w2);
-		} else if(strcmpi(w1,"mail_server_ip")==0){
-			strcpy(mail_server_ip, w2);
-		} else if(strcmpi(w1,"mail_server_port")==0){
-			mail_server_port=atoi(w2);
-		} else if(strcmpi(w1,"mail_server_id")==0){
-			strcpy(mail_server_id, w2);
-		} else if(strcmpi(w1,"mail_server_pw")==0){
-			strcpy(mail_server_pw, w2);
-		} else if(strcmpi(w1,"mail_server_db")==0){
-			strcpy(mail_server_db, w2);
-		} else if(strcmpi(w1,"mail_db")==0) {
-			strcpy(mail_db, w2);
 	#endif
 		//support the import command, just like any other config
 		} else if(strcmpi(w1,"import")==0){
@@ -3025,20 +2999,6 @@ int map_sql_init(void)
 		if ( SQL_ERROR == Sql_SetEncoding(mmysql_handle, default_codepage) )
 			Sql_ShowDebug(mmysql_handle);
 
-	if(mail_server_enable)
-	{ 
-		// mail system
-		mail_handle = Sql_Malloc();
-
-		ShowInfo("Connecting to the Mail DB Server....\n");
-		if( SQL_ERROR == Sql_Connect(mail_handle, mail_server_id, mail_server_pw, mail_server_ip, mail_server_port, mail_server_db) )
-			exit(EXIT_FAILURE);
-
-		if( strlen(default_codepage) > 0 )
-			if ( SQL_ERROR == Sql_SetEncoding(mail_handle, default_codepage) )
-				Sql_ShowDebug(mail_handle);
-	}
-
 	return 0;
 }
 
@@ -3053,13 +3013,6 @@ int map_sql_close(void)
 		ShowStatus("Close Log DB Connection....\n");
 		Sql_Free(logmysql_handle);
 		logmysql_handle = NULL;
-	}
-
-	if(mail_server_enable)
-	{ 
-		ShowStatus("Close Mail DB Connection....\n");
-		Sql_Free(mail_handle);
-		mail_handle = NULL;
 	}
 
 	return 0;
@@ -3091,8 +3044,6 @@ int map_sql_ping(int tid, unsigned int tick, int id, int data)
 	Sql_Ping(mmysql_handle);
 	if (log_config.sql_logs)
 		Sql_Ping(logmysql_handle);
-	if(mail_server_enable)
-		Sql_Ping(mail_handle);
 	return 0;
 }
 
@@ -3468,9 +3419,6 @@ int do_init(int argc, char *argv[])
 	do_init_npc();
 	do_init_unit();
 #ifndef TXT_ONLY /* mail system [Valaris] */
-	if(mail_server_enable)
-		do_init_mail();
-
 	if (log_config.sql_logs)
 		log_sql_init();
 

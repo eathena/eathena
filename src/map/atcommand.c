@@ -2583,7 +2583,7 @@ static int atkillmonster_sub(struct block_list *bl, va_list ap)
 	if (flag)
 		status_zap(bl,md->status.hp, 0);
 	else
-		status_kill(bl);	
+		status_kill(bl);
 	return 1;
 }
 
@@ -2971,7 +2971,7 @@ int atcommand_param(const int fd, struct map_session_data* sd, const char* comma
 
 	for (i = 0; param[i] != NULL; i++)
 		if (strcmpi(command, param[i]) == 0)
-			break;	
+			break;
 
 	if (param[i] == NULL || i > MAX_STATUS_TYPE) { // normally impossible...
 		sprintf(atcmd_output, "Please, enter a valid value (usage: @str,@agi,@vit,@int,@dex,@luk <+/-adjustment>).");
@@ -3886,7 +3886,7 @@ int atcommand_idsearch(const int fd, struct map_session_data* sd, const char* co
 		sprintf(atcmd_output, msg_txt(269), MAX_SEARCH, match);
 		clif_displaymessage(fd, atcmd_output);
 		match = MAX_SEARCH;
-	}	
+	}
 	for(i = 0; i < match; i++) {
 		sprintf(atcmd_output, msg_txt(78), item_array[i]->jname, item_array[i]->nameid); // %s: %d
 		clif_displaymessage(fd, atcmd_output);
@@ -4940,7 +4940,7 @@ int atcommand_jail(const int fd, struct map_session_data* sd, const char* comman
 		x = 24;
 		y = 75;
 		break;
-	default:	
+	default:
 		m_index = mapindex_name2id(MAP_JAIL);
 		x = 49;
 		y = 75;
@@ -4948,7 +4948,7 @@ int atcommand_jail(const int fd, struct map_session_data* sd, const char* comman
 	}
 
 	//Duration of INT_MAX to specify infinity.
-	sc_start4(&pl_sd->bl,SC_JAILED,100,INT_MAX,m_index,x,y,1000); 
+	sc_start4(&pl_sd->bl,SC_JAILED,100,INT_MAX,m_index,x,y,1000);
 	clif_displaymessage(pl_sd->fd, msg_txt(117)); // GM has send you in jails.
 	clif_displaymessage(fd, msg_txt(118)); // Player warped in jails.
 	return 0;
@@ -5075,9 +5075,9 @@ int atcommand_jailfor(const int fd, struct map_session_data* sd, const char* com
 		} else {
 			get_jail_time(jailtime,&year,&month,&day,&hour,&minute);
 			sprintf(atcmd_output,msg_txt(402),"You are now",year,month,day,hour,minute); //%s in jail for %d years, %d months, %d days, %d hours and %d minutes
-	 		clif_displaymessage(pl_sd->fd, atcmd_output); 
+	 		clif_displaymessage(pl_sd->fd, atcmd_output);
 			sprintf(atcmd_output,msg_txt(402),"This player is now",year,month,day,hour,minute); //This player is now in jail for %d years, %d months, %d days, %d hours and %d minutes
-	 		clif_displaymessage(fd, atcmd_output); 
+	 		clif_displaymessage(fd, atcmd_output);
 		}
 	} else if (jailtime < 0) {
 		clif_displaymessage(fd, "Invalid time for jail command.");
@@ -5508,14 +5508,14 @@ int atcommand_follow(const int fd, struct map_session_data* sd, const char* comm
 	struct map_session_data *pl_sd = NULL;
 	nullpo_retr(-1, sd);
 
-	if (!message || !*message) { 
-		if (sd->followtarget == -1) 
-			return -1; 
-	
-		pc_stop_following (sd); 
-		clif_displaymessage(fd, "Follow mode OFF."); 
-		return 0; 
-	} 
+	if (!message || !*message) {
+		if (sd->followtarget == -1)
+			return -1;
+
+		pc_stop_following (sd);
+		clif_displaymessage(fd, "Follow mode OFF.");
+		return 0;
+	}
 	
 	if ( (pl_sd = map_nick2sd((char *)message)) == NULL )
 	{
@@ -5816,7 +5816,7 @@ int atcommand_marry(const int fd, struct map_session_data* sd, const char* comma
 
 /*==========================================
  * @divorce by [MouseJstr], fixed by [Lupus]
- * divorce two players 
+ * divorce two players
  *------------------------------------------*/
 int atcommand_divorce(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
@@ -5920,8 +5920,8 @@ int atcommand_changegm(const int fd, struct map_session_data* sd, const char* co
 	}
 
 	guild_gm_change(sd->status.guild_id, pl_sd);
-	return 0;  
-}   
+	return 0;
+}
 
 /*==========================================
  * @changeleader by Skotlex
@@ -5978,9 +5978,9 @@ int atcommand_changeleader(const int fd, struct map_session_data* sd, const char
 	intif_party_leaderchange(p->party.party_id,p->party.member[pl_mi].account_id,p->party.member[pl_mi].char_id);
 	//Update info.
 	clif_party_info(p,NULL);
-	
-	return 0;  
-}   
+
+	return 0;
+}
 
 /*==========================================
  * @partyoption by Skotlex
@@ -6023,8 +6023,8 @@ int atcommand_partyoption(const int fd, struct map_session_data* sd, const char*
 	else
 		clif_displaymessage(fd, msg_txt(286));
 
-	return 0;  
-} 
+	return 0;
+}
 
 /*==========================================
  * @autoloot by Upa-Kun
@@ -6048,15 +6048,15 @@ int atcommand_autoloot(const int fd, struct map_session_data* sd, const char* co
 	}
 	if (rate < 0) rate = 0;
 	if (rate > 10000) rate = 10000;
-	
+
 	sd->state.autoloot = rate;
-	if (sd->state.autoloot) { 
+	if (sd->state.autoloot) {
 		snprintf(atcmd_output, sizeof atcmd_output, "Autolooting items with drop rates of %0.02f%% and below.",((double)sd->state.autoloot)/100.);
 		clif_displaymessage(fd, atcmd_output);
-	}else 
+	}else
 		clif_displaymessage(fd, "Autoloot is now off.");
-	return 0;  
-}   
+	return 0;
+}
 
 
 /*==========================================
@@ -6812,98 +6812,14 @@ int atcommand_misceffect(const int fd, struct map_session_data* sd, const char* 
 	return 0;
 }
 
-int atcommand_listmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
+/*==========================================
+ * MAIL SYSTEM
+ *------------------------------------------*/
+int atcommand_mail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
+	nullpo_retr(0,sd);
 #ifndef TXT_ONLY
-	if(!mail_server_enable)
-		return 0;
-	nullpo_retr(-1, sd);
-
-	if(strlen(command)==12) // @listnewmail
-		mail_check(sd,3);
-	else if(strlen(command)==9) // @listmail
-		mail_check(sd,2);
-	else // @checkmail
-		mail_check(sd,1);
-#endif
-	return 0;
-}
-
-int atcommand_readmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-#ifndef TXT_ONLY
-	int index;
-	if(!mail_server_enable)
-		return 0;
-
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message) {
-		clif_displaymessage(sd->fd,"You must specify a message number.");
-		return 0;
-	}
-
-	index = atoi(message);
-	if (index < 1) {
-		clif_displaymessage(sd->fd,"Message number cannot be negative or zero.");
-		return 0;
-	}
-
-	mail_read(sd,index);
-#endif
-	return 0;
-}
-
-int atcommand_deletemail(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-#ifndef TXT_ONLY
-	int index;
-	if(!mail_server_enable)
-		return 0;
-
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message) {
-		clif_displaymessage(sd->fd,"You must specify a message number.");
-		return 0;
-	}
-
-	index = atoi(message);
-	if (index < 1) {
-		clif_displaymessage(sd->fd,"Message number cannot be negative or zero.");
-		return 0;
-	}
-
-	mail_delete(sd,index);
-#endif
-	return 0;
-}
-
-int atcommand_sendmail(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-#ifndef TXT_ONLY
-	char name[NAME_LENGTH],text[80];
-
-	if(!mail_server_enable)
-		return 0;
-
-	nullpo_retr(-1, sd);
-
-	if (!message || !*message) {
-		clif_displaymessage(sd->fd,"You must specify a recipient and a message.");
-		return 0;
-	}
-
-	if ((sscanf(message, "\"%23[^\"]\" %79[^\n]", name, text) < 2) &&
-		(sscanf(message, "%23s %79[^\n]", name, text) < 2)) {
-		clif_displaymessage(sd->fd,"You must specify a recipient and a message.");
-		return 0;
-	}
-
-	if(strlen(command)==17) // @sendprioritymail
-		mail_send(sd,name,text,1);
-	else
-		mail_send(sd,name,text,0);
+	mail_openmail(sd);
 #endif
 	return 0;
 }
@@ -7172,7 +7088,7 @@ int atcommand_makehomun(const int fd, struct map_session_data* sd, const char* c
 		return -1;
 	}
 
-	homunid = atoi(message);	
+	homunid = atoi(message);
 	if( homunid < HM_CLASS_BASE || homunid > HM_CLASS_BASE + MAX_HOMUNCULUS_CLASS - 1 )
 	{
 		clif_displaymessage(fd, "Invalid Homunculus id.");
@@ -7631,7 +7547,7 @@ static int atcommand_mutearea_sub(struct block_list *bl,va_list ap)
 		return 0;
 
 	id = va_arg(ap, int);
-	time = va_arg(ap, int);	
+	time = va_arg(ap, int);
 
 	if (id != bl->id && !pc_isGM(pl_sd)) {
 		pl_sd->status.manner -= time;
@@ -7686,7 +7602,7 @@ int atcommand_me(const int fd, struct map_session_data* sd, const char* command,
 	char tempmes[200];
 	nullpo_retr(-1, sd);
 
-	memset(tempmes, '\0', sizeof(tempmes));    
+	memset(tempmes, '\0', sizeof(tempmes));
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (sd->sc.count && //no "chatting" while muted.
@@ -7736,7 +7652,7 @@ int atcommand_size(const int fd, struct map_session_data* sd, const char* comman
 /*==========================================
  * @monsterignore
  * => Makes monsters ignore you. [Valaris]
- *------------------------------------------*/ 
+ *------------------------------------------*/
 int atcommand_monsterignore(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
@@ -7756,7 +7672,7 @@ int atcommand_monsterignore(const int fd, struct map_session_data* sd, const cha
  * => Gives your character a fake name. [Valaris]
  *------------------------------------------*/
 int atcommand_fakename(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{	
+{
 	char name[NAME_LENGTH];
 	nullpo_retr(-1, sd);
 	
@@ -8062,7 +7978,7 @@ int atcommand_clone(const int fd, struct map_session_data* sd, const char* comma
 		x = sd->bl.x;
 		y = sd->bl.y;
 	}
-		
+
 	if((x = mob_clone_spawn(pl_sd, sd->bl.m, x, y, "", master, 0, flag?1:0, 0)) > 0) {
 		clif_displaymessage(fd, msg_txt(128+flag*2));	// Evil Clone spawned. Clone spawned. Slave clone spawned.
 		return 0;
@@ -8459,13 +8375,7 @@ AtCommandInfo atcommand_info[] = {
 	{ "homshuffle",        60,     atcommand_homshuffle },
 	{ "showmobs",          10,     atcommand_showmobs },
 	{ "feelreset",         10,     atcommand_feelreset },
-	{ "checkmail",          1,     atcommand_listmail },
-	{ "listmail",           1,     atcommand_listmail },
-	{ "listnewmail",        1,     atcommand_listmail },
-	{ "readmail",           1,     atcommand_readmail },
-	{ "deletemail",         1,     atcommand_deletemail },
-	{ "sendmail",           1,     atcommand_sendmail },
-	{ "sendprioritymail",  80,     atcommand_sendmail },
+	{ "mail",               1,     atcommand_mail },
 };
 
 

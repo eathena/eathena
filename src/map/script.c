@@ -38,6 +38,7 @@
 #include "log.h"
 #include "unit.h"
 #include "pet.h"
+#include "mail.h"
 #include "script.h"
 
 #include <stdio.h>
@@ -12663,6 +12664,19 @@ BUILDIN_FUNC(warpportal)
 	return 0;
 }
 
+BUILDIN_FUNC(openmail)
+{
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;
+
+#ifndef TXT_ONLY
+	mail_openmail(sd);
+#endif
+	return 0;
+}
 
 /// Modifies flags of cells in the specified area.
 ///
@@ -13025,6 +13039,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(roclass,"i*"),	//[Skotlex]
 	BUILDIN_DEF(checkvending,"*"),
 	BUILDIN_DEF(checkchatting,"*"),
+	BUILDIN_DEF(openmail,""),
 	BUILDIN_DEF(setcell,"siiiiii"),
 	{NULL,NULL,NULL},
 };
