@@ -1,5 +1,14 @@
 Date	Added
 
+2008/03/05
+	* Merged new, client-friendly format strings for @me and @main (r12293)
+	* Merged msg_athena.conf corrections (r11245, r11325, r11627)
+	* Removed some redundant message displaying options (r11520)
+	* Re-added deleted conf setting 'ban_hack_trade' (removed in r11097)
+	* Merged formatting update for configuration files (r10756)
+	* Merged the battle config files cleaning (r10545)
+	* Added packet_conf.txt import file (r10513)
+	* Removed mail db configuration options from inter_athena.conf
 2008/02/16
 	* Removed @whozeny command
 2008/01/30
