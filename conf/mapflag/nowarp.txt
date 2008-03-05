@@ -3,6 +3,7 @@
 //===== By: ==================================================
 //= eAthena Dev Team
 //= v 1.2
+//= 1.3 Added WoE SE maps
 //===== Current Version: =====================================
 
 // Special Quests Places =====
@@ -30,8 +31,26 @@ prtg_cas02	mapflag	nowarp
 prtg_cas03	mapflag	nowarp
 prtg_cas04	mapflag	nowarp
 prtg_cas05	mapflag	nowarp
+schg_cas01	mapflag	nowarp
+schg_cas02	mapflag	nowarp
+schg_cas03	mapflag	nowarp
+schg_cas04	mapflag	nowarp
+schg_cas05	mapflag	nowarp
+arug_cas01	mapflag	nowarp
+arug_cas02	mapflag	nowarp
+arug_cas03	mapflag	nowarp
+arug_cas04	mapflag	nowarp
+arug_cas05	mapflag	nowarp
 n_castle	mapflag	nowarp
 nguild_alde	mapflag	nowarp
 nguild_gef	mapflag	nowarp
 nguild_pay	mapflag	nowarp
 nguild_prt	mapflag	nowarp
+//Aldebaran Turbo Track ======
+turbo_n_1	mapflag	nowarp
+turbo_n_4	mapflag	nowarp
+turbo_n_8	mapflag	nowarp
+turbo_n_16	mapflag	nowarp
+turbo_e_4	mapflag	nowarp
+turbo_e_8	mapflag	nowarp
+turbo_e_16	mapflag	nowarp

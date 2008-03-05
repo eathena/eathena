@@ -2,7 +2,8 @@
 //= Map flags that disable warp portal memory
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.6 added up to Hugel maps. [Lupus]
+//= 1.6a added up to Hugel maps. [Lupus]
+//= 1.6b Added job_knt map. [Samuray22]
 //===== Current Version: =====================================
 
 
@@ -28,6 +29,13 @@ lou_in01	mapflag	nomemo
 lou_in02	mapflag	nomemo
 moc_castle	mapflag	nomemo
 morocc_in	mapflag	nomemo
+mosk_in	mapflag	nomemo
+mosk_ship	mapflag	nomemo
+mosk_fild01	mapflag	nomemo
+mosk_fild02	mapflag	nomemo
+mosk_dun01	mapflag	nomemo
+mosk_dun02	mapflag	nomemo
+mosk_dun03	mapflag	nomemo
 nameless_in	mapflag	nomemo
 niflheim	mapflag	nomemo
 nif_in	mapflag	nomemo
@@ -168,6 +176,7 @@ job_sword1	mapflag	nomemo
 job_thief1	mapflag	nomemo
 job_star	mapflag	nomemo
 // Primary Second Job Class
+job_knt	mapflag	nomemo
 job_prist	mapflag	nomemo
 job_wiz	mapflag	nomemo
 job_hunte	mapflag	nomemo
@@ -426,6 +435,16 @@ nguild_alde	mapflag	nomemo
 nguild_gef	mapflag	nomemo
 nguild_pay	mapflag	nomemo
 nguild_prt	mapflag	nomemo
+schg_cas01	mapflag	nomemo
+schg_cas02	mapflag	nomemo
+schg_cas03	mapflag	nomemo
+schg_cas04	mapflag	nomemo
+schg_cas05	mapflag	nomemo
+arug_cas01	mapflag	nomemo
+arug_cas02	mapflag	nomemo
+arug_cas03	mapflag	nomemo
+arug_cas04	mapflag	nomemo
+arug_cas05	mapflag	nomemo
 //To Protect Novices Guilds from level abusers
 n_castle	mapflag	nomemo
 
@@ -441,6 +460,10 @@ arena_room	mapflag	nomemo
 force_1-1	mapflag	nomemo
 force_1-2	mapflag	nomemo
 force_1-3	mapflag	nomemo
+force_2-1	mapflag	nomemo
+force_3-1	mapflag	nomemo
+force_4-1	mapflag	nomemo
+force_5-1	mapflag	nomemo
 ordeal_1-1	mapflag	nomemo
 ordeal_1-2	mapflag	nomemo
 ordeal_1-3	mapflag	nomemo
@@ -464,7 +487,6 @@ sec_in02	mapflag	nomemo
 //priest_1-1	mapflag	nomemo
 //priest_2-1	mapflag	nomemo
 //priest_3-1	mapflag	nomemo
-prt_are_in	mapflag	nomemo
 prt_are_in	mapflag	nomemo
 prt_are01	mapflag	nomemo
 //wizard_1-1	mapflag	nomemo
@@ -555,3 +577,32 @@ pvp_n_8-3	mapflag	nomemo
 pvp_n_8-4	mapflag	nomemo
 pvp_n_8-5	mapflag	nomemo
 pvp_2vs2	mapflag	nomemo
+
+//Aldebaran Turbo Track
+turbo_room	mapflag	nomemo
+turbo_n_1	mapflag	nomemo
+turbo_n_4	mapflag	nomemo
+turbo_n_8	mapflag	nomemo
+turbo_n_16	mapflag	nomemo
+turbo_e_4	mapflag	nomemo
+turbo_e_8	mapflag	nomemo
+turbo_e_16	mapflag	nomemo
+
+//Battle Fields ==============
+bat_room	mapflag	nomemo
+bat_a01	mapflag	nomemo
+bat_a02	mapflag	nomemo
+bat_b01	mapflag	nomemo
+bat_b02	mapflag	nomemo
+
+//Vision of Okolnir ==========
+que_qsch01	mapflag	nomemo
+que_qsch02	mapflag	nomemo
+que_qsch03	mapflag	nomemo
+que_qsch04	mapflag	nomemo
+que_qsch05	mapflag	nomemo
+que_qaru01	mapflag	nomemo
+que_qaru02	mapflag	nomemo
+que_qaru03	mapflag	nomemo
+que_qaru04	mapflag	nomemo
+que_qaru05	mapflag	nomemo

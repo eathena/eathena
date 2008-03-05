@@ -31,7 +31,6 @@ job_soul	mapflag	nosave	SavePoint
 // Special Quests Places =====
 ama_test	mapflag	nosave	SavePoint
 gef_dun03	mapflag	nosave	SavePoint
-que_bingo	mapflag	nosave	SavePoint
 que_god01	mapflag	nosave	SavePoint
 que_god02	mapflag	nosave	SavePoint
 que_sign01	mapflag	nosave	SavePoint
@@ -41,6 +40,7 @@ que_ng	mapflag	nosave	SavePoint
 gon_test	mapflag	nosave	SavePoint
 kh_kiehl01	mapflag	nosave	SavePoint
 kh_kiehl02	mapflag	nosave	SavePoint
+que_bingo	mapflag	nosave	SavePoint
 
 // GvG Arenas ==========================
 guild_vs1	mapflag	nosave	SavePoint
@@ -59,6 +59,9 @@ force_2-3	mapflag	nosave	SavePoint
 force_3-1	mapflag	nosave	SavePoint
 force_3-2	mapflag	nosave	SavePoint
 force_3-3	mapflag	nosave	SavePoint
+force_4-1	mapflag	nosave	SavePoint
+force_5-1	mapflag	nosave	SavePoint
+prt_are_in	mapflag	nosave	SavePoint
 
 // Juperos =============================
 jupe_area1	mapflag	nosave	SavePoint
@@ -173,6 +176,16 @@ prtg_cas02	mapflag	nosave	SavePoint
 prtg_cas03	mapflag	nosave	SavePoint
 prtg_cas04	mapflag	nosave	SavePoint
 prtg_cas05	mapflag	nosave	SavePoint
+schg_cas01	mapflag	nosave	SavePoint
+schg_cas02	mapflag	nosave	SavePoint
+schg_cas03	mapflag	nosave	SavePoint
+schg_cas04	mapflag	nosave	SavePoint
+schg_cas05	mapflag	nosave	SavePoint
+arug_cas01	mapflag	nosave	SavePoint
+arug_cas02	mapflag	nosave	SavePoint
+arug_cas03	mapflag	nosave	SavePoint
+arug_cas04	mapflag	nosave	SavePoint
+arug_cas05	mapflag	nosave	SavePoint
 nguild_alde	mapflag	nosave	SavePoint
 nguild_gef	mapflag	nosave	SavePoint
 nguild_pay	mapflag	nosave	SavePoint
@@ -187,3 +200,31 @@ gld_dun04	mapflag	nosave	SavePoint
 //Normal Maps =================================
 yggdrasil01	mapflag	nosave	SavePoint
 thana_boss	mapflag	nosave	SavePoint
+
+//Aldebaran Turbo Track
+turbo_n_1	mapflag	nosave	SavePoint
+turbo_n_4	mapflag	nosave	SavePoint
+turbo_n_8	mapflag	nosave	SavePoint
+turbo_n_16	mapflag	nosave	SavePoint
+turbo_e_4	mapflag	nosave	SavePoint
+turbo_e_8	mapflag	nosave	SavePoint
+turbo_e_16	mapflag	nosave	SavePoint
+
+//Battle Fields ===============================
+bat_room	mapflag	nosave	SavePoint
+bat_a01	mapflag	nosave	SavePoint
+bat_a02	mapflag	nosave	SavePoint
+bat_b01	mapflag	nosave	SavePoint
+bat_b02	mapflag	nosave	SavePoint
+
+//Vision of Okolnir ===========================
+que_qsch01	mapflag	nosave	SavePoint
+que_qsch02	mapflag	nosave	SavePoint
+que_qsch03	mapflag	nosave	SavePoint
+que_qsch04	mapflag	nosave	SavePoint
+que_qsch05	mapflag	nosave	SavePoint
+que_qaru01	mapflag	nosave	SavePoint
+que_qaru02	mapflag	nosave	SavePoint
+que_qaru03	mapflag	nosave	SavePoint
+que_qaru04	mapflag	nosave	SavePoint
+que_qaru05	mapflag	nosave	SavePoint

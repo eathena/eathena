@@ -2,7 +2,7 @@
 //= Map flags that disable use of fly wings
 //===== By: ==================================================
 //= eAthena Dev Team
-//= 1.6 [Lupus]
+//= 1.6a [Lupus]
 //===== Notes: ===============================================
 //= For disabling Butterfly wings use noreturn
 //===== Current Version: =====================================
@@ -31,6 +31,7 @@ lou_in01	mapflag	noteleport
 lou_in02	mapflag	noteleport
 moc_castle	mapflag	noteleport
 morocc_in	mapflag	noteleport
+mosk_in	mapflag	noteleport
 new_zone01	mapflag	noteleport
 new_zone02	mapflag	noteleport
 new_zone03	mapflag	noteleport
@@ -101,6 +102,7 @@ thor_camp	mapflag	noteleport
 job_sword1	mapflag	noteleport
 job_thief1	mapflag	noteleport
 // 2-1 -----------------------
+job_knt	mapflag	noteleport
 job_prist	mapflag	noteleport
 job_wiz	mapflag	noteleport
 job_hunte	mapflag	noteleport
@@ -155,6 +157,16 @@ prtg_cas02	mapflag	noteleport
 prtg_cas03	mapflag	noteleport
 prtg_cas04	mapflag	noteleport
 prtg_cas05	mapflag	noteleport
+schg_cas01	mapflag	noteleport
+schg_cas02	mapflag	noteleport
+schg_cas03	mapflag	noteleport
+schg_cas04	mapflag	noteleport
+schg_cas05	mapflag	noteleport
+arug_cas01	mapflag	noteleport
+arug_cas02	mapflag	noteleport
+arug_cas03	mapflag	noteleport
+arug_cas04	mapflag	noteleport
+arug_cas05	mapflag	noteleport
 nguild_alde	mapflag	noteleport
 nguild_gef	mapflag	noteleport
 nguild_pay	mapflag	noteleport
@@ -169,6 +181,14 @@ guild_vs5	mapflag	noteleport
 
 // Arenas =====================>\\
 arena_room	mapflag	noteleport
+force_1-1	mapflag	noteleport
+force_2-1	mapflag	noteleport
+force_3-1	mapflag	noteleport
+force_4-1	mapflag	noteleport
+force_5-1	mapflag	noteleport
+force_1-2	mapflag	noteleport
+force_1-3	mapflag	noteleport
+prt_are_in	mapflag	noteleport
 sec_in01	mapflag	noteleport
 sec_in02	mapflag	noteleport
 
@@ -256,3 +276,32 @@ pvp_n_8-3	mapflag	noteleport
 pvp_n_8-4	mapflag	noteleport
 pvp_n_8-5	mapflag	noteleport
 pvp_2vs2	mapflag	noteleport
+
+//Aldebaran Turbo Track ==========
+turbo_room	mapflag	noteleport
+turbo_n_1	mapflag	noteleport
+turbo_n_4	mapflag	noteleport
+turbo_n_8	mapflag	noteleport
+turbo_n_16	mapflag	noteleport
+turbo_e_4	mapflag	noteleport
+turbo_e_8	mapflag	noteleport
+turbo_e_16	mapflag	noteleport
+
+//Battle Fields ==================
+bat_room	mapflag	noteleport
+bat_a01	mapflag	noteleport
+bat_a02	mapflag	noteleport
+bat_b01	mapflag	noteleport
+bat_b02	mapflag	noteleport
+
+//Vision of Okolnir ==============
+que_qsch01	mapflag	noteleport
+que_qsch02	mapflag	noteleport
+que_qsch03	mapflag	noteleport
+que_qsch04	mapflag	noteleport
+que_qsch05	mapflag	noteleport
+que_qaru01	mapflag	noteleport
+que_qaru02	mapflag	noteleport
+que_qaru03	mapflag	noteleport
+que_qaru04	mapflag	noteleport
+que_qaru05	mapflag	noteleport

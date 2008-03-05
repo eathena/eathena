@@ -1,6 +1,11 @@
 Date	Added
 
 2008/03/05
+	* Merged fixes to job_knt mapflags (r12017 and r12066)
+	* Merged WoE:SE, Battlefields and Quest Dungeons mapflags (r12273)
+	* Merged Izlude Battle Arena mapflags (r11622)
+	* Merged Aldebaran Turbo Track mapflags (r11546 and r11758)
+	* Merged Moscovia mapflags (r10719)
 	* Merged new, client-friendly format strings for @me and @main (r12293)
 	* Merged msg_athena.conf corrections (r11245, r11325, r11627)
 	* Removed some redundant message displaying options (r11520)
