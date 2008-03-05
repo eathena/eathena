@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/03/05
+	* Added City Teleport Scroll function to cashitem scripts [ultramage]
 2008/03/01
 	* Rev 12276 Resolves bugreport:1025, bugreport:1062, [L0ne_W0lf]
 	  and bugreport:1077.
