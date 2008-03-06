@@ -4,6 +4,10 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2008/03/06
+	* Merged adjustments to the cell system (r12247, r12260, r12293)
+	- Icewall now uses basic cell type 5 (nonwalkable, shootable)
+	- as a consequence, it is now possible to warp to a nonwalkable cell
 2008/03/05
 	* Merged the improved memory manager system (r12198, r12200, r12218)
 	- added timestamps to memory leak logging (r11760)

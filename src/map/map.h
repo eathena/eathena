@@ -1099,9 +1099,7 @@ typedef enum {
 	CELL_NPC,
 	CELL_BASILICA,
 	CELL_LANDPROTECTOR,
-	CELL_ICEWALL,
 	CELL_NOVENDING,
-	CELL_NODAMAGE,
 	CELL_NOCHAT,
 } cell_t;
 
@@ -1122,9 +1120,7 @@ typedef enum {
 	CELL_CHKNPC,
 	CELL_CHKBASILICA,
 	CELL_CHKLANDPROTECTOR,
-	CELL_CHKICEWALL,
 	CELL_CHKNOVENDING,
-	CELL_CHKNODAMAGE,
 	CELL_CHKNOCHAT,
 } cell_chk;
 
@@ -1139,11 +1135,9 @@ struct mapcell
 	// dynamic flags
 	unsigned char
 		npc : 1,
-		landprotector : 1,
 		basilica : 1,
-		icewall : 1,
+		landprotector : 1,
 		novending : 1,
-		nodamage : 1,
 		nochat : 1;
 
 #ifdef CELL_NOSTACK

@@ -1,7 +1,8 @@
 2008/03/05
+	* Adjusted const.txt's cell type numbers according to recent updates
 	* Applied fixes to mob db
 	- r11676, r11977, r11990, r12138
-	* Merged lots of missing itemdb updates
+	* Merged lots of missing itemdb updates [ultramage]
 	- r11707, r11893, r12088, r12172, r12183, r12222, r12242,
 	  r12284, r12291, r12292, r12295 (and perhaps some more)
 2008/02/16
