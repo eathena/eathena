@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/03/06
+	* Fixed a crash when a homun kills a mvp and the char that did
+	  the most damage is unable to carry the mvp reward (bugreport:1114)
 	* Merged adjustments to the cell system (r12247, r12260, r12293)
 	- Icewall now uses basic cell type 5 (nonwalkable, shootable)
 	- as a consequence, it is now possible to warp to a nonwalkable cell
