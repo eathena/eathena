@@ -1,3 +1,5 @@
+2008/03/09
+	* Rev. 12334 Disabled Snap in Turbo track. (Seems obvious, no?) [L0ne_W0lf]
 2008/03/05
 	* Adjusted const.txt's cell type numbers according to recent updates
 	* Applied fixes to mob db
