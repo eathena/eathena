@@ -5,6 +5,18 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/03/11
+	* Merged r12293, r12299, r12300 and r12310
+	- Updated firepillar so it cannot be placed on top of others
+	- Updated the firepillar code so it behaves like the other traps
+	- Changed the default format for @me and @main to avoid client crashes
+	- Additional status changes now only trigger if the attack did damage
+	  (prevents getting bash-stunned through kyrie/safetywall, for example)
+	- Fixed no-equip restrictions not applying to cards properly
+	- Fixed the session_data de-association in chrif_auth_delete
+	- Added Firepillar's 'target cannot move for 0.2 sec x hit' property
+	- Corrected Earthquake so it behaves as explained in the dev topics
+	- Added code to unequip restricted compounded cards when changing maps
+	- Modified mapflag loading code to handle whitespace problems better
 	* Merged various fixes from trunk that accumulated over time:
 	- corrected uninitialized login_fd/char_fd in the char servers (r12214)
 	- limited base_atk calculations to avoid overflows

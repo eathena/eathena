@@ -1,5 +1,7 @@
 Date	Added
 
+2008/03/11
+	* Changed the default format for @me and @main to avoid client crashes
 2008/03/05
 	* Merged fixes to job_knt mapflags (r12017 and r12066)
 	* Merged WoE:SE, Battlefields and Quest Dungeons mapflags (r12273)

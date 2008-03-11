@@ -2489,6 +2489,8 @@ static const char* npc_parse_mapflag(char* w1, char* w2, char* w3, char* w4, con
 		map[m].flag.partylock=state;
 	else if (!strcmpi(w3,"guildlock"))
 		map[m].flag.guildlock=state;
+	else
+		ShowError("npc_parse_mapflag: unrecognized mapflag '%s' (file '%s', line '%d').\n", w3, filepath, strline(buffer,start-buffer));
 
 	return strchr(start,'\n');// continue
 }
@@ -2616,7 +2618,7 @@ void npc_parsesrcfile(const char* filepath)
 		}
 		else if( strcmpi(w2,"mapflag") == 0 && count >= 3 )
 		{
-			p = npc_parse_mapflag(w1, w2, w3, w4, p, buffer, filepath);
+			p = npc_parse_mapflag(w1, w2, trim(w3), trim(w4), p, buffer, filepath);
 		}
 		else
 		{

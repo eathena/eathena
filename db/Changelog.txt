@@ -1,4 +1,6 @@
 2008/03/11
+	* Updated firepillar so it cannot be placed on top of others
+	* Added Firepillar's 'target cannot move for 0.2 sec x hit' property
 	* Added barehanded weapons to Full Adrenaline Rush's list [ultramage]
 2008/03/09
 	* Rev. 12334 Disabled Snap in Turbo track. (Seems obvious, no?) [L0ne_W0lf]
