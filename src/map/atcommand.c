@@ -3537,7 +3537,7 @@ int atcommand_doommap(const int fd, struct map_session_data* sd, const char* com
  *------------------------------------------*/
 static void atcommand_raise_sub(struct map_session_data* sd)
 {
-	if (!sd->state.auth || !status_isdead(&sd->bl))
+	if (!status_isdead(&sd->bl))
 		return;
 
 	if(!status_revive(&sd->bl, 100, 100))

@@ -4,6 +4,12 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2008/03/11
+	* Merged improvements to the auth system
+	- made autotraders be kicked instead of reporting double login (r12218)
+	- players in auth/logout process are now stored separately (r12223)
+	- removed lots of now unneccessary management variables and code
+	- corrected display problems with party invite/leave (r12328, r12332)
 2008/03/06
 	* Fixed a crash when a homun kills a mvp and the char that did
 	  the most damage is unable to carry the mvp reward (bugreport:1114)

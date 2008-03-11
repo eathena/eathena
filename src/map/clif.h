@@ -281,7 +281,7 @@ int clif_party_created(struct map_session_data *sd,int result);
 int clif_party_member_info(struct party_data *p, struct map_session_data *sd);
 int clif_party_info(struct party_data *p, struct map_session_data *sd);
 int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd);
-int clif_party_inviteack(struct map_session_data* sd, const char* nick, int flag);
+void clif_party_inviteack(struct map_session_data* sd, const char* nick, int flag);
 int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag);
 int clif_party_leaved(struct party_data* p, struct map_session_data* sd, int account_id, const char* name, int flag);
 int clif_party_message(struct party_data* p, int account_id, const char* mes, int len);
@@ -295,6 +295,7 @@ int clif_hpmeter(struct map_session_data *sd);
 // guild
 int clif_guild_created(struct map_session_data *sd,int flag);
 int clif_guild_belonginfo(struct map_session_data *sd,struct guild *g);
+int clif_guild_masterormember(struct map_session_data *sd);
 int clif_guild_basicinfo(struct map_session_data *sd);
 int clif_guild_allianceinfo(struct map_session_data *sd);
 int clif_guild_memberlist(struct map_session_data *sd);
