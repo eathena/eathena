@@ -583,17 +583,6 @@ int realloc_writefifo(int fd, size_t addition)
 	else // no change
 		return 0;
 
-	// crash prevention for bugs that cause the send queue to fill up in an infinite loop
-	if( newsize > 5*1024*1024 ) // 5 MB is way beyond reasonable
-	{
-		ShowError("realloc_writefifo: session #%d's send buffer was overloaded! Disconnecting...\n", fd);
-		// drop all data (but the space will still be available)
-		session[fd]->wdata_size = 0;
-		// request disconnect
-		set_eof(fd);
-		return 0;
-	}
-
 	RECREATE(session[fd]->wdata, unsigned char, newsize);
 	session[fd]->max_wdata  = newsize;
 
@@ -1084,10 +1073,9 @@ void socket_final(void)
 		aFree(access_deny);
 #endif
 
-	for (i = 1; i < fd_max; i++) {
+	for( i = 1; i < fd_max; i++ )
 		if(session[i])
-			delete_session(i);
-	}
+			do_close(i);
 
 	// session[0] のダミーデータを削除
 	aFree(session[0]->rdata);

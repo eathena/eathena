@@ -291,7 +291,7 @@ void initChangeTables(void)
 	add_sc(NPC_INVISIBLE, SC_CLOAKING);
 	set_sc(LK_AURABLADE, SC_AURABLADE, SI_AURABLADE, SCB_NONE);
 	set_sc(LK_PARRYING, SC_PARRYING, SI_PARRYING, SCB_NONE);
-	set_sc(LK_CONCENTRATION, SC_CONCENTRATION, SI_CONCENTRATION, SCB_BATK|SCB_WATK|SCB_HIT|SCB_DEF|SCB_DEF2|SCB_DSPD);
+	set_sc(LK_CONCENTRATION, SC_CONCENTRATION, SI_CONCENTRATION, SCB_BATK|SCB_WATK|SCB_HIT|SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_DSPD);
 	set_sc(LK_TENSIONRELAX, SC_TENSIONRELAX, SI_TENSIONRELAX, SCB_REGEN);
 	set_sc(LK_BERSERK, SC_BERSERK, SI_BERSERK, SCB_DEF|SCB_DEF2|SCB_MDEF|SCB_MDEF2|SCB_FLEE|SCB_SPEED|SCB_ASPD|SCB_MAXHP|SCB_REGEN);
 	set_sc(HP_ASSUMPTIO, SC_ASSUMPTIO, SI_ASSUMPTIO, SCB_NONE);
@@ -951,6 +951,17 @@ int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per
 	}
 	return 1;
 }
+
+//calculates the base/max ratio as a value between 0->100 (percent), using
+//different approaches to avoid overflows.
+//NOTE: The -1 case (0 max hp) should never trigger!
+char status_calc_life(unsigned int base, unsigned int max)
+{
+	if (!max) return -1;
+	if (max < 10000) return 100*base/max;
+	return base/(max/100);
+}
+
 /*==========================================
  * Checks whether the src can use the skill on the target,
  * taking into account status/option of both source/target. [Skotlex]
@@ -1226,7 +1237,7 @@ int status_base_amotion_pc(struct map_session_data* sd, struct status_data* stat
  	return amotion;
 }
 
-static int status_base_atk(struct block_list *bl, struct status_data *status)
+static unsigned short status_base_atk(struct block_list *bl, struct status_data *status)
 {
 	int flag = 0, str, dex, dstr;
 
@@ -1259,7 +1270,7 @@ static int status_base_atk(struct block_list *bl, struct status_data *status)
 	str += dstr*dstr;
 	if (bl->type == BL_PC)
 		str+= dex/5 + status->luk/5;
-	return str;
+	return cap_value(str, 0, USHRT_MAX);
 }
 
 #define status_base_matk_max(status) (status->int_+(status->int_/5)*(status->int_/5))
@@ -1293,7 +1304,11 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 	else
 		status->flee2 = 0;
 
-	status->batk += status_base_atk(bl, status);
+	if (status->batk) {
+		int temp = status->batk + status_base_atk(bl, status);
+		status->batk = cap_value(temp, 0, USHRT_MAX);
+	} else
+		status->batk = status_base_atk(bl, status);
 	if (status->cri)
 	switch (bl->type) {
 	case BL_MOB:
@@ -3002,7 +3017,10 @@ void status_calc_bl(struct block_list *bl, unsigned long flag)
 		status->batk = status_base_atk(bl,status);
 		temp = b_status->batk - status_base_atk(bl,b_status);
 		if (temp)
-			status->batk += temp;
+		{
+			temp += status->batk;
+			status->batk = cap_value(temp, 0, USHRT_MAX);
+		}
 		status->batk = status_calc_batk(bl, sc, status->batk);
 	}
 
@@ -3672,6 +3690,8 @@ static signed char status_calc_mdef(struct block_list *bl, struct status_change 
 		mdef += 25*mdef/100;
 	if(sc->data[SC_ENDURE] && sc->data[SC_ENDURE]->val4 == 0)
 		mdef += sc->data[SC_ENDURE]->val1;
+	if(sc->data[SC_CONCENTRATION])
+		mdef += 1; //Skill info says it adds a fixed 1 Mdef point.
 	if(sc->data[SC_INCMDEFRATE])
 		mdef += mdef * sc->data[SC_INCMDEFRATE]->val1/100;
 
@@ -5165,11 +5185,9 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 				clif_status_change(bl,SI_MOONLIT,1);
 			val1|= (val3<<16);
 			val3 = 0; //Tick duration/Speed penalty.
-			if (sd) { //Store walk speed change in lower part of val3
+			//Store walk speed change in lower part of val3
+			if (sd && !(sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER))
 				val3 = 500-40*pc_checkskill(sd,(sd->status.sex?BA_MUSICALLESSON:DC_DANCINGLESSON));
-				if (sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_BARDDANCER)
-				val3 -= 40; //TODO: Figure out real bonus rate.
-			}
 			val3|= ((tick/1000)<<16)&0xFFFF0000; //Store tick in upper part of val3
 			tick = 1000;
 			break;

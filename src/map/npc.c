@@ -110,6 +110,7 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 	//aFree(name);
 	return 0;
 }
+
 int npc_enable(const char* name, int flag)
 {
 	struct npc_data* nd = strdb_get(npcname_db, name);
@@ -1585,9 +1586,7 @@ static const char* npc_parse_shop(char* w1, char* w2, char* w3, char* w4, const 
 		}
 		id = itemdb_search(nameid);
 		if( value < 0 )
-			value = id->value_buy;
-		if( value*0.75 < id->value_sell*1.24 )
-		{// Expoit possible: you can buy and sell back with profit
+		{// Exploit possible: you can buy and sell back with profit
 			ShowWarning("npc_parse_shop: Item %s [%d] discounted buying price (%d->%d) is less than overcharged selling price (%d->%d) at file '%s', line '%d'.\n",
 				id->name, nameid, value, (int)(value*0.75), id->value_sell, (int)(id->value_sell*1.24), filepath, strline(buffer,start-buffer));
 		}

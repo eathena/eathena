@@ -6909,8 +6909,8 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 		case UNT_APPLEIDUN: //Apple of Idun [Skotlex]
 		{
 			int heal;
-			if (sg->src_id == bl->id)
-				break;
+			if( sg->src_id == bl->id && !(tsc && tsc->data[SC_SPIRIT] && tsc->data[SC_SPIRIT]->val2 == SL_BARDDANCER) )
+				break; // affects self only when soullinked
 			heal = sg->val2;
 			if(tsc && tsc->data[SC_CRITICALWOUND])
 				heal -= heal * tsc->data[SC_CRITICALWOUND]->val2 / 100;
@@ -9821,7 +9821,8 @@ int skill_unit_move_unit_group (struct skill_unit_group *group, int m, int dx, i
 	struct skill_unit *unit1;
 	struct skill_unit *unit2;
 
-	nullpo_retr(0, group);
+	if (group == NULL)
+		return 0;
 	if (group->unit_count<=0)
 		return 0;
 	if (group->unit==NULL)

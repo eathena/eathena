@@ -169,8 +169,7 @@ bool chrif_auth_finished(TBL_PC* sd)
 	struct auth_node *node= chrif_search(sd->status.account_id);
 	if (node && node->sd == sd && node->state == ST_LOGIN) {
 		node->sd = NULL;
-		chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
-		return true;
+		return chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
 	}
 	return false;
 }
@@ -242,7 +241,8 @@ int chrif_save(struct map_session_data *sd, int flag)
 	{
 		//FIXME: SC are lost if there's no connection at save-time because of the way its related data is cleared immediately after this function. [Skotlex]
 		if (chrif_isconnected()) chrif_save_scdata(sd);
-		chrif_auth_logout(sd, flag==1?ST_LOGOUT:ST_MAPCHANGE);
+		if (!chrif_auth_logout(sd, flag==1?ST_LOGOUT:ST_MAPCHANGE))
+			ShowError("chrif_save: Failed to set up player %d:%d for proper quitting!\n", sd->status.account_id, sd->status.char_id);
 	}
 
 	if(!chrif_isconnected())
@@ -515,11 +515,12 @@ void chrif_authreq(struct map_session_data *sd)
 
 	if(node->state == ST_LOGIN &&
 		node->char_dat &&
-		node->account_id== sd->status.account_id &&
+		node->account_id == sd->status.account_id &&
+		node->char_id == sd->status.char_id &&
 		node->login_id1 == sd->login_id1)
 	{	//auth ok
 		if (!pc_authok(sd, node->login_id2, node->connect_until_time, node->char_dat))
-			chrif_auth_delete(sd->status.account_id, sd->status.char_id, ST_LOGIN);
+			chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
 		else {
 			//char_dat no longer needed, but player auth is not completed yet.
 			aFree(node->char_dat);
@@ -542,6 +543,14 @@ void chrif_authok(int fd)
 	struct mmo_charstatus *status = (struct mmo_charstatus *)RFIFOP(fd, 20);
 	int char_id = status->char_id;
 	TBL_PC* sd;
+
+	//Check if both servers agree on the struct's size
+	if( RFIFOW(fd,2) - 20 != sizeof(struct mmo_charstatus) )
+	{
+		ShowError("chrif_authok: Data size mismatch! %d != %d\n", RFIFOW(fd,2) - 20, sizeof(struct mmo_charstatus));
+		return;
+	}
+
 	//Check if we don't already have player data in our server
 	//Causes problems if the currently connected player tries to quit or this data belongs to an already connected player which is trying to re-auth.
 	if ((sd = map_id2sd(account_id)) != NULL)
@@ -587,16 +596,18 @@ void chrif_authok(int fd)
 int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)
 {
 	struct auth_node *node=(struct auth_node*)data;
-
+	const char* states[] = { "Login", "Logout", "Map change" };
 	if(DIFF_TICK(gettick(),node->node_created)>60000) {
 		switch (node->state)
 		{
 		case ST_LOGOUT:
 			//Re-save attempt (->sd should never be null here).
+			node->node_created = gettick(); //Refresh tick (avoid char-server load if connection is really bad)
 			chrif_save(node->sd, 1);
 			break;
 		default:
 			//Clear data. any connected players should have timed out by now.
+			ShowInfo("auth_db: Node (state %s) timed out for %d:%d\n", states[node->state], node->account_id, node->char_id);
 			chrif_auth_delete(node->account_id, node->char_id, node->state);
 			break;
 		}

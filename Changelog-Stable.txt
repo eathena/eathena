@@ -5,6 +5,23 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/03/11
+	* Merged various fixes from trunk that accumulated over time:
+	- corrected uninitialized login_fd/char_fd in the char servers (r12214)
+	- limited base_atk calculations to avoid overflows
+	- fixed an exploit with delayed consumption items (r12214, r12216)
+	- added +1 MDEF bonus from LK's Concentration (r12216)
+	- added status_calc_life() to do safe hp/maxhp % calculation (r12225)
+	- fixed logarithmic drops turning 0% drop rates into 100% (r12225)
+	- correct Bard/Dancer spirit walk-speed bonus (r12225)
+	- removed the problematic max. send buffer size limit (r12232)
+	- increased the max amount of autocast skills from 5 to 10 (r12232)
+	- fixed Apple of Idun not checking for bard soul link (r12248)
+	- fixed Advanced Adrenaline Rush not working barehanded (r12248)
+	- patched an unresolved case regarding bard/dancer knockback (r12249)
+	- fixed @reloadmobdb producing memory leaks in pet db (r12250)
+	- graceful socket shutdown when exiting (r12251)
+	- fixed 'cleararray' not able to erase array entry 127 (r12253)
+	- added check to chrif_authok() to detect data size mismatches (r12277)
 	* Merged improvements to the auth system
 	- made autotraders be kicked instead of reporting double login (r12218)
 	- players in auth/logout process are now stored separately (r12223)
