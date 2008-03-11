@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/03/11
+	* Fixed a donpcevent call in Cooking Quest. bugreport:1161. [Paradox924X]
 2008/03/05
 	* Added City Teleport Scroll function to cashitem scripts [ultramage]
 2008/03/01

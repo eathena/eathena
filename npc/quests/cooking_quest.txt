@@ -149,7 +149,7 @@ prt_castle,43,30,3	script	Charles Orleans#cook	878,{
 			break;
 		case 2:
 			cutin "nyuang_1",2;
-			donpcevent "Child with Cat#cook:OnWhat";
+			donpcevent "Child with Cat#cook::OnWhat";
 			mes "[Child with Cat]";
 			mes "...Nya?";
 			mes "...Meow?";
