@@ -11267,6 +11267,13 @@ void clif_Mail_refreshinbox(struct map_session_data *sd)
 		j++;
 	}
 	WFIFOSET(fd,len);
+
+	if( md->full )
+	{
+		char output[100];
+		sprintf(output, "Inbox is full (Max %d). Delete some mails.", MAIL_MAX_INBOX);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
 }
 
 /*------------------------------------------
@@ -11450,7 +11457,7 @@ void clif_parse_Mail_return(int fd, struct map_session_data *sd)
 		return;
 
 	ARR_FIND(0, MAIL_MAX_INBOX, i, sd->mail.inbox.msg[i].id == mail_id);
-	if (i < MAIL_MAX_INBOX)
+	if( i < MAIL_MAX_INBOX && sd->mail.inbox.msg[i].send_id != 0 )
 		intif_Mail_return(sd->status.char_id, mail_id);
 	else
 		clif_Mail_return(sd->fd, mail_id, 1);
@@ -11469,8 +11476,6 @@ void clif_parse_Mail_setattach(int fd, struct map_session_data *sd)
 		return;
 
 	flag = mail_setitem(sd, idx, amount);
-
-	if (idx > 0)
 		clif_Mail_setattachment(fd,idx,flag);
 }
 
@@ -11510,7 +11515,7 @@ void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 	if( DIFF_TICK(sd->cansendmail_tick, gettick()) > 0 )
 	{
 		clif_displaymessage(sd->fd,"Cannot send mails too fast!!.");
-		clif_Mail_send(fd, 1); // fail
+		clif_Mail_send(fd, true); // fail
 		return;
 	}
 
@@ -11521,7 +11526,7 @@ void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 
 	if( !mail_setattachment(sd, &msg) )
 	{ // Invalid Append condition
-		clif_Mail_send(sd->fd, 1); // fail
+		clif_Mail_send(sd->fd, true); // fail
 		mail_removeitem(sd,0);
 		mail_removezeny(sd,0);
 		return;

@@ -1644,7 +1644,11 @@ static void intif_parse_Mail_send(int fd)
 		if( fail )
 			mail_deliveryfail(sd, &msg);
 		else
+		{
 			clif_Mail_send(sd->fd, false);
+			if( save_settings&16 )
+				chrif_save(sd, 0);
+		}
 	}
 
 	if( fail )
@@ -1741,8 +1745,8 @@ int intif_parse(int fd)
 	case 0x3841:	intif_parse_GuildCastleDataSave(fd); break;
 	case 0x3842:	intif_parse_GuildCastleAllDataLoad(fd); break;
 	case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
-// Mail System
 #ifndef TXT_ONLY
+// Mail System
 	case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
 	case 0x3849:	intif_parse_Mail_new(fd); break;
 	case 0x384a:	intif_parse_Mail_getattach(fd); break;
@@ -1750,7 +1754,6 @@ int intif_parse(int fd)
 	case 0x384c:	intif_parse_Mail_return(fd); break;
 	case 0x384d:	intif_parse_Mail_send(fd); break;
 #endif
-// End of Mail System
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;
