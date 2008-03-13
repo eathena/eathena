@@ -1,6 +1,7 @@
 Date		Added
 ======
 2008/03/13
+	* Updated WoE Check in Shift Assassin Script. (bugreport: 1059) [Paradox924X]
 	* Merged Drunkard#payon fix from trunk. [Paradox924X]
 2008/03/11
 	* Fixed a donpcevent call in Cooking Quest. bugreport:1161. [Paradox924X]
