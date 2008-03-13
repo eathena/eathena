@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/03/13
+	* Merged Drunkard#payon fix from trunk. [Paradox924X]
 2008/03/11
 	* Fixed a donpcevent call in Cooking Quest. bugreport:1161. [Paradox924X]
 2008/03/05
