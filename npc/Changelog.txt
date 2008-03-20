@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/03/20
+	* Rev. 12406 Merged Juperos quest changes from trunk. [L0ne_W0lf]
 2008/03/13
 	* Updated WoE Check in Shift Assassin Script. (bugreport: 1059) [Paradox924X]
 	* Merged Drunkard#payon fix from trunk. [Paradox924X]
