@@ -5,6 +5,9 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/03/21
+	* Merged fixes to land skill code (r12311 and r12331)
+	- added flag UF_PATHCHECK from jAthena, for wall-ignoring land skills
+	- allowed casting of ground-targeted skills over 'gaps'
 	* Merged script function 'query_logsql' (r11892)
 	* Merged support for the 'view player equip' feature (r12245)
 2008/03/11

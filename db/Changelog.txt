@@ -1,3 +1,5 @@
+2008/03/21
+	* Updated the land skill flags in skill_unit_db.txt
 2008/03/11
 	* Updated firepillar so it cannot be placed on top of others
 	* Added Firepillar's 'target cannot move for 0.2 sec x hit' property
