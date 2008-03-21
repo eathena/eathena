@@ -547,6 +547,7 @@ struct map_session_data {
 		unsigned doridori : 1;
 		unsigned ignoreAll : 1;
 		unsigned short autoloot;
+		bool changemap;
 		struct guild *gmaster_flag;
 	} state;
 	struct {

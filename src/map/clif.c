@@ -7949,7 +7949,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		//Login Event
 		npc_script_event(sd, NPCE_LOGIN);
 	} else {
-		//For some reason the client "loses" these on map-change.
+		//For some reason the client "loses" these on warp/map-change.
 		clif_updatestatus(sd,SP_STR);
 		clif_updatestatus(sd,SP_AGI);
 		clif_updatestatus(sd,SP_VIT);
@@ -7957,27 +7957,34 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		clif_updatestatus(sd,SP_DEX);
 		clif_updatestatus(sd,SP_LUK);
 
+		// abort currently running script
 		sd->state.using_fake_npc = 0;
-
-		//New 'night' effect by dynamix [Skotlex]
-		if (night_flag && map[sd->bl.m].flag.nightenabled)
-		{	//Display night.
-			if (!sd->state.night) {
-				sd->state.night = 1;
-				clif_status_load(&sd->bl, SI_NIGHT, 1);
-			}
-		} else if (sd->state.night) { //Clear night display.
-			sd->state.night = 0;
-			clif_status_load(&sd->bl, SI_NIGHT, 0);
-		}
 
 		if(sd->npc_id)
 			npc_event_dequeue(sd);
+	}
 
+	if( sd->state.changemap )
+	{// restore information that gets lost on map-change
+		if (night_flag && map[sd->bl.m].flag.nightenabled)
+		{	//Display night.
+			if( !sd->state.night )
+			{
+				sd->state.night = 1;
+				clif_status_load(&sd->bl, SI_NIGHT, 1);
+			}
+		}
+		else if( sd->state.night )
+		{ //Clear night display.
+			sd->state.night = 0;
+			clif_status_load(&sd->bl, SI_NIGHT, 0);
+		}
+		sd->state.changemap = false;
+	}
+	
 #ifndef TXT_ONLY
 		mail_clear(sd);
 #endif
-	}
 
 	if(map[sd->bl.m].flag.loadevent) // Lance
 		npc_script_event(sd, NPCE_LOADMAP);

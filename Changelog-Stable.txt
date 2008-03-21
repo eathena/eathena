@@ -5,6 +5,8 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/03/21
+	* Merged the updates to minimize the packets sent when warping
+	  (from revisions r12349, r12351, r12362, r12389, r12391)
 	* Merged fixes to land skill code (r12311 and r12331)
 	- added flag UF_PATHCHECK from jAthena, for wall-ignoring land skills
 	- allowed casting of ground-targeted skills over 'gaps'
