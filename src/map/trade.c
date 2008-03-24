@@ -101,8 +101,8 @@ void trade_tradeack(struct map_session_data *sd, int type)
 		return; //Already trading or no partner set.
 	
 	if ((tsd = map_id2sd(sd->trade_partner)) == NULL) {
-		sd->trade_partner=0;
 		clif_tradestart(sd, 1); // character does not exist
+		sd->trade_partner=0;
 		return;
 	}
 
@@ -113,12 +113,12 @@ void trade_tradeack(struct map_session_data *sd, int type)
 	}
 
 	if (type == 4) { // Cancel
+		clif_tradestart(tsd, type);
+		clif_tradestart(sd, type);
 		sd->state.deal_locked = 0;
 		sd->trade_partner = 0;
 		tsd->state.deal_locked = 0;
 		tsd->trade_partner = 0;
-		clif_tradestart(tsd, type);
-		clif_tradestart(sd, type);
 		return;
 	}
 
@@ -129,9 +129,9 @@ void trade_tradeack(struct map_session_data *sd, int type)
 	if (pc_isGM(tsd) < lowest_gm_level && (sd->bl.m != tsd->bl.m ||
 		!check_distance_bl(&sd->bl, &tsd->bl, TRADE_DISTANCE)
 	)) {
+		clif_tradestart(sd, 0); // too far
 		sd->trade_partner=0;
 		tsd->trade_partner = 0;
-		clif_tradestart(sd, 0); // too far
 		return;
 	}
 
@@ -139,12 +139,12 @@ void trade_tradeack(struct map_session_data *sd, int type)
 	if (sd->npc_id || sd->vender_id || sd->state.storage_flag ||
 		tsd->npc_id || tsd->vender_id || tsd->state.storage_flag)
 	{	//Fail
+		clif_tradestart(sd, 2);
+		clif_tradestart(tsd, 2);
 		sd->state.deal_locked = 0;
 		sd->trade_partner = 0;
 		tsd->state.deal_locked = 0;
 		tsd->trade_partner = 0;
-		clif_tradestart(sd, 2);
-		clif_tradestart(tsd, 2);
 		return;
 	}
 
@@ -443,8 +443,14 @@ void trade_tradecancel(struct map_session_data *sd)
 	struct map_session_data *target_sd;
 	int trade_i;
 
+	target_sd = map_id2sd(sd->trade_partner);
+
 	if(!sd->state.trading)
+	{ // Not trade acepted
+		if( target_sd ) target_sd->trade_partner = 0;
+		sd->trade_partner = 0;
 		return;
+	}
 	
 	for(trade_i = 0; trade_i < 10; trade_i++) { // give items back (only virtual)
 		if (!sd->deal.item[trade_i].amount)
@@ -458,7 +464,6 @@ void trade_tradecancel(struct map_session_data *sd)
 		sd->deal.zeny = 0;
 	}
 
-	target_sd = map_id2sd(sd->trade_partner);
 	sd->state.deal_locked = 0;
 	sd->state.trading = 0;
 	sd->trade_partner = 0;
