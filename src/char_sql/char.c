@@ -3059,7 +3059,7 @@ int parse_char(int fd)
 		break;
 
 		// create new char
-		// S 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <slot.B <hair color>.W <hair style>.W
+		// S 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <slot>.B <hair color>.W <hair style>.W
 		case 0x67:
 			FIFOSD_CHECK(37);
 

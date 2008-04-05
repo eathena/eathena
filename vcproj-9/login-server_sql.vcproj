@@ -206,6 +206,14 @@
 			Name="login_sql"
 			>
 			<File
+				RelativePath="..\src\login\account.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\account_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\login\login.c"
 				>
 			</File>
