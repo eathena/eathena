@@ -902,7 +902,6 @@ int mmo_auth_new(struct mmo_account* account)
 	safestrncpy(account->email, "a@a.com", sizeof(account->email));
 	account->unban_time = 0;
 	account->expiration_time = ( login_config.start_limited_time != -1 ) ? time(NULL) + login_config.start_limited_time : 0;
-	strncpy(account->last_ip, "-", 16);
 	strncpy(account->memo, "-", 255);
 	account->account_reg2_num = 0;
 
@@ -985,6 +984,7 @@ int mmo_auth(struct login_session_data* sd)
 			else
 				safestrncpy(newacc.pass, sd->passwd, NAME_LENGTH);
 			newacc.sex = TOUPPER(sd->userid[len+1]);
+			safestrncpy(newacc.last_ip, ip, sizeof(newacc.last_ip));
 
 			result = mmo_auth_new(&newacc);
 			if( result )

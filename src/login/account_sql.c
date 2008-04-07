@@ -113,12 +113,13 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 	SqlStmt* stmt;
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`, `expiration_time`) VALUES (?, ?, ?, 'a@a.com', '%d')",
+	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, 'a@a.com', '%d', ?)",
 	                      login_db, login_db_userid, login_db_user_pass, acc->expiration_time);
 
 	SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)acc->userid, strlen(acc->userid));
 	SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)acc->pass, strlen(acc->pass));
-	SqlStmt_BindParam(stmt, 2, SQLDT_ENUM, (char*)&acc->sex, 1);
+	SqlStmt_BindParam(stmt, 2, SQLDT_ENUM,   (char*)&acc->sex, 1);
+	SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (char*)&acc->last_ip, strlen(acc->last_ip));
 
 	SqlStmt_Execute(stmt);
 
