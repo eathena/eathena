@@ -247,7 +247,7 @@ void login_log(uint32 ip, const char* username, int rcode, const char* message)
 		strftime(str_time, 24, login_config.date_format, localtime(&raw_time));
 		str_time[23] = '\0';
 
-		fprintf(log_fp, "%s\t%u\t%s\t%d\t%s\n", str_time, ip, esc_username, rcode, esc_message);
+		fprintf(log_fp, "%s\t%s\t%s\t%d\t%s\n", str_time, ip2str(ip,NULL), esc_username, rcode, esc_message);
 
 		fclose(log_fp);
 	}
