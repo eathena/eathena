@@ -77,16 +77,32 @@ int subnet_count = 0;
 //-----------------------------------------------------
 #define AUTH_TIMEOUT 30000
 
-/*static*/ DBMap* auth_db; // int account_id -> struct auth_node*
+struct auth_node {
+
+	int account_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 ip;
+	char sex;
+};
+
+static DBMap* auth_db; // int account_id -> struct auth_node*
+
 
 //-----------------------------------------------------
 // Online User Database [Wizputer]
 //-----------------------------------------------------
+struct online_login_data {
 
-/*static*/ DBMap* online_db; // int account_id -> struct online_login_data*
-/*static*/ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data);
+	int account_id;
+	int waiting_disconnect;
+	int char_server;
+};
 
-/*static*/ void* create_online_user(DBKey key, va_list args)
+static DBMap* online_db; // int account_id -> struct online_login_data*
+static int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data);
+
+static void* create_online_user(DBKey key, va_list args)
 {
 	struct online_login_data* p;
 	CREATE(p, struct online_login_data, 1);
@@ -125,7 +141,7 @@ void remove_online_user(int account_id)
 	idb_remove(online_db, account_id);
 }
 
-/*static*/ int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
+static int waiting_disconnect_timer(int tid, unsigned int tick, int id, int data)
 {
 	struct online_login_data* p = (struct online_login_data*)idb_get(online_db, id);
 	if( p != NULL && p->waiting_disconnect == tid && p->account_id == id )
@@ -137,7 +153,7 @@ void remove_online_user(int account_id)
 	return 0;
 }
 
-/*static*/ int online_db_setoffline(DBKey key, void* data, va_list ap)
+static int online_db_setoffline(DBKey key, void* data, va_list ap)
 {
 	struct online_login_data* p = (struct online_login_data*)data;
 	int server = va_arg(ap, int);
@@ -1691,7 +1707,7 @@ int do_init(int argc, char** argv)
 #ifdef TXT_ONLY
 	accounts = account_db_txt();
 #else
-	accounts = account_db_sql();
+	accounts = account_db_sql(login_config.case_sensitive);
 #endif
 	accounts->init(accounts);
 

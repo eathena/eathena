@@ -7,7 +7,7 @@
 typedef struct AccountDB AccountDB;
 
 AccountDB* account_db_txt(void);
-AccountDB* account_db_sql(void);
+AccountDB* account_db_sql(bool case_sensitive);
 
 struct AccountDB
 {
