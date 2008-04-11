@@ -295,19 +295,19 @@ void display_conf_warnings(void)
 
 bool login_config_read_txt(const char* w1, const char* w2)
 {
-	if(!strcmpi(w1, "login_log_filename") == 0)
+	if(!strcmpi(w1, "login_log_filename"))
 		safestrncpy(login_log_filename, w2, sizeof(login_log_filename));
-	else if(!strcmpi(w1, "admin_state") == 0)
+	else if(!strcmpi(w1, "admin_state"))
 		admin_state = (bool)config_switch(w2);
-	else if(!strcmpi(w1, "admin_pass") == 0)
+	else if(!strcmpi(w1, "admin_pass"))
 		safestrncpy(admin_pass, w2, sizeof(admin_pass));
-	else if(!strcmpi(w1, "admin_allowed_ip") == 0)
+	else if(!strcmpi(w1, "admin_allowed_ip"))
 		admin_allowed_ip = host2ip(w2);
-	else if(!strcmpi(w1, "account_txt") == 0)
+	else if(!strcmpi(w1, "account_txt"))
 		safestrncpy(account_txt, w2, sizeof(account_txt));
-	else if(!strcmpi(w1, "gm_account_filename") == 0)
+	else if(!strcmpi(w1, "gm_account_filename"))
 		safestrncpy(GM_account_filename, w2, sizeof(GM_account_filename));
-	else if(!strcmpi(w1, "gm_account_filename_check_timer") == 0)
+	else if(!strcmpi(w1, "gm_account_filename_check_timer"))
 		gm_account_filename_check_timer = atoi(w2);
 	else
 		return false;
