@@ -157,9 +157,6 @@ int online_display_option = 1; // display options: to know which columns must be
 int online_refresh_html = 20; // refresh time (in sec) of the html file in the explorer
 int online_gm_display_min_level = 20; // minimum GM level to display 'GM' when we want to display it
 
-//These are used to aid the map server in identifying valid clients. [Skotlex]
-static int max_account_id = DEFAULT_MAX_ACCOUNT_ID, max_char_id = DEFAULT_MAX_CHAR_ID;
-
 //Structure for holding in memory which characters are online on the map servers connected.
 struct online_char_data {
 	int account_id;
@@ -316,17 +313,6 @@ void set_char_online(int map_id, int char_id, int account_id)
 {
 	struct online_char_data* character;
 	
-	if ( char_id != 99 ) {
-		if (max_account_id < account_id || max_char_id < char_id)
-		{	//Notify map-server of the new max IDs [Skotlex]
-			if (account_id > max_account_id)
-				max_account_id = account_id;
-			if (char_id > max_char_id)
-				max_char_id = char_id;
-			mapif_send_maxid(max_account_id, max_char_id);
-		}
-	}
-
 	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
 	if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 	{
@@ -2665,9 +2651,6 @@ int parse_frommap(int fd)
 			ShowStatus("Map-server %d loading complete.\n", id);
 			char_log("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete.\n",
 						id, j, CONVIP(server[id].ip), server[id].port, id);
-
-			if (max_account_id != DEFAULT_MAX_ACCOUNT_ID || max_char_id != DEFAULT_MAX_CHAR_ID)
-				mapif_send_maxid(max_account_id, max_char_id); //Send the current max ids to the server to keep in sync [Skotlex]
 
 			// send name for wisp to player
 			WFIFOHEAD(fd, 3 + NAME_LENGTH);

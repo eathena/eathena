@@ -84,15 +84,11 @@
 
 //Size of the fame list arrays.
 #define MAX_FAME_LIST 10
-//These max values can be exceeded and the char/map servers will update them with no problems
-//These are just meant to minimize the updating needed between char/map servers as players login.
+
+//Limits to avoid ID collision with other game objects
 #define START_ACCOUNT_NUM 2000000
 #define END_ACCOUNT_NUM 100000000
 #define START_CHAR_NUM 150000
-//Room for initial 10K accounts
-#define DEFAULT_MAX_ACCOUNT_ID (START_ACCOUNT_NUM+10000)
-//Room for initial 100k characters
-#define DEFAULT_MAX_CHAR_ID 250000
 
 //Base Homun skill.
 #define HM_SKILLBASE 8001
