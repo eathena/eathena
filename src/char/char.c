@@ -146,9 +146,6 @@ struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 // Initial position (it's possible to set it in conf file)
 struct point start_point = { 0, 53, 111 };
 
-struct gm_account *gm_account = NULL;
-int GM_num = 0;
-
 // online players by [Yor]
 char online_txt_filename[1024] = "online.txt";
 char online_html_filename[1024] = "online.html";
@@ -208,11 +205,7 @@ int char_log(char *fmt, ...)
 //----------------------------------------------------------------------
 int isGM(int account_id)
 {
-	int i;
-
-	for(i = 0; i < GM_num; i++)
-		if (gm_account[i].account_id == account_id)
-			return gm_account[i].level;
+	//TODO:
 	return 0;
 }
 
@@ -2277,33 +2270,6 @@ int parse_fromlogin(int fd)
 			RFIFOSKIP(fd,11);
 		break;
 
-		// Receiving GM acounts info from login-server (by [Yor])
-		case 0x2732:
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
-				return 0;
-		{
-			unsigned char buf[32000]; //FIXME: this will crash
-			if (gm_account != NULL)
-				aFree(gm_account);
-			CREATE(gm_account, struct gm_account, (RFIFOW(fd,2) - 4)/5);
-			GM_num = 0;
-			for (i = 4; i < RFIFOW(fd,2); i = i + 5) {
-				gm_account[GM_num].account_id = RFIFOL(fd,i);
-				gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
-				//printf("GM account: %d -> level %d\n", gm_account[GM_num].account_id, gm_account[GM_num].level);
-				GM_num++;
-			}
-			ShowStatus("From login-server: receiving information of %d GM accounts.\n", GM_num);
-			char_log("From login-server: receiving information of %d GM accounts.\n", GM_num);
-			// send new gm acccounts level to map-servers
-			memcpy(buf, RFIFOP(fd,0), RFIFOW(fd,2));
-			WBUFW(buf,0) = 0x2b15;
-			mapif_sendall(buf, RFIFOW(fd,2));
-
-			RFIFOSKIP(fd,RFIFOW(fd,2));
-		}
-		break;
-
 		//Login server request to kick a character out. [Skotlex]
 		case 0x2734:
 			if (RFIFOREST(fd) < 6)
@@ -2625,15 +2591,6 @@ int parse_frommap(int fd)
 
 		switch(RFIFOW(fd,0))
 		{
-
-		case 0x2af7: // request from map-server to reload GM accounts. Transmission to login-server
-			if (login_fd > 0) { // don't send request if no login-server
-				WFIFOHEAD(login_fd,2);
-				WFIFOW(login_fd,0) = 0x2709;
-				WFIFOSET(login_fd,2);
-			}
-			RFIFOSKIP(fd,2);
-		break;
 
 		case 0x2afa: // Receiving map names list from the map-server
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
@@ -3604,15 +3561,6 @@ int parse_char(int fd)
 				session[fd]->flag.server = 1;
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 				char_mapif_init(fd);
-				// send gm acccounts level to map-servers
-				WFIFOHEAD(fd,4+5*GM_num);
-				WFIFOW(fd,0) = 0x2b15;
-				for(i = 0; i < GM_num; i++) {
-					WFIFOL(fd,4+5*i) = gm_account[i].account_id;
-					WFIFOB(fd,4+5*i+4) = (unsigned char)gm_account[i].level;
-				}
-				WFIFOW(fd,2) = 4+5*GM_num;
-				WFIFOSET(fd,WFIFOW(fd,2));
 			}
 
 			RFIFOSKIP(fd,60);
@@ -4142,7 +4090,6 @@ void do_final(void)
 	create_online_files();
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	
-	if(gm_account) aFree(gm_account);
 	if(char_dat) aFree(char_dat);
 
 	if (login_fd > 0)

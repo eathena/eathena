@@ -25,13 +25,9 @@ extern struct Login_Config login_config;
 
 #define MAX_SERVERS 30
 extern struct mmo_char_server server[MAX_SERVERS];
-extern char GM_account_filename[1024];
 extern AccountDB* accounts;
 
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
-int read_gm_account(void);
-void send_GM_accounts(int fd);
-int isGM(int account_id);
 
 //---------------------------------------
 // Packet parsing for administation login
@@ -802,14 +798,6 @@ int parse_admin(int fd)
 			RFIFOSKIP(fd,6);
 			break;
 */
-		case 0x7955:	// Request to reload GM file (no answer)
-			ShowStatus("'ladmin': Request to re-load GM configuration file (ip: %s).\n", ip);
-			read_gm_account();
-			// send GM accounts to all char-servers
-			send_GM_accounts(-1);
-			RFIFOSKIP(fd,2);
-			break;
-
 		default:
 			ShowStatus("'ladmin': End of connection, unknown packet (ip: %s)\n", ip);
 			set_eof(fd);

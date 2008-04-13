@@ -4185,19 +4185,6 @@ int atcommand_reloadscript(const int fd, struct map_session_data* sd, const char
 }
 
 /*==========================================
- * @reloadgmdb - reloads gm levels from where they are stored (gm_account.txt / mysql database)
- *------------------------------------------*/
-int atcommand_reloadgmdb(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	nullpo_retr(-1, sd);
-	chrif_reloadGMdb();
-
-	clif_displaymessage(fd, msg_txt(101)); // Login-server asked to reload GM accounts and their level.
-
-	return 0;
-}
-
-/*==========================================
  * @mapinfo <map name> [0-3] by MC_Cameri
  * => Shows information about the map [map name]
  * 0 = no additional information
@@ -6610,7 +6597,8 @@ int atcommand_adjgmlvl(const int fd, struct map_session_data* sd, const char* co
 		return -1;
 	}
 
-    pc_set_gm_level(pl_sd->status.account_id, newlev);
+	//TODO:
+	//sd->gmlevel = newlev;
 
     return 0;
 }
@@ -8377,7 +8365,6 @@ AtCommandInfo atcommand_info[] = {
 	{ "reloadmobdb",       99,     atcommand_reloadmobdb },
 	{ "reloadskilldb",     99,     atcommand_reloadskilldb },
 	{ "reloadscript",      99,     atcommand_reloadscript },
-	{ "reloadgmdb",        99,     atcommand_reloadgmdb },
 	{ "reloadatcommand",   99,     atcommand_reloadatcommand },
 	{ "reloadbattleconf",  99,     atcommand_reloadbattleconf },
 	{ "reloadstatusdb",    99,     atcommand_reloadstatusdb },

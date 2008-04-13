@@ -647,7 +647,6 @@ struct map_session_data *pc_get_child(struct map_session_data *sd);
 void pc_bleeding (struct map_session_data *sd, unsigned int diff_tick);
 void pc_regen (struct map_session_data *sd, unsigned int diff_tick);
 
-int pc_set_gm_level(int account_id, int level);
 void pc_setstand(struct map_session_data *sd);
 int pc_candrop(struct map_session_data *sd,struct item *item);
 
@@ -677,7 +676,6 @@ struct sg_data {
 };
 extern const struct sg_data sg_info[3];
 
-int pc_read_gm_account(int fd);
 void pc_setinvincibletimer(struct map_session_data* sd, int val);
 void pc_delinvincibletimer(struct map_session_data* sd);
 

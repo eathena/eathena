@@ -111,31 +111,48 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	Sql* sql_handle = db->accounts;
 	SqlStmt* stmt;
+	bool result = false;
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, 'a@a.com', '%d', ?)",
-	                      login_db, login_db_userid, login_db_user_pass, acc->expiration_time);
+	if( SQL_SUCCESS == SqlStmt_Prepare(stmt,
+		"INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, 'a@a.com', '%d', ?)",
+	    login_db, login_db_userid, login_db_user_pass, acc->expiration_time)
+	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)acc->userid, strlen(acc->userid))
+	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)acc->pass, strlen(acc->pass))
+	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 2, SQLDT_ENUM,   (char*)&acc->sex, 1)
+	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (char*)&acc->last_ip, strlen(acc->last_ip))
+	&&  SQL_SUCCESS == SqlStmt_Execute(stmt)
+	)
+		result = true;
 
-	SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)acc->userid, strlen(acc->userid));
-	SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)acc->pass, strlen(acc->pass));
-	SqlStmt_BindParam(stmt, 2, SQLDT_ENUM,   (char*)&acc->sex, 1);
-	SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (char*)&acc->last_ip, strlen(acc->last_ip));
-
-	SqlStmt_Execute(stmt);
-
-	return true;
+	SqlStmt_Free(stmt);
+	return result;
 }
 
 static bool account_db_sql_remove(AccountDB* self, const int account_id)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
+	Sql* sql_handle = db->accounts;
 
+	// try to delete the specified account
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `%s` = %d", login_db, login_db_account_id, account_id ) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+/*
+	if( 0 == Sql_NumRows(sql_handle) )
+	{// error, account did not exist
+		return false;
+	}
+*/
 	return true;
 }
 
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
+	Sql* sql_handle = db->accounts;
 
 /*
 				//Delete all global account variables....
@@ -180,7 +197,7 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 
 	// retrieve login entry for the specified account
 	if( SQL_ERROR == Sql_Query(sql_handle,
-	    "SELECT `%s`,`%s`,`%s`,`lastlogin`,`sex`,`logincount`,`email`,`%s`,`expiration_time`,`last_ip`,`memo`,`unban_time`,`state` FROM `%s` WHERE `%s` = %d",
+	    "SELECT `%s`,`%s`,`%s`,`sex`,`email`,`%s`,`state`,`unban_time`,`expiration_time`, `logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `%s` = %d",
 		login_db_account_id, login_db_userid, login_db_user_pass, login_db_level, login_db, login_db_account_id, account_id )
 	) {
 		Sql_ShowDebug(sql_handle);
@@ -196,16 +213,15 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 	Sql_GetData(sql_handle,  0, &data, NULL); acc->account_id = atoi(data);
 	Sql_GetData(sql_handle,  1, &data, NULL); safestrncpy(acc->userid, data, sizeof(acc->userid));
 	Sql_GetData(sql_handle,  2, &data, NULL); safestrncpy(acc->pass, data, sizeof(acc->pass));
-	Sql_GetData(sql_handle,  3, &data, NULL); safestrncpy(acc->lastlogin, data, sizeof(acc->lastlogin));
-	Sql_GetData(sql_handle,  4, &data, NULL); acc->sex = data[0];
-	Sql_GetData(sql_handle,  5, &data, NULL); acc->logincount = atol(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); safestrncpy(acc->email, data, sizeof(acc->email));
-	Sql_GetData(sql_handle,  7, &data, NULL); acc->level = atoi(data);
+	Sql_GetData(sql_handle,  3, &data, NULL); acc->sex = data[0];
+	Sql_GetData(sql_handle,  4, &data, NULL); safestrncpy(acc->email, data, sizeof(acc->email));
+	Sql_GetData(sql_handle,  5, &data, NULL); acc->level = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); acc->state = atoi(data);
+	Sql_GetData(sql_handle,  7, &data, NULL); acc->unban_time = atol(data);
 	Sql_GetData(sql_handle,  8, &data, NULL); acc->expiration_time = atol(data);
-	Sql_GetData(sql_handle,  9, &data, NULL); safestrncpy(acc->last_ip, data, sizeof(acc->last_ip));
-	Sql_GetData(sql_handle, 10, &data, NULL); safestrncpy(acc->memo, data, sizeof(acc->memo));
-	Sql_GetData(sql_handle, 11, &data, NULL); acc->unban_time = atol(data);
-	Sql_GetData(sql_handle, 12, &data, NULL); acc->state = atoi(data);
+	Sql_GetData(sql_handle,  9, &data, NULL); acc->logincount = atol(data);
+	Sql_GetData(sql_handle, 10, &data, NULL); safestrncpy(acc->lastlogin, data, sizeof(acc->lastlogin));
+	Sql_GetData(sql_handle, 11, &data, NULL); safestrncpy(acc->last_ip, data, sizeof(acc->last_ip));
 
 	Sql_FreeResult(sql_handle);
 

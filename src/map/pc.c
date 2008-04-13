@@ -6,7 +6,7 @@
 #include "../common/malloc.h"
 #include "../common/nullpo.h"
 #include "../common/showmsg.h"
-#include "../common/socket.h" // RFIFO*()
+#include "../common/socket.h" // session[]
 #include "../common/strlib.h" // safestrncpy()
 #include "../common/timer.h"
 #include "../common/utils.h"
@@ -60,9 +60,6 @@ struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 static unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_AMMO};
 
-static struct gm_account *gm_account = NULL;
-static int GM_num = 0;
-
 #define MOTD_LINE_SIZE 128
 char motd_text[MOTD_LINE_SIZE][256]; // Message of the day buffer [Valaris]
 
@@ -87,33 +84,8 @@ int pc_class2idx(int class_) {
 
 int pc_isGM(struct map_session_data* sd)
 {
-	int i;
-	nullpo_retr(0, sd);
-
-	if( sd->bl.type != BL_PC )
-		return 99;
-
-	ARR_FIND( 0, GM_num, i, gm_account[i].account_id == sd->status.account_id );
-	return ( i < GM_num ) ? gm_account[i].level : 0;
-}
-
-int pc_set_gm_level(int account_id, int level)
-{
-    int i;
-
-	ARR_FIND( 0, GM_num, i, account_id == gm_account[i].account_id );
-	if( i < GM_num )
-	{
-		gm_account[i].level = level;
-	}
-	else
-	{
-	    gm_account = (struct gm_account *) aRealloc(gm_account, (GM_num + 1) * sizeof(struct gm_account));
-	    gm_account[GM_num].account_id = account_id;
-	    gm_account[GM_num].level = level;
-	    GM_num++;
-	}
-
+	//TODO:
+	//return sd->gmlevel;
 	return 0;
 }
 
@@ -7001,21 +6973,6 @@ int pc_autosave(int tid,unsigned int tick,int id,int data)
 	return 0;
 }
 
-int pc_read_gm_account(int fd)
-{
-	//FIXME: this implementation is a total failure (direct reading from RFIFO) [ultramage]
-	int i = 0;
-	if (gm_account != NULL)
-		aFree(gm_account);
-	GM_num = 0;
-	gm_account = (struct gm_account *) aMallocA(((RFIFOW(fd,2) - 4) / 5)*sizeof(struct gm_account));
-	for (i = 4; i < RFIFOW(fd,2); i += 5) {
-		gm_account[GM_num].account_id = RFIFOL(fd,i);
-		gm_account[GM_num].level = (int)RFIFOB(fd,i+4);
-		GM_num++;
-	}
-	return GM_num;
-}
 static int pc_daynight_timer_sub(struct map_session_data *sd,va_list ap)
 {
 	if (sd->state.night != night_flag && map[sd->bl.m].flag.nightenabled)
@@ -7566,8 +7523,6 @@ int pc_read_motd(void)
  *------------------------------------------*/
 void do_final_pc(void)
 {
-	if (gm_account)
-		aFree(gm_account);
 	return;
 }
 

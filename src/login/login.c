@@ -27,17 +27,8 @@ void login_log(uint32 ip, const char* username, int rcode, const char* message);
 	bool inter_config_read_sql(const char* w1, const char* w2);
 #endif
 
-// temporary external imports
-extern struct gm_account* gm_account_db;
-int read_gm_account(void);
-void send_GM_accounts(int fd);
-
 #ifdef TXT_ONLY
-	int check_GM_file(int tid, unsigned int tick, int id, int data);
 	void display_conf_warnings(void);
-	int isGM(int account_id);
-	extern char GM_account_filename[1024];
-	extern int gm_account_filename_check_timer;
 #else
 	void mmo_db_init();
 	void mmo_db_close();
@@ -387,15 +378,6 @@ int parse_fromchar(int fd)
 		switch( command )
 		{
 
-		case 0x2709: // request from map-server via char-server to reload GM accounts
-			RFIFOSKIP(fd,2);
-			ShowStatus("Char-server '%s': Request to re-load GM database (ip: %s).\n", server[id].name, ip);
-			login_log(ipl, server[id].name, 0, "GM reload request");
-			read_gm_account();
-			// send GM accounts to all char-servers
-			send_GM_accounts(-1);
-		break;
-
 		case 0x2712: // request from char-server to authenticate an account
 			if( RFIFOREST(fd) < 19 )
 				return 0;
@@ -403,8 +385,8 @@ int parse_fromchar(int fd)
 			struct auth_node* node;
 
 			int account_id = RFIFOL(fd,2);
-			int login_id1 = RFIFOL(fd,6);
-			int login_id2 = RFIFOL(fd,10);
+			uint32 login_id1 = RFIFOL(fd,6);
+			uint32 login_id2 = RFIFOL(fd,10);
 			char sex = sex_num2str(RFIFOB(fd,14));
 			uint32 ip_ = ntohl(RFIFOL(fd,15));
 			RFIFOSKIP(fd,19);
@@ -420,17 +402,19 @@ int parse_fromchar(int fd)
 				struct mmo_account acc;
 				time_t expiration_time = 0;
 				const char* email = "";
+				int gmlevel = 0;
 
 				//ShowStatus("Char-server '%s': authentication of the account %d accepted (ip: %s).\n", server[id].name, account_id, ip);
 
 				// each auth entry can only be used once
 				idb_remove(auth_db, account_id);
 
-				// retrieve email and account expiration time
+				// retrieve email and account expiration time and gm level
 				if( accounts->load_num(accounts, &acc, account_id) )
 				{
 					email = acc.email;
 					expiration_time = acc.expiration_time;
+					gmlevel = acc.level;
 				}
 
 				// send ack
@@ -902,7 +886,6 @@ int mmo_auth_new(struct mmo_account* account)
 	safestrncpy(account->email, "a@a.com", sizeof(account->email));
 	account->unban_time = 0;
 	account->expiration_time = ( login_config.start_limited_time != -1 ) ? time(NULL) + login_config.start_limited_time : 0;
-	strncpy(account->memo, "-", 255);
 	account->account_reg2_num = 0;
 
 	accounts->create(accounts, account);
@@ -1038,11 +1021,7 @@ int mmo_auth(struct login_session_data* sd)
 	sd->login_id2 = rand();
 	safestrncpy(sd->lastlogin, acc.lastlogin, sizeof(sd->lastlogin));
 	sd->sex = acc.sex;
-#ifdef TXT_ONLY
-	sd->level = isGM(sd->account_id);
-#else
 	sd->level = acc.level;
-#endif
 
 	// update account data
 	time(&raw_time);
@@ -1387,9 +1366,6 @@ int parse_login(int fd)
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
-
-				// send GM account to char-server
-				send_GM_accounts(fd);
 			}
 			else
 			{
@@ -1498,7 +1474,6 @@ void login_set_defaults()
 	login_config.new_account_flag = true;
 	login_config.case_sensitive = true;
 	login_config.use_md5_passwds = false;
-	login_config.login_gm_read = true;
 	login_config.min_level_to_connect = 0;
 	login_config.online_check = true;
 	login_config.check_client_version = false;
@@ -1650,8 +1625,6 @@ void do_final(void)
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 
-	if(gm_account_db) aFree(gm_account_db);
-
 	for (i = 0; i < MAX_SERVERS; i++) {
 		if ((fd = server[i].fd) >= 0) {
 			memset(&server[i], 0, sizeof(struct mmo_char_server));
@@ -1718,24 +1691,10 @@ int do_init(int argc, char** argv)
 	// Interserver auth init
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
-	// Read account information.
-#ifdef TXT_ONLY
-	read_gm_account();
-#else
-	if(login_config.login_gm_read)
-		read_gm_account();
-#endif
-
 	// set default parser as parse_login function
 	set_defaultparse(parse_login);
 
-#ifdef TXT_ONLY
-	// every x sec we check if gm file has been changed
-	if( gm_account_filename_check_timer ) {
-		add_timer_func_list(check_GM_file, "check_GM_file");
-		add_timer_interval(gettick() + gm_account_filename_check_timer * 1000, check_GM_file, 0, 0, gm_account_filename_check_timer * 1000); 
-	}
-#else
+#ifndef TXT_ONLY
 	// ban deleter timer
 	add_timer_func_list(ip_ban_flush, "ip_ban_flush");
 	add_timer_interval(gettick()+10, ip_ban_flush, 0, 0, 60*1000);

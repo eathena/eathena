@@ -323,11 +323,6 @@ struct guild_storage {
 	struct item storage_[MAX_GUILD_STORAGE];
 };
 
-struct gm_account {
-	int account_id;
-	int level;
-};
-
 struct party_member {
 	int account_id;
 	int char_id;

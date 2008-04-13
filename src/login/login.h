@@ -56,7 +56,6 @@ struct Login_Config {
 	int start_limited_time;                         // new account expiration time (-1: unlimited)
 	bool case_sensitive;                            // are logins case sensitive ?
 	bool use_md5_passwds;                           // work with password hashes instead of plaintext passwords?
-	bool login_gm_read;                             // should the login server handle info about gm accounts?
 	int min_level_to_connect;                       // minimum level of player/GM (0: player, 1-99: GM) to connect
 	bool online_check;                              // reject incoming players that are already registered as online ?
 	bool check_client_version;                      // check the clientversion set in the clientinfo ?

@@ -19,8 +19,6 @@ char login_user_pass[256]="user_pass";
 char login_db[256]="login";
 char globalreg_db[256]="global_reg_value";
 
-static DBMap* gm_account_db=NULL; // int account_id -> struct gm_account*
-
 int db_server_port = 3306;
 char db_server_ip[32] = "127.0.0.1";
 char db_server_id[32] = "ragnarok";
@@ -28,61 +26,8 @@ char db_server_pw[32] = "ragnarok";
 char db_server_logindb[32] = "ragnarok";
 
 #define INTER_CONF_NAME "conf/inter_athena.conf"
-#define GM_ACCOUNT_NAME "conf/GM_account.txt"
 #define ACCOUNT_TXT_NAME "save/account.txt"
 //--------------------------------------------------------
-
-int isGM(int account_id)
-{
-	struct gm_account* p = (struct gm_account*)idb_get(gm_account_db,account_id);
-	return( p != NULL ) ? p->level : 0;
-}
-
-int read_gm_account()
-{
-	char line[8192];
-	struct gm_account *p;
-	FILE *fp;
-	int line_counter = 0, gm_counter = 0;
-	
-	ShowStatus("Starting reading gm_account\n");
-	
-	if( (fp = fopen(GM_ACCOUNT_NAME,"r")) == NULL )
-		return 1;
-	
-	gm_account_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	
-	while(fgets(line,sizeof(line),fp))
-	{
-		line_counter++;
-		if ((line[0] == '/' && line[1] == '/') || line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
-			continue;
-		
-		p = (struct gm_account*)aMalloc(sizeof(struct gm_account));
-		if(p==NULL){
-			ShowFatalError("gm_account: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-		
-		if(sscanf(line,"%d %d",&p->account_id,&p->level) != 2 || p->level <= 0) {
-			ShowWarning("gm_account: unsupported data format [conf/GM_account.txt] on line %d\n", line_counter);
-			continue;
-		}
-		else {
-			if(p->level > 99)
-				p->level = 99;
-			p = (struct gm_account*)idb_put(gm_account_db,p->account_id,p);
-			if( p )
-				aFree(p);// old entry replaced
-			gm_counter++;
-			ShowInfo("GM ID: %d Level: %d\n",p->account_id,p->level);
-		}
-	}
-
-	fclose(fp);
-	ShowStatus("%d ID of gm_accounts read.\n", gm_counter);
-	return 0;
-}
 
 int convert_login(void)
 {

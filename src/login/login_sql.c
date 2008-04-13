@@ -22,11 +22,6 @@
 #include <sys/stat.h> // for stat/lstat/fstat
 
 
-// GM account management
-struct gm_account* gm_account_db = NULL;
-unsigned int GM_num = 0; // number of gm accounts
-
-
 // SQL-specifics
 Sql* sql_handle;
 
@@ -51,84 +46,8 @@ char login_db_level[256] = "level";
 
 
 // temporary external imports
-extern AccountDB* accounts;
 extern struct Login_Config login_config;
-extern int charif_sendallwos(int sfd, uint8* buf, size_t len);
 
-
-//-----------------------------------------------------
-// Read GM accounts
-//-----------------------------------------------------
-void read_gm_account(void)
-{
-	if( !login_config.login_gm_read )
-		return;// char server's job
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `%s`,`%s` FROM `%s` WHERE `%s` > '0'", login_db_account_id, login_db_level, login_db, login_db_level) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return;// Failed to read GM list!
-	}
-
-	RECREATE(gm_account_db, struct gm_account, (size_t)Sql_NumRows(sql_handle));
-
-	for( GM_num = 0; SQL_SUCCESS == Sql_NextRow(sql_handle); ++GM_num )
-	{
-		char* account;
-		char* level;
-
-		Sql_GetData(sql_handle, 0, &account, NULL);
-		Sql_GetData(sql_handle, 1, &level, NULL);
-
-		gm_account_db[GM_num].account_id = atoi(account);
-		gm_account_db[GM_num].level = atoi(level);
-	}
-
-	Sql_FreeResult(sql_handle);
-}
-
-//-----------------------------------------------------
-// Send GM accounts to one or all char-servers
-//-----------------------------------------------------
-void send_GM_accounts(int fd)
-{
-	unsigned int i;
-	uint8 buf[32767];
-	uint16 len;
-
-	if( !login_config.login_gm_read )
-		return;
-
-	len = 4;
-	WBUFW(buf,0) = 0x2732;
-	for( i = 0; i < GM_num; ++i )
-	{
-		// send only existing accounts. We can not create a GM account when server is online.
-		if( gm_account_db[i].level > 0 )
-		{
-			WBUFL(buf,len) = gm_account_db[i].account_id;
-			WBUFB(buf,len+4) = (uint8)gm_account_db[i].level;
-			len += 5;
-			if( len >= 32000 )
-			{
-				ShowWarning("send_GM_accounts: Too many accounts! Only %d out of %d were sent.\n", i, GM_num);
-				break;
-			}
-		}
-	}
-
-	WBUFW(buf,2) = len;
-	if( fd == -1 )// send to all charservers
-		charif_sendallwos(-1, buf, len);
-	else
-	{// send only to target
-		WFIFOHEAD(fd,len);
-		memcpy(WFIFOP(fd,0), buf, len);
-		WFIFOSET(fd,len);
-	}
-
-	return;
-}
 
 /*=============================================
  * Records an event in the login log
@@ -317,9 +236,7 @@ bool login_config_read_sql(const char* w1, const char* w2)
 
 bool inter_config_read_sql(const char* w1, const char* w2)
 {
-	if (!strcmpi(w1, "gm_read_method"))
-		login_config.login_gm_read = (atoi(w2) == 0);
-	else if (!strcmpi(w1, "login_db"))
+	if (!strcmpi(w1, "login_db"))
 		strcpy(login_db, w2);
 	else if (!strcmpi(w1, "login_server_ip"))
 		strcpy(login_server_ip, w2);
