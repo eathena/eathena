@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/04/14
+	* Rev. 12587 Fixed design flaw in card remover script. [L0ne_W0lf]
 2008/03/20
 	* Rev. 12406 Merged Juperos quest changes from trunk. [L0ne_W0lf]
 2008/03/13
