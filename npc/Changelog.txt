@@ -1,7 +1,7 @@
 Date		Added
 ======
 2008/04/15
-	* Rev. 12602 Rescripted Eye of Hellion quest, all quest progress is lost. [L0ne_W0lf]
+	* Rev. 12604 Rescripted Eye of Hellion quest, all quest progress is lost. [L0ne_W0lf]
 2008/04/14
 	* Rev. 12587 Fixed design flaw in card remover script. [L0ne_W0lf]
 2008/03/20
