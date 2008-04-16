@@ -3414,8 +3414,6 @@ int parse_char(int fd)
 			node->gmlevel = sd->gmlevel;
 			node->ip = ipl;
 			idb_put(auth_db, sd->account_id, node);
-
-			set_char_online(i, cd->char_id, cd->account_id);
 		}
 		break;
 
