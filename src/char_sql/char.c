@@ -20,13 +20,6 @@
 #include "char.h"
 
 #include <sys/types.h>
-#ifdef WIN32
-#include <winsock2.h>
-#else
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#endif
 #include <time.h>
 #include <signal.h>
 #include <string.h>
@@ -131,17 +124,8 @@ struct char_session_data {
 	int found_char[MAX_CHARS]; // ids of chars on this account
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
+	int gmlevel;
 };
-
-#define AUTH_FIFO_SIZE 256
-struct {
-	int account_id, char_id, login_id1, login_id2;
-	uint32 ip;
-	int delflag;
-	int sex;
-	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-} auth_fifo[AUTH_FIFO_SIZE];
-int auth_fifo_pos = 0;
 
 int char_num, char_max;
 int max_connect_user = 0;
@@ -172,7 +156,28 @@ struct point start_point = { 0, 53, 111 };
 
 int console = 0;
 
-//Structure for holding in memory which characters are online on the map servers connected.
+//-----------------------------------------------------
+// Auth database
+//-----------------------------------------------------
+#define AUTH_TIMEOUT 30000
+
+struct auth_node {
+	int account_id;
+	int char_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 ip;
+	int sex;
+	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
+	int gmlevel;
+};
+
+static DBMap* auth_db; // int account_id -> struct auth_node*
+
+//-----------------------------------------------------
+// Online User Database
+//-----------------------------------------------------
+
 struct online_char_data {
 	int account_id;
 	int char_id;
@@ -181,8 +186,8 @@ struct online_char_data {
 	short server; // -2: unknown server, -1: not connected, 0+: id of server
 };
 
-// Holds all online characters.
-DBMap* online_char_db; // int account_id -> struct online_char_data*
+static DBMap* online_char_db; // int account_id -> struct online_char_data*
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
 
 static void* create_online_char_data(DBKey key, va_list args)
 {
@@ -195,12 +200,6 @@ static void* create_online_char_data(DBKey key, va_list args)
 	character->waiting_disconnect = -1;
 	return character;
 }
-
-static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
-
-//-------------------------------------------------
-// Set Character online/offline [Wizputer]
-//-------------------------------------------------
 
 void set_char_online(int map_id, int char_id, int account_id)
 {
@@ -252,8 +251,7 @@ void set_char_offline(int char_id, int account_id)
 {
 	struct online_char_data* character;
 
-	//FIXME: usage of 'magic constant'; this needs to go! [ultramage]
-	if ( char_id == 99 )
+	if ( char_id == -1 )
 	{
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id) )
 			Sql_ShowDebug(sql_handle);
@@ -286,7 +284,7 @@ void set_char_offline(int char_id, int account_id)
 		}
 	}
 	
-	if (login_fd > 0 && !session[login_fd]->flag.eof)
+	if (login_fd > 0 && !session[login_fd]->flag.eof && (char_id == -1 || character == NULL || character->char_id != -1))
 	{
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x272c;
@@ -1646,7 +1644,7 @@ int parse_fromlogin(int fd)
 
 		// acknowledgement of account authentication request
 		case 0x2713:
-			if (RFIFOREST(fd) < 59)
+			if (RFIFOREST(fd) < 60)
 				return 0;
 		{
 			int account_id = RFIFOL(fd,2);
@@ -1655,6 +1653,7 @@ int parse_fromlogin(int fd)
 			bool result = RFIFOB(fd,14);
 			const char* email = (const char*)RFIFOP(fd,15);
 			time_t expiration_time = (time_t)RFIFOL(fd,55);
+			int gmlevel = RFIFOB(fd,59);
 
 			// find the session with this account id
 			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) &&
@@ -1669,16 +1668,17 @@ int parse_fromlogin(int fd)
 				} else { // success
 					memcpy(sd->email, email, 40);
 					sd->expiration_time = expiration_time;
+					sd->gmlevel = gmlevel;
 					char_auth_ok(i, sd);
 				}
 			}
 		}
-			RFIFOSKIP(fd,59);
+			RFIFOSKIP(fd,60);
 		break;
 
 		// acknowledgement of e-mail/limited time request
 		case 0x2717:
-			if (RFIFOREST(fd) < 50)
+			if (RFIFOREST(fd) < 51)
 				return 0;
 
 			// find the session with this account id
@@ -1687,8 +1687,9 @@ int parse_fromlogin(int fd)
 			{
 				memcpy(sd->email, RFIFOP(fd,6), 40);
 				sd->expiration_time = (time_t)RFIFOL(fd,46);
+				sd->gmlevel = RFIFOB(fd,50);
 			}
-			RFIFOSKIP(fd,50);
+			RFIFOSKIP(fd,51);
 		break;
 
 		// login-server alive packet
@@ -1703,9 +1704,12 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 7)
 				return 0;
 		{
+			unsigned char buf[16];
+
 			int acc = RFIFOL(fd,2);
 			int sex = RFIFOB(fd,6);
-			unsigned char buf[16];
+			RFIFOSKIP(fd,7);
+
 			if( acc > 0 )
 			{
 				int char_id[MAX_CHARS];
@@ -1714,6 +1718,10 @@ int parse_fromlogin(int fd)
 				int num;
 				int i;
 				char* data;
+
+				struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
+				if( node != NULL )
+					node->sex = sex;
 
 				// get characters
 				if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`class`,`guild_id` FROM `%s` WHERE `account_id` = '%d'", char_db, acc) )
@@ -1770,7 +1778,6 @@ int parse_fromlogin(int fd)
 			WBUFB(buf,6) = sex;
 			mapif_sendall(buf, 7);
 		}
-			RFIFOSKIP(fd,7);
 		break;
 
 		// reply to an account_reg2 registry request
@@ -1813,18 +1820,19 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 6)
 				return 0;
 		{
-			struct online_char_data* character;
 			int aid = RFIFOL(fd,2);
-			if ((character = (struct online_char_data*)idb_get(online_char_db, aid)) != NULL)
-			{	//Kick out this player.
+			struct online_char_data* character = (struct online_char_data*)idb_get(online_char_db, aid);
+			RFIFOSKIP(fd,6);
+			if( character != NULL )
+			{// account is already marked as online!
 				if( character->server > -1 )
 				{	//Kick it from the map server it is on.
 					mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
 					if (character->waiting_disconnect == -1)
-						character->waiting_disconnect = add_timer(gettick()+15000, chardb_waiting_disconnect, character->account_id, 0);
+						character->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, chardb_waiting_disconnect, character->account_id, 0);
 				}
 				else
-				{	//Manual kick from char server.
+				{// Manual kick from char server.
 					struct char_session_data *tsd;
 					int i;
 					ARR_FIND( 0, fd_max, i, session[i] && (tsd = (struct char_session_data*)session[i]->session_data) && tsd->account_id == aid );
@@ -1834,14 +1842,13 @@ int parse_fromlogin(int fd)
 						WFIFOW(i,0) = 0x81;
 						WFIFOB(i,2) = 2; // "Someone has already logged in with this id"
 						WFIFOSET(i,3);
+						set_eof(i);
 					}
 					else //Shouldn't happen, but just in case.
-						set_char_offline(99, aid);
+						set_char_offline(-1, aid);
 				}
 			}
 		}
-
-			RFIFOSKIP(fd,6);
 		break;
 
 		// ip address update signal from login server
@@ -2274,30 +2281,38 @@ int parse_frommap(int fd)
 		break;
 
 		case 0x2b02: // req char selection
-			if (RFIFOREST(fd) < 18)
+			if( RFIFOREST(fd) < 18 )
 				return 0;
+		{
+			struct auth_node* node;
 
-			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
-				auth_fifo_pos = 0;
+			int account_id = RFIFOL(fd,2);
+			uint32 login_id1 = RFIFOL(fd,6);
+			uint32 login_id2 = RFIFOL(fd,10);
+			uint32 ip = RFIFOL(fd,14);
+			RFIFOSKIP(fd,18);
 
-			auth_fifo[auth_fifo_pos].account_id = RFIFOL(fd,2);
-			auth_fifo[auth_fifo_pos].char_id = 0;
-			auth_fifo[auth_fifo_pos].login_id1 = RFIFOL(fd,6);
-			auth_fifo[auth_fifo_pos].login_id2 = RFIFOL(fd,10);
-			auth_fifo[auth_fifo_pos].delflag = 2;
-			auth_fifo[auth_fifo_pos].expiration_time = 0; // unlimited/unknown time by default (not display in map-server)
-			auth_fifo[auth_fifo_pos].ip = ntohl(RFIFOL(fd,14));
-			auth_fifo_pos++;
+			// create temporary auth entry
+			CREATE(node, struct auth_node, 1);
+			node->account_id = account_id;
+			node->char_id = 0;
+			node->login_id1 = login_id1;
+			node->login_id2 = login_id2;
+			//node->sex = 0;
+			node->ip = ntohl(ip);
+			//node->expiration_time = 0; // unlimited/unknown time by default (not display in map-server)
+			//node->gmlevel = 0;
+			idb_put(auth_db, account_id, node);
 
 			//Set char to "@ char select" in online db [Kevin]
-			set_char_online(-3, 99, RFIFOL(fd,2));
+			set_char_online(-3, 99, account_id);
 
 			WFIFOHEAD(fd,7);
 			WFIFOW(fd,0) = 0x2b03;
-			WFIFOL(fd,2) = RFIFOL(fd,2);
+			WFIFOL(fd,2) = account_id;
 			WFIFOB(fd,6) = 0;
 			WFIFOSET(fd,7);
-			RFIFOSKIP(fd,18);
+		}
 		break;
 
 		case 0x2b05: // request "change map server"
@@ -2317,26 +2332,29 @@ int parse_frommap(int fd)
 			if (char_data == NULL) 
 			{	//Really shouldn't happen.
 				mmo_char_fromsql(RFIFOL(fd,14), &char_dat, true);
-				char_data = &char_dat;
+				char_data = (struct mmo_charstatus*)uidb_get(char_db_,RFIFOL(fd,14));
 			}
-			//Tell the new map server about this player using Kevin's new auth packet. [Skotlex]
+
 			if (map_fd >= 0 && session[map_fd] && char_data) 
 			{	//Send the map server the auth of this player.
+				struct auth_node* node;
+
 				//Update the "last map" as this is where the player must be spawned on the new map server.
 				char_data->last_point.map = RFIFOW(fd,18);
 				char_data->last_point.x = RFIFOW(fd,20);
 				char_data->last_point.y = RFIFOW(fd,22);
 				char_data->sex = RFIFOB(fd,30);
 
-				WFIFOHEAD(map_fd, 20 + sizeof(struct mmo_charstatus));
-				WFIFOW(map_fd,0) = 0x2afd;
-				WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
-				WFIFOL(map_fd,4) = RFIFOL(fd,2); //Account ID
-				WFIFOL(map_fd,8) = RFIFOL(fd,6); //Login1
-				WFIFOL(map_fd,16) = RFIFOL(fd,10); //Login2
-				WFIFOL(map_fd,12) = (unsigned long)0; //TODO: expiration_time, how do I figure it out right now?
-				memcpy(WFIFOP(map_fd,20), char_data, sizeof(struct mmo_charstatus));
-				WFIFOSET(map_fd, WFIFOW(map_fd,2));
+				// create temporary auth entry
+				CREATE(node, struct auth_node, 1);
+				node->account_id = RFIFOL(fd,2);
+				node->char_id = RFIFOL(fd,14);
+				node->login_id1 = RFIFOL(fd,6);
+				node->login_id2 = RFIFOL(fd,10);
+				node->sex = RFIFOB(fd,30);
+				node->expiration_time = 0; // FIXME
+				node->ip = ntohl(RFIFOL(fd,31));
+				idb_put(auth_db, RFIFOL(fd,2), node);
 
 				data = (struct online_char_data*)idb_ensure(online_char_db, RFIFOL(fd,2), create_online_char_data);
 				data->char_id = char_data->char_id;
@@ -2424,6 +2442,9 @@ int parse_frommap(int fd)
 
 				if( login_fd <= 0 )
 					result = 3; // 3-login-server offline
+//				else
+//				if( acc != -1 && isGM(acc) < isGM(account_id) )
+//					result = 2; // 2-gm level too low
 				else
 				switch( type ) {
 				case 1: // block
@@ -2634,6 +2655,72 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,2);
 		break;
 
+		case 0x2b26: // auth request from map-server
+			if (RFIFOREST(fd) < 19)
+				return 0;
+
+		{
+			int account_id;
+			int char_id;
+			int login_id1;
+			char sex;
+			uint32 ip;
+			struct auth_node* node;
+			struct mmo_charstatus* cd;
+			struct mmo_charstatus char_dat;
+
+			account_id = RFIFOL(fd,2);
+			char_id    = RFIFOL(fd,6);
+			login_id1  = RFIFOL(fd,10);
+			sex        = RFIFOB(fd,14);
+			ip         = ntohl(RFIFOL(fd,15));
+			RFIFOSKIP(fd,19);
+
+			node = (struct auth_node*)idb_get(auth_db, account_id);
+			cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
+			if( cd == NULL )
+			{	//Really shouldn't happen.
+				mmo_char_fromsql(char_id, &char_dat, true);
+				cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
+			}
+			if( node != NULL && cd != NULL &&
+				node->account_id == account_id &&
+				node->char_id == char_id &&
+				node->login_id1 == login_id1 &&
+				node->sex == sex &&
+				node->ip == ip )
+			{// auth ok
+				cd->sex = sex;
+
+				WFIFOHEAD(fd,24 + sizeof(struct mmo_charstatus));
+				WFIFOW(fd,0) = 0x2afd;
+				WFIFOW(fd,2) = 24 + sizeof(struct mmo_charstatus);
+				WFIFOL(fd,4) = account_id;
+				WFIFOL(fd,8) = node->login_id1;
+				WFIFOL(fd,12) = node->login_id2;
+				WFIFOL(fd,16) = (uint32)node->expiration_time; // FIXME: will wrap to negative after "19-Jan-2038, 03:14:07 AM GMT"
+				WFIFOL(fd,20) = node->gmlevel;
+				memcpy(WFIFOP(fd,24), cd, sizeof(struct mmo_charstatus));
+				WFIFOSET(fd, WFIFOW(fd,2));
+
+				// only use the auth once and mark user online
+				idb_remove(auth_db, account_id);
+				set_char_online(id, account_id, char_id);
+			}
+			else
+			{// auth failed
+				WFIFOHEAD(fd,19);
+				WFIFOW(fd,0) = 0x2b27;
+				WFIFOL(fd,2) = account_id;
+				WFIFOL(fd,6) = char_id;
+				WFIFOL(fd,10) = login_id1;
+				WFIFOB(fd,14) = sex;
+				WFIFOL(fd,15) = htonl(ip);
+				WFIFOSET(fd,19);
+			}
+		}
+		break;
+
 		case 0x2736: // ip address update
 			if (RFIFOREST(fd) < 6) return 0;
 			server[id].ip = ntohl(RFIFOL(fd, 2));
@@ -2743,26 +2830,28 @@ int parse_char(int fd)
 		// request to connect
 		// 0065 <account id>.L <login id1>.L <login id2>.L <???>.W <sex>.B
 		case 0x65:
-			if (RFIFOREST(fd) < 17)
+			if( RFIFOREST(fd) < 17 )
 				return 0;
 		{
+			struct auth_node* node;
+
 			int account_id = RFIFOL(fd,2);
-			int login_id1 = RFIFOL(fd,6);
-			int login_id2 = RFIFOL(fd,10);
+			uint32 login_id1 = RFIFOL(fd,6);
+			uint32 login_id2 = RFIFOL(fd,10);
 			int sex = RFIFOB(fd,16);
+			RFIFOSKIP(fd,17);
 
 			ShowInfo("request connect - account_id:%d/login_id1:%d/login_id2:%d\n", account_id, login_id1, login_id2);
+
 			if (sd) {
 				//Received again auth packet for already authentified account?? Discard it.
 				//TODO: Perhaps log this as a hack attempt?
 				//TODO: and perhaps send back a reply?
-				RFIFOSKIP(fd,17);
 				break;
 			}
 			
 			CREATE(session[fd]->session_data, struct char_session_data, 1);
 			sd = (struct char_session_data*)session[fd]->session_data;
-			sd->expiration_time = 0; // unknown or unlimited (not displaying on map-server)
 			sd->account_id = account_id;
 			sd->login_id1 = login_id1;
 			sd->login_id2 = login_id2;
@@ -2775,17 +2864,18 @@ int parse_char(int fd)
 			WFIFOSET(fd,4);
 
 			// search authentification
-			ARR_FIND( 0, AUTH_FIFO_SIZE, i,
-				auth_fifo[i].account_id == sd->account_id &&
-				auth_fifo[i].login_id1 == sd->login_id1 &&
-				auth_fifo[i].login_id2 == sd->login_id2 &&
-				auth_fifo[i].ip == session[fd]->client_addr &&
-				auth_fifo[i].delflag == 2 );
-
-			if( i < AUTH_FIFO_SIZE ) {
-				auth_fifo[i].delflag = 1;
+			node = (struct auth_node*)idb_get(auth_db, account_id);
+			if( node != NULL &&
+			    node->account_id == account_id &&
+				node->login_id1  == login_id1 &&
+				node->login_id2  == login_id2 &&
+				node->ip         == ipl )
+			{// authentication found (coming from map server)
+				idb_remove(auth_db, account_id);
 				char_auth_ok(fd, sd);
-			} else { // authentication not found
+			}
+			else
+			{// authentication not found (coming from login server)
 				if (login_fd > 0) { // don't send request if no login-server
 					WFIFOHEAD(login_fd,19);
 					WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
@@ -2793,7 +2883,7 @@ int parse_char(int fd)
 					WFIFOL(login_fd,6) = sd->login_id1;
 					WFIFOL(login_fd,10) = sd->login_id2;
 					WFIFOB(login_fd,14) = sd->sex;
-					WFIFOL(login_fd,15) = htonl(session[fd]->client_addr);
+					WFIFOL(login_fd,15) = htonl(ipl);
 					WFIFOSET(login_fd,19);
 				} else { // if no login-server, we must refuse connection
 					WFIFOHEAD(fd,3);
@@ -2803,21 +2893,22 @@ int parse_char(int fd)
 				}
 			}
 		}
-
-			RFIFOSKIP(fd,17);
 		break;
 
 		// char select
 		case 0x66:
 			FIFOSD_CHECK(3);
-
-		do //FIXME: poor code structure
 		{
 			struct mmo_charstatus char_dat;
 			char* data;
 			int char_id;
+			uint32 subnet_map_ip;
+			struct auth_node* node;
 
-			if ( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, sd->account_id, RFIFOB(fd,2))
+			int slot = RFIFOB(fd,2);
+			RFIFOSKIP(fd,3);
+
+			if ( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, sd->account_id, slot)
 			  || SQL_SUCCESS != Sql_NextRow(sql_handle)
 			  || SQL_SUCCESS != Sql_GetData(sql_handle, 0, &data, NULL) )
 			{
@@ -2838,10 +2929,10 @@ int parse_char(int fd)
 
 				Sql_EscapeStringLen(sql_handle, esc_name, char_dat.name, strnlen(char_dat.name, NAME_LENGTH));
 				if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%d', '%d', '%s')",
-					charlog_db, sd->account_id, RFIFOB(fd, 2), esc_name) )
+					charlog_db, sd->account_id, slot, esc_name) )
 					Sql_ShowDebug(sql_handle);
 			}
-			ShowInfo("Selected char: (Account %d: %d - %s)\n", sd->account_id, RFIFOB(fd, 2), char_dat.name);
+			ShowInfo("Selected char: (Account %d: %d - %s)\n", sd->account_id, slot, char_dat.name);
 
 			// searching map server
 			i = search_mapserver(char_dat.last_point.map, -1, -1);
@@ -2889,31 +2980,8 @@ int parse_char(int fd)
 				char_dat.last_point.map = j;
 			}
 
-			//Send player to map
-			WFIFOHEAD(fd,28);
-			WFIFOW(fd,0) = 0x71;
-			WFIFOL(fd,2) = char_dat.char_id;
-			mapindex_getmapname_ext(mapindex_id2name(char_dat.last_point.map), (char*)WFIFOP(fd,6));
-		{
-			// Advanced subnet check [LuzZza]
-			uint32 subnet_map_ip;
-			subnet_map_ip = lan_subnetcheck(ipl);
-			WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
-			WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
-			WFIFOSET(fd,28);
-		}
-			if (auth_fifo_pos >= AUTH_FIFO_SIZE)
-				auth_fifo_pos = 0;
-			auth_fifo[auth_fifo_pos].account_id = sd->account_id;
-			auth_fifo[auth_fifo_pos].char_id = char_dat.char_id;
-			auth_fifo[auth_fifo_pos].login_id1 = sd->login_id1;
-			auth_fifo[auth_fifo_pos].login_id2 = sd->login_id2;
-			auth_fifo[auth_fifo_pos].delflag = 0;
-			auth_fifo[auth_fifo_pos].sex = sd->sex;
-			auth_fifo[auth_fifo_pos].expiration_time = sd->expiration_time;
-			auth_fifo[auth_fifo_pos].ip = session[fd]->client_addr;
-
 			//Send NEW auth packet [Kevin]
+			//FIXME: is this case even possible? [ultramage]
 			if ((map_fd = server[i].fd) < 1 || session[map_fd] == NULL)
 			{
 				ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
@@ -2927,22 +2995,30 @@ int parse_char(int fd)
 				break;
 			}
 
-			//Send auth ok to map server
-			WFIFOHEAD(map_fd,20 + sizeof(struct mmo_charstatus));
-			WFIFOW(map_fd,0) = 0x2afd;
-			WFIFOW(map_fd,2) = 20 + sizeof(struct mmo_charstatus);
-			WFIFOL(map_fd,4) = auth_fifo[auth_fifo_pos].account_id;
-			WFIFOL(map_fd,8) = auth_fifo[auth_fifo_pos].login_id1;
-			WFIFOL(map_fd,16) = auth_fifo[auth_fifo_pos].login_id2;
-			WFIFOL(map_fd,12) = (unsigned long)auth_fifo[auth_fifo_pos].expiration_time;
-			memcpy(WFIFOP(map_fd,20), &char_dat, sizeof(struct mmo_charstatus));
-			WFIFOSET(map_fd, WFIFOW(map_fd,2));
+			//Send player to map
+			WFIFOHEAD(fd,28);
+			WFIFOW(fd,0) = 0x71;
+			WFIFOL(fd,2) = char_dat.char_id;
+			mapindex_getmapname_ext(mapindex_id2name(char_dat.last_point.map), (char*)WFIFOP(fd,6));
+			subnet_map_ip = lan_subnetcheck(ipl); // Advanced subnet check [LuzZza]
+			WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
+			WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
+			WFIFOSET(fd,28);
+
+			// create temporary auth entry
+			CREATE(node, struct auth_node, 1);
+			node->account_id = sd->account_id;
+			node->char_id = char_dat.char_id;
+			node->login_id1 = sd->login_id1;
+			node->login_id2 = sd->login_id2;
+			node->sex = sd->sex;
+			node->expiration_time = sd->expiration_time;
+			node->gmlevel = sd->gmlevel;
+			node->ip = ipl;
+			idb_put(auth_db, sd->account_id, node);
 
 			set_char_online(i, char_dat.char_id, char_dat.account_id);
-			auth_fifo_pos++;
-		} while(0);
-
-			RFIFOSKIP(fd,3);
+		}
 		break;
 
 		// create new char
@@ -3675,6 +3751,7 @@ void do_final(void)
 		do_close(char_fd);
 	char_db_->destroy(char_db_, NULL);
 	online_char_db->destroy(online_char_db, NULL);
+	auth_db->destroy(auth_db, NULL);
 
 	Sql_Free(sql_handle);
 
@@ -3723,6 +3800,7 @@ int do_init(int argc, char **argv)
 	ShowInfo("Finished reading the inter-server configuration.\n");
 	
 	ShowInfo("Initializing char server.\n");
+	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	mmo_char_sql_init();
 	char_read_fame_list(); //Read fame lists.

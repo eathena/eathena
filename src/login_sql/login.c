@@ -668,8 +668,8 @@ int parse_fromchar(int fd)
 			struct auth_node* node;
 
 			int account_id = RFIFOL(fd,2);
-			int login_id1 = RFIFOL(fd,6);
-			int login_id2 = RFIFOL(fd,10);
+			uint32 login_id1 = RFIFOL(fd,6);
+			uint32 login_id2 = RFIFOL(fd,10);
 			char sex = sex_num2str(RFIFOB(fd,14));
 			uint32 ip_ = ntohl(RFIFOL(fd,15));
 			RFIFOSKIP(fd,19);

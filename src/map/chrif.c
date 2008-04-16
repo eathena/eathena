@@ -36,7 +36,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 	 6,30,-1,-1,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, F->2b0a, F->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	11,10,10, 6,11,-1,266,10,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, F->2b15, U->2b16, U->2b17
 	 2,10, 2,-1,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
-	-1,10, 8, 2, 2,14,-1,-1,	// 2b20-2b27: U->2b20, U->2b21, U->2b22, U->2b23, U->2b24, U->2b25, F->2b26, F->2b27
+	-1,10, 8, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, U->2b22, U->2b23, U->2b24, U->2b25, F->2b26, F->2b27
 };
 
 //Used Packets:
@@ -45,7 +45,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2afa: Outgoing, chrif_sendmap -> 'sending our maps'
 //2afb: Incoming, chrif_sendmapack -> 'Maps received successfully / or not ..'
 //2afc: Outgoing, chrif_scdata_request -> request sc_data for pc_authok'ed char. <- new command reuses previous one.
-//2afd: Incoming, chrif_authok -> 'character selected, add to auth db'
+//2afd: Incoming, chrif_authok -> 'client authentication ok'
 //2afe: Outgoing, send_usercount_tochar -> 'sends player count of this map server to charserver'
 //2aff: Outgoing, send_users_tochar -> 'sends all actual connected character ids to charserver'
 //2b00: Incoming, map_setusers -> 'set the actual usercount? PACKET.2B COUNT.L.. ?' (not sure)
@@ -86,8 +86,8 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b23: Outgoing, chrif_keepalive. charserver ping.
 //2b24: Incoming, chrif_keepalive_ack. charserver ping reply.
 //2b25: Incoming, chrif_deadopt -> 'Removes baby from Father ID and Mother ID'
-//2b26: FREE
-//2b27: FREE
+//2b26: Outgoing, chrif_authreq -> 'client authentication request'
+//2b27: Incoming, chrif_authfail -> 'client authentication failed'
 
 int chrif_connected = 0;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
@@ -111,12 +111,14 @@ struct auth_node* chrif_search(int account_id)
 	return (struct auth_node*)idb_get(auth_db, account_id);
 }
 
-struct auth_node* chrif_auth_check(int account_id, int char_id, enum sd_state state) {
+struct auth_node* chrif_auth_check(int account_id, int char_id, enum sd_state state)
+{
 	struct auth_node *node = chrif_search(account_id);
 	return (node && node->char_id == char_id && node->state == state)?node:NULL;
 }
 
-bool chrif_auth_delete(int account_id, int char_id, enum sd_state state) {
+bool chrif_auth_delete(int account_id, int char_id, enum sd_state state)
+{
 	struct auth_node *node;
 	if ((node=chrif_auth_check(account_id, char_id, state)))
 	{
@@ -381,7 +383,7 @@ int chrif_changemapserver(struct map_session_data* sd, uint32 ip, uint16 port)
 	WFIFOL(char_fd,24) = htonl(ip);
 	WFIFOW(char_fd,28) = htons(port);
 	WFIFOB(char_fd,30) = sd->status.sex;
-	WFIFOL(char_fd,31) = 0; // sd's IP, not used anymore
+	WFIFOL(char_fd,31) = htonl(session[sd->fd]->client_addr);
 	WFIFOSET(char_fd,35);
 	return 0;
 }
@@ -506,100 +508,122 @@ int chrif_scdata_request(int account_id, int char_id)
 }
 
 /*==========================================
- * new auth system [Kevin]
+ * Request auth confirmation
  *------------------------------------------*/
 void chrif_authreq(struct map_session_data *sd)
 {
 	struct auth_node *node= chrif_search(sd->bl.id);
-
-	if(!node) {
-		//data from char server has not arrived yet.
-		chrif_sd_to_auth(sd, ST_LOGIN);
+	if( node != NULL )
+	{
+		set_eof(sd->fd);
 		return;
 	}
 
-	if(node->state == ST_LOGIN &&
-		node->char_dat &&
-		node->account_id == sd->status.account_id &&
-		node->char_id == sd->status.char_id &&
-		node->login_id1 == sd->login_id1)
-	{	//auth ok
-		if (!pc_authok(sd, node->login_id2, node->expiration_time, node->char_dat))
-			chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
-		else {
-			//char_dat no longer needed, but player auth is not completed yet.
-			aFree(node->char_dat);
-			node->char_dat = NULL;
-			node->sd = sd;
-		}
-	} else { //auth failed
-		pc_authfail(sd);
-		chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
-		chrif_auth_delete(sd->status.account_id, sd->status.char_id, ST_LOGIN);
-	}
-	return;
+	WFIFOHEAD(char_fd,19);
+	WFIFOW(char_fd,0) = 0x2b26;
+	WFIFOL(char_fd,2) = sd->status.account_id;
+	WFIFOL(char_fd,6) = sd->status.char_id;
+	WFIFOL(char_fd,10) = sd->login_id1;
+	WFIFOB(char_fd,14) = sd->status.sex;
+	WFIFOL(char_fd,15) = htonl(session[sd->fd]->client_addr);
+	WFIFOSET(char_fd,19);
+	chrif_sd_to_auth(sd, ST_LOGIN);
 }
 
-//character selected, insert into auth db
+/*==========================================
+ * Auth confirmation ack
+ *------------------------------------------*/
 void chrif_authok(int fd)
 {
+	int account_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	time_t expiration_time;
+	int gmlevel;
+	struct mmo_charstatus* status;
+	int char_id;
 	struct auth_node *node;
-	int account_id = RFIFOL(fd, 4);
-	struct mmo_charstatus *status = (struct mmo_charstatus *)RFIFOP(fd, 20);
-	int char_id = status->char_id;
 	TBL_PC* sd;
 
 	//Check if both servers agree on the struct's size
-	if( RFIFOW(fd,2) - 20 != sizeof(struct mmo_charstatus) )
+	if( RFIFOW(fd,2) - 24 != sizeof(struct mmo_charstatus) )
 	{
-		ShowError("chrif_authok: Data size mismatch! %d != %d\n", RFIFOW(fd,2) - 20, sizeof(struct mmo_charstatus));
+		ShowError("chrif_authok: Data size mismatch! %d != %d\n", RFIFOW(fd,2) - 24, sizeof(struct mmo_charstatus));
 		return;
 	}
+
+	account_id = RFIFOL(fd,4);
+	login_id1 = RFIFOL(fd,8);
+	login_id2 = RFIFOL(fd,12);
+	expiration_time = (time_t)(int32)RFIFOL(fd,16);
+	gmlevel = RFIFOL(fd,20);
+	status = (struct mmo_charstatus*)RFIFOP(fd,24);
+
+	char_id = status->char_id;
 
 	//Check if we don't already have player data in our server
 	//Causes problems if the currently connected player tries to quit or this data belongs to an already connected player which is trying to re-auth.
 	if ((sd = map_id2sd(account_id)) != NULL)
 		return;
 	
-	if ((node = chrif_search(account_id)))
-	{	//Is the character already awaiting authorization?
-		if (node->state != ST_LOGIN)
-			return; //character in logout phase, do not touch that data.
-		if (node->sd)
-		{
-			sd = node->sd;
-			if(node->char_dat == NULL &&
-				node->account_id == account_id &&
-				node->char_id == char_id &&
-				node->login_id1 == RFIFOL(fd, 8))
-			{ //Auth Ok
-				if (pc_authok(sd, RFIFOL(fd, 16), RFIFOL(fd, 12), status))
-					return;
-			} else { //Auth Failed
-				pc_authfail(sd);
-				chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
-			}
-			chrif_auth_delete(account_id, char_id, ST_LOGIN);
-			return;
-		}
+	if ((node = chrif_search(account_id)) == NULL)
+		return; // should not happen
+
+	if (node->state != ST_LOGIN)
+		return; // character in logout phase, do not touch that data.
+
+	if (node->sd == NULL)
+	{
+		/*
 		//When we receive double login info and the client has not connected yet,
 		//discard the older one and keep the new one.
 		chrif_auth_delete(node->account_id, node->char_id, ST_LOGIN);
+		*/
+		return; // should not happen
 	}
 
-	// Awaiting for client to connect.
-	node = ers_alloc(auth_db_ers, struct auth_node);
-	memset(node, 0, sizeof(struct auth_node));
-	node->char_dat = (struct mmo_charstatus *) aMalloc(sizeof(struct mmo_charstatus));
+	sd = node->sd;
+	if(node->char_dat == NULL &&
+		node->account_id == account_id &&
+		node->char_id == char_id &&
+		node->login_id1 == login_id1 )
+	{ //Auth Ok
+		if (pc_authok(sd, login_id2, expiration_time, gmlevel, status))
+			return;
+	} else { //Auth Failed
+		pc_authfail(sd);
+	}
+	chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
+	chrif_auth_delete(account_id, char_id, ST_LOGIN);
+}
 
-	node->account_id=account_id;
-	node->char_id=char_id;
-	node->login_id1=RFIFOL(fd, 8);
-	node->expiration_time=RFIFOL(fd, 12);
-	node->login_id2=RFIFOL(fd, 16);
-	memcpy(node->char_dat,status,sizeof(struct mmo_charstatus));
-	node->node_created=gettick();
-	idb_put(auth_db, account_id, node);
+// client authentication failed
+void chrif_authfail(int fd)
+{
+	int account_id;
+	int char_id;
+	uint32 login_id1;
+	char sex;
+	uint32 ip;
+	struct auth_node* node;
+
+	account_id = RFIFOL(fd,2);
+	char_id    = RFIFOL(fd,6);
+	login_id1  = RFIFOL(fd,10);
+	sex        = RFIFOB(fd,14);
+	ip         = ntohl(RFIFOL(fd,15));
+
+	node = chrif_search(account_id);
+	if( node != NULL &&
+		node->account_id == account_id &&
+		node->char_id == char_id &&
+		node->login_id1 == login_id1 &&
+		node->sex == sex &&
+		node->state == ST_LOGIN )
+	{// found a match
+		clif_authfail_fd(node->fd, 0);
+		chrif_auth_delete(account_id, char_id, ST_LOGIN);
+	}
 }
 
 int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)
@@ -1393,6 +1417,7 @@ int chrif_parse(int fd)
 		case 0x2b22: chrif_updatefamelist_ack(fd); break;
 		case 0x2b24: chrif_keepalive_ack(fd); break;
 		case 0x2b25: chrif_deadopt(RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
+		case 0x2b27: chrif_authfail(fd); break;
 		default:
 			ShowError("chrif_parse : unknown packet (session #%d): 0x%x. Disconnecting.\n", fd, cmd);
 			set_eof(fd);

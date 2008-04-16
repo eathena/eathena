@@ -129,6 +129,7 @@ struct map_session_data {
 	} special_state;
 	int login_id1, login_id2;
 	unsigned short class_;	//This is the internal job ID used by the map server to simplify comparisons/queries/etc. [Skotlex]
+	int gmlevel;
 
 	int packet_ver;  // 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 ... 18
 	struct mmo_charstatus status;
@@ -491,7 +492,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
 void pc_respawn(struct map_session_data* sd, uint8 clrtype);
 int pc_setnewpc(struct map_session_data*,int,int,int,unsigned int,int,int);
-bool pc_authok(struct map_session_data*, int, time_t, struct mmo_charstatus *);
+bool pc_authok(struct map_session_data* sd, int, time_t, int gmlevel, struct mmo_charstatus* status);
 void pc_authfail(struct map_session_data *);
 int pc_reg_received(struct map_session_data *sd);
 

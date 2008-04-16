@@ -426,7 +426,8 @@ int parse_fromchar(int fd)
 				WFIFOB(fd,14) = 0;
 				safestrncpy((char*)WFIFOP(fd,15), email, 40);
 				WFIFOL(fd,55) = (uint32)expiration_time;
-				WFIFOSET(fd,59);
+				WFIFOB(fd,59) = gmlevel;
+				WFIFOSET(fd,60);
 			}
 			else
 			{// authentication not found
@@ -493,6 +494,7 @@ int parse_fromchar(int fd)
 			struct mmo_account acc;
 			time_t expiration_time = 0;
 			char email[40] = "";
+			int gmlevel = 0;
 
 			int account_id = RFIFOL(fd,2);
 			RFIFOSKIP(fd,6);
@@ -503,14 +505,16 @@ int parse_fromchar(int fd)
 			{
 				safestrncpy(email, acc.email, sizeof(email));
 				expiration_time = acc.expiration_time;
+				gmlevel = acc.level;
 			}
 
-			WFIFOHEAD(fd,50);
+			WFIFOHEAD(fd,51);
 			WFIFOW(fd,0) = 0x2717;
 			WFIFOL(fd,2) = account_id;
 			safestrncpy((char*)WFIFOP(fd,6), email, 40);
 			WFIFOL(fd,46) = (uint32)expiration_time;
-			WFIFOSET(fd,50);
+			WFIFOB(fd,50) = gmlevel;
+			WFIFOSET(fd,51);
 		}
 		break;
 

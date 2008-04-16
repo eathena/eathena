@@ -84,9 +84,7 @@ int pc_class2idx(int class_) {
 
 int pc_isGM(struct map_session_data* sd)
 {
-	//TODO:
-	//return sd->gmlevel;
-	return 0;
+	return sd->gmlevel;
 }
 
 static int pc_invincible_timer(int tid,unsigned int tick,int id,int data)
@@ -696,12 +694,13 @@ int pc_isequip(struct map_session_data *sd,int n)
  * session idに問題無し
  * char鯖から送られてきたステ?タスを設定
  *------------------------------------------*/
-bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_time, struct mmo_charstatus *st)
+bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_time, int gmlevel, struct mmo_charstatus *st)
 {
 	int i;
 	unsigned long tick = gettick();
 
 	sd->login_id2 = login_id2;
+	sd->gmlevel = gmlevel;
 	memcpy(&sd->status, st, sizeof(*st));
 
 	if (st->sex != sd->status.sex) {
