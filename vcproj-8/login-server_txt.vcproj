@@ -204,6 +204,14 @@
 			Name="login_txt"
 			>
 			<File
+				RelativePath="..\src\login\account.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\account_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\login\admin.c"
 				>
 			</File>

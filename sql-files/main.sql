@@ -418,20 +418,18 @@ CREATE TABLE `ipbanlist` (
 
 DROP TABLE IF EXISTS `login`;
 CREATE TABLE `login` (
-  `account_id` int(11) unsigned NOT NULL auto_increment,
+  `auction_id` bigint(20) unsigned NOT NULL auto_increment,
   `userid` varchar(23) NOT NULL default '',
   `user_pass` varchar(32) NOT NULL default '',
-  `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
   `sex` enum('M','F','S') NOT NULL default 'M',
-  `logincount` mediumint(9) unsigned NOT NULL default '0',
   `email` varchar(39) NOT NULL default '',
   `level` tinyint(3) NOT NULL default '0',
-  `error_message` smallint(11) unsigned NOT NULL default '0',
-  `expiration_time` int(11) unsigned NOT NULL default '0',
-  `last_ip` varchar(100) NOT NULL default '',
-  `memo` smallint(11) unsigned NOT NULL default '0',
-  `unban_time` int(11) unsigned NOT NULL default '0',
   `state` int(11) unsigned NOT NULL default '0',
+  `unban_time` int(11) unsigned NOT NULL default '0',
+  `expiration_time` int(11) unsigned NOT NULL default '0',
+  `logincount` mediumint(9) unsigned NOT NULL default '0',
+  `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
+  `last_ip` varchar(100) NOT NULL default '',
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
 ) TYPE=MyISAM AUTO_INCREMENT=2000000; 

@@ -142,6 +142,10 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 
 	}
 
+	// zero value is prohibited
+	if( account_id == 0 )
+		return false;
+
 	// absolute maximum
 	if( account_id > END_ACCOUNT_NUM )
 		return false;
@@ -237,7 +241,7 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 
 	// retrieve login entry for the specified account
 	if( SQL_ERROR == Sql_Query(sql_handle,
-	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`level`,`state`,`unban_time`,`expiration_time`, `logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `account_id` = %d",
+	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`level`,`state`,`unban_time`,`expiration_time`,`logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `account_id` = %d",
 		login_db, account_id )
 	) {
 		Sql_ShowDebug(sql_handle);

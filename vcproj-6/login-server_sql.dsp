@@ -199,6 +199,14 @@ SOURCE=..\src\common\version.h
 # PROP Default_Filter ""
 # Begin Source File
 
+SOURCE=..\src\login\account.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\login\account_sql.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\login\login.c
 # End Source File
 # Begin Source File
