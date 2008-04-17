@@ -860,12 +860,12 @@ int parse_fromchar(int fd)
 //-------------------------------------
 // Make new account
 //-------------------------------------
-int mmo_auth_new(struct mmo_account* account)
+static int mmo_auth_new(const char* userid, const char* pass, const char sex, const char* last_ip)
 {
 	static int num_regs = 0; // registration counter
 	static unsigned int new_reg_tick = 0;
 	unsigned int tick = gettick();
-	struct mmo_account tmpacc;
+	struct mmo_account acc;
 
 	//Account Registration Flood Protection by [Kevin]
 	if( new_reg_tick == 0 )
@@ -877,23 +877,24 @@ int mmo_auth_new(struct mmo_account* account)
 	}
 
 	// check if the account doesn't exist already
-	if( accounts->load_str(accounts, &tmpacc, account->userid) )
+	if( accounts->load_str(accounts, &acc, userid) )
 	{
-		ShowNotice("Attempt of creation of an already existant account (account: %s_%c, pass: %s, received pass: %s)\n", account->userid, account->sex, tmpacc.pass, account->pass);
+		ShowNotice("Attempt of creation of an already existant account (account: %s_%c, pass: %s, received pass: %s)\n", userid, sex, acc.pass, pass);
 		return 1; // 1 = Incorrect Password
 	}
 
-	account->account_id = 0; // assigned by account db
-	safestrncpy(account->lastlogin, "-", sizeof(account->lastlogin));
-	account->logincount = 0;
-	account->state = 0;
-	safestrncpy(account->email, "a@a.com", sizeof(account->email));
-	account->unban_time = 0;
-	account->expiration_time = ( login_config.start_limited_time != -1 ) ? time(NULL) + login_config.start_limited_time : 0;
-	account->account_reg2_num = 0;
+	memset(&acc, '\0', sizeof(acc));
+	acc.account_id = -1; // assigned by account db
+	safestrncpy(acc.userid, userid, sizeof(acc.userid));
+	safestrncpy(acc.pass, pass, sizeof(acc.pass));
+	acc.sex = sex;
+	safestrncpy(acc.email, "a@a.com", sizeof(acc.email));
+	acc.expiration_time = ( login_config.start_limited_time != -1 ) ? time(NULL) + login_config.start_limited_time : 0;
+	safestrncpy(acc.lastlogin, "-", sizeof(acc.lastlogin));
+	safestrncpy(acc.last_ip, last_ip, sizeof(acc.last_ip));
 
-	accounts->create(accounts, account);
-	ShowNotice("Account creation (account %s, pass: %s, sex: %c)\n", account->userid, account->pass, account->sex);
+	accounts->create(accounts, &acc);
+	ShowNotice("Account creation (account %s, pass: %s, sex: %c)\n", acc.userid, acc.pass, acc.sex);
 
 	if( DIFF_TICK(tick, new_reg_tick) > 0 )
 	{// Update the registration check.
@@ -913,7 +914,6 @@ int mmo_auth(struct login_session_data* sd)
 	time_t raw_time;
 	char tmpstr[256];
 	int len;
-	char user_password[32+1]; // reserve for md5-ed pw
 	struct mmo_account acc;
 
 	char ip[16];
@@ -957,23 +957,13 @@ int mmo_auth(struct login_session_data* sd)
 			sd->passwdenc == 0 && // unencoded password
 			sd->userid[len-2] == '_' && memchr("FfMm", sd->userid[len-1], 4) ) // _M/_F suffix
 		{
-			struct mmo_account newacc;
 			int result;
 
 			// remove the _M/_F suffix
 			len -= 2;
 			sd->userid[len] = '\0';
 
-			memset(&newacc, '\0', sizeof(acc));
-			safestrncpy(newacc.userid, sd->userid, NAME_LENGTH);
-			if( login_config.use_md5_passwds )
-				MD5_String(sd->passwd, newacc.pass);
-			else
-				safestrncpy(newacc.pass, sd->passwd, NAME_LENGTH);
-			newacc.sex = TOUPPER(sd->userid[len+1]);
-			safestrncpy(newacc.last_ip, ip, sizeof(newacc.last_ip));
-
-			result = mmo_auth_new(&newacc);
+			result = mmo_auth_new(sd->userid, sd->passwd, TOUPPER(sd->userid[len+1]), ip);
 			if( result )
 				return result;// Failed to make account. [Skotlex].
 		}
@@ -986,14 +976,9 @@ int mmo_auth(struct login_session_data* sd)
 		return 0; // 0 = Unregistered ID
 	}
 
-	if( login_config.use_md5_passwds )
-		MD5_String(sd->passwd, user_password);
-	else
-		safestrncpy(user_password, sd->passwd, NAME_LENGTH);
-
-	if( !check_password(sd, sd->passwdenc, user_password, acc.pass) )
+	if( !check_password(sd, sd->passwdenc, sd->passwd, acc.pass) )
 	{
-		ShowNotice("Invalid password (account: '%s', pass: '%s', received pass: '%s', ip: %s)\n", sd->userid, acc.pass, (sd->passwdenc) ? "[MD5]" : sd->passwd, ip);
+		ShowNotice("Invalid password (account: '%s', pass: '%s', received pass: '%s', ip: %s)\n", sd->userid, acc.pass, sd->passwd, ip);
 		return 1; // 1 = Incorrect Password
 	}
 
@@ -1011,7 +996,7 @@ int mmo_auth(struct login_session_data* sd)
 		return 6; // 6 = Your are Prohibited to log in until %s
 	}
 
-	if( acc.state )
+	if( acc.state != 0 )
 	{
 		ShowNotice("Connection refused (account: %s, pass: %s, state: %d, ip: %s)\n", sd->userid, sd->passwd, acc.state, ip);
 		return acc.state - 1;
@@ -1230,10 +1215,14 @@ int parse_login(int fd)
 {
 	struct login_session_data* sd = session[fd]->session_data;
 	int result;
+
 	char ip[16];
+	uint32 ipl = session[fd]->client_addr;
+	ip2str(ipl, ip);
 
 	if( session[fd]->flag.eof )
 	{
+		ShowInfo("Closed connection from '"CL_WHITE"%s"CL_RESET"'.\n", ip);
 		do_close(fd);
 		return 0;
 	}
@@ -1242,8 +1231,6 @@ int parse_login(int fd)
 		sd = CREATE(session[fd]->session_data, struct login_session_data, 1);
 		sd->fd = fd;
 	}
-
-	ip2str(session[fd]->client_addr, ip);
 
 	while( RFIFOREST(fd) >= 2 )
 	{
@@ -1264,36 +1251,48 @@ int parse_login(int fd)
 			RFIFOSKIP(fd,18);
 		break;
 
-		case 0x0064:		// request client login
-		case 0x01dd:		// request client login (encryption mode)
-		case 0x0277:		// New login packet (kRO 2006-04-24aSakexe langtype 0)
-		case 0x02b0:		// New login packet (kRO 2007-05-14aSakexe langtype 0)
+		// request client login
+		case 0x0064: // S 0064 <version>.l <username>.24B <password>.24B <version2>.B
+		case 0x01dd: // S 01dd <version>.l <username>.24B <md5 hash>.16B <version2>.B
+		case 0x0277: // S 0277 <version>.l <username>.24B <password>.24B <junk?>.29B <version2>.B (kRO 2006-04-24aSakexe langtype 0)
+		case 0x02b0: // S 02b0 <version>.l <username>.24B <password>.24B <junk?>.30B <version2>.B (kRO 2007-05-14aSakexe langtype 0)
 		{
-			size_t packet_len = RFIFOREST(fd); // assume no other packet was sent
+			size_t packet_len = RFIFOREST(fd);
 
 			if( (command == 0x0064 && packet_len < 55)
 			||  (command == 0x01dd && packet_len < 47)
 			||  (command == 0x0277 && packet_len < 84)
 			||  (command == 0x02b0 && packet_len < 85) )
-				return 0;
+			return 0;
+		}
+		{
+			int version = RFIFOL(fd,2);
+			char* userid = (char*)RFIFOP(fd,6);
+			char* passwd = (char*)RFIFOP(fd,30);
+			RFIFOSKIP(fd,RFIFOREST(fd)); // assume no other packet was sent
 
-			// S 0064 <version>.l <account name>.24B <password>.24B <version2>.B
-			// S 01dd <version>.l <account name>.24B <md5 binary>.16B <version2>.B
-			// S 0277 <version>.l <account name>.24B <password>.24B <junk?>.29B <version2>.B
-			// S 02b0 <version>.l <account name>.24B <password>.24B <junk?>.30B <version2>.B
-
-			sd->version = RFIFOL(fd,2);
-			safestrncpy(sd->userid, (char*)RFIFOP(fd,6), NAME_LENGTH);
-			if (command != 0x01dd) {
+			sd->version = version;
+			safestrncpy(sd->userid, userid, NAME_LENGTH);
+			if( command != 0x01dd )
+			{
 				ShowStatus("Request for connection of %s (ip: %s).\n", sd->userid, ip);
-				safestrncpy(sd->passwd, (char*)RFIFOP(fd,30), NAME_LENGTH);
+				safestrncpy(sd->passwd, passwd, NAME_LENGTH);
+				if( login_config.use_md5_passwds )
+					MD5_String(sd->passwd, sd->passwd);
 				sd->passwdenc = 0;
-			} else {
+			}
+			else
+			{
 				ShowStatus("Request for connection (encryption mode) of %s (ip: %s).\n", sd->userid, ip);
-				memcpy(sd->passwd, RFIFOP(fd,30), 16); sd->passwd[16] = '\0'; // raw binary data here!
+				memcpy(sd->passwd, passwd, 16); sd->passwd[16] = '\0'; // raw binary data here!
 				sd->passwdenc = PASSWORDENC;
 			}
-			RFIFOSKIP(fd,packet_len);
+
+			if( sd->passwdenc != 0 && login_config.use_md5_passwds )
+			{
+				login_auth_failed(sd, 3); // send "rejected from server"
+				return 0;
+			}
 
 			result = mmo_auth(sd);
 
@@ -1403,7 +1402,7 @@ int parse_login(int fd)
 			WFIFOW(fd,0) = 0x7919;
 			WFIFOB(fd,2) = 1;
 /*
-			if( session[fd]->client_addr != admin_allowed_ip ) {
+			if( ipl != admin_allowed_ip ) {
 				ShowNotice("'ladmin'-login: Connection in administration mode refused: IP isn't authorised (ladmin_allow, ip: %s).\n", ip);
 			} else {
 				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;

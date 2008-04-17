@@ -1,4 +1,5 @@
 #include "../common/malloc.h"
+#include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
@@ -17,10 +18,6 @@ extern char login_server_db[32];
 extern char default_codepage[32];
 extern char login_db[256];
 extern char reg_db[256];
-extern char login_db_account_id[256];
-extern char login_db_userid[256];
-extern char login_db_user_pass[256];
-extern char login_db_level[256];
 
 /// internal structure
 typedef struct AccountDB_SQL
@@ -106,27 +103,70 @@ static bool account_db_sql_free(AccountDB* self)
 }
 
 /// create a new account entry
+/// if acc->account_id is -1, the account id will be auto-generated
 static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	Sql* sql_handle = db->accounts;
 	SqlStmt* stmt;
-	bool result = false;
 
+	// decide on the account id to assign
+	int account_id;
+	if( acc->account_id != -1 )
+	{// caller specifies it manually
+		account_id = acc->account_id;
+	}
+	else
+	{// ask the database
+		char* data;
+		size_t len;
+
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`account_id`)+1 FROM `%s`", login_db) )
+		{
+			Sql_ShowDebug(sql_handle);
+			return false;
+		}
+		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+		{
+			Sql_ShowDebug(sql_handle);
+			Sql_FreeResult(sql_handle);
+			return false;
+		}
+
+		Sql_GetData(sql_handle, 0, &data, &len);
+		account_id = ( data != NULL ) ? atoi(data) : 0;
+		Sql_FreeResult(sql_handle);
+
+		if( account_id < START_ACCOUNT_NUM )
+			account_id = START_ACCOUNT_NUM;
+
+	}
+
+	// absolute maximum
+	if( account_id > END_ACCOUNT_NUM )
+		return false;
+
+	// try to insert the data into the database
 	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_SUCCESS == SqlStmt_Prepare(stmt,
-		"INSERT INTO `%s` (`%s`, `%s`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, 'a@a.com', '%d', ?)",
-	    login_db, login_db_userid, login_db_user_pass, acc->expiration_time)
-	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)acc->userid, strlen(acc->userid))
-	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (char*)acc->pass, strlen(acc->pass))
-	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 2, SQLDT_ENUM,   (char*)&acc->sex, 1)
-	&&  SQL_SUCCESS == SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (char*)&acc->last_ip, strlen(acc->last_ip))
-	&&  SQL_SUCCESS == SqlStmt_Execute(stmt)
-	)
-		result = true;
-
+	if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
+		"INSERT INTO `%s` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	    login_db)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_INT,    (void*)&account_id, sizeof(acc->account_id))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->userid, strlen(acc->userid))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_STRING, (void*)acc->pass, strlen(acc->pass))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_ENUM,   (void*)&acc->sex, sizeof(acc->sex))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_STRING, (void*)&acc->email, strlen(acc->email))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_INT,    (void*)&acc->expiration_time, sizeof(acc->expiration_time))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_STRING, (void*)&acc->last_ip, strlen(acc->last_ip))
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+	) {
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		return false;
+	}
 	SqlStmt_Free(stmt);
-	return result;
+
+	return true;
 }
 
 static bool account_db_sql_remove(AccountDB* self, const int account_id)
@@ -135,7 +175,7 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id)
 	Sql* sql_handle = db->accounts;
 
 	// try to delete the specified account
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `%s` = %d", login_db, login_db_account_id, account_id ) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", login_db, account_id ) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -197,8 +237,8 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 
 	// retrieve login entry for the specified account
 	if( SQL_ERROR == Sql_Query(sql_handle,
-	    "SELECT `%s`,`%s`,`%s`,`sex`,`email`,`%s`,`state`,`unban_time`,`expiration_time`, `logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `%s` = %d",
-		login_db_account_id, login_db_userid, login_db_user_pass, login_db_level, login_db, login_db_account_id, account_id )
+	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`level`,`state`,`unban_time`,`expiration_time`, `logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `account_id` = %d",
+		login_db, account_id )
 	) {
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -261,7 +301,7 @@ static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, co
 	Sql_EscapeString(sql_handle, esc_userid, userid);
 
 	// get the list of account IDs for this user ID
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `%s` FROM `%s` WHERE `%s`= %s '%s'", login_db_account_id, login_db, login_db_userid, (db->case_sensitive ? "BINARY" : ""), esc_userid) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `userid`= %s '%s'", login_db, (db->case_sensitive ? "BINARY" : ""), esc_userid) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;

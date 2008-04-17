@@ -182,26 +182,37 @@ static bool account_db_txt_free(AccountDB* self)
 }
 
 /// add a new entry for this account to the account db and save it
+/// if acc->account_id is -1, the account id will be auto-generated
 static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc)
 {
 	AccountDB_TXT* db = (AccountDB_TXT*)self;
 	DBMap* accounts = db->accounts;
-	int account_id = db->next_account_id;
+	struct mmo_account* tmp;
+
+	// decide on the account id to assign
+	int account_id = ( acc->account_id != -1 ) ? acc->account_id : db->next_account_id;
+
+	// absolute maximum
+	if( account_id > END_ACCOUNT_NUM )
+		return false;
 
 	// check if the account_id is free
-	struct mmo_account* tmp = idb_get(accounts, account_id);
+	tmp = idb_get(accounts, account_id);
 	if( tmp != NULL )
-	{// fatal error condition - entry already present
+	{// error condition - entry already present
+		ShowError("account_db_txt_create: cannot create account %d:'%s', this id is already occupied by %d:'%s'!\n", account_id, acc->userid, account_id, tmp->userid);
 		return false;
 	}
 
 	// copy the data and store it in the db
 	CREATE(tmp, struct mmo_account, 1);
 	memcpy(tmp, acc, sizeof(struct mmo_account));
+	tmp->account_id = account_id;
 	idb_put(accounts, account_id, tmp);
 
 	// increment the auto_increment value
-	db->next_account_id++;
+	if( account_id >= db->next_account_id )
+		db->next_account_id = account_id + 1;
 
 	// flush data
 	mmo_auth_sync(db);
@@ -262,7 +273,6 @@ static bool account_db_txt_load_num(AccountDB* self, struct mmo_account* acc, co
 	struct mmo_account* tmp = idb_get(accounts, account_id);
 	if( tmp == NULL )
 	{// entry not found
-		memset(acc, '\0', sizeof(struct mmo_account));
 		return false;
 	}
 
@@ -291,7 +301,6 @@ static bool account_db_txt_load_str(AccountDB* self, struct mmo_account* acc, co
 
 	if( tmp == NULL )
 	{// entry not found
-		memset(acc, '\0', sizeof(struct mmo_account));
 		return false;
 	}
 

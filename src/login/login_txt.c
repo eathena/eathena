@@ -79,20 +79,6 @@ void display_conf_warnings(void)
 		}
 	}
 
-	if (login_config.min_level_to_connect < 0) { // 0: all players, 1-99 at least gm level x
-		ShowWarning("Invalid value for min_level_to_connect (%d) parameter -> setting 0 (any player).\n", login_config.min_level_to_connect);
-		login_config.min_level_to_connect = 0;
-	} else if (login_config.min_level_to_connect > 99) { // 0: all players, 1-99 at least gm level x
-		ShowWarning("Invalid value for min_level_to_connect (%d) parameter -> setting to 99 (only GM level 99)\n", login_config.min_level_to_connect);
-		login_config.min_level_to_connect = 99;
-	}
-
-	if (login_config.start_limited_time < -1) { // -1: create unlimited account, 0 or more: additionnal sec from now to create limited time
-		ShowWarning("Invalid value for start_limited_time parameter\n");
-		ShowWarning("  -> setting to -1 (new accounts are created with unlimited time).\n");
-		login_config.start_limited_time = -1;
-	}
-
 	return;
 }
 

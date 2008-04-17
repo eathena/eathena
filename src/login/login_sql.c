@@ -37,14 +37,6 @@ char login_db[256] = "login";
 char loginlog_db[256] = "loginlog";
 char reg_db[256] = "global_reg_value";
 
-// added to help out custom login tables, without having to recompile
-// source so options are kept in the login_athena.conf or the inter_athena.conf
-char login_db_account_id[256] = "account_id";
-char login_db_userid[256] = "userid";
-char login_db_user_pass[256] = "user_pass";
-char login_db_level[256] = "level";
-
-
 // temporary external imports
 extern struct Login_Config login_config;
 
@@ -250,14 +242,6 @@ bool inter_config_read_sql(const char* w1, const char* w2)
 		strcpy(login_server_db, w2);
 	else if (!strcmpi(w1, "default_codepage"))
 		strcpy(default_codepage, w2);
-	else if (!strcmpi(w1, "login_db_account_id"))
-		strcpy(login_db_account_id, w2);
-	else if (!strcmpi(w1, "login_db_userid"))
-		strcpy(login_db_userid, w2);
-	else if (!strcmpi(w1, "login_db_user_pass"))
-		strcpy(login_db_user_pass, w2);
-	else if (!strcmpi(w1, "login_db_level"))
-		strcpy(login_db_level, w2);
 	else if (!strcmpi(w1, "loginlog_db"))
 		strcpy(loginlog_db, w2);
 	else if (!strcmpi(w1, "reg_db"))

@@ -18,6 +18,7 @@ struct AccountDB
 	bool (*free)(AccountDB* self);
 
 	/// creates a new account and saves the provided data
+	/// if acc->account_id is -1, the account id will be auto-generated
 	bool (*create)(AccountDB* self, const struct mmo_account* acc);
 
 	/// deletes an existing account
