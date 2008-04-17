@@ -418,7 +418,7 @@ CREATE TABLE `ipbanlist` (
 
 DROP TABLE IF EXISTS `login`;
 CREATE TABLE `login` (
-  `auction_id` bigint(20) unsigned NOT NULL auto_increment,
+  `account_id` int(11) unsigned NOT NULL auto_increment,
   `userid` varchar(23) NOT NULL default '',
   `user_pass` varchar(32) NOT NULL default '',
   `sex` enum('M','F','S') NOT NULL default 'M',
