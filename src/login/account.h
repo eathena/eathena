@@ -7,7 +7,7 @@
 typedef struct AccountDB AccountDB;
 
 AccountDB* account_db_txt(void);
-AccountDB* account_db_sql(bool case_sensitive);
+AccountDB* account_db_sql(void);
 
 struct AccountDB
 {
@@ -16,6 +16,9 @@ struct AccountDB
 
 	/// releases all allocated data and the db itself
 	bool (*free)(AccountDB* self);
+
+	/// if the option is supported, adjusts the internal state
+	bool (*configure)(AccountDB* self, const char* option, const char* value);
 
 	/// creates a new account and saves the provided data
 	/// if acc->account_id is -1, the account id will be auto-generated

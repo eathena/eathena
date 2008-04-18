@@ -8156,7 +8156,7 @@ int atcommand_request(const int fd, struct map_session_data* sd, const char* com
 	}
 
 	sprintf(atcmd_output, msg_txt(278), message);	// (@request): %s
-	intif_wis_message_to_gm(sd->status.name, lowest_gm_level, atcmd_output);
+	intif_wis_message_to_gm(sd->status.name, battle_config.lowest_gm_level, atcmd_output);
 	clif_disp_onlyself(sd, atcmd_output, strlen(atcmd_output));
 	clif_displaymessage(sd->fd,msg_txt(279));	// @request sent.
 	return 0;

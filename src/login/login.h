@@ -54,7 +54,6 @@ struct Login_Config {
 	bool console;                                   // console input system enabled?
 	bool new_account_flag;                          // autoregistration via _M/_F ?
 	int start_limited_time;                         // new account expiration time (-1: unlimited)
-	bool case_sensitive;                            // are logins case sensitive ?
 	bool use_md5_passwds;                           // work with password hashes instead of plaintext passwords?
 	int min_level_to_connect;                       // minimum level of player/GM (0: player, 1-99: GM) to connect
 	bool online_check;                              // reject incoming players that are already registered as online ?

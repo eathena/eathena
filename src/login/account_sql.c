@@ -9,29 +9,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-/// imports from outside
-extern uint16 login_server_port;
-extern char login_server_ip[32];
-extern char login_server_id[32];
-extern char login_server_pw[32];
-extern char login_server_db[32];
-extern char default_codepage[32];
-extern char login_db[256];
-extern char reg_db[256];
 
 /// internal structure
 typedef struct AccountDB_SQL
 {
 	AccountDB vtable;    // public interface
+
 	Sql* accounts;       // SQL accounts storage
 	int keepalive_timer; // ping timer id
-	bool case_sensitive; // how to look up usernames
+
+	char db_hostname[32];
+	uint16 db_port;
+	char db_username[32];
+	char db_password[32];
+	char db_database[32];
+	char codepage[32];
+	bool case_sensitive;
+	char account_db[32];
+	char accreg_db[32];
 
 } AccountDB_SQL;
 
 /// internal functions
 static bool account_db_sql_init(AccountDB* self);
 static bool account_db_sql_free(AccountDB* self);
+static bool account_db_sql_configure(AccountDB* self, const char* option, const char* value);
 static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_sql_remove(AccountDB* self, const int account_id);
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc);
@@ -42,19 +44,30 @@ static int account_db_ping_init(AccountDB_SQL* db);
 static int account_db_ping(int tid, unsigned int tick, int id, int data);
 
 /// public constructor
-AccountDB* account_db_sql(bool case_sensitive)
+AccountDB* account_db_sql(void)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)aCalloc(1, sizeof(AccountDB_SQL));
 
-	db->vtable.init     = &account_db_sql_init;
-	db->vtable.free     = &account_db_sql_free;
-	db->vtable.save     = &account_db_sql_save;
-	db->vtable.create   = &account_db_sql_create;
-	db->vtable.remove   = &account_db_sql_remove;
-	db->vtable.load_num = &account_db_sql_load_num;
-	db->vtable.load_str = &account_db_sql_load_str;
-	
-	db->case_sensitive = case_sensitive;
+	// set up the vtable
+	db->vtable.init      = &account_db_sql_init;
+	db->vtable.free      = &account_db_sql_free;
+	db->vtable.configure = &account_db_sql_configure;
+	db->vtable.save      = &account_db_sql_save;
+	db->vtable.create    = &account_db_sql_create;
+	db->vtable.remove    = &account_db_sql_remove;
+	db->vtable.load_num  = &account_db_sql_load_num;
+	db->vtable.load_str  = &account_db_sql_load_str;
+
+	// initialize to default values
+	db->accounts = NULL;
+	db->keepalive_timer = INVALID_TIMER;
+	safestrncpy(db->db_hostname, "127.0.0.1", sizeof(db->db_hostname));
+	db->db_port = 3306;
+	safestrncpy(db->db_username, "ragnarok", sizeof(db->db_username));
+	safestrncpy(db->db_password, "ragnarok", sizeof(db->db_password));
+	safestrncpy(db->db_database, "ragnarok", sizeof(db->db_database));
+	db->case_sensitive = false;
+	safestrncpy(db->accreg_db, "global_reg_value", sizeof(db->accreg_db));
 
 	return &db->vtable;
 }
@@ -72,7 +85,7 @@ static bool account_db_sql_init(AccountDB* self)
 	db->accounts = Sql_Malloc();
 	sql_handle = db->accounts;
 
-	if( SQL_ERROR == Sql_Connect(sql_handle, login_server_id, login_server_pw, login_server_ip, login_server_port, login_server_db) )
+	if( SQL_ERROR == Sql_Connect(sql_handle, db->db_username, db->db_password, db->db_hostname, db->db_port, db->db_database) )
 	{
 		Sql_ShowDebug(sql_handle);
 		Sql_Free(db->accounts);
@@ -80,7 +93,7 @@ static bool account_db_sql_init(AccountDB* self)
 		return false;
 	}
 
-	if( default_codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, default_codepage) )
+	if( db->codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, db->codepage) )
 		Sql_ShowDebug(sql_handle);
 
 	account_db_ping_init(db);
@@ -98,6 +111,49 @@ static bool account_db_sql_free(AccountDB* self)
 
 	Sql_Free(db->accounts);
 	db->accounts = NULL;
+
+	return true;
+}
+
+/// if the option is supported, adjusts the internal state
+static bool account_db_sql_configure(AccountDB* self, const char* option, const char* value)
+{
+	AccountDB_SQL* db = (AccountDB_SQL*)self;
+	const char* signature = "account.sql.";
+
+	if( strncmp(option, signature, strlen(signature)) != 0 )
+		return false;
+
+	option += strlen(signature);
+
+	if( strcmpi(option, "db_hostname") == 0 )
+		safestrncpy(db->db_hostname, value, sizeof(db->db_hostname));
+	else
+	if( strcmpi(option, "db_port") == 0 )
+		db->db_port = (uint16)strtoul(value, NULL, 10);
+	else
+	if( strcmpi(option, "db_username") == 0 )
+		safestrncpy(db->db_username, value, sizeof(db->db_username));
+	else
+	if( strcmpi(option, "db_password") == 0 )
+		safestrncpy(db->db_password, value, sizeof(db->db_password));
+	else
+	if( strcmpi(option, "db_database") == 0 )
+		safestrncpy(db->db_database, value, sizeof(db->db_database));
+	else
+	if( strcmpi(option, "codepage") == 0 )
+		safestrncpy(db->codepage, value, sizeof(db->codepage));
+	else
+	if( strcmpi(option, "case_sensitive") == 0 )
+		db->case_sensitive = config_switch(value);
+	else
+	if( strcmpi(option, "account_db") == 0 )
+		safestrncpy(db->account_db, value, sizeof(db->account_db));
+	else
+	if( strcmpi(option, "accreg_db") == 0 )
+		safestrncpy(db->accreg_db, value, sizeof(db->accreg_db));
+	else // no match
+		return false;
 
 	return true;
 }
@@ -121,7 +177,7 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 		char* data;
 		size_t len;
 
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`account_id`)+1 FROM `%s`", login_db) )
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`account_id`)+1 FROM `%s`", db->account_db) )
 		{
 			Sql_ShowDebug(sql_handle);
 			return false;
@@ -154,7 +210,7 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 	stmt = SqlStmt_Malloc(sql_handle);
 	if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
 		"INSERT INTO `%s` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, ?, ?, ?, ?)",
-	    login_db)
+	    db->account_db)
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_INT,    (void*)&account_id, sizeof(acc->account_id))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->userid, strlen(acc->userid))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_STRING, (void*)acc->pass, strlen(acc->pass))
@@ -179,7 +235,7 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id)
 	Sql* sql_handle = db->accounts;
 
 	// try to delete the specified account
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", login_db, account_id ) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", db->account_db, account_id ) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -200,12 +256,12 @@ static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 
 /*
 				//Delete all global account variables....
-				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d';", reg_db, account_id) )
+				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`='1' AND `account_id`='%d';", db->accreg_db, account_id) )
 					Sql_ShowDebug(sql_handle);
 
 				//Proceed to insert them....
 				stmt = SqlStmt_Malloc(sql_handle);
-				if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , ? , ?);",  reg_db, account_id) )
+				if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , ? , ?);",  db->accreg_db, account_id) )
 					SqlStmt_ShowDebug(stmt);
 				for( i = 0, off = 13; i < ACCOUNT_REG2_NUM && off < RFIFOW(fd,2); ++i )
 				{
@@ -242,7 +298,7 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 	// retrieve login entry for the specified account
 	if( SQL_ERROR == Sql_Query(sql_handle,
 	    "SELECT `account_id`,`userid`,`user_pass`,`sex`,`email`,`level`,`state`,`unban_time`,`expiration_time`,`logincount`,`lastlogin`,`last_ip` FROM `%s` WHERE `account_id` = %d",
-		login_db, account_id )
+		db->account_db, account_id )
 	) {
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -271,7 +327,7 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 
 
 	// retrieve account regs for the specified user
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'", reg_db, acc->account_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`,`value` FROM `%s` WHERE `type`='1' AND `account_id`='%d'", db->accreg_db, acc->account_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -305,7 +361,8 @@ static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, co
 	Sql_EscapeString(sql_handle, esc_userid, userid);
 
 	// get the list of account IDs for this user ID
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `userid`= %s '%s'", login_db, (db->case_sensitive ? "BINARY" : ""), esc_userid) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `userid`= %s '%s'",
+		db->account_db, (db->case_sensitive ? "BINARY" : ""), esc_userid) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;

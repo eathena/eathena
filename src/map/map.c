@@ -79,8 +79,6 @@ Sql* logmysql_handle;
 
 #endif /* not TXT_ONLY */
 
-int lowest_gm_level = 1;
-
 // This param using for sending mainchat
 // messages like whispers to this nick. [LuzZza]
 char main_chat_nick[16] = "Main";
@@ -2844,13 +2842,8 @@ int inter_config_read(char *cfgName)
 		i=sscanf(line,"%[^:]: %[^\r\n]",w1,w2);
 		if(i!=2)
 			continue;
-		if(strcmpi(w1,"party_share_level")==0){
-			party_share_level = config_switch(w2);
-		} else if(strcmpi(w1,"lowest_gm_level")==0){
-			lowest_gm_level = atoi(w2);
-		
-		/* Main chat nick [LuzZza] */
-		} else if(strcmpi(w1, "main_chat_nick")==0){
+
+		if(strcmpi(w1, "main_chat_nick")==0){
 			strcpy(main_chat_nick, w2);
 			
 	#ifndef TXT_ONLY

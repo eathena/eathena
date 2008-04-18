@@ -20,16 +20,13 @@
 // permanent imports
 void login_log(uint32 ip, const char* username, int rcode, const char* message);
 
+// temporary imports
 #ifdef TXT_ONLY
 	bool login_config_read_txt(const char* w1, const char* w2);
+	void display_conf_warnings(void);
 #else
 	bool login_config_read_sql(const char* w1, const char* w2);
 	bool inter_config_read_sql(const char* w1, const char* w2);
-#endif
-
-#ifdef TXT_ONLY
-	void display_conf_warnings(void);
-#else
 	void mmo_db_init();
 	void mmo_db_close();
 	void login_dynamic_ipban(const char* userid, int ip);
@@ -1475,7 +1472,6 @@ void login_set_defaults()
 	safestrncpy(login_config.date_format, "%Y-%m-%d %H:%M:%S", sizeof(login_config.date_format));
 	login_config.console = false;
 	login_config.new_account_flag = true;
-	login_config.case_sensitive = true;
 	login_config.use_md5_passwds = false;
 	login_config.min_level_to_connect = 0;
 	login_config.online_check = true;
@@ -1548,8 +1544,6 @@ int login_config_read(const char* cfgName)
 			safestrncpy(login_config.date_format, w2, sizeof(login_config.date_format));
 		else if(!strcmpi(w1, "console"))
 			login_config.console = (bool)config_switch(w2);
-		else if(!strcmpi(w1, "case_sensitive"))
-			login_config.case_sensitive = config_switch(w2);
 		else if(!strcmpi(w1, "allowed_regs")) //account flood protection system
 			allowed_regs = atoi(w2);
 		else if(!strcmpi(w1, "time_allowed"))
@@ -1570,6 +1564,8 @@ int login_config_read(const char* cfgName)
 		else if( login_config_read_sql(w1, w2) )
 			continue;
 #endif
+		else if( accounts->configure(accounts, w1, w2) )
+			continue;
 
 		else if(!strcmpi(w1, "import"))
 			login_config_read(w2);
@@ -1608,7 +1604,6 @@ void inter_config_read(const char* cfgName)
 	fclose(fp);
 	ShowInfo("Done reading %s.\n", cfgName);
 }
-
 
 //--------------------------------------
 // Function called at exit of the server
@@ -1662,13 +1657,16 @@ int do_init(int argc, char** argv)
 
 	login_set_defaults();
 
+#ifdef TXT_ONLY
+	accounts = account_db_txt();
+#else
+	accounts = account_db_sql();
+#endif
+
 	// read login-server configuration
 	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
-#ifdef TXT_ONLY
-	display_conf_warnings(); // not in login_config_read, because we can use 'import' option, and display same message twice or more
-#endif
-	inter_config_read(INTER_CONF_NAME);
 	login_lan_config_read((argc > 2) ? argv[2] : LAN_CONF_NAME);
+	inter_config_read(INTER_CONF_NAME);
 
 	srand((unsigned int)time(NULL));
 
@@ -1680,11 +1678,6 @@ int do_init(int argc, char** argv)
 #endif
 
 	// Accounts database init
-#ifdef TXT_ONLY
-	accounts = account_db_txt();
-#else
-	accounts = account_db_sql(login_config.case_sensitive);
-#endif
 	accounts->init(accounts);
 
 	// Online user database init

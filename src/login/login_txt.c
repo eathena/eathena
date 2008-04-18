@@ -4,26 +4,19 @@
 #include "../common/cbasetypes.h"
 #include "../common/mmo.h"
 #include "../common/core.h"
-#include "../common/socket.h"
-#include "../common/db.h"
-#include "../common/timer.h"
 #include "../common/malloc.h"
+#include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
-#include "../common/version.h"
-#include "../common/md5calc.h"
-#include "../common/lock.h"
 #include "account.h"
 #include "login.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h> // for stat/lstat/fstat
 
 extern struct Login_Config login_config;
 char login_log_filename[1024] = "log/login.log";
-char account_txt[1024] = "save/account.txt";
 
 // ladmin configuration
 bool admin_state = false;
@@ -65,23 +58,6 @@ void login_log(uint32 ip, const char* username, int rcode, const char* message)
 }
 
 
-//-------------------------------------
-// Displaying of configuration warnings
-//-------------------------------------
-void display_conf_warnings(void)
-{
-	if( admin_state ) {
-		if (admin_pass[0] == '\0') {
-			ShowWarning("Administrator password is void (admin_pass).\n");
-		} else if (strcmp(admin_pass, "admin") == 0) {
-			ShowWarning("You are using the default administrator password (admin_pass).\n");
-			ShowWarning("  We highly recommend that you change it.\n");
-		}
-	}
-
-	return;
-}
-
 bool login_config_read_txt(const char* w1, const char* w2)
 {
 	if(!strcmpi(w1, "login_log_filename"))
@@ -92,8 +68,6 @@ bool login_config_read_txt(const char* w1, const char* w2)
 		safestrncpy(admin_pass, w2, sizeof(admin_pass));
 	else if(!strcmpi(w1, "admin_allowed_ip"))
 		admin_allowed_ip = host2ip(w2);
-	else if(!strcmpi(w1, "account_txt"))
-		safestrncpy(account_txt, w2, sizeof(account_txt));
 	else
 		return false;
 

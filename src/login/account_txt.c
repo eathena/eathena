@@ -11,7 +11,6 @@
 #include <string.h>
 
 /// global defines
-extern char account_txt[];
 #define AUTHS_BEFORE_SAVE 10 // flush every 10 saves
 #define AUTH_SAVING_INTERVAL 60000 // flush every 10 minutes
 
@@ -19,16 +18,21 @@ extern char account_txt[];
 typedef struct AccountDB_TXT
 {
 	AccountDB vtable;      // public interface
+
 	DBMap* accounts;       // in-memory accounts storage
 	int next_account_id;   // auto_increment
 	int auths_before_save; // prevents writing to disk too often
 	int save_timer;        // save timer id
+
+	char account_db[1024]; // account data storage file
+	bool case_sensitive;   // how to look up usernames
 
 } AccountDB_TXT;
 
 /// internal functions
 static bool account_db_txt_init(AccountDB* self);
 static bool account_db_txt_free(AccountDB* self);
+static bool account_db_txt_configure(AccountDB* self, const char* option, const char* value);
 static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_txt_remove(AccountDB* self, const int account_id);
 static bool account_db_txt_save(AccountDB* self, const struct mmo_account* acc);
@@ -45,13 +49,23 @@ AccountDB* account_db_txt(void)
 {
 	AccountDB_TXT* db = (AccountDB_TXT*)aCalloc(1, sizeof(AccountDB_TXT));
 
-	db->vtable.init     = &account_db_txt_init;
-	db->vtable.free     = &account_db_txt_free;
-	db->vtable.save     = &account_db_txt_save;
-	db->vtable.create   = &account_db_txt_create;
-	db->vtable.remove   = &account_db_txt_remove;
-	db->vtable.load_num = &account_db_txt_load_num;
-	db->vtable.load_str = &account_db_txt_load_str;
+	// set up the vtable
+	db->vtable.init      = &account_db_txt_init;
+	db->vtable.free      = &account_db_txt_free;
+	db->vtable.configure = &account_db_txt_configure;
+	db->vtable.save      = &account_db_txt_save;
+	db->vtable.create    = &account_db_txt_create;
+	db->vtable.remove    = &account_db_txt_remove;
+	db->vtable.load_num  = &account_db_txt_load_num;
+	db->vtable.load_str  = &account_db_txt_load_str;
+
+	// initialize to default values
+	db->accounts = NULL;
+	db->next_account_id = START_ACCOUNT_NUM;
+	db->auths_before_save = AUTHS_BEFORE_SAVE;
+	db->save_timer = INVALID_TIMER;
+	safestrncpy(db->account_db, "save/account.txt", sizeof(db->account_db));
+	db->case_sensitive = false;
 
 	return &db->vtable;
 }
@@ -71,17 +85,14 @@ static bool account_db_txt_init(AccountDB* self)
 
 	// create accounts database
 	db->accounts = idb_alloc(DB_OPT_RELEASE_DATA);
-	db->next_account_id = START_ACCOUNT_NUM;
-	db->auths_before_save = AUTHS_BEFORE_SAVE;
-	db->save_timer = INVALID_TIMER;
 	accounts = db->accounts;
 
 	// open data file
-	fp = fopen(account_txt, "r");
+	fp = fopen(db->account_db, "r");
 	if( fp == NULL )
 	{
 		// no account file -> no account -> no login, including char-server (ERROR)
-		ShowError(CL_RED"account_db_txt_init: Accounts file [%s] not found."CL_RESET"\n", account_txt);
+		ShowError(CL_RED"account_db_txt_init: Accounts file [%s] not found."CL_RESET"\n", db->account_db);
 		return false;
 	}
 
@@ -177,6 +188,27 @@ static bool account_db_txt_free(AccountDB* self)
 
 	// delete entire structure
 	aFree(db);
+
+	return true;
+}
+
+/// if the option is supported, adjusts the internal state
+static bool account_db_txt_configure(AccountDB* self, const char* option, const char* value)
+{
+	AccountDB_TXT* db = (AccountDB_TXT*)self;
+	const char* signature = "account.txt.";
+
+	if( strncmp(option, signature, strlen(signature)) != 0 )
+		return false;
+
+	option += strlen(signature);
+
+	if( strcmpi(option, "account_db") == 0 )
+		safestrncpy(db->account_db, value, sizeof(db->account_db));
+	if( strcmpi(option, "case_sensitive") == 0 )
+		db->case_sensitive = config_switch(value);
+	else // no match
+		return false;
 
 	return true;
 }
@@ -447,7 +479,7 @@ static void mmo_auth_sync(AccountDB_TXT* db)
 	struct DBIterator* iter;
 	struct mmo_account* acc;
 
-	fp = lock_fopen(account_txt, &lock);
+	fp = lock_fopen(db->account_db, &lock);
 	if( fp == NULL )
 	{
 		return;
@@ -456,17 +488,13 @@ static void mmo_auth_sync(AccountDB_TXT* db)
 	fprintf(fp, "%d\n", 20080409); // savefile version
 
 	fprintf(fp, "// Accounts file: here are saved all information about the accounts.\n");
-	fprintf(fp, "// Structure: ID, account name, password, last login time, sex, # of logins, state, email, error message for state 7, validity time, last (accepted) login ip, memo field, ban timestamp, repeated(register text, register value)\n");
-	fprintf(fp, "// Some explanations:\n");
-	fprintf(fp, "//   account name    : between 4 to 23 char for a normal account (standard client can't send less than 4 char).\n");
-	fprintf(fp, "//   account password: between 4 to 23 char\n");
+	fprintf(fp, "// Structure: account ID, username, password, sex, email, level, state, unban time, expiration time, # of logins, last login time, last (accepted) login ip, repeated(register key, register value)\n");
+	fprintf(fp, "// where:\n");
 	fprintf(fp, "//   sex             : M or F for normal accounts, S for server accounts\n");
+	fprintf(fp, "//   level           : this account's gm level\n");
 	fprintf(fp, "//   state           : 0: account is ok, 1 to 256: error code of packet 0x006a + 1\n");
-	fprintf(fp, "//   email           : between 3 to 39 char (a@a.com is like no email)\n");
-	fprintf(fp, "//   error message   : text for the state 7: 'Your are Prohibited to login until <text>'. Max 19 char\n");
-	fprintf(fp, "//   valitidy time   : 0: unlimited account, <other value>: date calculated by addition of 1/1/1970 + value (number of seconds since the 1/1/1970)\n");
-	fprintf(fp, "//   memo field      : max 254 char\n");
-	fprintf(fp, "//   ban time        : 0: no ban, <other value>: banned until the date: date calculated by addition of 1/1/1970 + value (number of seconds since the 1/1/1970)\n");
+	fprintf(fp, "//   unban time      : 0: no ban, <other value>: banned until the date (unix timestamp)\n");
+	fprintf(fp, "//   expiration time : 0: unlimited account, <other value>: account expires on the date (unix timestamp)\n");
 
 	//TODO: sort?
 
@@ -480,7 +508,7 @@ static void mmo_auth_sync(AccountDB_TXT* db)
 	fprintf(fp, "%d\t%%newid%%\n", db->next_account_id);
 	iter->destroy(iter);
 
-	lock_fclose(fp, account_txt, &lock);
+	lock_fclose(fp, db->account_db, &lock);
 
 	// reset save counter
 	db->auths_before_save = AUTHS_BEFORE_SAVE;

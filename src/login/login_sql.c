@@ -35,7 +35,6 @@ char default_codepage[32] = "";
 
 char login_db[256] = "login";
 char loginlog_db[256] = "loginlog";
-char reg_db[256] = "global_reg_value";
 
 // temporary external imports
 extern struct Login_Config login_config;
@@ -244,8 +243,6 @@ bool inter_config_read_sql(const char* w1, const char* w2)
 		strcpy(default_codepage, w2);
 	else if (!strcmpi(w1, "loginlog_db"))
 		strcpy(loginlog_db, w2);
-	else if (!strcmpi(w1, "reg_db"))
-		strcpy(reg_db, w2);
 	else
 		return false;
 
