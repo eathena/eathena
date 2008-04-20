@@ -8,6 +8,7 @@
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 #include "../common/utils.h"
+#include "../common/strlib.h"
 
 #include "party.h"
 #include "atcommand.h"	//msg_txt()
@@ -108,11 +109,22 @@ struct party_data* party_searchname(const char* str)
 int party_create(struct map_session_data *sd,char *name,int item,int item2)
 {
 	struct party_member leader;
+	char tname[NAME_LENGTH];
 
-	if(sd->status.party_id) {
-		clif_party_created(sd,2);
-		return 0; // "already in a party"
+	safestrncpy(tname, name, NAME_LENGTH);
+	if( strlen(trim(tname)) == 0 )
+	{// empty name
+		return 0;
 	}
+
+	if( sd->status.party_id )
+	{// already in a party
+		clif_party_created(sd,2);
+		return 0;
+	}
+
+	//Temporarily set to -1 so cannot be spam invited
+	sd->status.party_id = -1;
 
 	party_fill_member(&leader, sd);
 	leader.leader = 1;
@@ -139,6 +151,7 @@ void party_created(int account_id,int char_id,int fail,int party_id,char *name)
 		clif_party_created(sd,0); //Success message
 		//We don't do any further work here because the char-server sends a party info packet right after creating the party.
 	} else {
+		sd->status.party_id = 0;
 		clif_party_created(sd,1); // "party name already exists"
 	}
 }
@@ -288,7 +301,7 @@ int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 	}
 
 	if(!battle_config.invite_request_check) {
-		if (tsd->guild_invite>0 || tsd->trade_partner) {
+		if (tsd->guild_invite>0 || tsd->trade_partner || tsd->adopt_invite) {
 			clif_party_inviteack(sd,tsd->status.name,0);
 			return 0;
 		}
@@ -299,7 +312,7 @@ int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 		return 0;
 	}
 
-	if( tsd->status.party_id>0 || tsd->party_invite>0 ){
+	if( tsd->status.party_id!=0 || tsd->party_invite>0){
 		clif_party_inviteack(sd,tsd->status.name,0);
 		return 0;
 	}
