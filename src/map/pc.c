@@ -19,6 +19,7 @@
 #include "intif.h"
 #include "itemdb.h"
 #include "log.h"
+#include "mail.h"
 #include "map.h"
 #include "path.h"
 #include "mercenary.h" // merc_is_hom_active()
@@ -32,10 +33,6 @@
 #include "status.h" // struct status_data
 #include "vending.h" // vending_closevending()
 #include "pc.h"
-
-#ifndef TXT_ONLY // mail system [Valaris]
-#include "mail.h"
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -372,6 +369,7 @@ int pc_makesavestatus(struct map_session_data *sd)
 		else
 			memcpy(&sd->status.last_point,&sd->status.save_point,sizeof(sd->status.last_point));
 	}
+
 	return 0;
 }
 
@@ -492,23 +490,19 @@ int pc_setequipindex(struct map_session_data *sd)
 			for(j=0;j<EQI_MAX;j++)
 				if(sd->status.inventory[i].equip & equip_pos[j])
 					sd->equip_index[j] = i;
-			if(sd->status.inventory[i].equip & EQP_HAND_R) {
+
+			if(sd->status.inventory[i].equip & EQP_HAND_R)
+			{
 				if(sd->inventory_data[i])
 					sd->weapontype1 = sd->inventory_data[i]->look;
 				else
 					sd->weapontype1 = 0;
 			}
-			if(sd->status.inventory[i].equip & EQP_HAND_L) {
-				if(sd->inventory_data[i]) {
-					if(sd->inventory_data[i]->type == 4) {
-						if(sd->status.inventory[i].equip == EQP_HAND_L)
-							sd->weapontype2 = sd->inventory_data[i]->look;
-						else
-							sd->weapontype2 = 0;
-					}
-					else
-						sd->weapontype2 = 0;
-				}
+
+			if( sd->status.inventory[i].equip & EQP_HAND_L )
+			{
+				if( sd->inventory_data[i] && sd->inventory_data[i]->type == 4 )
+					sd->weapontype2 = sd->inventory_data[i]->look;
 				else
 					sd->weapontype2 = 0;
 			}
@@ -519,7 +513,8 @@ int pc_setequipindex(struct map_session_data *sd)
 	return 0;
 }
 
-static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int flag)  {
+static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int flag)
+{
 	int i;
 	struct item *item = &sd->status.inventory[eqindex];
 	struct item_data *data;
@@ -527,14 +522,124 @@ static int pc_isAllowedCardOn(struct map_session_data *sd,int s,int eqindex,int 
 	if (itemdb_isspecial(item->card[0]))
 		return 1;
 	
-	for (i=0;i<s;i++)	{
-		if (item->card[i] &&
-			(data = itemdb_exists(item->card[i])) &&
-			data->flag.no_equip&flag
-		)
-			return 0;
+	ARR_FIND( 0, s, i, item->card[i] && (data = itemdb_exists(item->card[i])) != NULL && data->flag.no_equip&flag );
+	return( i < s ) ? 0 : 1;
+}
+
+bool pc_isequipped(struct map_session_data *sd, int nameid)
+{
+	int i, j, index;
+
+	for( i = 0; i < EQI_MAX; i++ )
+	{
+		index = sd->equip_index[i];
+		if( index < 0 ) continue;
+
+		if( i == EQI_HAND_R && sd->equip_index[EQI_HAND_L] == index ) continue;
+		if( i == EQI_HEAD_MID && sd->equip_index[EQI_HEAD_LOW] == index ) continue;
+		if( i == EQI_HEAD_TOP && (sd->equip_index[EQI_HEAD_MID] == index || sd->equip_index[EQI_HEAD_LOW] == index) ) continue;
+	
+		if( !sd->inventory_data[index] ) continue;
+
+		if( sd->inventory_data[index]->nameid == nameid )
+			return true;
+
+		for( j = 0; j < sd->inventory_data[index]->slot; j++ )
+			if( sd->status.inventory[index].card[j] == nameid )
+				return true;
 	}
-	return 1;              
+
+	return false;
+}
+
+bool pc_can_Adopt(struct map_session_data *p1_sd, struct map_session_data *p2_sd, struct map_session_data *b_sd )
+{
+	if( !p1_sd || !p2_sd || !b_sd )
+		return false;
+
+	if( b_sd->status.father || b_sd->status.mother || b_sd->adopt_invite )
+		return false; // already adopted baby / in adopt request
+
+	if( !p1_sd->status.partner_id || !p1_sd->status.party_id || p1_sd->status.party_id != b_sd->status.party_id )
+		return false; // You need to be married and in party with baby to adopt
+
+	if( p1_sd->status.partner_id != p2_sd->status.char_id || p2_sd->status.partner_id != p1_sd->status.char_id )
+		return false; // Not married, wrong married
+
+	if( p2_sd->status.party_id != p1_sd->status.party_id )
+		return false; // Both parents need to be in the same party
+
+	// Parents need to have their ring equipped
+	if( !pc_isequipped(p1_sd, WEDDING_RING_M) && !pc_isequipped(p1_sd, WEDDING_RING_F) )
+		return false; 
+
+	if( !pc_isequipped(p2_sd, WEDDING_RING_M) && !pc_isequipped(p2_sd, WEDDING_RING_F) )
+		return false;
+
+	// Already adopted a baby
+	if( p1_sd->status.child || p2_sd->status.child ) {
+		clif_Adopt_reply(p1_sd, 0);
+		return false;
+	}
+
+	// Parents need at least lvl 70 to adopt
+	if( p1_sd->status.base_level < 70 || p2_sd->status.base_level < 70 ) {
+		clif_Adopt_reply(p1_sd, 1);
+		return false;
+	}
+
+	if( b_sd->status.partner_id ) {
+		clif_Adopt_reply(p1_sd, 2);
+		return false;
+	}
+
+	if( !(b_sd->status.class_ >= JOB_NOVICE && b_sd->status.class_ <= JOB_THIEF) )
+		return false;
+
+	return true;
+}
+
+/*==========================================
+ * Adoption Process
+ *------------------------------------------*/
+bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd, struct map_session_data *b_sd)
+{
+	int job, joblevel;
+	unsigned int jobexp;
+	
+	if( !pc_can_Adopt(p1_sd, p2_sd, b_sd) )
+		return false;
+
+	// Preserve current job levels and progress
+	joblevel = b_sd->status.job_level;
+	jobexp = b_sd->status.job_exp;
+
+	job = pc_mapid2jobid(b_sd->class_|JOBL_BABY, b_sd->status.sex);
+	if( job != -1 && !pc_jobchange(b_sd, job, 0) )
+	{ // Success, proceed to configure parents and baby skills
+		p1_sd->status.child = b_sd->status.char_id;
+		p2_sd->status.child = b_sd->status.char_id;
+		b_sd->status.father = p1_sd->status.char_id;
+		b_sd->status.mother = p2_sd->status.char_id;
+
+		// Restore progress
+		b_sd->status.job_level = joblevel;
+		clif_updatestatus(b_sd, SP_JOBLEVEL);
+		b_sd->status.job_exp = jobexp;
+		clif_updatestatus(b_sd, SP_JOBEXP);
+
+		// Baby Skills
+		pc_skill(b_sd, WE_BABY, 1, 0);
+		pc_skill(b_sd, WE_CALLPARENT, 1, 0);
+
+		// Parents Skills
+		pc_skill(p1_sd, WE_CALLBABY, 1, 0);
+		pc_skill(p2_sd, WE_CALLBABY, 1, 0);
+		
+		return true;
+	}
+
+	return false; // Job Change Fail
 }
 
 int pc_isequip(struct map_session_data *sd,int n)
@@ -608,7 +713,7 @@ int pc_isequip(struct map_session_data *sd,int n)
  * session idに問題無し
  * char鯖から送られてきたステ?タスを設定
  *------------------------------------------*/
-bool pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_time, struct mmo_charstatus *st)
+bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_time, struct mmo_charstatus *st)
 {
 	int i;
 	unsigned long tick = gettick();
@@ -733,9 +838,9 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t connect_until_
 	}
 
 	// message of the limited time of the account
-	if (connect_until_time != 0) { // don't display if it's unlimited or unknow value
+	if (expiration_time != 0) { // don't display if it's unlimited or unknow value
 		char tmpstr[1024];
-		strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&connect_until_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
+		strftime(tmpstr, sizeof(tmpstr) - 1, msg_txt(501), localtime(&expiration_time)); // "Your account time limit is: %d-%m-%Y %H:%M:%S."
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
 	}
 
@@ -852,6 +957,7 @@ int pc_reg_received(struct map_session_data *sd)
 
 	status_calc_pc(sd,1);
 	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
+
 #ifndef TXT_ONLY
 	intif_Mail_requestinbox(sd->status.char_id, 0); // MAIL SYSTEM - Request Mail Inbox
 #endif
@@ -1219,7 +1325,7 @@ void pc_autoscript_clear(struct s_autoscript *scripts, int max)
 	memset(scripts, 0, i*sizeof(struct s_autoscript));
 }
 
-static int pc_bonus_autospell_del(struct s_autospell *spell, int max, short id, short lv, short rate, short card_id)
+static int pc_bonus_autospell_del(struct s_autospell* spell, int max, short id, short lv, short rate, short card_id)
 {
 	int i, j;
 	for(i=max-1; i>=0 && !spell[i].id; i--);
@@ -1285,7 +1391,7 @@ static int pc_bonus_autospell(struct s_autospell *spell, int max, short id, shor
 	return 1;
 }
 
-static int pc_bonus_addeff(struct s_addeffect* effect, int max, short id, short rate, short arrow_rate, unsigned char flag)
+static int pc_bonus_addeff(struct s_addeffect* effect, int max, enum sc_type id, short rate, short arrow_rate, unsigned char flag)
 {
 	int i;
 	if (!(flag&(ATF_SHORT|ATF_LONG)))
@@ -3109,32 +3215,34 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 
 	i=MAX_CART;
-	if(itemdb_isstackable2(data)){
-		for(i=0;i<MAX_CART;i++){
-			if(sd->status.cart[i].nameid==item_data->nameid &&
-				sd->status.cart[i].card[0] == item_data->card[0] && sd->status.cart[i].card[1] == item_data->card[1] &&
-				sd->status.cart[i].card[2] == item_data->card[2] && sd->status.cart[i].card[3] == item_data->card[3]){
-				if(sd->status.cart[i].amount+amount > MAX_AMOUNT)
-					return 1;
-				sd->status.cart[i].amount+=amount;
-				clif_cart_additem(sd,i,amount,0);
-				break;
-			}
-		}
+	if(itemdb_isstackable2(data))
+	{
+		ARR_FIND( 0, MAX_CART, i,
+			sd->status.cart[i].nameid == item_data->nameid &&
+			sd->status.cart[i].card[0] == item_data->card[0] && sd->status.cart[i].card[1] == item_data->card[1] &&
+			sd->status.cart[i].card[2] == item_data->card[2] && sd->status.cart[i].card[3] == item_data->card[3] );
+	};
+
+	if( i < MAX_CART )
+	{// item already in cart, stack it
+		if(sd->status.cart[i].amount+amount > MAX_AMOUNT)
+			return 1; // no room
+
+		sd->status.cart[i].amount+=amount;
+		clif_cart_additem(sd,i,amount,0);
 	}
-	if(i >= MAX_CART){
-		for(i=0;i<MAX_CART;i++){
-			if(sd->status.cart[i].nameid==0){
-				memcpy(&sd->status.cart[i],item_data,sizeof(sd->status.cart[0]));
-				sd->status.cart[i].amount=amount;
-				sd->cart_num++;
-				clif_cart_additem(sd,i,amount,0);
-				break;
-			}
-		}
-		if(i >= MAX_CART)
-			return 1;
+	else
+	{// item not stackable or not present, add it
+		ARR_FIND( 0, MAX_CART, i, sd->status.cart[i].nameid == 0 );
+		if( i == MAX_CART )
+			return 1; // no room
+
+		memcpy(&sd->status.cart[i],item_data,sizeof(sd->status.cart[0]));
+		sd->status.cart[i].amount=amount;
+		sd->cart_num++;
+		clif_cart_additem(sd,i,amount,0);
 	}
+
 	sd->cart_weight += w;
 	clif_updatestatus(sd,SP_CARTINFO);
 
@@ -3169,7 +3277,8 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type)
 /*==========================================
  * カ?トへアイテム移動
  *------------------------------------------*/
-int pc_putitemtocart(struct map_session_data *sd,int idx,int amount) {
+int pc_putitemtocart(struct map_session_data *sd,int idx,int amount)
+{
 	struct item *item_data;
 
 	nullpo_retr(0, sd);
@@ -3427,9 +3536,10 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		pc_clean_skilltree(sd);
 		chrif_save(sd,2);
 		chrif_changemapserver(sd, ip, (short)port);
-		//It is important to invoke remove_map separately from unit_free before
-		//saving so that the data saved corresponds to that AFTER warping.
+
+		//Free session data from this map server [Kevin]
 		unit_free_pc(sd);
+
 		return 0;
 	}
 
@@ -4904,32 +5014,6 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	// PK/Karma system code (not enabled yet) [celest]
-	/*
-	if(sd->status.karma > 0) {
-		int eq_num=0,eq_n[MAX_INVENTORY];
-		memset(eq_n,0,sizeof(eq_n));
-		for(i=0;i<MAX_INVENTORY;i++){
-			int k;
-			for(k=0;k<MAX_INVENTORY;k++){
-				if(eq_n[k] <= 0){
-					eq_n[k]=i;
-					break;
-				}
-			}
-			eq_num++;
-		}
-		if(eq_num > 0){
-			int n = eq_n[rand()%eq_num];
-			if(rand()%10000 < sd->status.karma){
-				if(sd->status.inventory[n].equip)
-					pc_unequipitem(sd,n,0);
-				pc_dropitem(sd,n,1);
-			}
-		}
-	}
-	*/
-
 	if(battle_config.bone_drop==2
 		|| (battle_config.bone_drop==1 && map[sd->bl.m].flag.pvp))
 	{
@@ -5008,7 +5092,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		}
 	}
 
-	if(map[sd->bl.m].flag.pvp_nightmaredrop){ // Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
+	if(map[sd->bl.m].flag.pvp_nightmaredrop)
+	{ // Moved this outside so it works when PVP isn't enabled and during pk mode [Ancyker]
 		for(j=0;j<MAX_DROP_PER_MAP;j++){
 			int id = map[sd->bl.m].drop_list[j].drop_id;
 			int type = map[sd->bl.m].drop_list[j].drop_type;
@@ -5022,13 +5107,12 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 					int k;
 					if( (type == 1 && !sd->status.inventory[i].equip)
 						|| (type == 2 && sd->status.inventory[i].equip)
-						||  type == 3){
-						for(k=0;k<MAX_INVENTORY;k++){
-							if(eq_n[k] <= 0){
-								eq_n[k]=i;
-								break;
-							}
-						}
+						||  type == 3)
+					{
+						ARR_FIND( 0, MAX_INVENTORY, k, eq_n[k] <= 0 );
+						if( k < MAX_INVENTORY )
+							eq_n[k] = i;
+
 						eq_num++;
 					}
 				}
@@ -5341,6 +5425,10 @@ int pc_itemheal(struct map_session_data *sd,int itemid, int hp,int sp)
 		}
 		if(bonus!=100)
 			hp = hp * bonus / 100;
+
+		// Recovery Potion
+		if( sd->sc.data[SC_INCHEALRATE] )
+			hp += (int)(hp * sd->sc.data[SC_INCHEALRATE]->val1/100.);
 	}
 	if(sp) {
 		bonus = 100 + (sd->battle_status.int_<<1)
@@ -6602,81 +6690,46 @@ int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd)
 }
 
 /*==========================================
- * sdが離婚(相手はsd->status.partner_idに依る)(相手も同暫ﾉ離婚?結婚指輪自動?奪)
+ * Divorce sd from its partner
  *------------------------------------------*/
 int pc_divorce(struct map_session_data *sd)
 {
 	struct map_session_data *p_sd;
+	int i;
+
 	if (sd == NULL || !pc_ismarried(sd))
 		return -1;
 
-	if ((p_sd = map_charid2sd(sd->status.partner_id)) != NULL) {
-		int i;
-		if (p_sd->status.partner_id != sd->status.char_id || sd->status.partner_id != p_sd->status.char_id) {
-			ShowWarning("pc_divorce: Illegal partner_id sd=%d p_sd=%d\n", sd->status.partner_id, p_sd->status.partner_id);
+	if( !sd->status.partner_id )
+		return -1; // Char is not married
+
+	if( (p_sd = map_charid2sd(sd->status.partner_id)) == NULL )
+	{ // Lets char server do the divorce
+#ifndef TXT_ONLY
+		if( chrif_divorce(sd->status.char_id, sd->status.partner_id) )
+			return -1; // No char server connected
+
+		return 0;
+#else
+		ShowError("pc_divorce: p_sd nullpo\n");
 			return -1;
+#endif
 		}
+
+	// Both players online, lets do the divorce manually
 		sd->status.partner_id = 0;
 		p_sd->status.partner_id = 0;
-		for (i = 0; i < MAX_INVENTORY; i++) {
+	for( i = 0; i < MAX_INVENTORY; i++ )
+	{
 			if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
 				pc_delitem(sd, i, 1, 0);
 			if (p_sd->status.inventory[i].nameid == WEDDING_RING_M || p_sd->status.inventory[i].nameid == WEDDING_RING_F)
 				pc_delitem(p_sd, i, 1, 0);
 		}
+
 		clif_divorced(sd, p_sd->status.name);
 		clif_divorced(p_sd, sd->status.name);
-	} else {
-		ShowError("pc_divorce: p_sd nullpo\n");
-		return -1;
-	}
-	return 0;
-}
 
-/*==========================================
- * sd - father dstsd - mother jasd - child
- *------------------------------------------*/
-int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, struct map_session_data *jasd)
-{       
-	int j,level, job;
-	unsigned int exp;
-	if (sd == NULL || dstsd == NULL || jasd == NULL ||
-		sd->status.partner_id <= 0 || dstsd->status.partner_id <= 0 ||
-		sd->status.partner_id != dstsd->status.char_id || dstsd->status.partner_id != sd->status.char_id ||
-		sd->status.child > 0 || dstsd->status.child || jasd->status.father > 0 || jasd->status.mother > 0)
-			return -1;
-	jasd->status.father = sd->status.char_id;
-	jasd->status.mother = dstsd->status.char_id;
-	sd->status.child = jasd->status.char_id;
-	dstsd->status.child = jasd->status.char_id;
-
-	for (j=0; j < MAX_INVENTORY; j++) {
-		if(jasd->status.inventory[j].nameid>0 && jasd->status.inventory[j].equip!=0)
-			pc_unequipitem(jasd, j, 3);
-	}
-
-	//Preserve level and exp.
-	level = jasd->status.job_level;
-	exp = jasd->status.job_exp;
-	job = jasd->class_|JOBL_BABY; //Preserve current Job by babyfying it. [Skotlex]
-	job = pc_mapid2jobid(job, jasd->status.sex);
-	if (job != -1 && pc_jobchange(jasd, job, 0) == 0)
-	{	//Success, and give Junior the Baby skills. [Skotlex]
-		//Restore job level and experience.
-		jasd->status.job_level = level;
-		jasd->status.job_exp = exp;
-		clif_updatestatus(jasd,SP_JOBLEVEL);
-		clif_updatestatus(jasd,SP_JOBEXP);
-		pc_skill(jasd,WE_BABY,1,0);
-		pc_skill(jasd,WE_CALLPARENT,1,0);
-		clif_displaymessage(jasd->fd, msg_txt(12)); // Your job has been changed.
-		//We should also grant the parent skills to the parents [Skotlex]
-		pc_skill(sd,WE_CALLBABY,1,0);
-		pc_skill(dstsd,WE_CALLBABY,1,0);
-	} else {
-		clif_displaymessage(jasd->fd, msg_txt(155)); // Impossible to change your job.
-		return -1;
-	}
 	return 0;
 }
 
@@ -6685,16 +6738,6 @@ int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd, stru
  *------------------------------------------*/
 struct map_session_data *pc_get_partner(struct map_session_data *sd)
 {
-	//struct map_session_data *p_sd = NULL;
-	//char *nick;
-	//if(sd == NULL || !pc_ismarried(sd))
-	//	return NULL;
-	//nick=map_charid2nick(sd->status.partner_id);
-	//if (nick==NULL)
-	//	return NULL;
-	//if((p_sd=map_nick2sd(nick)) == NULL )
-	//	return NULL;
-
 	if (sd && pc_ismarried(sd))
 		// charid2sd returns NULL if not found
 		return map_charid2sd(sd->status.partner_id);
@@ -6834,7 +6877,7 @@ int pc_autosave(int tid,unsigned int tick,int id,int data)
 	}
 	mapit_free(iter);
 
-	interval = autosave_interval/(clif_countusers()+1);
+	interval = autosave_interval/(map_usercount()+1);
 	if(interval < minsave_interval)
 		interval = minsave_interval;
 	add_timer(gettick()+interval,pc_autosave,0,0);
@@ -7138,18 +7181,15 @@ int pc_split_atoui(char* str, unsigned int* val, char sep, int max)
 	return i;
 }
 
-//
-// 初期化物
-//
 /*==========================================
- * 設定ファイル?み?む
- * exp.txt 必要??値
- * job_db1.txt 重量,hp,sp,攻?速度
- * job_db2.txt job能力値ボ?ナス
- * skill_tree.txt 各職?のスキルツリ?
- * attr_fix.txt ?性修正テ?ブル
- * size_fix.txt サイズ補正テ?ブル
- * refine_db.txt 精?デ?タテ?ブル
+ * DB reading.
+ * exp.txt        - required experience values
+ * job_db1.txt    - weight, hp, sp, aspd
+ * job_db2.txt    - job level stat bonuses
+ * skill_tree.txt - skill tree for every class
+ * attr_fix.txt   - elemental adjustment table
+ * size_fix.txt   - size adjustment table for weapons
+ * refine_db.txt  - refining data table
  *------------------------------------------*/
 int pc_readdb(void)
 {
@@ -7272,8 +7312,8 @@ int pc_readdb(void)
 			continue;
 		idx = pc_class2idx(idx);
 		k = atoi(split[1]); //This is to avoid adding two lines for the same skill. [Skotlex]
-		for(j = 0; j < MAX_SKILL_TREE && skill_tree[idx][j].id && skill_tree[idx][j].id != k; j++);
-		if (j == MAX_SKILL_TREE)
+		ARR_FIND( 0, MAX_SKILL_TREE, j, skill_tree[idx][j].id == 0 || skill_tree[idx][j].id == k );
+		if( j == MAX_SKILL_TREE )
 		{
 			ShowWarning("Unable to load skill %d into job %d's tree. Maximum number of skills per class has been reached.\n", k, atoi(split[0]));
 			continue;

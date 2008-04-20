@@ -56,7 +56,7 @@ struct s_packet_db {
 extern struct s_packet_db packet_db[MAX_PACKET_VER+1][MAX_PACKET_DB+1];
 
 // local define
-enum send_target {
+typedef enum send_target {
 	ALL_CLIENT,
 	ALL_SAMEMAP,
 	AREA,				// area
@@ -82,7 +82,7 @@ enum send_target {
 	DUEL_WOS,
 	CHAT_MAINCHAT,		// everyone on main chat
 	SELF,
-};
+} send_target;
 
 int clif_setip(const char* ip);
 void clif_setbindip(const char* ip);
@@ -91,12 +91,9 @@ void clif_setport(uint16 port);
 uint32 clif_getip(void);
 uint32 clif_refresh_ip(void);
 uint16 clif_getport(void);
-int clif_countusers(void);
-void clif_setwaitclose(int);
 
 int clif_authok(struct map_session_data *);
 int clif_authfail_fd(int fd,int type);
-void clif_updatemaxid(int, int);
 int clif_charselectok(int);
 int clif_dropflooritem(struct flooritem_data *);
 int clif_clearflooritem(struct flooritem_data *,int);
@@ -123,7 +120,7 @@ int clif_scriptinput(struct map_session_data*,int);	//self
 int clif_scriptinputstr(struct map_session_data *sd,int npcid);	// self
 int clif_cutin(struct map_session_data* sd, const char* image, int type);	//self
 int clif_viewpoint(struct map_session_data*,int,int,int,int,int,int);	//self
-int clif_additem(struct map_session_data*,int,int,int);	//self
+int clif_additem(struct map_session_data *sd, int n, int amount, int fail); // self
 int clif_delitem(struct map_session_data*,int,int);	//self
 int clif_updatestatus(struct map_session_data*,int);	//self
 int clif_changestatus(struct block_list*,int,int);	//area
@@ -133,7 +130,7 @@ void clif_sitting(struct block_list* bl);
 void clif_standing(struct block_list* bl);
 void clif_changelook(struct block_list *bl,int type,int val);	// area
 void clif_changetraplook(struct block_list *bl,int val); // area
-void clif_refreshlook(struct block_list *bl,int id,int type,int val,int area); //area specified in 'area'
+void clif_refreshlook(struct block_list *bl,int id,int type,int val,enum send_target target); //area specified in 'target'
 int clif_arrowequip(struct map_session_data *sd,int val); //self
 int clif_arrow_fail(struct map_session_data *sd,int type); //self
 int clif_arrow_create_list(struct map_session_data *sd);	//self
@@ -263,7 +260,7 @@ int clif_item_skill(struct map_session_data *sd,int skillid,int skilllv);
 int clif_mvp_effect(struct map_session_data *sd);
 int clif_mvp_item(struct map_session_data *sd,int nameid);
 int clif_mvp_exp(struct map_session_data *sd, unsigned int exp);
-void clif_changed_dir(struct block_list *bl, int area);
+void clif_changed_dir(struct block_list *bl, enum send_target target);
 
 // vending
 void clif_openvendingreq(struct map_session_data* sd, int num);
@@ -301,7 +298,6 @@ int clif_guild_allianceinfo(struct map_session_data *sd);
 int clif_guild_memberlist(struct map_session_data *sd);
 int clif_guild_skillinfo(struct map_session_data *sd);
 int clif_guild_send_onlineinfo(struct map_session_data *sd); //[LuzZza]
-int clif_guild_masterormember(struct map_session_data *sd);
 int clif_guild_memberlogin_notice(struct guild *g,int idx,int flag);
 int clif_guild_invite(struct map_session_data *sd,struct guild *g);
 int clif_guild_inviteack(struct map_session_data *sd,int flag);
@@ -357,7 +353,7 @@ void clif_friendslist_reqack(struct map_session_data *sd, struct map_session_dat
 
 // [Valaris]
 int clif_mob_hp(struct mob_data *md);
-int clif_weather(int m); // [Valaris]
+void clif_weather(int m); // [Valaris]
 int clif_specialeffect(struct block_list* bl, int type, enum send_target target); // special effects [Valaris]
 void clif_specialeffect_single(struct block_list* bl, int type, int fd);
 int clif_message(struct block_list *bl, const char* msg); // messages (from mobs/npcs) [Valaris]
@@ -411,5 +407,7 @@ void clif_Mail_refreshinbox(struct map_session_data *sd);
 void clif_Mail_getattachment(int fd, uint8 flag);
 #endif
 
+// ADOPTION
+void clif_Adopt_reply(struct map_session_data *sd, int type);
 
 #endif /* _CLIF_H_ */

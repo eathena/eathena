@@ -169,12 +169,26 @@ void map_setusers(int users)
 	map_users = users;
 }
 
-/*==========================================
- * ‘SmapŽI?Œv‚Å‚ÌÚ??Žæ“¾ (/w‚Ö‚Ì?“š—p)
- *------------------------------------------*/
 int map_getusers(void)
 {
 	return map_users;
+}
+
+/*==========================================
+ * server player count (this mapserver only)
+ *------------------------------------------*/
+int map_usercount(void)
+{
+/*
+	int count = 0;
+	struct s_mapiterator* iter = mapit_getallusers();
+	for( mapit_first(iter); mapit_exists(iter); mapit_next(iter) )
+		count++;
+	mapit_free(iter);
+	return count;
+*/
+	// since pc_db now only holds fully authed players, this approach is equivalent:
+	return pc_db->size(pc_db);
 }
 
 //
@@ -1722,44 +1736,6 @@ struct block_list * map_id2bl(int id)
 	return bl;
 }
 
-/*==========================================
- * Returns an array of all players in the server (includes non connected ones) [Skotlex]
- * The int pointer given returns the count of elements in the array.
- * If null is passed, it is requested that the memory be freed (for shutdown), and null is returned.
- *------------------------------------------*/
-struct map_session_data** map_getallusers(int *users)
-{
-	static struct map_session_data **all_sd=NULL;
-	static unsigned int all_count = 0;
-
-	if (users == NULL)
-	{	//Free up data
-		if (all_sd) aFree(all_sd);
-		all_sd = NULL;
-		return NULL;
-	}
-
-	if (all_sd == NULL)
-	{	//Init data
-		all_count = pc_db->size(pc_db); //This is the real number of chars in the db, better use this than the actual "online" count.
-		if (all_count < 1)
-			all_count = 10; //Allow room for at least 10 chars.
-		CREATE(all_sd, struct map_session_data*, all_count);
-	}
-
-	if (all_count < pc_db->size(pc_db))
-	{
-		all_count = pc_db->size(pc_db)+10; //Give some room to prevent doing reallocs often.
-		RECREATE(all_sd, struct map_session_data*, all_count);
-	}
-
-	*users = pc_db->getall(pc_db,(void**)all_sd,all_count,NULL);
-	if (*users > (signed int)all_count) //Which should be impossible...
-		*users = all_count;
-
-	return all_sd;
-}
-
 void map_foreachpc(int (*func)(DBKey,void*,va_list),...)
 {
 	va_list ap;
@@ -3108,8 +3084,6 @@ void do_final(void)
 	do_final_skill();
 	do_final_status();
 	do_final_unit();
-
-	map_getallusers(NULL); //Clear the memory allocated for this array.
 	
 	map_db->destroy(map_db, map_db_final);
 	

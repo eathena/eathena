@@ -1901,30 +1901,6 @@ int atcommand_help2(const int fd, struct map_session_data* sd, const char* comma
 }
 
 
-/*==========================================
- * @gm
- *------------------------------------------*/
-int atcommand_gm(const int fd, struct map_session_data* sd, const char* command, const char* message)
-{
-	char password[100];
-	nullpo_retr(-1, sd);
-
-	memset(password, '\0', sizeof(password));
-
-	if (!message || !*message || sscanf(message, "%99[^\n]", password) < 1) {
-		clif_displaymessage(fd, "Please, enter a password (usage: @gm <password>).");
-		return -1;
-	}
-
-	if (pc_isGM(sd)) { // a GM can not use this function. only a normal player (become gm is not for gm!)
-		clif_displaymessage(fd, msg_txt(50)); // You already have some GM powers.
-		return -1;
-	} else
-		chrif_changegm(sd->status.account_id, password, strlen(password) + 1);
-
-	return 0;
-}
-
 // helper function, used in foreach calls to stop auto-attack timers
 // parameter: '0' - everyone, 'id' - only those attacking someone with that id
 static int atcommand_stopattack(struct block_list *bl,va_list ap)
@@ -5694,8 +5670,8 @@ int atcommand_displayskill(const int fd, struct map_session_data* sd, const char
 int atcommand_skilltree(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct map_session_data *pl_sd = NULL;
-	int skillnum, skillidx = -1;
-	int meets = 1, j, c=0;
+	int skillnum;
+	int meets, j, c=0;
 	char target[NAME_LENGTH], *tbl;
 	struct skill_tree_entry *ent;
 	nullpo_retr(-1, sd);
@@ -5716,37 +5692,33 @@ int atcommand_skilltree(const int fd, struct map_session_data* sd, const char* c
 
 	tbl = job_name(c);
 
-	sprintf(atcmd_output, "Player is using %s skill tree (%d basic points)",
-	tbl, pc_checkskill(pl_sd, 1));
+	sprintf(atcmd_output, "Player is using %s skill tree (%d basic points)", tbl, pc_checkskill(pl_sd, 1));
 	clif_displaymessage(fd, atcmd_output);
 
-	for (j = 0; skill_tree[c][j].id != 0; j++) {
-		if (skill_tree[c][j].id == skillnum) {
-			skillidx = j;
-			break;
-		}
-	}
-
-	if (skillidx == -1) {
+	ARR_FIND( 0, MAX_SKILL_TREE, j, skill_tree[c][j].id == 0 || skill_tree[c][j].id == skillnum );
+	if( j == MAX_SKILL_TREE || skill_tree[c][j].id == 0 )
+	{
 		sprintf(atcmd_output, "I do not believe the player can use that skill");
 		clif_displaymessage(fd, atcmd_output);
 		return 0;
 	}
 
-	ent = &skill_tree[c][skillidx];
+	ent = &skill_tree[c][j];
 
+	meets = 1;
 	for(j=0;j<5;j++)
+	{
 		if( ent->need[j].id && pc_checkskill(sd,ent->need[j].id) < ent->need[j].lv)
 		{
 			sprintf(atcmd_output, "player requires level %d of skill %s", ent->need[j].lv, skill_db[ent->need[j].id].desc);
 			clif_displaymessage(fd, atcmd_output);
 			meets = 0;
 		}
-
-		if (meets == 1) {
-			sprintf(atcmd_output, "I believe the player meets all the requirements for that skill");
-			clif_displaymessage(fd, atcmd_output);
-		}
+	}
+	if (meets == 1) {
+		sprintf(atcmd_output, "I believe the player meets all the requirements for that skill");
+		clif_displaymessage(fd, atcmd_output);
+	}
 
 	return 0;
 }
@@ -6943,9 +6915,8 @@ int atcommand_mobinfo(const int fd, struct map_session_data* sd, const char* com
 *------------------------------------------*/
 int atshowmobs_timer(int tid, unsigned int tick, int id, int data)
 {
-	struct map_session_data *sd;
-
-	if (!session[id] || (sd = session[id]->session_data) == NULL)
+	struct map_session_data* sd = map_id2sd(id);
+	if( sd == NULL )
 		return 0;
 
 	clif_viewpoint(sd, 1, 2, 0, 0, data, 0xFFFFFF);
@@ -7483,9 +7454,7 @@ int atcommand_whereis(const int fd, struct map_session_data* sd, const char* com
  *------------------------------------------*/
 int atcommand_adopt(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct map_session_data *pl_sd1 = NULL;
-	struct map_session_data *pl_sd2 = NULL;
-	struct map_session_data *pl_sd3 = NULL;
+	struct map_session_data *pl_sd1, *pl_sd2, *pl_sd3;
 	char player1[NAME_LENGTH], player2[NAME_LENGTH], player3[NAME_LENGTH];
 	char output[256];
 
@@ -7517,7 +7486,7 @@ int atcommand_adopt(const int fd, struct map_session_data* sd, const char* comma
 		return -1;
 	}
 
-	if( pc_adoption(pl_sd1, pl_sd2, pl_sd3) != 0 ) {
+	if( !pc_adoption(pl_sd1, pl_sd2, pl_sd3) ) {
 		return -1;
 	}
 	
@@ -7960,9 +7929,9 @@ int atcommand_clone(const int fd, struct map_session_data* sd, const char* comma
 		return 0;
 	}
 
-	if (strcmpi(command, "@clone") == 0) 
+	if (strcmpi(command+1, "clone") == 0) 
 		flag = 1;
-	else if (strcmpi(command, "@slaveclone") == 0) {
+	else if (strcmpi(command+1, "slaveclone") == 0) {
 	  	flag = 2;
 		master = sd->bl.id;
 		if (battle_config.atc_slave_clone_limit
@@ -8088,9 +8057,6 @@ int atcommand_feelreset(const int fd, struct map_session_data* sd, const char* c
 	return 0;
 }
 
-
-
-
 /*==========================================
  * atcommand_info[] structure definition
  *------------------------------------------*/
@@ -8149,7 +8115,6 @@ AtCommandInfo atcommand_info[] = {
 	{ "help",              20,     atcommand_help },
 	{ "h2",                20,     atcommand_help2 },
 	{ "help2",             20,     atcommand_help2 },
-	{ "gm",               100,     atcommand_gm },
 	{ "pvpoff",            40,     atcommand_pvpoff },
 	{ "pvpon",             40,     atcommand_pvpon },
 	{ "gvgoff",            40,     atcommand_gvgoff },

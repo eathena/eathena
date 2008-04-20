@@ -182,11 +182,12 @@ enum bl_type {
 	BL_SKILL = 0x020,
 	BL_NPC   = 0x040,
 	BL_CHAT  = 0x080,
+
+	BL_ALL   = 0xFFF,
 };
 
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
 #define BL_CHAR (BL_PC|BL_MOB|BL_HOM)
-#define BL_ALL 0xfff
 
 enum npc_subtype { WARP, SHOP, SCRIPT };
 
@@ -741,6 +742,7 @@ struct map_session_data {
 	} deal;
 
 	int party_invite,party_invite_account;
+	int adopt_invite; // Adoption
 
 	int guild_invite,guild_invite_account;
 	int guild_emblem_id,guild_alliance,guild_alliance_account;
@@ -1252,6 +1254,7 @@ extern char wisp_server_name[];
 // I‘S‘Ìî•ñ
 void map_setusers(int);
 int map_getusers(void);
+int map_usercount(void);
 // blockíœŠÖ˜A
 int map_freeblock(struct block_list *bl);
 int map_freeblock_lock(void);
@@ -1308,7 +1311,6 @@ int map_eraseipport(unsigned short map, uint32 ip, uint16 port);
 int map_eraseallipport(void);
 void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
-struct map_session_data** map_getallusers(int *users);
 void map_foreachpc(int (*func)(DBKey,void*,va_list),...);
 void map_foreachmob(int (*func)(DBKey,void*,va_list),...);
 int map_foreachiddb(int (*)(DBKey,void*,va_list),...);

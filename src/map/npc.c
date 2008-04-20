@@ -10,6 +10,7 @@
 #include "../common/utils.h"
 #include "../common/ers.h"
 #include "../common/db.h"
+#include "../common/socket.h"
 #include "map.h"
 #include "log.h"
 #include "clif.h"
@@ -1032,18 +1033,18 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	if (nd->master_nd) //Script-based shops.
 		return npc_buylist_sub(sd,n,item_list,nd->master_nd);
 
-	if (nd->subtype!=SHOP)
+	if (nd->subtype != SHOP)
 		return 3;
 
-	for(i=0,w=0,z=0;i<n;i++) {
-		for(j=0;nd->u.shop.shop_item[j].nameid;j++) {
+	for(i=0,w=0,z=0; i < n; i++) {
+		for(j=0; nd->u.shop.shop_item[j].nameid; j++) {
 			if (nd->u.shop.shop_item[j].nameid==item_list[i*2+1] || //Normal items
 				itemdb_viewid(nd->u.shop.shop_item[j].nameid)==item_list[i*2+1]) //item_avail replacement
 				break;
 		}
-		if (nd->u.shop.shop_item[j].nameid==0)
+		if (nd->u.shop.shop_item[j].nameid == 0)
 			return 3;
-		
+
 		if (!itemdb_isstackable(nd->u.shop.shop_item[j].nameid) && item_list[i*2] > 1)
 		{	//Exploit? You can't buy more than 1 of equipment types o.O
 			ShowWarning("Player %s (%d:%d) sent a hexed packet trying to buy %d of nonstackable item %d!\n",
@@ -1081,7 +1082,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 	//Logs
 
 	pc_payzeny(sd,(int)z);
-	for(i=0;i<n;i++) {
+	for(i=0; i<n; i++) {
 		struct item item_tmp;
 
 		memset(&item_tmp,0,sizeof(item_tmp));
@@ -1193,7 +1194,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 		//any item as deleted even though a few were sold. In such a case, we
 		//have no recourse but to kick them out so their inventory will refresh
 		//correctly on relog. [Skotlex]
-		if (i) clif_setwaitclose(sd->fd);
+		if (i) set_eof(sd->fd);
 		return 1;
 	}
 	return 0;

@@ -50,15 +50,15 @@ enum weapon_type {
 	W_DOUBLE_SA, // sword + axe
 };
 
-enum {
+enum ammo_type {
 	A_ARROW = 1,
-	A_DAGGER,    //2
+	A_DAGGER,   //2
 	A_BULLET,   //3
 	A_SHELL,    //4
 	A_GRENADE,  //5
 	A_SHURIKEN, //6
 	A_KUNAI     //7
-} ammo_type;
+};
 
 //Equip position constants
 enum equip_pos {
@@ -83,7 +83,7 @@ enum equip_pos {
 
 //Equip indexes constants. (eg: sd->equip_index[EQI_AMMO] returns the index
 //where the arrows are equipped)
-enum {
+enum equip_index {
 	EQI_ACC_L = 0,
 	EQI_ACC_R,
 	EQI_SHOES,
@@ -96,7 +96,7 @@ enum {
 	EQI_HAND_R,
 	EQI_AMMO,
 	EQI_MAX
-} equip_index_enum;
+};
 
 struct duel {
 	int members_count;
@@ -185,6 +185,10 @@ int pc_cartitem_amount(struct map_session_data *sd,int idx,int amount);
 
 int pc_takeitem(struct map_session_data*,struct flooritem_data*);
 int pc_dropitem(struct map_session_data*,int,int);
+
+bool pc_isequipped(struct map_session_data *sd, int nameid);
+bool pc_can_Adopt(struct map_session_data *p1_sd, struct map_session_data *p2_sd, struct map_session_data *b_sd );
+bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd, struct map_session_data *b_sd);
 
 int pc_updateweightstatus(struct map_session_data *sd);
 
@@ -285,7 +289,6 @@ int pc_calc_pvprank_timer(int tid,unsigned int tick,int id,int data);
 int pc_ismarried(struct map_session_data *sd);
 int pc_marriage(struct map_session_data *sd,struct map_session_data *dstsd);
 int pc_divorce(struct map_session_data *sd);
-int pc_adoption(struct map_session_data *sd,struct map_session_data *dstsd,struct map_session_data *jasd);
 struct map_session_data *pc_get_partner(struct map_session_data *sd);
 struct map_session_data *pc_get_father(struct map_session_data *sd);
 struct map_session_data *pc_get_mother(struct map_session_data *sd);
