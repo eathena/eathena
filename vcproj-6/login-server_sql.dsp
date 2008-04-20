@@ -207,6 +207,10 @@ SOURCE=..\src\login\account_sql.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\login\admin.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\login\login.c
 # End Source File
 # Begin Source File

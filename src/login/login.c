@@ -19,6 +19,7 @@
 
 // permanent imports
 void login_log(uint32 ip, const char* username, int rcode, const char* message);
+bool ladmin_auth(struct login_session_data* sd, const char* ip);
 
 // temporary imports
 #ifdef TXT_ONLY
@@ -217,28 +218,26 @@ bool check_encrypted(const char* str1, const char* str2, const char* passwd)
 {
 	char md5str[64], md5bin[32];
 
-	snprintf(md5str, sizeof(md5str), "%s%s", str1, str2);
-	md5str[sizeof(md5str)-1] = '\0';
+	safesnprintf(md5str, sizeof(md5str), "%s%s", str1, str2);
 	MD5_String2binary(md5str, md5bin);
 
 	return (0==memcmp(passwd, md5bin, 16));
 }
 
-bool check_password(struct login_session_data* sd, int passwdenc, const char* passwd, const char* refpass)
+bool check_password(const char* md5key, int passwdenc, const char* passwd, const char* refpass)
 {	
 	if(passwdenc == 0)
 	{
 		return (0==strcmp(passwd, refpass));
 	}
-	else if(sd != NULL)
+	else
 	{
-		// password mode set to 1 -> (md5key, refpass) enable with <passwordencrypt></passwordencrypt>
-		// password mode set to 2 -> (refpass, md5key) enable with <passwordencrypt2></passwordencrypt2>
+		// password mode set to 1 -> md5(md5key, refpass) enable with <passwordencrypt></passwordencrypt>
+		// password mode set to 2 -> md5(refpass, md5key) enable with <passwordencrypt2></passwordencrypt2>
 		
-		return ((passwdenc&0x01) && check_encrypted(sd->md5key, refpass, passwd)) ||
-		       ((passwdenc&0x02) && check_encrypted(refpass, sd->md5key, passwd));
+		return ((passwdenc&0x01) && check_encrypted(md5key, refpass, passwd)) ||
+		       ((passwdenc&0x02) && check_encrypted(refpass, md5key, passwd));
 	}
-	return false;
 }
 
 
@@ -973,7 +972,7 @@ int mmo_auth(struct login_session_data* sd)
 		return 0; // 0 = Unregistered ID
 	}
 
-	if( !check_password(sd, sd->passwdenc, sd->passwd, acc.pass) )
+	if( !check_password(sd->md5key, sd->passwdenc, sd->passwd, acc.pass) )
 	{
 		ShowNotice("Invalid password (account: '%s', pass: '%s', received pass: '%s', ip: %s)\n", sd->userid, acc.pass, sd->passwd, ip);
 		return 1; // 1 = Incorrect Password
@@ -1396,59 +1395,25 @@ int parse_login(int fd)
 		case 0x7918:	// Request for administation login
 			if ((int)RFIFOREST(fd) < 4 || (int)RFIFOREST(fd) < ((RFIFOW(fd,2) == 0) ? 28 : 20))
 				return 0;
-			WFIFOW(fd,0) = 0x7919;
-			WFIFOB(fd,2) = 1;
-/*
-			if( ipl != admin_allowed_ip ) {
-				ShowNotice("'ladmin'-login: Connection in administration mode refused: IP isn't authorised (ladmin_allow, ip: %s).\n", ip);
-			} else {
-				struct login_session_data *ld = (struct login_session_data*)session[fd]->session_data;
-				if (RFIFOW(fd,2) == 0) {	// non encrypted password
-					char password[25];
-					memcpy(password, RFIFOP(fd,4), 24);
-					password[24] = '\0';
-					remove_control_chars(password);
-					if( !admin_state )
-						ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (non encrypted password: %s, ip: %s)\n", password, ip);
-					else
-					if( strcmp(password, admin_pass) != 0)
-						ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - invalid password (non encrypted password: %s, ip: %s)\n", password, ip);
-					else {
-						// If remote administration is enabled and password sent by client matches password read from login server configuration file
-						ShowNotice("'ladmin'-login: Connection in administration mode accepted (non encrypted password: %s, ip: %s)\n", password, ip);
-						WFIFOB(fd,2) = 0;
-						session[fd]->func_parse = parse_admin;
-					}
-				} else {	// encrypted password
-					if (!ld)
-						ShowError("'ladmin'-login: error! MD5 key not created/requested for an administration login.\n");
-					else {
-						char md5str[64] = "", md5bin[32];
-						if (RFIFOW(fd,2) == 1) {
-							sprintf(md5str, "%s%s", ld->md5key, admin_pass); // 20 24
-						} else if (RFIFOW(fd,2) == 2) {
-							sprintf(md5str, "%s%s", admin_pass, ld->md5key); // 24 20
-						}
-						MD5_String2binary(md5str, md5bin);
-						if( !admin_state )
-							ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (encrypted password, ip: %s)\n", ip);
-						else
-						if( memcmp(md5bin, RFIFOP(fd,4), 16) != 0 )
-							ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - invalid password (encrypted password, ip: %s)\n", ip);
-						else {
-							// If remote administration is enabled and password hash sent by client matches hash of password read from login server configuration file
-							ShowNotice("'ladmin'-login: Connection in administration mode accepted (encrypted password, ip: %s)\n", ip);
-							ShowNotice("Connection of a remote administration accepted (encrypted password).\n");
-							WFIFOB(fd,2) = 0;
-							session[fd]->func_parse = parse_admin;
-						}
-					}
-				}
-			}
-*/
-			WFIFOSET(fd,3);
+		{
+			int passwdenc = (int)RFIFOW(fd,2);
+			const char* passwd = (char*)RFIFOP(fd,4);
 
-			RFIFOSKIP(fd, (RFIFOW(fd,2) == 0) ? 28 : 20);
+			if( passwdenc == 0 ) { // non encrypted password
+				safestrncpy(sd->passwd, passwd, NAME_LENGTH);
+				sd->passwdenc = 0;
+			} else { // encrypted password
+				memcpy(sd->passwd, passwd, 16); sd->passwd[16] = '\0'; // raw binary data here!
+				sd->passwdenc = passwdenc;
+			}
+
+			RFIFOSKIP(fd, (passwdenc == 0) ? 28 : 20);
+
+			WFIFOHEAD(fd,3);
+			WFIFOW(fd,0) = 0x7919;
+			WFIFOB(fd,2) = ladmin_auth(sd, ip) ? 0 : 1;
+			WFIFOSET(fd,3);
+		}
 		break;
 
 		default:
@@ -1556,6 +1521,13 @@ int login_config_read(const char* cfgName)
 			safestrncpy(login_config.dnsbl_servs, w2, sizeof(login_config.dnsbl_servs));
 		else if(!strcmpi(w1, "ip_sync_interval"))
 			login_config.ip_sync_interval = (unsigned int)1000*60*atoi(w2); //w2 comes in minutes.
+
+		else if(!strcmpi(w1, "admin_state"))
+			login_config.admin_state = (bool)config_switch(w2);
+		else if(!strcmpi(w1, "admin_pass"))
+			safestrncpy(login_config.admin_pass, w2, sizeof(login_config.admin_pass));
+		else if(!strcmpi(w1, "admin_allowed_host"))
+			safestrncpy(login_config.admin_allowed_host, w2, sizeof(login_config.admin_pass));
 
 #ifdef TXT_ONLY
 		else if( login_config_read_txt(w1, w2) )

@@ -18,12 +18,6 @@
 extern struct Login_Config login_config;
 char login_log_filename[1024] = "log/login.log";
 
-// ladmin configuration
-bool admin_state = false;
-char admin_pass[24] = "";
-uint32 admin_allowed_ip = 0;
-
-int parse_admin(int fd);
 
 
 /*=============================================
@@ -62,12 +56,6 @@ bool login_config_read_txt(const char* w1, const char* w2)
 {
 	if(!strcmpi(w1, "login_log_filename"))
 		safestrncpy(login_log_filename, w2, sizeof(login_log_filename));
-	else if(!strcmpi(w1, "admin_state"))
-		admin_state = (bool)config_switch(w2);
-	else if(!strcmpi(w1, "admin_pass"))
-		safestrncpy(admin_pass, w2, sizeof(admin_pass));
-	else if(!strcmpi(w1, "admin_allowed_ip"))
-		admin_allowed_ip = host2ip(w2);
 	else
 		return false;
 

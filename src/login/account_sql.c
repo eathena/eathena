@@ -5,7 +5,6 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "account.h"
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -324,7 +323,7 @@ static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 
 	Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK");
 
-	return true;
+	return result;
 }
 
 static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, const int account_id)

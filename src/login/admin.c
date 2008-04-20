@@ -28,6 +28,31 @@ extern struct mmo_char_server server[MAX_SERVERS];
 extern AccountDB* accounts;
 
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
+bool check_password(const char* md5key, int passwdenc, const char* passwd, const char* refpass);
+int parse_admin(int fd);
+
+
+bool ladmin_auth(struct login_session_data* sd, const char* ip)
+{
+	bool result = false;
+
+	if( str2ip(ip) != host2ip(login_config.admin_allowed_host) )
+		ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - IP isn't authorised (ip: %s).\n", ip);
+	else
+	if( !login_config.admin_state )
+		ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - remote administration is disabled (ip: %s)\n", ip);
+	else
+	if( !check_password(sd->md5key, sd->passwdenc, sd->passwd, login_config.admin_pass) )
+		ShowNotice("'ladmin'-login: Connection in administration mode REFUSED - invalid password (ip: %s)\n", ip);
+	else
+	{
+		ShowNotice("'ladmin'-login: Connection in administration mode accepted (ip: %s)\n", ip);
+		session[sd->fd]->func_parse = parse_admin;
+		result = true;
+	}
+
+	return result;
+}
 
 //---------------------------------------
 // Packet parsing for administation login
