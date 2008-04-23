@@ -1,3 +1,5 @@
+2008/04/23
+	* Rev. 12642 Merged mob_db.txt and mob_skill_db.txt from trunk. [L0ne_W0lf]
 2008/04/03
 	* Rev. 12467 Merged mob_db.txt from trunk. [L0ne_W0lf]
 2008/03/21
