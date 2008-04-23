@@ -1538,7 +1538,7 @@ int login_config_read(const char* cfgName)
 		else if( login_config_read_sql(w1, w2) )
 			continue;
 #endif
-		else if( accounts->configure(accounts, w1, w2) )
+		else if( accounts->set_property(accounts, w1, w2) )
 			continue;
 
 		else if(!strcmpi(w1, "import"))
@@ -1593,7 +1593,7 @@ void do_final(void)
 	mmo_db_close();
 #endif
 
-	accounts->free(accounts);
+	accounts->destroy(accounts);
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 

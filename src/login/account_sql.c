@@ -31,8 +31,9 @@ typedef struct AccountDB_SQL
 
 /// internal functions
 static bool account_db_sql_init(AccountDB* self);
-static bool account_db_sql_free(AccountDB* self);
-static bool account_db_sql_configure(AccountDB* self, const char* option, const char* value);
+static void account_db_sql_destroy(AccountDB* self);
+static bool account_db_sql_get_property(AccountDB* self, const char* key, char* buf, size_t buflen);
+static bool account_db_sql_set_property(AccountDB* self, const char* option, const char* value);
 static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc, int* new_id);
 static bool account_db_sql_remove(AccountDB* self, const int account_id);
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc);
@@ -48,14 +49,15 @@ AccountDB* account_db_sql(void)
 	AccountDB_SQL* db = (AccountDB_SQL*)aCalloc(1, sizeof(AccountDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &account_db_sql_init;
-	db->vtable.free      = &account_db_sql_free;
-	db->vtable.configure = &account_db_sql_configure;
-	db->vtable.save      = &account_db_sql_save;
-	db->vtable.create    = &account_db_sql_create;
-	db->vtable.remove    = &account_db_sql_remove;
-	db->vtable.load_num  = &account_db_sql_load_num;
-	db->vtable.load_str  = &account_db_sql_load_str;
+	db->vtable.init         = &account_db_sql_init;
+	db->vtable.destroy      = &account_db_sql_destroy;
+	db->vtable.get_property = &account_db_sql_get_property;
+	db->vtable.set_property = &account_db_sql_set_property;
+	db->vtable.save         = &account_db_sql_save;
+	db->vtable.create       = &account_db_sql_create;
+	db->vtable.remove       = &account_db_sql_remove;
+	db->vtable.load_num     = &account_db_sql_load_num;
+	db->vtable.load_str     = &account_db_sql_load_str;
 
 	// initialize to default values
 	db->accounts = NULL;
@@ -103,7 +105,7 @@ static bool account_db_sql_init(AccountDB* self)
 }	
 
 /// disconnects from database
-static bool account_db_sql_free(AccountDB* self)
+static void account_db_sql_destroy(AccountDB* self)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 
@@ -112,46 +114,101 @@ static bool account_db_sql_free(AccountDB* self)
 
 	Sql_Free(db->accounts);
 	db->accounts = NULL;
-
-	return true;
 }
 
-/// if the option is supported, adjusts the internal state
-static bool account_db_sql_configure(AccountDB* self, const char* option, const char* value)
+/// Gets a property from this database.
+static bool account_db_sql_get_property(AccountDB* self, const char* key, char* buf, size_t buflen)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	const char* signature = "account.sql.";
 
-	if( strncmp(option, signature, strlen(signature)) != 0 )
+	if( strcmp(key, "engine.name") == 0 )
+	{
+		safesnprintf(buf, buflen, "sql");
+		return true;
+	}
+	if( strcmp(key, "engine.version") == 0 )
+	{
+		safesnprintf(buf, buflen, "???");
+		return true;
+	}
+	if( strcmp(key, "engine.comment") == 0 )
+	{
+		safesnprintf(buf, buflen, "SQL Account Database");
+		return true;
+	}
+
+	if( strncmp(key, signature, strlen(signature)) != 0 )
 		return false;
 
-	option += strlen(signature);
+	key += strlen(signature);
+	if( strcmpi(key, "db_hostname") == 0 )
+		safesnprintf(buf, buflen, "%s", db->db_hostname);
+	else
+	if( strcmpi(key, "db_port") == 0 )
+		safesnprintf(buf, buflen, "%d", db->db_port);
+	else
+	if( strcmpi(key, "db_username") == 0 )
+		safesnprintf(buf, buflen, "%s", db->db_username);
+	else
+	if( strcmpi(key, "db_password") == 0 )
+		safesnprintf(buf, buflen, "%s", db->db_password);
+	else
+	if( strcmpi(key, "db_database") == 0 )
+		safesnprintf(buf, buflen, "%s", db->db_database);
+	else
+	if( strcmpi(key, "codepage") == 0 )
+		safesnprintf(buf, buflen, "%s", db->codepage);
+	else
+	if( strcmpi(key, "case_sensitive") == 0 )
+		safesnprintf(buf, buflen, "%d", (db->case_sensitive ? 1 : 0));
+	else
+	if( strcmpi(key, "account_db") == 0 )
+		safesnprintf(buf, buflen, "%s", db->account_db);
+	else
+	if( strcmpi(key, "accreg_db") == 0 )
+		safesnprintf(buf, buflen, "%s", db->accreg_db);
+	else
+		return false;// not found
+	return true;
+}
 
-	if( strcmpi(option, "db_hostname") == 0 )
+/// if the option is supported, adjusts the internal state
+static bool account_db_sql_set_property(AccountDB* self, const char* key, const char* value)
+{
+	AccountDB_SQL* db = (AccountDB_SQL*)self;
+	const char* signature = "account.sql.";
+
+	if( strncmp(key, signature, strlen(signature)) != 0 )
+		return false;
+
+	key += strlen(signature);
+
+	if( strcmpi(key, "db_hostname") == 0 )
 		safestrncpy(db->db_hostname, value, sizeof(db->db_hostname));
 	else
-	if( strcmpi(option, "db_port") == 0 )
+	if( strcmpi(key, "db_port") == 0 )
 		db->db_port = (uint16)strtoul(value, NULL, 10);
 	else
-	if( strcmpi(option, "db_username") == 0 )
+	if( strcmpi(key, "db_username") == 0 )
 		safestrncpy(db->db_username, value, sizeof(db->db_username));
 	else
-	if( strcmpi(option, "db_password") == 0 )
+	if( strcmpi(key, "db_password") == 0 )
 		safestrncpy(db->db_password, value, sizeof(db->db_password));
 	else
-	if( strcmpi(option, "db_database") == 0 )
+	if( strcmpi(key, "db_database") == 0 )
 		safestrncpy(db->db_database, value, sizeof(db->db_database));
 	else
-	if( strcmpi(option, "codepage") == 0 )
+	if( strcmpi(key, "codepage") == 0 )
 		safestrncpy(db->codepage, value, sizeof(db->codepage));
 	else
-	if( strcmpi(option, "case_sensitive") == 0 )
+	if( strcmpi(key, "case_sensitive") == 0 )
 		db->case_sensitive = config_switch(value);
 	else
-	if( strcmpi(option, "account_db") == 0 )
+	if( strcmpi(key, "account_db") == 0 )
 		safestrncpy(db->account_db, value, sizeof(db->account_db));
 	else
-	if( strcmpi(option, "accreg_db") == 0 )
+	if( strcmpi(key, "accreg_db") == 0 )
 		safestrncpy(db->accreg_db, value, sizeof(db->accreg_db));
 	else // no match
 		return false;

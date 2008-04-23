@@ -1,40 +1,114 @@
 #ifndef __ACCOUNT_H_INCLUDED__
 #define __ACCOUNT_H_INCLUDED__
 
+#include "../common/cbasetypes.h"
 #include "../common/mmo.h" // ACCOUNT_REG2_NUM
 
 
 typedef struct AccountDB AccountDB;
 
+
+// standard engines
+#ifdef WITH_TXT
 AccountDB* account_db_txt(void);
+#endif
+#ifdef WITH_SQL
 AccountDB* account_db_sql(void);
+#endif
+// extra engines (will probably use the other txt functions)
+#define ACCOUNTDB_CONSTRUCTOR_(engine) account_db_##engine
+#define ACCOUNTDB_CONSTRUCTOR(engine) ACCOUNTDB_CONSTRUCTOR_(engine)
+#ifdef ACCOUNTDB_ENGINE_0
+AccountDB* ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_0)(void);
+#endif
+#ifdef ACCOUNTDB_ENGINE_1
+AccountDB* ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_1)(void);
+#endif
+#ifdef ACCOUNTDB_ENGINE_2
+AccountDB* ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_2)(void);
+#endif
+#ifdef ACCOUNTDB_ENGINE_3
+AccountDB* ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_3)(void);
+#endif
+#ifdef ACCOUNTDB_ENGINE_4
+AccountDB* ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_4)(void);
+#endif
+
 
 struct AccountDB
 {
-	/// makes the db ready for use
+	/// Initializes this database, making it ready for use.
+	///
+	/// @param self Database
+	/// @return true is successful
 	bool (*init)(AccountDB* self);
 
-	/// releases all allocated data and the db itself
-	bool (*free)(AccountDB* self);
+	/// Destroys this database, releasing all allocated memory (including itself).
+	///
+	/// @param self Database
+	void (*destroy)(AccountDB* self);
 
-	/// if the option is supported, adjusts the internal state
-	bool (*configure)(AccountDB* self, const char* option, const char* value);
+	/// Gets a property from this database.
+	/// These read-only properties must be implemented:
+	/// "engine.name" -> "txt", "sql", ...
+	/// "engine.version" -> internal version
+	/// "engine.comment" -> anything (suggestion: description or specs of the engine)
+	///
+	/// @param self Database
+	/// @param key Property name
+	/// @param buf Buffer for the value
+	/// @param buflen Buffer length
+	/// @return true if successful
+	bool (*get_property)(AccountDB* self, const char* key, char* buf, size_t buflen);
 
-	/// creates a new account and saves the provided data
-	/// if acc->account_id is -1, the account id will be auto-generated
-	/// if new_id is not NULL, it will receive the new entry's account id
+	/// Sets a property in this database.
+	///
+	/// @param self Database
+	/// @param key Property name
+	/// @param value Property value
+	/// @return true if successful
+	bool (*set_property)(AccountDB* self, const char* key, const char* value);
+
+	/// Creates a new account in this database.
+	/// If acc->account_id is -1, the account_id will be auto-generated.
+	/// Otherwise it uses acc->account_id.
+	/// If new_is is not NULL, it will receive the new entry's account id.
+	///
+	/// @param self Database
+	/// @param acc Account data
+	/// @param new_id Optional pointer that receives the account_id of the new account
+	/// @return true if successful
 	bool (*create)(AccountDB* self, const struct mmo_account* acc, int* new_id);
 
-	/// deletes an existing account
+	/// Removes an account from this database.
+	///
+	/// @param self Database
+	/// @param account_id Account id
+	/// @return true if successful
 	bool (*remove)(AccountDB* self, const int account_id);
 
-	/// replaces data of an existing account
+	/// Modifies the data of an existing account.
+	/// Uses acc->account_id to identify the account.
+	///
+	/// @param self Database
+	/// @param acc Account data
+	/// @return true if successful
 	bool (*save)(AccountDB* self, const struct mmo_account* acc);
 
-	/// looks up account data according to account id and stores it in the provided structure
+	/// Finds an account with account_id and copies it to acc.
+	///
+	/// @param self Database
+	/// @param acc Pointer that receives the account data
+	/// @param account_id Target account id
+	/// @return true if successful
 	bool (*load_num)(AccountDB* self, struct mmo_account* acc, const int account_id);
 
-	/// looks up account data according to account name and stores it in the provided structure
+	/// Finds an account with userid and copies it to acc.
+	///
+	/// @param self Database
+	/// @param acc Pointer that receives the account data
+	/// @param userid Target username
+	/// @return true if successful
 	bool (*load_str)(AccountDB* self, struct mmo_account* acc, const char* userid);
 };
 

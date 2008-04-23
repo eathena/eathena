@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ACCOUNT_TXT_DB_VERSION 20080409
+
 /// global defines
 #define AUTHS_BEFORE_SAVE 10 // flush every 10 saves
 #define AUTH_SAVING_INTERVAL 60000 // flush every 10 minutes
@@ -31,8 +33,9 @@ typedef struct AccountDB_TXT
 
 /// internal functions
 static bool account_db_txt_init(AccountDB* self);
-static bool account_db_txt_free(AccountDB* self);
-static bool account_db_txt_configure(AccountDB* self, const char* option, const char* value);
+static void account_db_txt_destroy(AccountDB* self);
+static bool account_db_txt_get_property(AccountDB* self, const char* key, char* buf, size_t buflen);
+static bool account_db_txt_set_property(AccountDB* self, const char* option, const char* value);
 static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc, int* new_id);
 static bool account_db_txt_remove(AccountDB* self, const int account_id);
 static bool account_db_txt_save(AccountDB* self, const struct mmo_account* acc);
@@ -50,14 +53,15 @@ AccountDB* account_db_txt(void)
 	AccountDB_TXT* db = (AccountDB_TXT*)aCalloc(1, sizeof(AccountDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &account_db_txt_init;
-	db->vtable.free      = &account_db_txt_free;
-	db->vtable.configure = &account_db_txt_configure;
-	db->vtable.save      = &account_db_txt_save;
-	db->vtable.create    = &account_db_txt_create;
-	db->vtable.remove    = &account_db_txt_remove;
-	db->vtable.load_num  = &account_db_txt_load_num;
-	db->vtable.load_str  = &account_db_txt_load_str;
+	db->vtable.init         = &account_db_txt_init;
+	db->vtable.destroy      = &account_db_txt_destroy;
+	db->vtable.get_property = &account_db_txt_get_property;
+	db->vtable.set_property = &account_db_txt_set_property;
+	db->vtable.save         = &account_db_txt_save;
+	db->vtable.create       = &account_db_txt_create;
+	db->vtable.remove       = &account_db_txt_remove;
+	db->vtable.load_num     = &account_db_txt_load_num;
+	db->vtable.load_str     = &account_db_txt_load_str;
 
 	// initialize to default values
 	db->accounts = NULL;
@@ -174,7 +178,7 @@ static bool account_db_txt_init(AccountDB* self)
 }
 
 /// flush accounts db, close savefile and deallocate structures
-static bool account_db_txt_free(AccountDB* self)
+static void account_db_txt_destroy(AccountDB* self)
 {
 	AccountDB_TXT* db = (AccountDB_TXT*)self;
 	DBMap* accounts = db->accounts;
@@ -191,24 +195,57 @@ static bool account_db_txt_free(AccountDB* self)
 
 	// delete entire structure
 	aFree(db);
-
-	return true;
 }
 
-/// if the option is supported, adjusts the internal state
-static bool account_db_txt_configure(AccountDB* self, const char* option, const char* value)
+/// Gets a property from this database.
+static bool account_db_txt_get_property(AccountDB* self, const char* key, char* buf, size_t buflen)
 {
 	AccountDB_TXT* db = (AccountDB_TXT*)self;
 	const char* signature = "account.txt.";
 
-	if( strncmp(option, signature, strlen(signature)) != 0 )
+	if( strcmp(key, "engine.name") == 0 )
+	{
+		safesnprintf(buf, buflen, "txt");
+		return true;
+	}
+	if( strcmp(key, "engine.version") == 0 )
+	{
+		safesnprintf(buf, buflen, "%d", ACCOUNT_TXT_DB_VERSION);
+		return true;
+	}
+	if( strcmp(key, "engine.comment") == 0 )
+	{
+		safesnprintf(buf, buflen, "TXT Account Database %d", ACCOUNT_TXT_DB_VERSION);
+		return true;
+	}
+
+	if( strncmp(key, signature, strlen(signature)) != 0 )
 		return false;
 
-	option += strlen(signature);
+	key += strlen(signature);
+	if( strcmpi(key, "account_db") == 0 )
+		safesnprintf(buf, buflen, "%s", db->account_db);
+	else if( strcmpi(key, "case_sensitive") == 0 )
+		safesnprintf(buf, buflen, "%d", (db->case_sensitive ? 1 : 0));
+	else
+		return false;// not found
+	return true;
+}
 
-	if( strcmpi(option, "account_db") == 0 )
+/// Sets a property in this database.
+static bool account_db_txt_set_property(AccountDB* self, const char* key, const char* value)
+{
+	AccountDB_TXT* db = (AccountDB_TXT*)self;
+	const char* signature = "account.txt.";
+
+	if( strncmp(key, signature, strlen(signature)) != 0 )
+		return false;
+
+	key += strlen(signature);
+
+	if( strcmpi(key, "account_db") == 0 )
 		safestrncpy(db->account_db, value, sizeof(db->account_db));
-	if( strcmpi(option, "case_sensitive") == 0 )
+	if( strcmpi(key, "case_sensitive") == 0 )
 		db->case_sensitive = config_switch(value);
 	else // no match
 		return false;
@@ -366,7 +403,7 @@ static bool mmo_auth_fromstr(struct mmo_account* a, char* str, unsigned int vers
 	// extract tab-separated columns from line
 	count = sv_split(str, strlen(str), 0, '\t', fields, ARRAYLENGTH(fields), SV_NOESCAPE_NOTERMINATE);
 
-	if( version == 20080409 && count == 13 )
+	if( version == ACCOUNT_TXT_DB_VERSION && count == 13 )
 	{
 		a->account_id = strtol(fields[1], NULL, 10);
 		safestrncpy(a->userid, fields[2], sizeof(a->userid));
@@ -495,7 +532,7 @@ static void mmo_auth_sync(AccountDB_TXT* db)
 		return;
 	}
 
-	fprintf(fp, "%d\n", 20080409); // savefile version
+	fprintf(fp, "%d\n", ACCOUNT_TXT_DB_VERSION); // savefile version
 
 	fprintf(fp, "// Accounts file: here are saved all information about the accounts.\n");
 	fprintf(fp, "// Structure: account ID, username, password, sex, email, level, state, unban time, expiration time, # of logins, last login time, last (accepted) login ip, repeated(register key, register value)\n");
