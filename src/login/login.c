@@ -22,10 +22,10 @@ void login_log(uint32 ip, const char* username, int rcode, const char* message);
 bool ladmin_auth(struct login_session_data* sd, const char* ip);
 
 // temporary imports
-#ifdef TXT_ONLY
+#if defined(WITH_TXT)
 	bool login_config_read_txt(const char* w1, const char* w2);
 	void display_conf_warnings(void);
-#else
+#elif defined(WITH_SQL)
 	bool login_config_read_sql(const char* w1, const char* w2);
 	bool inter_config_read_sql(const char* w1, const char* w2);
 	void mmo_db_init();
@@ -862,6 +862,7 @@ static int mmo_auth_new(const char* userid, const char* pass, const char sex, co
 	static unsigned int new_reg_tick = 0;
 	unsigned int tick = gettick();
 	struct mmo_account acc;
+	int new_id;
 
 	//Account Registration Flood Protection by [Kevin]
 	if( new_reg_tick == 0 )
@@ -889,8 +890,8 @@ static int mmo_auth_new(const char* userid, const char* pass, const char sex, co
 	safestrncpy(acc.lastlogin, "-", sizeof(acc.lastlogin));
 	safestrncpy(acc.last_ip, last_ip, sizeof(acc.last_ip));
 
-	accounts->create(accounts, &acc);
-	ShowNotice("Account creation (account %s, pass: %s, sex: %c)\n", acc.userid, acc.pass, acc.sex);
+	accounts->create(accounts, &acc, &new_id);
+	ShowNotice("Account creation (account %s, id: %d, pass: %s, sex: %c)\n", acc.userid, new_id, acc.pass, acc.sex);
 
 	if( DIFF_TICK(tick, new_reg_tick) > 0 )
 	{// Update the registration check.
@@ -1182,7 +1183,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 		login_log(ip, sd->userid, result, error);
 	}
 
-#ifndef TXT_ONLY
+#ifdef WITH_SQL
 	if( result == 1 ) // failed password
 		login_dynamic_ipban(sd->userid, ip);
 #endif
@@ -1209,7 +1210,7 @@ void login_auth_failed(struct login_session_data* sd, int result)
 //----------------------------------------------------------------------------------------
 int parse_login(int fd)
 {
-	struct login_session_data* sd = session[fd]->session_data;
+	struct login_session_data* sd = (struct login_session_data*)session[fd]->session_data;
 	int result;
 
 	char ip[16];
@@ -1224,7 +1225,8 @@ int parse_login(int fd)
 	}
 
 	if( sd == NULL ) {
-		sd = CREATE(session[fd]->session_data, struct login_session_data, 1);
+		CREATE(session[fd]->session_data, struct login_session_data, 1);
+		sd = (struct login_session_data*)session[fd]->session_data;
 		sd->fd = fd;
 	}
 
@@ -1529,10 +1531,10 @@ int login_config_read(const char* cfgName)
 		else if(!strcmpi(w1, "admin_allowed_host"))
 			safestrncpy(login_config.admin_allowed_host, w2, sizeof(login_config.admin_pass));
 
-#ifdef TXT_ONLY
+#if defined(WITH_TXT)
 		else if( login_config_read_txt(w1, w2) )
 			continue;
-#else
+#elif defined(WITH_SQL)
 		else if( login_config_read_sql(w1, w2) )
 			continue;
 #endif
@@ -1566,7 +1568,7 @@ void inter_config_read(const char* cfgName)
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) < 2)
 			continue;
 
-#ifndef TXT_ONLY
+#ifdef WITH_SQL
 		if( inter_config_read_sql(w1,w2) )
 			continue;
 #endif
@@ -1587,7 +1589,7 @@ void do_final(void)
 	login_log(0, "login server", 100, "login server shutdown");
 	ShowStatus("Terminating...\n");
 
-#ifndef TXT_ONLY
+#ifdef WITH_SQL
 	mmo_db_close();
 #endif
 
@@ -1629,9 +1631,9 @@ int do_init(int argc, char** argv)
 
 	login_set_defaults();
 
-#ifdef TXT_ONLY
+#if defined(WITH_TXT)
 	accounts = account_db_txt();
-#else
+#elif defined(WITH_SQL)
 	accounts = account_db_sql();
 #endif
 
@@ -1645,7 +1647,7 @@ int do_init(int argc, char** argv)
 	for( i = 0; i < MAX_SERVERS; i++ )
 		server[i].fd = -1;
 
-#ifndef TXT_ONLY
+#ifdef WITH_SQL
 	mmo_db_init();
 #endif
 
@@ -1662,7 +1664,7 @@ int do_init(int argc, char** argv)
 	// set default parser as parse_login function
 	set_defaultparse(parse_login);
 
-#ifndef TXT_ONLY
+#ifdef WITH_SQL
 	// ban deleter timer
 	add_timer_func_list(ip_ban_flush, "ip_ban_flush");
 	add_timer_interval(gettick()+10, ip_ban_flush, 0, 0, 60*1000);

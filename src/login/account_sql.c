@@ -33,7 +33,7 @@ typedef struct AccountDB_SQL
 static bool account_db_sql_init(AccountDB* self);
 static bool account_db_sql_free(AccountDB* self);
 static bool account_db_sql_configure(AccountDB* self, const char* option, const char* value);
-static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc);
+static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc, int* new_id);
 static bool account_db_sql_remove(AccountDB* self, const int account_id);
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, const int account_id);
@@ -161,7 +161,7 @@ static bool account_db_sql_configure(AccountDB* self, const char* option, const 
 
 /// create a new account entry
 /// if acc->account_id is -1, the account id will be auto-generated
-static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc)
+static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc, int* new_id)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	Sql* sql_handle = db->accounts;
@@ -227,9 +227,14 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 	}
 	SqlStmt_Free(stmt);
 
+	// write output
+	if( new_id != NULL )
+		*new_id = account_id;
+
 	return true;
 }
 
+/// delete an existing account entry + its regs
 static bool account_db_sql_remove(AccountDB* self, const int account_id)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
@@ -247,9 +252,13 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id)
 		return false;
 	}
 */
+	//TODO: delete regs
+	//TODO: wrap in a transaction
+
 	return true;
 }
 
+/// update an existing account with the provided new data (both account and regs)
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
@@ -326,6 +335,7 @@ static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 	return result;
 }
 
+/// retrieve data from db and store it in the provided data structure
 static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, const int account_id)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
@@ -388,6 +398,7 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 	return true;
 }
 
+/// retrieve data from db and store it in the provided data structure
 static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, const char* userid)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
@@ -424,8 +435,6 @@ static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, co
 
 	return account_db_sql_load_num(self, acc, account_id);
 }
-
-
 
 static int account_db_ping_init(AccountDB_SQL* db)
 {
