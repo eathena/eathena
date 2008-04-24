@@ -40,7 +40,7 @@ struct AccountDB
 	/// Initializes this database, making it ready for use.
 	///
 	/// @param self Database
-	/// @return true is successful
+	/// @return true if successful
 	bool (*init)(AccountDB* self);
 
 	/// Destroys this database, releasing all allocated memory (including itself).
@@ -72,7 +72,7 @@ struct AccountDB
 	/// Creates a new account in this database.
 	/// If acc->account_id is -1, the account_id will be auto-generated.
 	/// Otherwise it uses acc->account_id.
-	/// If new_is is not NULL, it will receive the new entry's account id.
+	/// If new_id is not NULL, it will receive the new entry's account id.
 	///
 	/// @param self Database
 	/// @param acc Account data

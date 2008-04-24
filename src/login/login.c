@@ -212,7 +212,7 @@ static int sync_ip_addresses(int tid, unsigned int tick, int id, int data)
 
 
 //-----------------------------------------------------
-// encrypted/unencrypted password check
+// encrypted/unencrypted password check (from eApp)
 //-----------------------------------------------------
 bool check_encrypted(const char* str1, const char* str2, const char* passwd)
 {
@@ -238,6 +238,17 @@ bool check_password(const char* md5key, int passwdenc, const char* passwd, const
 		return ((passwdenc&0x01) && check_encrypted(md5key, refpass, passwd)) ||
 		       ((passwdenc&0x02) && check_encrypted(refpass, md5key, passwd));
 	}
+}
+
+
+//-----------------------------------------------------
+// custom timestamp formatting (from eApp)
+//-----------------------------------------------------
+const char* timestamp2string(char* str, size_t size, time_t timestamp, const char* format)
+{
+	size_t len = strftime(str, size, format, localtime(&timestamp));
+	memset(str + len, '\0', size - len);
+	return str;
 }
 
 
@@ -637,11 +648,12 @@ int parse_fromchar(int fd)
 				else
 				{
 					uint8 buf[11];
-					char tmpstr[2048];
-					strftime(tmpstr, 24, login_config.date_format, localtime(&timestamp));
+					char tmpstr[24];
+					timestamp2string(tmpstr, sizeof(tmpstr), timestamp, login_config.date_format);
 					ShowNotice("Char-server '%s': Ban request (account: %d, new final date of banishment: %d (%s), ip: %s).\n", server[id].name, account_id, timestamp, tmpstr, ip);
 
 					acc.unban_time = timestamp;
+
 					// Save
 					accounts->save(accounts, &acc);
 
@@ -908,10 +920,8 @@ static int mmo_auth_new(const char* userid, const char* pass, const char sex, co
 //-----------------------------------------------------
 int mmo_auth(struct login_session_data* sd)
 {
-	time_t raw_time;
-	char tmpstr[256];
-	int len;
 	struct mmo_account acc;
+	int len;
 
 	char ip[16];
 	ip2str(session[sd->fd]->client_addr, ip);
@@ -966,7 +976,6 @@ int mmo_auth(struct login_session_data* sd)
 		}
 	}
 	
-	//TODO: case-sensitive/insensitive option
 	if( !accounts->load_str(accounts, &acc, sd->userid) )
 	{
 		ShowNotice("Unknown account (account: %s, received pass: %s, ip: %s)\n", sd->userid, sd->passwd, ip);
@@ -987,8 +996,8 @@ int mmo_auth(struct login_session_data* sd)
 
 	if( acc.unban_time != 0 && acc.unban_time > time(NULL) )
 	{
-		strftime(tmpstr, 20, login_config.date_format, localtime(&acc.unban_time));
-		tmpstr[19] = '\0';
+		char tmpstr[24];
+		timestamp2string(tmpstr, sizeof(tmpstr), acc.unban_time, login_config.date_format);
 		ShowNotice("Connection refused (account: %s, pass: %s, banned until %s, ip: %s)\n", sd->userid, sd->passwd, tmpstr, ip);
 		return 6; // 6 = Your are Prohibited to log in until %s
 	}
@@ -1010,9 +1019,7 @@ int mmo_auth(struct login_session_data* sd)
 	sd->level = acc.level;
 
 	// update account data
-	time(&raw_time);
-	strftime(tmpstr, 24, "%Y-%m-%d %H:%M:%S",localtime(&raw_time));
-	safestrncpy(acc.lastlogin, tmpstr, sizeof(acc.lastlogin));
+	timestamp2string(acc.lastlogin, sizeof(acc.lastlogin), time(NULL), login_config.date_format);
 	safestrncpy(acc.last_ip, ip, sizeof(acc.last_ip));
 	acc.unban_time = 0;
 	acc.logincount++;
@@ -1196,10 +1203,8 @@ void login_auth_failed(struct login_session_data* sd, int result)
 	else
 	{// 6 = Your are Prohibited to log in until %s
 		struct mmo_account acc;
-		char tmpstr[20];
 		time_t unban_time = ( accounts->load_str(accounts, &acc, sd->userid) ) ? acc.unban_time : 0;
-		strftime(tmpstr, 20, login_config.date_format, localtime(&unban_time));
-		safestrncpy((char*)WFIFOP(fd,3), tmpstr, 20); // ban timestamp goes here
+		timestamp2string((char*)WFIFOP(fd,3), 20, unban_time, login_config.date_format);
 	}
 	WFIFOSET(fd,23);
 }

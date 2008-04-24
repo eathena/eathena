@@ -10,9 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ACCOUNT_TXT_DB_VERSION 20080409
-
 /// global defines
+#define ACCOUNT_TXT_DB_VERSION 20080409
 #define AUTHS_BEFORE_SAVE 10 // flush every 10 saves
 #define AUTH_SAVING_INTERVAL 60000 // flush every 10 minutes
 
@@ -117,23 +116,22 @@ static bool account_db_txt_init(AccountDB* self)
 			continue;
 		}
 
-		if( sscanf(line, "%d\t%%newid%%%n", &account_id, &n) == 1 && line[n] == '\n' && account_id > db->next_account_id )
+		if( sscanf(line, "%d\t%%newid%%%n", &account_id, &n) == 1 && line[n] == '\n' )
 		{// auto-increment
-			db->next_account_id = account_id;
+			if( account_id > db->next_account_id )
+				db->next_account_id = account_id;
 			continue;
 		}
 
 		if( !mmo_auth_fromstr(&acc, line, version) )
-			continue;
-
-		//TODO: apply constraints & checks here
-/*
-		if (account_id > END_ACCOUNT_NUM) {
-			ShowError(CL_RED"mmmo_auth_init: an account has an id higher than %d\n", END_ACCOUNT_NUM);
-			ShowError("               account id #%d -> account not read (data is lost!)."CL_RESET"\n", account_id);
+		{
+			ShowError("account_db_txt_init: skipping invalid data: %s", line);
 			continue;
 		}
-*/
+
+		// apply constraints & checks here
+		if( acc.sex != 'S' && (acc.account_id < START_ACCOUNT_NUM || acc.account_id > END_ACCOUNT_NUM) )
+			ShowWarning("account_db_txt_init: account %d:'%s' has ID outside of the defined range for accounts (min:%d max:%d)!\n", acc.account_id, acc.userid, START_ACCOUNT_NUM, END_ACCOUNT_NUM);
 /*
 		userid[23] = '\0';
 		remove_control_chars(userid);
@@ -154,7 +152,7 @@ static bool account_db_txt_init(AccountDB* self)
 
 		if( idb_get(accounts, acc.account_id) != NULL )
 		{// account id already occupied
-			ShowError("account_db_txt_init: ID collision for account id %d! Discarding data for account '%s'...", acc.account_id, acc.userid);
+			ShowError("account_db_txt_init: ID collision for account id %d! Discarding data for account '%s'...\n", acc.account_id, acc.userid);
 			continue;
 		}
 
@@ -371,9 +369,16 @@ static bool account_db_txt_load_str(AccountDB* self, struct mmo_account* acc, co
 	struct mmo_account* tmp;
 	for( tmp = (struct mmo_account*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_account*)iter->next(iter,NULL) )
 	{
-		//TODO: case-sensitivity settings
-		if( strcmp(userid, tmp->userid) == 0 )
-			break;
+		if( db->case_sensitive )
+		{
+			if( strcmp(userid, tmp->userid) == 0 )
+				break;
+		}
+		else
+		{
+			if( stricmp(userid, tmp->userid) == 0 )
+				break;
+		}
 	}
 	iter->destroy(iter);
 
