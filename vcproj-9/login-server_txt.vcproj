@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
-	Name="map-server_txt"
-	ProjectGUID="{D356871D-58E1-450B-967A-E1E9646175AF}"
-	RootNamespace="map-server_txt"
+	Version="9,00"
+	Name="login-server_txt"
+	ProjectGUID="{D356871D-58E1-450B-967A-E2E9646175AF}"
+	RootNamespace="login-server_txt"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -39,10 +40,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
+				AdditionalOptions="/wd4100&#x0D;&#x0A;/wd4800"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -52,7 +53,6 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
 			/>
@@ -67,15 +67,17 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/FIXED:NO"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib zdll.lib pcre.lib"
-				OutputFile="$(OutDir)\map-server.exe"
+				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib zdll.lib"
+				ShowProgress="0"
+				OutputFile="$(OutDir)\login-server.exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\map-server.pdb"
+				ProgramDatabaseFile="$(OutDir)\login-server.pdb"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -95,9 +97,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -128,7 +127,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
+				AdditionalOptions="/wd4800"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -137,14 +136,12 @@
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="true"
 				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="false"
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
 			/>
@@ -159,18 +156,19 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib zdll.lib pcre.lib"
-				OutputFile="$(OutDir)\map-server.exe"
+				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib zdll.lib"
+				OutputFile="$(OutDir)\login-server.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\map-server.pdb"
+				ProgramDatabaseFile="$(OutDir)\login-server.pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				LinkTimeCodeGeneration="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -192,9 +190,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -203,242 +198,18 @@
 	</References>
 	<Files>
 		<Filter
-			Name="map_txt"
+			Name="login_txt"
 			>
 			<File
-				RelativePath="..\src\map\atcommand.c"
+				RelativePath="..\src\login\admin.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\atcommand.h"
+				RelativePath="..\src\login\login.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\battle.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\battle.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\charcommand.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\charcommand.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\chat.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\chat.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\chrif.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\chrif.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\clif.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\clif.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\date.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\date.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\guild.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\guild.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\intif.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\intif.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\log.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\log.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mail.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mail.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\map.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\map.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mob.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mob.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc_chat.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\party.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\party.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\path.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\path.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pcre.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pet.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\script.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\script.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\skill.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\skill.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\status.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\status.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\storage.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\storage.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\trade.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\trade.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\unit.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\unit.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\vending.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\vending.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="zlib"
-			>
-			<File
-				RelativePath="..\src\zlib\zconf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\zlib\zlib.h"
+				RelativePath="..\src\login\login.h"
 				>
 			</File>
 		</Filter>
@@ -470,18 +241,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\common\ers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\common\lock.c"
 				>
 			</File>
@@ -498,11 +257,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\common\mapindex.c"
+				RelativePath="..\src\common\md5calc.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\common\mapindex.h"
+				RelativePath="..\src\common\md5calc.h"
 				>
 			</File>
 			<File

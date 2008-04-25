@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
-	Name="map-server_sql"
-	ProjectGUID="{D356871D-58E1-450B-967A-E6E9646175AF}"
-	RootNamespace="map-server_sql"
+	Version="9,00"
+	Name="char-server_sql"
+	ProjectGUID="{D356871D-58E1-450B-967A-E4E9646175AF}"
+	RootNamespace="char-server_sql"
 	Keyword="Win32Proj"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -20,6 +21,7 @@
 			OutputDirectory=".."
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="1"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			CharacterSet="2"
 			>
 			<Tool
@@ -39,10 +41,10 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
+				AdditionalOptions="/wd4800"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;MAPREGSQL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -52,7 +54,6 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
 			/>
@@ -67,7 +68,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\lib"
@@ -76,6 +77,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -95,9 +98,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -129,7 +129,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
+				AdditionalOptions="/wd4800"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -138,13 +138,12 @@
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;MAPREGSQL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
 			/>
@@ -159,7 +158,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="..\lib"
@@ -170,8 +169,9 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				LinkTimeCodeGeneration="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -191,9 +191,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -232,14 +229,6 @@
 			</File>
 			<File
 				RelativePath="..\src\common\ers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.h"
 				>
 			</File>
 			<File
@@ -344,242 +333,70 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="zlib"
+			Name="char_sql"
 			>
 			<File
-				RelativePath="..\src\zlib\zconf.h"
+				RelativePath="..\src\char_sql\char.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\zlib\zlib.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="map_sql"
-			>
-			<File
-				RelativePath="..\src\map\atcommand.c"
+				RelativePath="..\src\char_sql\char.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\atcommand.h"
+				RelativePath="..\src\char_sql\int_guild.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\battle.c"
+				RelativePath="..\src\char_sql\int_guild.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\battle.h"
+				RelativePath="..\src\char_sql\int_homun.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.c"
+				RelativePath="..\src\char_sql\int_homun.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.h"
+				RelativePath="..\src\char_sql\int_mail.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\chat.c"
+				RelativePath="..\src\char_sql\int_mail.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\chat.h"
+				RelativePath="..\src\char_sql\int_party.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\chrif.c"
+				RelativePath="..\src\char_sql\int_party.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\chrif.h"
+				RelativePath="..\src\char_sql\int_pet.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\clif.c"
+				RelativePath="..\src\char_sql\int_pet.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\clif.h"
+				RelativePath="..\src\char_sql\int_storage.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\date.c"
+				RelativePath="..\src\char_sql\int_storage.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\date.h"
+				RelativePath="..\src\char_sql\inter.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\guild.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\guild.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\intif.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\intif.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\log.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\log.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mail.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mail.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\map.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\map.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mob.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\mob.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\npc_chat.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\party.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\party.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\path.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\path.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pcre.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pet.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\pet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\script.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\script.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\skill.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\skill.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\status.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\status.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\storage.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\storage.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\trade.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\trade.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\unit.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\unit.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\vending.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\vending.h"
+				RelativePath="..\src\char_sql\inter.h"
 				>
 			</File>
 		</Filter>
