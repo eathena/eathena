@@ -5,7 +5,7 @@
 //= finished, optimized and tested by Lupus
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.9
+//= 2.9b
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -35,6 +35,7 @@
 //= 2.7b Removed function "F_BlockHigh" as it's no longer used. [L0ne_W0lf]
 //= 2.8 Corrected NPC names to fall within proper restrictions. [L0ne_W0lf]
 //= 2.9 Corrected Valkyrie case spicifying where to warp after rebirthing. [L0ne_W0lf]
+//= 2.9b Fixed Verdandi typo, fixed resetting vars [Lupus]
 //============================================================ 
 
 valkyrie,48,86,4	script	Valkyrie#	811,{
@@ -120,7 +121,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			mes "[Valkyrie]";
 			mes "With two,";
 			mes "I will ask the";
-			mes "goddess Verdani to keep";
+			mes "goddess Verdandi to keep";
 			mes "and record the most honorable moments of your present life.";
 			next;
 			mes "[Valkyrie]";
@@ -137,7 +138,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			mes "[Valkyrie]";
 			mes "One...";
 			mes "Two......";
-			callfunc("F_SaveQuestSkills");
+			//callfunc("F_SaveQuestSkills"); //now not used
 			next;
 			mes "[Valkyrie]";
 			mes "One...";
@@ -148,7 +149,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			if(ADVJOB == Job_Paladin2) set ADVJOB,Job_Paladin;
 			jobchange Job_Novice_High;
 			resetlvl(1);
-			set RES_SKILL,0;
+			set MISC_QUEST,MISC_QUEST | 1024; //<-reset Skill Reset Event
 			skill 142,1,0;
 			skill 143,1,0;
 			next;
@@ -322,7 +323,7 @@ yuno_in02,93,207,1	script	Book of Ymir	111,{
 			mes "can confirm that Valkyrie and Valhalla actually exist...";
 			next;
 			set valkyrie_Q,2;
-			mes "[The book of Ymir]";
+			mes "[The Book of Ymir]";
 			mes "Let the heroes live new lives";
 			mes "so they can protect the world";
 			mes "from danger. And then...";
@@ -350,7 +351,7 @@ valkyrie,44,33,5	script	Teleporter	124,{
 		if (.@karma_d > 4) {
 			mes "[Teleporter]";
 			mes "Congratulations.";
-			mes "Honors to the warriors!";
+			mes "Honor to the warriors!";
 			close;
 		}
 		mes "[Teleporter]";

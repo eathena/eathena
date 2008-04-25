@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/04/25
+	* Rev. 12650 Merged some job npcs from Trunk [Toms]
 2008/04/15
 	* Rev. 12604 Rescripted Eye of Hellion quest, all quest progress is lost. [L0ne_W0lf]
 2008/04/14

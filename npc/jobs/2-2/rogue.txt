@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 2.4c
+//= 2.6
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -16,6 +16,8 @@
 //= 2.4b Changed a Problem with JobLevel what made 
 //=	impossible get a Gladius [3]. (bugreport:481) [Samuray22]
 //= 2.4c Corrected a Typo error ";;" and a typo error with "rouge". (bugreport:909) [Samuray22]
+//= 2.5 Added dummy "OnMyMobDead" labels. (bugreport:1100) [L0ne_W0lf]
+//= 2.6 Fixed a few bugs in the Rogue Guildsman. [L0ne_W0lf]
 //============================================================ 
 
 morocc,100,104,1	script	Thug#rg	118,{
@@ -643,7 +645,7 @@ in_rogue,376,23,1	script	Mr. Smith#rg	57,{
 		close;
 	}
 	else if (ROGUE_Q > 2) {
-		if (ROGUE_Q == 3) callsub S_CheckItems,510,10,932,10,957,10,958,10;
+		if (ROGUE_Q == 3) callsub S_CheckItems,510,6,932,10,957,10,958,10;
 		else if (ROGUE_Q == 4) callsub S_CheckItems,511,10,910,10,926,10,964,10;
 		else if (ROGUE_Q == 5) callsub S_CheckItems,508,10,948,10,935,10,940,10;
 		else if (ROGUE_Q == 6) {
@@ -927,7 +929,7 @@ S_Req:
 
 
 S_CheckItems:
-	if (Zeny > 99999 || countitem(getarg(0)) >= getarg(1) || countitem(getarg(2)) >= getarg(3) || countitem(getarg(4)) >= getarg(5) || countitem(getarg(6)) >= getarg(7)) {
+	if (Zeny > 9999 && countitem(getarg(0)) >= getarg(1) && countitem(getarg(2)) >= getarg(3) && countitem(getarg(4)) >= getarg(5) && countitem(getarg(6)) >= getarg(7)) {
 		mes "[Mr. Smith]";
 		mes "Okay, we've got the application fee, ^FF000010,000 zeny^000000, "+getarg(1)+" "+getitemname(getarg(0))+", "+getarg(3)+" "+getitemname(getarg(2))+", "+getarg(5)+" "+getitemname(getarg(4))+" and "+getarg(7)+" "+getitemname(getarg(6))+"...";
 		set zeny,zeny-10000;
@@ -1277,6 +1279,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","gen_ro#1::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,100,389,0	script	gen_ro#2	-1,3,3,{
@@ -1291,6 +1296,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","gen_ro#2::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1308,6 +1316,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","gen_ro#3::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,250,389,0	script	gen_ro#4	-1,3,3,{
@@ -1322,6 +1333,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","gen_ro#4::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1611,6 +1625,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#1::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,15,273,0	script	mob_rogue#2	-1,8,1,{
@@ -1626,6 +1643,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#2::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1647,6 +1667,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#3::OnMyMObDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,39,341,0	script	mob_rogue#4	-1,1,8,{
@@ -1663,6 +1686,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#4::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1681,6 +1707,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#5::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,58,309,0	script	mob_rogue#6	-1,4,1,{
@@ -1698,6 +1727,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#6::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,101,264,0	script	mob_rogue#7	-1,5,5,{
@@ -1713,6 +1745,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#7::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,140,312,0	script	mob_rogue#8	-1,5,5,{
@@ -1725,6 +1760,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#8::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1744,6 +1782,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#9::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1777,6 +1818,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#10::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,96,205,0	script	mob_rogue#11	-1,1,8,{
@@ -1806,6 +1850,9 @@ OnTouch:
 OnDisable:
 	killmonster "in_rogue","mob_rogue#12::OnMyMobDead";
 	end;
+
+OnMyMobDead:
+	end;
 }
 
 in_rogue,223,187,0	script	mob_rogue#13	-1,1,8,{
@@ -1822,6 +1869,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#13::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
@@ -1850,6 +1900,9 @@ OnTouch:
 
 OnDisable:
 	killmonster "in_rogue","mob_rogue#15::OnMyMobDead";
+	end;
+
+OnMyMobDead:
 	end;
 }
 
