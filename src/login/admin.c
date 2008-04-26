@@ -83,6 +83,7 @@ int parse_admin(int fd)
 		
 		case 0x7530:	// Request of the server version
 			ShowStatus("'ladmin': Sending of the server version (ip: %s)\n", ip);
+			RFIFOSKIP(fd,2);
 			WFIFOHEAD(fd,10);
 			WFIFOW(fd,0) = 0x7531;
 			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
@@ -93,7 +94,6 @@ int parse_admin(int fd)
 			WFIFOB(fd,7) = ATHENA_SERVER_LOGIN;
 			WFIFOW(fd,8) = ATHENA_MOD_VERSION;
 			WFIFOSET(fd,10);
-			RFIFOSKIP(fd,2);
 			break;
 /*
 		case 0x7920:	// Request of an accounts list
@@ -748,81 +748,86 @@ int parse_admin(int fd)
 			WFIFOSET(fd,34);
 			RFIFOSKIP(fd,38);
 			break;
-
+*/
 		case 0x7952:	// Request about informations of an account (by account name)
 			if (RFIFOREST(fd) < 26)
 				return 0;
+		{
+			struct mmo_account acc;
+
 			WFIFOW(fd,0) = 0x7953;
-			WFIFOL(fd,2) = 0xFFFFFFFF; // WTF???
+
 			account_name = (char*)RFIFOP(fd,2);
 			account_name[23] = '\0';
-			remove_control_chars(account_name);
-			i = search_account_index(account_name);
-			if (i != -1) {
-				WFIFOL(fd,2) = auth_dat[i].account_id;
-				WFIFOB(fd,6) = (unsigned char)isGM(auth_dat[i].account_id);
-				memcpy(WFIFOP(fd,7), auth_dat[i].userid, 24);
-				WFIFOB(fd,31) = auth_dat[i].sex;
-				WFIFOL(fd,32) = auth_dat[i].logincount;
-				WFIFOL(fd,36) = auth_dat[i].state;
-				memcpy(WFIFOP(fd,40), "-", 20); // error message (removed)
-				memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
-				memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
-				memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-				WFIFOL(fd,140) = (unsigned long)auth_dat[i].expiration_time;
-				WFIFOL(fd,144) = (unsigned long)auth_dat[i].unban_time;
-				WFIFOW(fd,148) = (uint16)strlen(auth_dat[i].memo);
-				if (auth_dat[i].memo[0]) {
-					memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
-				}
-				ShowNotice("'ladmin': Sending information of an account (request by the name; account: %s, id: %d, ip: %s)\n", auth_dat[i].userid, auth_dat[i].account_id, ip);
-				WFIFOSET(fd,150+strlen(auth_dat[i].memo));
-			} else {
-				memcpy(WFIFOP(fd,7), account_name, 24);
-				WFIFOW(fd,148) = 0;
-				ShowNotice("'ladmin': Attempt to obtain information (by the name) of an unknown account (account: %s, ip: %s)\n", account_name, ip);
-				WFIFOSET(fd,150);
+
+			if( accounts->load_str(accounts, &acc, account_name) )
+			{
+				ShowNotice("'ladmin': Sending information of an account (request by the name; account: %s, id: %d, ip: %s)\n", acc.userid, acc.account_id, ip);
+				WFIFOL(fd,2) = acc.account_id;
+				WFIFOB(fd,6) = acc.level;
+				safestrncpy((char*)WFIFOP(fd,7), acc.userid, 24);
+				WFIFOB(fd,31) = acc.sex;
+				WFIFOL(fd,32) = acc.logincount;
+				WFIFOL(fd,36) = acc.state;
+				safestrncpy((char*)WFIFOP(fd,40), "-", 20); // error message (removed)
+				safestrncpy((char*)WFIFOP(fd,60), acc.lastlogin, 24);
+				safestrncpy((char*)WFIFOP(fd,84), acc.last_ip, 16);
+				safestrncpy((char*)WFIFOP(fd,100), acc.email, 40);
+				WFIFOL(fd,140) = (unsigned long)acc.expiration_time;
+				WFIFOL(fd,144) = (unsigned long)acc.unban_time;
+				WFIFOW(fd,148) = 0; // previously, this was strlen(memo), and memo went afterwards
 			}
+			else
+			{
+				ShowNotice("'ladmin': Attempt to obtain information (by the name) of an unknown account (account: %s, ip: %s)\n", account_name, ip);
+				WFIFOL(fd,2) = -1;
+				safestrncpy((char*)WFIFOP(fd,7), account_name, 24); // not found
+			}
+
+			WFIFOSET(fd,150);
+		}
 			RFIFOSKIP(fd,26);
 			break;
 
 		case 0x7954:	// Request about information of an account (by account id)
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			WFIFOW(fd,0) = 0x7953;
-			WFIFOL(fd,2) = RFIFOL(fd,2);
-			memset(WFIFOP(fd,7), '\0', 24);
-			for(i = 0; i < auth_num; i++) {
-				if (auth_dat[i].account_id == (int)RFIFOL(fd,2)) {
-					ShowNotice("'ladmin': Sending information of an account (request by the id; account: %s, id: %d, ip: %s)\n", auth_dat[i].userid, RFIFOL(fd,2), ip);
-					WFIFOB(fd,6) = (unsigned char)isGM(auth_dat[i].account_id);
-					memcpy(WFIFOP(fd,7), auth_dat[i].userid, 24);
-					WFIFOB(fd,31) = auth_dat[i].sex;
-					WFIFOL(fd,32) = auth_dat[i].logincount;
-					WFIFOL(fd,36) = auth_dat[i].state;
-					memcpy(WFIFOP(fd,40), "-", 20); // error message (removed)
-					memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
-					memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
-					memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-					WFIFOL(fd,140) = (unsigned long)auth_dat[i].expiration_time;
-					WFIFOL(fd,144) = (unsigned long)auth_dat[i].unban_time;
-					WFIFOW(fd,148) = (uint16)strlen(auth_dat[i].memo);
-					if (auth_dat[i].memo[0]) {
-						memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
-					}
-					WFIFOSET(fd,150+strlen(auth_dat[i].memo));
-					break;
-				}
-			}
-			if (i == auth_num) {
-				ShowNotice("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)\n", RFIFOL(fd,2), ip);
-				strncpy((char*)WFIFOP(fd,7), "", 24);
-				WFIFOW(fd,148) = 0;
-				WFIFOSET(fd,150);
-			}
+		{
+			struct mmo_account acc;
+
+			int account_id = RFIFOL(fd,2);
 			RFIFOSKIP(fd,6);
+
+			WFIFOHEAD(fd,150);
+			WFIFOW(fd,0) = 0x7953;
+			WFIFOL(fd,2) = account_id;
+
+			if( accounts->load_num(accounts, &acc, account_id) )
+			{
+				ShowNotice("'ladmin': Sending information of an account (request by the id; account: %s, id: %d, ip: %s)\n", acc.userid, account_id, ip);
+				WFIFOB(fd,6) = acc.level;
+				safestrncpy((char*)WFIFOP(fd,7), acc.userid, 24);
+				WFIFOB(fd,31) = acc.sex;
+				WFIFOL(fd,32) = acc.logincount;
+				WFIFOL(fd,36) = acc.state;
+				safestrncpy((char*)WFIFOP(fd,40), "-", 20); // error message (removed)
+				safestrncpy((char*)WFIFOP(fd,60), acc.lastlogin, 24);
+				safestrncpy((char*)WFIFOP(fd,84), acc.last_ip, 16);
+				safestrncpy((char*)WFIFOP(fd,100), acc.email, 40);
+				WFIFOL(fd,140) = (unsigned long)acc.expiration_time;
+				WFIFOL(fd,144) = (unsigned long)acc.unban_time;
+				WFIFOW(fd,148) = 0; // previously, this was strlen(memo), and memo went afterwards
+			}
+			else
+			{
+				ShowNotice("'ladmin': Attempt to obtain information (by the id) of an unknown account (id: %d, ip: %s)\n", account_id, ip);
+				safestrncpy((char*)WFIFOP(fd,7), "", 24); // not found
+			}
+
+			WFIFOSET(fd,150);
+		}
 			break;
-*/
+
 		default:
 			ShowStatus("'ladmin': End of connection, unknown packet (ip: %s)\n", ip);
 			set_eof(fd);
