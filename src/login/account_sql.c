@@ -142,6 +142,7 @@ static bool account_db_sql_get_property(AccountDB* self, const char* key, char* 
 		return false;
 
 	key += strlen(signature);
+
 	if( strcmpi(key, "db_hostname") == 0 )
 		safesnprintf(buf, buflen, "%s", db->db_hostname);
 	else
@@ -170,6 +171,7 @@ static bool account_db_sql_get_property(AccountDB* self, const char* key, char* 
 		safesnprintf(buf, buflen, "%s", db->accreg_db);
 	else
 		return false;// not found
+
 	return true;
 }
 
@@ -338,10 +340,10 @@ static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc)
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_ENUM,   (void*)&acc->sex,             sizeof(acc->sex))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)acc->email,            strlen(acc->email))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_INT,    (void*)&acc->level,           sizeof(acc->level))
-	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_UINT32, (void*)&acc->state,           sizeof(acc->state))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_UINT,   (void*)&acc->state,           sizeof(acc->state))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_LONG,   (void*)&acc->unban_time,      sizeof(acc->unban_time))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_LONG,   (void*)&acc->expiration_time, sizeof(acc->expiration_time))
-	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&acc->logincount,      sizeof(acc->logincount))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_UINT,   (void*)&acc->logincount,      sizeof(acc->logincount))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_STRING, (void*)&acc->lastlogin,       strlen(acc->lastlogin))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_STRING, (void*)&acc->last_ip,         strlen(acc->last_ip))
 	||  SQL_SUCCESS != SqlStmt_Execute(stmt)
@@ -421,10 +423,10 @@ static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, co
 	Sql_GetData(sql_handle,  3, &data, NULL); acc->sex = data[0];
 	Sql_GetData(sql_handle,  4, &data, NULL); safestrncpy(acc->email, data, sizeof(acc->email));
 	Sql_GetData(sql_handle,  5, &data, NULL); acc->level = atoi(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); acc->state = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); acc->state = strtoul(data, NULL, 10);
 	Sql_GetData(sql_handle,  7, &data, NULL); acc->unban_time = atol(data);
 	Sql_GetData(sql_handle,  8, &data, NULL); acc->expiration_time = atol(data);
-	Sql_GetData(sql_handle,  9, &data, NULL); acc->logincount = atol(data);
+	Sql_GetData(sql_handle,  9, &data, NULL); acc->logincount = strtoul(data, NULL, 10);
 	Sql_GetData(sql_handle, 10, &data, NULL); safestrncpy(acc->lastlogin, data, sizeof(acc->lastlogin));
 	Sql_GetData(sql_handle, 11, &data, NULL); safestrncpy(acc->last_ip, data, sizeof(acc->last_ip));
 

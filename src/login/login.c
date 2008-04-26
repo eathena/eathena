@@ -24,7 +24,6 @@ bool ladmin_auth(struct login_session_data* sd, const char* ip);
 // temporary imports
 #if defined(WITH_TXT)
 	bool login_config_read_txt(const char* w1, const char* w2);
-	void display_conf_warnings(void);
 #elif defined(WITH_SQL)
 	bool login_config_read_sql(const char* w1, const char* w2);
 	bool inter_config_read_sql(const char* w1, const char* w2);

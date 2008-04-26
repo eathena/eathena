@@ -221,12 +221,14 @@ static bool account_db_txt_get_property(AccountDB* self, const char* key, char* 
 		return false;
 
 	key += strlen(signature);
+
 	if( strcmpi(key, "account_db") == 0 )
 		safesnprintf(buf, buflen, "%s", db->account_db);
 	else if( strcmpi(key, "case_sensitive") == 0 )
 		safesnprintf(buf, buflen, "%d", (db->case_sensitive ? 1 : 0));
 	else
 		return false;// not found
+
 	return true;
 }
 
@@ -419,7 +421,7 @@ static bool mmo_auth_fromstr(struct mmo_account* a, char* str, unsigned int vers
 		a->state = strtoul(fields[7], NULL, 10);
 		a->unban_time = strtol(fields[8], NULL, 10);
 		a->expiration_time = strtol(fields[9], NULL, 10);
-		a->logincount = strtol(fields[10], NULL, 10);
+		a->logincount = strtoul(fields[10], NULL, 10);
 		safestrncpy(a->lastlogin, fields[11], sizeof(a->lastlogin));
 		safestrncpy(a->last_ip, fields[12], sizeof(a->last_ip));
 		regs = fields[13];
@@ -432,7 +434,7 @@ static bool mmo_auth_fromstr(struct mmo_account* a, char* str, unsigned int vers
 		safestrncpy(a->pass, fields[3], sizeof(a->pass));
 		safestrncpy(a->lastlogin, fields[4], sizeof(a->lastlogin));
 		a->sex = fields[5][0];
-		a->logincount = strtol(fields[6], NULL, 10);
+		a->logincount = strtoul(fields[6], NULL, 10);
 		a->state = strtoul(fields[7], NULL, 10);
 		safestrncpy(a->email, fields[8], sizeof(a->email));
 		//safestrncpy(a->error_message, fields[9], sizeof(a->error_message));
@@ -450,7 +452,7 @@ static bool mmo_auth_fromstr(struct mmo_account* a, char* str, unsigned int vers
 		safestrncpy(a->pass, fields[3], sizeof(a->pass));
 		safestrncpy(a->lastlogin, fields[4], sizeof(a->lastlogin));
 		a->sex = fields[5][0];
-		a->logincount = strtol(fields[6], NULL, 10);
+		a->logincount = strtoul(fields[6], NULL, 10);
 		a->state = strtoul(fields[7], NULL, 10);
 		safestrncpy(a->email, fields[8], sizeof(a->email));
 		//safestrncpy(a->error_message, fields[9], sizeof(a->error_message));
@@ -467,7 +469,7 @@ static bool mmo_auth_fromstr(struct mmo_account* a, char* str, unsigned int vers
 		safestrncpy(a->pass, fields[3], sizeof(a->pass));
 		safestrncpy(a->lastlogin, fields[4], sizeof(a->lastlogin));
 		a->sex = fields[5][0];
-		a->logincount = strtol(fields[6], NULL, 10);
+		a->logincount = strtoul(fields[6], NULL, 10);
 		a->state = strtoul(fields[7], NULL, 10);
 		regs = fields[8];
 	}
@@ -511,7 +513,7 @@ static bool mmo_auth_tostr(const struct mmo_account* a, char* str)
 	int i;
 	char* str_p = str;
 
-	str_p += sprintf(str_p, "%d\t%s\t%s\t%c\t%s\t%u\t%u\t%ld\t%ld\t%d\t%s\t%s\t",
+	str_p += sprintf(str_p, "%d\t%s\t%s\t%c\t%s\t%u\t%u\t%ld\t%ld\t%u\t%s\t%s\t",
 	                 a->account_id, a->userid, a->pass, a->sex, a->email, a->level,
 	                 a->state, (long)a->unban_time, (long)a->expiration_time,
 	                 a->logincount, a->lastlogin, a->last_ip);

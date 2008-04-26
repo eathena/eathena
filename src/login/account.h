@@ -120,10 +120,10 @@ struct mmo_account {
 	char sex;               // gender (M/F/S)
 	char email[40];         // e-mail (by default: a@a.com)
 	int level;              // GM level
-	uint32 state;           // packet 0x006a value + 1 (0: compte OK)
+	unsigned int state;     // packet 0x006a value + 1 (0: compte OK)
 	time_t unban_time;      // (timestamp): ban time limit of the account (0 = no ban)
 	time_t expiration_time; // (timestamp): validity limit of the account (0 = unlimited)
-	int logincount;         // number of successful auth attempts
+	unsigned int logincount;// number of successful auth attempts
 	char lastlogin[24];     // date+time of last successful login
 	char last_ip[16];       // save of last IP of connection
 	int account_reg2_num;
