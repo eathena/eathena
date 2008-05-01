@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\zlib"
+				AdditionalIncludeDirectories="..\3rdparty\zlib\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -70,7 +70,7 @@
 				AdditionalDependencies="libcmtd.lib oldnames.lib zdll.lib"
 				OutputFile="$(OutDir)\mapcache.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\zlib\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"

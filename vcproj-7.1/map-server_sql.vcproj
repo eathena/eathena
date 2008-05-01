@@ -21,7 +21,7 @@
 				AdditionalOptions="/wd4018
 /wd4100"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\zlib;..\include\mysql;..\include\pcre"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\zlib\include;..\3rdparty\pcre\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;MAPREGSQL;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -41,10 +41,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib pcre.lib zdll.lib"
+				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server_sql.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib;..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
@@ -93,7 +93,7 @@
 				EnableFiberSafeOptimizations="TRUE"
 				OptimizeForProcessor="2"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\include\zlib;..\include\mysql;..\include\pcre"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\zlib\include;..\3rdparty\pcre\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;MAPREGSQL;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="TRUE"
 				RuntimeLibrary="3"
@@ -107,10 +107,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib pcre.lib zdll.lib"
+				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server_sql.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib;..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"

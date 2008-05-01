@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include\zlib;..\include\mysql"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_SQL"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
@@ -38,10 +38,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
+				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib"
 				OutputFile="$(OutDir)\login-server_sql.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
@@ -87,7 +87,7 @@
 				EnableFiberSafeOptimizations="TRUE"
 				OptimizeForProcessor="2"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\include\zlib;..\include\mysql"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_SQL"
 				StringPooling="TRUE"
 				RuntimeLibrary="3"
@@ -103,10 +103,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
+				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib"
 				OutputFile="$(OutDir)\login-server_sql.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
