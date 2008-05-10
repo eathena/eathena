@@ -19,8 +19,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT"
+				AdditionalIncludeDirectories="..\3rdparty\openrj\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;ACCOUNTDB_ENGINE_0=rj"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
@@ -93,8 +93,8 @@
 				EnableFiberSafeOptimizations="TRUE"
 				OptimizeForProcessor="2"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT"
+				AdditionalIncludeDirectories="..\3rdparty\openrj\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;ACCOUNTDB_ENGINE_0=rj"
 				StringPooling="TRUE"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="FALSE"
@@ -149,6 +149,9 @@
 			Filter="">
 			<File
 				RelativePath="..\src\login\account.h">
+			</File>
+			<File
+				RelativePath="..\src\login\account_rj.c">
 			</File>
 			<File
 				RelativePath="..\src\login\account_txt.c">
@@ -258,6 +261,19 @@
 			</File>
 			<File
 				RelativePath="..\src\common\version.h">
+			</File>
+		</Filter>
+		<Filter
+			Name="openrj"
+			Filter="">
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjapi.c">
+			</File>
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjmem.c">
+			</File>
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjstr.c">
 			</File>
 		</Filter>
 	</Files>

@@ -4,7 +4,6 @@
 #include "../common/cbasetypes.h"
 #include "../common/mmo.h" // ACCOUNT_REG2_NUM
 
-
 typedef struct AccountDB AccountDB;
 
 

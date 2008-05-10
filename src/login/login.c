@@ -43,8 +43,37 @@ struct mmo_char_server server[MAX_SERVERS]; // char server data
 #define sex_num2str(num) ( (num ==  0  ) ? 'F' : (num ==  1  ) ? 'M' : 'S' )
 #define sex_str2num(str) ( (str == 'F' ) ?  0  : (str == 'M' ) ?  1  :  2  )
 
+// Account engines available
+static struct{
+	AccountDB* (*constructor)(void);
+	AccountDB* db;
+} account_engines[] = {
+#ifdef WITH_TXT
+	{account_db_txt, NULL},
+#endif
+#ifdef WITH_SQL
+	{account_db_sql, NULL},
+#endif
+#ifdef ACCOUNTDB_ENGINE_0
+	{ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_0), NULL},
+#endif
+#ifdef ACCOUNTDB_ENGINE_1
+	{ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_1), NULL},
+#endif
+#ifdef ACCOUNTDB_ENGINE_2
+	{ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_2), NULL},
+#endif
+#ifdef ACCOUNTDB_ENGINE_3
+	{ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_3), NULL},
+#endif
+#ifdef ACCOUNTDB_ENGINE_4
+	{ACCOUNTDB_CONSTRUCTOR(ACCOUNTDB_ENGINE_4), NULL},
+#endif
+	// end of structure
+	{NULL, NULL}
+};
 // account database
-AccountDB* accounts;
+AccountDB* accounts = NULL;
 
 //Account registration flood protection [Kevin]
 int allowed_regs = 1;
@@ -310,7 +339,6 @@ int login_lan_config_read(const char *lancfgName)
 	fclose(fp);
 	return 0;
 }
-
 
 //-----------------------
 // Console Command Parser [Wizputer]
@@ -1456,6 +1484,7 @@ void login_set_defaults()
 	login_config.dynamic_pass_failure_ban_duration = 5;
 	login_config.use_dnsbl = false;
 	safestrncpy(login_config.dnsbl_servs, "", sizeof(login_config.dnsbl_servs));
+	safestrncpy(login_config.account_engine, "auto", sizeof(login_config.account_engine));
 }
 
 //-----------------------------------
@@ -1535,18 +1564,29 @@ int login_config_read(const char* cfgName)
 		else if(!strcmpi(w1, "admin_allowed_host"))
 			safestrncpy(login_config.admin_allowed_host, w2, sizeof(login_config.admin_pass));
 
-#if defined(WITH_TXT)
+#ifdef WITH_TXT
 		else if( login_config_read_txt(w1, w2) )
 			continue;
-#elif defined(WITH_SQL)
+#endif
+#ifdef WITH_SQL
 		else if( login_config_read_sql(w1, w2) )
 			continue;
 #endif
-		else if( accounts->set_property(accounts, w1, w2) )
-			continue;
 
 		else if(!strcmpi(w1, "import"))
 			login_config_read(w2);
+		else if(!strcmpi(w1, "account.engine"))
+			safestrncpy(login_config.account_engine, w2, sizeof(login_config.account_engine));
+		else
+		{// try the account engines
+			int i;
+			for( i = 0; account_engines[i].constructor; ++i )
+			{
+				AccountDB* db = account_engines[i].db;
+				if( db && db->set_property(db, w1, w2) )
+					break;
+			}
+		}
 	}
 	fclose(fp);
 	ShowInfo("Finished reading %s.\n", cfgName);
@@ -1583,6 +1623,28 @@ void inter_config_read(const char* cfgName)
 	ShowInfo("Done reading %s.\n", cfgName);
 }
 
+/// Get the engine selected in the config settings.
+/// Updates the config setting with the selected engine if 'auto'.
+static AccountDB* get_account_engine(void)
+{
+	int i;
+	bool get_first = (strcmp(login_config.account_engine,"auto") == 0);
+
+	for( i = 0; account_engines[i].constructor; ++i )
+	{
+		char name[sizeof(login_config.account_engine)];
+		AccountDB* db = account_engines[i].db;
+		if( db && db->get_property(db, "engine.name", name, sizeof(name)) &&
+			(get_first || strcmp(name, login_config.account_engine) == 0) )
+		{
+			if( get_first )
+				safestrncpy(login_config.account_engine, name, sizeof(login_config.account_engine));
+			return db;
+		}
+	}
+	return NULL;
+}
+
 //--------------------------------------
 // Function called at exit of the server
 //--------------------------------------
@@ -1597,7 +1659,16 @@ void do_final(void)
 	mmo_db_close();
 #endif
 
-	accounts->destroy(accounts);
+	for( i = 0; account_engines[i].constructor; ++i )
+	{// destroy all account engines
+		AccountDB* db = account_engines[i].db;
+		if( db )
+		{
+			db->destroy(db);
+			account_engines[i].db = NULL;
+		}
+	}
+	accounts = NULL; // destroyed in account_engines
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 
@@ -1633,15 +1704,12 @@ int do_init(int argc, char** argv)
 {
 	int i;
 
-	login_set_defaults();
-
-#if defined(WITH_TXT)
-	accounts = account_db_txt();
-#elif defined(WITH_SQL)
-	accounts = account_db_sql();
-#endif
+	// intialize engines (to accept config settings)
+	for( i = 0; account_engines[i].constructor; ++i )
+		account_engines[i].db = account_engines[i].constructor();
 
 	// read login-server configuration
+	login_set_defaults();
 	login_config_read((argc > 1) ? argv[1] : LOGIN_CONF_NAME);
 	login_lan_config_read((argc > 2) ? argv[2] : LAN_CONF_NAME);
 	inter_config_read(INTER_CONF_NAME);
@@ -1654,9 +1722,6 @@ int do_init(int argc, char** argv)
 #ifdef WITH_SQL
 	mmo_db_init();
 #endif
-
-	// Accounts database init
-	accounts->init(accounts);
 
 	// Online user database init
 	online_db = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -1682,6 +1747,20 @@ int do_init(int argc, char** argv)
 	if (login_config.ip_sync_interval) {
 		add_timer_func_list(sync_ip_addresses, "sync_ip_addresses");
 		add_timer_interval(gettick() + login_config.ip_sync_interval, sync_ip_addresses, 0, 0, login_config.ip_sync_interval);
+	}
+
+	// Account database init
+	accounts = get_account_engine();
+	if( accounts == NULL )
+	{
+		ShowError("do_init: account engine '%s' not found.\n", login_config.account_engine);
+		runflag = 0;
+		return 1;
+	}
+	else
+	{
+		ShowInfo("Using account engine '%s'.\n", login_config.account_engine);
+		accounts->init(accounts);
 	}
 
 	if( login_config.console )

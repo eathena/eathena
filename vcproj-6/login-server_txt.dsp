@@ -38,7 +38,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W2 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_TXT" /Fp"tmp/login_txt/login-server_txt.pch" /YX /Fo"tmp/login_txt/" /Fd"tmp/login_txt/" /FD /c
+# ADD CPP /nologo /W2 /GX /O2 /I "..\3rdparty\openrj\include" /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_TXT" /D "ACCOUNTDB_ENGINE_0=rj" /Fp"tmp/login_txt/login-server_txt.pch" /YX /Fo"tmp/login_txt/" /Fd"tmp/login_txt/" /FD /c
 # ADD BASE RSC /l 0x409
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
@@ -191,6 +191,10 @@ SOURCE=..\src\login\account.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\login\account_rj.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\login\account_txt.c
 # End Source File
 # Begin Source File
@@ -208,6 +212,22 @@ SOURCE=..\src\login\login.h
 # Begin Source File
 
 SOURCE=..\src\login\login_txt.c
+# End Source File
+# End Group
+# Begin Group "openrj"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\3rdparty\openrj\src\orjapi.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\3rdparty\openrj\src\orjmem.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\3rdparty\openrj\src\orjstr.c
 # End Source File
 # End Group
 # End Target

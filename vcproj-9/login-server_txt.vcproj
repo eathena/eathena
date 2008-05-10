@@ -42,8 +42,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/wd4100&#x0D;&#x0A;/wd4800"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT"
+				AdditionalIncludeDirectories="..\3rdparty\openrj\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;ACCOUNTDB_ENGINE_0=rj"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -135,8 +135,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories=""
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT"
+				AdditionalIncludeDirectories="..\3rdparty\openrj\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;ACCOUNTDB_ENGINE_0=rj"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
@@ -202,6 +202,10 @@
 			>
 			<File
 				RelativePath="..\src\login\account.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\account_rj.c"
 				>
 			</File>
 			<File
@@ -342,6 +346,22 @@
 			</File>
 			<File
 				RelativePath="..\src\common\version.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="openrj"
+			>
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjapi.c"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjmem.c"
+				>
+			</File>
+			<File
+				RelativePath="..\3rdparty\openrj\src\orjstr.c"
 				>
 			</File>
 		</Filter>
