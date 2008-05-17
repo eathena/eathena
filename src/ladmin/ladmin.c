@@ -2474,13 +2474,13 @@ int parse_fromlogin(int fd)
 		case 0x7931:	// Answer of login-server about an account creation
 			if (RFIFOREST(fd) < 30)
 				return 0;
-			id=RFIFOL(fd,2);
-			if (id == -1) {
-				ShowMessage("Account [%s] creation failed. Same account already exists.\n", RFIFOP(fd,6));
-				ladmin_log("Account [%s] creation failed. Same account already exists.\n", RFIFOP(fd,6));
+			id = RFIFOL(fd,2);
+			if (id != -1) {
+				ShowMessage("Account [%s] creation failed. Return code %d.\n", RFIFOP(fd,6), id);
+				ladmin_log("Account [%s] creation failed. Return code %d.\n", RFIFOP(fd,6), id);
 			} else {
-				ShowMessage("Account [%s] is successfully created [id: %d].\n", RFIFOP(fd,6), id);
-				ladmin_log("Account [%s] is successfully created [id: %d].\n", RFIFOP(fd,6), id);
+				ShowMessage("Account [%s] is successfully created.\n", RFIFOP(fd,6));
+				ladmin_log("Account [%s] is successfully created.\n", RFIFOP(fd,6));
 			}
 			bytes_to_read = 0;
 			RFIFOSKIP(fd,30);
