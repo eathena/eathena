@@ -217,6 +217,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\login\ipban.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\ipban_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\login\login.c"
 				>
 			</File>
@@ -225,7 +233,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\login\login_txt.c"
+				RelativePath="..\src\login\loginlog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\loginlog_txt.c"
 				>
 			</File>
 		</Filter>

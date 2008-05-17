@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern struct Login_Config login_config;
 char login_log_filename[1024] = "log/login.log";
 
 
@@ -52,12 +51,24 @@ void login_log(uint32 ip, const char* username, int rcode, const char* message)
 }
 
 
-bool login_config_read_txt(const char* w1, const char* w2)
+bool loginlog_config_read(const char* w1, const char* w2)
 {
 	if(!strcmpi(w1, "login_log_filename"))
 		safestrncpy(login_log_filename, w2, sizeof(login_log_filename));
 	else
 		return false;
 
+	return true;
+}
+
+
+bool loginlog_init(void)
+{
+	return true;
+}
+
+
+bool loginlog_final(void)
+{
 	return true;
 }

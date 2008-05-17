@@ -11,29 +11,15 @@
 #include "../common/timer.h"
 #include "../common/version.h"
 #include "account.h"
+#include "ipban.h"
 #include "login.h"
+#include "loginlog.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// permanent imports
-void login_log(uint32 ip, const char* username, int rcode, const char* message);
 bool ladmin_auth(struct login_session_data* sd, const char* ip);
-
-// temporary imports
-#if defined(WITH_TXT)
-	bool login_config_read_txt(const char* w1, const char* w2);
-#elif defined(WITH_SQL)
-	bool login_config_read_sql(const char* w1, const char* w2);
-	bool inter_config_read_sql(const char* w1, const char* w2);
-	void mmo_db_init();
-	void mmo_db_close();
-	void login_dynamic_ipban(const char* userid, int ip);
-	int ip_ban_flush(int tid, unsigned int tick, int id, int data);
-#endif
-
-
 struct Login_Config login_config;
 
 int login_fd; // login server socket
@@ -895,7 +881,7 @@ int parse_fromchar(int fd)
 //-------------------------------------
 // Make new account
 //-------------------------------------
-static int mmo_auth_new(const char* userid, const char* pass, const char sex, const char* last_ip)
+int mmo_auth_new(const char* userid, const char* pass, const char sex, const char* last_ip)
 {
 	static int num_regs = 0; // registration counter
 	static unsigned int new_reg_tick = 0;
@@ -911,6 +897,10 @@ static int mmo_auth_new(const char* userid, const char* pass, const char sex, co
 		ShowNotice("Account registration denied (registration limit exceeded)\n");
 		return 3;
 	}
+
+	// check for invalid inputs
+	if( sex != 'M' && sex != 'F' )
+		return 0; // 0 = Unregistered ID
 
 	// check if the account doesn't exist already
 	if( accounts->load_str(accounts, &acc, userid) )
@@ -939,7 +929,7 @@ static int mmo_auth_new(const char* userid, const char* pass, const char sex, co
 	}
 	++num_regs;
 
-	return 0;
+	return -1;
 }
 
 //-----------------------------------------------------
@@ -998,7 +988,7 @@ int mmo_auth(struct login_session_data* sd)
 			sd->userid[len] = '\0';
 
 			result = mmo_auth_new(sd->userid, sd->passwd, TOUPPER(sd->userid[len+1]), ip);
-			if( result )
+			if( result != -1 )
 				return result;// Failed to make account. [Skotlex].
 		}
 	}
@@ -1217,10 +1207,8 @@ void login_auth_failed(struct login_session_data* sd, int result)
 		login_log(ip, sd->userid, result, error);
 	}
 
-#ifdef WITH_SQL
-	if( result == 1 ) // failed password
-		login_dynamic_ipban(sd->userid, ip);
-#endif
+	if( result == 1 && login_config.dynamic_pass_failure_ban )
+		ipban_log(ip); // log failed password attempt
 
 	WFIFOHEAD(fd,23);
 	WFIFOW(fd,0) = 0x6a;
@@ -1256,7 +1244,22 @@ int parse_login(int fd)
 		return 0;
 	}
 
-	if( sd == NULL ) {
+	if( sd == NULL )
+	{
+		// Perform ip-ban check
+		if( login_config.ipban && ipban_check(ipl) )
+		{
+			ShowStatus("Connection refused: IP isn't authorised (deny/allow, ip: %s).\n", ip);
+			login_log(ipl, "unknown", -3, "ip banned");
+			WFIFOHEAD(fd,23);
+			WFIFOW(fd,0) = 0x6a;
+			WFIFOB(fd,2) = 3; // 3 = Rejected from Server
+			WFIFOSET(fd,23);
+			set_eof(fd);
+			return 0;
+		}
+
+		// create a session for this new connection
 		CREATE(session[fd]->session_data, struct login_session_data, 1);
 		sd = (struct login_session_data*)session[fd]->session_data;
 		sd->fd = fd;
@@ -1564,17 +1567,11 @@ int login_config_read(const char* cfgName)
 		else if(!strcmpi(w1, "admin_allowed_host"))
 			safestrncpy(login_config.admin_allowed_host, w2, sizeof(login_config.admin_pass));
 
-#ifdef WITH_TXT
-		else if( login_config_read_txt(w1, w2) )
-			continue;
-#endif
-#ifdef WITH_SQL
-		else if( login_config_read_sql(w1, w2) )
-			continue;
-#endif
-
 		else if(!strcmpi(w1, "import"))
 			login_config_read(w2);
+		else
+		if( ipban_config_read(w1, w2) )
+			continue;
 		else if(!strcmpi(w1, "account.engine"))
 			safestrncpy(login_config.account_engine, w2, sizeof(login_config.account_engine));
 		else
@@ -1612,11 +1609,11 @@ void inter_config_read(const char* cfgName)
 		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) < 2)
 			continue;
 
-#ifdef WITH_SQL
-		if( inter_config_read_sql(w1,w2) )
-			continue;
-#endif
-		else if (!strcmpi(w1, "import"))
+		// settings common for multiple components
+		ipban_config_read(w1,w2);
+		loginlog_config_read(w1,w2);
+
+		if (!strcmpi(w1, "import"))
 			inter_config_read(w2);
 	}
 	fclose(fp);
@@ -1655,9 +1652,10 @@ void do_final(void)
 	login_log(0, "login server", 100, "login server shutdown");
 	ShowStatus("Terminating...\n");
 
-#ifdef WITH_SQL
-	mmo_db_close();
-#endif
+	if( login_config.log_login )
+		loginlog_final();
+
+	ipban_final();
 
 	for( i = 0; account_engines[i].constructor; ++i )
 	{// destroy all account engines
@@ -1719,9 +1717,12 @@ int do_init(int argc, char** argv)
 	for( i = 0; i < MAX_SERVERS; i++ )
 		server[i].fd = -1;
 
-#ifdef WITH_SQL
-	mmo_db_init();
-#endif
+	// initialize logging
+	if( login_config.log_login )
+		loginlog_init();
+
+	// initialize static and dynamic ipban system
+	ipban_init();
 
 	// Online user database init
 	online_db = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -1732,12 +1733,6 @@ int do_init(int argc, char** argv)
 
 	// set default parser as parse_login function
 	set_defaultparse(parse_login);
-
-#ifdef WITH_SQL
-	// ban deleter timer
-	add_timer_func_list(ip_ban_flush, "ip_ban_flush");
-	add_timer_interval(gettick()+10, ip_ban_flush, 0, 0, 60*1000);
-#endif
 
 	// every 10 minutes cleanup online account db.
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
