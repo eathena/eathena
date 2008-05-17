@@ -75,5 +75,7 @@ struct Login_Config {
 	char account_engine[256];                       // name of the engine to use (defaults to auto, for the first available engine)
 };
 
+extern struct Login_Config login_config;
+
 
 #endif /* _LOGIN_H_ */
