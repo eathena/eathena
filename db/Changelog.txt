@@ -1,3 +1,6 @@
+2008/05/24
+	* Rev. 12721 Merged several updates from various trunk databases. [L0ne_w0lf]
+	- item_avail, item_db, item_trade, mob_db, mob_db2, mob_skill_db, pet_db, skill_db, and the skill_unit_db.
 2008/04/23
 	* Rev. 12642 Merged mob_db.txt and mob_skill_db.txt from trunk. [L0ne_W0lf]
 2008/04/03
