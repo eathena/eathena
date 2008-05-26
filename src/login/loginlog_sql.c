@@ -7,6 +7,7 @@
 #include "../common/sql.h"
 #include "../common/strlib.h"
 #include <string.h>
+#include <stdlib.h> // exit
 
 char   log_db_ip[32] = "127.0.0.1";
 uint16 log_db_port = 3306;
