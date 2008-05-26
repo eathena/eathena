@@ -203,6 +203,14 @@ SOURCE=..\src\login\admin.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\login\ipban.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\login\ipban_txt.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\login\login.c
 # End Source File
 # Begin Source File
@@ -211,7 +219,11 @@ SOURCE=..\src\login\login.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\login\login_txt.c
+SOURCE=..\src\login\loginlog.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\login\loginlog_txt.h
 # End Source File
 # End Group
 # Begin Group "openrj"

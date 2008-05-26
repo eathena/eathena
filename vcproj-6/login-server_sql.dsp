@@ -211,6 +211,14 @@ SOURCE=..\src\login\admin.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\login\ipban.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\login\ipban_sql.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\login\login.c
 # End Source File
 # Begin Source File
@@ -219,7 +227,11 @@ SOURCE=..\src\login\login.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\login\login_sql.c
+SOURCE=..\src\login\loginlog.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\login\loginlog_sql.h
 # End Source File
 # End Group
 # End Target
