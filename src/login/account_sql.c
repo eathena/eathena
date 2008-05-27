@@ -37,7 +37,7 @@ static bool account_db_sql_init(AccountDB* self);
 static void account_db_sql_destroy(AccountDB* self);
 static bool account_db_sql_get_property(AccountDB* self, const char* key, char* buf, size_t buflen);
 static bool account_db_sql_set_property(AccountDB* self, const char* option, const char* value);
-static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc, int* new_id);
+static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_sql_remove(AccountDB* self, const int account_id);
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, const int account_id);
@@ -222,8 +222,9 @@ static bool account_db_sql_set_property(AccountDB* self, const char* key, const 
 }
 
 /// create a new account entry
-/// if acc->account_id is -1, the account id will be auto-generated
-static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc, int* new_id)
+/// If acc->account_id is -1, the account id will be auto-generated,
+/// and its value will be written to acc->account_id if everything succeeds.
+static bool account_db_sql_create(AccountDB* self, struct mmo_account* acc)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	Sql* sql_handle = db->accounts;
@@ -290,8 +291,7 @@ static bool account_db_sql_create(AccountDB* self, const struct mmo_account* acc
 	SqlStmt_Free(stmt);
 
 	// write output
-	if( new_id != NULL )
-		*new_id = account_id;
+	acc->account_id = account_id;
 
 	return true;
 }

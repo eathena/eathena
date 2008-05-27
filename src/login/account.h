@@ -91,15 +91,13 @@ struct AccountDB
 	bool (*set_property)(AccountDB* self, const char* key, const char* value);
 
 	/// Creates a new account in this database.
-	/// If acc->account_id is -1, the account_id will be auto-generated.
-	/// Otherwise it uses acc->account_id.
-	/// If new_id is not NULL, it will receive the new entry's account id.
+	/// If acc->account_id is not -1, the provided value will be used.
+	/// Otherwise the account_id will be auto-generated and written to acc->account_id.
 	///
 	/// @param self Database
 	/// @param acc Account data
-	/// @param new_id Optional pointer that receives the account_id of the new account
 	/// @return true if successful
-	bool (*create)(AccountDB* self, const struct mmo_account* acc, int* new_id);
+	bool (*create)(AccountDB* self, struct mmo_account* acc);
 
 	/// Removes an account from this database.
 	///

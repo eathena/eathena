@@ -38,7 +38,7 @@ static bool account_db_txt_init(AccountDB* self);
 static void account_db_txt_destroy(AccountDB* self);
 static bool account_db_txt_get_property(AccountDB* self, const char* key, char* buf, size_t buflen);
 static bool account_db_txt_set_property(AccountDB* self, const char* option, const char* value);
-static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc, int* new_id);
+static bool account_db_txt_create(AccountDB* self, struct mmo_account* acc);
 static bool account_db_txt_remove(AccountDB* self, const int account_id);
 static bool account_db_txt_save(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_txt_load_num(AccountDB* self, struct mmo_account* acc, const int account_id);
@@ -256,10 +256,10 @@ static bool account_db_txt_set_property(AccountDB* self, const char* key, const 
 	return true;
 }
 
-/// add a new entry for this account to the account db and save it
-/// if acc->account_id is -1, the account id will be auto-generated
-/// if new_id is not NULL, it will receive the new entry's account id
-static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc, int* new_id)
+/// Add a new entry for this account to the account db and save it.
+/// If acc->account_id is -1, the account id will be auto-generated,
+/// and its value will be written to acc->account_id if everything succeeds.
+static bool account_db_txt_create(AccountDB* self, struct mmo_account* acc)
 {
 	AccountDB_TXT* db = (AccountDB_TXT*)self;
 	DBMap* accounts = db->accounts;
@@ -294,8 +294,7 @@ static bool account_db_txt_create(AccountDB* self, const struct mmo_account* acc
 	mmo_auth_sync(db);
 
 	// write output
-	if( new_id != NULL )
-		*new_id = account_id;
+	acc->account_id = account_id;
 
 	return true;
 }

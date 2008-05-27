@@ -887,7 +887,6 @@ int mmo_auth_new(const char* userid, const char* pass, const char sex, const cha
 	static unsigned int new_reg_tick = 0;
 	unsigned int tick = gettick();
 	struct mmo_account acc;
-	int new_id;
 
 	//Account Registration Flood Protection by [Kevin]
 	if( new_reg_tick == 0 )
@@ -919,8 +918,10 @@ int mmo_auth_new(const char* userid, const char* pass, const char sex, const cha
 	safestrncpy(acc.lastlogin, "-", sizeof(acc.lastlogin));
 	safestrncpy(acc.last_ip, last_ip, sizeof(acc.last_ip));
 
-	accounts->create(accounts, &acc, &new_id);
-	ShowNotice("Account creation (account %s, id: %d, pass: %s, sex: %c)\n", acc.userid, new_id, acc.pass, acc.sex);
+	if( !accounts->create(accounts, &acc) )
+		return 0;
+
+	ShowNotice("Account creation (account %s, id: %d, pass: %s, sex: %c)\n", acc.userid, acc.account_id, acc.pass, acc.sex);
 
 	if( DIFF_TICK(tick, new_reg_tick) > 0 )
 	{// Update the registration check.

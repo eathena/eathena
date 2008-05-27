@@ -795,11 +795,10 @@ static bool account_db_rj_set_property(AccountDB* self, const char* key, const c
 
 
 /// Creates a new account in this database.
-/// If acc->account_id is negative, the account_id will be auto-generated.
-/// Otherwise it uses acc->account_id.
-/// If new_is is not NULL, it will receive the new entry's account id.
+/// If acc->account_id is not -1, the provided value will be used.
+/// Otherwise the account_id will be auto-generated and written to acc->account_id.
 /// @protected
-static bool account_db_rj_create(AccountDB* self, const struct mmo_account* acc, int* new_id)
+static bool account_db_rj_create(AccountDB* self, struct mmo_account* acc)
 {
 	AccountDB_RJ* db = (AccountDB_RJ*)self;
 	int account_id;
@@ -832,8 +831,7 @@ static bool account_db_rj_create(AccountDB* self, const struct mmo_account* acc,
 	idb_put(db->accounts, account_id, buf);
 	strdb_put(db->idx_username, buf->userid, buf);
 	accdb_rj_scheduleSave(db, db->save_change_delay);
-	if( new_id )
-		*new_id = account_id;
+	acc->account_id = account_id;
 	return true;
 }
 
