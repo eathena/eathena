@@ -8,15 +8,15 @@
 #include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/malloc.h"
+#include "../common/strlib.h"
+
+#include "../login/account.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-char login_account_id[256]="account_id";
-char login_userid[256]="userid";
-char login_user_pass[256]="user_pass";
-char login_db[256]="login";
+char account_db[256]="login";
 char globalreg_db[256]="global_reg_value";
 
 int db_server_port = 3306;
@@ -29,16 +29,145 @@ char db_server_logindb[32] = "ragnarok";
 #define ACCOUNT_TXT_NAME "save/account.txt"
 //--------------------------------------------------------
 
+/// Loads 'acc' from 'str'.
+/// Only supports latest version.
+/// Copypasted from ../login/account_txt.c.
+bool acc_fromtxt(struct mmo_account* a, char* str)
+{
+	char* fields[32];
+	int count;
+	char* regs;
+	int i, n;
+
+	// zero out the destination first
+	memset(a, 0x00, sizeof(struct mmo_account));
+
+	// extract tab-separated columns from line
+	count = sv_split(str, strlen(str), 0, '\t', fields, ARRAYLENGTH(fields), SV_NOESCAPE_NOTERMINATE);
+
+	if( count != 13 )
+		return false;
+
+	a->account_id = strtol(fields[1], NULL, 10);
+	safestrncpy(a->userid, fields[2], sizeof(a->userid));
+	safestrncpy(a->pass, fields[3], sizeof(a->pass));
+	a->sex = fields[4][0];
+	safestrncpy(a->email, fields[5], sizeof(a->email));
+	a->level = strtoul(fields[6], NULL, 10);
+	a->state = strtoul(fields[7], NULL, 10);
+	a->unban_time = strtol(fields[8], NULL, 10);
+	a->expiration_time = strtol(fields[9], NULL, 10);
+	a->logincount = strtoul(fields[10], NULL, 10);
+	safestrncpy(a->lastlogin, fields[11], sizeof(a->lastlogin));
+	safestrncpy(a->last_ip, fields[12], sizeof(a->last_ip));
+	regs = fields[13];
+
+	// extract account regs
+	// {reg name<COMMA>reg value<SPACE>}*
+	n = 0;
+	for( i = 0; i < ACCOUNT_REG2_NUM; ++i )
+	{
+		char key[32];
+		char value[256];
+	
+		regs += n;
+
+		if (sscanf(regs, "%31[^\t,],%255[^\t ] %n", key, value, &n) != 2)
+		{
+			// We must check if a str is void. If it's, we can continue to read other REG2.
+			// Account line will have something like: str2,9 ,9 str3,1 (here, ,9 is not good)
+			if (regs[0] == ',' && sscanf(regs, ",%[^\t ] %n", value, &n) == 1) { 
+				i--;
+				continue;
+			} else
+				break;
+		}
+		
+		safestrncpy(a->account_reg2[i].str, key, 32);
+		safestrncpy(a->account_reg2[i].value, value, 256);
+	}
+	a->account_reg2_num = i;
+
+	return true;
+}
+
+/// Saves 'acc' using 'sql_handle'.
+/// Copypasted from ../login/account_sql.c.
+bool acc_tosql(const struct mmo_account* acc, Sql* sql_handle)
+{
+	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
+	bool result = false;
+	int i;
+
+	// try
+	do
+	{
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	{// insert into account table
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt,
+			"INSERT INTO `%s` (`account_id`, `userid`, `user_pass`, `sex`, `email`, `expiration_time`,`last_ip`) VALUES (?, ?, ?, ?, ?, ?, ?)",
+			account_db)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_INT,    (void*)&acc->account_id, sizeof(acc->account_id))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->userid, strlen(acc->userid))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_STRING, (void*)acc->pass, strlen(acc->pass))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_ENUM,   (void*)&acc->sex, sizeof(acc->sex))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_STRING, (void*)&acc->email, strlen(acc->email))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_INT,    (void*)&acc->expiration_time, sizeof(acc->expiration_time))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_STRING, (void*)&acc->last_ip, strlen(acc->last_ip))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+		) {
+			SqlStmt_ShowDebug(stmt);
+			break;
+		}
+	}
+
+	// insert new account regs
+	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ( 1 , '%d' , ? , ? );",  globalreg_db, acc->account_id) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
+	for( i = 0; i < acc->account_reg2_num; ++i )
+	{
+		if( SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (void*)acc->account_reg2[i].str, strlen(acc->account_reg2[i].str))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)acc->account_reg2[i].value, strlen(acc->account_reg2[i].value))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+		) {
+			SqlStmt_ShowDebug(stmt);
+			break;
+		}
+	}
+	if( i < acc->account_reg2_num )
+	{
+		result = false;
+		break;
+	}
+
+	// if we got this far, everything was successful
+	result = true;
+
+	} while(0);
+	// finally
+
+	result = ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
+	SqlStmt_Free(stmt);
+
+	return result;
+}
+
 int convert_login(void)
 {
 	Sql* mysql_handle;
-	SqlStmt* stmt;
 	int line_counter = 0;
 	FILE *fp;
-	int account_id, logincount, user_level, state, n, i;
-	char line[2048], userid[2048], pass[2048], lastlogin[2048], sex, email[2048], error_message[2048], last_ip[2048], memo[2048];
-	int unban_time, expiration_time;
-	char dummy[2048];
+	char line[2048];
+	struct mmo_account acc;
 
 	mysql_handle = Sql_Malloc();
 	if ( SQL_ERROR == Sql_Connect(mysql_handle, db_server_id, db_server_pw, db_server_ip, db_server_port, db_server_logindb) )
@@ -54,45 +183,32 @@ int convert_login(void)
 	if(fp == NULL)
 		return 0;
 
-	while(fgets(line,sizeof(line),fp) != NULL)
+	while( fgets(line,sizeof(line),fp) != NULL )
 	{
 		line_counter++;
 		if(line[0]=='/' && line[1]=='/')
 			continue;
 
-		i = sscanf(line, "%d\t%[^\t]\t%[^\t]\t%[^\t]\t%c\t%d\t%d\t%[^\t]\t%[^\t]\t%d\t%[^\t]\t%[^\t]\t%d\t%[^\r\n]%n",
-			&account_id, userid, pass, lastlogin, &sex, &logincount, &state,
-			email, error_message, &expiration_time, last_ip, memo, &unban_time, dummy, &n);
-
-		if (i < 13) {
+		if( !acc_fromtxt(&acc, line) )
+		{
 			ShowWarning("Skipping incompatible data on line %d\n", line_counter);
 			continue;
- 		}
-
-		if (i > 13)
-			ShowWarning("Reading login account variables is not implemented, data will be lost! (line %d)\n", line_counter);
-
-		user_level = isGM(account_id);
-		ShowInfo("Converting user (id: %d, name: %s, gm level: %d)\n", account_id, userid, user_level);
-		
-		stmt = SqlStmt_Malloc(mysql_handle);
-		if( SQL_ERROR == SqlStmt_Prepare(stmt, 
-			"REPLACE INTO `login` "
-			"(`account_id`, `userid`, `user_pass`, `lastlogin`, `sex`, `logincount`, `email`, `level`, `error_message`, `expiration_time`, `last_ip`, `memo`, `unban_time`, `state`) "
-			"VALUES "
-			"(%d, ?, ?, '%s', '%c', %d, '%s', %d, '%s', %d, '%s', '%s', %d, %d)",
-			account_id, lastlogin, sex, logincount, email, user_level, error_message, expiration_time, last_ip, memo, unban_time, state)
-		||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_STRING, userid, strnlen(userid, 255))
-		||	SQL_ERROR == SqlStmt_BindParam(stmt, 1, SQLDT_STRING, pass, strnlen(pass, 32))
-		||	SQL_ERROR == SqlStmt_Execute(stmt) )
-		{
-			SqlStmt_ShowDebug(stmt);
 		}
-		SqlStmt_Free(stmt);
-	
-		//TODO: parse the rest of the line to read the login-stored account variables, and import them to `global_reg_value`
-		//      then remove the 'dummy' buffer
+
+		ShowInfo("Converting user (id: %d, name: %s, gm level: %d)\n", acc.account_id, acc.userid, acc.level);
+
+		if( acc.account_id == 0 )
+		{
+			ShowError("Accounts with id '0' can not be converted to SQL!\n");
+			continue;
+		}
+
+		if( !acc_tosql(&acc, mysql_handle) )
+			ShowError("Conversion failed.\n");
 	}
+
+	//TODO: perhaps record the auto-increment value?
+
 	fclose(fp);
 	Sql_Free(mysql_handle);
 
@@ -159,7 +275,6 @@ int do_init(int argc, char** argv)
 {
 	int input;
 	login_config_read( (argc > 1) ? argv[1] : INTER_CONF_NAME );
-	read_gm_account();
 
 	ShowInfo("\nWarning : Make sure you backup your databases before continuing!\n");
 	ShowInfo("\nDo you wish to convert your Login Database to SQL? (y/n) : ");
@@ -171,9 +286,4 @@ int do_init(int argc, char** argv)
 
 void do_final(void)
 {
-	if( gm_account_db )
-	{
-		db_destroy(gm_account_db);
-		gm_account_db = NULL;
-	}
 }
