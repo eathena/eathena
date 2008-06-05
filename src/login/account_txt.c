@@ -109,6 +109,8 @@ static bool account_db_txt_init(AccountDB* self)
 		unsigned int v;
 		struct mmo_account acc;
 		struct mmo_account* tmp;
+		struct DBIterator* iter;
+		int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
 
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
@@ -135,23 +137,17 @@ static bool account_db_txt_init(AccountDB* self)
 		// apply constraints & checks here
 		if( acc.sex != 'S' && (acc.account_id < START_ACCOUNT_NUM || acc.account_id > END_ACCOUNT_NUM) )
 			ShowWarning("account_db_txt_init: account %d:'%s' has ID outside of the defined range for accounts (min:%d max:%d)!\n", acc.account_id, acc.userid, START_ACCOUNT_NUM, END_ACCOUNT_NUM);
-/*
-		userid[23] = '\0';
-		remove_control_chars(userid);
-		for(j = 0; j < auth_num; j++) {
-			if (auth_dat[j].account_id == account_id) {
-				ShowError(CL_RED"mmmo_auth_init: an account has an identical id to another.\n");
-				ShowError("               account id #%d -> new account not read (data is lost!)."CL_RED"\n", account_id);
-				break;
-			} else if (strcmp(auth_dat[j].userid, userid) == 0) {
-				ShowError(CL_RED"mmmo_auth_init: account name already exists.\n");
-				ShowError("               account name '%s' -> new account not read (data is lost!)."CL_RESET"\n", userid); // 2 lines, account name can be long.
-				break;
-			}
+
+		iter = accounts->iterator(accounts);
+		for( tmp = (struct mmo_account*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_account*)iter->next(iter,NULL) )
+			if( compare(acc.userid, tmp->userid) == 0 )
+					break;
+		iter->destroy(iter);
+
+		if( tmp != NULL )
+		{// entry with identical username
+			ShowWarning("account_db_txt_init: account %d:'%s' has same username as account %d. The account will be inaccessible!\n", acc.account_id, acc.userid, tmp->account_id);
 		}
-		if (j != auth_num)
-			continue;
-*/
 
 		if( idb_get(accounts, acc.account_id) != NULL )
 		{// account id already occupied
@@ -371,19 +367,11 @@ static bool account_db_txt_load_str(AccountDB* self, struct mmo_account* acc, co
 	// retrieve data
 	struct DBIterator* iter = accounts->iterator(accounts);
 	struct mmo_account* tmp;
+	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
+
 	for( tmp = (struct mmo_account*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_account*)iter->next(iter,NULL) )
-	{
-		if( db->case_sensitive )
-		{
-			if( strcmp(userid, tmp->userid) == 0 )
-				break;
-		}
-		else
-		{
-			if( stricmp(userid, tmp->userid) == 0 )
-				break;
-		}
-	}
+		if( compare(userid, tmp->userid) == 0 )
+			break;
 	iter->destroy(iter);
 
 	if( tmp == NULL )
