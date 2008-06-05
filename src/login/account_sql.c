@@ -281,23 +281,18 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
 	Sql* sql_handle = db->accounts;
+	bool result = false;
 
-	// try to delete the specified account
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", db->account_db, account_id ) )
-	{
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION")
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", db->account_db, account_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = %d", db->accreg_db, account_id) )
 		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-/*
-	if( 0 == Sql_NumRows(sql_handle) )
-	{// error, account did not exist
-		return false;
-	}
-*/
-	//TODO: delete regs
-	//TODO: wrap in a transaction
+	else
+		result = true;
 
-	return true;
+	result = ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
+
+	return result;
 }
 
 /// update an existing account with the provided new data (both account and regs)
