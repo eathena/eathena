@@ -825,7 +825,7 @@ int parse_fromchar(int fd)
 			int char_id = RFIFOL(fd,6);
 			RFIFOSKIP(fd,10);
 
-			WFIFOHEAD(fd,10000);
+			WFIFOHEAD(fd,ACCOUNT_REG2_NUM*sizeof(struct global_reg));
 			WFIFOW(fd,0) = 0x2729;
 			WFIFOL(fd,4) = account_id;
 			WFIFOL(fd,8) = char_id;
@@ -834,7 +834,7 @@ int parse_fromchar(int fd)
 			off = 13;
 			if( accounts->load_num(accounts, &acc, account_id) )
 			{
-				for( j = 0; j < acc.account_reg2_num && off < 9000; j++ )
+				for( j = 0; j < acc.account_reg2_num; j++ )
 				{
 					if( acc.account_reg2[j].str[0] != '\0' )
 					{
@@ -842,9 +842,6 @@ int parse_fromchar(int fd)
 						off += sprintf((char*)WFIFOP(fd,off), "%s", acc.account_reg2[j].value)+1;
 					}
 				}
-
-				if( off >= 9000 )
-					ShowWarning("Too many account2 registries for AID %d. Some registries were not sent.\n", account_id);
 			}
 
 			WFIFOW(fd,2) = (uint16)off;
@@ -1279,7 +1276,8 @@ int parse_login(int fd)
 			RFIFOSKIP(fd,26);
 		break;
 
-		case 0x0204:		// New alive packet: structure: 0x204 <encrypted.account.userid>.16B. (new ragexe from 22 june 2004)
+		// client md5 hash (binary)
+		case 0x0204: // S 0204 <md5 hash>.16B (kRO 2004-05-31aSakexe langtype 0 and 6)
 			if (RFIFOREST(fd) < 18)
 				return 0;
 			RFIFOSKIP(fd,18);

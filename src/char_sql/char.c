@@ -1786,7 +1786,7 @@ int parse_fromlogin(int fd)
 				return 0;
 
 		{	//Receive account_reg2 registry, forward to map servers.
-			unsigned char buf[ACCOUNT_REG2_NUM*(256+32+2)+16];
+			unsigned char buf[13+ACCOUNT_REG2_NUM*sizeof(struct global_reg)];
 			memcpy(buf,RFIFOP(fd,0), RFIFOW(fd,2));
 			WBUFW(buf,0) = 0x3804; //Map server can now receive all kinds of reg values with the same packet. [Skotlex]
 			mapif_sendall(buf, WBUFW(buf,2));
