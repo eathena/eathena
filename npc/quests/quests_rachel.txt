@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.2
+//= 2.4a
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -46,6 +46,10 @@
 //= 2.0 Fixed experience gains to match upcoming rate adjustments. [SinSloth]
 //= 2.1 Corrected NPC names to fall within proper restrictions. [L0ne_W0lf]
 //= 2.2 Maheo NPC now uses "setnpcdisplay" instead of two NPCs. [L0ne_W0lf]
+//= 2.2a Corrected a Typo error ";;". [Samuray22]
+//= 2.3 Added Zhed's portion of Thor Volcano Base Quest. (euRO) [L0ne_W0lf]
+//= 2.4 Updated Zhed's Thor Vol. Base addition dialog to iRO's. [L0ne_W0lf]
+//= 2.4a Further updates to Zhed's Veins addition. [L0ne_W0lf]
 //============================================================ 
 
 // Lost Child Quest (Prerequisite to High Priest quest)
@@ -3710,7 +3714,7 @@ OnStart:
 	end;
 
 OnTimer2000:
-	mapannounce "ice_dun03","Who dares to extinguish the flames of Thor!?",bc_map,0xFF6633;
+	mapannounce "ice_dun03","Thor's Flame is the blaze of observation and oath, but someone has put it out!",bc_map,0xFF6633;
 	end;
 
 OnTimer8000:
@@ -3718,11 +3722,11 @@ OnTimer8000:
 	end;
 
 OnTimer10000:
-	mapannounce "ice_dun03","for I am the master of this cave of ice!",bc_map,0xFF6633;
+	mapannounce "ice_dun03","as the master of this cave!",bc_map,0xFF6633;
 	end;
 
 OnTimer13000:
-	mapannounce "ice_dun03","You foolish adventurer, who cares not for the gift of life.",bc_map,0xFF6633;
+	mapannounce "ice_dun03","You must be a foolish human who does not appreciate your life.",bc_map,0xFF6633;
 	end;
 
 OnTimer16000:
@@ -3730,7 +3734,7 @@ OnTimer16000:
 	end;
 
 OnTimer19000:
-	mapannounce "ice_dun03","you will taste inconceivable pain, a cold which can freeze even Mother Nature's breath!",bc_map,0xFF6633;
+	mapannounce "ice_dun03","you will taste inconceivable pain which can even freeze the mother nature's breath!",bc_map,0xFF6633;
 	end;
 
 OnTimer21000:
@@ -3754,8 +3758,8 @@ OnStopTimer:
 	end;
 
 OnMyMobDead:
-	mapannounce "ice_dun03","Odin! Odin I beg you! Please protect this haven from Thor's fiere fire!",bc_map,0xFF6633;
-	mapannounce "ice_dun03","Hisssss.... Hisssss...",bc_map,0x33FFFF;
+	mapannounce "ice_dun03","Oh, Odin! Please protect this place from Thor's fierce fire!",bc_map,0xFF6633;
+	mapannounce "ice_dun03","Pzzzzz...Pzzzz...",bc_map,0x33FFFF;
 	donpcevent "ice_boss#on::OnStartTimer";
 	donpcevent "#ice_sec::OnStart";
 	end;
@@ -4916,6 +4920,514 @@ que_rachel,169,18,0	script	Quest Temple Exit#ra_tem	45,2,2,{
 ra_temin,277,159,3	script	High Priest Zhed#rachel	932,{
 	cutin "ra_gman",2;
 	if (MISC_QUEST & 8192) {
+// Start Veins "Thor Volcano Base" Quest Addition
+		if (rachel_camel == 25) {
+			if (aru_vol == 0) {
+				cutin "ra_gman",2;
+				mes "[High Priest Zhed]";
+				mes "Ah, it does my heart to";
+				mes "good to see you again.";
+				mes "Adventurers willing to work";
+				mes "so hard for the sake of world";
+				mes "peace like yourself are fairly";
+				mes "uncommon. I hope you know that.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "Huh...?";
+				mes "Please don't flatter";
+				mes "me like that! Saying";
+				mes "it like that is kind of";
+				mes "overdoing it, isn't it?";
+				emotion 54,1;
+				next;
+				mes "[High Priest Zhed]";
+				mes "Not at all. In fact, I'm";
+				mes "sure that a place in";
+				mes "Valhalla has already";
+				mes "been secured for you";
+				mes "by the Valkyries. Now, how";
+				mes "may I help you, my friend?";
+				next;
+				select("Mysterious Building in the Volcano:");
+				mes "["+strcharinfo(0)+"]";
+				mes "Actually, I was wondering";
+				mes "if you knew of anything about";
+				mes "this facility inside Thor";
+				mes "Volcano near Veins. There";
+				mes "might be something big";
+				mes "going on over there.";
+				next;
+				mes "^3131FFYou told High Priest";
+				mes "Zhed about the shackled";
+				mes "child in Thor Volcano, and";
+				mes "how you found the building";
+				mes "hidden there. High Priest Zhed";
+				mes "seemed disturbed by your words.^000000";
+				next;
+				mes "[High Priest Zhed]";
+				mes "I see. I have my suspicions";
+				mes "about what is happening. Now,";
+				mes "you're aware that Arunafeltz";
+				mes "is governed by our church,";
+				mes "and that our entire nation";
+				mes "worships the goddess Freya.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "The priests that lead this";
+				mes "nation are split into two main";
+				mes "factions: I am considered part";
+				mes "of the moderate faction, which";
+				mes "usually butts heads with the";
+				mes "jingoistic hard-liner faction.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "These hard-liner priests";
+				mes "are more than willing to use";
+				mes "violent methods if they believe";
+				mes "it to be the will of Freya, and";
+				mes "are the ones that established";
+				mes "the military camp  at Thor Volcano.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Of course, it's also";
+				mes "considered a geology camp";
+				mes "since they're always monitoring";
+				mes "that place for volcanic activity,";
+				mes "but for all intents and purposes,";
+				mes "they are training men to fight.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "It scares me to think";
+				mes "about it, but I'm sure that";
+				mes "they have many military supplies";
+				mes "and machines of mass destruction";
+				mes "hidden over there in the camp.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "Wait, what exactly do";
+				mes "they hope to accomplish";
+				mes "by fighting? How do they";
+				mes "intend to help the goddess";
+				mes "Freya by using violence?";
+				next;
+				mes "[High Priest Zhed]";
+				mes "All the priests agree that";
+				mes "reassembling Ymir's Heart will";
+				mes "revive Freya. As you know, the";
+				mes "pieces are scattered all over";
+				mes "the world. Some are possessed";
+				mes "by the Rune-Midgarts Kingdom.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "In the interest of avoiding";
+				mes "conflict, the moderate faction";
+				mes "of priests decided to hire";
+				mes "scientists to reproduce Ymir's";
+				mes "Heart, resulting in an";
+				mes "imitation of that artifact.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "An imitation of Ymir's";
+				mes "Heart? I think I know of";
+				mes "a famous scientist from the";
+				mes "Schwartzvalt Republic that";
+				mes "was working on that! Let's";
+				mes "see, his name was.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "Isn't the scientist's name...";
+				input .@input$;
+				mes "^3131FF"+.@input$+"^000000?";
+				next;
+				if (.@input$ == "Varmunt") {
+					mes "[High Priest Zhed]";
+					mes "Oh, do you know him?";
+					mes "The man that created the";
+					mes "imitation of Ymir's Heart";
+					mes "was named Varmunt..";
+					mes "He was truly a genius.";
+					next;
+				}
+				else {
+					mes "[High Priest Zhed]";
+					mes ""+.@input$+"?";
+					mes "No, that wasn't him.";
+					mes "The man that created the";
+					mes "imitation of Ymir's Heart";
+					mes "was named Varmunt..";
+					mes "He was truly a genius.";
+					next;
+				}
+				mes "[High Priest Zhed]";
+				mes "I'm not sure what happened";
+				mes "to Varmunt. All I know was that";
+				mes "something serious happened";
+				mes "in the Schwaltzvalt Republic,";
+				mes "and that he disappeared in";
+				mes "the fiasco. It's strange.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Although the working";
+				mes "Ymir's Heart imitation that";
+				mes "Varmunt had created was broken";
+				mes "into pieces, other scientists";
+				mes "managed to mostly reproduce";
+				mes "his work with unstable Ymir Hearts.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Since our moderate faction,";
+				mes "was only able to provide";
+				mes "unstable Ymir Heart imitations,";
+				mes "the hard-liner faction quickly";
+				mes "gained more respectability than";
+				mes "us in the eyes of the people.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Despite our advanced weaponry";
+				mes "and armor, I'm afraid that our";
+				mes "country of Arunafeltz is not as";
+				mes "civilized and peaceful as I'd";
+				mes "like it to be, and the hard-liners";
+				mes "control our government now.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Although the hard-liners";
+				mes "allowed us to continue";
+				mes "our research in faithfully";
+				mes "reproducing Ymir's Heart,";
+				mes "they've been developing their";
+				mes "military might unopposed.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "So basically, the moderates";
+				mes "are trying to recreate Ymir's";
+				mes "Heart at research centers";
+				mes "in the Holy Ground and the";
+				mes "Schwaltzvalt Republic..";
+				next;
+				mes "[High Priest Zhed]";
+				mes "The hard-liners are";
+				mes "training soldiers and";
+				mes "storing up military supplies";
+				mes "and weapons in their camp";
+				mes "in Thor Volcano. However,";
+				mes "I don't know any more details.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "This doesn't look good.";
+				mes "I mean, if they're gearing";
+				mes "up to take the Ymir Heart";
+				mes "Pieces by force, it'll be war";
+				mes "against the Schwalzvalt Republic";
+				mes "and the Rune-Midgarts Kingdom!";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Seeing as I'm part of the";
+				mes "moderate faction, as well as";
+				mes "recently demoted, I just don't";
+				mes "have access to much information";
+				mes "about the hard-liners. However,";
+				mes "there may still be hope yet.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "War would be bad for all";
+				mes "parties involved. That is";
+				mes "why I'd like to ask you to";
+				mes "sneak into the camp at";
+				mes "Thor Volcano for the sake of";
+				mes "protecting international peace.";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "I really want to know";
+				mes "more about what they're";
+				mes "planning to do, but that";
+				mes "place is heavily guarded!";
+				mes "How am I going to sneak in?";
+				next;
+				mes "[High Priest Zhed]";
+				mes "You're right.";
+				mes "We'll have to think";
+				mes "of a really good way";
+				mes "for you to infiltrate";
+				mes "that place. Hmmmm...";
+				set aru_vol,1;
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else if ((aru_vol > 0) && (aru_vol < 5)) {
+				mes "[High Priest Zhed]";
+				mes "Hmm...";
+				next;
+				switch(select("How to Sneak into the Camp :The Moderates:The Hard-Liners")) {
+				case 1:
+					mes "[High Priest Zhed]";
+					mes "I still don't have any";
+					mes "ideas for sneaking into";
+					mes "the camp at Thor Volcano.";
+					mes "Give me a little more time,";
+					mes "and hopefully we can figure";
+					mes "something out together.";
+					break;
+				case 2:
+					mes "[High Priest Zhed]";
+					mes "We priests of the moderate";
+					mes "faction are opposed to war,";
+					mes "so we've been trying to";
+					mes "develop imitations of Ymir's";
+					mes "Heart for a long time. We've";
+					mes "yet to succeed, unfortunately.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "The hard-liners actually";
+					mes "opposed our efforts, but";
+					mes "they've let us continue since";
+					mes "they think they can eventually";
+					mes "use imitation Ymir Hearts for";
+					mes "military purposes.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "The Ymir Heart reproduction";
+					mes "project has been frustrating";
+					mes "the best minds in the world,";
+					mes "and some scientists have even";
+					mes "resorted to using forbidden";
+					mes "methods. It's a shame, really.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Varmunt actually succeeded";
+					mes "in recreating Ymir's Heart,";
+					mes "but then he destroyed it and";
+					mes "he disappeared. He did it to";
+					mes "prevent war, but we could";
+					mes "really use his help now.";
+					break;
+				case 3:
+					mes "[High Priest Zhed]";
+					mes "The hard-liners are especially";
+					mes "fanatical in their devotion to";
+					mes "Freya, and will use any means";
+					mes "to further what they interpret";
+					mes "as her will. They're willing to";
+					mes "go to war for their beliefs.";
+					next;
+					mes "The fact that they've evena";
+					mes "built a military camp in Thor";
+					mes "Volcano disturbs me greatly";
+					mes "It's almost certain that they";
+					mes "intend to wage war against any";
+					mes "nation with a Ymir's Heart piece.";
+					next;
+					mes "["+strcharinfo(0)+"]";
+					mes "Who is in charge of that";
+					mes "camp at Thor's Volcano?";
+					next;
+					mes "[High Priest Zhed]";
+					mes "High Priest Vildt.";
+					mes "He's in charge of all";
+					mes "important buildings in";
+					mes "Arunafeltz. His room is at";
+					mes "the other side of the building,";
+					mes "but it's always heavily guarded.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Vildt is one of the";
+					mes "highest ranking members";
+					mes "of the hard-liner priest";
+					mes "faction. He rarely makes it";
+					mes "his business to see anybody";
+					mes "that he sees as beneath him.";
+					break;
+				}
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else if (aru_vol == 5) {
+				cutin "ra_gman",2;
+				if (countitem(7342) > 0) {
+					mes "["+strcharinfo(0)+"]";
+					mes "Would you please";
+					mes "take a look at this";
+					mes "file, High Priest Zhed?";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Of course.";
+					mes "Let's see, what's";
+					mes "in this File Folder?";
+					next;
+					mes "[High Priest Zhed]";
+					mes ".............";
+					mes ".................";
+					mes "....................!";
+					next;
+					mes "[High Priest Zhed]";
+					mes "This is a geological";
+					mes "report about Thor Volcano?";
+					mes "Ah, I see. They must have";
+					mes "someone regularly check";
+					mes "to see if it will erupt.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Although it's fairly dangerous";
+					mes "to build a military camp there,";
+					mes "some weapon materials can";
+					mes "only be forged from the heat";
+					mes "coming from Thor's Volcano.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Yes, I think it's also";
+					mes "likely that there are special";
+					mes "weapon crafting metals and";
+					mes "materials that can only be";
+					mes "found on the volcano. That";
+					mes "makes perfect sense.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Although the volcano is";
+					mes "dormant now, these reports";
+					mes "claim that the volcano is";
+					mes "either safe or ready to erupt";
+					mes "at any time. The data here";
+					mes "doesn't make any sense.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "Hm. This is just a hunch";
+					mes "but seeing these discrepancies";
+					mes "in his reports, I really think this geologist has an agenda against";
+					mes "the camp at Thor Volcano.";
+					next;
+					mes "[High Priest Zhed]";
+					mes "You know, if that's true,";
+					mes "he might be able to help";
+					mes "you sneak into the camp.";
+					mes "Don't you think it's worth";
+					mes "checking out for now?";
+					next;
+					if (select("Yes:No") == 2) {
+						mes "[High Priest Zhed]";
+						mes "Well you never know";
+						mes "until you ask. Besides,";
+						mes "I don't know if there's";
+						mes "any way to sneak?";
+						mes "into the Thor Volcano Camp...";
+						next;
+					}
+					mes "[High Priest Zhed]";
+					mes "I hope you'll go and talk";
+					mes "to the geologist. He should";
+					mes "be in Veins, the desert city";
+					mes "south of Rachel. He's your";
+					mes "best chance of entering the Thor";
+					mes "Volcano camp without suspicion.";
+					delitem 7342,1; //File01
+					set aru_vol,6;
+					close2;
+					cutin "ra_gman",255;
+					end;
+				}
+				else {
+					//Also missed, no way to "drop" file folder.
+					mes "["+strcharinfo(0)+"]";
+					mes "Now where did I put that File Folder?";
+					close2;
+					cutin "ra_gman",255;
+					end;
+				}
+			}
+			else if (aru_vol == 6) {
+				cutin "ra_gman",2;
+				mes "[High Priest Zhed]";
+				mes "I hope you'll go and talk";
+				mes "to the geologist. He should";
+				mes "be in Veins, the desert city";
+				mes "south of Rachel. He's your";
+				mes "best chance of entering the Thor";
+				mes "Volcano camp without suspicion.";
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else if ((aru_vol > 6) && (aru_vol < 26)) {
+				cutin "ra_gman",2;
+				mes "[High Priest Zhed]";
+				mes "I hope you'll go and talk";
+				mes "to the geologist. He should";
+				mes "be in Veins, the desert city";
+				mes "south of Rachel. He's your";
+				mes "best chance of entering the Thor";
+				mes "Volcano camp without suspicion.";
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else if (aru_vol == 26) {
+				cutin "ra_gman",2;
+				mes "[High Priest Zhed]";
+				mes "Oh! You're back!";
+				mes "Was that geologist able";
+				mes "to help you sneak into";
+				mes "the Thor Volcano camp?";
+				next;
+				mes "["+strcharinfo(0)+"]";
+				mes "More than that. We've";
+				mes "convinced the camp that the";
+				mes "volcano is going to explode,";
+				mes "so they're scrambling to";
+				mes "evacuate. They're really";
+				mes "panicking over there!";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Hahaha! That's great!";
+				mes "Even if they do figure";
+				mes "out that they've been";
+				mes "fooled, it will take them";
+				mes "some time to realize it";
+				mes "in all that confusion.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Yes, it might not be the";
+				mes "perfect time to bring down";
+				mes "the hard-liner faction right";
+				mes "now, but the opportunity";
+				mes "should present itself soon.";
+				mes "Thank you for all your help.";
+				next;
+				mes "[High Priest Zhed]";
+				mes "Please relax for a while,";
+				mes "and I'll take care of the rest.";
+				mes "When the time to strike comes,";
+				mes "I will be contacting you again.";
+				mes "Together, we can protect";
+				mes "peace between our nations.";
+				set aru_vol,27;
+				getexp 200000,0;
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else if (aru_vol > 26) {
+				mes "[High Priest Zhed]";
+				mes "Now's probably not the";
+				mes "best time to directly oppose";
+				mes "the hard-liner priest faction.";
+				mes "It's still too soon, but when";
+				mes "the time comes, I will ask";
+				mes "for your help once again.";
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+			else {
+				cutin "ra_gman",2;
+				mes "[High Priest Zhed]";
+				mes "Gosh, I'm having a bad headache today, ";
+				close2;
+				cutin "ra_gman",255;
+				end;
+			}
+		}
+// End Veins "Thor Volcano Base" Quest Addition.
 		mes "[High Priest Zhed]";
 		mes "I need to rest now";
 		mes "But I thank you for";
@@ -5491,7 +6003,7 @@ ra_temin,170,46,3	script	Panno#rachel	920,{
 			next;
 			if (select("Yes:No") == 1) goto L_Lottery;
 			cutin "ra_fano03",2;
-			mes "[Priestess Panno]";;
+			mes "[Priestess Panno]";
 			mes "You can redeem your";
 			mes "Lottery Tickets at any";
 			mes "time, so please visit";

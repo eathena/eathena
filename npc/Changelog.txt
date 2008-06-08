@@ -1,5 +1,8 @@
 Date		Added
 ======
+2008/06/08
+	* Massive update on /npc folder from trunk, up to revision 12794. [Brainstorm]
+
 2008/04/25
 	* Rev. 12650 Merged some job npcs from Trunk [Toms]
 2008/04/15
