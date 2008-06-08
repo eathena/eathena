@@ -1,3 +1,7 @@
+2008/06/08
+	* Update on /db folder from trunk, up to revision 12794. Mainly item_db changes (except SC_ changes).
+		packet_db, job_db1 and size_fix changes left out due to source file update requeriment. [Brainstorm]
+
 2008/05/24
 	* Rev. 12721 Merged several updates from various trunk databases. [L0ne_w0lf]
 	- item_avail, item_db, item_trade, mob_db, mob_db2, mob_skill_db, pet_db, skill_db, and the skill_unit_db.
