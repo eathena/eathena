@@ -42,7 +42,6 @@ static int* timer_heap = NULL;
 // server startup time
 time_t start_time;
 
-
 /*----------------------------
  * 	Timer debugging
  *----------------------------*/

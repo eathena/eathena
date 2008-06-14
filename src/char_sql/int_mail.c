@@ -7,19 +7,13 @@
 #include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/sql.h"
+#include "../common/timer.h"
 #include "char.h"
 #include "inter.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-static time_t calc_times(void)
-{
-	time_t temp = time(NULL);
-	return mktime(localtime(&temp));
-}
-
 
 static int mail_fromsql(int char_id, struct mail_data* md)
 {
@@ -115,8 +109,8 @@ int mail_savemessage(struct mail_message* msg)
 	StringBuf_Printf(&buf, "INSERT INTO `%s` (`send_name`, `send_id`, `dest_name`, `dest_id`, `title`, `message`, `time`, `status`, `zeny`, `amount`, `nameid`, `refine`, `attribute`, `identify`", mail_db);
 	for (j = 0; j < MAX_SLOTS; j++)
 		StringBuf_Printf(&buf, ", `card%d`", j);
-	StringBuf_Printf(&buf, ") VALUES (?, '%d', ?, '%d', ?, ?, '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d'",
-		msg->send_id, msg->dest_id, msg->timestamp, msg->status, msg->zeny, msg->item.amount, msg->item.nameid, msg->item.refine, msg->item.attribute, msg->item.identify);
+	StringBuf_Printf(&buf, ") VALUES (?, '%d', ?, '%d', ?, ?, '%lu', '%d', '%d', '%d', '%d', '%d', '%d', '%d'",
+		msg->send_id, msg->dest_id, (unsigned long)msg->timestamp, msg->status, msg->zeny, msg->item.amount, msg->item.nameid, msg->item.refine, msg->item.attribute, msg->item.identify);
 	for (j = 0; j < MAX_SLOTS; j++)
 		StringBuf_Printf(&buf, ", '%d'", msg->item.card[j]);
 	StringBuf_AppendStr(&buf, ")");
@@ -359,7 +353,7 @@ static void mapif_Mail_return(int fd, int char_id, int mail_id)
 			safestrncpy(msg.title, temp_, MAIL_TITLE_LENGTH);
 
 			msg.status = MAIL_NEW;
-			msg.timestamp = (unsigned int)calc_times();
+			msg.timestamp = time(NULL);
 
 			new_mail = mail_savemessage(&msg);
 			mapif_Mail_new(&msg);
@@ -444,7 +438,7 @@ void mail_sendmail(int send_id, const char* send_name, int dest_id, const char* 
 	if( item != NULL )
 		memcpy(&msg.item, item, sizeof(struct item));
 
-	msg.timestamp = (int)calc_times();
+	msg.timestamp = time(NULL);
 
 	mail_savemessage(&msg);
 	mapif_Mail_new(&msg);

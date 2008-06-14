@@ -25,12 +25,6 @@ void auction_delete(struct auction_data *auction);
 static int auction_end_timer(int tid, unsigned int tick, int id, int data);
 
 // Copy Paste from map/mail.c
-time_t calc_times(void)
-{
-	time_t temp = time(NULL);
-	return mktime(localtime(&temp));
-}
-
 static int auction_count(int char_id, bool buy)
 {
 	int i = 0;
@@ -59,8 +53,8 @@ void auction_save(struct auction_data *auction)
 		return;
 
 	StringBuf_Init(&buf);
-	StringBuf_Printf(&buf, "UPDATE `%s` SET `seller_id` = '%d', `seller_name` = ?, `buyer_id` = '%d', `buyer_name` = ?, `price` = '%d', `buynow` = '%d', `hours` = '%d', `timestamp` = '%d', `nameid` = '%d', `item_name` = ?, `type` = '%d', `refine` = '%d', `attribute` = '%d'",
-		auction_db, auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute);
+	StringBuf_Printf(&buf, "UPDATE `%s` SET `seller_id` = '%d', `seller_name` = ?, `buyer_id` = '%d', `buyer_name` = ?, `price` = '%d', `buynow` = '%d', `hours` = '%d', `timestamp` = '%lu', `nameid` = '%d', `item_name` = ?, `type` = '%d', `refine` = '%d', `attribute` = '%d'",
+		auction_db, auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, (unsigned long)auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute);
 	for( j = 0; j < MAX_SLOTS; j++ )
 		StringBuf_Printf(&buf, ", `card%d` = '%d'", j, auction->item.card[j]);
 	StringBuf_Printf(&buf, " WHERE `auction_id` = '%d'", auction->auction_id);
@@ -88,14 +82,14 @@ unsigned int auction_create(struct auction_data *auction)
 	if( !auction )
 		return false;
 
-	auction->timestamp = (int)calc_times() + (auction->hours * 3600);
+	auction->timestamp = time(NULL) + (auction->hours * 3600);
 
 	StringBuf_Init(&buf);
 	StringBuf_Printf(&buf, "INSERT INTO `%s` (`seller_id`,`seller_name`,`buyer_id`,`buyer_name`,`price`,`buynow`,`hours`,`timestamp`,`nameid`,`item_name`,`type`,`refine`,`attribute`", auction_db);
 	for( j = 0; j < MAX_SLOTS; j++ )
 		StringBuf_Printf(&buf, ",`card%d`", j);
-	StringBuf_Printf(&buf, ") VALUES ('%d',?,'%d',?,'%d','%d','%d','%d','%d',?,'%d','%d','%d'",
-		auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute);
+	StringBuf_Printf(&buf, ") VALUES ('%d',?,'%d',?,'%d','%d','%d','%lu','%d',?,'%d','%d','%d'",
+		auction->seller_id, auction->buyer_id, auction->price, auction->buynow, auction->hours, (unsigned long)auction->timestamp, auction->item.nameid, auction->type, auction->item.refine, auction->item.attribute);
 	for( j = 0; j < MAX_SLOTS; j++ )
 		StringBuf_Printf(&buf, ",'%d'", auction->item.card[j]);
 	StringBuf_AppendStr(&buf, ")");
@@ -186,7 +180,8 @@ void inter_auctions_fromsql(void)
 	struct item *item;
 	char *data;
 	StringBuf buf;
-	unsigned int tick = gettick(), endtick, now = (unsigned int)calc_times();
+	unsigned int tick = gettick(), endtick;
+	time_t now = time(NULL);
 
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `auction_id`,`seller_id`,`seller_name`,`buyer_id`,`buyer_name`,"
@@ -231,7 +226,7 @@ void inter_auctions_fromsql(void)
 		}
 
 		if( auction->timestamp > now )
-			endtick = ((auction->timestamp - now) * 1000) + tick;
+			endtick = ((unsigned int)(auction->timestamp - now) * 1000) + tick;
 		else
 			endtick = tick + 10000; // 10 Second's to process ended auctions
 

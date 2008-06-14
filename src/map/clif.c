@@ -11324,7 +11324,7 @@ void clif_Mail_refreshinbox(struct map_session_data *sd)
 		memcpy(WFIFOP(fd,12+73*j), msg->title, MAIL_TITLE_LENGTH);
 		WFIFOB(fd,52+73*j) = (msg->status != MAIL_UNREAD); // 0: unread, 1: read
 		memcpy(WFIFOP(fd,53+73*j), msg->send_name, NAME_LENGTH);
-		WFIFOL(fd,77+73*j) = msg->timestamp;
+		WFIFOL(fd,77+73*j) = (uint32)msg->timestamp;
 		j++;
 	}
 	WFIFOSET(fd,len);
@@ -11605,7 +11605,7 @@ void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 	else
 		memset(msg.body, 0x00, MAIL_BODY_LENGTH);
 	
-	msg.timestamp = (int)mail_calctimes();
+	msg.timestamp = time(NULL);
 	if( !intif_Mail_send(sd->status.account_id, &msg) )
 		mail_deliveryfail(sd, &msg);
 
@@ -11655,7 +11655,7 @@ void clif_Auction_results(struct map_session_data *sd, short count, short pages,
 		WFIFOL(fd,47+k) = auction.price;
 		WFIFOL(fd,51+k) = auction.buynow;
 		safestrncpy(WFIFOP(fd,55+k), auction.buyer_name, NAME_LENGTH);
-		WFIFOL(fd,79+k) = auction.timestamp;
+		WFIFOL(fd,79+k) = (uint32)auction.timestamp;
 	}
 	WFIFOSET(fd, 12 + (count * 83));
 }
