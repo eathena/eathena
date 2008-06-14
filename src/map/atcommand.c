@@ -7885,6 +7885,37 @@ int atcommand_reject(const int fd, struct map_session_data* sd, const char* comm
 }
 
 /*===================================
+ * Cash Points
+ *-----------------------------------*/
+int atcommand_cash(const int fd, struct map_session_data* sd, const char* command, const char* message)
+{
+	int value;
+	nullpo_retr(-1, sd);
+
+	if( !message || !*message || (value = atoi(message)) == 0 ) {
+		clif_displaymessage(fd, "Please, enter an amount.");
+		return -1;
+	}
+
+	if( !strcmpi(command+1,"cash") )
+	{
+		if( value > 0 )
+			pc_getcash(sd, value, 0);
+		else
+			pc_paycash(sd, value, 0);
+	}
+	else
+	{ // @points
+		if( value > 0 )
+			pc_getcash(sd, 0, value);
+		else
+			pc_paycash(sd, value, value);
+	}
+
+	return 0;
+}
+
+/*===================================
  * Away message (@away, @aw) [LuzZza]
  *-----------------------------------*/
 int atcommand_away(const int fd, struct map_session_data* sd, const char* command, const char* message)
@@ -8344,6 +8375,8 @@ AtCommandInfo atcommand_info[] = {
 	{ "showmobs",          10,     atcommand_showmobs },
 	{ "feelreset",         10,     atcommand_feelreset },
 	{ "mail",               1,     atcommand_mail },
+	{ "cash",              60,     atcommand_cash },
+	{ "points",            60,     atcommand_cash },
 };
 
 

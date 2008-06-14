@@ -902,6 +902,10 @@ int pc_reg_received(struct map_session_data *sd)
 	sd->change_level = pc_readglobalreg(sd,"jobchange_level");
 	sd->die_counter = pc_readglobalreg(sd,"PC_DIE_COUNTER");
 
+	// Cash shop
+	sd->cashPoints = pc_readaccountreg(sd,"#CASHPOINTS");
+	sd->kafraPoints = pc_readaccountreg(sd,"#KAFRAPOINTS");
+
 	if ((sd->class_&MAPID_BASEMASK)==MAPID_TAEKWON)
 	{	//Better check for class rather than skill to prevent "skill resets" from unsetting this
 		sd->mission_mobid = pc_readglobalreg(sd,"TK_MISSION_ID");
@@ -2804,6 +2808,54 @@ int pc_payzeny(struct map_session_data *sd,int zeny)
 	clif_updatestatus(sd,SP_ZENY);
 
 	return 0;
+}
+/*==========================================
+ * Cash Shop
+ *------------------------------------------*/
+
+void pc_paycash(struct map_session_data *sd, int prize, int points)
+{
+	char output[128];
+	int cash = prize - points;
+	nullpo_retv(sd);
+
+	if( cash > 0 )
+	{
+		pc_setaccountreg(sd,"#CASHPOINTS",sd->cashPoints - cash);
+
+		sprintf(output, "Used %d cash points. %d points remaining.", cash, sd->cashPoints);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
+
+	if( points > 0 )
+	{
+		pc_setaccountreg(sd,"#KAFRAPOINTS",sd->kafraPoints - points);
+
+		sprintf(output, "Used %d kafra points. %d points remaining.", points, sd->kafraPoints);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
+}
+
+void pc_getcash(struct map_session_data *sd, int cash, int points)
+{
+	char output[128];
+	nullpo_retv(sd);
+
+	if( cash > 0 )
+	{
+		pc_setaccountreg(sd,"#CASHPOINTS",sd->cashPoints + cash);
+
+		sprintf(output, "Gained %d cash points. Total %d points", points, sd->cashPoints);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
+
+	if( points > 0 )
+	{
+		pc_setaccountreg(sd,"#KAFRAPOINTS",sd->kafraPoints + points);
+
+		sprintf(output, "Gained %d kafra points. Total %d points", points, sd->kafraPoints);
+		clif_disp_onlyself(sd, output, strlen(output));
+	}
 }
 
 /*==========================================
@@ -6020,20 +6072,32 @@ int pc_setregistry(struct map_session_data *sd,const char *reg,int val,int type)
 	int i,*max, regmax;
 
 	nullpo_retr(0, sd);
-	if (type == 3) { //Some special character reg values...
-		if(strcmp(reg,"PC_DIE_COUNTER") == 0 && sd->die_counter != val){
+
+	switch( type )
+	{
+	case 3: //Char reg
+		if( !strcmp(reg,"PC_DIE_COUNTER") && sd->die_counter != val )
+		{
 			i = (!sd->die_counter && (sd->class_&MAPID_UPPERMASK) == MAPID_SUPER_NOVICE);
 			sd->die_counter = val;
-			if (i) status_calc_pc(sd,0); //Lost the bonus.
+			if( i )
+				status_calc_pc(sd,0); // Lost the bonus.
 		}
-	}
-	switch (type) {
-	case 3: //Char reg
 		sd_reg = sd->save_reg.global;
 		max = &sd->save_reg.global_num;
 		regmax = GLOBAL_REG_NUM;
 	break;
 	case 2: //Account reg
+		if( !strcmp(reg,"#CASHPOINTS") && sd->cashPoints != val )
+		{
+			val = cap_value(val, 0, MAX_ZENY);
+			sd->cashPoints = val;
+		}
+		else if( !strcmp(reg,"#KAFRAPOINTS") && sd->kafraPoints != val )
+		{
+			val = cap_value(val, 0, MAX_ZENY);
+			sd->kafraPoints = val;
+		}
 		sd_reg = sd->save_reg.account;
 		max = &sd->save_reg.account_num;
 		regmax = ACCOUNT_REG_NUM;
