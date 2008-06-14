@@ -8089,6 +8089,20 @@ int atcommand_feelreset(const int fd, struct map_session_data* sd, const char* c
 }
 
 /*==========================================
+ * AUCTION SYSTEM
+ *------------------------------------------*/
+int atcommand_auction(const int fd, struct map_session_data *sd, const char *command, const char *message)
+{
+	nullpo_retr(0,sd);
+
+#ifndef TXT_ONLY
+	clif_Auction_openwindow(sd);
+#endif
+
+	return 0;
+}
+
+/*==========================================
  * atcommand_info[] structure definition
  *------------------------------------------*/
 
@@ -8374,6 +8388,7 @@ AtCommandInfo atcommand_info[] = {
 	{ "homshuffle",        60,     atcommand_homshuffle },
 	{ "showmobs",          10,     atcommand_showmobs },
 	{ "feelreset",         10,     atcommand_feelreset },
+	{ "auction",           60,     atcommand_auction },
 	{ "mail",               1,     atcommand_mail },
 	{ "cash",              60,     atcommand_cash },
 	{ "points",            60,     atcommand_cash },

@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/06/14
+	* Merged Auction system for SQL. Added upgrade_svn12826.sql script.
 	* Merged Cash Shop system (r12264, r12266, r12300, r12304) [ultramage]
 2008/06/09
 	* Fixed reject sword having a infinite duration, bugreport:695 [Brainstorm]

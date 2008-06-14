@@ -1,5 +1,7 @@
 Date	Added
 
+2008/06/14
+	* Added auction_feeperhour and auction_maximumprice to misc.conf.
 2008/03/11
 	* Changed the default format for @me and @main to avoid client crashes
 2008/03/05

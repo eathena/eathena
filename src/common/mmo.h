@@ -101,6 +101,22 @@
 #define MAIL_TITLE_LENGTH 40
 #define MAIL_BODY_LENGTH 200
 
+enum item_types {
+	IT_HEALING = 0,
+	IT_UNKNOWN, //1
+	IT_USABLE,  //2
+	IT_ETC,     //3
+	IT_WEAPON,  //4
+	IT_ARMOR,   //5
+	IT_CARD,    //6
+	IT_PETEGG,  //7
+	IT_PETARMOR,//8
+	IT_UNKNOWN2,//9
+	IT_AMMO,    //10
+	IT_DELAYCONSUME,//11
+	IT_MAX 
+};
+
 struct item {
 	int id;
 	short nameid;
@@ -261,6 +277,24 @@ struct mail_data {
 	bool changed, full;
 	short unchecked, unread;
 	struct mail_message msg[MAIL_MAX_INBOX];
+};
+
+struct auction_data {
+	unsigned int auction_id;
+	int seller_id;
+	char seller_name[NAME_LENGTH];
+	int buyer_id;
+	char buyer_name[NAME_LENGTH];
+	
+	struct item item;
+	// This data is required for searching, as itemdb is not read by char server
+	char item_name[ITEM_NAME_LENGTH];
+	short type;
+
+	unsigned short hours;
+	int price, buynow;
+	unsigned int timestamp; // auction's end time
+	int auction_end_timer;
 };
 
 struct registry {

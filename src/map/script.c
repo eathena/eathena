@@ -12724,6 +12724,20 @@ BUILDIN_FUNC(openmail)
 	return 0;
 }
 
+BUILDIN_FUNC(openauction)
+{
+	TBL_PC* sd;
+
+	sd = script_rid2sd(st);
+	if( sd == NULL )
+		return 0;
+
+#ifndef TXT_ONLY
+	clif_Auction_openwindow(sd);
+#endif
+	return 0;
+}
+
 /// Modifies flags of cells in the specified area.
 ///
 /// setcell "<map name>",<x1>,<y1>,<x2>,<y2>,<type>,<flag>;
@@ -13087,6 +13101,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(checkvending,"*"),
 	BUILDIN_DEF(checkchatting,"*"),
 	BUILDIN_DEF(openmail,""),
+	BUILDIN_DEF(openauction,""),
 	BUILDIN_DEF(setcell,"siiiiii"),
 	{NULL,NULL,NULL},
 };

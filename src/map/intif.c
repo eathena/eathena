@@ -35,7 +35,7 @@ static const int packet_len_table[]={
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
 	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
+	-1,-1, 7, 7,  7,11, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus]
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
@@ -1675,6 +1675,193 @@ static void intif_parse_Mail_new(int fd)
 	clif_Mail_new(sd->fd, mail_id, sender_name, title);
 }
 
+/*==========================================
+ * AUCTION SYSTEM
+ * By Zephyrus
+ *==========================================*/
+int intif_Auction_requestlist(int char_id, short type, int price, const char* searchtext, short page)
+{
+	int len = NAME_LENGTH + 16;
+
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,len);
+	WFIFOW(inter_fd,0) = 0x3050;
+	WFIFOW(inter_fd,2) = len;
+	WFIFOL(inter_fd,4) = char_id;
+	WFIFOW(inter_fd,8) = type;
+	WFIFOL(inter_fd,10) = price;
+	WFIFOW(inter_fd,14) = page;
+	memcpy(WFIFOP(inter_fd,16), searchtext, NAME_LENGTH);
+	WFIFOSET(inter_fd,len);
+
+	return 0;
+}
+
+static void intif_parse_Auction_results(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,4));
+	short count = RFIFOW(fd,8), pages = RFIFOW(fd,10);
+
+	if( sd == NULL )
+		return;
+
+	clif_Auction_results(sd, count, pages, (char *)RFIFOP(fd,12));
+}
+
+int intif_Auction_register(struct auction_data *auction)
+{
+	int len = sizeof(struct auction_data) + 4;
+	
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,len);
+	WFIFOW(inter_fd,0) = 0x3051;
+	WFIFOW(inter_fd,2) = len;
+	memcpy(WFIFOP(inter_fd,4), auction, sizeof(struct auction_data));
+	WFIFOSET(inter_fd,len);
+	
+	return 1;
+}
+
+static void intif_parse_Auction_register(int fd)
+{
+	struct map_session_data *sd;
+	struct auction_data auction;
+
+	if( RFIFOW(fd,2) - 4 != sizeof(struct auction_data) )
+	{
+		ShowError("intif_parse_Auction_register: data size error %d %d\n", RFIFOW(fd,2) - 4, sizeof(struct auction_data));
+		return;
+	}
+
+	memcpy(&auction, RFIFOP(fd,4), sizeof(struct auction_data));
+	if( (sd = map_charid2sd(auction.seller_id)) == NULL )
+		return;
+
+	if( auction.auction_id > 0 )
+		clif_Auction_message(sd->fd, 1); // Confirmation Packet ??
+	else
+	{
+		clif_Auction_message(sd->fd, 4);
+		pc_additem(sd, &auction.item, auction.item.amount);
+		pc_getzeny(sd, auction.hours * battle_config.auction_feeperhour);
+	}
+}
+
+int intif_Auction_cancel(int char_id, unsigned int auction_id)
+{
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x3052;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = auction_id;
+	WFIFOSET(inter_fd,10);
+
+	return 0;
+}
+
+static void intif_parse_Auction_cancel(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	int result = RFIFOB(fd,6);
+
+	if( sd == NULL )
+		return;
+
+	switch( result )
+	{
+	case 0: clif_Auction_message(sd->fd, 2); break;
+	case 1: clif_Auction_close(sd->fd, 2); break;
+	case 2: clif_Auction_close(sd->fd, 1); break;
+	case 3: clif_Auction_message(sd->fd, 3); break;
+	}
+}
+
+int intif_Auction_close(int char_id, unsigned int auction_id)
+{
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x3053;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = auction_id;
+	WFIFOSET(inter_fd,10);
+
+	return 0;
+}
+
+static void intif_parse_Auction_close(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	unsigned char result = RFIFOB(fd,6);
+
+	if( sd == NULL )
+		return;
+
+	clif_Auction_close(sd->fd, result);
+	if( result == 0 )
+	{
+		clif_parse_Auction_cancelreg(fd, sd);
+		intif_Auction_requestlist(sd->status.char_id, 6, 0, "", 1);
+	}
+}
+
+int intif_Auction_bid(int char_id, const char* name, unsigned int auction_id, int bid)
+{
+	int len = 16 + NAME_LENGTH;
+
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,len);
+	WFIFOW(inter_fd,0) = 0x3055;
+	WFIFOW(inter_fd,2) = len;
+	WFIFOL(inter_fd,4) = char_id;
+	WFIFOL(inter_fd,8) = auction_id;
+	WFIFOL(inter_fd,12) = bid;
+	memcpy(WFIFOP(inter_fd,16), name, NAME_LENGTH);
+	WFIFOSET(inter_fd,len);
+
+	return 0;
+}
+
+static void intif_parse_Auction_bid(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	int bid = RFIFOL(fd,6);
+	unsigned char result = RFIFOB(fd,10);
+
+	if( sd == NULL )
+		return;
+
+	clif_Auction_message(sd->fd, result);
+	if( bid > 0 )
+		pc_getzeny(sd, bid);
+	if( result == 1 )
+	{ // To update the list, display your buy list
+		clif_parse_Auction_cancelreg(fd, sd);
+		intif_Auction_requestlist(sd->status.char_id, 7, 0, "", 1);
+	}
+}
+
+// Used to send 'You have won the auction' and 'You failed to won the auction' messages
+static void intif_parse_Auction_message(int fd)
+{
+	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,2));
+	unsigned char result = RFIFOB(fd,6);
+
+	if( sd == NULL )
+		return;
+
+	clif_Auction_message(sd->fd, result);
+}
+
 #endif
 
 //-----------------------------------------------------------------
@@ -1753,6 +1940,13 @@ int intif_parse(int fd)
 	case 0x384b:	intif_parse_Mail_delete(fd); break;
 	case 0x384c:	intif_parse_Mail_return(fd); break;
 	case 0x384d:	intif_parse_Mail_send(fd); break;
+// Auction System
+	case 0x3850:	intif_parse_Auction_results(fd); break;
+	case 0x3851:	intif_parse_Auction_register(fd); break;
+	case 0x3852:	intif_parse_Auction_cancel(fd); break;
+	case 0x3853:	intif_parse_Auction_close(fd); break;
+	case 0x3854:	intif_parse_Auction_message(fd); break;
+	case 0x3855:	intif_parse_Auction_bid(fd); break;
 #endif
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
