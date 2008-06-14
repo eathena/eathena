@@ -223,7 +223,6 @@ struct mob_data* mob_spawn_dataset(struct spawn_data *data)
 
 	if(md->db->status.mode&MD_LOOTER)
 		md->lootitem = (struct item *)aCalloc(LOOTITEM_SIZE,sizeof(struct item));
-	md->spawn_n = -1;
 	md->deletetimer = -1;
 	md->skillidx = -1;
 	status_set_viewdata(&md->bl, md->class_);
@@ -689,6 +688,7 @@ int mob_spawn (struct mob_data *md)
 			return 1;
 		}
 	}
+
 	memset(&md->state, 0, sizeof(md->state));
 	status_calc_mob(md, 1);
 	md->attacked_id = 0;
@@ -2469,7 +2469,6 @@ int mob_summonslave(struct mob_data *md2,int *value,int amount,int skill_id)
 			continue;
 		
 		md= mob_spawn_dataset(&data);
-		md->special_state.cached= md2->special_state.cached;	//[Skotlex]
 		if(skill_id == NPC_SUMMONSLAVE){
 			md->master_id=md2->bl.id;
 			md->special_state.ai = md2->special_state.ai;

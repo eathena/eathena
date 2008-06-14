@@ -1963,7 +1963,7 @@ void map_spawnmobs(int m)
 		if(map[m].moblist[i]!=NULL)
 		{
 			k+=map[m].moblist[i]->num;
-			npc_parse_mob2(map[m].moblist[i],i);
+			npc_parse_mob2(map[m].moblist[i]);
 		}
 
 	if (battle_config.etc_log && k > 0)
@@ -1972,22 +1972,21 @@ void map_spawnmobs(int m)
 	}
 }
 
-int mob_cache_cleanup_sub(struct block_list *bl, va_list ap)
+int map_removemobs_sub(struct block_list *bl, va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)bl;
 	nullpo_retr(0, md);
 
 	//When not to remove:
-	//Mob has the cached flag on 0
-	if (!md->special_state.cached)
+	//Mob doesn't respawn and is not a slave
+	if( !md->spawn && !md->master_id )
 		return 0;
-	if (!battle_config.mob_remove_damaged && 
-		md->status.hp < md->status.max_hp)
-	{
-		if (md->spawn && md->spawn_n >= 0) //Do not respawn mob later.
-			map[md->spawn->m].moblist[md->spawn_n]->skip++;
-		return 0; //Do not remove damaged mobs.
-	}
+	//Mob respawn data is not in cache
+	if( md->spawn && !md->spawn->state.dynamic )
+		return 0;
+	//Mob is damaged and mob_remove_damaged is off
+	if( !battle_config.mob_remove_damaged && md->status.hp < md->status.max_hp )
+		return 0;
 	
 	unit_free(&md->bl,0);
 
@@ -1996,24 +1995,27 @@ int mob_cache_cleanup_sub(struct block_list *bl, va_list ap)
 
 int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 {
-	int k;
-	if (id < 0 || id >= MAX_MAP_PER_SERVER)
-	{	//Incorrect map id!
-		ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, id);
-		return 0;
-	}
-	if (map[id].mob_delete_timer != tid)
-	{	//Incorrect timer call!
-		ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[id].mob_delete_timer, tid, map[id].name);
-		return 0;
-	}
-	map[id].mob_delete_timer = -1;
-	if (map[id].users > 0) //Map not empty!
-		return 1;
-	k = map_foreachinmap(mob_cache_cleanup_sub, id, BL_MOB);
+	int count;
+	const int m = id;
 
-	if (battle_config.etc_log && k > 0)
-		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[id].name, k);
+	if (m < 0 || m >= MAX_MAP_PER_SERVER)
+	{	//Incorrect map id!
+		ShowError("map_removemobs_timer error: timer %d points to invalid map %d\n",tid, m);
+		return 0;
+	}
+	if (map[m].mob_delete_timer != tid)
+	{	//Incorrect timer call!
+		ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[m].mob_delete_timer, tid, map[m].name);
+		return 0;
+	}
+	map[m].mob_delete_timer = -1;
+	if (map[m].users > 0) //Map not empty!
+		return 1;
+
+	count = map_foreachinmap(map_removemobs_sub, m, BL_MOB);
+
+	if (battle_config.etc_log && count > 0)
+		ShowStatus("Map %s: Removed '"CL_WHITE"%d"CL_RESET"' mobs.\n",map[m].name, count);
 	
 	return 1;
 }

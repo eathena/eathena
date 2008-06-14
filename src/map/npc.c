@@ -2176,29 +2176,23 @@ static const char* npc_parse_function(char* w1, char* w2, char* w3, char* w4, co
  * Parse Mob 1 - Parse mob list into each map
  * Parse Mob 2 - Actually Spawns Mob
  * [Wizputer]
- * If cached =1, it is a dynamic cached mob
- * index points to the index in the mob_list of the map_data cache.
- * -1 indicates that it is not stored on the map.
  *------------------------------------------*/
-int npc_parse_mob2(struct spawn_data* mob, int index)
+void npc_parse_mob2(struct spawn_data* mob)
 {
 	int i;
-	struct mob_data *md;
 
-	for (i = mob->skip; i < mob->num; i++) {
-		md = mob_spawn_dataset(mob);
+	for( i = mob->active; i < mob->num; ++i )
+	{
+		struct mob_data* md = mob_spawn_dataset(mob);
 		md->spawn = mob;
-		md->spawn_n = index;
-		md->special_state.cached = (index>=0);	//If mob is cached on map, it is dynamically removed
+		md->spawn->active++;
 		mob_spawn(md);
 	}
-	mob->skip = 0;
-	return 1;
 }
 
 static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
 {
-	int level, num, class_, mode, x,y,xs,ys;
+	int level, num, class_, mode, x,y,xs,ys, i,j;
 	char mapname[32];
 	char mobname[128];
 	struct spawn_data mob, *data;
@@ -2244,6 +2238,7 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	}
 
 	mob.num = (unsigned short)num;
+	mob.active = 0;
 	mob.class_ = (short) class_;
 	mob.x = (unsigned short)x;
 	mob.y = (unsigned short)y;
@@ -2300,34 +2295,36 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	else
 		strncpy(mob.name, mobname, NAME_LENGTH-1);
 
-	if( !mob_parse_dataset(&mob) ) //Verify dataset.
+	//Verify dataset.
+	if( !mob_parse_dataset(&mob) )
 	{
 		ShowError("npc_parse_mob: Invalid dataset : %s %s (file '%s', line '%d').\n", w3, w4, filepath, strline(buffer,start-buffer));
 		return strchr(start,'\n');// skip and continue
 	}
 
-	for(x=0; x < ARRAYLENGTH(db->spawn); x++)
+	//Update mob spawn lookup database
+	for( i = 0; i < ARRAYLENGTH(db->spawn); ++i )
 	{
-		if (map[mob.m].index == db->spawn[x].mapindex)
+		if (map[mob.m].index == db->spawn[i].mapindex)
 		{	//Update total
-			db->spawn[x].qty += mob.num;
+			db->spawn[i].qty += mob.num;
 			//Re-sort list
-			for (y = x; y>0 && db->spawn[y-1].qty < db->spawn[x].qty; y--);
-			if (y != x)
+			for( j = i; j > 0 && db->spawn[j-1].qty < db->spawn[i].qty; --j );
+			if( j != i )
 			{
-				xs = db->spawn[x].mapindex;
-				ys = db->spawn[x].qty;
-				memmove(&db->spawn[y+1], &db->spawn[y], (x-y)*sizeof(db->spawn[0]));
-				db->spawn[y].mapindex = xs;
-				db->spawn[y].qty = ys;
+				xs = db->spawn[i].mapindex;
+				ys = db->spawn[i].qty;
+				memmove(&db->spawn[j+1], &db->spawn[j], (i-j)*sizeof(db->spawn[0]));
+				db->spawn[j].mapindex = xs;
+				db->spawn[j].qty = ys;
 			}
 			break;
 		}
-		if (mob.num > db->spawn[x].qty)
+		if (mob.num > db->spawn[i].qty)
 		{	//Insert into list
-			memmove(&db->spawn[x+1], &db->spawn[x], sizeof(db->spawn) -(x+1)*sizeof(db->spawn[0]));
-			db->spawn[x].mapindex = map[mob.m].index;
-			db->spawn[x].qty = mob.num;
+			memmove(&db->spawn[i+1], &db->spawn[i], sizeof(db->spawn) -(i+1)*sizeof(db->spawn[0]));
+			db->spawn[i].mapindex = map[mob.m].index;
+			db->spawn[i].qty = mob.num;
 			break;
 		}
 	}
@@ -2337,25 +2334,28 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 	data = aMalloc(sizeof(struct spawn_data));
 	memcpy(data, &mob, sizeof(struct spawn_data));
 	
-	if( !battle_config.dynamic_mobs || mob.delay1 || mob.delay2 ) {
-		npc_parse_mob2(data,-1);
-		npc_delay_mob += mob.num;
+	if( !battle_config.dynamic_mobs || data->delay1 || data->delay2 ) {
+		data->state.dynamic = false;
+		npc_parse_mob2(data);
+		npc_delay_mob += data->num;
 	} else {
 		int index = map_addmobtolist(data->m, data);
 		if( index >= 0 ) {
+			data->state.dynamic = true;
 			// check if target map has players
 			// (usually shouldn't occur when map server is just starting,
 			// but not the case when we do @reloadscript
-			if (map[mob.m].users > 0)
-				npc_parse_mob2(data,index);
-			npc_cache_mob += mob.num;
+			if (map[data->m].users > 0)
+				npc_parse_mob2(data);
+			npc_cache_mob += data->num;
 		} else {
 			// mobcache is full
 			// create them as delayed with one second
-			mob.delay1 = 1000;
-			mob.delay2 = 1000;
-			npc_parse_mob2(data,-1);
-			npc_delay_mob += mob.num;
+			data->state.dynamic = false;
+			data->delay1 = 1000;
+			data->delay2 = 1000;
+			npc_parse_mob2(data);
+			npc_delay_mob += data->num;
 		}
 	}
 
@@ -2793,41 +2793,45 @@ void npc_read_event_script(void)
 	}
 }
 
-static int npc_cleanup_dbsub(DBKey key, void* data, va_list ap)
-{
-	struct block_list* bl = (struct block_list*)data;
-	nullpo_retr(0, bl);
-
-	switch(bl->type) {
-	case BL_NPC:
-		if( bl->id != fake_nd->bl.id )// don't remove fake_nd
-			npc_unload((struct npc_data *)bl);
-		break;
-	case BL_MOB:
-		unit_free(bl,0);
-		break;
-	}
-
-	return 0;
-}
-
 int npc_reload(void)
 {
 	struct npc_src_list *nsl;
 	int m, i;
 	int npc_new_min = npc_id;
+	struct s_mapiterator* iter;
+	struct block_list* bl;
 
 	//Remove all npcs/mobs. [Skotlex]
-	map_foreachiddb(npc_cleanup_dbsub);
-	for (m = 0; m < map_num; m++) {
-		if(battle_config.dynamic_mobs) {	//dynamic check by [random]
-			for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++)
-				if (map[m].moblist[i]) aFree(map[m].moblist[i]);
-			memset (map[m].moblist, 0, sizeof(map[m].moblist));
+	iter = mapit_geteachiddb();
+	for( bl = mapit_first(iter); mapit_exists(iter); bl = mapit_next(iter) )
+	{
+		switch(bl->type) {
+		case BL_NPC:
+			if( bl->id != fake_nd->bl.id )// don't remove fake_nd
+				npc_unload((struct npc_data *)bl);
+			break;
+		case BL_MOB:
+			unit_free(bl,0);
+			break;
+		}
+	}
+	mapit_free(iter);
+
+	if(battle_config.dynamic_mobs)
+	{// dynamic check by [random]
+		for (m = 0; m < map_num; m++) {
+			for (i = 0; i < MAX_MOB_LIST_PER_MAP; i++) {
+				if (map[m].moblist[i] != NULL) {
+					aFree(map[m].moblist[i]);
+					map[m].moblist[i] = NULL;
+				}
+			}
 		}
 		if (map[m].npc_num > 0)
 			ShowWarning("npc_reload: %d npcs weren't removed at map %s!\n", map[m].npc_num, map[m].name);
 	}
+
+	// clear mob spawn lookup index
 	mob_clear_spawninfo();
 
 	// clear npc-related data structures
@@ -2847,7 +2851,7 @@ int npc_reload(void)
 		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mob sets\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - npc_new_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
@@ -2958,7 +2962,7 @@ int do_init_npc(void)
 		"\t-'"CL_WHITE"%d"CL_RESET"' Warps\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Shops\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Scripts\n"
-		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs\n"
+		"\t-'"CL_WHITE"%d"CL_RESET"' Mob sets\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Cached\n"
 		"\t-'"CL_WHITE"%d"CL_RESET"' Mobs Not Cached\n",
 		npc_id - START_NPC_NUM, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);

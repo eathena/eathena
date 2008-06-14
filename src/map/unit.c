@@ -1882,11 +1882,18 @@ int unit_free(struct block_list *bl, int clrtype)
 			aFree(md->guardian_data);
 			md->guardian_data = NULL;
 		}
-		if (md->spawn && md->spawn_n < 0 && --(md->spawn->num) == 0)
-		{	//Spawning data is not attached to the map, so free it
-			//if this is the last mob who is pointing at it.
-			aFree(md->spawn);
-			md->spawn = NULL;
+		if(md->spawn)
+		{
+			md->spawn->active--;
+
+			if( !md->spawn->state.dynamic )
+			{// permanently remove the mob
+				if( --md->spawn->num == 0 )
+				{// Last freed mob is responsible for deallocating the group's spawn data.
+					aFree(md->spawn);
+					md->spawn = NULL;
+				}
+			}
 		}
 		if(md->base_status) {
 			aFree(md->base_status);
