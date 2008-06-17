@@ -33,6 +33,14 @@ typedef struct AccountDB_TXT
 
 } AccountDB_TXT;
 
+/// internal structure
+typedef struct AccountDBIterator_TXT
+{
+	AccountDBIterator vtable;      // public interface
+
+	DBIterator* iter;
+} AccountDBIterator_TXT;
+
 /// internal functions
 static bool account_db_txt_init(AccountDB* self);
 static void account_db_txt_destroy(AccountDB* self);
@@ -43,6 +51,9 @@ static bool account_db_txt_remove(AccountDB* self, const int account_id);
 static bool account_db_txt_save(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_txt_load_num(AccountDB* self, struct mmo_account* acc, const int account_id);
 static bool account_db_txt_load_str(AccountDB* self, struct mmo_account* acc, const char* userid);
+static AccountDBIterator* account_db_txt_iterator(AccountDB* self);
+static void account_db_txt_iter_destroy(AccountDBIterator* self);
+static bool account_db_txt_iter_next(AccountDBIterator* self, struct mmo_account* acc);
 
 static bool mmo_auth_fromstr(struct mmo_account* acc, char* str, unsigned int version);
 static bool mmo_auth_tostr(const struct mmo_account* acc, char* str);
@@ -64,6 +75,7 @@ AccountDB* account_db_txt(void)
 	db->vtable.remove       = &account_db_txt_remove;
 	db->vtable.load_num     = &account_db_txt_load_num;
 	db->vtable.load_str     = &account_db_txt_load_str;
+	db->vtable.iterator     = &account_db_txt_iterator;
 
 	// initialize to default values
 	db->accounts = NULL;
@@ -383,6 +395,47 @@ static bool account_db_txt_load_str(AccountDB* self, struct mmo_account* acc, co
 	memcpy(acc, tmp, sizeof(struct mmo_account));
 
 	return true;
+}
+
+
+/// Returns a new forward iterator.
+static AccountDBIterator* account_db_txt_iterator(AccountDB* self)
+{
+	AccountDB_TXT* db = (AccountDB_TXT*)self;
+	DBMap* accounts = db->accounts;
+	AccountDBIterator_TXT* iter = (AccountDBIterator_TXT*)aCalloc(1, sizeof(AccountDBIterator_TXT));
+
+	// set up the vtable
+	iter->vtable.destroy = &account_db_txt_iter_destroy;
+	iter->vtable.next    = &account_db_txt_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(accounts);
+
+	return &iter->vtable;
+}
+
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void account_db_txt_iter_destroy(AccountDBIterator* self)
+{
+	AccountDBIterator_TXT* iter = (AccountDBIterator_TXT*)self;
+	dbi_destroy(iter->iter);
+	aFree(iter);
+}
+
+
+/// Fetches the next account in the database.
+static bool account_db_txt_iter_next(AccountDBIterator* self, struct mmo_account* acc)
+{
+	AccountDBIterator_TXT* iter = (AccountDBIterator_TXT*)self;
+	struct mmo_account* tmp = (struct mmo_account*)dbi_next(iter->iter);
+	if( dbi_exists(iter->iter) )
+	{
+		memcpy(acc, tmp, sizeof(struct mmo_account));
+		return true;
+	}
+	return false;
 }
 
 

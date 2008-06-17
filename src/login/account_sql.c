@@ -32,6 +32,15 @@ typedef struct AccountDB_SQL
 
 } AccountDB_SQL;
 
+/// internal structure
+typedef struct AccountDBIterator_SQL
+{
+	AccountDBIterator vtable;    // public interface
+
+	AccountDB_SQL* db;
+	int last_account_id;
+} AccountDBIterator_SQL;
+
 /// internal functions
 static bool account_db_sql_init(AccountDB* self);
 static void account_db_sql_destroy(AccountDB* self);
@@ -42,6 +51,9 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id);
 static bool account_db_sql_save(AccountDB* self, const struct mmo_account* acc);
 static bool account_db_sql_load_num(AccountDB* self, struct mmo_account* acc, const int account_id);
 static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, const char* userid);
+static AccountDBIterator* account_db_sql_iterator(AccountDB* self);
+static void account_db_sql_iter_destroy(AccountDBIterator* self);
+static bool account_db_sql_iter_next(AccountDBIterator* self, struct mmo_account* acc);
 
 static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int account_id);
 static bool mmo_auth_tosql(AccountDB_SQL* db, const struct mmo_account* acc, bool is_new);
@@ -63,6 +75,7 @@ AccountDB* account_db_sql(void)
 	db->vtable.remove       = &account_db_sql_remove;
 	db->vtable.load_num     = &account_db_sql_load_num;
 	db->vtable.load_str     = &account_db_sql_load_str;
+	db->vtable.iterator     = &account_db_sql_iterator;
 
 	// initialize to default values
 	db->accounts = NULL;
@@ -346,6 +359,67 @@ static bool account_db_sql_load_str(AccountDB* self, struct mmo_account* acc, co
 
 	return account_db_sql_load_num(self, acc, account_id);
 }
+
+
+/// Returns a new forward iterator.
+static AccountDBIterator* account_db_sql_iterator(AccountDB* self)
+{
+	AccountDB_SQL* db = (AccountDB_SQL*)self;
+	AccountDBIterator_SQL* iter = (AccountDBIterator_SQL*)aCalloc(1, sizeof(AccountDBIterator_SQL));
+
+	// set up the vtable
+	iter->vtable.destroy = &account_db_sql_iter_destroy;
+	iter->vtable.next    = &account_db_sql_iter_next;
+
+	// fill data
+	iter->db = db;
+	iter->last_account_id = -1;
+
+	return &iter->vtable;
+}
+
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void account_db_sql_iter_destroy(AccountDBIterator* self)
+{
+	AccountDBIterator_SQL* iter = (AccountDBIterator_SQL*)self;
+	aFree(iter);
+}
+
+
+/// Fetches the next account in the database.
+static bool account_db_sql_iter_next(AccountDBIterator* self, struct mmo_account* acc)
+{
+	AccountDBIterator_SQL* iter = (AccountDBIterator_SQL*)self;
+	AccountDB_SQL* db = (AccountDB_SQL*)iter->db;
+	Sql* sql_handle = db->accounts;
+	int account_id;
+	char* data;
+
+	// get next account ID
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id` FROM `%s` WHERE `account_id` > '%d' ORDER BY `account_id` ASC LIMIT 1",
+		db->account_db, iter->last_account_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
+		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
+		data != NULL )
+	{// get account data
+		account_id = atoi(data);
+		if( mmo_auth_fromsql(db, acc, account_id) )
+		{
+			iter->last_account_id = account_id;
+			Sql_FreeResult(sql_handle);
+			return true;
+		}
+	}
+	Sql_FreeResult(sql_handle);
+	return false;
+}
+
 
 static int account_db_ping_init(AccountDB_SQL* db)
 {

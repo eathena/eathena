@@ -71,6 +71,15 @@ typedef struct AccountDB_RJ
 	int save_delay;
 } AccountDB_RJ;
 
+/// Iterator for the database
+typedef struct AccountDBIterator_RJ
+{
+	AccountDBIterator vtable;      // public interface
+
+	DBIterator* iter;
+} AccountDBIterator_RJ;
+
+
 
 // forward declarations
 static int accdb_rj_save_timer(int tid, unsigned int tick, int id, int data);
@@ -927,6 +936,47 @@ static bool account_db_rj_load_str(AccountDB* self, struct mmo_account* acc, con
 }
 
 
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void account_db_rj_iter_destroy(AccountDBIterator* self)
+{
+	AccountDBIterator_RJ* iter = (AccountDBIterator_RJ*)self;
+	dbi_destroy(iter->iter);
+	aFree(iter);
+}
+
+
+/// Fetches the next account in the database.
+static bool account_db_rj_iter_next(AccountDBIterator* self, struct mmo_account* acc)
+{
+	AccountDBIterator_RJ* iter = (AccountDBIterator_RJ*)self;
+	struct mmo_account* tmp = (struct mmo_account*)dbi_next(iter->iter);
+	if( dbi_exists(iter->iter) )
+	{
+		memcpy(acc, tmp, sizeof(struct mmo_account));
+		return true;
+	}
+	return false;
+}
+
+
+/// Returns a new forward iterator.
+static AccountDBIterator* account_db_rj_iterator(AccountDB* self)
+{
+	AccountDB_RJ* db = (AccountDB_RJ*)self;
+	DBMap* accounts = db->accounts;
+	AccountDBIterator_RJ* iter = (AccountDBIterator_RJ*)aCalloc(1, sizeof(AccountDBIterator_RJ));
+
+	// set up the vtable
+	iter->vtable.destroy = &account_db_rj_iter_destroy;
+	iter->vtable.next    = &account_db_rj_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(accounts);
+
+	return &iter->vtable;
+}
+
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // public
@@ -950,6 +1000,7 @@ AccountDB* account_db_rj(void)
 	db->vtable.remove       = &account_db_rj_remove;
 	db->vtable.load_num     = &account_db_rj_load_num;
 	db->vtable.load_str     = &account_db_rj_load_str;
+	db->vtable.iterator     = &account_db_rj_iterator;
 
 	// settings
 	safestrncpy(db->db_filename, ACCOUNT_RJ_DB_FILENAME, sizeof(db->db_filename));

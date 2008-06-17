@@ -8,6 +8,7 @@
 #include "../common/mmo.h" // ACCOUNT_REG2_NUM
 
 typedef struct AccountDB AccountDB;
+typedef struct AccountDBIterator AccountDBIterator;
 
 
 // standard engines
@@ -56,9 +57,26 @@ struct mmo_account
 };
 
 
+struct AccountDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(AccountDBIterator* self);
+
+	/// Fetches the next account in the database.
+	/// Fills acc with the account data.
+	/// @param self Iterator
+	/// @param acc Account data
+	/// @return true if successful
+	bool (*next)(AccountDBIterator* self, struct mmo_account* acc);
+};
+
+
 struct AccountDB
 {
 	/// Initializes this database, making it ready for use.
+	/// Call this after setting the properties.
 	///
 	/// @param self Database
 	/// @return true if successful
@@ -129,6 +147,12 @@ struct AccountDB
 	/// @param userid Target username
 	/// @return true if successful
 	bool (*load_str)(AccountDB* self, struct mmo_account* acc, const char* userid);
+
+	/// Returns a new forward iterator.
+	///
+	/// @param self Database
+	/// @return Iterator
+	AccountDBIterator* (*iterator)(AccountDB* self);
 };
 
 
