@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/06/17
+	* Rev. 12847 Fixed end timer in Turbo Track Solo mode not enabling warp. (bugreport:1682) [L0ne_W0lf]
 2008/06/08
 	* Massive update on /npc folder from trunk, up to revision 12794. [Brainstorm]
 
