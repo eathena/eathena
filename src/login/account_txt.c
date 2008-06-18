@@ -256,7 +256,7 @@ static bool account_db_txt_set_property(AccountDB* self, const char* key, const 
 
 	if( strcmpi(key, "account_db") == 0 )
 		safestrncpy(db->account_db, value, sizeof(db->account_db));
-	if( strcmpi(key, "case_sensitive") == 0 )
+	else if( strcmpi(key, "case_sensitive") == 0 )
 		db->case_sensitive = config_switch(value);
 	else // no match
 		return false;
