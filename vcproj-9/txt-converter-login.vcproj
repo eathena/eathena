@@ -228,6 +228,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\lock.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lock.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\malloc.c"
 				>
 			</File>
@@ -259,7 +267,27 @@
 				RelativePath="..\src\common\strlib.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\common\timer.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\timer.h"
+				>
+			</File>
 		</Filter>
+		<File
+			RelativePath="..\src\login\account.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\account_sql.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\account_txt.c"
+			>
+		</File>
 		<File
 			RelativePath="..\src\txt-converter\login-converter.c"
 			>
