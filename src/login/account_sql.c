@@ -303,7 +303,7 @@ static bool account_db_sql_remove(AccountDB* self, const int account_id)
 	else
 		result = true;
 
-	result = ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
+	result &= ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
 
 	return result;
 }
@@ -606,7 +606,7 @@ static bool mmo_auth_tosql(AccountDB_SQL* db, const struct mmo_account* acc, boo
 	} while(0);
 	// finally
 
-	result = ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
+	result &= ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
 	SqlStmt_Free(stmt);
 
 	return result;
