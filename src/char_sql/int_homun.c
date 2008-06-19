@@ -161,6 +161,9 @@ int mapif_load_homunculus(int fd)
 	char* data;
 	size_t len;
 
+	// Likely fixes segfault [akrus]
+	// please check if it's okay and tell me
+	homun_pt = (struct s_homunculus*)aCalloc(sizeof(struct s_homunculus), 1);
 	memset(homun_pt, 0, sizeof(struct s_homunculus));
 	RFIFOHEAD(fd);
 

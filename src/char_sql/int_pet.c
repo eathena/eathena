@@ -219,6 +219,10 @@ int mapif_create_pet(int fd, int account_id, int char_id, short pet_class, short
 }
 
 int mapif_load_pet(int fd, int account_id, int char_id, int pet_id){
+
+	// Likely fixes segfault [akrus]
+	// please check if it's okay and tell me
+	pet_pt = (struct s_pet*)aCalloc(sizeof(struct s_pet), 1);
 	memset(pet_pt, 0, sizeof(struct s_pet));
 
 	inter_pet_fromsql(pet_id, pet_pt);
