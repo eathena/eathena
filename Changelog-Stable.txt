@@ -5,6 +5,7 @@ GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
 2008/06/20
+	* Added: 'auction' table into main.sql file [akrus]
 	* Merged: SVN Revision 12863 from Trunk [akrus]
 	- Fixed: segfaults caused by messy Homunculus code, this cleanup by [ultramage] is replacing my temporary fix for Homunculus, 'arigatou!'... or kinda ;)
 
