@@ -1,10 +1,10 @@
 //===== Athena Doc ========================================
-//= eAthena Script Commands
+//= eAthena Script Commands (Stable)
 //===== Description =======================================
 //= A reference manual for the eAthena scripting language.
 //= Commands are sorted depending on their functionality.
 //===== Version ===========================================
-//= 3.14.20080211
+//= 3.16.20080620
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -101,6 +101,8 @@
 //=       Updated 'input' (new arguments and return value). [FlavioJS]
 //= 3.15.20080227
 //=       Updated 'checkweight' description slightly. [L0ne_W0lf]
+//= 3.16.20080620
+//=       Added 'cashshop'. [akrus]
 //=========================================================
 
 This document is a reference manual for all the scripting commands and functions 
@@ -382,6 +384,13 @@ The item id is the number of item in the 'item_db.txt' database. If Price is set
 to -1, the 'buy price' given in the item database will be used. Otherwise, the 
 price you gave will be used for this item, which is how you create differing 
 prices for items in different shops.
+
+Since eAthena Stable r12825 you can alternatively use "cashshop" in place of "shop"
+to use the Cash Shop interface, allowing you to buy items with special points
+(Currently stored as account vars in global_reg #CASHPOINTS and #KAFRAPOINTS.)
+This type of shop will not allow you to sell items at it, you may only
+purchase items here. The layout used to define sale items still count, and
+"<price>" refers to how many points will be spent purchasing the them.
 
 ** Define a function object
 
@@ -1143,7 +1152,7 @@ with other command, such as "if", but often used on it's own.
 Label:
 	mes "This will be seen";
 
-Note by FlavioJS: goto's are "evil" and should be avoided if possible (Ú_Û)
+Note by FlavioJS: goto's are "evil" and should be avoided if possible (ÔøΩ_ÔøΩ)
 
 ---------------------------------------
 
@@ -5659,7 +5668,7 @@ memory of where the points are set whatsoever.
 This command will display a picture stored in the GRF file in the client for the 
 player. 
 
-The files are taken from '\data\texture\A_A£AIèIíÑAI´ß\illust' directory in the 
+The files are taken from '\data\texture\A_AÔøΩAIÔøΩIÔøΩÔøΩAIÔøΩÔøΩ\illust' directory in the 
 GRF file. Also it seems that card cutins from \cardbmp will work here as well. 
 Only bitmaps (images stored in the bitmap format) will actually get displayed. 
 The '.bmp' extension is optional. 
