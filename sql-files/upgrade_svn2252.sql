@@ -10,5 +10,5 @@ DROP TABLE `friends`;
 CREATE TABLE `friends` (
   `char_id` int(11) NOT NULL default '0',
   `friend_id` int(11) NOT NULL default '0'
-) TYPE=MyISAM;
+) ENGINE=MyISAM;
 

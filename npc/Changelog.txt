@@ -1,10 +1,16 @@
 Date		Added
 ======
+2008/06/23
+	* Merged: NPC updates from Trunk
+	- Added: Moscovia shops & Moscovia Inn [akrus]
+	- Updated: Moscovia warps
+	- Updated: Novice Training Grounds
+	- Fixed: a bug in guild2 scripts
+	- Fixed: a wrong variable in Dancer Job Quest
 2008/06/17
 	* Rev. 12847 Fixed end timer in Turbo Track Solo mode not enabling warp. (bugreport:1682) [L0ne_W0lf]
 2008/06/08
 	* Massive update on /npc folder from trunk, up to revision 12794. [Brainstorm]
-
 2008/04/25
 	* Rev. 12650 Merged some job npcs from Trunk [Toms]
 2008/04/15

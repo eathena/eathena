@@ -1,4 +1,6 @@
 
+2008/06/23
+	* Updated: map cache and monsters database [akrus]
 2008/06/19
 	* Merged: SVN Revision 12840 from Trunk [akrus]
 	- Fixed: item id 1425 (Assaulter's_Spear) using BaseClass instead of BaseJob

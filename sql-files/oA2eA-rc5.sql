@@ -33,7 +33,7 @@ CREATE TABLE `item_db` (
   `script_use` text,
   `script_equip` text,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) ENGINE=MyISAM;
 
 CREATE TABLE `mob_db` (
   `ID` mediumint(9) NOT NULL default '0',
@@ -89,7 +89,7 @@ CREATE TABLE `mob_db` (
   `MVP2per` mediumint(9) NOT NULL default '0',
   `MVP3id` mediumint(9) NOT NULL default '0',
   `MVP3per` mediumint(9) NOT NULL default '0'
-) TYPE=MyISAM;
+) ENGINE=MyISAM;
 
 INSERT INTO eragnarok.storage(`id`, `account_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`) SELECT `id`, `account_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3` from ragnarok.storage;
 

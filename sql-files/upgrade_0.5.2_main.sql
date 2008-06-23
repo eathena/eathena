@@ -52,7 +52,7 @@ CREATE TABLE `login_error` (
   `err_id` int(11) NOT NULL default '0',
   `reason` varchar(100) NOT NULL default 'Unknown',
   PRIMARY KEY  (`err_id`)
-) TYPE=MyISAM; 
+) ENGINE=MyISAM; 
 
 ALTER TABLE `ragsrvinfo` DROP `type`, DROP `text1`, DROP `text2`, DROP `text3`, DROP `text4`;
 ALTER TABLE `ragsrvinfo` ADD `motd` varchar(255) NOT NULL default '';
