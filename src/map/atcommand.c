@@ -2177,6 +2177,7 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		{ MAP_HUGEL,        96, 145 }, // 22=Hugel
 		{ MAP_RACHEL,      130, 110 }, // 23=Rachel
 		{ MAP_VEINS,       216, 123 }, // 24=Veins
+		{ MAP_MOSCOVIA,    223, 184 }, // 25=Moscovia
 	};
  
 	nullpo_retr(-1, sd);
@@ -2204,7 +2205,7 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		clif_displaymessage(fd, " 15=Novice Grounds  16=Prison      17=Jawaii");
 		clif_displaymessage(fd, " 18=Ayothaya        19=Einbroch    20=Lighthalzen");
 		clif_displaymessage(fd, " 21=Einbech         22=Hugel       23=Rachel");
-		clif_displaymessage(fd, " 24=Veins");
+		clif_displaymessage(fd, " 24=Veins           25=Moscovia");
 		return -1;
 	}
 
@@ -2249,7 +2250,7 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		town = 13;
 	} else if (strncmp(map_name, "louyang", 3) == 0) {
 		town = 14;
-	} else if (strncmp(map_name, "new_zone01", 3) == 0 ||
+	} else if (strncmp(map_name, "new_1-1", 3) == 0 ||
 	           strncmp(map_name, "startpoint", 3) == 0 ||
 	           strncmp(map_name, "begining", 3) == 0) {
 		town = 15;
@@ -2276,6 +2277,8 @@ int atcommand_go(const int fd, struct map_session_data* sd, const char* command,
 		town = 23;
 	} else if (strncmp(map_name, "veins", 3) == 0) {
 		town = 24;
+	} else if (strncmp(map_name, "moscovia", 3) == 0) {
+		town = 25;
 	}
 
 	if (town >= 0 && town < ARRAYLENGTH(data))
@@ -2369,7 +2372,7 @@ int atcommand_monster(const int fd, struct map_session_data* sd, const char* com
 		ShowInfo("%s monster='%s' name='%s' id=%d count=%d (%d,%d)\n", command, monster, name, mob_id, number, sd->bl.x, sd->bl.y);
 
 	count = 0;
-	range = (int)sqrt(number) +2; // calculation of an odd number (+ 4 area around)
+	range = (int)sqrt((float)number) +2; // calculation of an odd number (+ 4 area around)
 	for (i = 0; i < number; i++) {
 		map_search_freecell(&sd->bl, 0, &mx,  &my, range, range, 0);
 		k = mob_once_spawn(sd, sd->bl.m, mx, my, name, mob_id, 1, "");
@@ -7379,8 +7382,7 @@ int atcommand_whodrops(const int fd, struct map_session_data* sd, const char* co
 	}
 	for (i = 0; i < count; i++) {
 		item_data = item_array[i];
-		sprintf(atcmd_output, "Item: '%s'[%d]",
-			item_data->jname,item_data->slot);
+		sprintf(atcmd_output, "Item: '%s'[%d]", item_data->jname,item_data->slot);
 		clif_displaymessage(fd, atcmd_output);
 
 		if (item_data->mob[0].chance == 0) {
