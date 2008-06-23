@@ -1,5 +1,7 @@
 Date	Added
 
+2008/06/23
+	* Added: new maps in maps_athena.conf
 2008/06/14
 	* Added auction_feeperhour and auction_maximumprice to misc.conf.
 2008/03/11
