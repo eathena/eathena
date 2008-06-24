@@ -3961,7 +3961,7 @@ int do_init(int argc, char **argv)
 	
 	ShowInfo("Finished reading the char-server configuration.\n");
 
-	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName); // inter server �ʱ�ȭ
+	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName);
 	ShowInfo("Finished reading the inter-server configuration.\n");
 	
 	ShowInfo("Initializing char server.\n");
