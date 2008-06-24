@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/06/24
+	* Rev 12892 Removed duplicate Inn function. [L0ne_W0lf]
 2008/06/23
 	* Merged: NPC updates from Trunk
 	- Added: Moscovia shops & Moscovia Inn [akrus]
