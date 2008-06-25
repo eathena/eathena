@@ -2995,14 +2995,9 @@ int parse_frommap(int fd)
 				//WFIFOW(fd,32) = 1; // answer: 0-login-server request done, 1-player not found, 2-gm level too low, 3-login-server offline
 			}
 			// send answer if a player ask, not if the server ask
-			if(acc != -1 && type != 5) { // Don't send answer for changesex
-				WFIFOHEAD(fd,34);
-				WFIFOW(fd, 0) = 0x2b0f;
-				WFIFOL(fd, 2) = acc;
-				safestrncpy((char*)WFIFOP(fd,6), name, NAME_LENGTH);
-				WFIFOW(fd,30) = type;
-				WFIFOW(fd,32) = result;
-				WFIFOSET(fd,34);
+			if (acc != -1) {
+				//WFIFOSET(fd, 34);
+				WFIFOSET(fd, 10+NAME_LENGTH);
 			}
 
 			RFIFOSKIP(fd, 44);
