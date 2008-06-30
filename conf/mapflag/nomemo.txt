@@ -4,6 +4,7 @@
 //= eAthena Dev Team
 //= 1.6a added up to Hugel maps. [Lupus]
 //= 1.6b Added job_knt map. [Samuray22]
+//= 1.7 Added all novice maps. [L0ne_W0lf]
 //===== Current Version: =====================================
 
 
@@ -43,6 +44,26 @@ new_zone01	mapflag	nomemo
 new_zone02	mapflag	nomemo
 new_zone03	mapflag	nomemo
 new_zone04	mapflag	nomemo
+new_1-1	mapflag	nomemo
+new_1-2	mapflag	nomemo
+new_1-3	mapflag	nomemo
+new_1-4	mapflag	nomemo
+new_2-1	mapflag	nomemo
+new_2-2	mapflag	nomemo
+new_2-3	mapflag	nomemo
+new_2-4	mapflag	nomemo
+new_3-1	mapflag	nomemo
+new_3-2	mapflag	nomemo
+new_3-3	mapflag	nomemo
+new_3-4	mapflag	nomemo
+new_4-1	mapflag	nomemo
+new_4-2	mapflag	nomemo
+new_4-3	mapflag	nomemo
+new_4-4	mapflag	nomemo
+new_5-1	mapflag	nomemo
+new_5-2	mapflag	nomemo
+new_5-3	mapflag	nomemo
+new_5-4	mapflag	nomemo
 pay_arche	mapflag	nomemo
 payon_in01	mapflag	nomemo
 payon_in02	mapflag	nomemo
@@ -210,14 +231,14 @@ alde_dun01	mapflag	nomemo
 alde_dun02	mapflag	nomemo
 alde_dun03	mapflag	nomemo
 alde_dun04	mapflag	nomemo
-// Anthelll ------------------
+// Anthell -------------------
 anthell01	mapflag	nomemo
 anthell02	mapflag	nomemo
 // Amatsu Dungeon ------------
 ama_dun01	mapflag	nomemo
 ama_dun02	mapflag	nomemo
 ama_dun03	mapflag	nomemo
-// Ayothaya
+// Ayothaya ------------------
 ayo_dun01	mapflag	nomemo
 ayo_dun02	mapflag	nomemo
 // Comodo Beach --------------
@@ -286,7 +307,7 @@ moc_pryd04	mapflag	nomemo
 moc_pryd05	mapflag	nomemo
 moc_pryd06	mapflag	nomemo
 moc_prydb1	mapflag	nomemo
-// Coal Mine(Dead Pitt) ------
+// Coal Mine (Dead Pit) ------
 mjo_dun01	mapflag	nomemo
 mjo_dun02	mapflag	nomemo
 mjo_dun03	mapflag	nomemo
@@ -587,6 +608,10 @@ turbo_n_16	mapflag	nomemo
 turbo_e_4	mapflag	nomemo
 turbo_e_8	mapflag	nomemo
 turbo_e_16	mapflag	nomemo
+
+//Monster Races ================
+p_track01	mapflag	nomemo
+p_track02	mapflag	nomemo
 
 //Battle Fields ==============
 bat_room	mapflag	nomemo
