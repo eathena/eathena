@@ -6260,7 +6260,7 @@ struct skill_unit_group* skill_unitsetting (struct block_list *src, short skilli
 	case DC_HUMMING:
         val1 = 2*skilllv+status->dex/10; // Hit increase
 		if(sd)
-			val1 += 2*pc_checkskill(sd,DC_DANCINGLESSON);
+			val1 += pc_checkskill(sd,DC_DANCINGLESSON);
 		break;
 	case BA_POEMBRAGI:
 		val1 = 3*skilllv+status->dex/10; // Casting time reduction
@@ -7900,7 +7900,8 @@ int skill_check_condition(struct map_session_data* sd, short skill, short lv, in
 		if (sc && sc->data[SC_SPIRIT] && sc->data[SC_SPIRIT]->val2 == SL_STAR)
 			break;
 		//Auron insists we should implement SP consumption when you are not Soul Linked. [Skotlex]
-		if(sp>0 && type&1)
+		//Only invoke on skill begin cast (instant cast skill). [Kevin]
+		if(sp>0 && !type)
 		{ 
 			if (status->sp < (unsigned int)sp)
 				clif_skill_fail(sd,skill,1,0);
@@ -9067,7 +9068,7 @@ static int skill_trap_splash (struct block_list *bl, va_list ap)
 int skill_enchant_elemental_end (struct block_list *bl, int type)
 {
 	struct status_change *sc;
-	const	enum sc_type scs[] = { SC_ENCPOISON, SC_ASPERSIO, SC_FIREWEAPON, SC_WATERWEAPON, SC_WINDWEAPON, SC_EARTHWEAPON, SC_SHADOWWEAPON, SC_GHOSTWEAPON, SC_ENCHANTARMS };
+	const enum sc_type scs[] = { SC_ENCPOISON, SC_ASPERSIO, SC_FIREWEAPON, SC_WATERWEAPON, SC_WINDWEAPON, SC_EARTHWEAPON, SC_SHADOWWEAPON, SC_GHOSTWEAPON, SC_ENCHANTARMS };
 	int i;
 	nullpo_retr(0, bl);
 	nullpo_retr(0, sc= status_get_sc(bl));

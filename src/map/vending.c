@@ -45,6 +45,12 @@ void vending_vendinglistreq(struct map_session_data* sd, int id)
 	if( vsd->vender_id == 0 )
 		return; // not vending
 
+	if ( !pc_can_give_items(pc_isGM(sd)) || !pc_can_give_items(pc_isGM(vsd)) ) //check if both GMs are allowed to trade
+	{	// GM is not allowed to trade
+		clif_displaymessage(sd->fd, msg_txt(246));
+		return;
+	}
+
 	clif_vendinglist(sd, id, vsd->vending);
 }
 
