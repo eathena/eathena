@@ -438,7 +438,7 @@ int parse_fromchar(int fd)
 				}
 
 				// send ack
-				WFIFOHEAD(fd,59);
+				WFIFOHEAD(fd,60);
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = account_id;
 				WFIFOL(fd,6) = login_id1;
@@ -452,15 +452,16 @@ int parse_fromchar(int fd)
 			else
 			{// authentication not found
 				ShowStatus("Char-server '%s': authentication of the account %d REFUSED (ip: %s).\n", server[id].name, account_id, ip);
-				WFIFOHEAD(fd,59);
+				WFIFOHEAD(fd,60);
 				WFIFOW(fd,0) = 0x2713;
 				WFIFOL(fd,2) = account_id;
 				WFIFOL(fd,6) = login_id1;
 				WFIFOL(fd,10) = login_id2;
 				WFIFOB(fd,14) = 1;
-				// It is unnecessary to send email
-				// It is unnecessary to send validity date of the account
-				WFIFOSET(fd,59);
+				//safestrncpy((char*)WFIFOP(fd,15), "", 40);
+				//WFIFOL(fd,55) = (uint32)0;
+				//WFIFOB(fd,59) = 0;
+				WFIFOSET(fd,60);
 			}
 		}
 		break;
@@ -1287,7 +1288,7 @@ int parse_login(int fd)
 		case 0x0064: // S 0064 <version>.l <username>.24B <password>.24B <version2>.B
 		case 0x01dd: // S 01dd <version>.l <username>.24B <md5 hash>.16B <version2>.B
 		case 0x0277: // S 0277 <version>.l <username>.24B <password>.24B <junk?>.29B <version2>.B (kRO 2006-04-24aSakexe langtype 0)
-		case 0x02b0: // S 02b0 <version>.l <username>.24B <password>.24B <junk?>.30B <version2>.B (kRO 2007-05-14aSakexe langtype 0)
+		case 0x02b0: // S 02b0 <version>.l <username>.24B <password>.24B <???>.B <ip address>.16S <mac address>.13S <version2>.B (kRO 2007-05-14aSakexe langtype 0)
 		{
 			size_t packet_len = RFIFOREST(fd);
 
