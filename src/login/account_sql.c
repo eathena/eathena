@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/// global defines
+#define ACCOUNT_SQL_DB_VERSION 20080417
 
 /// internal structure
 typedef struct AccountDB_SQL
@@ -147,7 +149,7 @@ static bool account_db_sql_get_property(AccountDB* self, const char* key, char* 
 	}
 	if( strcmp(key, "engine.version") == 0 )
 	{
-		safesnprintf(buf, buflen, "???");
+		safesnprintf(buf, buflen, "%d", ACCOUNT_SQL_DB_VERSION);
 		return true;
 	}
 	if( strcmp(key, "engine.comment") == 0 )
