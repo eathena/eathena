@@ -702,6 +702,26 @@ int mapif_parse_NameChangeRequest(int fd)
 }
 
 //--------------------------------------------------------
+
+/// Returns the length of the next complete packet to process,
+/// or 0 if no complete packet exists in the queue.
+///
+/// @param length The minimum allowed length, or -1 for dynamic lookup
+int inter_check_length(int fd, int length)
+{
+	if( length == -1 )
+	{// variable-length packet
+		if( RFIFOREST(fd) < 4 )
+			return 0;
+		length = RFIFOW(fd,2);
+	}
+
+	if( (int)RFIFOREST(fd) < length )
+		return 0;
+
+	return length;
+}
+
 int inter_parse_frommap(int fd)
 {
 	int cmd;
@@ -741,18 +761,4 @@ int inter_parse_frommap(int fd)
 	return 1;
 }
 
-// RFIFO check
-int inter_check_length(int fd, int length)
-{
-	if(length == -1) {	// v-len packet
-		if(RFIFOREST(fd) < 4)	// packet not yet
-			return 0;
-		length = RFIFOW(fd, 2);
-	}
-
-	if((int)RFIFOREST(fd) < length)	// packet not yet
-		return 0;
-
-	return length;
-}
 #endif //TXT_SQL_CONVERT
