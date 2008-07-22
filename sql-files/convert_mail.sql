@@ -1,4 +1,5 @@
 -- this will covert the old `mail` table to new format, convert columns and fill in default values --
+-- applies to r12288 stable
 
 -- change structure --
 ALTER TABLE `mail` CHANGE `message_id` `id` bigint(20) unsigned NOT NULL auto_increment;
@@ -9,7 +10,7 @@ ALTER TABLE `mail` CHANGE `to_account_id` `dest_id` int(11) unsigned NOT NULL de
 ALTER TABLE `mail` ADD `title` varchar(45) NOT NULL default '' AFTER `dest_id`;
 ALTER TABLE `mail` CHANGE `message` `message` varchar(255) NOT NULL default '' AFTER `title`;
 ALTER TABLE `mail` ADD `time` int(11) unsigned NOT NULL default 0 AFTER `message`;
-ALTER TABLE `mail` CHANGE `read_flag` `read_flag` tinyint(1) NOT NULL default 0 AFTER `time`;
+ALTER TABLE `mail` CHANGE `read_flag` `status` tinyint(2) NOT NULL default 0 AFTER `time`;
 ALTER TABLE `mail` ADD `zeny` int(11) unsigned NOT NULL default 0 AFTER `read_flag`;
 ALTER TABLE `mail` ADD `nameid` int(11) unsigned NOT NULL default 0 AFTER `zeny`;
 ALTER TABLE `mail` ADD `amount` int(11) unsigned NOT NULL default 0 AFTER `nameid`;
