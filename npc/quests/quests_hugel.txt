@@ -2799,7 +2799,7 @@ hu_in01,256,40,3	script	Herico	897,{
 		mes "They have become too powerful to just be considered a big corporation.";
 		next;
 		mes "["+strcharinfo(0)+"]";
-		mes "That was why they found the \"Bio Lab\"";
+		mes "That was why they founded the \"Bio Lab\"";
 		mes "in order to continue with their research without Sage Varmunt.";
 		next;
 		cutin "heri3.bmp",2;
@@ -3501,11 +3501,11 @@ hu_in01,317,312,0	script	Book	111,{
 					next;
 					mes "Date: **month **day";
 					mes "I was told that Rekenber succeeded";
-					mes "in creating a type of machine called ^FF000000Guardian^000000.";
+					mes "in creating a type of machine called ^FF0000Guardian^000000.";
 					mes "I have a bad feeling about that, so I decided to write a journal";
 					mes "starting from today and keep everything in record.";
 					mes "¡¡";
-					mes "\"^FF000000Guardian^000000\" is an android";
+					mes "\"^FF0000Guardian^000000\" is an android";
 					mes "that was created based on the idea of \"^3131FFGiantes^000000\",";
 					mes "the giant tribe that was said to live in an ancient age.";
 					mes "It is memorized with various commands,";
@@ -4603,7 +4603,7 @@ hu_in01,365,170,3	script	Girl#Hu	793,{
 	
 }
 
-hu_in01,377,106,3	script	Pub Granny	891,{
+hu_in01,377,106,3	script	Pub Granny	892,{
 
 	mes "[Pub Granny]";
 	mes "Recently we have many tourists visiting our town.";

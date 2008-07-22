@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 1.6
+//= 1.7
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -21,6 +21,7 @@
 //= 1.6 Fixed investment period not resetting. [L0ne_W0lf]
 //=     Made it so treasure won't spawn if castle is empty.
 //=     Treasure will now be killed before spawning.
+//= 1.7 Fixed a typo when disabling a control device. [L0ne_W0lf]
 //============================================================
 
 schg_cas03,1,1,0	script	Manager#sch03_02	111,{
@@ -56,6 +57,7 @@ OnAgitEnd:
 	if (GetCastleData("schg_cas03",1)) {
 		KillMonster "schg_cas03","Steward#sch03::OnStartArena";
 		donpcevent "Manager#sch03_02::Onreset";
+		donpcevent "Steward#sch03::Onstop";
 	}
 	end;
 
@@ -106,7 +108,9 @@ Onchange:
 
 OnClock0001:
 	if (!GetCastleData("schg_cas03",1)) end;
-	killmonster "schg_cas03","Manager#sch03_02::OnMyTreasureDied";
+	killmonster "schg_cas03","Manager#sch03_02::OnTreasureDied";
+	setcastledata "schg_cas03",4,0;
+	setcastledata "schg_cas03",5,0;
 	set .@Treasure,GetCastleData("schg_cas03",2)/5+4;
 	if (.@Treasure) {
 		monster "schg_cas03",189,21,"Treasure Chest",1939,1,"Manager#sch03_02::OnTreasureDied";
@@ -154,8 +158,6 @@ OnClock0001:
 		if (.@Treasure < 24) end;
 		monster "schg_cas03",194,15,"Treasure Chest",1324,1,"Manager#sch03_02::OnTreasureDied";
 	}
-	setcastledata "schg_cas03",4,0;
-	setcastledata "schg_cas03",5,0;
 	end;
 
 OnTreasureDied:
@@ -893,7 +895,7 @@ OnGuardianStoneDied:
 	end;
 
 OnTimer300000:
-	donpcevent "2nd Guardian Stone#sch03::OnGuardian";
+	donpcevent "2nd Guardian Stone#sch03::OnEnable";
 	setarray $agit_sc03[1],2; //Global Variable
 	stopnpctimer;
 	end;
@@ -1072,7 +1074,7 @@ schg_cas03,376,250,0	script	2nd Guardian Stone#sch03	844,{
 								mes "of a magic power conflict.^000000";
 								close;
 							case 2:
-								mes "You placed the Yellow Gemstone.";
+								mes "^3355FFYou placed the Yellow Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
 								specialeffect 18; //"2nd Guardian Stone#sch03" EF_STEAL
@@ -1459,7 +1461,7 @@ schg_cas03,335,298,0	script	control device01#sch03	111,{
 							delitem 984,5; //Oridecon
 							close2;
 							donpcevent "#sch03_RL01::OnEnable";
-							disablenpc "control device01#sch03";
+							disablenpc "Control Device01#sch03";
 							mapannounce "schg_cas03","The 1st Fortress Gate has been reconstructed!",bc_map,"0x00ff00";
 							setarray $agit_sc03[2],0;
 							end;
@@ -1490,19 +1492,19 @@ schg_cas03,335,298,0	script	control device01#sch03	111,{
 	end;
 
 OnInit:
-	disablenpc "control device01#sch03";
+	disablenpc "Control Device01#sch03";
 	end;
 
 OnEnable:
-	enablenpc "control device01#sch03";
+	enablenpc "Control Device01#sch03";
 	end;
 
 OnDisable:
-	disablenpc "control device01#sch03";
+	disablenpc "Control Device01#sch03";
 	end;
 }
 
-schg_cas03,200,227,0	script	control device02#sch03	111,{
+schg_cas03,200,227,0	script	Control Device02#sch03	111,{
 	set .@GID, GetCastleData("schg_cas03",1);
 	if (getcharid(2) == .@GID) {
 		if (strcharinfo(0) == getguildmaster(.@GID)) {
@@ -1696,11 +1698,11 @@ schg_cas03,200,227,0	script	control device02#sch03	111,{
 							delitem 984,5; //Oridecon
 							close2;
 							donpcevent "#sch03_RL02::OnEnable";
-							disablenpc "control device02#sch03";
+							disablenpc "Control Device02#sch03";
 							mapannounce "schg_cas03","The 2nd Fortress Gate has been reconstructed!",bc_map,"0x00ff00";
 							setarray $agit_sc03[3],0; //Global Variable
 							setarray $agit_sc03[2],2; //Global Variable
-							donpcevent "control device01#sch03::OnEnable";
+							donpcevent "Control Device01#sch03::OnEnable";
 							end;
 						}
 						else {
@@ -1729,19 +1731,19 @@ schg_cas03,200,227,0	script	control device02#sch03	111,{
 	end;
 
 OnInit:
-	disablenpc "control device02#sch03";
+	disablenpc "Control Device02#sch03";
 	end;
 
 OnEnable:
-	enablenpc "control device02#sch03";
+	enablenpc "Control Device02#sch03";
 	end;
 
 OnDisable:
-	disablenpc "control device02#sch03";
+	disablenpc "Control Device02#sch03";
 	end;
 }
 
-schg_cas03,273,205,0	script	control device03#sch03	111,{
+schg_cas03,273,205,0	script	Control Device03#sch03	111,{
 	set .@GID, GetCastleData("schg_cas03",1);
 	if (getcharid(2) == .@GID) {
 		if (strcharinfo(0) == getguildmaster(.@GID)) {
@@ -1935,11 +1937,11 @@ schg_cas03,273,205,0	script	control device03#sch03	111,{
 							delitem 984,5; //Oridecon
 							close2;
 							donpcevent "#sch03_RL03::OnEnable";
-							disablenpc "control device03#sch03";
+							disablenpc "Control Device03#sch03";
 							mapannounce "schg_cas03","The 3rd Fortress Gate has been reconstructed!",bc_map,"0x00ff00";
 							setarray $agit_sc03[4],0;
 							setarray $agit_sc03[3],2;
-							donpcevent "control device02#sch03::OnEnable";
+							donpcevent "Control Device02#sch03::OnEnable";
 							end;
 						}
 						else {
@@ -1968,15 +1970,15 @@ schg_cas03,273,205,0	script	control device03#sch03	111,{
 	end;
 
 OnInit:
-	disablenpc "control device03#sch03";
+	disablenpc "Control Device03#sch03";
 	end;
 
 OnEnable:
-	enablenpc "control device03#sch03";
+	enablenpc "Control Device03#sch03";
 	end;
 
 OnDisable:
-	disablenpc "control device03#sch03";
+	disablenpc "Control Device03#sch03";
 	end;
 }
 
@@ -2052,7 +2054,7 @@ schg_cas03,346,199,0	script	LF-04#schg_cas03	111,{
 		case 1:
 			warp "schg_cas03",266,263;
 			end;
-		case 3:
+		case 2:
 			close;
 		}
 	}
@@ -2105,7 +2107,7 @@ schg_cas03,301,213,0	script	LF-07#schg_cas03	111,{
 		mes "Teleport Service. Please";
 		mes "choose a destination";
 		mes "within the stronghold.^000000";
-		switch(select("Gate House Fork:Cancel")) {
+		switch(select("Area 1-2:Area 2-2:Area 3-2:Cancel")) {
 		case 1:
 			warp "schg_cas03",262,323;
 			end;
@@ -2137,7 +2139,7 @@ schg_cas03,301,209,0	script	LF-08#schg_cas03	111,{
 			warp "schg_cas03",348,292;
 			end;
 		case 3:
-			warp "schg_cas03",226,263;
+			warp "schg_cas03",326,263;
 			end;
 		case 4:
 			close;
