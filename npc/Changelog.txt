@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/07/22
+	* Added: Nameless Island and Moscovia quests (second one is commented out) from Trunk [akrus]
 2008/07/02
 	* Fixed: several typos in quests_yuno.txt (bugreport:1786) [akrus]
 2008/06/24
