@@ -11,7 +11,7 @@ ALTER TABLE `mail` ADD `title` varchar(45) NOT NULL default '' AFTER `dest_id`;
 ALTER TABLE `mail` CHANGE `message` `message` varchar(255) NOT NULL default '' AFTER `title`;
 ALTER TABLE `mail` ADD `time` int(11) unsigned NOT NULL default 0 AFTER `message`;
 ALTER TABLE `mail` CHANGE `read_flag` `status` tinyint(2) NOT NULL default 0 AFTER `time`;
-ALTER TABLE `mail` ADD `zeny` int(11) unsigned NOT NULL default 0 AFTER `read_flag`;
+ALTER TABLE `mail` ADD `zeny` int(11) unsigned NOT NULL default 0 AFTER `status`;
 ALTER TABLE `mail` ADD `nameid` int(11) unsigned NOT NULL default 0 AFTER `zeny`;
 ALTER TABLE `mail` ADD `amount` int(11) unsigned NOT NULL default 0 AFTER `nameid`;
 ALTER TABLE `mail` ADD `refine` tinyint(3) unsigned NOT NULL default 0 AFTER `amount`;
