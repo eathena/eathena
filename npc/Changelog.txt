@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/07/25
+	* Merged: NPC fixes from Trunk - r12981 (partially), r12984, r12988 [akrus]
 2008/07/22
 	* Added: Nameless Island and Moscovia quests (second one is commented out) from Trunk [akrus]
 2008/07/02
