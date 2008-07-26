@@ -20,7 +20,6 @@ typedef struct AccountDB_SQL
 	AccountDB vtable;    // public interface
 
 	Sql* accounts;       // SQL accounts storage
-	int keepalive_timer; // ping timer id
 
 	char db_hostname[32];
 	uint16 db_port;
@@ -59,7 +58,6 @@ static bool account_db_sql_iter_next(AccountDBIterator* self, struct mmo_account
 
 static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int account_id);
 static bool mmo_auth_tosql(AccountDB_SQL* db, const struct mmo_account* acc, bool is_new);
-static int account_db_ping_init(AccountDB_SQL* db);
 static int account_db_ping(int tid, unsigned int tick, int id, int data);
 
 /// public constructor
@@ -81,7 +79,6 @@ AccountDB* account_db_sql(void)
 
 	// initialize to default values
 	db->accounts = NULL;
-	db->keepalive_timer = INVALID_TIMER;
 	safestrncpy(db->db_hostname, "127.0.0.1", sizeof(db->db_hostname));
 	db->db_port = 3306;
 	safestrncpy(db->db_username, "ragnarok", sizeof(db->db_username));
@@ -119,8 +116,6 @@ static bool account_db_sql_init(AccountDB* self)
 	if( db->codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, db->codepage) )
 		Sql_ShowDebug(sql_handle);
 
-	account_db_ping_init(db);
-
 	return true;
 }	
 
@@ -128,9 +123,6 @@ static bool account_db_sql_init(AccountDB* self)
 static void account_db_sql_destroy(AccountDB* self)
 {
 	AccountDB_SQL* db = (AccountDB_SQL*)self;
-
-	delete_timer(db->keepalive_timer, account_db_ping);
-	db->keepalive_timer = INVALID_TIMER;
 
 	Sql_Free(db->accounts);
 	db->accounts = NULL;
@@ -422,34 +414,6 @@ static bool account_db_sql_iter_next(AccountDBIterator* self, struct mmo_account
 	return false;
 }
 
-
-static int account_db_ping_init(AccountDB_SQL* db)
-{
-	uint32 connection_timeout, connection_ping_interval;
-	Sql* sql_handle = db->accounts;
-
-	// set a default value first
-	connection_timeout = 28800; // 8 hours
-
-	// ask the mysql server for the timeout value
-	if( SQL_SUCCESS == Sql_GetTimeout(sql_handle, &connection_timeout) && connection_timeout < 60 )
-		connection_timeout = 60;
-
-	// establish keepalive
-	connection_ping_interval = connection_timeout - 30; // 30-second reserve
-	add_timer_func_list(account_db_ping, "account_db_ping");
-	db->keepalive_timer = add_timer_interval(gettick() + connection_ping_interval*1000, account_db_ping, 0, (int)sql_handle, connection_ping_interval*1000);
-
-	return 0;
-}
-
-static int account_db_ping(int tid, unsigned int tick, int id, int data)
-{
-	Sql* sql_handle = (Sql*)data;
-
-	Sql_Ping(sql_handle);
-	return 0;
-}
 
 static bool mmo_auth_fromsql(AccountDB_SQL* db, struct mmo_account* acc, int account_id)
 {

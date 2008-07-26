@@ -55,8 +55,6 @@ bool loginlog_init(void)
 		exit(EXIT_FAILURE);
 	}
 
-	//TODO: keepalive
-
 	enabled = true;
 
 	return true;

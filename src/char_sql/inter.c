@@ -264,36 +264,6 @@ int inter_log(char* fmt, ...)
 	return 0;
 }
 
-/*=============================================
- * Does a mysql_ping to all connection handles
- *---------------------------------------------*/
-int inter_sql_ping(int tid, unsigned int tick, int id, int data) 
-{
-	ShowInfo("Pinging SQL server to keep connection alive...\n");
-	Sql_Ping(sql_handle);
-	return 0;
-}
-
-
-int sql_ping_init(void)
-{
-	uint32 connection_timeout, connection_ping_interval;
-
-	// set a default value first
-	connection_timeout = 28800; // 8 hours
-
-	// ask the mysql server for the timeout value
-	if( SQL_SUCCESS == Sql_GetTimeout(sql_handle, &connection_timeout) && connection_timeout < 60 )
-		connection_timeout = 60;
-
-	// establish keepalive
-	connection_ping_interval = connection_timeout - 30; // 30-second reserve
-	add_timer_func_list(inter_sql_ping, "inter_sql_ping");
-	add_timer_interval(gettick() + connection_ping_interval*1000, inter_sql_ping, 0, 0, connection_ping_interval*1000);
-
-	return 0;
-}
-
 #endif //TXT_SQL_CONVERT
 
 // initialize
@@ -330,7 +300,6 @@ int inter_init_sql(const char *file)
 	inter_mail_sql_init();
 	inter_auction_sql_init();
 
-	sql_ping_init();
 #endif //TXT_SQL_CONVERT
 	return 0;
 }
