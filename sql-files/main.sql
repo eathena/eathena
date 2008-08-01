@@ -156,7 +156,7 @@ CREATE TABLE `hotkey` (
 	`skill_lvl` TINYINT(4) unsigned NOT NULL default '0',
 	PRIMARY KEY (`char_id`,`hotkey`),
 	INDEX (`char_id`)
-) ENGINE=MYISAM;
+) ENGINE=MyISAM;
 
 --
 -- Table structure for table `global_reg_value`
