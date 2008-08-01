@@ -2,6 +2,7 @@
 -- eAthena Database Converter ( MyISAM -> InnoDB )
 --
 
+ALTER TABLE `auction` ENGINE = InnoDB;
 ALTER TABLE `cart_inventory` ENGINE = InnoDB;
 ALTER TABLE `char` ENGINE = InnoDB;
 ALTER TABLE `charlog` ENGINE = InnoDB;
@@ -16,18 +17,19 @@ ALTER TABLE `guild_position` ENGINE = InnoDB;
 ALTER TABLE `guild_skill` ENGINE = InnoDB;
 ALTER TABLE `guild_storage` ENGINE = InnoDB;
 ALTER TABLE `homunculus` ENGINE = InnoDB;
+ALTER TABLE `hotkey` ENGINE = InnoDB;
 ALTER TABLE `interlog` ENGINE = InnoDB;
 ALTER TABLE `inventory` ENGINE = InnoDB;
 ALTER TABLE `ipbanlist` ENGINE = InnoDB;
-ALTER TABLE `item_db` ENGINE = InnoDB;
-ALTER TABLE `item_db2` ENGINE = InnoDB;
+#ALTER TABLE `item_db` ENGINE = InnoDB;
+#ALTER TABLE `item_db2` ENGINE = InnoDB;
 ALTER TABLE `login` ENGINE = InnoDB;
-#ALTER TABLE `loginlog` ENGINE = InnoDB;
-#ALTER TABLE `mail` ENGINE = InnoDB;
+ALTER TABLE `loginlog` ENGINE = InnoDB;
+ALTER TABLE `mail` ENGINE = InnoDB;
 ALTER TABLE `mapreg` ENGINE = InnoDB;
 ALTER TABLE `memo` ENGINE = InnoDB;
-ALTER TABLE `mob_db` ENGINE = InnoDB;
-ALTER TABLE `mob_db2` ENGINE = InnoDB;
+#ALTER TABLE `mob_db` ENGINE = InnoDB;
+#ALTER TABLE `mob_db2` ENGINE = InnoDB;
 ALTER TABLE `party` ENGINE = InnoDB;
 ALTER TABLE `pet` ENGINE = InnoDB;
 ALTER TABLE `ragsrvinfo` ENGINE = InnoDB;

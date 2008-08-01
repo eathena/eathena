@@ -33,6 +33,72 @@ extern struct s_pet_db pet_db[MAX_PET_DB];
 
 enum { PET_CLASS,PET_CATCH,PET_EGG,PET_EQUIP,PET_FOOD };
 
+struct pet_recovery { //Stat recovery
+	enum sc_type type;	//Status Change id
+	unsigned short delay; //How long before curing (secs).
+	int timer;
+};
+
+struct pet_bonus {
+	unsigned short type; //bStr, bVit?
+	unsigned short val;	//Qty
+	unsigned short duration; //in secs
+	unsigned short delay;	//Time before recasting (secs)
+	int timer;
+};
+
+struct pet_skill_attack { //Attack Skill
+	unsigned short id;
+	unsigned short lv;
+	unsigned short div_; //0 = Normal skill. >0 = Fixed damage (lv), fixed div_.
+	unsigned short rate; //Base chance of skill ocurrance (10 = 10% of attacks)
+	unsigned short bonusrate; //How being 100% loyal affects cast rate (10 = At 1000 intimacy->rate+10%
+};
+
+struct pet_skill_support { //Support Skill
+	unsigned short id;
+	unsigned short lv;
+	unsigned short hp; //Max HP% for skill to trigger (50 -> 50% for Magnificat)
+	unsigned short sp; //Max SP% for skill to trigger (100 = no check)
+	unsigned short delay; //Time (secs) between being able to recast.
+	int timer;
+};
+
+struct pet_loot {
+	struct item *item;
+	unsigned short count;
+	unsigned short weight;
+	unsigned short max;
+};
+
+struct pet_data {
+	struct block_list bl;
+	struct unit_data ud;
+	struct view_data vd;
+	struct s_pet pet;
+	struct status_data status;
+	struct mob_db *db;
+	struct s_pet_db *petDB;
+	int pet_hungry_timer;
+	int target_id;
+	struct {
+		unsigned skillbonus : 1;
+	} state;
+	int move_fail_count;
+	unsigned int next_walktime,last_thinktime;
+	short rate_fix;	//Support rate as modified by intimacy (1000 = 100%) [Skotlex]
+
+	struct pet_recovery* recovery;
+	struct pet_bonus* bonus;
+	struct pet_skill_attack* a_skill;
+	struct pet_skill_support* s_skill;
+	struct pet_loot* loot;
+
+	struct map_session_data *msd;
+};
+
+
+
 int pet_create_egg(struct map_session_data *sd, int item_id);
 int pet_hungry_val(struct pet_data *pd);
 int pet_target_check(struct map_session_data *sd,struct block_list *bl,int type);
@@ -53,10 +119,10 @@ int pet_change_name_ack(struct map_session_data *sd, char* name, int flag);
 int pet_equipitem(struct map_session_data *sd,int index);
 int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd);
 int pet_attackskill(struct pet_data *pd, int target_id);
-int pet_skill_support_timer(int tid, unsigned int tick, int id, int data); // [Skotlex]
-int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-int pet_recovery_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
-int pet_heal_timer(int tid,unsigned int tick,int id,int data); // [Valaris]
+int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr data); // [Skotlex]
+int pet_skill_bonus_timer(int tid, unsigned int tick, int id, intptr data); // [Valaris]
+int pet_recovery_timer(int tid, unsigned int tick, int id, intptr data); // [Valaris]
+int pet_heal_timer(int tid, unsigned int tick, int id, intptr data); // [Valaris]
 
 #define pet_stop_walking(pd, type) unit_stop_walking(&(pd)->bl, type)
 #define pet_stop_attack(pd) unit_stop_attack(&(pd)->bl)

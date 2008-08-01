@@ -8,6 +8,7 @@
 #include "../common/nullpo.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 
 #include "log.h"
 #include "clif.h"
@@ -43,7 +44,7 @@
 struct s_homunculus_db homunculus_db[MAX_HOMUNCULUS_CLASS];	//[orn]
 struct skill_tree_entry hskill_tree[MAX_HOMUNCULUS_CLASS][MAX_SKILL_TREE];
 
-static int merc_hom_hungry(int tid,unsigned int tick,int id,int data);
+static int merc_hom_hungry(int tid, unsigned int tick, int id, intptr data);
 
 static unsigned int hexptbl[MAX_LEVEL];
 
@@ -95,7 +96,7 @@ int merc_hom_vaporize(struct map_session_data *sd, int flag)
 	if (status_isdead(&hd->bl))
 		return 0; //Can't vaporize a dead homun.
 
-	if (flag && status_calc_life(hd->battle_status.hp, hd->battle_status.max_hp)< 80)
+	if (flag && get_percentage(hd->battle_status.hp, hd->battle_status.max_hp) < 80)
 		return 0;
 
 	hd->regen.state.block = 3; //Block regen while vaporized.
@@ -478,7 +479,7 @@ int merc_hom_food(struct map_session_data *sd, struct homun_data *hd)
 	return 0;
 }
 
-static int merc_hom_hungry(int tid,unsigned int tick,int id,int data)
+static int merc_hom_hungry(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd;
 	struct homun_data *hd;
@@ -495,7 +496,7 @@ static int merc_hom_hungry(int tid,unsigned int tick,int id,int data)
 		return 0;
 	}
 
-	hd->hungry_timer = -1;
+	hd->hungry_timer = INVALID_TIMER;
 	
 	hd->homunculus.hunger-- ;
 	if(hd->homunculus.hunger <= 10) {
@@ -524,7 +525,7 @@ int merc_hom_hungry_timer_delete(struct homun_data *hd)
 	nullpo_retr(0, hd);
 	if(hd->hungry_timer != -1) {
 		delete_timer(hd->hungry_timer,merc_hom_hungry);
-		hd->hungry_timer = -1;
+		hd->hungry_timer = INVALID_TIMER;
 	}
 	return 1;
 }
@@ -606,7 +607,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 		intif_homunculus_requestdelete(hom->hom_id);
 		return 1;
 	}
-	sd->hd = hd = aCalloc(1,sizeof(struct homun_data));
+	sd->hd = hd = (struct homun_data*)aCalloc(1,sizeof(struct homun_data));
 	hd->bl.type = BL_HOM;
 	hd->bl.id = npc_get_new_npc_id();
 
@@ -633,7 +634,7 @@ int merc_hom_alloc(struct map_session_data *sd, struct s_homunculus *hom)
 	map_addiddb(&hd->bl);
 	status_calc_homunculus(hd,1);
 
-	hd->hungry_timer = -1;
+	hd->hungry_timer = INVALID_TIMER;
 	return 0;
 }
 

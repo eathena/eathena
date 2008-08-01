@@ -4,7 +4,6 @@
 #ifndef _STATUS_H_
 #define _STATUS_H_
 
-//#include "map.h"
 struct block_list;
 struct mob_data;
 struct pet_data;
@@ -17,8 +16,11 @@ struct status_change;
 
 extern unsigned long StatusChangeFlagTable[];
 
+
 // Status changes listing. These code are for use by the server. 
-enum sc_type {
+typedef enum sc_type {
+	SC_NONE = -1,
+
 	//First we enumerate common status ailments which are often used around.
 	SC_STONE = 0,
 	SC_COMMON_MIN = 0, // begin
@@ -280,14 +282,21 @@ enum sc_type {
 	SC_INCDEF,
 	SC_INCBASEATK,
 	SC_FASTCAST,
-	SC_INCMDEFRATE,
+	SC_MDEF_RATE,
 	SC_HPREGEN,
 	SC_INCHEALRATE,
 	SC_PNEUMA,
+	SC_AUTOTRADE,
+	SC_KSPROTECTED,
+	SC_ARMOR_RESIST,
+	SC_SPCOST_RATE,
+	SC_COMMONSC_RESIST,
+	SC_SEVENWIND,
+	SC_DEF_RATE,
+	SC_SPREGEN,
+	SC_WALKSPEED,
 	SC_MAX, //Automatically updated max, used in for's to check we are within bounds.
-};
-int SkillStatusChangeTable(int skill);
-extern int StatusSkillChangeTable[SC_MAX];
+} sc_type;
 
 //Numerates the Number for the status changes (client-dependent), imported from jA
 enum si_type {
@@ -450,6 +459,15 @@ enum si_type {
 	//SI_FOODLUK		= 276, //Same as 246
 	SI_SLOWCAST		= 282,
 	SI_CRITICALWOUND	= 286,
+	SI_DEF_RATE		= 290,
+	SI_MDEF_RATE	= 291,
+	SI_INCCRI		= 292,
+	SI_INCHEALRATE	= 293,
+	SI_HPREGEN		= 294,
+	// 295 Sword ?
+	SI_SPCOST_RATE	= 300,
+	SI_COMMONSC_RESIST	= 301,
+	SI_ARMOR_RESIST	= 302,
 };
 
 // JOINTBEAT stackable ailments
@@ -537,46 +555,151 @@ enum {
 #define MANNER_NOROOM 0x10
 
 //Define flags for the status_calc_bl function. [Skotlex]
-#define SCB_NONE	0x00000000
-#define SCB_BASE	0x00000001
-#define SCB_MAXHP	0x00000002
-#define SCB_MAXSP	0x00000004
-#define SCB_STR	0x00000008
-#define SCB_AGI	0x00000010
-#define SCB_VIT	0x00000020
-#define SCB_INT	0x00000040
-#define SCB_DEX	0x00000080
-#define SCB_LUK	0x00000100
-#define SCB_BATK	0x00000200
-#define SCB_WATK	0x00000400
-#define SCB_MATK	0x00000800
-#define SCB_HIT	0x00001000
-#define SCB_FLEE	0x00002000
-#define SCB_DEF	0x00004000
-#define SCB_DEF2	0x00008000
-#define SCB_MDEF	0x00010000
-#define SCB_MDEF2	0x00020000
-#define SCB_SPEED	0x00040000
-#define SCB_ASPD	0x00080000
-#define SCB_DSPD	0x00100000
-#define SCB_CRI	0x00200000
-#define SCB_FLEE2	0x00400000
-#define SCB_ATK_ELE	0x00800000
-#define SCB_DEF_ELE	0x01000000
-#define SCB_MODE	0x02000000
-#define SCB_SIZE	0x04000000
-#define SCB_RACE	0x08000000
-#define SCB_RANGE	0x10000000
-#define SCB_REGEN	0x20000000
-//SCB_DYE means the sc should force cloth-dye change to 0 to avoid client crashes.
-#define SCB_DYE	0x40000000
-#define SCB_PC		0x80000000
-#define SCB_ALL	0x3FFFFFFF
+enum scb_flag
+{
+	SCB_NONE    = 0x00000000,
+	SCB_BASE    = 0x00000001,
+	SCB_MAXHP   = 0x00000002,
+	SCB_MAXSP   = 0x00000004,
+	SCB_STR     = 0x00000008,
+	SCB_AGI     = 0x00000010,
+	SCB_VIT     = 0x00000020,
+	SCB_INT     = 0x00000040,
+	SCB_DEX     = 0x00000080,
+	SCB_LUK     = 0x00000100,
+	SCB_BATK    = 0x00000200,
+	SCB_WATK    = 0x00000400,
+	SCB_MATK    = 0x00000800,
+	SCB_HIT     = 0x00001000,
+	SCB_FLEE    = 0x00002000,
+	SCB_DEF     = 0x00004000,
+	SCB_DEF2    = 0x00008000,
+	SCB_MDEF    = 0x00010000,
+	SCB_MDEF2   = 0x00020000,
+	SCB_SPEED   = 0x00040000,
+	SCB_ASPD    = 0x00080000,
+	SCB_DSPD    = 0x00100000,
+	SCB_CRI     = 0x00200000,
+	SCB_FLEE2   = 0x00400000,
+	SCB_ATK_ELE = 0x00800000,
+	SCB_DEF_ELE = 0x01000000,
+	SCB_MODE    = 0x02000000,
+	SCB_SIZE    = 0x04000000,
+	SCB_RACE    = 0x08000000,
+	SCB_RANGE   = 0x10000000,
+	SCB_REGEN   = 0x20000000,
+	SCB_DYE     = 0x40000000, // force cloth-dye change to 0 to avoid client crashes.
+	SCB_PC      = 0x80000000,
+
+	SCB_ALL     = 0x3FFFFFFF
+};
 
 //Define to determine who gets HP/SP consumed on doing skills/etc. [Skotlex]
 #define BL_CONSUME (BL_PC|BL_HOM)
 //Define to determine who has regen
 #define BL_REGEN (BL_PC|BL_HOM)
+
+
+//Basic damage info of a weapon
+//Required because players have two of these, one in status_data
+//and another for their left hand weapon.
+struct weapon_atk {
+	unsigned short atk, atk2;
+	unsigned short range;
+	unsigned char ele;
+};
+
+
+//For holding basic status (which can be modified by status changes)
+struct status_data {
+	unsigned int
+		hp, sp,
+		max_hp, max_sp;
+	unsigned short
+		str, agi, vit, int_, dex, luk,
+		batk,
+		matk_min, matk_max,
+		speed,
+		amotion, adelay, dmotion,
+		mode;
+	short 
+		hit, flee, cri, flee2,
+		def2, mdef2,
+		aspd_rate;
+	unsigned char
+		def_ele, ele_lv,
+		size, race;
+	signed char
+		def, mdef;
+	struct weapon_atk rhw, lhw; //Right Hand/Left Hand Weapon.
+};
+
+//Additional regen data that only players have.
+struct regen_data_sub {
+	unsigned short
+		hp,sp;
+
+	//tick accumulation before healing.
+	struct {
+		unsigned int hp,sp;
+	} tick;
+	
+	//Regen rates (where every 1 means +100% regen)
+	struct {
+		unsigned char hp,sp;
+	} rate;
+};
+
+struct regen_data {
+
+	unsigned short flag; //Marks what stuff you may heal or not.
+	unsigned short
+		hp,sp,shp,ssp;
+
+	//tick accumulation before healing.
+	struct {
+		unsigned int hp,sp,shp,ssp;
+	} tick;
+	
+	//Regen rates (where every 1 means +100% regen)
+	struct {
+		unsigned char
+		hp,sp,shp,ssp;
+	} rate;
+	
+	struct {
+		unsigned walk:1; //Can you regen even when walking?
+		unsigned gc:1;	//Tags when you should have double regen due to GVG castle
+		unsigned overweight :2; //overweight state (1: 50%, 2: 90%)
+		unsigned block :2; //Block regen flag (1: Hp, 2: Sp)
+	} state;
+
+	//skill-regen, sitting-skill-regen (since not all chars with regen need it)
+	struct regen_data_sub *sregen, *ssregen;
+};
+
+struct status_change_entry {
+	int timer;
+	int val1,val2,val3,val4;
+};
+
+struct status_change {
+	unsigned int option;// effect state (bitfield)
+	unsigned int opt3;// skill state (bitfield)
+	unsigned short opt1;// body state
+	unsigned short opt2;// health state (bitfield)
+	unsigned char count;
+	//TODO: See if it is possible to implement the following SC's without requiring extra parameters while the SC is inactive.
+	unsigned char jb_flag; //Joint Beat type flag
+	unsigned short mp_matk_min, mp_matk_max; //Previous matk min/max for ground spells (Amplify magic power)
+	int sg_id; //ID of the previous Storm gust that hit you
+	unsigned char sg_counter; //Storm gust counter (previous hits from storm gust)
+	struct status_change_entry *data[SC_MAX];
+};
+
+// for looking up associated data
+sc_type status_skill2sc(int skill);
+int status_sc2skill(sc_type sc);
 
 int status_damage(struct block_list *src,struct block_list *target,int hp,int sp, int walkdelay, int flag);
 //Define for standard HP damage attacks.
@@ -596,8 +719,6 @@ int status_set_hp(struct block_list *bl, unsigned int hp, int flag);
 int status_set_sp(struct block_list *bl, unsigned int sp, int flag);
 int status_heal(struct block_list *bl,int hp,int sp, int flag);
 int status_revive(struct block_list *bl, unsigned char per_hp, unsigned char per_sp);
-
-char status_calc_life(unsigned int base, unsigned int max);
 
 //Define for copying a status_data structure from b to a, without overwriting current Hp and Sp
 #define status_cpy(a, b) \
@@ -670,8 +791,8 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 
 int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val1,int val2,int val3,int val4,int tick,int flag);
 int status_change_end(struct block_list* bl, enum sc_type type, int tid);
-int kaahi_heal_timer(int tid, unsigned int tick, int id, int data);
-int status_change_timer(int tid, unsigned int tick, int id, int data);
+int kaahi_heal_timer(int tid, unsigned int tick, int id, intptr data);
+int status_change_timer(int tid, unsigned int tick, int id, intptr data);
 int status_change_timer_sub(struct block_list* bl, va_list ap);
 int status_change_clear(struct block_list* bl, int type);
 int status_change_clear_buffs(struct block_list* bl, int type);
@@ -685,7 +806,6 @@ void status_calc_misc(struct block_list *bl, struct status_data *status, int lev
 void status_calc_regen(struct block_list *bl, struct status_data *status, struct regen_data *regen);
 void status_calc_regen_rate(struct block_list *bl, struct regen_data *regen, struct status_change *sc);
 
-void status_freecast_switch(struct map_session_data *sd);
 int status_getrefinebonus(int lv,int type);
 int status_check_skilluse(struct block_list *src, struct block_list *target, int skill_num, int flag); // [Skotlex]
 int status_check_visibility(struct block_list *src, struct block_list *target); //[Skotlex]

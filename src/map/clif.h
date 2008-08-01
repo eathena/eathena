@@ -6,7 +6,7 @@
 
 #include "../common/cbasetypes.h"
 //#include "../common/mmo.h"
-struct storage;
+struct storage_data;
 struct guild_storage;
 //#include "map.h"
 struct block_list;
@@ -23,25 +23,37 @@ struct s_vending;
 struct party;
 struct party_data;
 struct guild;
+struct quest;
 #include <stdarg.h>
 
 // server->client protocol version
-// v0 - pre-?
-// v1 - ?                  - 0x196
-// v2 - ?                  - 0x78, 0x79
-// v3 - ?                  - 0x1c8, 0x1c9, 0x1de
-// v4 - ?                  - 0x1d7, 0x1d8, 0x1d9, 0x1da
-// v5 - 2003-12-18aSakexe+ - 0x1ee, 0x1ef, 0x1f0
-// v6 - 2004-03-02aSakexe+ - 0x1f4, 0x1f5
-// v7 - 2005-04-11aSakexe+ - 0x229, 0x22a, 0x22b, 0x22c
-// v8 - 2007-05-21aSakexe+ - 0x283
-// v9 - 2007-11-06aSakexe+ - 0x78, 0x7c, 0x22c
+//        0 - pre-?
+//        1 - ?                  - 0x196
+//        2 - ?                  - 0x78, 0x79
+//        3 - ?                  - 0x1c8, 0x1c9, 0x1de
+//        4 - ?                  - 0x1d7, 0x1d8, 0x1d9, 0x1da
+//        5 - 2003-12-18aSakexe+ - 0x1ee, 0x1ef, 0x1f0, ?0x1c4, 0x1c5?
+//        6 - 2004-03-02aSakexe+ - 0x1f4, 0x1f5
+//        7 - 2005-04-11aSakexe+ - 0x229, 0x22a, 0x22b, 0x22c
+// 20070521 - 2007-05-21aSakexe+ - 0x283
+// 20070821 - 2007-08-21aSakexe+ - 0x2c5
+// 20070918 - 2007-09-18aSakexe+ - 0x2d7, 0x2d9, 0x2da
+// 20071106 - 2007-11-06aSakexe+ - 0x78, 0x7c, 0x22c
 #ifndef PACKETVER
-	#define PACKETVER	7
+	#define PACKETVER	20071106
+#endif
+// backward compatible PACKETVER 8 and 9
+#if PACKETVER == 8
+#undef PACKETVER
+#define PACKETVER 20070521
+#endif
+#if PACKETVER == 9
+#undef PACKETVER
+#define PACKETVER 20071106
 #endif
 
 // packet DB
-#define MAX_PACKET_DB		0x300
+#define MAX_PACKET_DB		0x400
 #define MAX_PACKET_VER		22
 
 struct s_packet_db {
@@ -163,7 +175,6 @@ void clif_talkiebox(struct block_list* bl, const char* talkie);
 void clif_wedding_effect(struct block_list *bl);
 void clif_divorced(struct map_session_data* sd, const char* name);
 //void clif_callpartner(struct map_session_data *sd);
-void clif_adopt_process(struct map_session_data *sd);
 void clif_soundeffect(struct map_session_data* sd, struct block_list* bl, const char* name, int type);
 int clif_soundeffectall(struct block_list* bl, const char *name, int type, enum send_target coverage);
 void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick);
@@ -181,14 +192,14 @@ void clif_tradecompleted(struct map_session_data* sd, int fail);
 
 // storage
 #include "storage.h"
-void clif_storagelist(struct map_session_data *sd,struct storage *stor);
-int clif_updatestorageamount(struct map_session_data *sd,struct storage *stor);
-int clif_storageitemadded(struct map_session_data *sd,struct storage *stor,int index,int amount);
-int clif_storageitemremoved(struct map_session_data *sd,int index,int amount);
-int clif_storageclose(struct map_session_data *sd);
-void clif_guildstoragelist(struct map_session_data *sd,struct guild_storage *stor);
-int clif_updateguildstorageamount(struct map_session_data *sd,struct guild_storage *stor);
-int clif_guildstorageitemadded(struct map_session_data *sd,struct guild_storage *stor,int index,int amount);
+void clif_storagelist(struct map_session_data* sd, struct storage_data* stor);
+void clif_updatestorageamount(struct map_session_data* sd, int amount);
+void clif_storageitemadded(struct map_session_data* sd, struct item* i, int index, int amount);
+void clif_storageitemremoved(struct map_session_data* sd, int index, int amount);
+void clif_storageclose(struct map_session_data* sd);
+void clif_guildstoragelist(struct map_session_data* sd, struct guild_storage* stor);
+void clif_updateguildstorageamount(struct map_session_data* sd, int amount);
+void clif_guildstorageitemadded(struct map_session_data* sd, struct item* i, int index, int amount);
 
 int clif_insight(struct block_list *,va_list);	// map_forallinmovearea callback
 int clif_outsight(struct block_list *,va_list);	// map_forallinmovearea callback
@@ -306,6 +317,7 @@ int clif_guild_expulsion(struct map_session_data *sd,const char *name,const char
 int clif_guild_positionchanged(struct guild *g,int idx);
 int clif_guild_memberpositionchanged(struct guild *g,int idx);
 int clif_guild_emblem(struct map_session_data *sd,struct guild *g);
+void clif_guild_emblem_area(struct block_list* bl);
 int clif_guild_notice(struct map_session_data *sd,struct guild *g);
 int clif_guild_message(struct guild *g,int account_id,const char *mes,int len);
 int clif_guild_skillup(struct map_session_data *sd,int skill_num,int lv);
@@ -326,6 +338,7 @@ void clif_disp_message(struct block_list* src, const char* mes, int len, enum se
 int clif_GMmessage(struct block_list* bl, const char* mes, int len, int flag);
 void clif_MainChatMessage(const char* message); //luzza
 int clif_announce(struct block_list *bl, const char* mes, int len, unsigned long color, int flag);
+int clif_announce_ex(struct block_list *bl, const char* mes, int len, unsigned long color, int flag, int size);
 int clif_heal(int fd,int type,int val);
 int clif_resurrection(struct block_list *bl,int type);
 void clif_set0199(struct map_session_data* sd, int mode);
@@ -390,7 +403,14 @@ void clif_viewequip_ack(struct map_session_data* sd, struct map_session_data* ts
 void clif_viewequip_fail(struct map_session_data* sd);
 void clif_equipcheckbox(struct map_session_data* sd);
 
-int clif_foreachclient(int (*)(struct map_session_data*,va_list),...);
+//quest system [Kevin]
+void clif_send_questlog(struct map_session_data * sd);
+void clif_send_questlog_info(struct map_session_data * sd);
+void clif_send_quest_info(struct map_session_data * sd, struct quest * qd);
+void clif_send_quest_delete(struct map_session_data * sd, int quest_id);
+void clif_send_quest_status(struct map_session_data * sd, int quest_id, bool active);
+
+
 int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target type);
 int do_final_clif(void);
 int do_init_clif(void);
@@ -413,6 +433,7 @@ void clif_Auction_close(int fd, unsigned char flag);
 void clif_parse_Auction_cancelreg(int fd, struct map_session_data *sd);
 #endif
 
+void clif_bossmapinfo(int fd, struct mob_data *md, short flag);
 void clif_cashshop_show(struct map_session_data *sd, struct npc_data *nd);
 
 // ADOPTION

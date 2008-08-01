@@ -243,24 +243,25 @@ int inter_party_save() {
 	return 0;
 }
 
-// パ?ティ名?索用
-int search_partyname_sub(DBKey key,void *data,va_list ap) {
-	struct party_data *p = (struct party_data *)data,**dst;
-	char *str;
+// Search for the party according to its name
+struct party_data* search_partyname(char *str)
+{
+	struct DBIterator* iter;
+	struct party_data* p;
+	struct party_data* result = NULL;
 
-	str = va_arg(ap, char *);
-	dst = va_arg(ap, struct party_data **);
-	if (strncmpi(p->party.name, str, NAME_LENGTH) == 0)
-		*dst = p;
+	iter = party_db->iterator(party_db);
+	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
+	{
+		if( strncmpi(p->party.name, str, NAME_LENGTH) == 0 )
+		{
+			result = p;
+			break;
+		}
+	}
+	iter->destroy(iter);
 
-	return 0;
-}
-
-// パ?ティ名?索
-struct party_data* search_partyname(char *str) {
-	struct party_data *p = NULL;
-	party_db->foreach(party_db, search_partyname_sub, str, &p);
-	return p;
+	return result;
 }
 
 // Returns whether this party can keep having exp share or not.
@@ -283,41 +284,12 @@ int party_check_empty(struct party *p) {
 	return 1;
 }
 
-// キャラの競合がないかチェック用
-int party_check_conflict_sub(DBKey key, void *data, va_list ap) {
-	struct party_data *p = (struct party_data *)data;
-	int party_id, account_id, char_id, i;
-
-	party_id=va_arg(ap, int);
-	account_id=va_arg(ap, int);
-	char_id=va_arg(ap, int);
-	
-	if (p->party.party_id == party_id) //No conflict to check
-		return 0;
-
-	for(i = 0; i < MAX_PARTY; i++) {
-		if(p->party.member[i].account_id == account_id &&
-			p->party.member[i].char_id == char_id)
-	  	{
-			ShowWarning("int_party: party conflict! %d %d %d\n", account_id, party_id, p->party.party_id);
-			mapif_parse_PartyLeave(-1, p->party.party_id, account_id, char_id);
-		}
-	}
-
-	return 0;
-}
-
-// キャラの競合がないかチェック
-int party_check_conflict(int party_id, int account_id, int char_id) {
-	party_db->foreach(party_db, party_check_conflict_sub, party_id, account_id, char_id);
-	return 0;
-}
-
 //-------------------------------------------------------------------
 // map serverへの通信
 
 // パ?ティ作成可否
-int mapif_party_created(int fd,int account_id, int char_id, struct party *p) {
+int mapif_party_created(int fd,int account_id, int char_id, struct party *p)
+{
 	WFIFOHEAD(fd, 39);
 	WFIFOW(fd,0) = 0x3820;
 	WFIFOL(fd,2) = account_id;
@@ -450,10 +422,12 @@ int mapif_party_message(int party_id, int account_id, char *mes, int len, int sf
 
 
 // パ?ティ
-int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct party_member *leader) {
+int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct party_member *leader)
+{
 	struct party_data *p;
 	int i;
 
+	//FIXME: this should be removed once the savefiles can handle all symbols
 	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
 			ShowInfo("int_party: illegal party name [%s]\n", name);
@@ -505,10 +479,11 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 }
 
 // パ?ティ情報要求
-int mapif_parse_PartyInfo(int fd, int party_id) {
+int mapif_parse_PartyInfo(int fd, int party_id)
+{
 	struct party_data *p;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if (p != NULL)
 		mapif_party_info(fd, &p->party);
 	else {
@@ -525,7 +500,7 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 	struct party_data *p;
 	int i;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if( p == NULL || p->size == MAX_PARTY ) {
 		mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 1);
 		return 0;
@@ -557,11 +532,12 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 }
 
 // パ?ティ?設定?更要求
-int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp, int item) {
+int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp, int item)
+{
 	struct party_data *p;
 	int flag = 0;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -576,11 +552,12 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 }
 
 // パ?ティ?退要求
-int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id) {
+int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
+{
 	struct party_data *p;
 	int i,lv;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if (!p) return 0;
 
 	for(i = 0; i < MAX_PARTY; i++) {
@@ -610,7 +587,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	struct party_data *p;
 	int i;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -669,12 +646,9 @@ int mapif_parse_BreakParty(int fd, int party_id) {
 }
 
 // パ?ティメッセ?ジ送信
-int mapif_parse_PartyMessage(int fd, int party_id, int account_id, char *mes, int len) {
+int mapif_parse_PartyMessage(int fd, int party_id, int account_id, char *mes, int len)
+{
 	return mapif_party_message(party_id, account_id, mes, len, fd);
-}
-// パ?ティチェック要求
-int mapif_parse_PartyCheck(int fd, int party_id, int account_id, int char_id) {
-	return party_check_conflict(party_id, account_id, char_id);
 }
 
 int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id)
@@ -682,7 +656,7 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	struct party_data *p;
 	int i;
 
-	p = idb_get(party_db, party_id);
+	p = (struct party_data*)idb_get(party_db, party_id);
 	if (p == NULL)
 		return 0;
 
@@ -713,7 +687,6 @@ int inter_party_parse_frommap(int fd) {
 	case 0x3025: mapif_parse_PartyChangeMap(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOW(fd,14), RFIFOB(fd,16), RFIFOW(fd,17)); break;
 	case 0x3026: mapif_parse_BreakParty(fd, RFIFOL(fd,2)); break;
 	case 0x3027: mapif_parse_PartyMessage(fd, RFIFOL(fd,4), RFIFOL(fd,8), (char*)RFIFOP(fd,12), RFIFOW(fd,2)-12); break;
-	case 0x3028: mapif_parse_PartyCheck(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 	case 0x3029: mapif_parse_PartyLeaderChange(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 	default:
 		return 0;

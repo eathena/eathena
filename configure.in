@@ -29,10 +29,24 @@ AC_ARG_ENABLE(
 			"dmalloc");;
 			"gcollect");;
 			"bcheck");;
-			*) AC_MSG_ERROR([[unknown memory manager '$enable_manager'... stopping]]);;
+			*) AC_MSG_ERROR([[unknown memory manager '$enableval'... stopping]]);;
 		esac
 	],
 	[enable_manager="builtin"]
+)
+
+
+#
+# packetver
+#
+AC_ARG_ENABLE(
+	[packetver],
+	AC_HELP_STRING(
+		[--enable-packetver=ARG],
+		[Sets the PACKETVER define of the map-server. (see src/map/clif.h)]
+	),
+	[enable_packetver="$enableval"],
+	[enable_packetver=""]
 )
 
 
@@ -43,14 +57,14 @@ AC_ARG_ENABLE(
 	[mapregsql],
 	AC_HELP_STRING(
 		[--enable-mapregsql],
-		[Makes map-wide script variables be saved to SQL instead of TXT files in the sql map-server. (defauts to no)]
+		[Makes map-wide script variables be saved to SQL instead of TXT files in the sql map-server. (disabled by default)]
 	),
 	[
 		enable_mapregsql="$enableval"
 		case $enableval in
 			no);;
 			yes);;
-			*) AC_MSG_ERROR([[invalid argument --enable-mapregsql=$enable_mapregsql... stopping]]);;
+			*) AC_MSG_ERROR([[invalid argument --enable-mapregsql=$enableval... stopping]]);;
 		esac
 	],
 	[enable_mapregsql="no"]
@@ -64,14 +78,14 @@ AC_ARG_ENABLE(
 	[debug],
 	AC_HELP_STRING(
 		[--enable-debug],
-		[Compiles in debug mode. (defauts to no)]
+		[Compiles in debug mode. (disabled by default)]
 	),
 	[
 		enable_debug="$enableval"
 		case $enableval in
 			no);;
 			yes);;
-			*) AC_MSG_ERROR([[invalid argument --enable-debug=$enable_mapregsql... stopping]]);;
+			*) AC_MSG_ERROR([[invalid argument --enable-debug=$enableval... stopping]]);;
 		esac
 	],
 	[enable_debug="no"]
@@ -102,6 +116,40 @@ AC_ARG_WITH(
 		fi
 	],
 	[want_mysql="yes" require_mysql="no"]
+)
+
+
+#
+# Manual MYSQL_CFLAGS (optional)
+#
+AC_ARG_WITH(
+	[MYSQL_CFLAGS],
+	AC_HELP_STRING(
+		[--with-MYSQL_CFLAGS=ARG],
+		[specify MYSQL_CFLAGS manually (instead of using "mysql_config --include")]
+	),
+	[
+		manual_MYSQL_CFLAGS="yes"
+		MYSQL_CFLAGS="$withval"
+	],
+	[manual_MYSQL_CFLAGS="no"]
+)
+
+
+#
+# Manual MYSQL_LIBS (optional)
+#
+AC_ARG_WITH(
+	[MYSQL_LIBS],
+	AC_HELP_STRING(
+		[--with-MYSQL_LIBS=ARG],
+		[specify MYSQL_LIBS manually (instead of using "mysql_config --libs")]
+	),
+	[
+		manual_MYSQL_LIBS="yes"
+		MYSQL_LIBS="$withval"
+	],
+	[manual_MYSQL_LIBS="no"]
 )
 
 
@@ -139,7 +187,8 @@ AC_ARG_WITH(
 	[zlib],
 	AC_HELP_STRING(
 		[--with-zlib=DIR],
-		[root directory path of zlib installation (defaults to /usr/local or /usr if not found in /usr/local)]
+		[root directory path of zlib installation (defaults to /usr/local or /usr if not found in /usr/local).
+		 Assumes that the header files are in DIR/include and the library files are in DIR/lib]
 	),
 	[
 		test -n "$withval" && ZLIB_HOME="$withval"
@@ -243,9 +292,16 @@ AC_COMPILE_IFELSE(
 
 
 #
+# setrlimit - used to set the socket limit
+#
+AC_CHECK_FUNC([setrlimit],[CFLAGS="$CFLAGS -DHAVE_SETRLIMIT"])
+
+
+
+#
 # Memory manager
 #
-case $enableval in
+case $enable_manager in
 	"no")
 		CFLAGS="$CFLAGS -DNO_MEMMGR"
 		;;
@@ -273,6 +329,14 @@ esac
 
 
 #
+# Packetver
+#
+if test -n "$enable_packetver" ; then
+	CFLAGS="$CFLAGS -DPACKETVER=$enable_packetver"
+fi
+
+
+#
 # Mapregsql
 #
 if test "$enable_mapregsql" = "yes" ; then
@@ -284,7 +348,7 @@ fi
 # Debug
 #
 if test "$enable_debug" = "yes" ; then
-	CFLAGS="$CFLAGS -DDEBUG"
+	CFLAGS="$CFLAGS -g -DDEBUG"
 fi
 
 
@@ -314,11 +378,11 @@ AC_CHECK_LIB([rt], [clock_gettime])
 #
 # MySQL library (optional)
 #
-MYSQL_VERSION=""
-MYSQL_CFLAGS=""
-MYSQL_LIBS=""
 
 if test "$want_mysql" = "no" ; then
+	MYSQL_VERSION=""
+	MYSQL_CFLAGS=""
+	MYSQL_LIBS=""
 	AC_MSG_NOTICE([ignoring MySQL (optional)])
 else
 	if test -z "$MYSQL_CONFIG_HOME"; then
@@ -327,16 +391,23 @@ else
 
 	if test "$MYSQL_CONFIG_HOME" != "no" ; then
 		MYSQL_VERSION="`$MYSQL_CONFIG_HOME --version`"
-		MYSQL_CFLAGS="`$MYSQL_CONFIG_HOME --include`"
-		MYSQL_LIBS="`$MYSQL_CONFIG_HOME --libs`"
-
-		MYSQL_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS $MYSQL_LIBS"
-		MYSQL_OLD_CPPFLAGS="$CPPFLAGS" ; CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
-		AC_CHECK_LIB([mysqlclient], [mysql_init], [HAVE_MYSQL="yes"], [])
-		AC_CHECK_HEADER([mysql.h], [], [HAVE_MYSQL=""])
-		CPPFLAGS="$MYSQL_OLD_CPPFLAGS"
-		LDFLAGS="$MYSQL_OLD_LDFLAGS"
+		if test "$manual_MYSQL_CFLAGS" = "no" ; then
+			MYSQL_CFLAGS="`$MYSQL_CONFIG_HOME --include`"
+		fi
+		if test "$manual_MYSQL_LIBS" = "no" ; then
+			MYSQL_LIBS="`$MYSQL_CONFIG_HOME --libs`"
+		fi
+	else
+		MYSQL_VERSION="unknown"
 	fi
+
+	MYSQL_OLD_LDFLAGS="$LDFLAGS" ; LDFLAGS="$LDFLAGS $MYSQL_LIBS"
+	MYSQL_OLD_CPPFLAGS="$CPPFLAGS" ; CPPFLAGS="$CPPFLAGS $MYSQL_CFLAGS"
+	AC_CHECK_LIB([mysqlclient], [mysql_init], [HAVE_MYSQL="yes"], [])
+	AC_CHECK_HEADER([mysql.h], [], [HAVE_MYSQL=""])
+	CPPFLAGS="$MYSQL_OLD_CPPFLAGS"
+	LDFLAGS="$MYSQL_OLD_LDFLAGS"
+
 	AC_MSG_CHECKING([MySQL library (optional)])
 	if test "$HAVE_MYSQL" = "yes" ; then
 		AC_MSG_RESULT([yes ($MYSQL_VERSION)])

@@ -107,6 +107,16 @@
 #define HASH_SIZE (256+27)
 
 /**
+ * The color of individual nodes.
+ * @private
+ * @see struct dbn
+ */
+typedef enum node_color {
+	RED,
+	BLACK
+} node_color;
+
+/**
  * A node in a RED-BLACK tree of the database.
  * @param parent Parent node
  * @param left Left child node
@@ -127,7 +137,7 @@ typedef struct dbn {
 	DBKey key;
 	void *data;
 	// Other
-	enum {RED, BLACK} color;
+	node_color color;
 	unsigned deleted : 1;
 } *DBNode;
 
@@ -503,7 +513,7 @@ static void db_rebalance_erase(DBNode node, DBNode *root)
 		y->parent = node->parent;
 		// switch colors
 		{
-			int tmp = y->color;
+			node_color tmp = y->color;
 			y->color = node->color;
 			node->color = tmp;
 		}
@@ -1477,10 +1487,16 @@ static unsigned int db_obj_vgetall(DBMap* self, void **buf, unsigned int max, DB
 		node = db->ht[i];
 		while (node) {
 			parent = node->parent;
-			if (!(node->deleted) && match(node->key, node->data, args) == 0) {
-				if (buf && ret < max)
-					buf[ret] = node->data;
-				ret++;
+			if (!(node->deleted))
+			{
+				va_list argscopy;
+				va_copy(argscopy, args);
+				if (match(node->key, node->data, argscopy) == 0) {
+					if (buf && ret < max)
+						buf[ret] = node->data;
+					ret++;
+				}
+				va_end(argscopy);
 			}
 			if (node->left) {
 				node = node->left;
@@ -1587,6 +1603,7 @@ static void *db_obj_vensure(DBMap* self, DBKey key, DBCreateData create, va_list
 	}
 	// Create node if necessary
 	if (node == NULL) {
+		va_list argscopy;
 		if (db->item_count == UINT32_MAX) {
 			ShowError("db_vensure: item_count overflow, aborting item insertion.\n"
 					"Database allocated at %s:%d",
@@ -1623,7 +1640,9 @@ static void *db_obj_vensure(DBMap* self, DBKey key, DBCreateData create, va_list
 		} else {
 			node->key = key;
 		}
-		node->data = create(key, args);
+		va_copy(argscopy, args);
+		node->data = create(key, argscopy);
+		va_end(argscopy);
 	}
 	data = node->data;
 	db->cache = node;
@@ -1850,7 +1869,12 @@ static int db_obj_vforeach(DBMap* self, DBApply func, va_list args)
 		while (node) {
 			parent = node->parent;
 			if (!(node->deleted))
-				sum += func(node->key, node->data, args);
+			{
+				va_list argscopy;
+				va_copy(argscopy, args);
+				sum += func(node->key, node->data, argscopy);
+				va_end(argscopy);
+			}
 			if (node->left) {
 				node = node->left;
 				continue;
@@ -1942,7 +1966,12 @@ static int db_obj_vclear(DBMap* self, DBApply func, va_list args)
 				db_dup_key_free(db, node->key);
 			} else {
 				if (func)
-					sum += func(node->key, node->data, args);
+				{
+					va_list argscopy;
+					va_copy(argscopy, args);
+					sum += func(node->key, node->data, argscopy);
+					va_end(argscopy);
+				}
 				db->release(node->key, node->data, DB_RELEASE_BOTH);
 				node->deleted = 1;
 			}
@@ -2112,7 +2141,7 @@ static DBType db_obj_type(DBMap* self)
 	DBType type;
 
 	DB_COUNTSTAT(db_type);
-	if (db == NULL) return -1; // nullpo candidate - TODO what should this return?
+	if (db == NULL) return (DBType)-1; // nullpo candidate - TODO what should this return?
 
 	db_free_lock(db);
 	type = db->type;
@@ -2176,7 +2205,7 @@ DBOptions db_fix_options(DBType type, DBOptions options)
 	switch (type) {
 		case DB_INT:
 		case DB_UINT: // Numeric database, do nothing with the keys
-			return options&~(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY);
+			return (DBOptions)(options&~(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY));
 
 		default:
 			ShowError("db_fix_options: Unknown database type %u with options %x\n", type, options);
@@ -2512,10 +2541,11 @@ void db_final(void)
 }
 
 // Link DB System - jAthena
-void  linkdb_insert( struct linkdb_node** head, void *key, void* data) {
+void linkdb_insert( struct linkdb_node** head, void *key, void* data)
+{
 	struct linkdb_node *node;
 	if( head == NULL ) return ;
-	node = aMalloc( sizeof(struct linkdb_node) );
+	node = (struct linkdb_node*)aMalloc( sizeof(struct linkdb_node) );
 	if( *head == NULL ) {
 		// first node
 		*head      = node;
@@ -2532,7 +2562,8 @@ void  linkdb_insert( struct linkdb_node** head, void *key, void* data) {
 	node->data = data;
 }
 
-void* linkdb_search( struct linkdb_node** head, void *key) {
+void* linkdb_search( struct linkdb_node** head, void *key)
+{
 	int n = 0;
 	struct linkdb_node *node;
 	if( head == NULL ) return NULL;
@@ -2556,7 +2587,8 @@ void* linkdb_search( struct linkdb_node** head, void *key) {
 	return NULL;
 }
 
-void* linkdb_erase( struct linkdb_node** head, void *key) {
+void* linkdb_erase( struct linkdb_node** head, void *key)
+{
 	struct linkdb_node *node;
 	if( head == NULL ) return NULL;
 	node = *head;
@@ -2577,7 +2609,8 @@ void* linkdb_erase( struct linkdb_node** head, void *key) {
 	return NULL;
 }
 
-void linkdb_replace( struct linkdb_node** head, void *key, void *data ) {
+void linkdb_replace( struct linkdb_node** head, void *key, void *data )
+{
 	int n = 0;
 	struct linkdb_node *node;
 	if( head == NULL ) return ;
@@ -2603,7 +2636,8 @@ void linkdb_replace( struct linkdb_node** head, void *key, void *data ) {
 	linkdb_insert( head, key, data );
 }
 
-void  linkdb_final( struct linkdb_node** head ) {
+void linkdb_final( struct linkdb_node** head )
+{
 	struct linkdb_node *node, *node2;
 	if( head == NULL ) return ;
 	node = *head;

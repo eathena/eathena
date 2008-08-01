@@ -25,7 +25,7 @@ extern struct Script_Config {
 	const char *joblvup_event_name;
 } script_config;
 
-enum c_op {
+typedef enum c_op {
 	C_NOP, // end of script/no value (nil)
 	C_POS,
 	C_INT, // number
@@ -63,7 +63,7 @@ enum c_op {
 	C_NOT, // ~ a
 	C_R_SHIFT, // a >> b
 	C_L_SHIFT // a << b
-};
+} c_op;
 
 struct script_data {
 	enum c_op type;
@@ -90,15 +90,32 @@ struct script_stack {
 	struct linkdb_node **var_function;	// ŠÖ”ˆË‘¶•Ï”
 };
 
+
+//
+// Script state
+//
+enum e_script_state { RUN,STOP,END,RERUNLINE,GOTO,RETFUNC };
+
 struct script_state {
 	struct script_stack* stack;
 	int start,end;
-	int pos,state;
+	int pos;
+	enum e_script_state state;
 	int rid,oid;
 	struct script_code *script, *scriptroot;
 	struct sleep_data {
 		int tick,timer,charid;
 	} sleep;
+};
+
+struct script_reg {
+	int index;
+	int data;
+};
+
+struct script_regstr {
+	int index;
+	char* data;
 };
 
 enum script_parse_options {
@@ -108,8 +125,7 @@ enum script_parse_options {
 };
 
 const char* skip_space(const char* p);
-const char* script_print_line(const char* p, const char* mark, int line);
-void script_error(const char *src,const char *file,int start_line, const char *error_msg, const char *error_pos);
+void script_error(const char* src, const char* file, int start_line, const char* error_msg, const char* error_pos);
 
 struct script_code* parse_script(const char* src,const char* file,int line,int options);
 void run_script_sub(struct script_code *rootscript,int pos,int rid,int oid, char* file, int lineno);
@@ -118,8 +134,8 @@ void run_script(struct script_code*,int,int,int);
 int set_var(struct map_session_data *sd, char *name, void *val);
 int conv_num(struct script_state *st,struct script_data *data);
 const char* conv_str(struct script_state *st,struct script_data *data);
-
-int run_script_timer(int tid, unsigned int tick, int id, int data);
+void setd_sub(struct script_state *st, struct map_session_data *sd, char *varname, int elem, void *value, struct linkdb_node **ref);
+int run_script_timer(int tid, unsigned int tick, int id, intptr data);
 void run_script_main(struct script_state *st);
 
 void script_stop_sleeptimers(int id);

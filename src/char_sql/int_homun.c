@@ -215,6 +215,7 @@ bool mapif_homunculus_load(int homun_id, struct s_homunculus* hd)
 			continue;// invalid skill id
 		i = i - HM_SKILLBASE;
 		hd->hskill[i].id = (unsigned short)atoi(data);
+
 		// lv
 		Sql_GetData(sql_handle, 1, &data, NULL);
 		hd->hskill[i].lv = (unsigned short)atoi(data);
@@ -223,6 +224,7 @@ bool mapif_homunculus_load(int homun_id, struct s_homunculus* hd)
 
 	if( save_log )
 		ShowInfo("Homunculus loaded (%d - %s).\n", hd->hom_id, hd->name);
+
 	return true;
 }
 
@@ -258,6 +260,7 @@ bool mapif_homunculus_rename(char *name)
 	return true;
 }
 
+
 static void mapif_parse_homunculus_create(int fd, int len, int account_id, struct s_homunculus* phd)
 {
 	bool result = mapif_homunculus_save(phd);
@@ -288,6 +291,7 @@ static void mapif_parse_homunculus_rename(int fd, int account_id, int char_id, c
 	bool result = mapif_homunculus_rename(name);
 	mapif_homunculus_renamed(fd, account_id, char_id, result, name);
 }
+
 
 int inter_homunculus_parse_frommap(int fd)
 {

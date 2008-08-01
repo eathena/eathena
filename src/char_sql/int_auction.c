@@ -12,19 +12,17 @@
 #include "char.h"
 #include "inter.h"
 #include "int_mail.h"
+#include "int_auction.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-// This is set to limit the search result
-// On iRO, no one uses auctions, so there is no way to know
 static DBMap* auction_db_ = NULL; // int auction_id -> struct auction_data*
 
 void auction_delete(struct auction_data *auction);
-static int auction_end_timer(int tid, unsigned int tick, int id, int data);
+static int auction_end_timer(int tid, unsigned int tick, int id, intptr data);
 
-// Copy Paste from map/mail.c
 static int auction_count(int char_id, bool buy)
 {
 	int i = 0;
@@ -33,7 +31,7 @@ static int auction_count(int char_id, bool buy)
 	DBKey key;
 
 	iter = auction_db_->iterator(auction_db_);
-	for( auction = iter->first(iter,&key); iter->exists(iter); auction = iter->next(iter,&key) )
+	for( auction = (struct auction_data*)iter->first(iter,&key); iter->exists(iter); auction = (struct auction_data*)iter->next(iter,&key) )
 	{
 		if( (buy && auction->buyer_id == char_id) || (!buy && auction->seller_id == char_id) )
 			i++;
@@ -137,7 +135,7 @@ static void mapif_Auction_message(int char_id, unsigned char result)
 	mapif_sendall(buf,7);
 }
 
-static int auction_end_timer(int tid, unsigned int tick, int id, int data)
+static int auction_end_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct auction_data *auction;
 	if( (auction = (struct auction_data *)idb_get(auction_db_, id)) != NULL )
@@ -153,7 +151,7 @@ static int auction_end_timer(int tid, unsigned int tick, int id, int data)
 		
 		ShowInfo("Auction End: id %u.\n", auction->auction_id);
 
-		auction->auction_end_timer = -1;
+		auction->auction_end_timer = INVALID_TIMER;
 		auction_delete(auction);
 	}
 
@@ -266,7 +264,7 @@ static void mapif_parse_Auction_requestlist(int fd)
 	memcpy(searchtext, RFIFOP(fd,16), NAME_LENGTH);
 
 	iter = auction_db_->iterator(auction_db_);
-	for( auction = iter->first(iter,&key); iter->exists(iter); auction = iter->next(iter,&key) )
+	for( auction = (struct auction_data*)iter->first(iter,&key); iter->exists(iter); auction = (struct auction_data*)iter->next(iter,&key) )
 	{
 		if( (type == 0 && auction->type != IT_ARMOR && auction->type != IT_PETARMOR) || 
 			(type == 1 && auction->type != IT_WEAPON) ||

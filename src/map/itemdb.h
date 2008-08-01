@@ -21,7 +21,7 @@
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 //The max. item group count (increase this when needed).
-#define MAX_ITEMGROUP 40
+#define MAX_ITEMGROUP 47
 
 #define CARD0_FORGE 0x00FF
 #define CARD0_CREATE 0x00FE
@@ -71,6 +71,7 @@ struct item_data {
 		unsigned no_refine : 1;	// [celest]
 		unsigned delay_consume : 1;	// Signifies items that are not consumed immediately upon double-click [Skotlex]
 		unsigned trade_restriction : 7;	//Item restrictions mask [Skotlex]
+		unsigned autoequip: 1;
 	} flag;
 	short gm_lv_trade_override;	//GM-level to override trade_restriction
 };
@@ -100,6 +101,7 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_slot(n) itemdb_search(n)->slot
 #define itemdb_available(n) (itemdb_exists(n) && itemdb_search(n)->flag.available)
 #define itemdb_viewid(n) (itemdb_search(n)->view_id)
+#define itemdb_autoequip(n) (itemdb_search(n)->flag.autoequip)
 
 int itemdb_group_bonus(struct map_session_data* sd, int itemid);
 int itemdb_searchrandomid(int flags);

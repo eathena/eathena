@@ -33,6 +33,10 @@
 #define MINGW
 #endif
 
+#if (defined(__CYGWIN__) || defined(__CYGWIN32__)) && !defined(CYGWIN)
+#define CYGWIN
+#endif
+
 // __APPLE__ is the only predefined macro on MacOS X
 #if defined(__APPLE__)
 #define __DARWIN__
@@ -190,6 +194,18 @@ typedef unsigned long long	uint64;
 
 
 //////////////////////////////////////////////////////////////////////////
+// pointer sized integers
+//////////////////////////////////////////////////////////////////////////
+#ifdef __64BIT__
+typedef uint64 uintptr;
+typedef int64 intptr;
+#else
+typedef uint32 uintptr;
+typedef int32 intptr;
+#endif
+
+
+//////////////////////////////////////////////////////////////////////////
 // some redefine of function redefines for some Compilers
 //////////////////////////////////////////////////////////////////////////
 #if defined(_MSC_VER) || defined(__BORLANDC__)
@@ -309,5 +325,16 @@ typedef char bool;
 //////////////////////////////////////////////////////////////////////////
 // length of a static array
 #define ARRAYLENGTH(A) ( sizeof(A)/sizeof((A)[0]) )
+
+//////////////////////////////////////////////////////////////////////////
+// Make sure va_copy exists
+#include <stdarg.h> // va_list, va_copy(?)
+#if !defined(va_copy)
+#if defined(__va_copy)
+#define va_copy __va_copy
+#else
+#define va_copy(dst, src) ((void) memcpy(&(dst), &(src), sizeof(va_list)))
+#endif
+#endif
 
 #endif /* _CBASETYPES_H_ */

@@ -2,8 +2,10 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
+#include "../common/utils.h"
 #include "timer.h"
 
 #include <stdio.h>
@@ -22,18 +24,18 @@
 // If the server can't handle processing thousands of monsters
 // or many connected clients, please increase TIMER_MIN_INTERVAL.
 #define TIMER_MIN_INTERVAL 50
+#define TIMER_MAX_INTERVAL 1000
 
-// timers
-static struct TimerData* timer_data	= NULL;
-static int timer_data_max	= 0;
-static int timer_data_num	= 0;
+// timers (array)
+static struct TimerData* timer_data = NULL;
+static int timer_data_max = 0;
+static int timer_data_num = 0;
 
-// free timers
-static int* free_timer_list		= NULL;
-static int free_timer_list_max	= 0;
-static int free_timer_list_pos	= 0;
+// free timers (array)
+static int* free_timer_list = NULL;
+static int free_timer_list_max = 0;
+static int free_timer_list_pos = 0;
 
-//NOTE: using a binary heap should improve performance [FlavioJS]
 // timer heap (ordered array of tid's)
 static int timer_heap_num = 0;
 static int timer_heap_max = 0;
@@ -41,6 +43,7 @@ static int* timer_heap = NULL;
 
 // server startup time
 time_t start_time;
+
 
 /*----------------------------
  * 	Timer debugging
@@ -164,16 +167,15 @@ static void push_timer_heap(int tid)
 {
 	int pos;
 
-	// check number of element
-	if (timer_heap_num >= timer_heap_max) {
-		if (timer_heap_max == 0) {
-			timer_heap_max = 256;
-			CREATE(timer_heap, int, 256);
-		} else {
-			timer_heap_max += 256;
+	// check available space
+	if( timer_heap_num >= timer_heap_max )
+	{
+		timer_heap_max += 256;
+		if( timer_heap )
 			RECREATE(timer_heap, int, timer_heap_max);
-			memset(timer_heap + (timer_heap_max - 256), 0, sizeof(int) * 256);
-		}
+		else
+			CREATE(timer_heap, int, timer_heap_max);
+		memset(timer_heap + (timer_heap_max - 256), 0, sizeof(int)*256);
 	}
 
 	// do a sorting from higher to lower
@@ -201,6 +203,7 @@ static int acquire_timer(void)
 {
 	int tid;
 
+	// select a free timer
 	if (free_timer_list_pos) {
 		do {
 			tid = free_timer_list[--free_timer_list_pos];
@@ -208,23 +211,20 @@ static int acquire_timer(void)
 	} else
 		tid = timer_data_num;
 
-	if (tid >= timer_data_num)
+	// check available space
+	if( tid >= timer_data_num )
 		for (tid = timer_data_num; tid < timer_data_max && timer_data[tid].type; tid++);
 	if (tid >= timer_data_num && tid >= timer_data_max)
 	{// expand timer array
-		if (timer_data_max == 0)
-		{// create timer data (1st time)
-			timer_data_max = 256;
-			CREATE(timer_data, struct TimerData, timer_data_max);
-		} else
-		{// add more timers
-			timer_data_max += 256;
+		timer_data_max += 256;
+		if( timer_data )
 			RECREATE(timer_data, struct TimerData, timer_data_max);
-			memset(timer_data + (timer_data_max - 256), 0, sizeof(struct TimerData) * 256);
-		}
+		else
+			CREATE(timer_data, struct TimerData, timer_data_max);
+		memset(timer_data + (timer_data_max - 256), 0, sizeof(struct TimerData)*256);
 	}
 
-	if (tid >= timer_data_num)
+	if( tid >= timer_data_num )
 		timer_data_num = tid + 1;
 
 	return tid;
@@ -232,7 +232,7 @@ static int acquire_timer(void)
 
 /// Starts a new timer that is deleted once it expires (single-use).
 /// Returns the timer's id.
-int add_timer(unsigned int tick, TimerFunc func, int id, int data)
+int add_timer(unsigned int tick, TimerFunc func, int id, intptr data)
 {
 	int tid;
 	
@@ -249,14 +249,15 @@ int add_timer(unsigned int tick, TimerFunc func, int id, int data)
 }
 
 /// Starts a new timer that automatically restarts itself (infinite loop until manually removed).
-/// Returns the timer's id, or -1 if it fails.
-int add_timer_interval(unsigned int tick, TimerFunc func, int id, int data, int interval)
+/// Returns the timer's id, or INVALID_TIMER if it fails.
+int add_timer_interval(unsigned int tick, TimerFunc func, int id, intptr data, int interval)
 {
 	int tid;
 
-	if( interval < 1 ) {
-		ShowError("add_timer_interval : function %08x(%s) has invalid interval %d!\n", (int)func, search_timer_func_list(func), interval);
-		return -1;
+	if( interval < 1 )
+	{
+		ShowError("add_timer_interval: invalid interval (tick=%u %08x[%s] id=%d data=%d diff_tick=%d)\n", tick, (int)func, search_timer_func_list(func), id, data, DIFF_TICK(tick, gettick()));
+		return INVALID_TIMER;
 	}
 	
 	tid = acquire_timer();
@@ -272,10 +273,9 @@ int add_timer_interval(unsigned int tick, TimerFunc func, int id, int data, int 
 }
 
 /// Retrieves internal timer data
-//FIXME: for safety, the return value should be 'const'
-struct TimerData* get_timer(int tid)
+const struct TimerData* get_timer(int tid)
 {
-	return &timer_data[tid];
+	return ( tid >= 0 && tid < timer_data_num ) ? &timer_data[tid] : NULL;
 }
 
 /// Marks a timer specified by 'id' for immediate deletion once it expires.
@@ -283,11 +283,13 @@ struct TimerData* get_timer(int tid)
 /// Returns 0 on success, < 0 on failure.
 int delete_timer(int tid, TimerFunc func)
 {
-	if( tid < 0 || tid >= timer_data_num ) {
+	if( tid < 0 || tid >= timer_data_num )
+	{
 		ShowError("delete_timer error : no such timer %d (%08x(%s))\n", tid, (int)func, search_timer_func_list(func));
 		return -1;
 	}
-	if( timer_data[tid].func != func ) {
+	if( timer_data[tid].func != func )
+	{
 		ShowError("delete_timer error : function mismatch %08x(%s) != %08x(%s)\n", (int)timer_data[tid].func, search_timer_func_list(timer_data[tid].func), (int)func, search_timer_func_list(func));
 		return -2;
 	}
@@ -360,66 +362,63 @@ int settick_timer(int tid, unsigned int tick)
 /// Returns the value of the smallest non-expired timer (or 1 second if there aren't any).
 int do_timer(unsigned int tick)
 {
-	int nextmin = 1000; // return value
-	int i;
+	int diff = 1000; // return value
 
 	// process all timers one by one
 	while( timer_heap_num )
 	{
-		i = timer_heap[timer_heap_num - 1]; // last element in heap (=>smallest)
-		if( (nextmin = DIFF_TICK(timer_data[i].tick, tick)) > 0 )
+		int tid = timer_heap[timer_heap_num - 1]; // last element in heap (smallest tick)
+
+		diff = DIFF_TICK(timer_data[tid].tick, tick);
+		if( diff > 0 )
 			break; // no more expired timers to process
 
 		--timer_heap_num; // suppress the actual element from the table
 
 		// mark timer as 'to be removed'
-		timer_data[i].type |= TIMER_REMOVE_HEAP;
+		timer_data[tid].type |= TIMER_REMOVE_HEAP;
 
-		if( timer_data[i].func )
+		if( timer_data[tid].func )
 		{
-			if( nextmin < -1000 )
+			if( diff < -1000 )
 				// 1秒以上の大幅な遅延が発生しているので、
 				// timer処理タイミングを現在値とする事で
 				// 呼び出し時タイミング(引数のtick)相対で処理してる
 				// timer関数の次回処理タイミングを遅らせる
-				timer_data[i].func(i, tick, timer_data[i].id, timer_data[i].data);
+				timer_data[tid].func(tid, tick, timer_data[tid].id, timer_data[tid].data);
 			else
-				timer_data[i].func(i, timer_data[i].tick, timer_data[i].id, timer_data[i].data);
+				timer_data[tid].func(tid, timer_data[tid].tick, timer_data[tid].id, timer_data[tid].data);
 		}
 
 		// in the case the function didn't change anything...
-		if( timer_data[i].type & TIMER_REMOVE_HEAP )
+		if( timer_data[tid].type & TIMER_REMOVE_HEAP )
 		{
-			timer_data[i].type &= ~TIMER_REMOVE_HEAP;
+			timer_data[tid].type &= ~TIMER_REMOVE_HEAP;
 
-			switch( timer_data[i].type )
+			switch( timer_data[tid].type )
 			{
 			case TIMER_ONCE_AUTODEL:
-				timer_data[i].type = 0;
+				timer_data[tid].type = 0;
 				if (free_timer_list_pos >= free_timer_list_max) {
 					free_timer_list_max += 256;
 					RECREATE(free_timer_list,int,free_timer_list_max);
 					memset(free_timer_list + (free_timer_list_max - 256), 0, 256 * sizeof(int));
 				}
-				free_timer_list[free_timer_list_pos++] = i;
+				free_timer_list[free_timer_list_pos++] = tid;
 			break;
 			case TIMER_INTERVAL:
-				if (DIFF_TICK(timer_data[i].tick , tick) < -1000) {
-					timer_data[i].tick = tick + timer_data[i].interval;
-				} else {
-					timer_data[i].tick += timer_data[i].interval;
-				}
-				timer_data[i].type &= ~TIMER_REMOVE_HEAP;
-				push_timer_heap(i);
+				if( DIFF_TICK(timer_data[tid].tick, tick) < -1000 )
+					timer_data[tid].tick = tick + timer_data[tid].interval;
+				else
+					timer_data[tid].tick += timer_data[tid].interval;
+				timer_data[tid].type &= ~TIMER_REMOVE_HEAP;
+				push_timer_heap(tid);
 			break;
 			}
 		}
 	}
 
-	if( nextmin < TIMER_MIN_INTERVAL )
-		nextmin = TIMER_MIN_INTERVAL;
-
-	return nextmin;
+	return cap_value(diff, TIMER_MIN_INTERVAL, TIMER_MAX_INTERVAL);
 }
 
 unsigned long get_uptime(void)

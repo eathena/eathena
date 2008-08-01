@@ -24,8 +24,6 @@ int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes);
 int intif_saveregistry(struct map_session_data *sd, int type);
 int intif_request_registry(struct map_session_data *sd, int flag);
 
-int intif_request_storage(int account_id);
-int intif_send_storage(struct storage *stor);
 int intif_request_guild_storage(int account_id, int guild_id);
 int intif_send_guild_storage(int account_id, struct guild_storage *gstor);
 
@@ -39,7 +37,6 @@ int intif_party_leave(int party_id,int account_id, int char_id);
 int intif_party_changemap(struct map_session_data *sd, int online);
 int intif_break_party(int party_id);
 int intif_party_message(int party_id, int account_id, const char *mes,int len);
-int intif_party_checkconflict(int party_id,int account_id,int char_id);
 int intif_party_leaderchange(int party_id,int account_id,int char_id);
 
 
@@ -74,6 +71,11 @@ int intif_homunculus_create(int account_id, struct s_homunculus *sh);
 int intif_homunculus_requestload(int account_id, int homun_id);
 int intif_homunculus_requestsave(int account_id, struct s_homunculus* sh);
 int intif_homunculus_requestdelete(int homun_id);
+
+/******QUEST SYTEM*******/
+int intif_request_questlog(struct map_session_data * sd);
+int intif_quest_delete(int char_id, int quest_id);
+int intif_quest_add(int char_id, struct quest * qd);
 
 #ifndef TXT_ONLY
 // MAIL SYSTEM

@@ -4,14 +4,22 @@
 #ifndef _SKILL_H_
 #define _SKILL_H_
 
-#include "../common/mmo.h" // MAX_SKILL
-#include "map.h" // MAX_SKILL_LEVEL, ...
+#include "../common/mmo.h" // MAX_SKILL, struct square
+#include "map.h" // struct block_list
+struct map_session_data;
+struct homun_data;
+struct skill_unit;
+struct skill_unit_group;
+struct status_change_entry;
 
 #define MAX_SKILL_DB			MAX_SKILL
 #define MAX_SKILL_PRODUCE_DB	150
 #define MAX_PRODUCE_RESOURCE	12
 #define MAX_SKILL_ARROW_DB		150
+#define MAX_ARROW_RESOURCE		5
 #define MAX_SKILL_ABRA_DB		350
+
+#define MAX_SKILL_LEVEL 100
 
 //Constants to identify the skill's inf value:
 #define INF_ATTACK_SKILL 1
@@ -54,10 +62,11 @@
 //Walk intervals at which chase-skills are attempted to be triggered.
 #define WALK_SKILL_INTERVAL 5
 
-// Flags passed to skill_attack
-#define SD_LEVEL     0x1000 // will send -1 instead of skill level (affects display of some skills)
-#define SD_ANIMATION 0x2000 // will use '5' instead of the skill's 'type' (this makes skills show an animation)
-#define SD_PREAMBLE  0x4000 // will transmit a 'magic' damage packet (-30000 dmg) for the first target to be hit
+// Flags passed to skill_attack/skill_area_sub
+#define SD_LEVEL     0x1000 // skill_attack will send -1 instead of skill level (affects display of some skills)
+#define SD_ANIMATION 0x2000 // skill_attack will use '5' instead of the skill's 'type' (this makes skills show an animation)
+#define SD_SPLASH    0x4000 // skill_area_sub will count targets in skill_area_temp[2]
+#define SD_PREAMBLE  0x8000 // skill_area_sub will transmit a 'magic' damage packet (-30000 dmg) for the first target selected
 
 // スキルデ?タベ?ス
 struct s_skill_db {
@@ -99,6 +108,60 @@ struct s_skill_unit_layout {
 	int dy[MAX_SKILL_UNIT_COUNT];
 };
 
+#define MAX_SKILLTIMERSKILL 15
+struct skill_timerskill {
+	int timer;
+	int src_id;
+	int target_id;
+	int map;
+	short x,y;
+	short skill_id,skill_lv;
+	int type; // a BF_ type (NOTE: some places use this as general-purpose storage...)
+	int flag;
+};
+
+#define MAX_SKILLUNITGROUP 25
+struct skill_unit_group {
+	int src_id;
+	int party_id;
+	int guild_id;
+	int map;
+	int target_flag; //Holds BCT_* flag for battle_check_target
+	int bl_flag;	//Holds BL_* flag for map_foreachin* functions
+	unsigned int tick;
+	int limit,interval;
+
+	short skill_id,skill_lv;
+	int val1,val2,val3;
+	char *valstr;
+	int unit_id;
+	int group_id;
+	int unit_count,alive_count;
+	struct skill_unit *unit;
+	struct {
+		unsigned ammo_consume : 1;
+		unsigned magic_power : 1;
+		unsigned song_dance : 2; //0x1 Song/Dance, 0x2 Ensemble
+	} state;
+};
+
+struct skill_unit {
+	struct block_list bl;
+
+	struct skill_unit_group *group;
+
+	int limit;
+	int val1,val2;
+	short alive,range;
+};
+
+#define MAX_SKILLUNITGROUPTICKSET 25
+struct skill_unit_group_tickset {
+	unsigned int tick;
+	int id;
+};
+
+
 enum {
 	UF_DEFNOTENEMY   = 0x0001,	// If 'defunit_not_enemy' is set, the target is changed to 'friend'
 	UF_NOREITERATION = 0x0002,	// Spell cannot be stacked
@@ -125,7 +188,7 @@ extern struct s_skill_produce_db skill_produce_db[MAX_SKILL_PRODUCE_DB];
 // 矢作成デ?タベ?ス
 struct s_skill_arrow_db {
 	int nameid, trigger;
-	int cre_id[5],cre_amount[5];
+	int cre_id[MAX_ARROW_RESOURCE],cre_amount[MAX_ARROW_RESOURCE];
 };
 extern struct s_skill_arrow_db skill_arrow_db[MAX_SKILL_ARROW_DB];
 
@@ -140,11 +203,6 @@ extern struct s_skill_abra_db skill_abra_db[MAX_SKILL_ABRA_DB];
 extern int enchant_eff[5];
 extern int deluge_eff[5];
 
-struct block_list;
-struct map_session_data;
-struct skill_unit;
-struct skill_unit_group;
-
 int do_init_skill(void);
 int do_final_skill(void);
 
@@ -153,6 +211,7 @@ enum { CAST_GROUND, CAST_DAMAGE, CAST_NODAMAGE };
 int skill_get_casttype(int id); //[Skotlex]
 // スキルデ?タベ?スへのアクセサ
 //
+int skill_get_index( int id );
 int	skill_get_type( int id );
 int	skill_get_hit( int id );
 int	skill_get_inf( int id );
@@ -190,9 +249,11 @@ int	skill_tree_get_max( int id, int b_class );	// Celest
 const char*	skill_get_name( int id ); 	// [Skotlex]
 const char*	skill_get_desc( int id ); 	// [Skotlex]
 
+int skill_name2id(const char* name);
+
 int skill_isammotype(struct map_session_data *sd, int skill);
-int skill_castend_id( int tid, unsigned int tick, int id,int data );
-int skill_castend_pos( int tid, unsigned int tick, int id,int data );
+int skill_castend_id(int tid, unsigned int tick, int id, intptr data);
+int skill_castend_pos(int tid, unsigned int tick, int id, intptr data);
 int skill_castend_map( struct map_session_data *sd,short skill_num, const char *map);
 
 int skill_cleartimerskill(struct block_list *src);
@@ -213,8 +274,7 @@ int skill_delunitgroup(struct block_list *src, struct skill_unit_group *group);
 int skill_clear_unitgroup(struct block_list *src);
 int skill_clear_group(struct block_list *bl, int flag);
 
-int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,
-	int damage,unsigned int tick);
+int skill_unit_ondamaged(struct skill_unit *src,struct block_list *bl,int damage,unsigned int tick);
 
 int skill_castfix( struct block_list *bl, int skill_id, int skill_lv);
 int skill_castfix_sc( struct block_list *bl, int time);
@@ -629,7 +689,7 @@ enum s_skill {
 	BA_MUSICALLESSON,
 	BA_MUSICALSTRIKE,
 	BA_DISSONANCE,
-	BA_FROSTJOKE,
+	BA_FROSTJOKER,
 	BA_WHISTLE,
 	BA_ASSASSINCROSS,
 	BA_POEMBRAGI,

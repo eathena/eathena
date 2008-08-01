@@ -195,6 +195,14 @@ SOURCE=..\src\char_sql\char.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\char_sql\int_auction.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char_sql\int_auction.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\char_sql\int_guild.c
 # End Source File
 # Begin Source File
@@ -240,6 +248,14 @@ SOURCE=..\src\char_sql\int_storage.c
 # Begin Source File
 
 SOURCE=..\src\char_sql\int_storage.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char_sql\int_quest.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char_sql\int_quest.h
 # End Source File
 # Begin Source File
 

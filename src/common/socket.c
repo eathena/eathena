@@ -32,6 +32,10 @@
 	#ifndef SIOCGIFCONF
 	#include <sys/sockio.h> // SIOCGIFCONF on Solaris, maybe others? [Shinomori]
 	#endif
+
+	#ifdef HAVE_SETRLIMIT
+	#include <sys/resource.h>
+	#endif
 #endif
 
 /////////////////////////////////////////////////////////////////////
@@ -907,7 +911,7 @@ static int connect_check_(uint32 ip)
 
 /// Timer function.
 /// Deletes old connection history records.
-static int connect_check_clear(int tid, unsigned int tick, int id, int data)
+static int connect_check_clear(int tid, unsigned int tick, int id, intptr data)
 {
 	int i;
 	int clear = 0;
@@ -1141,6 +1145,8 @@ int socket_getips(uint32* ips, int max)
 
 		fd = sSocket(AF_INET, SOCK_STREAM, 0);
 
+		memset(buf, 0x00, sizeof(buf));
+
 		// The ioctl call will fail with Invalid Argument if there are more
 		// interfaces than will fit in the buffer
 		ic.ifc_len = sizeof(buf);
@@ -1196,6 +1202,30 @@ void socket_init(void)
 		{
 			ShowError("socket_init: WinSock version mismatch (2.0 or compatible required)!\n");
 			return;
+		}
+	}
+#elif defined(HAVE_SETRLIMIT) && !defined(CYGWIN)
+	// NOTE: getrlimit and setrlimit have bogus behaviour in cygwin.
+	//       "Number of fds is virtually unlimited in cygwin" (sys/param.h)
+	{// set socket limit to FD_SETSIZE
+		struct rlimit rlp;
+		if( 0 == getrlimit(RLIMIT_NOFILE, &rlp) )
+		{
+			rlp.rlim_cur = FD_SETSIZE;
+			if( 0 != setrlimit(RLIMIT_NOFILE, &rlp) )
+			{// failed, try setting the maximum too (permission to change system limits is required)
+				rlp.rlim_max = FD_SETSIZE;
+				if( 0 != setrlimit(RLIMIT_NOFILE, &rlp) )
+				{// failed
+					// set to maximum allowed
+					getrlimit(RLIMIT_NOFILE, &rlp);
+					rlp.rlim_cur = rlp.rlim_max;
+					setrlimit(RLIMIT_NOFILE, &rlp);
+					// report limit
+					getrlimit(RLIMIT_NOFILE, &rlp);
+					ShowWarning("socket_init: failed to set socket limit to %d (current limit %d).\n", FD_SETSIZE, (int)rlp.rlim_cur);
+				}
+			}
 		}
 	}
 #endif

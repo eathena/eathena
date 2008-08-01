@@ -211,7 +211,7 @@ struct party_data *inter_party_fromsql(int party_id)
 		return NULL;
 	
 	//Load from memory
-	p = idb_get(party_db_, party_id);
+	p = (struct party_data*)idb_get(party_db_, party_id);
 	if( p != NULL )
 		return p;
 
@@ -329,13 +329,6 @@ int party_check_empty(struct party_data *p)
 	mapif_party_broken(p->party.party_id,0);
 	inter_party_tosql(&p->party, PS_BREAK, 0);
 	return 1;
-}
-
-
-// Check if a member is in two party, not necessary :)
-int party_check_conflict(int party_id,int account_id,int char_id)
-{
-	return 0;
 }
 
 //-------------------------------------------------------------------
@@ -498,7 +491,7 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 			}
 	}
 
-	p= aCalloc(1, sizeof(struct party_data));
+	p = (struct party_data*)aCalloc(1, sizeof(struct party_data));
 	
 	memcpy(p->party.name,name,NAME_LENGTH);
 	p->party.exp=0;
@@ -718,11 +711,6 @@ int mapif_parse_PartyMessage(int fd,int party_id,int account_id,char *mes,int le
 {
 	return mapif_party_message(party_id,account_id,mes,len, fd);
 }
-// パーティチェック要求
-int mapif_parse_PartyCheck(int fd,int party_id,int account_id,int char_id)
-{
-	return party_check_conflict(party_id,account_id,char_id);
-}
 
 int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id)
 {
@@ -765,7 +753,6 @@ int inter_party_parse_frommap(int fd)
 	case 0x3025: mapif_parse_PartyChangeMap(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOW(fd,14), RFIFOB(fd,16), RFIFOW(fd,17)); break;
 	case 0x3026: mapif_parse_BreakParty(fd, RFIFOL(fd,2)); break;
 	case 0x3027: mapif_parse_PartyMessage(fd, RFIFOL(fd,4), RFIFOL(fd,8), (char*)RFIFOP(fd,12), RFIFOW(fd,2)-12); break;
-	case 0x3028: mapif_parse_PartyCheck(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 	case 0x3029: mapif_parse_PartyLeaderChange(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 	default:
 		return 0;

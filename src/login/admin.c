@@ -17,18 +17,20 @@
 #include <string.h>
 #include <sys/stat.h> // for stat/lstat/fstat
 
+extern struct Login_Config login_config;
+
 #define MAX_SERVERS 30
 extern struct mmo_char_server server[MAX_SERVERS];
+extern struct mmo_account* auth_dat;
 extern uint32 auth_num;
 extern int account_id_count;
 extern char GM_account_filename[1024];
-extern char login_log_unknown_packets_filename[1024];
 
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
 int search_account_index(char* account_name);
-int mmo_auth_new(struct mmo_account* account, char sex, char* email);
+int mmo_auth_new(struct mmo_account* account);
 void mmo_auth_sync(void);
-int mmo_auth_tostr(char* str, struct auth_data* p);
+int mmo_auth_tostr(char* str, struct mmo_account* p);
 int read_gm_account(void);
 void send_GM_accounts(int fd);
 int isGM(int account_id);
@@ -115,7 +117,7 @@ int parse_admin(int fd)
 						memcpy(WFIFOP(fd,len+5), auth_dat[j].userid, 24);
 						WFIFOB(fd,len+29) = auth_dat[j].sex;
 						WFIFOL(fd,len+30) = auth_dat[j].logincount;
-						if (auth_dat[j].state == 0 && auth_dat[j].ban_until_time != 0) // if no state and banished
+						if (auth_dat[j].state == 0 && auth_dat[j].unban_time != 0) // if no state and banished
 							WFIFOL(fd,len+34) = 7; // 6 = Your are Prohibited to log in until %s
 						else
 							WFIFOL(fd,len+34) = auth_dat[j].state;
@@ -134,44 +136,39 @@ int parse_admin(int fd)
 				return 0;
 			{
 				struct mmo_account ma;
-				memcpy(ma.userid,RFIFOP(fd, 2),NAME_LENGTH);
-				ma.userid[23] = '\0';
-				memcpy(ma.passwd, RFIFOP(fd, 26), NAME_LENGTH);
-				ma.passwd[23] = '\0';
+				safestrncpy(ma.userid, (char*)RFIFOP(fd, 2), NAME_LENGTH);
+				safestrncpy(ma.pass,   (char*)RFIFOP(fd,26), NAME_LENGTH);
+				safestrncpy(ma.email,  (char*)RFIFOP(fd,51), 40);
 				memcpy(ma.lastlogin, "-", 2);
 				ma.sex = RFIFOB(fd,50);
+				RFIFOSKIP(fd,91);
+
 				WFIFOW(fd,0) = 0x7931;
-				WFIFOL(fd,2) = 0xffffffff;
-				memcpy(WFIFOP(fd,6), RFIFOP(fd,2), 24);
-				if (strlen(ma.userid) < 4 || strlen(ma.passwd) < 4) {
+				WFIFOL(fd,2) = 0xffffffff; // invalid account id
+				safestrncpy((char*)WFIFOP(fd,6), ma.userid, 24);
+				if (strlen(ma.userid) < 4 || strlen(ma.pass) < 4) {
 					ShowNotice("'ladmin': Attempt to create an invalid account (account or pass is too short, ip: %s)\n", ip);
 				} else if (ma.sex != 'F' && ma.sex != 'M') {
-					ShowNotice("'ladmin': Attempt to create an invalid account (account: %s, received pass: %s, invalid sex, ip: %s)\n", ma.userid, ma.passwd, ip);
+					ShowNotice("'ladmin': Attempt to create an invalid account (account: %s, received pass: %s, invalid sex, ip: %s)\n", ma.userid, ma.pass, ip);
 				} else if (account_id_count > END_ACCOUNT_NUM) {
-					ShowNotice("'ladmin': Attempt to create an account, but there is no more available id number (account: %s, pass: %s, sex: %c, ip: %s)\n", ma.userid, ma.passwd, ma.sex, ip);
+					ShowNotice("'ladmin': Attempt to create an account, but there is no more available id number (account: %s, pass: %s, sex: %c, ip: %s)\n", ma.userid, ma.pass, ma.sex, ip);
 				} else {
 					remove_control_chars(ma.userid);
-					remove_control_chars(ma.passwd);
-					for(i = 0; i < auth_num; i++) {
-						if (strncmp(auth_dat[i].userid, ma.userid, 24) == 0) {
-							ShowNotice("'ladmin': Attempt to create an already existing account (account: %s, pass: %s, received pass: %s, ip: %s)\n", auth_dat[i].userid, auth_dat[i].pass, ma.passwd, ip);
-							break;
-						}
-					}
-					if (i == auth_num) {
+					remove_control_chars(ma.pass);
+					remove_control_chars(ma.email);
+					ARR_FIND( 0, auth_num, i, strncmp(auth_dat[i].userid, ma.userid, 24) == 0 );
+					if( i < auth_num )
+						ShowNotice("'ladmin': Attempt to create an already existing account (account: %s, pass: %s, received pass: %s, ip: %s)\n", auth_dat[i].userid, auth_dat[i].pass, ma.pass, ip);
+					else
+					{
 						int new_id;
-						char email[40];
-						memcpy(email, RFIFOP(fd,51), 40);
-						email[39] = '\0';
-						remove_control_chars(email);
-						new_id = mmo_auth_new(&ma, ma.sex, email);
-						ShowNotice("'ladmin': Account creation (account: %s (id: %d), pass: %s, sex: %c, email: %s, ip: %s)\n", ma.userid, new_id, ma.passwd, ma.sex, auth_dat[i].email, ip);
+						new_id = mmo_auth_new(&ma);
+						ShowNotice("'ladmin': Account creation (account: %s (id: %d), pass: %s, sex: %c, email: %s, ip: %s)\n", ma.userid, new_id, ma.pass, ma.sex, auth_dat[i].email, ip);
 						WFIFOL(fd,2) = new_id;
 						mmo_auth_sync();
 					}
 				}
 				WFIFOSET(fd,30);
-				RFIFOSKIP(fd,91);
 			}
 			break;
 
@@ -270,9 +267,6 @@ int parse_admin(int fd)
 							WBUFB(buf,6) = 0; // 0: change of statut, 1: ban
 							WBUFL(buf,7) = statut; // status or final date of a banishment
 							charif_sendallwos(-1, buf, 11);
-							for(j = 0; j < AUTH_FIFO_SIZE; j++)
-								if (auth_fifo[j].account_id == auth_dat[i].account_id)
-									auth_fifo[j].login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentication)
 						}
 						auth_dat[i].state = statut;
 						memcpy(auth_dat[i].error_message, error_message, 20);
@@ -363,9 +357,6 @@ int parse_admin(int fd)
 						if (auth_dat[i].sex != ((sex == 'S' || sex == 's') ? 2 : (sex == 'M' || sex == 'm'))) {
 							unsigned char buf[16];
 							WFIFOL(fd,2) = auth_dat[i].account_id;
-							for(j = 0; j < AUTH_FIFO_SIZE; j++)
-								if (auth_fifo[j].account_id == auth_dat[i].account_id)
-									auth_fifo[j].login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentication)
 							auth_dat[i].sex = (sex == 'S' || sex == 's') ? 2 : (sex == 'M' || sex == 'm');
 							ShowNotice("'ladmin': Modification of a sex (account: %s, new sex: %c, ip: %s)\n", auth_dat[i].userid, sex, ip);
 							mmo_auth_sync();
@@ -594,7 +585,7 @@ int parse_admin(int fd)
 				if (i != -1) {
 					memcpy(WFIFOP(fd,6), auth_dat[i].userid, 24);
 					ShowNotice("'ladmin': Change of a validity limit (account: %s, new validity: %d (%s), ip: %s)\n", auth_dat[i].userid, timestamp, (timestamp == 0 ? "unlimited" : tmpstr), ip);
-					auth_dat[i].connect_until_time = timestamp;
+					auth_dat[i].expiration_time = timestamp;
 					WFIFOL(fd,2) = auth_dat[i].account_id;
 					mmo_auth_sync();
 				} else {
@@ -627,7 +618,7 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,6), auth_dat[i].userid, 24);
 					WFIFOL(fd,2) = auth_dat[i].account_id;
 					ShowNotice("'ladmin': Change of the final date of a banishment (account: %s, new final date of banishment: %d (%s), ip: %s)\n", auth_dat[i].userid, timestamp, (timestamp == 0 ? "no banishment" : tmpstr), ip);
-					if (auth_dat[i].ban_until_time != timestamp) {
+					if (auth_dat[i].unban_time != timestamp) {
 						if (timestamp != 0) {
 							unsigned char buf[16];
 							WBUFW(buf,0) = 0x2731;
@@ -635,11 +626,8 @@ int parse_admin(int fd)
 							WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
 							WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 							charif_sendallwos(-1, buf, 11);
-							for(j = 0; j < AUTH_FIFO_SIZE; j++)
-								if (auth_fifo[j].account_id == auth_dat[i].account_id)
-									auth_fifo[j].login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentication)
 						}
-						auth_dat[i].ban_until_time = timestamp;
+						auth_dat[i].unban_time = timestamp;
 						mmo_auth_sync();
 					}
 				} else {
@@ -668,10 +656,10 @@ int parse_admin(int fd)
 				if (i != -1) {
 					WFIFOL(fd,2) = auth_dat[i].account_id;
 					memcpy(WFIFOP(fd,6), auth_dat[i].userid, 24);
-					if (auth_dat[i].ban_until_time == 0 || auth_dat[i].ban_until_time < time(NULL))
+					if (auth_dat[i].unban_time == 0 || auth_dat[i].unban_time < time(NULL))
 						timestamp = time(NULL);
 					else
-						timestamp = auth_dat[i].ban_until_time;
+						timestamp = auth_dat[i].unban_time;
 					tmtime = localtime(&timestamp);
 					tmtime->tm_year = tmtime->tm_year + (short)RFIFOW(fd,26);
 					tmtime->tm_mon = tmtime->tm_mon + (short)RFIFOW(fd,28);
@@ -685,7 +673,7 @@ int parse_admin(int fd)
 							timestamp = 0;
 						strftime(tmpstr, 24, login_config.date_format, localtime(&timestamp));
 						ShowNotice("'ladmin': Adjustment of a final date of a banishment (account: %s, (%+d y %+d m %+d d %+d h %+d mn %+d s) -> new validity: %d (%s), ip: %s)\n", auth_dat[i].userid, (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), timestamp, (timestamp == 0 ? "no banishment" : tmpstr), ip);
-						if (auth_dat[i].ban_until_time != timestamp) {
+						if (auth_dat[i].unban_time != timestamp) {
 							if (timestamp != 0) {
 								unsigned char buf[16];
 								WBUFW(buf,0) = 0x2731;
@@ -693,20 +681,15 @@ int parse_admin(int fd)
 								WBUFB(buf,6) = 1; // 0: change of statut, 1: ban
 								WBUFL(buf,7) = (unsigned int)timestamp; // status or final date of a banishment
 								charif_sendallwos(-1, buf, 11);
-								for(j = 0; j < AUTH_FIFO_SIZE; j++)
-									if (auth_fifo[j].account_id == auth_dat[i].account_id) {
-										auth_fifo[j].login_id1++; // to avoid reconnection error when come back from map-server (char-server will ask again the authentication)
-										break;
-									}
 							}
-							auth_dat[i].ban_until_time = timestamp;
+							auth_dat[i].unban_time = timestamp;
 							mmo_auth_sync();
 						}
 					} else {
-						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].ban_until_time));
-						ShowNotice("'ladmin': Impossible to adjust the final date of a banishment (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)\n", auth_dat[i].userid, auth_dat[i].ban_until_time, (auth_dat[i].ban_until_time == 0 ? "no banishment" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip);
+						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].unban_time));
+						ShowNotice("'ladmin': Impossible to adjust the final date of a banishment (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)\n", auth_dat[i].userid, auth_dat[i].unban_time, (auth_dat[i].unban_time == 0 ? "no banishment" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip);
 					}
-					WFIFOL(fd,30) = (unsigned long)auth_dat[i].ban_until_time;
+					WFIFOL(fd,30) = (unsigned long)auth_dat[i].unban_time;
 				} else {
 					memcpy(WFIFOP(fd,6), account_name, 24);
 					ShowNotice("'ladmin': Attempt to adjust the final date of a banishment of an unknown account (account: %s, ip: %s)\n", account_name, ip);
@@ -770,7 +753,7 @@ int parse_admin(int fd)
 				if (i != -1) {
 					WFIFOL(fd,2) = auth_dat[i].account_id;
 					memcpy(WFIFOP(fd,6), auth_dat[i].userid, 24);
-					timestamp = auth_dat[i].connect_until_time;
+					timestamp = auth_dat[i].expiration_time;
 					if (timestamp == 0 || timestamp < time(NULL))
 						timestamp = time(NULL);
 					tmtime = localtime(&timestamp);
@@ -782,15 +765,15 @@ int parse_admin(int fd)
 					tmtime->tm_sec = tmtime->tm_sec + (short)RFIFOW(fd,36);
 					timestamp = mktime(tmtime);
 					if (timestamp != -1) {
-						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].connect_until_time));
+						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].expiration_time));
 						strftime(tmpstr2, 24, login_config.date_format, localtime(&timestamp));
-						ShowNotice("'ladmin': Adjustment of a validity limit (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> new validity: %d (%s), ip: %s)\n", auth_dat[i].userid, auth_dat[i].connect_until_time, (auth_dat[i].connect_until_time == 0 ? "unlimited" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), timestamp, (timestamp == 0 ? "unlimited" : tmpstr2), ip);
-						auth_dat[i].connect_until_time = timestamp;
+						ShowNotice("'ladmin': Adjustment of a validity limit (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> new validity: %d (%s), ip: %s)\n", auth_dat[i].userid, auth_dat[i].expiration_time, (auth_dat[i].expiration_time == 0 ? "unlimited" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), timestamp, (timestamp == 0 ? "unlimited" : tmpstr2), ip);
+						auth_dat[i].expiration_time = timestamp;
 						mmo_auth_sync();
-						WFIFOL(fd,30) = (unsigned long)auth_dat[i].connect_until_time;
+						WFIFOL(fd,30) = (unsigned long)auth_dat[i].expiration_time;
 					} else {
-						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].connect_until_time));
-						ShowNotice("'ladmin': Impossible to adjust a validity limit (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)\n", auth_dat[i].userid, auth_dat[i].connect_until_time, (auth_dat[i].connect_until_time == 0 ? "unlimited" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip);
+						strftime(tmpstr, 24, login_config.date_format, localtime(&auth_dat[i].expiration_time));
+						ShowNotice("'ladmin': Impossible to adjust a validity limit (account: %s, %d (%s) + (%+d y %+d m %+d d %+d h %+d mn %+d s) -> ???, ip: %s)\n", auth_dat[i].userid, auth_dat[i].expiration_time, (auth_dat[i].expiration_time == 0 ? "unlimited" : tmpstr), (short)RFIFOW(fd,26), (short)RFIFOW(fd,28), (short)RFIFOW(fd,30), (short)RFIFOW(fd,32), (short)RFIFOW(fd,34), (short)RFIFOW(fd,36), ip);
 						WFIFOL(fd,30) = 0;
 					}
 				} else {
@@ -823,8 +806,8 @@ int parse_admin(int fd)
 				memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
 				memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
 				memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-				WFIFOL(fd,140) = (unsigned long)auth_dat[i].connect_until_time;
-				WFIFOL(fd,144) = (unsigned long)auth_dat[i].ban_until_time;
+				WFIFOL(fd,140) = (unsigned long)auth_dat[i].expiration_time;
+				WFIFOL(fd,144) = (unsigned long)auth_dat[i].unban_time;
 				WFIFOW(fd,148) = (uint16)strlen(auth_dat[i].memo);
 				if (auth_dat[i].memo[0]) {
 					memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
@@ -858,8 +841,8 @@ int parse_admin(int fd)
 					memcpy(WFIFOP(fd,60), auth_dat[i].lastlogin, 24);
 					memcpy(WFIFOP(fd,84), auth_dat[i].last_ip, 16);
 					memcpy(WFIFOP(fd,100), auth_dat[i].email, 40);
-					WFIFOL(fd,140) = (unsigned long)auth_dat[i].connect_until_time;
-					WFIFOL(fd,144) = (unsigned long)auth_dat[i].ban_until_time;
+					WFIFOL(fd,140) = (unsigned long)auth_dat[i].expiration_time;
+					WFIFOL(fd,144) = (unsigned long)auth_dat[i].unban_time;
 					WFIFOW(fd,148) = (uint16)strlen(auth_dat[i].memo);
 					if (auth_dat[i].memo[0]) {
 						memcpy(WFIFOP(fd,150), auth_dat[i].memo, strlen(auth_dat[i].memo));
@@ -886,46 +869,6 @@ int parse_admin(int fd)
 			break;
 
 		default:
-			{
-				FILE *logfp;
-				char tmpstr[24];
-				time_t raw_time;
-				logfp = fopen(login_log_unknown_packets_filename, "a");
-				if (logfp) {
-					time(&raw_time);
-					strftime(tmpstr, 23, login_config.date_format, localtime(&raw_time));
-					fprintf(logfp, "%s: receiving of an unknown packet -> disconnection\n", tmpstr);
-					fprintf(logfp, "parse_admin: connection #%d (ip: %s), packet: 0x%x (with being read: %lu).\n", fd, ip, command, (unsigned long)RFIFOREST(fd));
-					fprintf(logfp, "Detail (in hex):\n");
-					fprintf(logfp, "---- 00-01-02-03-04-05-06-07  08-09-0A-0B-0C-0D-0E-0F\n");
-					memset(tmpstr, '\0', sizeof(tmpstr));
-					for(i = 0; i < RFIFOREST(fd); i++) {
-						if ((i & 15) == 0)
-							fprintf(logfp, "%04X ",i);
-						fprintf(logfp, "%02x ", RFIFOB(fd,i));
-						if (RFIFOB(fd,i) > 0x1f)
-							tmpstr[i % 16] = RFIFOB(fd,i);
-						else
-							tmpstr[i % 16] = '.';
-						if ((i - 7) % 16 == 0) // -8 + 1
-							fprintf(logfp, " ");
-						else if ((i + 1) % 16 == 0) {
-							fprintf(logfp, " %s\n", tmpstr);
-							memset(tmpstr, '\0', sizeof(tmpstr));
-						}
-					}
-					if (i % 16 != 0) {
-						for(j = i; j % 16 != 0; j++) {
-							fprintf(logfp, "   ");
-							if ((j - 7) % 16 == 0) // -8 + 1
-								fprintf(logfp, " ");
-						}
-						fprintf(logfp, " %s\n", tmpstr);
-					}
-					fprintf(logfp, "\n");
-					fclose(logfp);
-				}
-			}
 			ShowStatus("'ladmin': End of connection, unknown packet (ip: %s)\n", ip);
 			set_eof(fd);
 			return 0;

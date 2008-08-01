@@ -98,6 +98,7 @@ char *GRF_PATH_FILENAME;
 static DBMap* id_db=NULL; // int id -> struct block_list*
 static DBMap* pc_db=NULL; // int id -> struct map_session_data*
 static DBMap* mobid_db=NULL; // int id -> struct mob_data*
+static DBMap* bossid_db=NULL; // int id -> struct mob_data* (MVP db)
 static DBMap* map_db=NULL; // unsigned int mapindex -> struct map_data*
 static DBMap* nick_db=NULL; // int char_id -> struct charid2nick* (requested names of offline characters)
 static DBMap* charid_db=NULL; // int char_id -> struct map_session_data*
@@ -249,7 +250,7 @@ int map_freeblock_unlock (void)
 // この関数は、do_timer() のトップレベルから呼ばれるので、
 // block_free_lock を直接いじっても支障無いはず。
 
-int map_freeblock_timer (int tid, unsigned int tick, int id, int data)
+int map_freeblock_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	if (block_free_lock > 0) {
 		ShowError("map_freeblock_timer: block_free_lock(%d) is invalid.\n", block_free_lock);
@@ -950,7 +951,7 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	if (length)
 	{	//Adjust final position to fit in the given area.
 		//TODO: Find an alternate method which does not requires a square root calculation.
-		k = (int)sqrt(magnitude2);
+		k = (int)sqrt((float)magnitude2);
 		mx1 = x0 + (x1 - x0)*length/k;
 		my1 = y0 + (y1 - y0)*length/k;
 		len_limit = MAGNITUDE2(x0,y0, mx1,my1);
@@ -1248,7 +1249,7 @@ void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...)
  * 後者は、map_clearflooritem(id)へ
  * map.h?で#defineしてある
  *------------------------------------------*/
-int map_clearflooritem_timer(int tid,unsigned int tick,int id,int data)
+int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct flooritem_data *fitem=NULL;
 
@@ -1448,7 +1449,7 @@ void map_addnickdb(int charid, const char* nick)
 	if( map_charid2sd(charid) )
 		return;// already online
 
-	p = idb_ensure(nick_db, charid, create_charid2nick);
+	p = (struct charid2nick*)idb_ensure(nick_db, charid, create_charid2nick);
 	safestrncpy(p->nick, nick, sizeof(p->nick));
 
 	while( p->requests )
@@ -1470,7 +1471,7 @@ void map_delnickdb(int charid, const char* name)
 	struct charid_request* req;
 	struct map_session_data* sd;
 
-	p = idb_remove(nick_db, charid);
+	p = (struct charid2nick*)idb_remove(nick_db, charid);
 	if( p == NULL )
 		return;
 
@@ -1524,13 +1525,20 @@ void map_addiddb(struct block_list *bl)
 {
 	nullpo_retv(bl);
 
-	if (bl->type == BL_PC)
+	if( bl->type == BL_PC )
 	{
 		TBL_PC* sd = (TBL_PC*)bl;
 		idb_put(pc_db,sd->bl.id,sd);
 		idb_put(charid_db,sd->status.char_id,sd);
-	} else if (bl->type == BL_MOB)
+	}
+	else if( bl->type == BL_MOB )
+	{
+		struct mob_data* md = BL_CAST(BL_MOB, bl);
 		idb_put(mobid_db,bl->id,bl);
+
+		if( md && (md->db->status.mode&MD_BOSS) && md->db->mexp > 0 )
+			idb_put(bossid_db, bl->id, bl);
+	}
 
 	idb_put(id_db,bl->id,bl);
 }
@@ -1542,13 +1550,17 @@ void map_deliddb(struct block_list *bl)
 {
 	nullpo_retv(bl);
 
-	if (bl->type == BL_PC)
+	if( bl->type == BL_PC )
 	{
 		TBL_PC* sd = (TBL_PC*)bl;
 		idb_remove(pc_db,sd->bl.id);
 		idb_remove(charid_db,sd->status.char_id);
-	} else if (bl->type == BL_MOB)
+	}
+	else if( bl->type == BL_MOB )
+	{
 		idb_remove(mobid_db,bl->id);
+		idb_remove(bossid_db,bl->id);
+	}
 	idb_remove(id_db,bl->id);
 }
 
@@ -1577,6 +1589,10 @@ int map_quit(struct map_session_data *sd)
 	//(changing map-servers invokes unit_free but bypasses map_quit)
 	if(sd->sc.count) {
 		//Status that are not saved...
+		if(sd->sc.data[SC_BOSSMAPINFO])
+			status_change_end(&sd->bl,SC_BOSSMAPINFO,-1);
+		if(sd->sc.data[SC_AUTOTRADE])
+			status_change_end(&sd->bl,SC_AUTOTRADE,-1);
 		if(sd->sc.data[SC_SPURT])
 			status_change_end(&sd->bl,SC_SPURT,-1);
 		if(sd->sc.data[SC_BERSERK])
@@ -1585,6 +1601,8 @@ int map_quit(struct map_session_data *sd)
 			status_change_end(&sd->bl,SC_TRICKDEAD,-1);
 		if(sd->sc.data[SC_GUILDAURA])
 			status_change_end(&sd->bl,SC_GUILDAURA,-1);
+		if(sd->sc.data[SC_ENDURE] && sd->sc.data[SC_ENDURE]->val4)
+			status_change_end(&sd->bl,SC_ENDURE,-1); //No need to save infinite endure.
 		if (battle_config.debuff_on_logout&1) {
 			if(sd->sc.data[SC_ORCISH])
 				status_change_end(&sd->bl,SC_ORCISH,-1);
@@ -1602,6 +1620,9 @@ int map_quit(struct map_session_data *sd)
 				status_change_end(&sd->bl,SC_EXPLOSIONSPIRITS,-1);
 			if(sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
 				status_change_end(&sd->bl,SC_REGENERATION,-1);
+			//TO-DO Probably there are way more NPC_type negative status that are removed
+			if(sd->sc.data[SC_CHANGEUNDEAD])
+				status_change_end(&sd->bl,SC_CHANGEUNDEAD,-1);
 		}
 		if (battle_config.debuff_on_logout&2)
 		{
@@ -1616,6 +1637,7 @@ int map_quit(struct map_session_data *sd)
 	
 	// Return loot to owner
 	if( sd->pd ) pet_lootitem_drop(sd->pd, sd);
+	if( sd->state.storage_flag == 1 ) sd->state.storage_flag = 0; // No need to Double Save Storage on Quit.
 
 	unit_remove_map_pc(sd,3);
 	pc_makesavestatus(sd);
@@ -1731,38 +1753,130 @@ struct block_list * map_id2bl(int id)
 	if(id >= 0 && id < ARRAYLENGTH(objects))
 		bl = objects[id];
 	else
-		bl = idb_get(id_db,id);
+		bl = (struct block_list*)idb_get(id_db,id);
 
 	return bl;
 }
 
-void map_foreachpc(int (*func)(DBKey,void*,va_list),...)
-{
-	va_list ap;
-	va_start(ap,func);
-	pc_db->vforeach(pc_db,func,ap);
-	va_end(ap);
-}
-
-void map_foreachmob(int (*func)(DBKey,void*,va_list),...)
-{
-	va_list ap;
-	va_start(ap,func);
-	mobid_db->vforeach(mobid_db,func,ap);
-	va_end(ap);
-}
-
 /*==========================================
- * id_db?の全てにfuncを?行
+ * Convext Mirror
  *------------------------------------------*/
-int map_foreachiddb(int (*func)(DBKey,void*,va_list),...)
+struct mob_data * map_getmob_boss(int m)
 {
-	va_list ap;
+	DBIterator* iter;
+	struct mob_data *md = NULL;
+	bool found = false;
 
-	va_start(ap,func);
-	id_db->vforeach(id_db,func,ap);
-	va_end(ap);
-	return 0;
+	iter = db_iterator(bossid_db);
+	for( md = (struct mob_data*)dbi_first(iter); dbi_exists(iter); md = (struct mob_data*)dbi_next(iter) )
+	{
+		if( md->bl.m != m || !md->spawn )
+			continue;
+
+		found = true;
+		break;
+	}
+	dbi_destroy(iter);
+
+	return (found)? md : NULL;
+}
+
+struct mob_data * map_id2boss(int id)
+{
+	if (id <= 0) return NULL;
+	return (struct mob_data*)idb_get(bossid_db,id);
+}
+
+/// Applies func to all the players in the db.
+/// Stops iterating if func returns -1.
+void map_foreachpc(int (*func)(struct map_session_data* sd, va_list args), ...)
+{
+	DBIterator* iter;
+	struct map_session_data* sd;
+
+	iter = db_iterator(pc_db);
+	for( sd = (struct map_session_data*)iter->first(iter,NULL); iter->exists(iter); sd = (struct map_session_data*)iter->next(iter,NULL) )
+	{
+		va_list args;
+		int ret;
+
+		va_start(args, func);
+		ret = func(sd, args);
+		va_end(args);
+		if( ret == -1 )
+			break;// stop iterating
+	}
+	dbi_destroy(iter);
+}
+
+/// Applies func to all the mobs in the db.
+/// Stops iterating if func returns -1.
+void map_foreachmob(int (*func)(struct mob_data* md, va_list args), ...)
+{
+	DBIterator* iter;
+	struct mob_data* md;
+
+	iter = db_iterator(mobid_db);
+	for( md = (struct mob_data*)dbi_first(iter); dbi_exists(iter); md = (struct mob_data*)dbi_next(iter) )
+	{
+		va_list args;
+		int ret;
+
+		va_start(args, func);
+		ret = func(md, args);
+		va_end(args);
+		if( ret == -1 )
+			break;// stop iterating
+	}
+	dbi_destroy(iter);
+}
+
+/// Applies func to all the npcs in the db.
+/// Stops iterating if func returns -1.
+void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...)
+{
+	DBIterator* iter;
+	struct block_list* bl;
+
+	iter = db_iterator(id_db);
+	for( bl = (struct block_list*)dbi_first(iter); dbi_exists(iter); bl = (struct block_list*)dbi_next(iter) )
+	{
+		if( bl->type == BL_NPC )
+		{
+			struct npc_data* nd = (struct npc_data*)bl;
+			va_list args;
+			int ret;
+
+			va_start(args, func);
+			ret = func(nd, args);
+			va_end(args);
+			if( ret == -1 )
+				break;// stop iterating
+		}
+	}
+	dbi_destroy(iter);
+}
+
+/// Applies func to everything in the db.
+/// Stops iterating if func returns -1.
+void map_foreachiddb(int (*func)(struct block_list* bl, va_list args), ...)
+{
+	DBIterator* iter;
+	struct block_list* bl;
+
+	iter = db_iterator(id_db);
+	for( bl = (struct block_list*)dbi_first(iter); dbi_exists(iter); bl = (struct block_list*)dbi_next(iter) )
+	{
+		va_list args;
+		int ret;
+
+		va_start(args, func);
+		ret = func(bl, args);
+		va_end(args);
+		if( ret == -1 )
+			break;// stop iterating
+	}
+	dbi_destroy(iter);
 }
 
 /// Iterator.
@@ -1956,7 +2070,7 @@ void map_spawnmobs(int m)
 	if (map[m].mob_delete_timer != -1)
 	{	//Mobs have not been removed yet [Skotlex]
 		delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
-		map[m].mob_delete_timer = -1;
+		map[m].mob_delete_timer = INVALID_TIMER;
 		return;
 	}
 	for(i=0; i<MAX_MOB_LIST_PER_MAP; i++)
@@ -1993,7 +2107,7 @@ int map_removemobs_sub(struct block_list *bl, va_list ap)
 	return 1;
 }
 
-int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
+int map_removemobs_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	int count;
 	const int m = id;
@@ -2008,7 +2122,7 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, int data)
 		ShowError("map_removemobs_timer mismatch: %d != %d (map %s)\n",map[m].mob_delete_timer, tid, map[m].name);
 		return 0;
 	}
-	map[m].mob_delete_timer = -1;
+	map[m].mob_delete_timer = INVALID_TIMER;
 	if (map[m].users > 0) //Map not empty!
 		return 1;
 
@@ -2146,7 +2260,7 @@ int map_random_dir(struct block_list *bl, short *x, short *y)
 	short yi = *y-bl->y;
 	short i=0, j;
 	int dist2 = xi*xi + yi*yi;
-	short dist = (short)sqrt(dist2);
+	short dist = (short)sqrt((float)dist2);
 	short segment;
 	
 	if (dist < 1) dist =1;
@@ -2155,7 +2269,7 @@ int map_random_dir(struct block_list *bl, short *x, short *y)
 		j = rand()%8; //Pick a random direction
 		segment = 1+(rand()%dist); //Pick a random interval from the whole vector in that direction
 		xi = bl->x + segment*dirx[j];
-		segment = (short)sqrt(dist2 - segment*segment); //The complement of the previously picked segment
+		segment = (short)sqrt((float)(dist2 - segment*segment)); //The complement of the previously picked segment
 		yi = bl->y + segment*diry[j];
 	} while (
 		(map_getcell(bl->m,xi,yi,CELL_CHKNOPASS) || !path_search(NULL,bl->m,bl->x,bl->y,xi,yi,1,CELL_CHKNOREACH))
@@ -2382,7 +2496,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
 {
 	struct map_data_other_server *mdos;
 
-	mdos = uidb_get(map_db,(unsigned int)mapindex);
+	mdos = (struct map_data_other_server*)uidb_get(map_db,(unsigned int)mapindex);
 	if(!mdos || mdos->cell) //Map either does not exists or is a local map.
 		return 0;
 
@@ -2429,8 +2543,8 @@ int map_readfromcache(struct map_data *m, FILE *fp)
 		m->ys = info.ys;
 		size = info.xs*info.ys;
 
-		buf = aMalloc(info.len); // temp buffer to read the zipped map
-		buf2 = aMalloc(size); // temp buffer to unpack the data
+		buf = (unsigned char*)aMalloc(info.len); // temp buffer to read the zipped map
+		buf2 = (unsigned char*)aMalloc(size); // temp buffer to unpack the data
 		CREATE(m->cell, struct mapcell, size);
 
 		fread(buf, info.len, 1, fp);
@@ -2624,7 +2738,7 @@ int map_readallmaps (void)
 
 		map[i].m = i;
 		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
-		map[i].mob_delete_timer = -1;	//Initialize timer [Skotlex]
+		map[i].mob_delete_timer = INVALID_TIMER;	//Initialize timer [Skotlex]
 		if(battle_config.pk_mode)
 			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
 
@@ -2957,7 +3071,7 @@ int log_sql_init(void)
 /*=============================================
  * Does a mysql_ping to all connection handles
  *---------------------------------------------*/
-int map_sql_ping(int tid, unsigned int tick, int id, int data) 
+int map_sql_ping(int tid, unsigned int tick, int id, intptr data) 
 {
 	ShowInfo("Pinging SQL server to keep connection alive...\n");
 	Sql_Ping(mmysql_handle);
@@ -3106,6 +3220,7 @@ void do_final(void)
 	id_db->destroy(id_db, NULL);
 	pc_db->destroy(pc_db, NULL);
 	mobid_db->destroy(mobid_db, NULL);
+	bossid_db->destroy(bossid_db, NULL);
 	nick_db->destroy(nick_db, nick_db_final);
 	charid_db->destroy(charid_db, NULL);
 
@@ -3115,10 +3230,8 @@ void do_final(void)
 	ShowStatus("Successfully terminated.\n");
 }
 
-static int map_abort_sub(DBKey key,void * data,va_list ap)
+static int map_abort_sub(struct map_session_data* sd, va_list ap)
 {
-	struct map_session_data *sd = (TBL_PC*)data;
-
 	chrif_save(sd,1);
 	return 1;
 }
@@ -3279,6 +3392,7 @@ int do_init(int argc, char *argv[])
 	id_db = idb_alloc(DB_OPT_BASE);
 	pc_db = idb_alloc(DB_OPT_BASE);	//Added for reliable map_id2sd() use. [Skotlex]
 	mobid_db = idb_alloc(DB_OPT_BASE);	//Added to lower the load of the lazy mob ai. [Skotlex]
+	bossid_db = idb_alloc(DB_OPT_BASE); // Used for Convex Mirror quick MVP search
 	map_db = uidb_alloc(DB_OPT_BASE);
 	nick_db = idb_alloc(DB_OPT_BASE);
 	charid_db = idb_alloc(DB_OPT_BASE);

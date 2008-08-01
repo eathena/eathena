@@ -5,8 +5,11 @@
 #define _MOB_H_
 
 #include "../common/mmo.h" // struct item
-#include "unit.h" // unit_stop_walking(), unit_stop_attack()
+#include "guild.h" // struct guardian_data
 #include "map.h" // struct status_data, struct view_data, struct mob_skill
+#include "status.h" // struct status data, struct status_change
+#include "unit.h" // unit_stop_walking(), unit_stop_attack()
+
 
 #define MAX_RANDOMMONSTER 4
 #define MAX_MOB_RACE_DB 6
@@ -66,6 +69,65 @@ struct mob_db {
 	struct mob_skill skill[MAX_MOBSKILL];
 	struct spawn_info spawn[10];
 };
+
+struct mob_data {
+	struct block_list bl;
+	struct unit_data  ud;
+	struct view_data *vd;
+	struct status_data status, *base_status; //Second one is in case of leveling up mobs, or tiny/large mobs.
+	struct status_change sc;
+	struct mob_db *db;	//For quick data access (saves doing mob_db(md->class_) all the time) [Skotlex]
+	struct barricade_data *barricade;
+	char name[NAME_LENGTH];
+	struct {
+		unsigned size : 2; //Small/Big monsters.
+		unsigned ai : 2; //Special ai for summoned monsters.
+							//0: Normal mob.
+							//1: Standard summon, attacks mobs.
+							//2: Alchemist Marine Sphere
+							//3: Alchemist Summon Flora
+	} special_state; //Special mob information that does not needs to be zero'ed on mob respawn.
+	struct {
+		unsigned skillstate : 8;
+		unsigned aggressive : 1; //Signals whether the mob AI is in aggressive mode or reactive mode. [Skotlex]
+		unsigned char steal_flag; //number of steal tries (to prevent steal exploit on mobs with few items) [Lupus]
+		unsigned steal_coin_flag : 1;
+		unsigned soul_change_flag : 1; // Celest
+		unsigned alchemist: 1;
+		unsigned spotted: 1;
+		unsigned char attacked_count; //For rude attacked.
+		int provoke_flag; // Celest
+		unsigned npc_killmonster: 1; //for new killmonster behavior
+	} state;
+	struct guardian_data* guardian_data; 
+	struct {
+		int id;
+		unsigned int dmg;
+		unsigned flag : 1; //0: Normal. 1: Homunc exp
+	} dmglog[DAMAGELOG_SIZE];
+	struct spawn_data *spawn; //Spawn data.
+	int spawn_timer; //Required for Convex Mirror
+	struct item *lootitem;
+	short class_;
+	unsigned int tdmg; //Stores total damage given to the mob, for exp calculations. [Skotlex]
+	int level;
+	int target_id,attacked_id;
+	int areanpc_id; //Required in OnTouchNPC (to avoid multiple area touchs)
+
+	unsigned int next_walktime,last_thinktime,last_linktime,last_pcneartime;
+	short move_fail_count;
+	short lootitem_count;
+	short min_chase;
+	
+	int deletetimer;
+	int master_id,master_dist;
+
+	short skillidx;
+	unsigned int skilldelay[MAX_MOBSKILL];
+	char npc_event[50];
+};
+
+
 
 enum {
 	MST_TARGET =	0,
@@ -144,7 +206,13 @@ struct mob_data *mob_once_spawn_sub(struct block_list *bl, int m,
 int mob_once_spawn(struct map_session_data* sd,int m,short x,short y,const char* mobname,int class_,int amount,const char* event);
 int mob_once_spawn_area(struct map_session_data* sd,int m,int x0,int y0,int x1,int y1,const char* mobname,int class_,int amount,const char* event);
 
-int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobname, int class_, const char* event, int guardian);	// Spawning Guardians [Valaris]
+bool mob_ksprotected (struct block_list *src, struct block_list *target);
+short mob_barricade_build(short m, short x, short y, const char* mobname, short count, short dir, bool killable, bool walkable, bool shootable, bool odd, const char* event);
+void mob_barricade_destroy(short m, const char *event);
+void mob_barricade_get(struct map_session_data *sd);
+void mod_barricade_clearall(void);
+
+int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobname, int class_, const char* event, int guardian, bool has_index);	// Spawning Guardians [Valaris]
 int mob_guardian_guildchange(struct block_list *bl,va_list ap); //Change Guardian's ownership. [Skotlex]
 
 int mob_randomwalk(struct mob_data *md,unsigned int tick);
@@ -168,7 +236,7 @@ void mob_clear_spawninfo();
 int do_init_mob(void);
 int do_final_mob(void);
 
-int mob_timer_delete(int tid, unsigned int tick, int id, int data);
+int mob_timer_delete(int tid, unsigned int tick, int id, intptr data);
 int mob_deleteslave(struct mob_data *md);
 
 int mob_random_class (int *value, size_t count);

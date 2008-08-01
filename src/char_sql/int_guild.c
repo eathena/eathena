@@ -47,7 +47,7 @@ int mapif_guild_info(int fd,struct guild *g);
 int guild_break_sub(int key,void *data,va_list ap);
 int inter_guild_tosql(struct guild *g,int flag);
 
-static int guild_save_timer(int tid, unsigned int tick, int id, int data)
+static int guild_save_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	static int last_id = 0; //To know in which guild we were.
 	int state = 0; //0: Have not reached last guild. 1: Reached last guild, ready for save. 2: Some guild saved, don't do further saving.
@@ -59,7 +59,7 @@ static int guild_save_timer(int tid, unsigned int tick, int id, int data)
 		state = 1;
 
 	iter = guild_db_->iterator(guild_db_);
-	for( g = iter->first(iter,&key); iter->exists(iter); g = iter->next(iter,&key) )
+	for( g = (struct guild*)iter->first(iter,&key); iter->exists(iter); g = (struct guild*)iter->next(iter,&key) )
 	{
 		if( state == 0 && g->guild_id == last_id )
 			state++; //Save next guild in the list.
@@ -374,7 +374,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 	if( guild_id <= 0 )
 		return NULL;
 
-	g = idb_get(guild_db_, guild_id);
+	g = (struct guild*)idb_get(guild_db_, guild_id);
 	if( g )
 		return g;
 
@@ -1276,8 +1276,11 @@ int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member
 	g->position[0].mode=0x11;
 	strcpy(g->position[0].name,"GuildMaster");
 	strcpy(g->position[MAX_GUILDPOSITION-1].name,"Newbie");
-	for(i=1;i<MAX_GUILDPOSITION-1;i++)
+	g->position[0].modified = g->position[MAX_GUILDPOSITION-1].modified = GS_POSITION_MODIFIED;
+	for(i=1;i<MAX_GUILDPOSITION-1;i++) {
 		sprintf(g->position[i].name,"Position %d",i+1);
+		g->position[i].modified = GS_POSITION_MODIFIED;
+	}
 
 	// Initialize guild property
 	g->max_member=16;
@@ -1852,7 +1855,7 @@ int mapif_parse_GuildCastleDataSave(int fd,int castle_id,int index,int value)
 	case 1:
 		if( gc.guild_id!=value ){
 			int gid=(value)?value:gc.guild_id;
-			struct guild *g=idb_get(guild_db_, gid);
+			struct guild *g = (struct guild*)idb_get(guild_db_, gid);
 			if(log_inter)
 				inter_log("guild %s (id=%d) %s castle id=%d\n",
 					(g)?g->name:"??" ,gid, (value)?"occupy":"abandon", castle_id);

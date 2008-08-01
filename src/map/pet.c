@@ -26,6 +26,7 @@
 #include "skill.h"
 #include "unit.h"
 #include "atcommand.h" // msg_txt()
+#include "log.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -227,7 +228,7 @@ int pet_sc_check(struct map_session_data *sd, int type)
 	return 0;
 }
 
-static int pet_hungry(int tid,unsigned int tick,int id,int data)
+static int pet_hungry(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd;
 	struct pet_data *pd;
@@ -245,7 +246,7 @@ static int pet_hungry(int tid,unsigned int tick,int id,int data)
 		ShowError("pet_hungry_timer %d != %d\n",pd->pet_hungry_timer,tid);
 		return 0;
 	}
-	pd->pet_hungry_timer = -1;
+	pd->pet_hungry_timer = INVALID_TIMER;
 
 	if (pd->pet.intimate <= 0)
 		return 1; //You lost the pet already, the rest is irrelevant.
@@ -302,7 +303,7 @@ int pet_hungry_timer_delete(struct pet_data *pd)
 	nullpo_retr(0, pd);
 	if(pd->pet_hungry_timer != -1) {
 		delete_timer(pd->pet_hungry_timer,pet_hungry);
-		pd->pet_hungry_timer = -1;
+		pd->pet_hungry_timer = INVALID_TIMER;
 	}
 
 	return 1;
@@ -554,7 +555,7 @@ int pet_catch_process2(struct map_session_data* sd, int target_id)
 		return 1;
 	}
 
-	pet_catch_rate = (pet_db[i].capture + (sd->status.base_level - md->level)*30 + sd->battle_status.luk*20)*(200 - status_calc_life(md->status.hp, md->status.max_hp))/100;
+	pet_catch_rate = (pet_db[i].capture + (sd->status.base_level - md->level)*30 + sd->battle_status.luk*20)*(200 - get_percentage(md->status.hp, md->status.max_hp))/100;
 
 	if(pet_catch_rate < 1) pet_catch_rate = 1;
 	if(battle_config.pet_catch_rate != 100)
@@ -750,12 +751,12 @@ static int pet_unequipitem(struct map_session_data *sd, struct pet_data *pd)
 				delete_timer(pd->s_skill->timer, pet_skill_support_timer);
 			else
 				delete_timer(pd->s_skill->timer, pet_heal_timer);
-			pd->s_skill->timer = -1;
+			pd->s_skill->timer = INVALID_TIMER;
 		}
 		if (pd->bonus && pd->bonus->timer != -1)
 		{
 			delete_timer(pd->bonus->timer, pet_skill_bonus_timer);
-			pd->bonus->timer = -1;
+			pd->bonus->timer = INVALID_TIMER;
 		}
 	}
 
@@ -969,9 +970,9 @@ static int pet_ai_sub_foreachclient(struct map_session_data *sd,va_list ap)
 	return 0;
 }
 
-static int pet_ai_hard(int tid,unsigned int tick,int id,int data)
+static int pet_ai_hard(int tid, unsigned int tick, int id, intptr data)
 {
-	clif_foreachclient(pet_ai_sub_foreachclient,tick);
+	map_foreachpc(pet_ai_sub_foreachclient,tick);
 
 	return 0;
 }
@@ -1003,7 +1004,7 @@ static int pet_ai_sub_hard_lootsearch(struct block_list *bl,va_list ap)
 	return 0;
 }
 
-static int pet_delay_item_drop(int tid,unsigned int tick,int id,int data)
+static int pet_delay_item_drop(int tid, unsigned int tick, int id, intptr data)
 {
 	struct item_drop_list *list;
 	struct item_drop *ditem, *ditem_prev;
@@ -1047,7 +1048,8 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 				memcpy(&ditem->item_data, it, sizeof(struct item));
 				ditem->next = dlist->item;
 				dlist->item = ditem;
-			}
+			} else
+    			log_pick_pc(sd, "P", it->nameid, it->amount, it);
 		}
 		else {
 			ditem = ers_alloc(item_drop_ers, struct item_drop);
@@ -1072,7 +1074,7 @@ int pet_lootitem_drop(struct pet_data *pd,struct map_session_data *sd)
 /*==========================================
  * pet bonus giving skills [Valaris] / Rewritten by [Skotlex]
  *------------------------------------------*/ 
-int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
+int pet_skill_bonus_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
@@ -1086,7 +1088,7 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 
 	if(pd->bonus->timer != tid) {
 		ShowError("pet_skill_bonus_timer %d != %d\n",pd->bonus->timer,tid);
-		pd->bonus->timer = -1;
+		pd->bonus->timer = INVALID_TIMER;
 		return 0;
 	}
 	
@@ -1098,7 +1100,7 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 		bonus = 1;
 		timer = pd->bonus->duration*1000;	// the duration for pet bonuses to be in effect
 	} else { //Lost pet...
-		pd->bonus->timer = -1;
+		pd->bonus->timer = INVALID_TIMER;
 		return 0;
 	}
 
@@ -1114,7 +1116,7 @@ int pet_skill_bonus_timer(int tid,unsigned int tick,int id,int data)
 /*==========================================
  * pet recovery skills [Valaris] / Rewritten by [Skotlex]
  *------------------------------------------*/ 
-int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
+int pet_recovery_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
@@ -1137,17 +1139,17 @@ int pet_recovery_timer(int tid,unsigned int tick,int id,int data)
 		clif_emotion(&pd->bl, 33);
 	}
 
-	pd->recovery->timer = -1;
+	pd->recovery->timer = INVALID_TIMER;
 	
 	return 0;
 }
 
-int pet_heal_timer(int tid,unsigned int tick,int id,int data)
+int pet_heal_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	struct status_data *status;
 	struct pet_data *pd;
-	short rate = 100;
+	unsigned int rate = 100;
 	
 	if(sd==NULL || sd->pd == NULL || sd->pd->s_skill == NULL)
 		return 1;
@@ -1162,8 +1164,8 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 	status = status_get_status_data(&sd->bl);
 	
 	if(pc_isdead(sd) ||
-		(rate = status_calc_life(status->sp, status->max_sp)) > pd->s_skill->sp ||
-		(rate = status_calc_life(status->hp, status->max_hp)) > pd->s_skill->hp ||
+		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
+		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
 		(rate = (pd->ud.skilltimer != -1)) //Another skill is in effect
 	) {  //Wait (how long? 1 sec for every 10% of remaining)
 		pd->s_skill->timer=add_timer(gettick()+(rate>10?rate:10)*100,pet_heal_timer,sd->bl.id,0);
@@ -1180,7 +1182,7 @@ int pet_heal_timer(int tid,unsigned int tick,int id,int data)
 /*==========================================
  * pet support skills [Skotlex]
  *------------------------------------------*/ 
-int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
+int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data *sd=map_id2sd(id);
 	struct pet_data *pd;
@@ -1205,8 +1207,8 @@ int pet_skill_support_timer(int tid,unsigned int tick,int id,int data)
 	}
 	
 	if(pc_isdead(sd) ||
-		(rate = status_calc_life(status->sp, status->max_sp)) > pd->s_skill->sp ||
-		(rate = status_calc_life(status->hp, status->max_hp)) > pd->s_skill->hp ||
+		(rate = get_percentage(status->sp, status->max_sp)) > pd->s_skill->sp ||
+		(rate = get_percentage(status->hp, status->max_hp)) > pd->s_skill->hp ||
 		(rate = (pd->ud.skilltimer != -1)) //Another skill is in effect
 	) {  //Wait (how long? 1 sec for every 10% of remaining)
 		pd->s_skill->timer=add_timer(tick+(rate>10?rate:10)*100,pet_skill_support_timer,sd->bl.id,0);

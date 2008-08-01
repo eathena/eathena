@@ -5,11 +5,12 @@
 #define _BATTLE_H_
 
 // state of a single attack attempt; used in flee/def penalty calculations when mobbed
-enum damage_lv {
-	ATK_LUCKY=1, // attack was lucky-dodged
+typedef enum damage_lv {
+	ATK_NONE,    // not an attack
+	ATK_LUCKY,   // attack was lucky-dodged
 	ATK_FLEE,    // attack was dodged
 	ATK_DEF      // attack connected
-};
+} damage_lv;
 
 // ダメージ
 struct Damage {
@@ -36,6 +37,7 @@ int battle_calc_return_damage(struct block_list *bl, int damage, int flag);
 
 void battle_drain(struct map_session_data *sd, struct block_list *tbl, int rdamage, int ldamage, int race, int boss);
 
+int battle_attr_ratio(int atk_elem,int def_type, int def_lv);
 int battle_attr_fix(struct block_list *src, struct block_list *target, int damage,int atk_elem,int def_type, int def_lv);
 
 // ダメージ最終計算
@@ -55,7 +57,7 @@ enum {	// 最終計算のフラグ
 	BF_SKILLMASK= 0x0f00,
 };
 
-int battle_delay_damage (unsigned int tick, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, enum damage_lv dmg_lv, int ddelay);
+int battle_delay_damage (unsigned int tick, int amotion, struct block_list *src, struct block_list *target, int attack_type, int skill_id, int skill_lv, int damage, enum damage_lv dmg_lv, int ddelay);
 
 // 通常攻撃処理まとめ
 enum damage_lv battle_weapon_attack( struct block_list *bl,struct block_list *target,unsigned int tick,int flag);
@@ -267,6 +269,7 @@ extern struct Battle_Config
 	int mob_warp;
 	int dead_branch_active;
 	int vending_max_value;
+	int vending_over_max;
 	int vending_tax;
 	int show_steal_in_same_party;
 	int party_share_type;
@@ -351,8 +354,6 @@ extern struct Battle_Config
 	int mobs_level_up; // [Valaris]
 	int mobs_level_up_exp_rate; // [Valaris]
 	int pk_min_level; // [celest]
-	int skill_steal_type; // [celest]
-	int skill_steal_rate; // [celest]
 	int skill_steal_max_tries; //max steal skill tries on a mob. if 0, then w/o limit [Lupus]
 	int motd_type; // [celest]
 	int finding_ore_rate; // orn
@@ -385,6 +386,8 @@ extern struct Battle_Config
 	int dynamic_mobs; // Dynamic Mobs [Wizputer] - battle_athena flag implemented by [random]
 	int mob_remove_damaged; // Dynamic Mobs - Remove mobs even if damaged [Wizputer]
 	int mob_remove_delay; // Dynamic Mobs - delay before removing mobs from a map [Skotlex]
+	int mob_active_time; //Duration through which mobs execute their Hard AI after players leave their area of sight.
+	int boss_active_time;
 
 	int show_hp_sp_drain, show_hp_sp_gain;	//[Skotlex]
 
@@ -440,8 +443,16 @@ extern struct Battle_Config
 	int homunculus_show_growth ;	//[orn]
 	int homunculus_friendly_rate;
 	int quest_exp_rate;
+	int autotrade_mapflag;
+	int at_timeout;
+	int homunculus_autoloot;
+	int idle_no_autoloot;
+	int max_guild_alliance;
+	int ksprotection;
 	int auction_feeperhour;
 	int auction_maximumprice;
+	int gm_viewequip_min_lv;
+	int homunculus_auto_vapor; //Keep Homunculus from Vaporizing when master dies. [L0ne_W0lf]
 } battle_config;
 
 void do_init_battle(void);

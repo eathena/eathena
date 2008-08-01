@@ -9,7 +9,9 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 
-#include "map.h" // struct mob_data, struct npc_data
+#include "mob.h" // struct mob_data
+#include "npc.h" // struct npc_data
+#include "pc.h" // struct map_session_data
 #include "script.h" // set_var()
 
 #include "pcre.h"
@@ -400,7 +402,6 @@ int npc_chat_sub(struct block_list* bl, va_list ap)
 	
 	return 0;
 }
-
 
 // Various script builtins used to support these functions
 

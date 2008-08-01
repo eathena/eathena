@@ -8,6 +8,7 @@
 #include "../common/malloc.h"
 #include "../common/lock.h"
 #include "../common/showmsg.h"
+#include "../common/strlib.h"
 #include "char.h"
 #include "inter.h"
 #include "int_party.h"
@@ -252,8 +253,10 @@ int inter_save(void) {
 	return 0;
 }
 #endif //TXT_SQL_CONVERT
+
 // 初期化
-int inter_init_txt(const char *file) {
+int inter_init_txt(const char *file)
+{
 	inter_config_read(file);
 
 #ifndef TXT_SQL_CONVERT
@@ -348,7 +351,8 @@ int mapif_wis_fail(int fd, char *src) {
 }
 
 // Wisp/page transmission result to map-server
-int mapif_wis_end(struct WisData *wd, int flag) {
+int mapif_wis_end(struct WisData *wd, int flag)
+{
 	unsigned char buf[27];
 
 	WBUFW(buf, 0) = 0x3802;
@@ -359,22 +363,17 @@ int mapif_wis_end(struct WisData *wd, int flag) {
 	return 0;
 }
 
-// アカウント変数送信
-int mapif_account_reg(int fd, unsigned char *src) {
-	unsigned char *buf = aCalloc(1,WBUFW(src,2));
-
-	memcpy(WBUFP(buf,0),src,WBUFW(src,2));
-	WBUFW(buf, 0) = 0x3804;
-	mapif_sendallwos(fd, buf, WBUFW(buf,2));
-
-	aFree(buf);
-
-	return 0;
+// Account registry transfer to map-server
+static void mapif_account_reg(int fd, unsigned char *src)
+{
+	WBUFW(src,0)=0x3804; //NOTE: writing to RFIFO
+	mapif_sendallwos(fd, src, WBUFW(src,2));
 }
 
 // アカウント変数要求返信
-int mapif_account_reg_reply(int fd,int account_id, int char_id) {
-	struct accreg *reg = idb_get(accreg_db,account_id);
+int mapif_account_reg_reply(int fd,int account_id, int char_id)
+{
+	struct accreg *reg = (struct accreg*)idb_get(accreg_db,account_id);
 
 	WFIFOHEAD(fd, ACCOUNT_REG_NUM * 288+ 13);
 	WFIFOW(fd,0) = 0x3804;
@@ -386,8 +385,8 @@ int mapif_account_reg_reply(int fd,int account_id, int char_id) {
 	} else {
 		int i, p;
 		for (p=13,i = 0; i < reg->reg_num; i++) {
-			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
-			p+= sprintf(WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
+			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
+			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg->reg[i].value)+1;
 		}
 		WFIFOW(fd,2)=p;
 	}
@@ -432,7 +431,7 @@ int check_ttl_wisdata(void) {
 		wis_delnum = 0;
 		wis_db->foreach(wis_db, check_ttl_wisdata_sub, tick);
 		for(i = 0; i < wis_delnum; i++) {
-			struct WisData *wd = idb_get(wis_db, wis_dellist[i]);
+			struct WisData *wd = (struct WisData*)idb_get(wis_db, wis_dellist[i]);
 			ShowWarning("inter: wis data id=%d time out : from %s to %s\n", wd->id, wd->src, wd->dst);
 			// removed. not send information after a timeout. Just no answer for the player
 			//mapif_wis_end(wd, 1); // flag: 0: success to send wisper, 1: target character is not loged in?, 2: ignored by target
@@ -473,13 +472,12 @@ static struct WisData* mapif_create_whisper(int fd, char* src, char* dst, char* 
 }
 
 // Wisp/page request to send
-int mapif_parse_WisRequest(int fd) {
+int mapif_parse_WisRequest(int fd)
+{
 	struct mmo_charstatus* char_status;
 	struct WisData* wd;
 	char name[NAME_LENGTH];
 	int fd2;
-
-	RFIFOHEAD(fd);
 
 	if (RFIFOW(fd,2)-52 >= sizeof(wd->msg)) {
 		ShowWarning("inter: Wis message size too long.\n");
@@ -489,12 +487,12 @@ int mapif_parse_WisRequest(int fd) {
 		return 0;
 	}
 
-	memcpy(name, RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
-	name[NAME_LENGTH-1]= '\0';
+	safestrncpy(name, (char*)RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
+
 	// search if character exists before to ask all map-servers
 	char_status = search_character_byname(name);
 	if (char_status == NULL)
-		return mapif_wis_fail(fd, RFIFOP(fd, 4));
+		return mapif_wis_fail(fd, (char*)RFIFOP(fd, 4));
 
 	// Character exists.
 	// to be sure of the correct name, rewrite it
@@ -502,19 +500,19 @@ int mapif_parse_WisRequest(int fd) {
 	strncpy(name, char_status->name, NAME_LENGTH);
 	// if source is destination, don't ask other servers.
 	if (strcmp((char*)RFIFOP(fd,4),name) == 0)
-		return mapif_wis_fail(fd, RFIFOP(fd, 4));
+		return mapif_wis_fail(fd, (char*)RFIFOP(fd, 4));
 
 	//Look for online character.
 	fd2 = search_character_online(char_status->account_id, char_status->char_id);
 	if (fd2 >= 0) {	//Character online, send whisper.
-		wd = mapif_create_whisper(fd, RFIFOP(fd, 4), RFIFOP(fd,28), RFIFOP(fd,52), RFIFOW(fd,2)-52);
+		wd = mapif_create_whisper(fd, (char*)RFIFOP(fd, 4), (char*)RFIFOP(fd,28), (char*)RFIFOP(fd,52), RFIFOW(fd,2)-52);
 		if (!wd) return 1;
 		idb_put(wis_db, wd->id, wd);
 		mapif_wis_message2(wd, fd2);
 		return 0;
 	}
 	//Not found.
-	return mapif_wis_fail(fd, RFIFOP(fd, 4));
+	return mapif_wis_fail(fd, (char*)RFIFOP(fd,4));
 }
 
 // Wisp/page transmission result
@@ -524,7 +522,7 @@ int mapif_parse_WisReply(int fd) {
 	RFIFOHEAD(fd);
 	id = RFIFOL(fd,2);
 	flag = RFIFOB(fd,6);
-	wd = idb_get(wis_db, id);
+	wd = (struct WisData*)idb_get(wis_db, id);
 
 	if (wd == NULL)
 		return 0;	// This wisp was probably suppress before, because it was timeout or because of target was found on another map-server
@@ -572,13 +570,13 @@ int mapif_parse_Registry(int fd) {
 		default: //Error?
 			return 1; 
 	}
-	reg = idb_ensure(accreg_db, RFIFOL(fd,4), create_accreg);
+	reg = (struct accreg*)idb_ensure(accreg_db, RFIFOL(fd,4), create_accreg);
 
 	for(j=0,p=13;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++){
-		sscanf(RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
+		sscanf((char*)RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
 		reg->reg[j].str[len]='\0';
 		p +=len+1; //+1 to skip the '\0' between strings.
-		sscanf(RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
+		sscanf((char*)RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
 		reg->reg[j].value[len]='\0';
 		p +=len+1;
 	}
@@ -625,7 +623,7 @@ int mapif_parse_NameChangeRequest(int fd)
 	account_id = RFIFOL(fd, 2);
 	char_id = RFIFOL(fd, 6);
 	type = RFIFOB(fd, 10);
-	name = RFIFOP(fd, 11);
+	name = (char*)RFIFOP(fd, 11);
 
 	// Check Authorised letters/symbols in the name
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised

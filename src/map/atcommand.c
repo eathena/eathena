@@ -14,6 +14,7 @@
 
 #include "atcommand.h"
 #include "battle.h"
+#include "chat.h"
 #include "clif.h"
 #include "chrif.h"
 #include "intif.h"
@@ -430,7 +431,7 @@ int atcommand_mapmove(const int fd, struct map_session_data* sd, const char* com
 	if (mapindex)
 		m = map_mapindex2mapid(mapindex);
 	
-	if (!mapindex || m < 0) {
+	if (!mapindex) { // m < 0 means on different server! [Kevin]
 		clif_displaymessage(fd, msg_txt(1)); // Map not found.
 		return -1;
 	}
@@ -1154,7 +1155,6 @@ int atcommand_storage(const int fd, struct map_session_data* sd, const char* com
  *------------------------------------------*/
 int atcommand_guildstorage(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct storage *stor; //changes from Freya/Yor
 	nullpo_retr(-1, sd);
 
 	if (!sd->status.guild_id) {
@@ -1162,18 +1162,19 @@ int atcommand_guildstorage(const int fd, struct map_session_data* sd, const char
 		return -1;
 	}
 
-	if (sd->npc_id || sd->vender_id || sd->state.trading || sd->state.storage_flag)
+	if (sd->npc_id || sd->vender_id || sd->state.trading)
 		return -1;
 
-	if (sd->state.storage_flag) {
+	if (sd->state.storage_flag == 1) {
+		clif_displaymessage(fd, msg_txt(250));
+		return -1;
+	}
+
+	if (sd->state.storage_flag == 2) {
 		clif_displaymessage(fd, msg_txt(251));
 		return -1;
 	}
 
-	if ((stor = account2storage2(sd->status.account_id)) != NULL && stor->storage_status == 1) {
-		clif_displaymessage(fd, msg_txt(251));
-		return -1;
-	}
 	storage_guild_storageopen(sd);
 	clif_displaymessage(fd, "Guild storage opened.");
 	return 0;
@@ -1923,7 +1924,7 @@ static int atcommand_pvpoff_sub(struct block_list *bl,va_list ap)
 	clif_pvpset(sd, 0, 0, 2);
 	if (sd->pvp_timer != -1) {
 		delete_timer(sd->pvp_timer, pc_calc_pvprank_timer);
-		sd->pvp_timer = -1;
+		sd->pvp_timer = INVALID_TIMER;
 	}
 	return 0;
 }
@@ -4786,8 +4787,8 @@ char* txt_time(unsigned int duration)
  *------------------------------------------*/
 int atcommand_servertime(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct TimerData * timer_data;
-	struct TimerData * timer_data2;
+	const struct TimerData * timer_data;
+	const struct TimerData * timer_data2;
 	time_t time_server;  // variable for number of seconds (used with time() function)
 	struct tm *datetime; // variable for time in structure ->tm_mday, ->tm_sec, ...
 	char temp[256];
@@ -5343,7 +5344,7 @@ int atcommand_effect(const int fd, struct map_session_data* sd, const char* comm
 		return -1;
 	}
 
-	clif_specialeffect(&sd->bl, type, flag);
+	clif_specialeffect(&sd->bl, type, (send_target)flag);
 	clif_displaymessage(fd, msg_txt(229)); // Your effect has changed.
 	return 0;
 }
@@ -5546,15 +5547,12 @@ int atcommand_storeall(const int fd, struct map_session_data* sd, const char* co
 
 	if (sd->state.storage_flag != 1)
   	{	//Open storage.
-		switch (storage_storageopen(sd)) {
-		case 2: //Try again
-			clif_displaymessage(fd, "run this command again..");
-			return 0;
-		case 1: //Failure
+		if( storage_storageopen(sd) == 1 ) {
 			clif_displaymessage(fd, "You can't open the storage currently.");
 			return -1;
 		}
 	}
+
 	for (i = 0; i < MAX_INVENTORY; i++) {
 		if (sd->status.inventory[i].amount) {
 			if(sd->status.inventory[i].equip != 0)
@@ -5857,19 +5855,26 @@ int atcommand_changelook(const int fd, struct map_session_data* sd, const char* 
 int atcommand_autotrade(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if (sd->vender_id) //check if player's vending
+	if( sd->vender_id ) //check if player's vending
 	{
-		sd->state.autotrade = 1;
-		clif_authfail_fd(fd, 15);
-	}
-	else 
-	{
-		//"You should be vending to use @Autotrade."
-		clif_displaymessage(fd, msg_txt(549));
-	}
-	return 0;  
-}   
+		if( map[sd->bl.m].flag.autotrade == battle_config.autotrade_mapflag )
+		{
+			sd->state.autotrade = 1;
+			if( battle_config.at_timeout )
+			{
+				int timeout = atoi(message);
+				status_change_start(&sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
+			}
 
+			clif_authfail_fd(fd, 15);
+		} else
+			clif_displaymessage(fd, "Autotrade is not allowed on this map.");
+	}
+	else
+		clif_displaymessage(fd, msg_txt(549)); // You should be vending to use @Autotrade.
+
+	return 0;
+}
 
 /*==========================================
  * @changegm by durf (changed by Lupus)
@@ -5886,6 +5891,13 @@ int atcommand_changegm(const int fd, struct map_session_data* sd, const char* co
 		clif_displaymessage(fd, "You need to be a Guild Master to use this command.");
 		return -1;
 	}
+
+	if( map[sd->bl.m].flag.guildlock )
+	{
+		clif_displaymessage(fd, "You cannot change guild leaders on this map.");
+		return -1;
+	}
+
 	if (strlen(message)==0)
 	{
 		clif_displaymessage(fd, "Command usage: @changegm <guildmember name>");
@@ -5918,8 +5930,13 @@ int atcommand_changeleader(const int fd, struct map_session_data* sd, const char
 		return -1;
 	}
 	
-	for (mi = 0; mi < MAX_PARTY && p->data[mi].sd != sd; mi++);
-	
+	if( map[sd->bl.m].flag.partylock )
+	{
+		clif_displaymessage(fd, "You cannot change party leaders on this map.");
+		return -1;
+	}
+
+	ARR_FIND( 0, MAX_PARTY, mi, p->data[mi].sd == sd );
 	if (mi == MAX_PARTY)
 		return -1; //Shouldn't happen
 
@@ -6033,9 +6050,44 @@ int atcommand_autoloot(const int fd, struct map_session_data* sd, const char* co
 		clif_displaymessage(fd, atcmd_output);
 	}else
 		clif_displaymessage(fd, "Autoloot is now off.");
+
 	return 0;
 }
 
+/*==========================================
+ * @autolootitem
+ *------------------------------------------*/
+int atcommand_autolootitem(const int fd, struct map_session_data* sd, const char* command, const char* message)
+{
+	struct item_data *item_data = NULL;
+
+	if (!message || !*message) {
+		if (sd->state.autolootid) {
+			sd->state.autolootid = 0;
+			clif_displaymessage(fd, "Autolootitem have been turned OFF.");
+		} else
+			clif_displaymessage(fd, "Please, enter Item name or its ID (usage: @autolootitem <item_name_or_ID>).");
+
+		return -1;
+	}
+
+	if ((item_data = itemdb_exists(atoi(message))) == NULL)
+		item_data = itemdb_searchname(message);
+
+	if (!item_data) {
+		// No items founds in the DB with Id or Name
+		clif_displaymessage(fd, "Item not found.");
+		return -1;
+	}
+
+	sd->state.autolootid = item_data->nameid; // Autoloot Activated
+
+	sprintf(atcmd_output, "Autolooting Item: '%s'/'%s' {%d}",
+		item_data->name, item_data->jname, item_data->nameid);
+	clif_displaymessage(fd, atcmd_output);
+
+	return 0;
+}
 
 /*==========================================
  * It is made to rain.
@@ -6393,37 +6445,51 @@ int atcommand_pettalk(const int fd, struct map_session_data* sd, const char* com
 /*==========================================
  * @users - displays the number of players present on each map (percentage)
  *------------------------------------------*/
-
-static DBMap* users_db = NULL; // unsigned int mapindex -> int users
-static int users_all;
-
-static int atcommand_users_sub1(struct map_session_data* sd,va_list va)
-{
-	int users = (int)(uidb_get(users_db,(unsigned int)sd->mapindex)) + 1;
-	users_all++;
-	uidb_put(users_db,(unsigned int)sd->mapindex,(void *)users);
-	return 0;
-}
-
-static int atcommand_users_sub2(DBKey key,void* val,va_list va)
-{
-	char buf[256];
-	struct map_session_data* sd = va_arg(va,struct map_session_data*);
-	sprintf(buf,"%s: %d (%d%%)",mapindex_id2name(key.i),(int)val,(int)val * 100 / users_all);
-	clif_displaymessage(sd->fd,buf);
-	return 0;
-}
-
 int atcommand_users(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char buf[256];
+	DBMap* users_db; // unsigned int mapindex -> int users
+	int users_all;
+
+	users_db = uidb_alloc(DB_OPT_BASE);
 	users_all = 0;
 
-	users_db->clear(users_db, NULL);
-	clif_foreachclient(atcommand_users_sub1);
-	users_db->foreach(users_db,atcommand_users_sub2,sd);
+	// count users on each map
+	{
+		struct s_mapiterator* iter;
+		struct map_session_data* sd;
+
+		iter = mapit_getallusers();
+		for( sd = (struct map_session_data*)mapit_first(iter); mapit_exists(iter); sd = (struct map_session_data*)mapit_next(iter) )
+		{
+			int users = (int)uidb_get(users_db,sd->mapindex) + 1;
+			uidb_put(users_db,(unsigned int)sd->mapindex,(void *)users);
+			users_all++;
+		}
+		mapit_free(iter);
+	}
+
+	// display results for each map
+	{
+		DBIterator* iter;
+		DBKey index;
+		int users;
+
+		iter = users_db->iterator(users_db);
+		for( users = (int)iter->first(iter,&index); iter->exists(iter); users = (int)iter->next(iter,&index) )
+		{
+			sprintf(buf,"%s: %d (%d%%)",mapindex_id2name(index.i),users,users * 100 / users_all);
+			clif_displaymessage(sd->fd,buf);
+		}
+		iter->destroy(iter);
+	}
+
+	// display overall count
 	sprintf(buf,"all: %d",users_all);
 	clif_displaymessage(fd,buf);
+
+	users_db->destroy(users_db,NULL);
+
 	return 0;
 }
 
@@ -6916,82 +6982,84 @@ int atcommand_mobinfo(const int fd, struct map_session_data* sd, const char* com
 * @showmobs by KarLaeda
 * => For 5 sec displays the mobs on minimap
 *------------------------------------------*/
-int atshowmobs_timer(int tid, unsigned int tick, int id, int data)
+int atshowmobs_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct map_session_data* sd = map_id2sd(id);
 	if( sd == NULL )
 		return 0;
 
-	clif_viewpoint(sd, 1, 2, 0, 0, data, 0xFFFFFF);
+	// remove indicator
+	clif_viewpoint(sd, 1, 2, 0, 0, (int)data, 0xFFFFFF);
 	return 1;
 }
+
 static int atshowmobs_sub(struct block_list *bl,va_list ap)
 {
-    int mob_id,fd;
-    struct map_session_data* sd;
-    static int number=0;
-    struct mob_data *md;
+	int mob_id;
+	struct map_session_data* sd;
+	static int number=0;
+	struct mob_data *md;
 
-    if(!ap){
-        number=0;
-        return 0;
-    }
-    mob_id = va_arg(ap,int);
-    fd = va_arg(ap,int);
-    sd = va_arg(ap,struct map_session_data*);
+	if(!ap){
+		number=0;
+		return 0;
+	}
+	mob_id = va_arg(ap,int);
+	sd = va_arg(ap,struct map_session_data*);
 
-    md = (struct mob_data *)bl;
+	md = (struct mob_data *)bl;
 
 	if(md->special_state.ai || md->master_id)
 		 return 0; //Hide slaves and player summoned mobs. [Skotlex]
 
-    if(fd && (mob_id==-1 || (md->class_==mob_id))){
-        clif_viewpoint(sd, 1, 1, bl->x, bl->y, ++number, 0xFFFFFF);
-        add_timer(gettick()+5000, atshowmobs_timer, fd, number);
-    }
-    return 0;
+	if(mob_id==-1 || md->class_==mob_id){
+		clif_viewpoint(sd, 1, 1, bl->x, bl->y, ++number, 0xFFFFFF);
+		add_timer(gettick()+5000, atshowmobs_timer, sd->bl.id, number);
+	}
+	return 0;
 }
+
 int atcommand_showmobs(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-    char mob_name[100];
-    int mob_id,map_id = 0;
+	char mob_name[100];
+	int mob_id,map_id = 0;
 
-    nullpo_retr(-1, sd);
+	nullpo_retr(-1, sd);
 
-    if (sscanf(message, "%99[^\n]", mob_name) < 0)
-        return -1;
+	if(sscanf(message, "%99[^\n]", mob_name) < 0)
+		return -1;
 
-    if ((mob_id = atoi(mob_name)) == 0)
-         mob_id = mobdb_searchname(mob_name);
-    if(mob_id > 0 && mobdb_checkid(mob_id) == 0){
-        snprintf(atcmd_output, sizeof atcmd_output, "Invalid mob id %s!",mob_name);
-        clif_displaymessage(fd, atcmd_output);
-        return 0;
-    }
+	if((mob_id = atoi(mob_name)) == 0)
+		mob_id = mobdb_searchname(mob_name);
+	if(mob_id > 0 && mobdb_checkid(mob_id) == 0){
+		snprintf(atcmd_output, sizeof atcmd_output, "Invalid mob id %s!",mob_name);
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
 // Uncomment the following line to show mini-bosses & MVP.
 //#define SHOW_MVP
 #ifndef SHOW_MVP
-    if(mob_db(mob_id)->status.mode&MD_BOSS){
-        snprintf(atcmd_output, sizeof atcmd_output, "Can't show Boss mobs!");
-        clif_displaymessage(fd, atcmd_output);
-        return 0;
-    }
+	if(mob_db(mob_id)->status.mode&MD_BOSS){
+		snprintf(atcmd_output, sizeof atcmd_output, "Can't show Boss mobs!");
+		clif_displaymessage(fd, atcmd_output);
+		return 0;
+	}
 #endif
-    if(mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
-                strcpy(mob_name,mob_db(mob_id)->jname);    // --ja--
-//                strcpy(mob_name,mob_db(mob_id)->name);    // --en--
+	if(mob_id == atoi(mob_name) && mob_db(mob_id)->jname)
+		strcpy(mob_name,mob_db(mob_id)->jname);    // --ja--
+		//strcpy(mob_name,mob_db(mob_id)->name);    // --en--
 
-    map_id = sd->bl.m;
+	map_id = sd->bl.m;
 
-    snprintf(atcmd_output, sizeof atcmd_output, "Mob Search... %s %s",
-        mob_name, mapindex_id2name(sd->mapindex));
-    clif_displaymessage(fd, atcmd_output);
+	snprintf(atcmd_output, sizeof atcmd_output, "Mob Search... %s %s",
+		mob_name, mapindex_id2name(sd->mapindex));
+		clif_displaymessage(fd, atcmd_output);
 
-    map_foreachinmap(atshowmobs_sub, map_id, BL_MOB, mob_id, fd, sd);
+	map_foreachinmap(atshowmobs_sub, map_id, BL_MOB, mob_id, sd);
 
-    atshowmobs_sub(&sd->bl,0);
+	atshowmobs_sub(&sd->bl,0);
 
-    return 0;
+	return 0;
 }
 
 /*==========================================
@@ -7729,6 +7797,45 @@ int atcommand_showdelay(const int fd, struct map_session_data* sd, const char* c
 }
 
 /*==========================================
+ * Barricade Build
+ *------------------------------------------*/
+int atcommand_barricade(const int fd, struct map_session_data* sd, const char* command, const char* message)
+{
+	int x = 0, y = 0, size = 1, killable = 0, shootable = 0, dir = 0;
+	char event[50];
+	short result;
+
+	if( !message || !*message || (sscanf(message, "%d %d %d %d %d %d %50s", &x, &y, &size, &dir, &killable, &shootable, event) < 7) )
+	{
+		clif_displaymessage(fd, "usage @barricade <x> <y> <size> <dir> <killable> <shootable> <event>");
+		return -1;
+	}
+
+	if( x == -1 ) x = sd->bl.x;
+	if( y == -1 ) y = sd->bl.y;
+
+	result = mob_barricade_build(sd->bl.m, x, y, "--ja--", size, dir, (bool)killable, false, (bool)shootable, false, event);
+
+	switch( result )
+	{
+	case 0: clif_displaymessage(fd, "Barricade build."); return 0; break;
+	case 1: clif_displaymessage(fd, "Barricade fail. Invalid Size"); break;
+	case 2: clif_displaymessage(fd, "Barricade fail. Invalid Event"); break;
+	case 3: clif_displaymessage(fd, "Barricade fail. Event already exists"); break;
+	case 4: clif_displaymessage(fd, "Barricade fail. Wall problem."); break;
+	}
+
+	return -1;
+}
+
+int atcommand_barricade_destroy(const int fd, struct map_session_data* sd, const char* command, const char* message)
+{
+	mob_barricade_destroy(sd->bl.m, message);
+
+	return 0;
+}
+
+/*==========================================
  * Duel organizing functions [LuzZza]
  *
  * @duel [limit|nick] - create a duel
@@ -8105,6 +8212,58 @@ int atcommand_auction(const int fd, struct map_session_data *sd, const char *com
 }
 
 /*==========================================
+ * Kill Steal Protection
+ *------------------------------------------*/
+int atcommand_ksprotection(const int fd, struct map_session_data *sd, const char *command, const char *message)
+{
+	nullpo_retr(-1,sd);
+
+	if( sd->state.noks ) {
+		sd->state.noks = 0;
+		sprintf(atcmd_output, "[ K.S Protection Inactive ]");
+	}
+	else
+	{
+		if( !message || !*message || !strcmpi(message, "party") )
+		{ // Default is Party
+			sd->state.noks = 2;
+			sprintf(atcmd_output, "[ K.S Protection Active - Option: Party ]");
+		}
+		else if( !strcmpi(message, "self") )
+		{
+			sd->state.noks = 1;
+			sprintf(atcmd_output, "[ K.S Protection Active - Option: Self ]");
+		}
+		else if( !strcmpi(message, "guild") )
+		{
+			sd->state.noks = 3;
+			sprintf(atcmd_output, "[ K.S Protection Active - Option: Guild ]");
+		}
+	}
+
+	clif_displaymessage(fd, atcmd_output);
+	return 0;
+}
+/*==========================================
+ * Map Kill Steal Protection Setting
+ *------------------------------------------*/
+int atcommand_allowks(const int fd, struct map_session_data *sd, const char *command, const char *message)
+{
+	nullpo_retr(-1,sd);
+
+	if( map[sd->bl.m].flag.allowks ) {
+		map[sd->bl.m].flag.allowks = 0;
+		sprintf(atcmd_output, "[ Map K.S Protection Active ]");
+	} else {
+		map[sd->bl.m].flag.allowks = 1;
+		sprintf(atcmd_output, "[ Map K.S Protection Inactive ]");
+	}
+
+	clif_displaymessage(fd, atcmd_output);
+	return 0;
+}
+
+/*==========================================
  * atcommand_info[] structure definition
  *------------------------------------------*/
 
@@ -8332,6 +8491,7 @@ AtCommandInfo atcommand_info[] = {
 	{ "disguiseall",       99,     atcommand_disguiseall },
 	{ "changelook",        60,     atcommand_changelook },
 	{ "autoloot",          10,     atcommand_autoloot },
+	{ "alootid",           10,     atcommand_autolootitem },
 	{ "mobinfo",            1,     atcommand_mobinfo },
 	{ "monsterinfo",        1,     atcommand_mobinfo },
 	{ "mi",                 1,     atcommand_mobinfo },
@@ -8392,8 +8552,12 @@ AtCommandInfo atcommand_info[] = {
 	{ "feelreset",         10,     atcommand_feelreset },
 	{ "auction",           60,     atcommand_auction },
 	{ "mail",               1,     atcommand_mail },
+	{ "noks",               0,     atcommand_ksprotection },
+	{ "allowks",            6,     atcommand_allowks },
 	{ "cash",              60,     atcommand_cash },
 	{ "points",            60,     atcommand_cash },
+	{ "barricade",         60,     atcommand_barricade },
+	{ "killbarricade",     60,     atcommand_barricade_destroy },
 };
 
 
@@ -8550,14 +8714,12 @@ int atcommand_config_read(const char* cfgName)
 
 void do_init_atcommand()
 {
-	users_db = uidb_alloc(DB_OPT_BASE);
 	add_timer_func_list(atshowmobs_timer, "atshowmobs_timer");
 	return;
 }
 
 void do_final_atcommand()
 {
-	users_db->destroy(users_db,NULL);
 }
 
 

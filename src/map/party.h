@@ -4,14 +4,32 @@
 #ifndef _PARTY_H_
 #define _PARTY_H_
 
-//#include "map.h"
+#include "../common/mmo.h" // struct party
 struct block_list;
 struct map_session_data;
 struct party;
-struct party_data;
 struct item;
 
 #include <stdarg.h>
+
+struct party_member_data {
+	struct map_session_data *sd;
+	unsigned int hp; //For HP,x,y refreshing.
+	unsigned short x, y;
+};
+
+struct party_data {
+	struct party party;
+	struct party_member_data data[MAX_PARTY];
+	uint8 itemc; //For item distribution, position of last picker in party
+	struct {
+		unsigned monk : 1; //There's at least one monk in party?
+		unsigned sg : 1;	//There's at least one Star Gladiator in party?
+		unsigned snovice :1; //There's a Super Novice
+		unsigned tk : 1; //There's a taekwon
+	} state;
+};
+
 
 extern int party_share_level;
 
@@ -41,7 +59,6 @@ void party_send_levelup(struct map_session_data *sd);
 int party_send_logout(struct map_session_data *sd);
 int party_send_message(struct map_session_data *sd,const char *mes,int len);
 int party_recv_message(int party_id,int account_id,const char *mes,int len);
-int party_check_conflict(struct map_session_data *sd);
 int party_skill_check(struct map_session_data *sd, int party_id, int skillid, int skilllv);
 int party_send_xy_clear(struct party_data *p);
 int party_exp_share(struct party_data *p,struct block_list *src,unsigned int base_exp,unsigned int job_exp,int zeny);

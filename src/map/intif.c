@@ -20,6 +20,7 @@
 #include "atcommand.h"
 #include "mercenary.h" //albator
 #include "mail.h"
+#include "quest.h"
 
 #include <sys/types.h>
 #include <stdio.h>
@@ -31,12 +32,12 @@
 
 static const int packet_len_table[]={
 	-1,-1,27,-1, -1, 0,37, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3800-0x380f
-	-1, 7, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
+	 0, 0, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
 	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
 	-1,-1, 7, 7,  7,11, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus]
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
+	-1,11,11, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3860  Quests [Kevin]
 	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
 	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
 	-1,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3890  Homunculus [albator]
@@ -325,32 +326,6 @@ int intif_request_registry(struct map_session_data *sd, int flag)
 	return 0;
 }
 
-// 倉庫データ要求
-int intif_request_storage(int account_id)
-{
-	if (CheckForCharServer())
-		return 0;
-	WFIFOHEAD(inter_fd,6);
-	WFIFOW(inter_fd,0) = 0x3010;
-	WFIFOL(inter_fd,2) = account_id;
-	WFIFOSET(inter_fd,6);
-	return 0;
-}
-// 倉庫データ送信
-int intif_send_storage(struct storage *stor)
-{
-	if (CheckForCharServer())
-		return 0;
-	nullpo_retr(0, stor);
-	WFIFOHEAD(inter_fd,sizeof(struct storage)+8);
-	WFIFOW(inter_fd,0) = 0x3011;
-	WFIFOW(inter_fd,2) = sizeof(struct storage)+8;
-	WFIFOL(inter_fd,4) = stor->account_id;
-	memcpy( WFIFOP(inter_fd,8),stor, sizeof(struct storage) );
-	WFIFOSET(inter_fd,WFIFOW(inter_fd,2));
-	return 0;
-}
-
 int intif_request_guild_storage(int account_id,int guild_id)
 {
 	if (CheckForCharServer())
@@ -492,19 +467,6 @@ int intif_party_message(int party_id,int account_id,const char *mes,int len)
 	WFIFOSET(inter_fd,len+12);
 	return 0;
 }
-// パーティ競合チェック要求
-int intif_party_checkconflict(int party_id,int account_id,int char_id)
-{
-	if (CheckForCharServer())
-		return 0;
-	WFIFOHEAD(inter_fd,10 + NAME_LENGTH);
-	WFIFOW(inter_fd,0)=0x3028;
-	WFIFOL(inter_fd,2)=party_id;
-	WFIFOL(inter_fd,6)=account_id;
-	WFIFOL(inter_fd,10)=char_id;
-	WFIFOSET(inter_fd,14);
-	return 0;
-}
 
 int intif_party_leaderchange(int party_id,int account_id,int char_id)
 {
@@ -585,7 +547,7 @@ int intif_guild_leave(int guild_id,int account_id,int char_id,int flag,const cha
 	WFIFOL(inter_fd, 6) = account_id;
 	WFIFOL(inter_fd,10) = char_id;
 	WFIFOB(inter_fd,14) = flag;
-	safestrncpy(WFIFOP(inter_fd,15),mes,40);
+	safestrncpy((char*)WFIFOP(inter_fd,15),mes,40);
 	WFIFOSET(inter_fd,55);
 	return 0;
 }
@@ -905,7 +867,7 @@ int mapif_parse_WisToGM(int fd)
 	safestrncpy(Wisp_name, (char*)RFIFOP(fd,4), NAME_LENGTH);
 	safestrncpy(message, (char*)RFIFOP(fd,30), mes_len);
 	// information is sended to all online GM
-	clif_foreachclient(mapif_parse_WisToGM_sub, min_gm_level, Wisp_name, message, mes_len);
+	map_foreachpc(mapif_parse_WisToGM_sub, min_gm_level, Wisp_name, message, mes_len);
 
 	if (message != mbuf)
 		aFree(message);
@@ -967,53 +929,6 @@ int intif_parse_Registers(int fd)
 	return 1;
 }
 
-// 倉庫データ受信
-int intif_parse_LoadStorage(int fd)
-{
-	struct storage *stor;
-	struct map_session_data *sd;
-
-	sd=map_id2sd( RFIFOL(fd,4) );
-	if(sd==NULL){
-		ShowError("intif_parse_LoadStorage: user not found %d\n",RFIFOL(fd,4));
-		return 1;
-	}
-
-	stor = account2storage( RFIFOL(fd,4));
-
-	if (stor->storage_status == 1) { // Already open.. lets ignore this update
-		ShowWarning("intif_parse_LoadStorage: storage received for a client already open (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
-		return 1;
-	}
-	if (stor->dirty) { // Already have storage, and it has been modified and not saved yet! Exploit! [Skotlex]
-		ShowWarning("intif_parse_LoadStorage: received storage for an already modified non-saved storage! (User %d:%d)\n", sd->status.account_id, sd->status.char_id);
-		return 1;
-	}
-	if (RFIFOW(fd,2)-8 != sizeof(struct storage)) {
-		ShowError("intif_parse_LoadStorage: data size error %d %d\n", RFIFOW(fd,2)-8, sizeof(struct storage));
-		return 1;
-	}
-	if(battle_config.save_log)
-		ShowInfo("intif_openstorage: %d\n",RFIFOL(fd,4) );
-	memcpy(stor,RFIFOP(fd,8),sizeof(struct storage));
-	stor->dirty=0;
-	stor->storage_status=1;
-	sd->state.storage_flag = 1;
-	clif_storagelist(sd,stor);
-	clif_updatestorageamount(sd,stor);
-
-	return 0;
-}
-
-// 倉庫データ送信成功
-int intif_parse_SaveStorage(int fd)
-{
-	if(battle_config.save_log)
-		ShowInfo("intif_savestorage: done %d %d\n",RFIFOL(fd,2),RFIFOB(fd,6) );
-	storage_storage_saved(RFIFOL(fd,2));
-	return 0;
-}
-
 int intif_parse_LoadGuildStorage(int fd)
 {
 	struct guild_storage *gstor;
@@ -1052,7 +967,7 @@ int intif_parse_LoadGuildStorage(int fd)
 	gstor->storage_status = 1;
 	sd->state.storage_flag = 2;
 	clif_guildstoragelist(sd,gstor);
-	clif_updateguildstorageamount(sd,gstor);
+	clif_updateguildstorageamount(sd,gstor->storage_amount);
 	return 0;
 }
 int intif_parse_SaveGuildStorage(int fd)
@@ -1398,7 +1313,86 @@ int intif_parse_DeleteHomunculusOk(int fd)
 	return 0;
 }
 
+/**************************************
+
+QUESTLOG SYSTEM FUNCTIONS
+
+***************************************/
+
+int intif_request_questlog(TBL_PC *sd)
+{
+	WFIFOHEAD(inter_fd,6);
+	WFIFOW(inter_fd,0) = 0x3060;
+	WFIFOL(inter_fd,2) = sd->status.char_id;
+	WFIFOSET(inter_fd,6);
+	return 0;
+}
+
+int intif_parse_questlog(int fd)
+{
+
+	int num_quests = (RFIFOB(fd, 2)-8)/sizeof(struct quest);
+	int char_id = RFIFOL(fd, 4);
+	int i;
+	TBL_PC * sd = map_charid2sd(char_id);
+
+	//User not online anymore
+	if(!sd)
+		return 0;
+
+	for(i=0; i<num_quests; i++)
+	{
+		memcpy(&sd->quest_log[i], RFIFOP(fd, i*sizeof(struct quest)+8), sizeof(struct quest));
+	}
+	sd->num_quests = num_quests;
+
+	return 0;
+}
+
+int intif_parse_questDelete(int fd)
+{
+	quest_delete_ack(RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOB(fd, 10));
+	return 0;
+}
+
+int intif_quest_delete(int char_id, int quest_id)
+{
+	if(CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd, 10);
+	WFIFOW(inter_fd,0) = 0x3062;
+	WFIFOL(inter_fd,2) = char_id;
+	WFIFOL(inter_fd,6) = quest_id;
+	WFIFOSET(inter_fd, 10);
+
+	return 0;
+}
+
+int intif_parse_questAdd(int fd)
+{
+	quest_add_ack(RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOB(fd, 10));
+	return 0;
+}
+
+int intif_quest_add(int char_id, struct quest * qd)
+{
+
+	if(CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd, sizeof(struct quest) + 8);
+	WFIFOW(inter_fd,0) = 0x3061;
+	WFIFOW(inter_fd,2) = sizeof(struct quest) + 8;
+	WFIFOL(inter_fd,4) = char_id;
+	memcpy(WFIFOP(inter_fd,8), qd, sizeof(struct quest));
+	WFIFOSET(inter_fd,  WFIFOW(inter_fd,2));
+
+	return 0;
+}
+
 #ifndef TXT_ONLY
+
 /*==========================================
  * MAIL SYSTEM
  * By Zephyrus
@@ -1702,12 +1696,14 @@ int intif_Auction_requestlist(int char_id, short type, int price, const char* se
 static void intif_parse_Auction_results(int fd)
 {
 	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,4));
-	short count = RFIFOW(fd,8), pages = RFIFOW(fd,10);
+	short count = RFIFOW(fd,8);
+	short pages = RFIFOW(fd,10);
+	uint8* data = RFIFOP(fd,12);
 
 	if( sd == NULL )
 		return;
 
-	clif_Auction_results(sd, count, pages, (char *)RFIFOP(fd,12));
+	clif_Auction_results(sd, count, pages, data);
 }
 
 int intif_Auction_register(struct auction_data *auction)
@@ -1742,7 +1738,11 @@ static void intif_parse_Auction_register(int fd)
 		return;
 
 	if( auction.auction_id > 0 )
+	{
 		clif_Auction_message(sd->fd, 1); // Confirmation Packet ??
+		if( save_settings&32 )
+			chrif_save(sd,0);
+	}
 	else
 	{
 		clif_Auction_message(sd->fd, 4);
@@ -1902,8 +1902,6 @@ int intif_parse(int fd)
 	case 0x3803:	mapif_parse_WisToGM(fd); break;
 	case 0x3804:	intif_parse_Registers(fd); break;
 	case 0x3806:	intif_parse_ChangeNameOk(fd); break;
-	case 0x3810:	intif_parse_LoadStorage(fd); break;
-	case 0x3811:	intif_parse_SaveStorage(fd); break;
 	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
 	case 0x3819:	intif_parse_SaveGuildStorage(fd); break;
 	case 0x3820:	intif_parse_PartyCreated(fd); break;
@@ -1932,6 +1930,12 @@ int intif_parse(int fd)
 	case 0x3841:	intif_parse_GuildCastleDataSave(fd); break;
 	case 0x3842:	intif_parse_GuildCastleAllDataLoad(fd); break;
 	case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
+
+	//Quest system
+	case 0x3860:	intif_parse_questlog(fd); break;
+	case 0x3861:	intif_parse_questAdd(fd); break;
+	case 0x3862:	intif_parse_questDelete(fd); break;
+
 #ifndef TXT_ONLY
 // Mail System
 	case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;

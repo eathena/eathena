@@ -39,7 +39,7 @@
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0
 #define MAX_WALK_SPEED 1000
-#define MAX_STORAGE 300
+#define MAX_STORAGE 600
 #define MAX_GUILD_STORAGE 1000
 #define MAX_PARTY 12
 #define MAX_GUILD 16+10*6	// increased max guild members +6 per 1 extension levels [Lupus]
@@ -47,9 +47,11 @@
 #define MAX_GUILDEXPULSION 32
 #define MAX_GUILDALLIANCE 16
 #define MAX_GUILDSKILL	15 // increased max guild skills because of new skills [Sara-chan]
-#define MAX_GUILDCASTLE 24	// increased to include novice castles [Valaris]
+#define MAX_GUILDCASTLE 34	// Updated to include new entries for WoE:SE. [L0ne_W0lf]
 #define MAX_GUILDLEVEL 50
 #define MAX_GUARDIANS 8	//Local max per castle. [Skotlex]
+#define MAX_QUEST 25 //Max quests for a PC
+#define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
 
 #define MIN_HAIR_STYLE battle_config.min_hair_style
 #define MAX_HAIR_STYLE battle_config.max_hair_style
@@ -117,6 +119,27 @@ enum item_types {
 	IT_MAX 
 };
 
+
+//Questlog system [Kevin]
+typedef enum quest_state { Q_INACTIVE, Q_ACTIVE } quest_state;
+
+struct quest_objective {
+
+	char name[NAME_LENGTH];
+	int count;
+
+};
+
+struct quest {
+
+	int quest_id;
+	quest_state state;
+	int num_objectives;
+	int time;
+	struct quest_objective objectives[MAX_QUEST_OBJECTIVES];
+
+};
+
 struct item {
 	int id;
 	short nameid;
@@ -153,6 +176,20 @@ struct accreg {
 struct status_change_data {
 	unsigned short type; //SC_type
 	int val1, val2, val3, val4, tick; //Remaining duration.
+};
+
+struct storage_data {
+	int account_id; // used by charserver
+	int storage_amount;
+	struct item items[MAX_STORAGE];
+};
+
+struct guild_storage {
+	int dirty;
+	int guild_id;
+	short storage_status;
+	short storage_amount;
+	struct item storage_[MAX_GUILD_STORAGE];
 };
 
 struct s_pet {
@@ -241,6 +278,7 @@ struct mmo_charstatus {
 
 	struct point last_point,save_point,memo_point[MAX_MEMOPOINTS];
 	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
+	struct storage_data storage;
 	struct skill skill[MAX_SKILL];
 
 	struct s_friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
@@ -250,11 +288,11 @@ struct mmo_charstatus {
 	bool show_equip;
 };
 
-enum mail_status {
+typedef enum mail_status {
 	MAIL_NEW,
 	MAIL_UNREAD,
 	MAIL_READ,
-};
+} mail_status;
 
 struct mail_message {
 	unsigned int id;
@@ -265,7 +303,7 @@ struct mail_message {
 	char title[MAIL_TITLE_LENGTH];
 	char body[MAIL_BODY_LENGTH];
 
-	enum mail_status status;
+	mail_status status;
 	time_t timestamp; // marks when the message was sent
 
 	int zeny;
@@ -304,22 +342,6 @@ struct registry {
 	struct global_reg account[ACCOUNT_REG_NUM];
 	int account2_num;
 	struct global_reg account2[ACCOUNT_REG2_NUM];
-};
-
-struct storage {
-	int dirty;
-	int account_id;
-	short storage_status;
-	short storage_amount;
-	struct item storage_[MAX_STORAGE];
-};
-
-struct guild_storage {
-	int dirty;
-	int guild_id;
-	short storage_status;
-	short storage_amount;
-	struct item storage_[MAX_GUILD_STORAGE];
 };
 
 struct gm_account {
@@ -419,6 +441,8 @@ struct guild_castle {
 		unsigned visible : 1;
 		int id; // object id
 	} guardian[MAX_GUARDIANS];
+	int* temp_guardians; // ids of temporary guardians (mobs)
+	int temp_guardians_max;
 };
 
 // for Brandish Spear calculations

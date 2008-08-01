@@ -150,6 +150,12 @@
 				RelativePath="..\src\char_sql\char.h">
 			</File>
 			<File
+				RelativePath="..\src\char_sql\int_auction.c">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\int_auction.h">
+			</File>
+			<File
 				RelativePath="..\src\char_sql\int_guild.c">
 			</File>
 			<File
@@ -184,6 +190,12 @@
 			</File>
 			<File
 				RelativePath="..\src\char_sql\int_storage.h">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\int_quest.c">
+			</File>
+			<File
+				RelativePath="..\src\char_sql\int_quest.h">
 			</File>
 			<File
 				RelativePath="..\src\char_sql\inter.c">

@@ -17,9 +17,11 @@
 #include "npc.h"
 #include "pc.h"
 #include "pet.h"
+#include "skill.h"
 #include "status.h"
 #include "mercenary.h"
 #include "chrif.h"
+#include "quest.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -255,11 +257,11 @@ int chrif_save(struct map_session_data *sd, int flag)
 		return -1; //Character is saved on reconnect.
 
 	//For data sync
-	if (sd->state.storage_flag == 1)
-		storage_storage_save(sd->status.account_id, flag);
-	else if (sd->state.storage_flag == 2)
+	if (sd->state.storage_flag == 2)
 		storage_guild_storagesave(sd->status.account_id, sd->status.guild_id, flag);
-	if (flag) sd->state.storage_flag = 0; //Force close it.
+
+	if (flag)
+		sd->state.storage_flag = 0; //Force close it.
 
 	//Saving of registry values. 
 	if (sd->state.reg_dirty&4)
@@ -482,9 +484,11 @@ int chrif_sendmapack(int fd)
 
 	//If there are players online, send them to the char-server. [Skotlex]
 	send_users_tochar();
-	
-	//Re-save any storages that were modified in the disconnection time. [Skotlex]
+
+	//Auth db reconnect handling
 	auth_db->foreach(auth_db,chrif_reconnect);
+
+	//Re-save any storages that were modified in the disconnection time. [Skotlex]
 	do_reconnect_storage();
 
 	return 0;
@@ -526,8 +530,8 @@ void chrif_authreq(struct map_session_data *sd)
 		WFIFOSET(char_fd,19);
 		chrif_sd_to_auth(sd, ST_LOGIN);
 		return;
-	} else {        //char already online? kick connect request and tell char server that this person is online
-		//This case shouldn't happen in an ideal system
+	} else {	//char already online? kick connect request and tell char server that this person is online
+					//This case shouldn't happen in an ideal system
 		pc_authfail(sd);
 		chrif_char_online(sd);
 	}
@@ -623,6 +627,7 @@ void chrif_authfail(int fd)
 	}
 }
 
+
 //This can still happen (client times out while waiting for char to confirm auth data)
 int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)
 {
@@ -648,7 +653,7 @@ int auth_db_cleanup_sub(DBKey key,void *data,va_list ap)
 	return 0;
 }
 
-int auth_db_cleanup(int tid, unsigned int tick, int id, int data)
+int auth_db_cleanup(int tid, unsigned int tick, int id, intptr data)
 {
 	if(!chrif_isconnected()) return 0;
 	auth_db->foreach(auth_db, auth_db_cleanup_sub);
@@ -908,18 +913,18 @@ int chrif_deadopt(int father_id, int mother_id, int child_id)
 	if( father_id && (sd = map_charid2sd(father_id)) != NULL && sd->status.child == child_id )
 	{
 		sd->status.child = 0;
-		sd->status.skill[410].id = 0;
-		sd->status.skill[410].lv = 0;
-		sd->status.skill[410].flag = 0;
+		sd->status.skill[WE_CALLBABY].id = 0;
+		sd->status.skill[WE_CALLBABY].lv = 0;
+		sd->status.skill[WE_CALLBABY].flag = 0;
 		clif_skillinfoblock(sd);
 	}
 
 	if( mother_id && (sd = map_charid2sd(mother_id)) != NULL && sd->status.child == child_id )
 	{
 		sd->status.child = 0;
-		sd->status.skill[410].id = 0;
-		sd->status.skill[410].lv = 0;
-		sd->status.skill[410].flag = 0;
+		sd->status.skill[WE_CALLBABY].id = 0;
+		sd->status.skill[WE_CALLBABY].lv = 0;
+		sd->status.skill[WE_CALLBABY].flag = 0;
 		clif_skillinfoblock(sd);
 	}
 
@@ -1220,7 +1225,7 @@ int chrif_load_scdata(int fd)
 	for (i = 0; i < count; i++)
 	{
 		data = (struct status_change_data*)RFIFOP(fd,14 + i*sizeof(struct status_change_data));
-		status_change_start(&sd->bl, data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 15);
+		status_change_start(&sd->bl, (sc_type)data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 15);
 	}
 #endif
 	return 0;
@@ -1472,7 +1477,7 @@ int chrif_parse(int fd)
 	return 0;
 }
 
-int ping_char_server(int tid, unsigned int tick, int id, int data)
+int ping_char_server(int tid, unsigned int tick, int id, intptr data)
 {
 	chrif_check(-1);
 	chrif_keepalive(char_fd);
@@ -1480,7 +1485,7 @@ int ping_char_server(int tid, unsigned int tick, int id, int data)
 }
 
 // unused
-int send_usercount_tochar(int tid, unsigned int tick, int id, int data)
+int send_usercount_tochar(int tid, unsigned int tick, int id, intptr data)
 {
 	chrif_check(-1);
 
@@ -1531,7 +1536,7 @@ int send_users_tochar(void)
  * timer関数
  * char鯖との接続を確認し、もし切れていたら再度接続する
  *------------------------------------------*/
-int check_connect_char_server(int tid, unsigned int tick, int id, int data)
+int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
 {
 	static int displayed = 0;
 	if (char_fd <= 0 || session[char_fd] == NULL)

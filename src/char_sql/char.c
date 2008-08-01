@@ -17,6 +17,7 @@
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_party.h"
+#include "int_storage.h"
 #include "char.h"
 
 #include <sys/types.h>
@@ -56,6 +57,8 @@ char mail_db[256] = "mail"; // MAIL SYSTEM
 char auction_db[256] = "auction"; // Auctions System
 char friend_db[256] = "friends";
 char hotkey_db[256] = "hotkey";
+char quest_db[256] = "quest";
+char quest_obj_db[256] = "quest_objective";
 
 //If your code editor is having problems syntax highlighting this file, uncomment this and RECOMMENT IT BEFORE COMPILING
 //#undef TXT_SQL_CONVERT
@@ -197,7 +200,7 @@ struct online_char_data {
 };
 
 static DBMap* online_char_db; // int account_id -> struct online_char_data*
-static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data);
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 
 static void* create_online_char_data(DBKey key, va_list args)
 {
@@ -235,6 +238,7 @@ void set_char_charselect(int account_id)
 		WFIFOL(login_fd,2) = account_id;
 		WFIFOSET(login_fd,6);
 	}
+
 }
 
 void set_char_online(int map_id, int char_id, int account_id)
@@ -250,7 +254,8 @@ void set_char_online(int map_id, int char_id, int account_id)
 	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
 	if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 	{
-		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n", character->account_id, character->char_id, character->server, map_id, account_id, char_id);
+		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
+			character->account_id, character->char_id, character->server, map_id, account_id, char_id);
 		mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
 	}
 
@@ -266,9 +271,10 @@ void set_char_online(int map_id, int char_id, int account_id)
 		delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
 		character->waiting_disconnect = -1;
 	}
+
 	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
 	cp = (struct mmo_charstatus*)idb_get(char_db_,char_id);
- 	inter_guild_CharOnline(char_id, cp?cp->guild_id:-1);
+	inter_guild_CharOnline(char_id, cp?cp->guild_id:-1);
 
 	//Notify login server
 	if (login_fd > 0 && !session[login_fd]->flag.eof)
@@ -476,6 +482,13 @@ int mmo_char_tosql(int char_id, struct mmo_charstatus* p)
 	{
 		memitemdata_to_sql(p->cart, MAX_CART, p->char_id, TABLE_CART);
 		strcat(save_status, " cart");
+	}
+
+	//map storage data
+	if( memcmp(p->storage.items, cp->storage.items, sizeof(p->storage.items)) )
+	{
+		memitemdata_to_sql(p->storage.items, MAX_STORAGE, p->account_id, TABLE_STORAGE);
+		strcat(save_status, " storage");
 	}
 
 #ifdef TXT_SQL_CONVERT
@@ -1097,6 +1110,10 @@ int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything
 		memcpy(&p->cart[i], &tmp_item, sizeof(tmp_item));
 	strcat(t_msg, " cart");
 
+	//read storage
+	storage_fromsql(p->account_id, &p->storage);
+	strcat(t_msg, " storage");
+
 	//read skill
 	//`skill` (`char_id`, `id`, `lv`)
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `id`, `lv` FROM `%s` WHERE `char_id`=? LIMIT %d", skill_db, MAX_SKILL)
@@ -1668,7 +1685,7 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 	mmo_char_send006b(fd, sd);
 }
 
-int send_accounts_tologin(int tid, unsigned int tick, int id, int data);
+int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
 
 int parse_fromlogin(int fd)
 {
@@ -3434,7 +3451,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 	return 0;
 }
 
-int broadcast_user_count(int tid, unsigned int tick, int id, int data)
+int broadcast_user_count(int tid, unsigned int tick, int id, intptr data)
 {
 	uint8 buf[6];
 	int users = count_users();
@@ -3477,7 +3494,7 @@ static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
 	return 0;
 }
 
-int send_accounts_tologin(int tid, unsigned int tick, int id, int data)
+int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
 {
 	if (login_fd > 0 && session[login_fd])
 	{
@@ -3495,7 +3512,7 @@ int send_accounts_tologin(int tid, unsigned int tick, int id, int data)
 	return 0;
 }
 
-int check_connect_login_server(int tid, unsigned int tick, int id, int data)
+int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 {
 	if (login_fd > 0 && session[login_fd] != NULL)
 		return 0;
@@ -3528,7 +3545,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, int data)
 }
 
 // sends a ping packet to login server (will receive pong 0x2718)
-int ping_login_server(int tid, unsigned int tick, int id, int data)
+int ping_login_server(int tid, unsigned int tick, int id, intptr data)
 {
 	if (login_fd > 0 && session[login_fd] != NULL)
 	{
@@ -3543,7 +3560,7 @@ int ping_login_server(int tid, unsigned int tick, int id, int data)
 //Invoked 15 seconds after mapif_disconnectplayer in case the map server doesn't
 //replies/disconnect the player we tried to kick. [Skotlex]
 //------------------------------------------------
-static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, int data)
+static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data)
 {
 	struct online_char_data* character;
 	if ((character = (struct online_char_data*)idb_get(online_char_db, id)) != NULL && character->waiting_disconnect == tid)
@@ -3567,7 +3584,7 @@ static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
 	return 0;
 }
 
-static int online_data_cleanup(int tid, unsigned int tick, int id, int data)
+static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
 {
 	online_char_db->foreach(online_char_db, online_data_cleanup_sub);
 	return 0;
@@ -3961,7 +3978,7 @@ int do_init(int argc, char **argv)
 	
 	ShowInfo("Finished reading the char-server configuration.\n");
 
-	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName);
+	inter_init_sql((argc > 2) ? argv[2] : inter_cfgName); // inter server √ ±‚»≠
 	ShowInfo("Finished reading the inter-server configuration.\n");
 	
 	ShowInfo("Initializing char server.\n");

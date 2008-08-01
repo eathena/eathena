@@ -241,7 +241,7 @@ char* _strtok_r(char *s1, const char *s2, char **lasts)
 }
 #endif
 
-#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400)
+#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400) && !defined(CYGWIN)
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
 size_t strnlen (const char* string, size_t maxlen)
@@ -367,14 +367,13 @@ int strline(const char* str, size_t pos)
 
 /////////////////////////////////////////////////////////////////////
 /// Parses a delim-separated string.
-/// Starts parsing at startoff and fills the out_pos array with the start and 
-/// end positions in the string of the line and fields (that fit the array).
-/// Returns the number of fields or -1 if an error occurs.
+/// Starts parsing at startoff and fills the pos array with position pairs.
+/// out_pos[0] and out_pos[1] are the start and end of line.
+/// Other position pairs are the start and end of fields.
+/// Returns the number of fields found or -1 if an error occurs.
 /// 
 /// out_pos can be NULL.
-/// Positions out_pos[0] and out_pos[1] are for the line start and end 
-/// positions. If a line terminator is found, the end position is placed there.
-/// The next values of the array are the start and end positions of the fields.
+/// If a line terminator is found, the end position is placed there.
 /// out_pos[2] and out_pos[3] for the first field, out_pos[4] and out_pos[5] 
 /// for the seconds field and so on.
 /// Unfilled positions are set to -1.
@@ -386,7 +385,7 @@ int strline(const char* str, size_t pos)
 /// @param out_pos Array of resulting positions
 /// @param npos Size of the pos array
 /// @param opt Options that determine the parsing behaviour
-/// @return Number of fields in the string or -1 if an error occured
+/// @return Number of fields found in the string or -1 if an error occured
 int sv_parse(const char* str, int len, int startoff, char delim, int* out_pos, int npos, enum e_svopt opt)
 {
 	int i;
@@ -533,6 +532,96 @@ int sv_parse(const char* str, int len, int startoff, char delim, int* out_pos, i
 	return count;
 }
 
+/// Splits a delim-separated string.
+/// WARNING: this function modifies the input string
+/// Starts splitting at startoff and fills the out_fields array.
+/// out_fields[0] is the start of the next line.
+/// Other entries are the start of fields (nul-teminated).
+/// Returns the number of fields found or -1 if an error occurs.
+/// 
+/// out_fields can be NULL.
+/// Fields that don't fit in out_fields are not nul-terminated.
+/// Extra entries in out_fields are filled with the end of the last field (empty string).
+/// 
+/// @param str String to parse
+/// @param len Length of the string
+/// @param startoff Where to start parsing
+/// @param delim Field delimiter
+/// @param out_fields Array of resulting fields
+/// @param nfields Size of the field array
+/// @param opt Options that determine the parsing behaviour
+/// @return Number of fields found in the string or -1 if an error occured
+int sv_split(char* str, int len, int startoff, char delim, char** out_fields, int nfields, enum e_svopt opt)
+{
+	int pos[1024];
+	int i;
+	int done;
+	char* end;
+	int ret = sv_parse(str, len, startoff, delim, pos, ARRAYLENGTH(pos), opt);
+
+	if( ret == -1 || out_fields == NULL || nfields <= 0 )
+		return ret; // nothing to do
+
+	// next line
+	end = str + pos[1];
+	if( end[0] == '\0' )
+	{
+		*out_fields = end;
+	}
+	else if( (opt&SV_TERMINATE_LF) && end[0] == '\n' )
+	{
+		if( !(opt&SV_KEEP_TERMINATOR) )
+			end[0] = '\0';
+		*out_fields = end + 1;
+	}
+	else if( (opt&SV_TERMINATE_CRLF) && end[0] == '\r' && end[1] == '\n' )
+	{
+		if( !(opt&SV_KEEP_TERMINATOR) )
+			end[0] = end[1] = '\0';
+		*out_fields = end + 2;
+	}
+	else if( (opt&SV_TERMINATE_LF) && end[0] == '\r' )
+	{
+		if( !(opt&SV_KEEP_TERMINATOR) )
+			end[0] = '\0';
+		*out_fields = end + 1;
+	}
+	else
+	{
+		ShowError("sv_split: unknown line delimiter 0x02%x.\n", (unsigned char)end[0]);
+		return -1;// error
+	}
+	++out_fields;
+	--nfields;
+
+	// fields
+	i = 2;
+	done = 0;
+	while( done < ret && nfields > 0 )
+	{
+		if( i < ARRAYLENGTH(pos) )
+		{// split field
+			*out_fields = str + pos[i];
+			end = str + pos[i+1];
+			*end = '\0';
+			// next field
+			i += 2;
+			++done;
+			++out_fields;
+			--nfields;
+		}
+		else
+		{// get more fields
+			sv_parse(str, len, pos[i-1] + 1, delim, pos, ARRAYLENGTH(pos), opt);
+			i = 2;
+		}
+	}
+	// remaining fields
+	for( i = 0; i < nfields; ++i )
+		out_fields[i] = end;
+	return ret;
+}
+
 /// Escapes src to out_dest according to the format of the C compiler.
 /// Returns the length of the escaped string.
 /// out_dest should be len*4+1 in size.
@@ -651,20 +740,21 @@ size_t sv_unescape_c(char* out_dest, const char* src, size_t len)
 						ShowWarning("sv_unescape_c: hex escape sequence out of range\n");
 						inrange = 0;
 					}
-					c = (c<<8)|low2hex[(unsigned char)src[i++]];// hex digit
-				}while( i >= len || !ISXDIGIT(src[i]) );
+					c = (c<<4)|low2hex[(unsigned char)src[i]];// hex digit
+					++i;
+				}while( i < len && ISXDIGIT(src[i]) );
 				out_dest[j++] = (char)c;
 			}
 			else if( src[i] == '0' || src[i] == '1' || src[i] == '2' || src[i] == '3' )
 			{// octal escape sequence (255=0377)
 				unsigned char c = src[i]-'0';
 				++i;// '0', '1', '2' or '3'
-				if( i < len && src[i] >= '0' && src[i] <= '9' )
+				if( i < len && src[i] >= '0' && src[i] <= '7' )
 				{
 					c = (c<<3)|(src[i]-'0');
 					++i;// octal digit
 				}
-				if( i < len && src[i] >= '0' && src[i] <= '9' )
+				if( i < len && src[i] >= '0' && src[i] <= '7' )
 				{
 					c = (c<<3)|(src[i]-'0');
 					++i;// octal digit
@@ -674,7 +764,7 @@ size_t sv_unescape_c(char* out_dest, const char* src, size_t len)
 			else
 			{// other escape sequence
 				if( strchr(SV_ESCAPE_C_SUPPORTED, src[i]) == NULL )
-					ShowWarning("sv_parse: unknown escape sequence \\%c\n", src[i]);
+					ShowWarning("sv_unescape_c: unknown escape sequence \\%c\n", src[i]);
 				switch( src[i] )
 				{
 				case 'a': out_dest[j++] = '\a'; break;
@@ -697,6 +787,118 @@ size_t sv_unescape_c(char* out_dest, const char* src, size_t len)
 	return j;
 }
 
+/// Skips a C escape sequence (starting with '\\').
+const char* skip_escaped_c(const char* p)
+{
+	if( p && *p == '\\' )
+	{
+		++p;
+		switch( *p )
+		{
+		case 'x':// hexadecimal
+			++p;
+			while( ISXDIGIT(*p) )
+				++p;
+			break;
+		case '0':
+		case '1':
+		case '2':
+		case '3':// octal
+			++p;
+			if( *p >= '0' && *p <= '7' )
+				++p;
+			if( *p >= '0' && *p <= '7' )
+				++p;
+			break;
+		default:
+			if( *p && strchr(SV_ESCAPE_C_SUPPORTED, *p) )
+				++p;
+		}
+	}
+	return p;
+}
+
+
+/// Opens and parses a file containing delim-separated columns, feeding them to the specified callback function row by row.
+/// Tracks the progress of the operation (current line number, number of successfully processed rows).
+/// Returns 'true' if it was able to process the specified file, or 'false' if it could not be read.
+///
+/// @param directory Directory
+/// @param filename File to process
+/// @param delim Field delimiter
+/// @param mincols Minimum number of columns of a valid row
+/// @param maxcols Maximum number of columns of a valid row
+/// @param parseproc User-supplied row processing function
+/// @return true on success, false if file could not be opened
+bool sv_readdb(const char* directory, const char* filename, char delim, int mincols, int maxcols, int maxrows, bool (*parseproc)(char* fields[], int columns, int current))
+{
+	FILE* fp;
+	int lines = 0;
+	int entries = 0;
+	char* fields[64]; // room for 63 fields ([0] is reserved)
+	int columns;
+	char path[1024], line[1024];
+
+	if( maxcols > ARRAYLENGTH(fields)-1 )
+	{
+		ShowError("sv_readdb: Insufficient column storage in parser for file \"%s\" (want %d, have only %d). Increase the capacity in the source code please.\n", path, maxcols, ARRAYLENGTH(fields)-1);
+		return false;
+	}
+
+	// open file
+	snprintf(path, sizeof(path), "%s/%s", directory, filename);
+	fp = fopen(path, "r");
+	if( fp == NULL )
+	{
+		ShowError("sv_readdb: can't read %s\n", path);
+		return false;
+	}
+
+	// process rows one by one
+	while( fgets(line, sizeof(line), fp) )
+	{
+		lines++;
+		if( line[0] == '/' && line[1] == '/' )
+			continue;
+		//TODO: strip trailing // comment
+		//TODO: strip trailing whitespace
+		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
+			continue;
+
+		columns = sv_split(line, strlen(line), 0, delim, fields, ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+
+		if( columns < mincols )
+		{
+			ShowError("sv_readdb: Insufficient columns in line %d of \"%s\" (found %d, need at least %d).\n", lines, path, columns, mincols);
+			continue; // not enough columns
+		}
+		if( columns > maxcols )
+		{
+			ShowError("sv_readdb: Too many columns in line %d of \"%s\" (found %d, maximum is %d).\n", lines, path, columns, maxcols );
+			continue; // too many columns
+		}
+		if( entries == maxrows )
+		{
+			ShowError("sv_readdb: Reached the maximum allowed number of entries (%d) when parsing file \"%s\".\n", maxrows, path);
+			break;
+		}
+
+		// parse this row
+		if( !parseproc(fields+1, columns, entries) )
+		{
+			ShowError("sv_readdb: Could not process contents of line %d of \"%s\".\n", lines, path);
+			continue; // invalid row contents
+		}
+
+		// success!
+		entries++;
+	}
+
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, path);
+
+	return true;
+}
 
 
 /////////////////////////////////////////////////////////////////////
