@@ -133,7 +133,7 @@ int convert_login(void)
 		stmt = SqlStmt_Malloc(mysql_handle);
 		if( SQL_ERROR == SqlStmt_Prepare(stmt, 
 			"REPLACE INTO `login` "
-			"(`account_id`, `userid`, `user_pass`, `lastlogin`, `sex`, `logincount`, `email`, `level`, `error_message`, `expiration_time`, `last_ip`, `memo`, `unban_time`, `state`) "
+			"(`account_id`, `userid`, `user_pass`, `lastlogin`, `sex`, `logincount`, `email`, `level`, `error_message`, `connect_until`, `last_ip`, `memo`, `ban_until`, `state`) "
 			"VALUES "
 			"(%d, ?, ?, '%s', '%c', %d, '%s', %d, '%s', %d, '%s', '%s', %d, %d)",
 			account_id, lastlogin, sex, logincount, email, user_level, error_message, expiration_time, last_ip, memo, unban_time, state)
