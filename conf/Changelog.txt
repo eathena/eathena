@@ -1,5 +1,6 @@
 Date	Added
-
+2008/08/10
+	* Removed duplicate gef_cas mapflags [Yommy]
 2008/06/23
 	* Added: new maps in maps_athena.conf
 2008/06/14

@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/08/10
+	* Fixed: several typos (bugreport:2029 bugreport:2023) [Yommy]
 2008/07/25
 	* Merged: NPC fixes from Trunk - r12981 (partially), r12984, r12988 [akrus]
 2008/07/22
