@@ -11,6 +11,7 @@
 //= Auction house releated NPCs, and warps
 //===== Additional Comments: =================================
 //= 1.0 First version, place holders only. [L0ne_W0lf]
+//= 1.0a Typo fix [Yommy]
 //============================================================
 
 // Auction House warpers
@@ -89,7 +90,7 @@ auction_01,182,68,6	script	Auction Broker#moc1::AuctionBroker	98,{
 	next;
 	if (select("Yes.:No.") == 1) {
 		mes "[Auction Broker]";
-		mes "Wery well.";
+		mes "Very well.";
 		mes "Please take";
 		mes "a look, and see";
 		mes "What's being offered~";
