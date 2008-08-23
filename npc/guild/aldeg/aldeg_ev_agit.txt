@@ -128,3 +128,4 @@ OnAgitEnd:
 	callfunc "F_AgitEnd","aldeg_cas05","A05";
 	end;
 }
+
