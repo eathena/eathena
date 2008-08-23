@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="../src/char; ../src/char_txt"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -210,51 +210,35 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_guild.c"
+				RelativePath="..\src\char\char_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_guild.h"
+				RelativePath="..\src\char\chardb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_homun.c"
+				RelativePath="..\src\char\chardb_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_homun.h"
+				RelativePath="..\src\char\charlog.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_party.c"
+				RelativePath="..\src\char\charlog_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_party.h"
+				RelativePath="..\src\char\client.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_pet.c"
+				RelativePath="..\src\char\int_registry.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_pet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\int_status.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\int_status.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\int_storage.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\int_storage.h"
+				RelativePath="..\src\char\int_registry_txt.c"
 				>
 			</File>
 			<File
@@ -263,6 +247,18 @@
 			</File>
 			<File
 				RelativePath="..\src\char\inter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\login.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\map.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\map.h"
 				>
 			</File>
 		</Filter>
@@ -390,6 +386,54 @@
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\src\char_txt\int_guild.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_guild.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_homun.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_homun.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_party.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_party.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_pet.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_pet.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_status.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_status.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_storage.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_txt\int_storage.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

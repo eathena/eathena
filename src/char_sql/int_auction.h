@@ -6,7 +6,7 @@
 
 int inter_auction_parse_frommap(int fd);
 
-int inter_auction_sql_init(void);
-void inter_auction_sql_final(void);
+int inter_auction_init(void);
+void inter_auction_final(void);
 
 #endif /* _INT_AUCTION_SQL_H_ */

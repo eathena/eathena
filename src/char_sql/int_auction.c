@@ -470,7 +470,7 @@ int inter_auction_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_auction_sql_init(void)
+int inter_auction_init(void)
 {
 	auction_db_ = idb_alloc(DB_OPT_RELEASE_DATA);
 	inter_auctions_fromsql();
@@ -478,7 +478,7 @@ int inter_auction_sql_init(void)
 	return 0;
 }
 
-void inter_auction_sql_final(void)
+void inter_auction_final(void)
 {
 	auction_db_->destroy(auction_db_,NULL);
 

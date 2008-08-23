@@ -9,6 +9,7 @@
 #include "../common/lock.h"
 #include "../common/showmsg.h"
 #include "char.h"
+#include "chardb.h"
 #include "inter.h"
 #include "int_party.h"
 

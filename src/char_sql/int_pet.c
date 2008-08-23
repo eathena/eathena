@@ -101,12 +101,12 @@ int inter_pet_fromsql(int pet_id, struct s_pet* p)
 }
 //----------------------------------------------
 
-int inter_pet_sql_init(void){
+int inter_pet_init(void){
 	//memory alloc
 	pet_pt = (struct s_pet*)aCalloc(sizeof(struct s_pet), 1);
 	return 0;
 }
-void inter_pet_sql_final(void){
+void inter_pet_final(void){
 	if (pet_pt) aFree(pet_pt);
 	return;
 }

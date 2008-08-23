@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include; ../src/char; ../src/char_sql"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -336,86 +336,138 @@
 			Name="char_sql"
 			>
 			<File
-				RelativePath="..\src\char_sql\char.c"
+				RelativePath="..\src\char\char.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\char.h"
+				RelativePath="..\src\char\char.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_auction.c"
+				RelativePath="..\src\char\char_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_auction.h"
+				RelativePath="..\src\char\chardb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_guild.c"
+				RelativePath="..\src\char\chardb_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_guild.h"
+				RelativePath="..\src\char\charlog.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_homun.c"
+				RelativePath="..\src\char\charlog_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_homun.h"
+				RelativePath="..\src\char\client.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_mail.c"
+				RelativePath="..\src\char\int_registry.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_mail.h"
+				RelativePath="..\src\char\int_registry_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_party.c"
+				RelativePath="..\src\char\inter.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_party.h"
+				RelativePath="..\src\char\inter.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_pet.c"
+				RelativePath="..\src\char\login.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_pet.h"
+				RelativePath="..\src\char\map.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char_sql\int_quest.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_quest.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.h"
+				RelativePath="..\src\char\map.h"
 				>
 			</File>
 		</Filter>
+		<File
+			RelativePath="..\src\char_sql\int_auction.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_auction.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_guild.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_guild.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_homun.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_homun.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mail.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mail.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_party.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_party.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_pet.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_pet.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_quest.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_quest.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_status.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_status.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_storage.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_storage.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

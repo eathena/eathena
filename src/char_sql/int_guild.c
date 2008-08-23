@@ -778,7 +778,7 @@ int inter_guild_CharOffline(int char_id, int guild_id)
 }
 
 // Initialize guild sql
-int inter_guild_sql_init(void)
+int inter_guild_init(void)
 {
 	//Initialize the guild cache
 	guild_db_= idb_alloc(DB_OPT_RELEASE_DATA);
@@ -801,7 +801,7 @@ static int guild_db_final(DBKey key, void *data, va_list ap)
 	return 0;
 }
 
-void inter_guild_sql_final(void)
+void inter_guild_final(void)
 {
 	guild_db_->destroy(guild_db_, guild_db_final);
 	return;

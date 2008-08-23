@@ -463,12 +463,12 @@ int inter_mail_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_mail_sql_init(void)
+int inter_mail_init(void)
 {
 	return 1;
 }
 
-void inter_mail_sql_final(void)
+void inter_mail_final(void)
 {
 	return;
 }

@@ -11,12 +11,14 @@
 #include "../common/mapindex.h"
 #include "../common/sql.h"
 #include "char.h"
+#include "chardb.h"
 #include "inter.h"
 #include "int_party.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 #ifndef TXT_SQL_CONVERT
 struct party_data {
@@ -266,7 +268,7 @@ struct party_data *inter_party_fromsql(int party_id)
 	return p;
 }
 
-int inter_party_sql_init(void)
+int inter_party_init(void)
 {
 	//memory alloc
 	party_db_ = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -285,7 +287,7 @@ int inter_party_sql_init(void)
 	return 0;
 }
 
-void inter_party_sql_final(void)
+void inter_party_final(void)
 {
 	party_db_->destroy(party_db_, NULL);
 	aFree(party_pt);
@@ -519,12 +521,15 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 int mapif_parse_PartyInfo(int fd,int party_id)
 {
 	struct party_data *p;
-	p = inter_party_fromsql(party_id);
 
-	if (p)
+	p = inter_party_fromsql(party_id);
+	if (p != NULL)
 		mapif_party_info(fd,&p->party);
-	else
+	else {
 		mapif_party_noinfo(fd,party_id);
+		char_clearparty(party_id);
+	}
+
 	return 0;
 }
 // パーティ追加要求

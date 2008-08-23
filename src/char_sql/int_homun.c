@@ -16,11 +16,11 @@
 #include <string.h>
 
 
-int inter_homunculus_sql_init(void)
+int inter_homun_init(void)
 {
 	return 0;
 }
-void inter_homunculus_sql_final(void)
+void inter_homun_final(void)
 {
 	return;
 }
@@ -293,7 +293,7 @@ static void mapif_parse_homunculus_rename(int fd, int account_id, int char_id, c
 }
 
 
-int inter_homunculus_parse_frommap(int fd)
+int inter_homun_parse_frommap(int fd)
 {
 	unsigned short cmd = RFIFOW(fd,0);
 

@@ -15,6 +15,9 @@
 #include <stdlib.h>
 
 
+extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
+
+
 #define STORAGE_MEMINC	16
 
 /// Save guild_storage data to sql
@@ -130,12 +133,12 @@ int guild_storage_fromsql(int guild_id, struct guild_storage* p)
 
 //---------------------------------------------------------
 // storage data initialize
-int inter_storage_sql_init(void)
+int inter_storage_init(void)
 {
 	return 1;
 }
 // storage data finalize
-void inter_storage_sql_final(void)
+void inter_storage_final(void)
 {
 	return;
 }
