@@ -9846,25 +9846,11 @@ void clif_parse_PartyInvite2(int fd, struct map_session_data *sd)
  *------------------------------------------*/
 void clif_parse_ReplyPartyInvite(int fd,struct map_session_data *sd)
 {
-	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 5 )
-	{
-		party_reply_invite(sd,RFIFOL(fd,2),-1);
-		clif_skill_fail(sd,1,0,4);
-		return;
-	}
-
 	party_reply_invite(sd,RFIFOL(fd,2),RFIFOL(fd,6));
 }
 
 void clif_parse_ReplyPartyInvite2(int fd,struct map_session_data *sd)
 {
-	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 5 )
-	{
-		party_reply_invite(sd,RFIFOL(fd,2),-1);
-		clif_skill_fail(sd,1,0,4);
-		return;
-	}
-
 	party_reply_invite(sd,RFIFOL(fd,2),RFIFOB(fd,6));
 }
 
@@ -10410,7 +10396,10 @@ void clif_parse_GMKick(int fd, struct map_session_data *sd)
 		lv = get_atcommand_level(atcommand_unloadnpc);
 		if( pc_isGM(sd) < lv )
 			return;
+		// copy-pasted from atcommand_unloadnpc
+		npc_unload_duplicates(nd);
 		npc_unload(nd);
+		npc_read_event_script();
 		if( log_config.gm && lv >= log_config.gm ) {
 			char message[256];
 			sprintf(message, "/kick %s (%d)", status_get_name(target), status_get_class(target));

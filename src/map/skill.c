@@ -773,8 +773,18 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 				status_change_end(bl, SC_SPEEDUP0, -1);
 			if (tsc->data[SC_SPEEDUP1] && !tsc->data[SC_SPEEDUP1]->val4)
 				status_change_end(bl, SC_SPEEDUP1, -1);
-			if (tsc->data[SC_SPIRIT])
+			// Stalkers who are preserved will no longer lose their link.
+			if (tsc->data[SC_SPIRIT] && !(dstsd->class_&MAPID_STALKER && tsc->data[SC_SPIRIT] && tsc->data[SC_PRESERVE]))
 				status_change_end(bl, SC_SPIRIT, -1);
+			// Updated by Brainstorm to remove 'Ka' status effects and Link granted skills.
+			if (tsc->data[SC_KAIZEL])
+				status_change_end(bl, SC_KAIZEL, -1);
+			if (tsc->data[SC_KAAHI])
+				status_change_end(bl, SC_KAAHI, -1);
+			if (tsc->data[SC_KAUPE])
+				status_change_end(bl, SC_KAUPE, -1);
+			if (tsc->data[SC_KAITE])
+				status_change_end(bl, SC_KAITE, -1);
 			if (tsc->data[SC_ONEHAND])
 				status_change_end(bl, SC_ONEHAND, -1);
 			if (tsc->data[SC_ADRENALINE2])
@@ -1839,14 +1849,15 @@ static int skill_check_unit_range2_sub (struct block_list *bl, va_list ap)
 	if(bl->prev == NULL)
 		return 0;
 
-	if(status_isdead(bl))
-		return 0;
-
 	skillid = va_arg(ap,int);
-	if (skillid==HP_BASILICA && bl->type==BL_PC)
+
+	if( status_isdead(bl) && skillid != AL_WARP )
 		return 0;
 
-	if (skillid==AM_DEMONSTRATION && bl->type==BL_MOB && ((TBL_MOB*)bl)->class_ == MOBID_EMPERIUM)
+	if( skillid == HP_BASILICA && bl->type == BL_PC )
+		return 0;
+
+	if( skillid == AM_DEMONSTRATION && bl->type == BL_MOB && ((TBL_MOB*)bl)->class_ == MOBID_EMPERIUM )
 		return 0; //Allow casting Bomb/Demonstration Right under emperium [Skotlex]
 	return 1;
 }
@@ -2113,13 +2124,18 @@ static int skill_timerskill(int tid, unsigned int tick, int id, intptr data)
 		else {
 			if(src->m != skl->map)
 				break;
-			switch(skl->skill_id) {
+			switch( skl->skill_id )
+			{
 				case WZ_METEOR:
-					if(skl->type >= 0) {
-						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->type>>16,skl->type&0xFFFF,skl->flag);
-						clif_skill_poseffect(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,tick);
+					if( skl->type >= 0 )
+					{
+						int x = skl->type>>16, y = skl->type&0xFFFF;
+						if( path_search_long(NULL, src->m, src->x, src->y, x, y, CELL_CHKWALL) )
+							skill_unitsetting(src,skl->skill_id,skl->skill_lv,x,y,skl->flag);
+						if( path_search_long(NULL, src->m, src->x, src->y, skl->x, skl->y, CELL_CHKWALL) )
+							clif_skill_poseffect(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,tick);
 					}
-					else
+					else if( path_search_long(NULL, src->m, src->x, src->y, skl->x, skl->y, CELL_CHKWALL) )
 						skill_unitsetting(src,skl->skill_id,skl->skill_lv,skl->x,skl->y,skl->flag);
 					break;
 			}
@@ -2378,9 +2394,11 @@ int skill_castend_damage_id (struct block_list* src, struct block_list *bl, int 
 		break;
 
 	case TK_JUMPKICK:
-		skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
-		if (unit_movepos(src, bl->x, bl->y, 1, 1)) //Should not jump over objects and cliffs
+		if( unit_movepos(src, bl->x, bl->y, 1, 1) ) //Should not jump over objects and cliffs
+		{
+			skill_attack(BF_WEAPON,src,src,bl,skillid,skilllv,tick,flag);
 			clif_slide(src,bl->x,bl->y);
+		}
 		break;
 
 	case SN_SHARPSHOOTING:
@@ -5745,25 +5763,29 @@ int skill_castend_pos2(struct block_list* src, int x, int y, int skillid, int sk
 
 	case WZ_METEOR:
 		{
-			int flag=0, area = skill_get_splash(skillid, skilllv);
+			int flag = 0, area = skill_get_splash(skillid, skilllv);
 			short tmpx = 0, tmpy = 0, x1 = 0, y1 = 0;
-			if (sc && sc->data[SC_MAGICPOWER])
+
+			if( sc && sc->data[SC_MAGICPOWER] )
 				flag = flag|2; //Store the magic power flag for future use. [Skotlex]
-			for(i=0;i<2+(skilllv>>1);i++) {
-				tmpx = x;
-				tmpy = y;
-				if (!map_search_freecell(NULL, src->m, &tmpx, &tmpy, area, area, 1))
-					continue;
-				if(!(flag&1)){
+
+			for( i = 0; i < 2 + (skilllv>>1); i++ )
+			{
+				// Creates a random Cell in the Splash Area
+				tmpx = x - area + rand()%(area * 2 + 1);
+				tmpy = y - area + rand()%(area * 2 + 1);
+
+				if( i == 0 && path_search_long(NULL, src->m, src->x, src->y, tmpx, tmpy, CELL_CHKWALL) )
 					clif_skill_poseffect(src,skillid,skilllv,tmpx,tmpy,tick);
-					flag=flag|1;
-				}
-				if(i > 0)
+
+				if( i > 0 )
 					skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,(x1<<16)|y1,flag&2); //Only pass the Magic Power flag
+
 				x1 = tmpx;
 				y1 = tmpy;
 			}
-			skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,-1,flag&2); //Only pass the Magic Power flag
+
+			skill_addtimerskill(src,tick+i*1000,0,tmpx,tmpy,skillid,skilllv,-1,flag&2);
 		}
 		break;
 
@@ -6577,8 +6599,7 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 	nullpo_retr(0, sg=src->group);
 	nullpo_retr(0, ss=map_id2bl(sg->src_id));
 
-	if (skill_get_type(sg->skill_id) == BF_MAGIC && map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR)
-			&& !skill_get_inf2(sg->skill_id) == INF2_TRAP) //Traps work on top of land protector, magical or not [Brain]
+	if( skill_get_type(sg->skill_id) == BF_MAGIC && map_getcell(bl->m, bl->x, bl->y, CELL_CHKLANDPROTECTOR) && sg->skill_id != SA_LANDPROTECTOR )
 		return 0; //AoE skills are ineffective. [Skotlex]
 	
 	sc = status_get_sc(bl);

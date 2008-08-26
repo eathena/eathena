@@ -3730,6 +3730,10 @@ void sql_config_read(const char* cfgName)
 			strcpy(friend_db,w2);
 		else if(!strcmpi(w1,"hotkey_db"))
 			strcpy(hotkey_db,w2);
+		else if(!strcmpi(w1,"quest_db"))
+			strcpy(quest_db,w2);
+		else if(!strcmpi(w1,"quest_obj_db"))
+			strcpy(quest_obj_db, w2);
 #ifndef TXT_SQL_CONVERT
 		else if(!strcmpi(w1,"db_path"))
 			strcpy(db_path,w2);
@@ -3917,7 +3921,7 @@ void do_final(void)
 
 	mapindex_final();
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `ragsrvinfo") )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `ragsrvinfo`") )
 		Sql_ShowDebug(sql_handle);
 
 	if(gm_account)  {
