@@ -4,6 +4,11 @@ AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES
 GO INTO TRUNK. IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS
 WELL AS TRUNK.  EVERYTHING ELSE GOES INTO TRUNK
 
+2008/08/27
+	* Merged the invisible-wall system (r13097, r13100, r13101)
+	- replacement for previous barricade code
+	- prevents client desynch on dynamically modified cells
+	- to be used in woe:se scripts
 2008/08/26
 	* Merged fixes from trunk [ultramage]
 	- player shop no longer closes on death (r13036)

@@ -9926,37 +9926,32 @@ BUILDIN_FUNC(guardian)
 	return 0;
 }
 /*==========================================
- * Build Barricade [Zephyrus]
- * buildbarricade("<map name>",<x>,<y>,"<name to show>",<size>,<dir>,<killable>,<walkable>,<shootable>,<odd>,"<event label>")
+ * Invisible Walls [Zephyrus]
  *------------------------------------------*/
-BUILDIN_FUNC(buildbarricade)
+BUILDIN_FUNC(setwall)
 {
-	int m = map_mapname2mapid(script_getstr(st,2));
-	int x = script_getnum(st,3);
-	int y = script_getnum(st,4);
-	const char *str = script_getstr(st,5);
-	int size = script_getnum(st,6);
-	short dir = script_getnum(st,7);
-	bool killable = (bool)script_getnum(st,8);
-	bool walkable = (bool)script_getnum(st,9);
-	bool shootable = (bool)script_getnum(st,10);
-	bool odd = (bool)script_getnum(st,11);
-	const char *evt = script_getstr(st,12);
+	const char *map, *name;
+	int x, y, m, size, dir;
+	bool shootable;
+	
+	map = script_getstr(st,2);
+	x = script_getnum(st,3);
+	y = script_getnum(st,4);
+	size = script_getnum(st,5);
+	dir = script_getnum(st,6);
+	shootable = script_getnum(st,7);
+	name = script_getstr(st,8);
 
-	if( m < 0 ) return -1;
+	if( (m = map_mapname2mapid(map)) < 0 )
+		return 0; // Invalid Map
 
-	check_event(st, evt);
-	mob_barricade_build(m, x, y , str, size, dir, killable, walkable, shootable, odd, evt);
-
+	map_iwall_set(m, x, y, size, dir, shootable, name);
 	return 0;
 }
-
-BUILDIN_FUNC(killbarricade)
+BUILDIN_FUNC(delwall)
 {
-	int m = map_mapname2mapid(script_getstr(st,2));
-	const char *evt = script_getstr(st,3);
-
-	mob_barricade_destroy(m, evt);
+	const char *name = script_getstr(st,2);
+	map_iwall_remove(name);
 
 	return 0;
 }
@@ -13440,12 +13435,12 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(openauction,""),
 	BUILDIN_DEF(checkcell,"siii"),
 	BUILDIN_DEF(setcell,"siiiiii"),
-	BUILDIN_DEF(buildbarricade,"siisiiiiiis"),
-	BUILDIN_DEF(killbarricade,"ss"),
 	BUILDIN_DEF(getquest, "ii*"),
 	BUILDIN_DEF(deletequest, "i"),
 	BUILDIN_DEF(setquestobjective, "iisi"),
 	BUILDIN_DEF(setqueststatus, "ii"),
 	BUILDIN_DEF(hasquest, "i"),
+	BUILDIN_DEF(setwall,"siiiiis"),
+	BUILDIN_DEF(delwall,"s"),
 	{NULL,NULL,NULL},
 };
