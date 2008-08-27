@@ -37,7 +37,7 @@ struct online_char_data {
 extern DBMap* online_char_db;
 extern int char_num, char_max;
 #include "char.h"
-extern struct character_data *char_dat;
+extern struct mmo_charstatus *char_dat;
 extern void set_char_offline(int char_id, int account_id);
 extern int email_creation;
 extern int search_mapserver(unsigned short map, uint32 ip, uint16 port);
@@ -196,12 +196,12 @@ int parse_char(int fd)
 
 #ifdef TXT_ONLY
 			// otherwise, load the character
-			ARR_FIND( 0, MAX_CHARS, ch, sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].status.slot == slot );
+			ARR_FIND( 0, MAX_CHARS, ch, sd->found_char[ch] >= 0 && char_dat[sd->found_char[ch]].slot == slot );
 			if (ch == MAX_CHARS)
 			{	//Not found?? May be forged packet.
 				break;
 			}
-			cd = &char_dat[sd->found_char[ch]].status;
+			cd = &char_dat[sd->found_char[ch]];
 #else
 			if ( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, sd->account_id, slot)
 			  || SQL_SUCCESS != Sql_NextRow(sql_handle)
@@ -363,7 +363,7 @@ int parse_char(int fd)
 				WFIFOHEAD(fd,110);
 				WFIFOW(fd,0) = 0x6d;
 #ifdef TXT_ONLY
-				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat[i].status);
+				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat[i]);
 #else
 				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat);
 #endif
@@ -411,7 +411,7 @@ int parse_char(int fd)
 					break;
 				}
 				// we change the packet to set it like selection.
-				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid );
+				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].char_id == cid );
 				if( i < MAX_CHARS )
 				{
 					// we save new e-mail
@@ -426,7 +426,7 @@ int parse_char(int fd)
 					// change value to put new packet (char selection)
 					RFIFOSKIP(fd,-3); //FIXME: Will this work? Messing with the received buffer is ugly anyway... 
 					RFIFOW(fd,0) = 0x66;
-					RFIFOB(fd,2) = char_dat[sd->found_char[i]].status.slot;
+					RFIFOB(fd,2) = char_dat[sd->found_char[i]].slot;
 					// not send packet, it's modify of actual packet
 				} else {
 					WFIFOHEAD(fd,3);
@@ -455,7 +455,7 @@ int parse_char(int fd)
 
 			// check if this char exists
 #ifdef TXT_ONLY
-			ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].status.char_id == cid );
+			ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].char_id == cid );
 #else
 			ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] == cid );
 #endif
@@ -469,7 +469,7 @@ int parse_char(int fd)
 			}
 #ifdef TXT_ONLY
 			// deletion process
-			cs = &char_dat[sd->found_char[i]].status;
+			cs = &char_dat[sd->found_char[i]];
 			char_delete(cs);
 			if (sd->found_char[i] != char_num - 1) {
 				int j, k;
@@ -478,7 +478,7 @@ int parse_char(int fd)
 				// Correct moved character reference in the character's owner
 				for (j = 0; j < fd_max; j++) {
 					if (session[j] && (sd2 = (struct char_session_data*)session[j]->session_data) &&
-						sd2->account_id == char_dat[char_num-1].status.account_id) {
+						sd2->account_id == char_dat[char_num-1].account_id) {
 						for (k = 0; k < MAX_CHARS; k++) {
 							if (sd2->found_char[k] == char_num-1) {
 								sd2->found_char[k] = sd->found_char[i];

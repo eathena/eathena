@@ -25,12 +25,7 @@
 
 // temporary imports
 #include "char.h"
-struct character_data {
-	struct mmo_charstatus status;
-	int global_num;
-	struct global_reg global[GLOBAL_REG_NUM];
-};
-extern struct character_data *char_dat;
+extern struct mmo_charstatus *char_dat;
 extern int login_fd;
 extern int char_fd;
 extern int char_num, char_max;
@@ -96,7 +91,7 @@ void mmo_friends_sync(void)
 
 	for(i = 0; i < char_num; i++)
 	{
-		mmo_friends_list_data_str(line, &char_dat[i].status);
+		mmo_friends_list_data_str(line, &char_dat[i]);
 		fprintf(fp, "%s\n", line);
 	}
 
@@ -115,7 +110,7 @@ void mmo_hotkeys_sync(void)
 
 	for(i = 0; i < char_num; i++)
 	{
-		mmo_hotkeys_tostr(line, &char_dat[i].status);
+		mmo_hotkeys_tostr(line, &char_dat[i]);
 		fprintf(fp, "%s\n", line);
 	}
 
@@ -257,16 +252,16 @@ int char_divorce(struct mmo_charstatus *cs)
 	if (cs->partner_id <= 0)
 		return 0;
 	
-	ARR_FIND( 0, char_num, i, char_dat[i].status.char_id == cs->partner_id && char_dat[i].status.partner_id == cs->char_id );
+	ARR_FIND( 0, char_num, i, char_dat[i].char_id == cs->partner_id && char_dat[i].partner_id == cs->char_id );
 	if( i == char_num )
 		return 0;
 
 	cs->partner_id = 0;
-	char_dat[i].status.partner_id = 0;
+	char_dat[i].partner_id = 0;
 
 	for(j = 0; j < MAX_INVENTORY; j++)
-		if (char_dat[i].status.inventory[j].nameid == WEDDING_RING_M || char_dat[i].status.inventory[j].nameid == WEDDING_RING_F)
-			memset(&char_dat[i].status.inventory[j], 0, sizeof(char_dat[i].status.inventory[0]));
+		if (char_dat[i].inventory[j].nameid == WEDDING_RING_M || char_dat[i].inventory[j].nameid == WEDDING_RING_F)
+			memset(&char_dat[i].inventory[j], 0, sizeof(char_dat[i].inventory[0]));
 		if (cs->inventory[j].nameid == WEDDING_RING_M || cs->inventory[j].nameid == WEDDING_RING_F)
 			memset(&cs->inventory[j], 0, sizeof(cs->inventory[0]));
 
@@ -323,7 +318,7 @@ void char_read_fame_list(void)
 	for(i = 0; i < char_num; i++) {
 		id[i] = i;
 		for(j = 0; j < i; j++) {
-			if (char_dat[i].status.fame > char_dat[id[j]].status.fame) {
+			if (char_dat[i].fame > char_dat[id[j]].fame) {
 				for(k = i; k > j; k--)
 					id[k] = id[k-1];
 				id[j] = i; // id[i]
@@ -338,14 +333,14 @@ void char_read_fame_list(void)
 	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 	// Build Blacksmith ranking list
 	for (i = 0, j = 0; i < char_num && j < fame_list_size_smith; i++) {
-		if (char_dat[id[i]].status.fame && (
-			char_dat[id[i]].status.class_ == JOB_BLACKSMITH ||
-			char_dat[id[i]].status.class_ == JOB_WHITESMITH ||
-			char_dat[id[i]].status.class_ == JOB_BABY_BLACKSMITH))
+		if (char_dat[id[i]].fame && (
+			char_dat[id[i]].class_ == JOB_BLACKSMITH ||
+			char_dat[id[i]].class_ == JOB_WHITESMITH ||
+			char_dat[id[i]].class_ == JOB_BABY_BLACKSMITH))
 		{
-			fame_item.id = char_dat[id[i]].status.char_id;
-			fame_item.fame = char_dat[id[i]].status.fame;
-			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+			fame_item.id = char_dat[id[i]].char_id;
+			fame_item.fame = char_dat[id[i]].fame;
+			strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
 
 			memcpy(&smith_fame_list[j],&fame_item,sizeof(struct fame_list));
 			j++;
@@ -353,14 +348,14 @@ void char_read_fame_list(void)
 	}
 	// Build Alchemist ranking list
 	for (i = 0, j = 0; i < char_num && j < fame_list_size_chemist; i++) {
-		if (char_dat[id[i]].status.fame && (
-			char_dat[id[i]].status.class_ == JOB_ALCHEMIST ||
-			char_dat[id[i]].status.class_ == JOB_CREATOR ||
-			char_dat[id[i]].status.class_ == JOB_BABY_ALCHEMIST))
+		if (char_dat[id[i]].fame && (
+			char_dat[id[i]].class_ == JOB_ALCHEMIST ||
+			char_dat[id[i]].class_ == JOB_CREATOR ||
+			char_dat[id[i]].class_ == JOB_BABY_ALCHEMIST))
 		{
-			fame_item.id = char_dat[id[i]].status.char_id;
-			fame_item.fame = char_dat[id[i]].status.fame;
-			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+			fame_item.id = char_dat[id[i]].char_id;
+			fame_item.fame = char_dat[id[i]].fame;
+			strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
 
 			memcpy(&chemist_fame_list[j],&fame_item,sizeof(struct fame_list));
 
@@ -369,12 +364,12 @@ void char_read_fame_list(void)
 	}
 	// Build Taekwon ranking list
 	for (i = 0, j = 0; i < char_num && j < fame_list_size_taekwon; i++) {
-		if (char_dat[id[i]].status.fame &&
-			char_dat[id[i]].status.class_ == JOB_TAEKWON)
+		if (char_dat[id[i]].fame &&
+			char_dat[id[i]].class_ == JOB_TAEKWON)
 		{
-			fame_item.id = char_dat[id[i]].status.char_id;
-			fame_item.fame = char_dat[id[i]].status.fame;
-			strncpy(fame_item.name, char_dat[id[i]].status.name, NAME_LENGTH);
+			fame_item.id = char_dat[id[i]].char_id;
+			fame_item.fame = char_dat[id[i]].fame;
+			strncpy(fame_item.name, char_dat[id[i]].name, NAME_LENGTH);
 
 			memcpy(&taekwon_fame_list[j],&fame_item,sizeof(struct fame_list));
 

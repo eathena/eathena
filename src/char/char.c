@@ -40,7 +40,7 @@ extern void mmo_char_sync_init(void);
 extern void mmo_char_sync(void);
 extern char friends_txt[1024];
 extern char hotkeys_txt[1024];
-extern struct character_data *char_dat;
+extern struct mmo_charstatus *char_dat;
 char char_txt[1024];
 extern void char_read_fame_list(void);
 extern DBMap* char_db_;
@@ -467,7 +467,7 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 
 	found_num = 0;
 	for(i = 0; i < char_num; i++) {
-		if (char_dat[i].status.account_id == sd->account_id) {
+		if (char_dat[i].account_id == sd->account_id) {
 			sd->found_char[found_num] = i;
 			if( ++found_num == MAX_CHARS )
 				break;
@@ -486,7 +486,7 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
 #ifdef TXT_ONLY
 	for(i = 0; i < found_num; i++)
-		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]].status);
+		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]]);
 #else
 	j += mmo_chars_fromsql(sd, WFIFOP(fd,j));
 #endif

@@ -575,7 +575,7 @@ int mapif_parse_Registry(int fd)
 		{
 			int i,j,p,len;
 
-			ARR_FIND( 0, char_num, i, char_dat[i].status.account_id == account_id && char_dat[i].status.char_id == char_id );
+			ARR_FIND( 0, char_num, i, char_dat[i].account_id == account_id && char_dat[i].char_id == char_id );
 			if( i == char_num ) //Character not found?
 				return 1;
 

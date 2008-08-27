@@ -21,7 +21,7 @@
 // private declarations
 char char_txt[1024] = "save/athena.txt";
 
-struct character_data* char_dat;
+struct mmo_charstatus* char_dat;
 int char_num, char_max;
 int char_id_count = START_CHAR_NUM;
 
@@ -322,12 +322,12 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 #ifndef TXT_SQL_CONVERT
 	// Some checks
 	for(i = 0; i < char_num; i++) {
-		if (char_dat[i].status.char_id == p->char_id) {
+		if (char_dat[i].char_id == p->char_id) {
 			ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
 			ShowError("               character id #%d -> new character not readed.\n", p->char_id);
 			ShowError("               Character saved in log file."CL_RESET"\n");
 			return -1;
-		} else if (strcmp(char_dat[i].status.name, p->name) == 0) {
+		} else if (strcmp(char_dat[i].name, p->name) == 0) {
 			ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
 			ShowError("               character name '%s' -> new character not read.\n", p->name);
 			ShowError("               Character saved in log file."CL_RESET"\n");
@@ -487,8 +487,8 @@ int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, i
 
 	// check name (already in use?)
 	ARR_FIND( 0, char_num, i,
-		(name_ignoring_case && strncmp(char_dat[i].status.name, name, NAME_LENGTH) == 0) ||
-		(!name_ignoring_case && strncmpi(char_dat[i].status.name, name, NAME_LENGTH) == 0) );
+		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
+		(!name_ignoring_case && strncmpi(char_dat[i].name, name, NAME_LENGTH) == 0) );
 	if( i < char_num )
 		return -1; // name already exists
 
@@ -502,13 +502,13 @@ int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, i
 		return -2; // invalid input
 
 	// check char slot
-	ARR_FIND( 0, char_num, i, char_dat[i].status.account_id == sd->account_id && char_dat[i].status.slot == slot );
+	ARR_FIND( 0, char_num, i, char_dat[i].account_id == sd->account_id && char_dat[i].slot == slot );
 	if( i < char_num )
 		return -2; // slot already in use
 
 	if (char_num >= char_max) {
 		char_max += 256;
-		RECREATE(char_dat, struct character_data, char_max);
+		RECREATE(char_dat, struct mmo_charstatus, char_max);
 		if (!char_dat) {
 			ShowFatalError("Out of memory: make_new_char (realloc of char_dat).\n");
 			char_log("Out of memory: make_new_char (realloc of char_dat).\n");
@@ -521,51 +521,51 @@ int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, i
 	         sd->account_id, slot, name, str, agi, vit, int_, dex, luk, hair_style, hair_color);
 
 	i = char_num;
-	memset(&char_dat[i], 0, sizeof(struct character_data));
+	memset(&char_dat[i], 0, sizeof(char_dat[i]));
 
-	char_dat[i].status.char_id = char_id_count++;
-	char_dat[i].status.account_id = sd->account_id;
-	char_dat[i].status.slot = slot;
-	safestrncpy(char_dat[i].status.name,name,NAME_LENGTH);
-	char_dat[i].status.class_ = 0;
-	char_dat[i].status.base_level = 1;
-	char_dat[i].status.job_level = 1;
-	char_dat[i].status.base_exp = 0;
-	char_dat[i].status.job_exp = 0;
-	char_dat[i].status.zeny = start_zeny;
-	char_dat[i].status.str = str;
-	char_dat[i].status.agi = agi;
-	char_dat[i].status.vit = vit;
-	char_dat[i].status.int_ = int_;
-	char_dat[i].status.dex = dex;
-	char_dat[i].status.luk = luk;
-	char_dat[i].status.max_hp = 40 * (100 + char_dat[i].status.vit) / 100;
-	char_dat[i].status.max_sp = 11 * (100 + char_dat[i].status.int_) / 100;
-	char_dat[i].status.hp = char_dat[i].status.max_hp;
-	char_dat[i].status.sp = char_dat[i].status.max_sp;
-	char_dat[i].status.status_point = 0;
-	char_dat[i].status.skill_point = 0;
-	char_dat[i].status.option = 0;
-	char_dat[i].status.karma = 0;
-	char_dat[i].status.manner = 0;
-	char_dat[i].status.party_id = 0;
-	char_dat[i].status.guild_id = 0;
-	char_dat[i].status.hair = hair_style;
-	char_dat[i].status.hair_color = hair_color;
-	char_dat[i].status.clothes_color = 0;
-	char_dat[i].status.inventory[0].nameid = start_weapon; // Knife
-	char_dat[i].status.inventory[0].amount = 1;
-	char_dat[i].status.inventory[0].identify = 1;
-	char_dat[i].status.inventory[1].nameid = start_armor; // Cotton Shirt
-	char_dat[i].status.inventory[1].amount = 1;
-	char_dat[i].status.inventory[1].identify = 1;
-	char_dat[i].status.weapon = 0; // W_FIST
-	char_dat[i].status.shield = 0;
-	char_dat[i].status.head_top = 0;
-	char_dat[i].status.head_mid = 0;
-	char_dat[i].status.head_bottom = 0;
-	memcpy(&char_dat[i].status.last_point, &start_point, sizeof(start_point));
-	memcpy(&char_dat[i].status.save_point, &start_point, sizeof(start_point));
+	char_dat[i].char_id = char_id_count++;
+	char_dat[i].account_id = sd->account_id;
+	char_dat[i].slot = slot;
+	safestrncpy(char_dat[i].name,name,NAME_LENGTH);
+	char_dat[i].class_ = 0;
+	char_dat[i].base_level = 1;
+	char_dat[i].job_level = 1;
+	char_dat[i].base_exp = 0;
+	char_dat[i].job_exp = 0;
+	char_dat[i].zeny = start_zeny;
+	char_dat[i].str = str;
+	char_dat[i].agi = agi;
+	char_dat[i].vit = vit;
+	char_dat[i].int_ = int_;
+	char_dat[i].dex = dex;
+	char_dat[i].luk = luk;
+	char_dat[i].max_hp = 40 * (100 + char_dat[i].vit) / 100;
+	char_dat[i].max_sp = 11 * (100 + char_dat[i].int_) / 100;
+	char_dat[i].hp = char_dat[i].max_hp;
+	char_dat[i].sp = char_dat[i].max_sp;
+	char_dat[i].status_point = 0;
+	char_dat[i].skill_point = 0;
+	char_dat[i].option = 0;
+	char_dat[i].karma = 0;
+	char_dat[i].manner = 0;
+	char_dat[i].party_id = 0;
+	char_dat[i].guild_id = 0;
+	char_dat[i].hair = hair_style;
+	char_dat[i].hair_color = hair_color;
+	char_dat[i].clothes_color = 0;
+	char_dat[i].inventory[0].nameid = start_weapon; // Knife
+	char_dat[i].inventory[0].amount = 1;
+	char_dat[i].inventory[0].identify = 1;
+	char_dat[i].inventory[1].nameid = start_armor; // Cotton Shirt
+	char_dat[i].inventory[1].amount = 1;
+	char_dat[i].inventory[1].identify = 1;
+	char_dat[i].weapon = 0; // W_FIST
+	char_dat[i].shield = 0;
+	char_dat[i].head_top = 0;
+	char_dat[i].head_mid = 0;
+	char_dat[i].head_bottom = 0;
+	memcpy(&char_dat[i].last_point, &start_point, sizeof(start_point));
+	memcpy(&char_dat[i].save_point, &start_point, sizeof(start_point));
 	char_num++;
 
 	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, i, slot, name);
@@ -614,7 +614,7 @@ int mmo_char_init(void)
 
 		if (char_num >= char_max) {
 			char_max += 256;
-			char_dat = (struct character_data*)aRealloc(char_dat, sizeof(struct character_data) * char_max);
+			char_dat = (struct mmo_charstatus*)aRealloc(char_dat, sizeof(struct mmo_charstatus) * char_max);
 			if (!char_dat) {
 				ShowFatalError("Out of memory: mmo_char_init (realloc of char_dat).\n");
 				char_log("Out of memory: mmo_char_init (realloc of char_dat).\n");
@@ -622,16 +622,16 @@ int mmo_char_init(void)
 			}
 		}
 
-		ret = mmo_char_fromstr(line, &char_dat[char_num].status, char_dat[char_num].global, &char_dat[char_num].global_num);
+		ret = mmo_char_fromstr(line, &char_dat[char_num], char_dat[char_num].global, &char_dat[char_num].global_num);
 
 		// Initialize friends list
-		parse_friend_txt(&char_dat[char_num].status);  // Grab friends for the character
+		parse_friend_txt(&char_dat[char_num]);  // Grab friends for the character
 		// Initialize hotkey list
-		parse_hotkey_txt(&char_dat[char_num].status);  // Grab hotkeys for the character
+		parse_hotkey_txt(&char_dat[char_num]);  // Grab hotkeys for the character
 		
 		if (ret > 0) { // negative value or zero for errors
-			if (char_dat[char_num].status.char_id >= char_id_count)
-				char_id_count = char_dat[char_num].status.char_id + 1;
+			if (char_dat[char_num].char_id >= char_id_count)
+				char_id_count = char_dat[char_num].char_id + 1;
 			char_num++;
 		} else {
 			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
@@ -699,8 +699,9 @@ void mmo_char_sync(void)
 		ShowWarning("Server cannot save characters.\n");
 		char_log("WARNING: Server cannot save characters.\n");
 	} else {
-		for(i = 0; i < char_num; i++) {
-			mmo_char_tostr(line, &char_dat[i].status, char_dat[i].global, char_dat[i].global_num);
+		for(i = 0; i < char_num; i++)
+		{
+			mmo_char_tostr(line, &char_dat[i], char_dat[i].global, char_dat[i].global_num);
 			fprintf(fp, "%s\n", line);
 		}
 		fprintf(fp, "%d\t%%newid%%\n", char_id_count);
@@ -738,8 +739,8 @@ struct mmo_charstatus* search_character(int aid, int cid)
 {
 	int i;
 	for (i = 0; i < char_num; i++) {
-		if (char_dat[i].status.char_id == cid && char_dat[i].status.account_id == aid)
-			return &char_dat[i].status;
+		if (char_dat[i].char_id == cid && char_dat[i].account_id == aid)
+			return &char_dat[i];
 	}
 	return NULL;
 }
@@ -748,7 +749,7 @@ struct mmo_charstatus* search_character_byname(char* character_name)
 {
 	int i = search_character_index(character_name);
 	if (i == -1) return NULL;
-	return &char_dat[i].status;
+	return &char_dat[i];
 }
 
 //----------------------------------------------
@@ -767,9 +768,9 @@ int search_character_index(char* character_name)
 	index = -1;
 	for(i = 0; i < char_num; i++) {
 		// Without case sensitive check (increase the number of similar character names found)
-		if (stricmp(char_dat[i].status.name, character_name) == 0) {
+		if (stricmp(char_dat[i].name, character_name) == 0) {
 			// Strict comparison (if found, we finish the function immediatly with correct value)
-			if (strcmp(char_dat[i].status.name, character_name) == 0)
+			if (strcmp(char_dat[i].name, character_name) == 0)
 				return i;
 			quantity++;
 			index = i;
@@ -789,10 +790,10 @@ int search_character_index(char* character_name)
 int char_loadName(int char_id, char* name)
 {
 	int j;
-	for( j = 0; j < char_num && char_dat[j].status.char_id != char_id; ++j )
+	for( j = 0; j < char_num && char_dat[j].char_id != char_id; ++j )
 		;// find char
 	if( j < char_num )
-		strncpy(name, char_dat[j].status.name, NAME_LENGTH);
+		strncpy(name, char_dat[j].name, NAME_LENGTH);
 	else
 		strncpy(name, unknown_char_name, NAME_LENGTH);
 
@@ -807,8 +808,8 @@ void char_clearparty(int party_id)
 	int i;
 	for(i = 0; i < char_num; i++)
   	{
-		if (char_dat[i].status.party_id == party_id)
-			char_dat[i].status.party_id = 0;
+		if (char_dat[i].party_id == party_id)
+			char_dat[i].party_id = 0;
 	}
 }
 
@@ -816,14 +817,14 @@ void char_clearparty(int party_id)
 
 int char_married(int pl1,int pl2)
 {
-	return (char_dat[pl1].status.char_id == char_dat[pl2].status.partner_id && char_dat[pl2].status.char_id == char_dat[pl1].status.partner_id);
+	return (char_dat[pl1].char_id == char_dat[pl2].partner_id && char_dat[pl2].char_id == char_dat[pl1].partner_id);
 }
 
 int char_child(int parent_id, int child_id)
 {
-	return (char_dat[parent_id].status.child == char_dat[child_id].status.char_id && 
-		((char_dat[parent_id].status.char_id == char_dat[child_id].status.father) || 
-		(char_dat[parent_id].status.char_id == char_dat[child_id].status.mother)));		
+	return (char_dat[parent_id].child == char_dat[child_id].char_id && 
+		((char_dat[parent_id].char_id == char_dat[child_id].father) || 
+		(char_dat[parent_id].char_id == char_dat[child_id].mother)));		
 }
 
 int char_family(int cid1, int cid2, int cid3)
@@ -831,11 +832,11 @@ int char_family(int cid1, int cid2, int cid3)
 	int i, idx1 = -1, idx2 =-1;//, idx3 =-1;
 	for(i = 0; i < char_num && (idx1 == -1 || idx2 == -1/* || idx3 == 1*/); i++)
   	{
-		if (char_dat[i].status.char_id == cid1)
+		if (char_dat[i].char_id == cid1)
 			idx1 = i;
-		if (char_dat[i].status.char_id == cid2)
+		if (char_dat[i].char_id == cid2)
 			idx2 = i;
-//		if (char_dat[i].status.char_id == cid2)
+//		if (char_dat[i].char_id == cid2)
 //			idx3 = i;
 	}
 	if (idx1 == -1 || idx2 == -1/* || idx3 == -1*/)
@@ -843,16 +844,16 @@ int char_family(int cid1, int cid2, int cid3)
 
 	//Unless the dbs are corrupted, these 3 checks should suffice, even though 
 	//we could do a lot more checks and force cross-reference integrity.
-	if(char_dat[idx1].status.partner_id == cid2 &&
-		char_dat[idx1].status.child == cid3)
+	if(char_dat[idx1].partner_id == cid2 &&
+		char_dat[idx1].child == cid3)
 		return cid3; //cid1/cid2 parents. cid3 child.
 
-	if(char_dat[idx1].status.partner_id == cid3 &&
-		char_dat[idx1].status.child == cid2)
+	if(char_dat[idx1].partner_id == cid3 &&
+		char_dat[idx1].child == cid2)
 		return cid2; //cid1/cid3 parents. cid2 child.
 
-	if(char_dat[idx2].status.partner_id == cid3 &&
-		char_dat[idx2].status.child == cid1)
+	if(char_dat[idx2].partner_id == cid3 &&
+		char_dat[idx2].child == cid1)
 		return cid1; //cid2/cid3 parents. cid1 child.
 	return 0;
 }

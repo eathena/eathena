@@ -17,7 +17,7 @@
 
 //temporary imports
 #include "char.h"
-extern struct character_data *char_dat;
+extern struct mmo_charstatus *char_dat;
 extern int char_num, char_max;
 extern int login_fd;
 extern uint32 login_ip;
@@ -189,58 +189,58 @@ int parse_fromlogin(int fd)
 					node->sex = sex;
 
 				for( i = 0; i < char_num; ++i )
-				if( char_dat[i].status.account_id == acc )
+				if( char_dat[i].account_id == acc )
 				{
-					int jobclass = char_dat[i].status.class_;
-					char_dat[i].status.sex = sex;
+					int jobclass = char_dat[i].class_;
+					char_dat[i].sex = sex;
 					if (jobclass == JOB_BARD || jobclass == JOB_DANCER ||
 					    jobclass == JOB_CLOWN || jobclass == JOB_GYPSY ||
 					    jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
 						// job modification
 						if (jobclass == JOB_BARD || jobclass == JOB_DANCER) {
-							char_dat[i].status.class_ = (sex) ? JOB_BARD : JOB_DANCER;
+							char_dat[i].class_ = (sex) ? JOB_BARD : JOB_DANCER;
 						} else if (jobclass == JOB_CLOWN || jobclass == JOB_GYPSY) {
-							char_dat[i].status.class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
+							char_dat[i].class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
 						} else if (jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
-							char_dat[i].status.class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
+							char_dat[i].class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
 						}
 						// remove specifical skills of classes 19, 4020 and 4042
 						for(j = 315; j <= 322; j++) {
-							if (char_dat[i].status.skill[j].id > 0 && !char_dat[i].status.skill[j].flag) {
-								if (char_dat[i].status.skill_point > USHRT_MAX - char_dat[i].status.skill[j].lv)
-									char_dat[i].status.skill_point = USHRT_MAX;
+							if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
+								if (char_dat[i].skill_point > USHRT_MAX - char_dat[i].skill[j].lv)
+									char_dat[i].skill_point = USHRT_MAX;
 								else
-									char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
-								char_dat[i].status.skill[j].id = 0;
-								char_dat[i].status.skill[j].lv = 0;
+									char_dat[i].skill_point += char_dat[i].skill[j].lv;
+								char_dat[i].skill[j].id = 0;
+								char_dat[i].skill[j].lv = 0;
 							}
 						}
 						// remove specifical skills of classes 20, 4021 and 4043
 						for(j = 323; j <= 330; j++) {
-							if (char_dat[i].status.skill[j].id > 0 && !char_dat[i].status.skill[j].flag) {
-								if (char_dat[i].status.skill_point > USHRT_MAX - char_dat[i].status.skill[j].lv)
-									char_dat[i].status.skill_point = USHRT_MAX;
+							if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
+								if (char_dat[i].skill_point > USHRT_MAX - char_dat[i].skill[j].lv)
+									char_dat[i].skill_point = USHRT_MAX;
 								else
-									char_dat[i].status.skill_point += char_dat[i].status.skill[j].lv;
+									char_dat[i].skill_point += char_dat[i].skill[j].lv;
 
-								char_dat[i].status.skill[j].id = 0;
-								char_dat[i].status.skill[j].lv = 0;
+								char_dat[i].skill[j].id = 0;
+								char_dat[i].skill[j].lv = 0;
 							}
 						}
 					}
 					// to avoid any problem with equipment and invalid sex, equipment is unequiped.
 					for (j = 0; j < MAX_INVENTORY; j++) {
-						if (char_dat[i].status.inventory[j].nameid && char_dat[i].status.inventory[j].equip)
-							char_dat[i].status.inventory[j].equip = 0;
+						if (char_dat[i].inventory[j].nameid && char_dat[i].inventory[j].equip)
+							char_dat[i].inventory[j].equip = 0;
 					}
-					char_dat[i].status.weapon = 0;
-					char_dat[i].status.shield = 0;
-					char_dat[i].status.head_top = 0;
-					char_dat[i].status.head_mid = 0;
-					char_dat[i].status.head_bottom = 0;
+					char_dat[i].weapon = 0;
+					char_dat[i].shield = 0;
+					char_dat[i].head_top = 0;
+					char_dat[i].head_mid = 0;
+					char_dat[i].head_bottom = 0;
 
-					if (char_dat[i].status.guild_id)	//If there is a guild, update the guild_member data [Skotlex]
-						inter_guild_sex_changed(char_dat[i].status.guild_id, acc, char_dat[i].status.char_id, sex);
+					if (char_dat[i].guild_id)	//If there is a guild, update the guild_member data [Skotlex]
+						inter_guild_sex_changed(char_dat[i].guild_id, acc, char_dat[i].char_id, sex);
 				}
 #else
 				int char_id[MAX_CHARS];
@@ -397,12 +397,12 @@ int parse_fromlogin(int fd)
 				return 0;
 			// Deletion of all characters of the account
 			for(i = 0; i < char_num; i++) {
-				if (char_dat[i].status.account_id == RFIFOL(fd,2)) {
-					char_delete(&char_dat[i].status);
+				if (char_dat[i].account_id == RFIFOL(fd,2)) {
+					char_delete(&char_dat[i]);
 					if (i < char_num - 1) {
-						memcpy(&char_dat[i], &char_dat[char_num-1], sizeof(struct character_data));
+						memcpy(&char_dat[i], &char_dat[char_num-1], sizeof(struct mmo_charstatus));
 						// if moved character owns to deleted account, check again it's character
-						if (char_dat[i].status.account_id == RFIFOL(fd,2)) {
+						if (char_dat[i].account_id == RFIFOL(fd,2)) {
 							i--;
 						// Correct moved character reference in the character's owner by [Yor]
 						} else {
@@ -410,7 +410,7 @@ int parse_fromlogin(int fd)
 							struct char_session_data *sd2;
 							for (j = 0; j < fd_max; j++) {
 								if (session[j] && (sd2 = (struct char_session_data*)session[j]->session_data) &&
-									sd2->account_id == char_dat[char_num-1].status.account_id) {
+									sd2->account_id == char_dat[char_num-1].account_id) {
 									for (k = 0; k < MAX_CHARS; k++) {
 										if (sd2->found_char[k] == char_num-1) {
 											sd2->found_char[k] = i;

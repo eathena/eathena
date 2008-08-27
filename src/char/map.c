@@ -21,7 +21,7 @@
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
 #include "char.h"
-extern struct character_data *char_dat;
+extern struct mmo_charstatus *char_dat;
 extern int char_num, char_max;
 extern int login_fd;
 struct online_char_data {
@@ -330,11 +330,11 @@ int parse_frommap(int fd)
 
 #ifdef TXT_ONLY
 			// look up character
-			ARR_FIND( 0, char_num, i, char_dat[i].status.account_id == aid && char_dat[i].status.char_id == cid );
+			ARR_FIND( 0, char_num, i, char_dat[i].account_id == aid && char_dat[i].char_id == cid );
 			if( i < char_num )
 			{
-				memcpy(&char_dat[i].status, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
-				storage_save(char_dat[i].status.account_id, &char_dat[i].status.storage);
+				memcpy(&char_dat[i], RFIFOP(fd,13), sizeof(struct mmo_charstatus));
+				storage_save(char_dat[i].account_id, &char_dat[i].storage);
 			}
 #else
 			//Check account only if this ain't final save. Final-save goes through because of the char-map reconnect
@@ -424,8 +424,8 @@ int parse_frommap(int fd)
 				map_fd = server[map_id].fd;
 
 #ifdef TXT_ONLY
-			ARR_FIND( 0, char_num, i, char_dat[i].status.account_id == account_id && char_dat[i].status.char_id == char_id );
-			char_data = i < char_num ? &char_dat[i].status : NULL;
+			ARR_FIND( 0, char_num, i, char_dat[i].account_id == account_id && char_dat[i].char_id == char_id );
+			char_data = i < char_num ? &char_dat[i] : NULL;
 #else
 			//Char should just had been saved before this packet, so this should be safe. [Skotlex]
 			char_data = (struct mmo_charstatus*)uidb_get(char_db_,RFIFOL(fd,14));
@@ -552,8 +552,8 @@ int parse_frommap(int fd)
 				int account_id;
 
 #ifdef TXT_ONLY
-				account_id = char_dat[i].status.account_id;
-				safestrncpy(name, char_dat[i].status.name, NAME_LENGTH);
+				account_id = char_dat[i].account_id;
+				safestrncpy(name, char_dat[i].name, NAME_LENGTH);
 #else
 				char* data;
 

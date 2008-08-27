@@ -6,12 +6,6 @@
 
 #include "../common/mmo.h"
 
-struct character_data {
-	struct mmo_charstatus status;
-	int global_num;
-	struct global_reg global[GLOBAL_REG_NUM];
-};
-
 extern int char_num, char_max;
 
 
