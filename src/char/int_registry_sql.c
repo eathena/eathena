@@ -15,10 +15,10 @@
 extern Sql* sql_handle;
 
 
+/////////////////////////////
+/// Account reg manipulation
 
-//--------------------------------------------------------
-// Save registry to sql
-int inter_accreg_tosql(int account_id, int char_id, struct accreg* reg, int type)
+int inter_accreg_tosql(int account_id, struct regs* reg)
 {
 	struct global_reg* r;
 	SqlStmt* stmt;
@@ -26,57 +26,35 @@ int inter_accreg_tosql(int account_id, int char_id, struct accreg* reg, int type
 
 	if( account_id <= 0 )
 		return 0;
-	reg->account_id = account_id;
-	reg->char_id = char_id;
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	switch( type )
-	{
-	case 3: //Char Reg
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'", reg_db, char_id) )
-			Sql_ShowDebug(sql_handle);
-		account_id = 0;
-		break;
-	case 2: //Account Reg
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'", reg_db, account_id) )
-			Sql_ShowDebug(sql_handle);
-		char_id = 0;
-		break;
-	case 1: //Account2 Reg
-		ShowError("inter_accreg_tosql: Char server shouldn't handle type 1 registry values (##). That is the login server's work!\n");
-		return 0;
-	default:
-		ShowError("inter_accreg_tosql: Invalid type %d\n", type);
-		return 0;
-	}
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'", reg_db, account_id) )
+		Sql_ShowDebug(sql_handle);
 
 	if( reg->reg_num <= 0 )
 		return 0;
 
 	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `char_id`, `str`, `value`) VALUES ('%d','%d','%d',?,?)", reg_db, type, account_id, char_id) )
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d',?,?)", reg_db, account_id) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < reg->reg_num; ++i )
 	{
 		r = &reg->reg[i];
-		if( r->str[0] != '\0' && r->value != '\0' )
-		{
-			// str
-			SqlStmt_BindParam(stmt, 0, SQLDT_STRING, r->str, strnlen(r->str, sizeof(r->str)));
-			// value
-			SqlStmt_BindParam(stmt, 1, SQLDT_STRING, r->value, strnlen(r->value, sizeof(r->value)));
+		if( r->str[0] == '\0' || r->value[0] == '\0' )
+			continue; // should not save these
 
-			if( SQL_ERROR == SqlStmt_Execute(stmt) )
-				SqlStmt_ShowDebug(stmt);
-		}
+		SqlStmt_BindParam(stmt, 0, SQLDT_STRING, r->str, strnlen(r->str, sizeof(r->str)));
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, r->value, strnlen(r->value, sizeof(r->value)));
+
+		if( SQL_ERROR == SqlStmt_Execute(stmt) )
+			SqlStmt_ShowDebug(stmt);
 	}
 	SqlStmt_Free(stmt);
 	return 1;
 }
 
 
-// Load account_reg from sql (type=2)
-int inter_accreg_fromsql(int account_id,int char_id, struct accreg *reg, int type)
+int inter_accreg_fromsql(int account_id, struct regs* reg)
 {
 	struct global_reg* r;
 	char* data;
@@ -86,44 +64,31 @@ int inter_accreg_fromsql(int account_id,int char_id, struct accreg *reg, int typ
 	if( reg == NULL)
 		return 0;
 
-	memset(reg, 0, sizeof(struct accreg));
-	reg->account_id = account_id;
-	reg->char_id = char_id;
+	memset(reg, 0, sizeof(struct regs));
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	switch( type )
-	{
-	case 3: //char reg
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'", reg_db, char_id) )
-			Sql_ShowDebug(sql_handle);
-		break;
-	case 2: //account reg
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'", reg_db, account_id) )
-			Sql_ShowDebug(sql_handle);
-		break;
-	case 1: //account2 reg
-		ShowError("inter_accreg_fromsql: Char server shouldn't handle type 1 registry values (##). That is the login server's work!\n");
-		return 0;
-	default:
-		ShowError("inter_accreg_fromsql: Invalid type %d\n", type);
-		return 0;
-	}
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'", reg_db, account_id) )
+		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < MAX_REG_NUM && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		r = &reg->reg[i];
-		// str
-		Sql_GetData(sql_handle, 0, &data, &len);
-		memcpy(r->str, data, min(len, sizeof(r->str)));
-		// value
-		Sql_GetData(sql_handle, 1, &data, &len);
-		memcpy(r->value, data, min(len, sizeof(r->value)));
+		Sql_GetData(sql_handle, 0, &data, &len); memcpy(r->str, data, min(len, sizeof(r->str)));
+		Sql_GetData(sql_handle, 1, &data, &len); memcpy(r->value, data, min(len, sizeof(r->value)));
 	}
 	reg->reg_num = i;
 	Sql_FreeResult(sql_handle);
 	return 1;
 }
 
+bool inter_accreg_load(int account_id, struct regs* reg)
+{
+	return ( inter_accreg_fromsql(account_id, reg) == true );
+}
 
+bool inter_accreg_save(int account_id, struct regs* reg)
+{
+	return( inter_accreg_tosql(account_id, reg) == true );
+}
 
 int inter_accreg_init(void)
 {
@@ -131,6 +96,91 @@ int inter_accreg_init(void)
 }
 
 int inter_accreg_final(void)
+{
+	return 0;
+}
+
+
+///////////////////////////////
+/// Character reg manipulation
+
+int inter_charreg_tosql(int char_id, struct regs* reg)
+{
+	struct global_reg* r;
+	SqlStmt* stmt;
+	int i;
+
+	if( char_id <= 0 )
+		return 0;
+
+	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'", reg_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( reg->reg_num <= 0 )
+		return 0;
+
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES (3,'%d',?,?)", reg_db, char_id) )
+		SqlStmt_ShowDebug(stmt);
+	for( i = 0; i < reg->reg_num; ++i )
+	{
+		r = &reg->reg[i];
+		if( r->str[0] == '\0' || r->value[0] == '\0' )
+			continue; // should not save these
+		
+		SqlStmt_BindParam(stmt, 0, SQLDT_STRING, r->str, strnlen(r->str, sizeof(r->str)));
+		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, r->value, strnlen(r->value, sizeof(r->value)));
+
+		if( SQL_ERROR == SqlStmt_Execute(stmt) )
+			SqlStmt_ShowDebug(stmt);
+	}
+	SqlStmt_Free(stmt);
+	return 1;
+}
+
+int inter_charreg_fromsql(int char_id, struct regs* reg)
+{
+	struct global_reg* r;
+	char* data;
+	size_t len;
+	int i;
+
+	if( reg == NULL)
+		return 0;
+
+	memset(reg, 0, sizeof(struct regs));
+
+	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'", reg_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+	for( i = 0; i < MAX_REG_NUM && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
+	{
+		r = &reg->reg[i];
+		Sql_GetData(sql_handle, 0, &data, &len); memcpy(r->str, data, min(len, sizeof(r->str)));
+		Sql_GetData(sql_handle, 1, &data, &len); memcpy(r->value, data, min(len, sizeof(r->value)));
+	}
+	reg->reg_num = i;
+	Sql_FreeResult(sql_handle);
+	return 1;
+}
+
+bool inter_charreg_load(int char_id, struct regs* reg)
+{
+	return ( inter_charreg_fromsql(char_id, reg) == true );
+}
+
+bool inter_charreg_save(int char_id, struct regs* reg)
+{
+	return( inter_charreg_tosql(char_id, reg) == true );
+}
+
+int inter_charreg_init(void)
+{
+	return 0;
+}
+
+int inter_charreg_final(void)
 {
 	return 0;
 }

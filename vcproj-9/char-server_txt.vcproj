@@ -234,6 +234,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_registry.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_registry.h"
 				>
 			</File>

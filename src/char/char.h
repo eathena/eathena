@@ -20,6 +20,9 @@ struct char_session_data {
 	int gmlevel;
 };
 
+#define CHAR_CONF_NAME  "conf/char_athena.conf"
+#define LAN_CONF_NAME   "conf/subnet_athena.conf"
+#define INTER_CONF_NAME "conf/inter_athena.conf"
 
 
 int mapif_send(int fd,unsigned char *buf, unsigned int len);

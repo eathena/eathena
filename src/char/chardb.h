@@ -9,7 +9,7 @@
 extern int char_num, char_max;
 
 
-int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int *reg_num);
+int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg);
 struct mmo_charstatus* search_character(int aid, int cid);
 struct mmo_charstatus* search_character_byname(char* character_name);
 int search_character_index(char* character_name);

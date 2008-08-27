@@ -8,38 +8,41 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
+#include "../common/strlib.h"
 #include <stdio.h>
 
 
 char accreg_txt[1024] = "save/accreg.txt";
-static DBMap* accreg_db = NULL; // int account_id -> struct accreg*
+static DBMap* accreg_db = NULL; // int account_id -> struct regs*
+static DBMap* charreg_db = NULL; // int char_id -> struct regs*
 
-/*
-
-// アカウント変数を文字列へ変換
-int inter_accreg_tostr(char *str, struct accreg *reg)
+static void* create_regs(DBKey key, va_list args)
 {
-	int j;
-	char *p = str;
+	return (struct regs*)aCalloc(sizeof(struct regs), 1);
+}
 
-	p += sprintf(p, "%d\t", reg->account_id);
-	for(j = 0; j < reg->reg_num; j++) {
-		p += sprintf(p,"%s,%s ", reg->reg[j].str, reg->reg[j].value);
-	}
+
+/////////////////////////////
+/// Account reg manipulation
+
+int inter_accreg_tostr(char* str, const struct regs* reg)
+{
+	char* p = str;
+	int j;
+
+	for( j = 0; j < reg->reg_num; ++j )
+		p += sprintf(p, "%s,%s ", reg->reg[j].str, reg->reg[j].value);
 
 	return 0;
 }
 
-// アカウント変数を文字列から変換
-int inter_accreg_fromstr(const char *str, struct accreg *reg)
+int inter_accreg_fromstr(const char* str, struct regs* reg)
 {
 	int j, n;
-	const char *p = str;
+	const char* p = str;
 
-	if (sscanf(p, "%d\t%n", &reg->account_id, &n ) != 1 || reg->account_id <= 0)
-		return 1;
-
-	for(j = 0, p += n; j < ACCOUNT_REG_NUM; j++, p += n) {
+	for( j = 0; j < ACCOUNT_REG_NUM; j++, p += n )
+	{
 		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[j].str, reg->reg[j].value, &n) != 2) 
 			break;
 	}
@@ -48,40 +51,70 @@ int inter_accreg_fromstr(const char *str, struct accreg *reg)
 	return 0;
 }
 
-/// Serializes account regs of the specified acccount into the provided buffer.
-/// Returns the number of bytes written.
-int inter_accreg_tobuf(uint8* buf, int account_id)
+bool inter_accreg_load(int account_id, struct regs* reg)
 {
-	int c = 0;
-	int i;
-
-	struct accreg* reg = (struct accreg*)idb_get(accreg_db,account_id);
-	if( reg == NULL )
-		return 0;
-
-	for( i = 0; i < reg->reg_num; i++)
+	struct regs* dbreg = (struct regs*)idb_get(accreg_db,account_id);
+	if( dbreg == NULL )
 	{
-		c += sprintf((char*)WBUFP(buf,c), "%s", reg->reg[i].str)+1; //We add 1 to consider the '\0' in place.
-		c += sprintf((char*)WBUFP(buf,c), "%s", reg->reg[i].value)+1;
+		reg->reg_num = 0;
+		return false;
 	}
 
-	return c;
+	memcpy(reg, dbreg, sizeof(struct regs));
+	return true;
 }
 
-int inter_accreg_frombuf(uint8* buf, struct accreg* reg)
+bool inter_accreg_save(int account_id, struct regs* reg)
 {
-
+	struct regs* dbreg = (struct regs*)idb_ensure(accreg_db, account_id, create_regs);
+	memcpy(dbreg, reg, sizeof(struct regs));
+	return true;
 }
 
+int inter_accreg_sync(void)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
 
+	fp = lock_fopen(accreg_txt,&lock);
+	if( fp == NULL )
+	{
+		ShowError("int_accreg: can't write [%s] !!! data is lost !!!\n", accreg_txt);
+		return 1;
+	}
 
-// アカウント変数の読み込み
+	iter = accreg_db->iterator(accreg_db);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int account_id = key.i;
+		struct regs* reg = (struct regs*) data;
+		char line[8192];
+
+		if( reg->reg_num == 0 )
+			continue;
+
+		inter_accreg_tostr(line,reg);
+		fprintf(fp, "%d\t%s\n", account_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, accreg_txt, &lock);
+
+	return 0;
+}
+
+/// Sets up accreg_db and loads data into it.
 int inter_accreg_init(void)
 {
 	char line[8192];
 	FILE *fp;
 	int c = 0;
-	struct accreg *reg;
+	int n;
+	int account_id;
+	struct regs* reg;
 
 	accreg_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
@@ -89,19 +122,28 @@ int inter_accreg_init(void)
 	if( fp == NULL )
 		return 1;
 
-	while(fgets(line, sizeof(line), fp))
+	while( fgets(line, sizeof(line), fp) )
 	{
-		reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1);
-		if (reg == NULL) {
+		reg = (struct regs*)aCalloc(sizeof(struct regs), 1);
+		if( reg == NULL )
+		{
 			ShowFatalError("inter: accreg: out of memory!\n");
 			exit(EXIT_FAILURE);
 		}
-		if (inter_accreg_fromstr(line, reg) == 0 && reg->account_id > 0) {
-			idb_put(accreg_db, reg->account_id, reg);
-		} else {
+
+		// load account id
+		if( sscanf(line, "%d\t%n", &account_id, &n) != 1 || account_id <= 0 )
+			continue;
+
+		// load regs for this account
+		if( inter_accreg_fromstr(line + n, reg) != 0 )
+		{
 			ShowError("inter: accreg: broken data [%s] line %d\n", accreg_txt, c);
 			aFree(reg);
+			continue;
 		}
+
+		idb_put(accreg_db, account_id, reg);
 		c++;
 	}
 
@@ -112,86 +154,81 @@ int inter_accreg_init(void)
 int inter_accreg_final(void)
 {
 	accreg_db->destroy(accreg_db, NULL);
-}
-
-// アカウント変数のセーブ用
-int inter_accreg_save_sub(DBKey key, void *data, va_list ap)
-{
-	char line[8192];
-	FILE *fp;
-	struct accreg *reg = (struct accreg *)data;
-
-	if( reg->reg_num > 0 )
-	{
-		inter_accreg_tostr(line,reg);
-		fp = va_arg(ap, FILE *);
-		fprintf(fp, "%s\n", line);
-	}
-
 	return 0;
 }
 
-// アカウント変数のセーブ
-int inter_accreg_save(void)
+
+///////////////////////////////
+/// Character reg manipulation
+
+int inter_charreg_tostr(char* str, const struct regs* reg)
 {
-	FILE *fp;
-	int lock;
+	int c = 0;
+	int i;
 
-	fp = lock_fopen(accreg_txt,&lock);
-	if( fp == NULL )
-	{
-		ShowError("int_accreg: can't write [%s] !!! data is lost !!!\n", accreg_txt);
-		return 1;
-	}
-	accreg_db->foreach(accreg_db, inter_accreg_save_sub,fp);
-	lock_fclose(fp, accreg_txt, &lock);
+	for( i = 0; i < reg->reg_num; ++i )
+		if( reg->reg[i].str[0] != '\0' )
+			c += sprintf(str+c, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
 
-	return 0;
+	return c;
 }
 
-static void* create_accreg(DBKey key, va_list args)
+bool inter_charreg_fromstr(const char* str, struct regs* reg)
 {
-	struct accreg *reg;
-	reg = (struct accreg*)aCalloc(sizeof(struct accreg), 1);
-	reg->account_id = key.i;
-	return reg;
-}
+	int i;
+	int len;
 
-
-
-
-
-
-
-bool mmo_globalreg_tobuf(uint8* buf, struct mmo_charstatus* status)
-{
-
-}
-
-//Reply to map server with acc reg values.
-int mapif_account_reg_reply(int fd,int account_id,int char_id)
-{
-	int i,j,p;
-	WFIFOHEAD(fd, GLOBAL_REG_NUM*288 + 13);
-	WFIFOW(fd,0)=0x3804;
-	WFIFOL(fd,4)=account_id;
-	WFIFOL(fd,8)=char_id;
-	WFIFOB(fd,12)=3; //Type 3: char acc reg.
-
-	ARR_FIND( 0, char_num, i, char_dat[i].status.account_id == account_id && char_dat[i].status.char_id == char_id );
-	if( i == char_num ) //Character not found? Send empty packet.
-		WFIFOW(fd,2)=13;
-	else
-	{
-		for (p=13,j = 0; j < char_dat[i].global_num; j++) {
-			if (char_dat[i].global[j].str[0]) {
-				p+= sprintf((char*)WFIFOP(fd,p), "%s", char_dat[i].global[j].str)+1; //We add 1 to consider the '\0' in place.
-				p+= sprintf((char*)WFIFOP(fd,p), "%s", char_dat[i].global[j].value)+1;
-			}
+	for( i = 0; *str && *str != '\t' && *str != '\n' && *str != '\r'; ++i )
+	{// global_reg実装以前のathena.txt互換のため一応'\n'チェック
+		if( sscanf(str, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &len) != 2 )
+		{ 
+			// because some scripts are not correct, the str can be "". So, we must check that.
+			// If it's, we must not refuse the character, but just this REG value.
+			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
+			if( *str == ',' && sscanf(str, ",%[^ ] %n", reg->reg[i].value, &len) == 1 )
+				i--;
+			else
+				return false;
 		}
-		WFIFOW(fd,2) = p;
+
+		str += len;
+		if ( *str == ' ' )
+			str++;
 	}
-	WFIFOSET(fd,WFIFOW(fd,2));
+
+	reg->reg_num = i;
+
+	return true;
+}
+
+bool inter_charreg_load(int char_id, struct regs* reg)
+{
+	struct regs* dbreg = (struct regs*)idb_get(charreg_db, char_id);
+	if( dbreg == NULL )
+	{
+		reg->reg_num = 0;
+		return false;
+	}
+
+	memcpy(reg, dbreg, sizeof(struct regs));
+	return true;
+}
+
+bool inter_charreg_save(int char_id, struct regs* reg)
+{
+	struct regs* dbreg = (struct regs*)idb_ensure(charreg_db, char_id, create_regs);
+	memcpy(dbreg, reg, sizeof(struct regs));
+	return true;
+}
+
+int inter_charreg_init(void)
+{
+	charreg_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	return 0;
 }
-*/
+
+int inter_charreg_final(void)
+{
+	charreg_db->destroy(charreg_db, NULL);
+	return 0;
+}

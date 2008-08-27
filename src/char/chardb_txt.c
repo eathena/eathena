@@ -13,6 +13,7 @@
 #include "char.h"
 #include "chardb.h"
 #include "charlog.h"
+#include "int_registry.h"
 #include "inter.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -59,7 +60,7 @@ void mmo_char_sync(void);
 //-------------------------------------------------
 // Function to create the character line (for save)
 //-------------------------------------------------
-int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int reg_num)
+int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 {
 	int i,j;
 	char *str_p = str;
@@ -123,9 +124,8 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 	*(str_p++) = '\t';
 
 	// registry
-	for(i = 0; i < reg_num; i++)
-		if (reg[i].str[0])
-			str_p += sprintf(str_p, "%s,%s ", reg[i].str, reg[i].value);
+	if( reg != NULL )
+		str_p += inter_charreg_tostr(str_p, reg);
 	*(str_p++) = '\t';
 
 	*str_p = '\0';
@@ -135,7 +135,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, struct global_reg *reg, 
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg, int *reg_num)
+int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg)
 {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
@@ -430,21 +430,9 @@ int mmo_char_fromstr(char *str, struct mmo_charstatus *p, struct global_reg *reg
 
 	next++;
 
-	for(i = 0; str[next] && str[next] != '\t' && str[next] != '\n' && str[next] != '\r'; i++) { // global_reg実装以前のathena.txt互換のため一応'\n'チェック
-		if (sscanf(str + next, "%[^,],%[^ ] %n", reg[i].str, reg[i].value, &len) != 2) { 
-			// because some scripts are not correct, the str can be "". So, we must check that.
-			// If it's, we must not refuse the character, but just this REG value.
-			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-			if (str[next] == ',' && sscanf(str + next, ",%[^ ] %n", reg[i].value, &len) == 1) 
-				i--;
-			else
-				return -7;
-		}
-		next += len;
-		if (str[next] == ' ')
-			next++;
-	}
-	*reg_num = i;
+	// parse character regs
+	if( !inter_charreg_fromstr(str + next, reg) )
+		return -7;
 
 	return 1;
 }
@@ -599,6 +587,7 @@ int mmo_char_init(void)
 	line_count = 0;
 	while(fgets(line, sizeof(line), fp))
 	{
+		struct regs reg;
 		int i, j;
 		line_count++;
 
@@ -622,8 +611,10 @@ int mmo_char_init(void)
 			}
 		}
 
-		ret = mmo_char_fromstr(line, &char_dat[char_num], char_dat[char_num].global, &char_dat[char_num].global_num);
+		ret = mmo_char_fromstr(line, &char_dat[char_num], &reg);
 
+		// Initialize char regs
+		inter_charreg_save(char_dat[char_num].char_id, &reg);
 		// Initialize friends list
 		parse_friend_txt(&char_dat[char_num]);  // Grab friends for the character
 		// Initialize hotkey list
@@ -699,9 +690,11 @@ void mmo_char_sync(void)
 		ShowWarning("Server cannot save characters.\n");
 		char_log("WARNING: Server cannot save characters.\n");
 	} else {
-		for(i = 0; i < char_num; i++)
+		for( i = 0; i < char_num; i++ )
 		{
-			mmo_char_tostr(line, &char_dat[i], char_dat[i].global, char_dat[i].global_num);
+			struct regs reg;
+			inter_charreg_load(char_dat[i].char_id, &reg);
+			mmo_char_tostr(line, &char_dat[i], &reg);
 			fprintf(fp, "%s\n", line);
 		}
 		fprintf(fp, "%d\t%%newid%%\n", char_id_count);

@@ -47,12 +47,6 @@ extern DBMap* char_db_;
 extern int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf);
 
 
-
-#define CHAR_CONF_NAME	"conf/char_athena.conf"
-#define LAN_CONF_NAME	"conf/subnet_athena.conf"
-#define INTER_CONF_NAME	"conf/inter_athena.conf"
-
-
 int login_fd=-1, char_fd=-1;
 char userid[24];
 char passwd[24];

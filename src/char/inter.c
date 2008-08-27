@@ -28,10 +28,6 @@
 // temporary stuff
 extern int save_accreg2(unsigned char* buf, int len);
 extern int request_accreg2(int account_id, int char_id);
-#ifdef TXT_ONLY
-#else
-extern int inter_accreg_fromsql(int account_id,int char_id, struct accreg *reg, int type);
-#endif
 
 #define WISDATA_TTL (60*1000)	// Expiration time of non-acknowledged whisper data (60 seconds)
 #define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
@@ -208,7 +204,7 @@ int inter_save(void)
 	inter_guild_storage_save();
 	inter_pet_save();
 	inter_homun_save();
-	inter_accreg_save();
+	inter_accreg_sync();
 
 	return 0;
 }
@@ -217,6 +213,9 @@ int inter_save(void)
 // initialize
 int inter_init(void)
 {
+	//FIXME: more than one 'inter_config_read' exists
+	inter_config_read(INTER_CONF_NAME);
+
 #ifndef TXT_ONLY
 	ShowInfo ("interserver initialize...\n");
 
@@ -238,6 +237,7 @@ int inter_init(void)
 	wis_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	inter_accreg_init();
+	inter_charreg_init();
 	inter_party_init();
 	inter_guild_init();
 	inter_storage_init();
@@ -256,6 +256,7 @@ int inter_init(void)
 void inter_final(void)
 {
 	inter_accreg_final();
+	inter_charreg_final();
 	wis_db->destroy(wis_db, NULL);
 	inter_party_final();
 	inter_guild_final();
@@ -326,40 +327,16 @@ static void mapif_account_reg(int fd, unsigned char *src)
 	mapif_sendallwos(fd, src, WBUFW(src,2));
 }
 
-// Send the requested account_reg
-static void mapif_account_reg_reply(int fd,int account_id, int char_id, int type)
+// Send the requested regs
+static void mapif_regs_reply(int fd, int account_id, int char_id, int type, const struct regs* reg)
 {
-#ifdef TXT_ONLY
-	WFIFOHEAD(fd, ACCOUNT_REG_NUM * 288+ 13);
+	WFIFOHEAD(fd, 13 + ACCOUNT_REG_NUM * 288);
 	WFIFOW(fd,0) = 0x3804;
 	WFIFOL(fd,4) = account_id;
 	WFIFOL(fd,8) = char_id;
 	WFIFOB(fd,12) = type;
-	WFIFOW(fd,2) = 13 + inter_accreg_tobuf(WFIFOP(fd,13),account_id);
+	WFIFOW(fd,2) = 13 + inter_regs_tobuf(WFIFOP(fd,13), ACCOUNT_REG_NUM * 288, reg);
 	WFIFOSET(fd,WFIFOW(fd,2));
-#else
-	struct accreg reg;
-	inter_accreg_fromsql(account_id,char_id,&reg,type);
-	
-	WFIFOHEAD(fd, 13 + 5000);
-	WFIFOW(fd,0) = 0x3804;
-	WFIFOL(fd,4) = account_id;
-	WFIFOL(fd,8) = char_id;
-	WFIFOB(fd,12) = type;
-	if( reg.reg_num == 0 ){
-		WFIFOW(fd,2)=13;
-	}else{
-		int i,p;
-		for (p=13,i = 0; i < reg.reg_num && p < 5000; i++) {
-			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg.reg[i].str)+1; //We add 1 to consider the '\0' in place.
-			p+= sprintf((char*)WFIFOP(fd,p), "%s", reg.reg[i].value)+1;
-		}
-		WFIFOW(fd,2) = p;
-		if( p >= 5000 )
-			ShowWarning("Too many acc regs for %d:%d, not all values were loaded.\n", account_id, char_id);
-	}
-	WFIFOSET(fd,WFIFOW(fd,2));
-#endif
 }
 
 //Request to kick char from a certain map server. [Skotlex]
@@ -562,101 +539,66 @@ int mapif_parse_WisToGM(int fd)
 }
 
 // save incoming registry
+// 3004 <length>.w <aid>.l <cid>.l <type>.b { <str>.s <val>.s }*
 int mapif_parse_Registry(int fd)
 {
-#ifdef TXT_ONLY
-	int j, p, len;
+	int length = RFIFOW(fd,2);
+	int account_id = RFIFOL(fd,4);
+	int char_id = RFIFOL(fd,8);
+	int type = RFIFOB(fd,12);
+	uint8* buf = RFIFOP(fd,13);
 
-	switch (RFIFOB(fd,12)) {
-		case 3: //Character registry
-			//return char_parse_Registry(RFIFOL(fd,4), RFIFOL(fd,8), RFIFOP(fd,13), RFIFOW(fd,2)-13);
-			//Receive Registry information for a character.
-		//int char_parse_Registry(int account_id, int char_id, unsigned char *buf, int buf_len)
-		{
-			int i,j,p,len;
-
-			ARR_FIND( 0, char_num, i, char_dat[i].account_id == account_id && char_dat[i].char_id == char_id );
-			if( i == char_num ) //Character not found?
-				return 1;
-
-			for(j=0,p=0;j<GLOBAL_REG_NUM && p<buf_len;j++){
-				sscanf((char*)WBUFP(buf,p), "%31c%n",char_dat[i].global[j].str,&len);
-				char_dat[i].global[j].str[len]='\0';
-				p +=len+1; //+1 to skip the '\0' between strings.
-				sscanf((char*)WBUFP(buf,p), "%255c%n",char_dat[i].global[j].value,&len);
-				char_dat[i].global[j].value[len]='\0';
-				p +=len+1;
-			}
-			char_dat[i].global_num = j;
-			return 0;
-		}
-		case 2: //Acc Reg
-		{
-			struct accreg* reg = (struct accreg*)idb_ensure(accreg_db, RFIFOL(fd,4), create_accreg);
-
-			for(j=0,p=13;j<ACCOUNT_REG_NUM && p<RFIFOW(fd,2);j++){
-				sscanf((char*)RFIFOP(fd,p), "%31c%n",reg->reg[j].str,&len);
-				reg->reg[j].str[len]='\0';
-				p +=len+1; //+1 to skip the '\0' between strings.
-				sscanf((char*)RFIFOP(fd,p), "%255c%n",reg->reg[j].value,&len);
-				reg->reg[j].value[len]='\0';
-				p +=len+1;
-			}
-			reg->reg_num = j;
-			mapif_account_reg(fd, RFIFOP(fd,0));	// 他のMAPサーバーに送信
-			return 0;
-		}
-		case 1: //Acc Reg2, forward to login
-			return save_accreg2(RFIFOP(fd,4), RFIFOW(fd,2)-4);
-		default: //Error?
-			return 1; 
-	}
-#else
-	int j, p, len, max;
-	struct accreg reg;
-	memset(&reg, 0, sizeof(reg));
-
-	switch (RFIFOB(fd, 12)) {
+	switch( type )
+	{
 	case 3: //Character registry
-		max = GLOBAL_REG_NUM;
+	{
+		struct regs reg;
+		inter_regs_frombuf(buf, length-13, &reg);
+		inter_charreg_save(account_id, &reg);
+		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
+		return 0;
+	}
 	break;
+
 	case 2: //Account Registry
-		max = ACCOUNT_REG_NUM;
+	{
+		struct regs reg;
+		inter_regs_frombuf(buf, length-13, &reg);
+		inter_accreg_save(char_id, &reg);
+		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
+		return 0;
+	}
 	break;
+
 	case 1: //Account2 registry, must be sent over to login server.
-		return save_accreg2(RFIFOP(fd,4), RFIFOW(fd,2)-4);
-	default:
+		return save_accreg2(RFIFOP(fd,4), length-4);
+	default: //Error?
 		return 1;
 	}
-	for( j = 0, p = 13; j < max && p < RFIFOW(fd,2); j++ )
-	{
-		sscanf((char*)RFIFOP(fd,p), "%31c%n", reg.reg[j].str, &len);
-		reg.reg[j].str[len] = '\0';
-		p += len+1; //+1 to skip the '\0' between strings.
-		sscanf((char*)RFIFOP(fd,p), "%255c%n", reg.reg[j].value, &len);
-		reg.reg[j].value[len] = '\0';
-		p += len+1;
-	}
-	reg.reg_num = j;
-
-	inter_accreg_tosql(RFIFOL(fd,4),RFIFOL(fd,8), &reg, RFIFOB(fd,12));
-	mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
-	return 0;
-#endif
 }
 
 // Request the value of all registries.
 int mapif_parse_RegistryRequest(int fd)
 {
-	//Load Char Registry
-	if (RFIFOB(fd,12))
-		mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3);
-	//Load Account Registry
-	if (RFIFOB(fd,11))
-		mapif_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2);
-	//Ask Login Server for Account2 values.
-	if (RFIFOB(fd,10))
+	if( RFIFOB(fd,12) )
+	{// Load Char Registry
+		struct regs charreg;
+		inter_charreg_load(RFIFOL(fd,6), &charreg);
+		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3,&charreg);
+	}
+
+	if( RFIFOB(fd,11) )
+	{// Load Account Registry
+		struct regs accreg;
+		inter_accreg_load(RFIFOL(fd,2), &accreg);
+		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2,&accreg);
+	}
+
+	if( RFIFOB(fd,10) )
+	{// Ask Login Server for Account2 values.
 		request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6));
+	}
+
 	return 1;
 }
 

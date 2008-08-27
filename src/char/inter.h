@@ -4,8 +4,6 @@
 #ifndef _INTER_H_
 #define _INTER_H_
 
-struct accreg;
-
 int inter_init(void);
 void inter_final(void);
 int inter_parse_frommap(int fd);
@@ -20,12 +18,10 @@ extern char main_chat_nick[16];
 int inter_save(void);
 //For TXT->SQL conversion
 extern char accreg_txt[];
-int inter_accreg_fromstr(const char *str, struct accreg *reg);
 #else
 #include "../common/sql.h"
 extern Sql* sql_handle;
 extern Sql* lsql_handle;
-int inter_accreg_tosql(int account_id, int char_id, struct accreg *reg, int type);
 
 extern char char_db[256];
 extern char scdata_db[256];

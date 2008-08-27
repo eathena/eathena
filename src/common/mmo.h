@@ -172,9 +172,8 @@ struct global_reg {
 	char value[256];
 };
 
-//Holds array of global registries, used by the char server and converter.
-struct accreg {
-	int account_id, char_id;
+//Holds array of script variables
+struct regs {
 	int reg_num;
 	struct global_reg reg[MAX_REG_NUM];
 };
