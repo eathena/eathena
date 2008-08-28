@@ -9,16 +9,13 @@
 
 int inter_regs_tobuf(uint8* buf, size_t size, const struct regs* reg);
 int inter_regs_frombuf(const uint8* buf, size_t size, struct regs* reg);
-
-int inter_accreg_init(void);
-int inter_accreg_final(void);
 bool inter_accreg_load(int account_id, struct regs* reg);
 bool inter_accreg_save(int account_id, struct regs* reg);
-
-int inter_charreg_init(void);
-int inter_charreg_final(void);
 bool inter_charreg_load(int char_id, struct regs* reg);
 bool inter_charreg_save(int char_id, struct regs* reg);
+
+int inter_registry_init(void);
+int inter_registry_final(void);
 
 #ifdef TXT_ONLY
 int inter_accreg_sync(void);

@@ -236,14 +236,12 @@ int inter_init(void)
 #endif
 	wis_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
-	inter_accreg_init();
-	inter_charreg_init();
+	inter_registry_init();
 	inter_party_init();
 	inter_guild_init();
 	inter_storage_init();
 	inter_pet_init();
 	inter_homun_init();
-	inter_accreg_init();
 #ifndef TXT_ONLY
 	inter_mail_init();
 	inter_auction_init();
@@ -255,8 +253,7 @@ int inter_init(void)
 // finalize
 void inter_final(void)
 {
-	inter_accreg_final();
-	inter_charreg_final();
+	inter_registry_final();
 	wis_db->destroy(wis_db, NULL);
 	inter_party_final();
 	inter_guild_final();

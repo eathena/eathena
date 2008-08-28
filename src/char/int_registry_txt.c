@@ -232,3 +232,18 @@ int inter_charreg_final(void)
 	charreg_db->destroy(charreg_db, NULL);
 	return 0;
 }
+
+
+int inter_registry_init(void)
+{
+	inter_accreg_init();
+	inter_charreg_init();
+	return 0;
+}
+
+int inter_registry_final(void)
+{
+	inter_accreg_final();
+	inter_charreg_final();
+	return 0;
+}

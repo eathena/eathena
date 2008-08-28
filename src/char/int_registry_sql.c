@@ -90,16 +90,6 @@ bool inter_accreg_save(int account_id, struct regs* reg)
 	return( inter_accreg_tosql(account_id, reg) == true );
 }
 
-int inter_accreg_init(void)
-{
-	return 0;
-}
-
-int inter_accreg_final(void)
-{
-	return 0;
-}
-
 
 ///////////////////////////////
 /// Character reg manipulation
@@ -175,12 +165,13 @@ bool inter_charreg_save(int char_id, struct regs* reg)
 	return( inter_charreg_tosql(char_id, reg) == true );
 }
 
-int inter_charreg_init(void)
+
+int inter_registry_init(void)
 {
 	return 0;
 }
 
-int inter_charreg_final(void)
+int inter_registry_final(void)
 {
 	return 0;
 }
