@@ -2287,7 +2287,7 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 		{
-			unsigned char buf[32000]; //FIXME: this will crash
+			unsigned char buf[32767]; //FIXME: this will crash
 			if (gm_account != NULL)
 				aFree(gm_account);
 			CREATE(gm_account, struct gm_account, (RFIFOW(fd,2) - 4)/5);

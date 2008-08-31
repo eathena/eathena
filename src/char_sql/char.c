@@ -1916,7 +1916,7 @@ int parse_fromlogin(int fd)
 				return 0;
 
 			if(!char_gm_read) {
-				unsigned char buf[32000]; //FIXME: this will crash
+				unsigned char buf[32767]; //FIXME: this will crash
 				if (gm_account != NULL)
 					aFree(gm_account);
 				gm_account = (struct gm_account*)aCalloc(sizeof(struct gm_account) * ((RFIFOW(fd,2) - 4) / 5), 1);
