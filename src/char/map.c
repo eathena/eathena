@@ -18,10 +18,11 @@
 #include <string.h>
 
 //temporary imports
+extern CharDB* chars;
+
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
 #include "char.h"
-extern struct mmo_charstatus *char_dat;
 extern int char_num, char_max;
 extern int login_fd;
 struct online_char_data {
@@ -58,8 +59,6 @@ extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 extern void char_update_fame_list(int type, int index, int fame);
 extern void set_all_offline(int id);
 extern void char_read_fame_list(void);
-extern int mmo_char_tosql(int char_id, struct mmo_charstatus* p);
-extern int mmo_char_fromsql(int char_id, struct mmo_charstatus* p, bool load_everything);
 extern DBMap* char_db_;
 extern int divorce_char_sql(int partner_id1, int partner_id2);
 
@@ -315,10 +314,13 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 		{
-			int aid = RFIFOL(fd,4), cid = RFIFOL(fd,8), size = RFIFOW(fd,2);
-#ifndef TXT_ONLY
 			struct online_char_data* character;
-#endif
+			struct mmo_charstatus cd;
+
+			int size = RFIFOW(fd,2);
+			int aid = RFIFOL(fd,4);
+			int cid = RFIFOL(fd,8);
+			bool finalsave = (bool)RFIFOB(fd,12);
 
 			// verify data size
 			if (size - 13 != sizeof(struct mmo_charstatus))
@@ -328,40 +330,38 @@ int parse_frommap(int fd)
 				break;
 			}
 
-#ifdef TXT_ONLY
-			// look up character
-			ARR_FIND( 0, char_num, i, char_dat[i].account_id == aid && char_dat[i].char_id == cid );
-			if( i < char_num )
-			{
-				memcpy(&char_dat[i], RFIFOP(fd,13), sizeof(struct mmo_charstatus));
-				storage_save(char_dat[i].account_id, &char_dat[i].storage);
-			}
-#else
+			memcpy(&cd, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
+			RFIFOSKIP(fd,size);
+
 			//Check account only if this ain't final save. Final-save goes through because of the char-map reconnect
-			if (RFIFOB(fd,12) || (
-				(character = (struct online_char_data*)idb_get(online_char_db, aid)) != NULL &&
-				character->char_id == cid))
+			if( finalsave || ((character = (struct online_char_data*)idb_get(online_char_db, aid)) != NULL && character->char_id == cid) )
 			{
-				struct mmo_charstatus char_dat;
-				memcpy(&char_dat, RFIFOP(fd,13), sizeof(struct mmo_charstatus));
-				mmo_char_tosql(cid, &char_dat);
-			} else {	//This may be valid on char-server reconnection, when re-sending characters that already logged off.
+				//TODO: perhaps check if account id matches
+
+				if( chars->save(chars, &cd) )
+				{
+					#ifdef TXT_ONLY
+					storage_save(cd.account_id, &cd.storage);
+					#endif
+				}
+				//TODO: error handling
+			}
+			else
+			{// This may be valid on char-server reconnection, when re-sending characters that already logged off.
 				ShowError("parse_from_map (save-char): Received data for non-existant/offline character (%d:%d).\n", aid, cid);
 				set_char_online(id, cid, aid);
 			}
-#endif
 
-			if (RFIFOB(fd,12))
-			{// Flag? Set character offline after saving [Skotlex]
+			if (finalsave)
+			{// Save ack only needed on final save.
 				set_char_offline(cid,aid);
 				WFIFOHEAD(fd,10);
-				WFIFOW(fd,0) = 0x2b21; //Save ack only needed on final save.
+				WFIFOW(fd,0) = 0x2b21; 
 				WFIFOL(fd,2) = aid;
 				WFIFOL(fd,6) = cid;
 				WFIFOSET(fd,10);
 			}
 		}
-			RFIFOSKIP(fd,RFIFOW(fd,2));
 		break;
 
 		case 0x2b02: // req char selection
@@ -403,6 +403,10 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 35)
 				return 0;
 		{
+			int map_id, map_fd = -1;
+			struct online_char_data* data;
+			struct mmo_charstatus cd;
+
 			int account_id = RFIFOL(fd,2);
 			int login_id1 = RFIFOL(fd,6);
 			int login_id2 = RFIFOL(fd,10);
@@ -414,38 +418,21 @@ int parse_frommap(int fd)
 			uint16 server_port = RFIFOW(fd,28);
 			char sex = RFIFOB(fd,30);
 			uint32 client_ip = RFIFOL(fd,31);
-
-			int map_id, map_fd = -1;
-			struct online_char_data* data;
-			struct mmo_charstatus* char_data;
+			RFIFOSKIP(fd,35);
 
 			map_id = search_mapserver(mapindex, ntohl(server_ip), ntohs(server_port)); //Locate mapserver by ip and port.
 			if (map_id >= 0)
 				map_fd = server[map_id].fd;
 
-#ifdef TXT_ONLY
-			ARR_FIND( 0, char_num, i, char_dat[i].account_id == account_id && char_dat[i].char_id == char_id );
-			char_data = i < char_num ? &char_dat[i] : NULL;
-#else
-			//Char should just had been saved before this packet, so this should be safe. [Skotlex]
-			char_data = (struct mmo_charstatus*)uidb_get(char_db_,RFIFOL(fd,14));
-			if (char_data == NULL) 
-			{	//Really shouldn't happen.
-				struct mmo_charstatus char_dat;
-				mmo_char_fromsql(RFIFOL(fd,14), &char_dat, true);
-				char_data = (struct mmo_charstatus*)uidb_get(char_db_,RFIFOL(fd,14));
-			}
-#endif
-
-			if (map_fd >= 0 && session[map_fd] && char_data) 
+			if( map_fd >= 0 && session[map_fd] != NULL && chars->load_num(chars, &cd, char_id) )
 			{	//Send the map server the auth of this player.
 				struct auth_node* node;
 
 				//Update the "last map" as this is where the player must be spawned on the new map server.
-				char_data->last_point.map = mapindex;
-				char_data->last_point.x = x;
-				char_data->last_point.y = y;
-				char_data->sex = sex;
+				cd.last_point.map = mapindex;
+				cd.last_point.x = x;
+				cd.last_point.y = y;
+				cd.sex = sex;
 
 				// create temporary auth entry
 				CREATE(node, struct auth_node, 1);
@@ -459,7 +446,7 @@ int parse_frommap(int fd)
 				idb_put(auth_db, account_id, node);
 
 				data = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
-				data->char_id = char_data->char_id;
+				data->char_id = cd.char_id;
 				data->server = map_id; //Update server where char is.
 
 				//Reply with an ack.
@@ -474,7 +461,6 @@ int parse_frommap(int fd)
 				WFIFOL(fd,6) = 0; //Set login1 to 0.
 				WFIFOSET(fd,30);
 			}
-			RFIFOSKIP(fd,35);
 		}
 		break;
 
@@ -485,7 +471,7 @@ int parse_frommap(int fd)
 			WFIFOHEAD(fd,30);
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
-			char_loadName((int)RFIFOL(fd,2), (char*)WFIFOP(fd,6));
+			chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6)); //TODO: check return value?
 			WFIFOSET(fd,30);
 
 			RFIFOSKIP(fd,6);
@@ -609,9 +595,11 @@ int parse_frommap(int fd)
 				break;
 				}
 			}
+
 #ifndef TXT_ONLY
 			Sql_FreeResult(sql_handle);
 #endif
+
 			// send answer if a player ask, not if the server ask
 			if( acc != -1 && type != 5) { // Don't send answer for changesex
 				WFIFOHEAD(fd,34);
@@ -662,7 +650,7 @@ int parse_frommap(int fd)
 					ARR_MOVE(size - 1, fame_pos, list, struct fame_list);
 					list[fame_pos].id = cid;
 					list[fame_pos].fame = fame;
-					char_loadName(cid, list[fame_pos].name);
+					chars->id2name(chars, cid, list[fame_pos].name); //TODO: check return value?
 				}
 				else
 				{// already in the list
@@ -802,7 +790,7 @@ int parse_frommap(int fd)
 			char sex;
 			uint32 ip;
 			struct auth_node* node;
-			struct mmo_charstatus* cd;
+			struct mmo_charstatus cd;
 
 			account_id = RFIFOL(fd,2);
 			char_id    = RFIFOL(fd,6);
@@ -812,25 +800,21 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,19);
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
-#ifdef TXT_ONLY
-			cd = search_character(account_id, char_id);
-#else
-			cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
-			if( cd == NULL )
-			{	//Really shouldn't happen.
-				struct mmo_charstatus char_dat;
-				mmo_char_fromsql(char_id, &char_dat, true);
-				cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
-			}
-#endif
-			if( node != NULL && cd != NULL &&
+
+			
+
+			if( chars->load_num(chars, &cd, char_id) && //TODO: verify account_id?
+				node != NULL &&
 				node->account_id == account_id &&
 				node->char_id == char_id &&
 				node->login_id1 == login_id1 &&
 				node->sex == sex &&
 				node->ip == ip )
 			{// auth ok
-				cd->sex = sex;
+				cd.sex = sex; //FIXME: is this ok?
+				#ifdef TXT_ONLY
+				storage_load(cd.account_id, &cd.storage);
+				#endif
 
 				WFIFOHEAD(fd,24 + sizeof(struct mmo_charstatus));
 				WFIFOW(fd,0) = 0x2afd;
@@ -840,10 +824,7 @@ int parse_frommap(int fd)
 				WFIFOL(fd,12) = node->login_id2;
 				WFIFOL(fd,16) = (uint32)node->expiration_time; // FIXME: will wrap to negative after "19-Jan-2038, 03:14:07 AM GMT"
 				WFIFOL(fd,20) = node->gmlevel;
-#ifdef TXT_ONLY
-				storage_load(cd->account_id, &cd->storage); //FIXME: storage is used as a temp buffer here
-#endif
-				memcpy(WFIFOP(fd,24), cd, sizeof(struct mmo_charstatus));
+				memcpy(WFIFOP(fd,24), &cd, sizeof(struct mmo_charstatus));
 				WFIFOSET(fd, WFIFOW(fd,2));
 
 				// only use the auth once and mark user online

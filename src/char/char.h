@@ -14,7 +14,6 @@ enum {
 struct char_session_data {
 	bool auth; // whether the session is authed or not
 	int account_id, login_id1, login_id2, sex;
-	int found_char[MAX_CHARS]; // ids of chars on this account
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;

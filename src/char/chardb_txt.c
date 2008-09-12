@@ -19,128 +19,327 @@
 #include <stdlib.h>
 #include <string.h>
 
-// private declarations
-char char_txt[1024] = "save/athena.txt";
-
-struct mmo_charstatus* char_dat;
-int char_num, char_max;
-int char_id_count = START_CHAR_NUM;
-
-
-extern DBMap* auth_db;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
-extern DBMap* online_char_db;
-extern bool name_ignoring_case;
-#define TRIM_CHARS "\032\t\x0A\x0D "
-
-extern int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p);
-extern int mmo_hotkeys_tostr(char *str, struct mmo_charstatus *p);
+// temporary stuff
+extern int autosave_interval;
 extern int parse_friend_txt(struct mmo_charstatus *p);
 extern int parse_hotkey_txt(struct mmo_charstatus *p);
-extern void mmo_hotkeys_sync(void);
 extern void mmo_friends_sync(void);
-extern int autosave_interval;
+extern void mmo_hotkeys_sync(void);
 
 
-
-//TODO:
-// - search char data by account id (multiple results)
-// - search char data by char id
-// - search char data by account id and char id
-
-void mmo_char_sync(void);
-
-
-//-------------------------------------------------
-// Function to create the character line (for save)
-//-------------------------------------------------
-int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
+/// internal structure
+typedef struct CharDB_TXT
 {
-	int i,j;
-	char *str_p = str;
+	CharDB vtable;      // public interface
 
-	// character data
-	str_p += sprintf(str_p,
-		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
-		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
-		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
-		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
-		"\t%d,%d,%d\t%d,%d,%d" //last point + save point
-		",%d,%d,%d,%d,%d\t",	//Family info
-		p->char_id, p->account_id, p->slot, p->name, //
-		p->class_, p->base_level, p->job_level,
-		p->base_exp, p->job_exp, p->zeny,
-		p->hp, p->max_hp, p->sp, p->max_sp,
-		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-		p->status_point, p->skill_point,
-		p->option, p->karma, p->manner,	//
-		p->party_id, p->guild_id, p->pet_id, p->hom_id,
-		p->hair, p->hair_color, p->clothes_color,
-		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		p->last_point.map, p->last_point.x, p->last_point.y, //
-		p->save_point.map, p->save_point.x, p->save_point.y,
-		p->partner_id,p->father,p->mother,p->child,p->fame);
-	for(i = 0; i < MAX_MEMOPOINTS; i++)
-		if (p->memo_point[i].map) {
-			str_p += sprintf(str_p, "%d,%d,%d ", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
-		}
-	*(str_p++) = '\t';
+	DBMap* chars;       // in-memory character storage
+	int next_char_id;   // auto_increment
+	int save_timer;     // save timer id
 
-	// inventory
-	for(i = 0; i < MAX_INVENTORY; i++)
-		if (p->inventory[i].nameid) {
-			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-				p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
-				p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
-			for(j=0; j<MAX_SLOTS; j++)
-				str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
-			str_p += sprintf(str_p," ");
-		}
-	*(str_p++) = '\t';
+	char char_db[1024]; // character data storage file
 
-	// cart
-	for(i = 0; i < MAX_CART; i++)
-		if (p->cart[i].nameid) {
-			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-				p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
-				p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
-			for(j=0; j<MAX_SLOTS; j++)
-				str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
-			str_p += sprintf(str_p," ");
-		}
-	*(str_p++) = '\t';
+} CharDB_TXT;
 
-	// skills
-	for(i = 0; i < MAX_SKILL; i++)
-		if (p->skill[i].id && p->skill[i].flag != 1) {
-			str_p += sprintf(str_p, "%d,%d ", p->skill[i].id, (p->skill[i].flag == 0) ? p->skill[i].lv : p->skill[i].flag-2);
-		}
-	*(str_p++) = '\t';
+/// internal functions
+static bool char_db_txt_init(CharDB* self);
+static void char_db_txt_destroy(CharDB* self);
+static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status);
+static bool char_db_txt_remove(CharDB* self, const int char_id);
+static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* status);
+static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id);
+static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name);
+static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
+static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH]);
+static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id);
+static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id);
+int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
+static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
+static void mmo_char_sync(CharDB_TXT* db);
+int mmo_chars_tobuf(CharDB* chars, struct char_session_data* sd, uint8* buf);
 
-	// registry
-	if( reg != NULL )
-		str_p += inter_charreg_tostr(str_p, reg);
-	*(str_p++) = '\t';
+/// public constructor
+CharDB* char_db_txt(void)
+{
+	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));
 
-	*str_p = '\0';
-	return 0;
+	// set up the vtable
+	db->vtable.init      = &char_db_txt_init;
+	db->vtable.destroy   = &char_db_txt_destroy;
+	db->vtable.create    = &char_db_txt_create;
+	db->vtable.remove    = &char_db_txt_remove;
+	db->vtable.save      = &char_db_txt_save;
+	db->vtable.load_num  = &char_db_txt_load_num;
+	db->vtable.load_str  = &char_db_txt_load_str;
+	db->vtable.load_slot = &char_db_txt_load_slot;
+	db->vtable.id2name   = &char_db_txt_id2name;
+	db->vtable.name2id   = &char_db_txt_name2id;
+	db->vtable.slot2id   = &char_db_txt_slot2id;
+
+	// initialize to default values
+	db->chars = NULL;
+	db->next_char_id = START_CHAR_NUM;
+	db->save_timer = INVALID_TIMER;
+	// other settings
+	safestrncpy(db->char_db, "save/athena.txt", sizeof(db->char_db));
+
+	return &db->vtable;
 }
+
+
+/* ------------------------------------------------------------------------- */
+
+
+static bool char_db_txt_init(CharDB* self)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars;
+
+	char line[65536];
+	int line_count = 0;
+	int ret;
+	FILE* fp;
+
+	// create chars database
+	db->chars = idb_alloc(DB_OPT_RELEASE_DATA);
+	chars = db->chars;
+
+	// open data file
+	fp = fopen(db->char_db, "r");
+	if( fp == NULL )
+	{
+		ShowError("Characters file not found: %s.\n", db->char_db);
+		char_log("Characters file not found: %s.\n", db->char_db);
+		char_log("Id for the next created character: %d.\n", db->next_char_id);
+		return false;
+	}
+
+	// load data file
+	while( fgets(line, sizeof(line), fp) != NULL )
+	{
+		int char_id, n;
+		struct mmo_charstatus ch;
+		struct mmo_charstatus* tmp;
+		struct regs reg;
+		line_count++;
+
+		if( line[0] == '/' && line[1] == '/' )
+			continue;
+
+		n = 0;
+		if( sscanf(line, "%d\t%%newid%%%n", &char_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
+		{// auto-increment
+			if( char_id > db->next_char_id )
+				db->next_char_id = char_id;
+			continue;
+		}
+
+		ret = mmo_char_fromstr(self, line, &ch, &reg);
+
+		// Initialize char regs
+		inter_charreg_save(ch.char_id, &reg);
+		// Initialize friends list
+		parse_friend_txt(&ch);  // Grab friends for the character
+		// Initialize hotkey list
+		parse_hotkey_txt(&ch);  // Grab hotkeys for the character
+
+		if( ret <= 0 )
+		{
+			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
+			ShowError("               -> Character saved in log file.\n");
+			switch( ret )
+			{
+			case  0: char_log("Unable to get a character in the next line - Basic structure of line (before inventory) is incorrect (character not readed):\n"); break;
+			case -1: char_log("Duplicate character id in the next character line (character not readed):\n"); break;
+			case -2: char_log("Duplicate character name in the next character line (character not readed):\n"); break;
+			case -3: char_log("Invalid memo point structure in the next character line (character not readed):\n"); break;
+			case -4: char_log("Invalid inventory item structure in the next character line (character not readed):\n"); break;
+			case -5: char_log("Invalid cart item structure in the next character line (character not readed):\n"); break;
+			case -6: char_log("Invalid skill structure in the next character line (character not readed):\n"); break;
+			case -7: char_log("Invalid register structure in the next character line (character not readed):\n"); break;
+			default: break;
+			}
+			char_log("%s", line);
+			continue;
+		}
+
+		// record entry in db
+		tmp = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
+		memcpy(tmp, &ch, sizeof(struct mmo_charstatus));
+		idb_put(chars, ch.account_id, tmp);
+
+		if( db->next_char_id < ch.char_id)
+			db->next_char_id = ch.char_id + 1;
+
+		char_num++;
+	}
+
+	// close data file
+	fclose(fp);
+
+	ShowStatus("mmo_char_init: %d characters read in %s.\n", char_num, db->char_db);
+	char_log("mmo_char_init: %d characters read in %s.\n", char_num, db->char_db);
+	char_log("Id for the next created character: %d.\n", db->next_char_id);
+
+	// initialize data saving timer
+	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
+	db->save_timer = add_timer_interval(gettick() + 1000, mmo_char_sync_timer, 0, (intptr)chars, autosave_interval);
+
+	return true;
+}
+
+static void char_db_txt_destroy(CharDB* self)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// stop saving timer
+	delete_timer(db->save_timer, mmo_char_sync_timer);
+
+	// write data
+	mmo_char_sync(db);
+
+	// delete chars database
+	chars->destroy(chars, NULL);
+	db->chars = NULL;
+
+	// delete entire structure
+	aFree(db);
+}
+
+static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+
+	// flush data
+	mmo_char_sync(db);
+
+	return true;
+}
+
+static bool char_db_txt_remove(CharDB* self, const int char_id)
+{
+	return true;
+}
+
+static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+	int char_id = ch->char_id;
+
+	// retrieve previous data
+	struct mmo_charstatus* tmp = idb_get(chars, char_id);
+	if( tmp == NULL )
+	{// error condition - entry not found
+		return false;
+	}
+	
+	// overwrite with new data
+	memcpy(tmp, ch, sizeof(struct mmo_charstatus));
+
+	return true;
+}
+
+static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// retrieve data
+	struct mmo_charstatus* tmp = idb_get(chars, char_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+
+	return true;
+}
+
+static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// retrieve data
+	struct DBIterator* iter = chars->iterator(chars);
+	struct mmo_charstatus* tmp;
+
+	//TODO: "If exact character name is not found, the function checks without case sensitive and returns index if only 1 character is found"
+	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
+		if( strcmp(name, tmp->name) == 0 )
+			break;
+	iter->destroy(iter);
+
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+
+	return true;
+}
+
+static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// retrieve data
+	struct DBIterator* iter = chars->iterator(chars);
+	struct mmo_charstatus* tmp;
+
+	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); (struct mmo_charstatus*)tmp = iter->next(iter,NULL) )
+		if( account_id == tmp->account_id && slot == tmp->slot )
+			break;
+	iter->destroy(iter);
+
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+
+	return true;
+}
+
+static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
+{
+	return true;
+}
+
+static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id)
+{
+//	ARR_FIND( 0, char_num, i,
+//		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
+//		(!name_ignoring_case && strncmpi(char_dat[i].name, name, NAME_LENGTH) == 0) );
+//	if( i < char_num )
+
+	return true;
+}
+
+static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id)
+{
+	return true;
+}
+
 
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg)
+int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg)
 {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
 	unsigned int tmp_uint[2]; //To read exp....
 	int next, len, i, j;
+	struct mmo_charstatus tmp;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
@@ -321,18 +520,20 @@ int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg
 
 #ifndef TXT_SQL_CONVERT
 	// Some checks
-	for(i = 0; i < char_num; i++) {
-		if (char_dat[i].char_id == p->char_id) {
-			ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
-			ShowError("               character id #%d -> new character not readed.\n", p->char_id);
-			ShowError("               Character saved in log file."CL_RESET"\n");
-			return -1;
-		} else if (strcmp(char_dat[i].name, p->name) == 0) {
-			ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
-			ShowError("               character name '%s' -> new character not read.\n", p->name);
-			ShowError("               Character saved in log file."CL_RESET"\n");
-			return -2;
-		}
+	//TODO: just a check is needed here (loading all data is excessive)
+	if( chars->load_num(chars, &tmp, p->char_id) )
+	{
+		ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
+		ShowError("               character id #%d -> new character not readed.\n", p->char_id);
+		ShowError("               Character saved in log file."CL_RESET"\n");
+		return -1;
+	}
+	if( chars->load_str(chars, &tmp, p->name) )
+	{
+		ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
+		ShowError("               character name '%s' -> new character not read.\n", p->name);
+		ShowError("               Character saved in log file."CL_RESET"\n");
+		return -2;
 	}
 
 	if (strcmpi(wisp_server_name, p->name) == 0) {
@@ -437,270 +638,115 @@ int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg
 	return 1;
 }
 
-
-//-----------------------------------
-// Function to create a new character
-//-----------------------------------
-int make_new_char(struct char_session_data* sd, char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style)
+//-------------------------------------------------
+// Function to create the character line (for save)
+//-------------------------------------------------
+int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 {
-	char name[NAME_LENGTH];
-	int i;
-	
-	safestrncpy(name, name_, NAME_LENGTH);
-	normalize_name(name,TRIM_CHARS);
+	int i,j;
+	char *str_p = str;
 
-	// check length of character name
-	if( name[0] == '\0' )
-		return -2; // empty character name
-
-	// check content of character name
-	if( remove_control_chars(name) )
-		return -2; // control chars in name
-
-	// check for reserved names
-	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, wisp_server_name) == 0 )
-		return -1; // nick reserved for internal server messages
-
-	// Check Authorised letters/symbols in the name of the character
-	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
-		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) == NULL )
-				return -2;
-	} else
-	if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
-		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) != NULL )
-				return -2;
-	} // else, all letters/symbols are authorised (except control char removed before)
-
-	// check name (already in use?)
-	ARR_FIND( 0, char_num, i,
-		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
-		(!name_ignoring_case && strncmpi(char_dat[i].name, name, NAME_LENGTH) == 0) );
-	if( i < char_num )
-		return -1; // name already exists
-
-	//check other inputs
-	if((slot >= MAX_CHARS) // slots
-	|| (hair_style >= 24) // hair style
-	|| (hair_color >= 9) // hair color
-	|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
-	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
-	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
-		return -2; // invalid input
-
-	// check char slot
-	ARR_FIND( 0, char_num, i, char_dat[i].account_id == sd->account_id && char_dat[i].slot == slot );
-	if( i < char_num )
-		return -2; // slot already in use
-
-	if (char_num >= char_max) {
-		char_max += 256;
-		RECREATE(char_dat, struct mmo_charstatus, char_max);
-		if (!char_dat) {
-			ShowFatalError("Out of memory: make_new_char (realloc of char_dat).\n");
-			char_log("Out of memory: make_new_char (realloc of char_dat).\n");
-			exit(EXIT_FAILURE);
+	// character data
+	str_p += sprintf(str_p,
+		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
+		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
+		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
+		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
+		"\t%d,%d,%d\t%d,%d,%d" //last point + save point
+		",%d,%d,%d,%d,%d\t",	//Family info
+		p->char_id, p->account_id, p->slot, p->name, //
+		p->class_, p->base_level, p->job_level,
+		p->base_exp, p->job_exp, p->zeny,
+		p->hp, p->max_hp, p->sp, p->max_sp,
+		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
+		p->status_point, p->skill_point,
+		p->option, p->karma, p->manner,	//
+		p->party_id, p->guild_id, p->pet_id, p->hom_id,
+		p->hair, p->hair_color, p->clothes_color,
+		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
+		p->last_point.map, p->last_point.x, p->last_point.y, //
+		p->save_point.map, p->save_point.x, p->save_point.y,
+		p->partner_id,p->father,p->mother,p->child,p->fame);
+	for(i = 0; i < MAX_MEMOPOINTS; i++)
+		if (p->memo_point[i].map) {
+			str_p += sprintf(str_p, "%d,%d,%d ", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
 		}
-	}
+	*(str_p++) = '\t';
 
-	// validation success, log result
-	char_log("make new char: account: %d, slot %d, name: %s, stats: %d/%d/%d/%d/%d/%d, hair: %d, hair color: %d.\n",
-	         sd->account_id, slot, name, str, agi, vit, int_, dex, luk, hair_style, hair_color);
-
-	i = char_num;
-	memset(&char_dat[i], 0, sizeof(char_dat[i]));
-
-	char_dat[i].char_id = char_id_count++;
-	char_dat[i].account_id = sd->account_id;
-	char_dat[i].slot = slot;
-	safestrncpy(char_dat[i].name,name,NAME_LENGTH);
-	char_dat[i].class_ = 0;
-	char_dat[i].base_level = 1;
-	char_dat[i].job_level = 1;
-	char_dat[i].base_exp = 0;
-	char_dat[i].job_exp = 0;
-	char_dat[i].zeny = start_zeny;
-	char_dat[i].str = str;
-	char_dat[i].agi = agi;
-	char_dat[i].vit = vit;
-	char_dat[i].int_ = int_;
-	char_dat[i].dex = dex;
-	char_dat[i].luk = luk;
-	char_dat[i].max_hp = 40 * (100 + char_dat[i].vit) / 100;
-	char_dat[i].max_sp = 11 * (100 + char_dat[i].int_) / 100;
-	char_dat[i].hp = char_dat[i].max_hp;
-	char_dat[i].sp = char_dat[i].max_sp;
-	char_dat[i].status_point = 0;
-	char_dat[i].skill_point = 0;
-	char_dat[i].option = 0;
-	char_dat[i].karma = 0;
-	char_dat[i].manner = 0;
-	char_dat[i].party_id = 0;
-	char_dat[i].guild_id = 0;
-	char_dat[i].hair = hair_style;
-	char_dat[i].hair_color = hair_color;
-	char_dat[i].clothes_color = 0;
-	char_dat[i].inventory[0].nameid = start_weapon; // Knife
-	char_dat[i].inventory[0].amount = 1;
-	char_dat[i].inventory[0].identify = 1;
-	char_dat[i].inventory[1].nameid = start_armor; // Cotton Shirt
-	char_dat[i].inventory[1].amount = 1;
-	char_dat[i].inventory[1].identify = 1;
-	char_dat[i].weapon = 0; // W_FIST
-	char_dat[i].shield = 0;
-	char_dat[i].head_top = 0;
-	char_dat[i].head_mid = 0;
-	char_dat[i].head_bottom = 0;
-	memcpy(&char_dat[i].last_point, &start_point, sizeof(start_point));
-	memcpy(&char_dat[i].save_point, &start_point, sizeof(start_point));
-	char_num++;
-
-	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, i, slot, name);
-	mmo_char_sync();
-	return i;
-}
-
-
-//---------------------------------
-// Function to read characters file
-//---------------------------------
-int mmo_char_init(void)
-{
-	char line[65536];
-	int ret, line_count;
-	FILE* fp;
-
-	char_num = 0;
-	char_max = 0;
-	char_dat = NULL;
-
-	fp = fopen(char_txt, "r");
-
-	if (fp == NULL) {
-		ShowError("Characters file not found: %s.\n", char_txt);
-		char_log("Characters file not found: %s.\n", char_txt);
-		char_log("Id for the next created character: %d.\n", char_id_count);
-		return 0;
-	}
-
-	line_count = 0;
-	while(fgets(line, sizeof(line), fp))
-	{
-		struct regs reg;
-		int i, j;
-		line_count++;
-
-		if (line[0] == '/' && line[1] == '/')
-			continue;
-
-		j = 0;
-		if (sscanf(line, "%d\t%%newid%%%n", &i, &j) == 1 && j > 0) {
-			if (char_id_count < i)
-				char_id_count = i;
-			continue;
+	// inventory
+	for(i = 0; i < MAX_INVENTORY; i++)
+		if (p->inventory[i].nameid) {
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+				p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
+				p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
+			for(j=0; j<MAX_SLOTS; j++)
+				str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
+			str_p += sprintf(str_p," ");
 		}
+	*(str_p++) = '\t';
 
-		if (char_num >= char_max) {
-			char_max += 256;
-			char_dat = (struct mmo_charstatus*)aRealloc(char_dat, sizeof(struct mmo_charstatus) * char_max);
-			if (!char_dat) {
-				ShowFatalError("Out of memory: mmo_char_init (realloc of char_dat).\n");
-				char_log("Out of memory: mmo_char_init (realloc of char_dat).\n");
-				exit(EXIT_FAILURE);
-			}
+	// cart
+	for(i = 0; i < MAX_CART; i++)
+		if (p->cart[i].nameid) {
+			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+				p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
+				p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
+			for(j=0; j<MAX_SLOTS; j++)
+				str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
+			str_p += sprintf(str_p," ");
 		}
+	*(str_p++) = '\t';
 
-		ret = mmo_char_fromstr(line, &char_dat[char_num], &reg);
-
-		// Initialize char regs
-		inter_charreg_save(char_dat[char_num].char_id, &reg);
-		// Initialize friends list
-		parse_friend_txt(&char_dat[char_num]);  // Grab friends for the character
-		// Initialize hotkey list
-		parse_hotkey_txt(&char_dat[char_num]);  // Grab hotkeys for the character
-		
-		if (ret > 0) { // negative value or zero for errors
-			if (char_dat[char_num].char_id >= char_id_count)
-				char_id_count = char_dat[char_num].char_id + 1;
-			char_num++;
-		} else {
-			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
-			ShowError("               -> Character saved in log file.\n");
-			switch (ret) {
-			case -1:
-				char_log("Duplicate character id in the next character line (character not readed):\n");
-				break;
-			case -2:
-				char_log("Duplicate character name in the next character line (character not readed):\n");
-				break;
-			case -3:
-				char_log("Invalid memo point structure in the next character line (character not readed):\n");
-				break;
-			case -4:
-				char_log("Invalid inventory item structure in the next character line (character not readed):\n");
-				break;
-			case -5:
-				char_log("Invalid cart item structure in the next character line (character not readed):\n");
-				break;
-			case -6:
-				char_log("Invalid skill structure in the next character line (character not readed):\n");
-				break;
-			case -7:
-				char_log("Invalid register structure in the next character line (character not readed):\n");
-				break;
-			default: // 0
-				char_log("Unabled to get a character in the next line - Basic structure of line (before inventory) is incorrect (character not readed):\n");
-				break;
-			}
-			char_log("%s", line);
+	// skills
+	for(i = 0; i < MAX_SKILL; i++)
+		if (p->skill[i].id && p->skill[i].flag != 1) {
+			str_p += sprintf(str_p, "%d,%d ", p->skill[i].id, (p->skill[i].flag == 0) ? p->skill[i].lv : p->skill[i].flag-2);
 		}
-	}
-	fclose(fp);
+	*(str_p++) = '\t';
 
-	if (char_num == 0) {
-		ShowNotice("mmo_char_init: No character found in %s.\n", char_txt);
-		char_log("mmo_char_init: No character found in %s.\n", char_txt);
-	} else if (char_num == 1) {
-		ShowStatus("mmo_char_init: 1 character read in %s.\n", char_txt);
-		char_log("mmo_char_init: 1 character read in %s.\n", char_txt);
-	} else {
-		ShowStatus("mmo_char_init: %d characters read in %s.\n", char_num, char_txt);
-		char_log("mmo_char_init: %d characters read in %s.\n", char_num, char_txt);
-	}
+	// registry
+	if( reg != NULL )
+		str_p += inter_charreg_tostr(str_p, reg);
+	*(str_p++) = '\t';
 
-	char_log("Id for the next created character: %d.\n", char_id_count);
-
+	*str_p = '\0';
 	return 0;
 }
 
-//---------------------------------------------------------
-// Function to save characters in files (speed up by [Yor])
-//---------------------------------------------------------
-void mmo_char_sync(void)
+/// Dumps the entire char db (+ associated data) to disk
+static void mmo_char_sync(CharDB_TXT* db)
 {
-	char line[65536];
 	int lock;
 	FILE *fp;
-	int i;
+	void* data;
+	struct DBIterator* iter;
 
 	// Data save
-	fp = lock_fopen(char_txt, &lock);
-	if (fp == NULL) {
+	fp = lock_fopen(db->char_db, &lock);
+	if( fp == NULL )
+	{
 		ShowWarning("Server cannot save characters.\n");
 		char_log("WARNING: Server cannot save characters.\n");
-	} else {
-		for( i = 0; i < char_num; i++ )
-		{
-			struct regs reg;
-			inter_charreg_load(char_dat[i].char_id, &reg);
-			mmo_char_tostr(line, &char_dat[i], &reg);
-			fprintf(fp, "%s\n", line);
-		}
-		fprintf(fp, "%d\t%%newid%%\n", char_id_count);
-		lock_fclose(fp, char_txt, &lock);
+		return;
 	}
 
+	iter = db->chars->iterator(db->chars);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
+		char line[65536]; // ought to be big enough
+		struct regs reg;
+
+		inter_charreg_load(ch->char_id, &reg);
+		mmo_char_tostr(line, ch, &reg);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->char_db, &lock);
+
+	// save associated data
 	mmo_friends_sync();
 
 #ifdef HOTKEY_SAVING
@@ -708,23 +754,82 @@ void mmo_char_sync(void)
 #endif
 }
 
-//----------------------------------------------------
-// Function to save (in a periodic way) datas in files
-//----------------------------------------------------
+/// Periodic data saving function
 int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 {
+	CharDB_TXT* db = (CharDB_TXT*)data;
+
 	if (save_log)
 		ShowInfo("Saving all files...\n");
-	mmo_char_sync();
+
+	mmo_char_sync(db);
 	inter_save();
 	return 0;
 }
 
-void mmo_char_sync_init(void)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int mmo_chars_tobuf(CharDB* chars, struct char_session_data* sd, uint8* buf)
 {
-	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-	add_timer_interval(gettick() + 1000, mmo_char_sync_timer, 0, 0, autosave_interval);
+	struct mmo_charstatus cd;
+	int i;
+
+	// TODO: iterate over all chars on account instead of bruteforcing
+	chars->load_slot(chars, &cd, sd->account_id, i);
+
+//	for(i = 0; i < found_num; i++)
+//		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]]);
+
 }
+
+
+
+
+/*
+
+extern DBMap* auth_db;
+struct online_char_data {
+	int account_id;
+	int char_id;
+	int fd;
+	int waiting_disconnect;
+	short server; // -2: unknown server, -1: not connected, 0+: id of server
+};
+extern DBMap* online_char_db;
+extern bool name_ignoring_case;
+
+extern int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p);
+extern int mmo_hotkeys_tostr(char *str, struct mmo_charstatus *p);
+extern int parse_friend_txt(struct mmo_charstatus *p);
+extern int parse_hotkey_txt(struct mmo_charstatus *p);
+extern void mmo_hotkeys_sync(void);
+extern void mmo_friends_sync(void);
+extern int autosave_interval;
+
+
+
+//TODO:
+// - search char data by account id (multiple results)
+// - search char data by char id
+// - search char data by account id and char id
+
+void mmo_char_sync(void);
+
+
 
 
 //Search character data from the aid/cid givem
@@ -822,31 +927,21 @@ int char_child(int parent_id, int child_id)
 
 int char_family(int cid1, int cid2, int cid3)
 {
-	int i, idx1 = -1, idx2 =-1;//, idx3 =-1;
-	for(i = 0; i < char_num && (idx1 == -1 || idx2 == -1/* || idx3 == 1*/); i++)
-  	{
-		if (char_dat[i].char_id == cid1)
-			idx1 = i;
-		if (char_dat[i].char_id == cid2)
-			idx2 = i;
-//		if (char_dat[i].char_id == cid2)
-//			idx3 = i;
-	}
-	if (idx1 == -1 || idx2 == -1/* || idx3 == -1*/)
-  		return 0; //Some character not found??
+	struct mmo_charstatus cd1, cd2, cd3;
+	if( !chars->get_num(chars, &cd1, cid1) || !chars->get_num(chars, &cd2, cid2) || !chars->get_num(chars, &cd3, cid3) )
+		return 0; //Some character not found??
 
 	//Unless the dbs are corrupted, these 3 checks should suffice, even though 
 	//we could do a lot more checks and force cross-reference integrity.
-	if(char_dat[idx1].partner_id == cid2 &&
-		char_dat[idx1].child == cid3)
+	if( cd1.partner_id == cid2 && cd1.child == cid3 )
 		return cid3; //cid1/cid2 parents. cid3 child.
 
-	if(char_dat[idx1].partner_id == cid3 &&
-		char_dat[idx1].child == cid2)
+	if( cd1.partner_id == cid3 && cd1.child == cid2 )
 		return cid2; //cid1/cid3 parents. cid2 child.
 
-	if(char_dat[idx2].partner_id == cid3 &&
-		char_dat[idx2].child == cid1)
+	if( cd2.partner_id == cid3 && cd2.child == cid1 )
 		return cid1; //cid2/cid3 parents. cid1 child.
+
 	return 0;
 }
+*/

@@ -33,6 +33,8 @@ extern int fame_list_size_taekwon;
 extern struct fame_list smith_fame_list[MAX_FAME_LIST];
 extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
 extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
+#define TRIM_CHARS "\032\t\x0A\x0D "
+
 
 
 // private declarations

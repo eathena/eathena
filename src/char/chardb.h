@@ -4,17 +4,57 @@
 #ifndef _CHARDB_H_
 #define _CHARDB_H_
 
-#include "../common/mmo.h"
+#include "../common/mmo.h" // struct mmo_charstatus, NAME_LENGTH
+
+typedef struct CharDB CharDB;
+
+// standard engines
+#ifdef WITH_TXT
+CharDB* char_db_txt(void);
+#endif
+#ifdef WITH_SQL
+CharDB* char_db_sql(void);
+#endif
+
+
+struct CharDB
+{
+	bool (*init)(CharDB* self);
+	void (*destroy)(CharDB* self);
+
+	bool (*create)(CharDB* self, struct mmo_charstatus* status);
+
+	bool (*remove)(CharDB* self, const int char_id);
+
+	bool (*save)(CharDB* self, const struct mmo_charstatus* status);
+
+	// retrieve data using charid
+	bool (*load_num)(CharDB* self, struct mmo_charstatus* status, int char_id);
+
+	// retrieve data using charname
+	bool (*load_str)(CharDB* self, struct mmo_charstatus* status, const char* name);
+
+	// retrieve data using accid + slot
+	bool (*load_slot)(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
+
+	// look up name using charid
+	bool (*id2name)(CharDB* self, int char_id, char name[NAME_LENGTH]);
+
+	// look up charid using name
+	bool (*name2id)(CharDB* self, const char* name, int* char_id);
+
+	// look up charid using accid + slot
+	bool (*slot2id)(CharDB* self, int account_id, int slot, int* char_id);
+};
+
 
 extern int char_num, char_max;
 
 
-int mmo_char_fromstr(const char *str, struct mmo_charstatus *p, struct regs* reg);
 struct mmo_charstatus* search_character(int aid, int cid);
 struct mmo_charstatus* search_character_byname(char* character_name);
 int search_character_index(char* character_name);
 char* search_character_name(int index);
-int char_loadName(int char_id, char* name);
 
 
 void char_clearparty(int party_id);

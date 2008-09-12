@@ -17,7 +17,6 @@
 
 //temporary imports
 #include "char.h"
-extern struct mmo_charstatus *char_dat;
 extern int char_num, char_max;
 extern int login_fd;
 extern uint32 login_ip;
@@ -188,6 +187,7 @@ int parse_fromlogin(int fd)
 				if( node != NULL )
 					node->sex = sex;
 
+				// process every char on this account
 				for( i = 0; i < char_num; ++i )
 				if( char_dat[i].account_id == acc )
 				{
@@ -396,35 +396,9 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			// Deletion of all characters of the account
-			for(i = 0; i < char_num; i++) {
-				if (char_dat[i].account_id == RFIFOL(fd,2)) {
-					char_delete(&char_dat[i]);
-					if (i < char_num - 1) {
-						memcpy(&char_dat[i], &char_dat[char_num-1], sizeof(struct mmo_charstatus));
-						// if moved character owns to deleted account, check again it's character
-						if (char_dat[i].account_id == RFIFOL(fd,2)) {
-							i--;
-						// Correct moved character reference in the character's owner by [Yor]
-						} else {
-							int j, k;
-							struct char_session_data *sd2;
-							for (j = 0; j < fd_max; j++) {
-								if (session[j] && (sd2 = (struct char_session_data*)session[j]->session_data) &&
-									sd2->account_id == char_dat[char_num-1].account_id) {
-									for (k = 0; k < MAX_CHARS; k++) {
-										if (sd2->found_char[k] == char_num-1) {
-											sd2->found_char[k] = i;
-											break;
-										}
-									}
-									break;
-								}
-							}
-						}
-					}
-					char_num--;
-				}
-			}
+
+			//TODO: iterate over all chars, discard those with 'account_id == RFIFOL(fd,2)'
+
 			// Deletion of the storage
 			inter_storage_delete(RFIFOL(fd,2));
 			// send to all map-servers to disconnect the player

@@ -29,22 +29,20 @@
 #include "int_storage.h"
 #include "int_status.h"
 
+// chars database
+CharDB* chars = NULL;
+
 
 // temporary imports
 extern int parse_fromlogin(int fd);
 extern int parse_char(int fd);
-extern int mmo_char_init(void);
-extern int mmo_char_sql_init(void);
 #include "map.h"
-extern void mmo_char_sync_init(void);
-extern void mmo_char_sync(void);
 extern char friends_txt[1024];
 extern char hotkeys_txt[1024];
-extern struct mmo_charstatus *char_dat;
 char char_txt[1024];
 extern void char_read_fame_list(void);
 extern DBMap* char_db_;
-extern int mmo_chars_fromsql(struct char_session_data* sd, uint8* buf);
+extern int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf);
 
 
 int login_fd=-1, char_fd=-1;
@@ -456,35 +454,17 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 {
 	int j;
 
-#ifdef TXT_ONLY
-	int i, found_num;
-
-	found_num = 0;
-	for(i = 0; i < char_num; i++) {
-		if (char_dat[i].account_id == sd->account_id) {
-			sd->found_char[found_num] = i;
-			if( ++found_num == MAX_CHARS )
-				break;
-		}
-	}
-	for(i = found_num; i < MAX_CHARS; i++)
-		sd->found_char[i] = -1;
-#else
+#ifndef TXT_ONLY
 	if (save_log)
 		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 #endif
 
 	j = 24; // offset
-	WFIFOHEAD(fd,j + MAX_CHARS*108); // or 106(!)
+	WFIFOHEAD(fd, 4 + 20 + MAX_CHARS*108); // or 106(!)
 	WFIFOW(fd,0) = 0x6b;
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
-#ifdef TXT_ONLY
-	for(i = 0; i < found_num; i++)
-		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]]);
-#else
-	j += mmo_chars_fromsql(sd, WFIFOP(fd,j));
-#endif
-	WFIFOW(fd,2) = j; // packet len
+	j += mmo_chars_tobuf(sd, WFIFOP(fd,j));
+	WFIFOW(fd,2) = 4 + 20 + j; // packet len
 	WFIFOSET(fd,j);
 
 	return 0;
@@ -684,6 +664,153 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 	return 0;
 }
 
+
+//-----------------------------------
+// Function to create a new character
+//-----------------------------------
+int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style)
+{
+	struct mmo_charstatus cd;
+	char name[NAME_LENGTH];
+	int char_id;
+	int i;
+
+	safestrncpy(name, name_, NAME_LENGTH);
+	normalize_name(name,TRIM_CHARS);
+
+	// check length of character name
+	if( name[0] == '\0' )
+		return -2; // empty character name
+
+	// check content of character name
+	if( remove_control_chars(name) )
+		return -2; // control chars in name
+
+	// check for reserved names
+	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, wisp_server_name) == 0 )
+		return -1; // nick reserved for internal server messages
+
+	// Check Authorised letters/symbols in the name of the character
+	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
+		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
+			if( strchr(char_name_letters, name[i]) == NULL )
+				return -2;
+	} else
+	if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
+		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
+			if( strchr(char_name_letters, name[i]) != NULL )
+				return -2;
+	} // else, all letters/symbols are authorised (except control char removed before)
+
+	// check name (already in use?)
+	if( chars->name2id(chars, name, NULL) )
+		return -1; // name already exists
+
+	//check other inputs
+	if((slot >= MAX_CHARS) // slots
+	|| (hair_style >= 24) // hair style
+	|| (hair_color >= 9) // hair color
+	|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
+	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
+	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
+		return -2; // invalid input
+
+#ifndef TXT_ONLY
+	// check the number of already existing chars in this account
+	if( char_per_account != 0 ) {
+		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id) )
+			Sql_ShowDebug(sql_handle);
+		if( Sql_NumRows(sql_handle) >= char_per_account )
+			return -2; // character account limit exceeded
+	}
+#endif
+
+	// check char slot
+	if( chars->slot2id(chars, sd->account_id, slot, &i) )
+		return -2; // slot already in use
+
+	// insert new char to database
+	memset(&cd, 0, sizeof(cd));
+
+	cd.char_id = -1;
+	cd.account_id = sd->account_id;
+	cd.slot = slot;
+	safestrncpy(cd.name, name, NAME_LENGTH);
+	cd.class_ = 0;
+	cd.base_level = 1;
+	cd.job_level = 1;
+	cd.base_exp = 0;
+	cd.job_exp = 0;
+	cd.zeny = start_zeny;
+	cd.str = str;
+	cd.agi = agi;
+	cd.vit = vit;
+	cd.int_ = int_;
+	cd.dex = dex;
+	cd.luk = luk;
+	cd.max_hp = 40 * (100 + cd.vit) / 100;
+	cd.max_sp = 11 * (100 + cd.int_) / 100;
+	cd.hp = cd.max_hp;
+	cd.sp = cd.max_sp;
+	cd.status_point = 0;
+	cd.skill_point = 0;
+	cd.option = 0;
+	cd.karma = 0;
+	cd.manner = 0;
+	cd.party_id = 0;
+	cd.guild_id = 0;
+	cd.hair = hair_style;
+	cd.hair_color = hair_color;
+	cd.clothes_color = 0;
+	cd.weapon = 0; // W_FIST
+	cd.shield = 0;
+	cd.head_top = 0;
+	cd.head_mid = 0;
+	cd.head_bottom = 0;
+	memcpy(&cd.last_point, &start_point, sizeof(start_point));
+	memcpy(&cd.save_point, &start_point, sizeof(start_point));
+
+	if( start_weapon > 0 )
+	{// add Start Weapon (Knife?)
+		cd.inventory[0].nameid = start_weapon; // Knife
+		cd.inventory[0].amount = 1;
+		cd.inventory[0].identify = 1;
+	}
+	if( start_armor > 0 )
+	{// Add default armor (cotton shirt?)
+		cd.inventory[1].nameid = start_armor; // Cotton Shirt
+		cd.inventory[1].amount = 1;
+		cd.inventory[1].identify = 1;
+	}
+
+	if( !chars->create(chars, &cd) )
+		return -2; // abort
+
+	//Retrieve the newly auto-generated char id
+#ifdef TXT_ONLY
+	char_id = cd.char_id;
+#else
+	char_id = (int)Sql_LastInsertId(sql_handle);
+#endif
+
+	// validation success, log result
+#ifdef TXT_ONLY
+	char_log("make new char: account: %d, slot %d, name: %s, stats: %d/%d/%d/%d/%d/%d, hair: %d, hair color: %d.\n",
+	         sd->account_id, slot, name, str, agi, vit, int_, dex, luk, hair_style, hair_color);
+#else
+	if (log_char) {
+		char esc_name[NAME_LENGTH*2+1];
+		Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
+		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
+			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+			charlog_db, "make new char", sd->account_id, slot, esc_name, str, agi, vit, int_, dex, luk, hair_style, hair_color) )
+			Sql_ShowDebug(sql_handle);
+	}
+#endif
+
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, slot, name);
+	return char_id;
+}
 
 
 //------------------------------------------------
@@ -1229,7 +1356,6 @@ void do_final(void)
 
 #ifdef TXT_ONLY
 
-	mmo_char_sync();
 	inter_save();
 	set_all_offline(-1);
 	flush_fifos();
@@ -1241,7 +1367,7 @@ void do_final(void)
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	auth_db->destroy(auth_db, NULL);
 	
-	if(char_dat) aFree(char_dat);
+	chars->destroy(chars);
 
 	if (login_fd > 0)
 		do_close(login_fd);
@@ -1303,6 +1429,13 @@ int do_init(int argc, char **argv)
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
 
+	// intialize engines (to accept config settings)
+#ifdef TXT_ONLY
+	chars = char_db_txt();
+#else
+	chars = char_db_sql();
+#endif
+
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
 
@@ -1318,6 +1451,9 @@ int do_init(int argc, char **argv)
 	inter_init();
 	ShowInfo("Finished reading the inter-server configuration.\n");
 
+	// chars database init
+	chars->init(chars);
+
 	charlog_init();
 	// a newline in the log...
 	char_log("");
@@ -1327,11 +1463,7 @@ int do_init(int argc, char **argv)
 	ShowInfo("Initializing char server.\n");
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
-#ifdef TXT_ONLY
-	mmo_char_init();
-#else
-	mmo_char_sql_init();
-#endif
+
 	char_read_fame_list(); //Read fame lists.
 #ifdef ENABLE_SC_SAVING
 	status_init();
@@ -1381,11 +1513,6 @@ int do_init(int argc, char **argv)
 	// ???
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
-
-#ifdef TXT_ONLY
-	// periodic flush of all saved data to disk
-	mmo_char_sync_init();
-#endif
 
 	if( console )
 	{

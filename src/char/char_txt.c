@@ -25,7 +25,6 @@
 
 // temporary imports
 #include "char.h"
-extern struct mmo_charstatus *char_dat;
 extern int login_fd;
 extern int char_fd;
 extern int char_num, char_max;
@@ -58,6 +57,45 @@ extern void char_read_fame_list(void);
 char friends_txt[1024] = "save/friends.txt";
 char hotkeys_txt[1024] = "save/hotkeys.txt";
 
+
+// キャラ削除に伴うデータ削除
+int char_delete(struct mmo_charstatus *cs)
+{
+	int j;
+
+	// ペット削除
+	if (cs->pet_id)
+		inter_pet_delete(cs->pet_id);
+	if (cs->hom_id)
+		inter_homun_delete(cs->hom_id);
+	for (j = 0; j < MAX_INVENTORY; j++)
+		if (cs->inventory[j].card[0] == (short)0xff00)
+			inter_pet_delete(MakeDWord(cs->inventory[j].card[1],cs->inventory[j].card[2]));
+	for (j = 0; j < MAX_CART; j++)
+		if (cs->cart[j].card[0] == (short)0xff00)
+			inter_pet_delete( MakeDWord(cs->cart[j].card[1],cs->cart[j].card[2]) );
+	// ギルド脱退
+	if (cs->guild_id)
+		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);
+	// パーティー脱退
+	if (cs->party_id)
+		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
+	// 離婚
+	if (cs->partner_id){
+		// 離婚情報をmapに通知
+		unsigned char buf[10];
+		WBUFW(buf,0) = 0x2b12;
+		WBUFL(buf,2) = cs->char_id;
+		WBUFL(buf,6) = cs->partner_id;
+		mapif_sendall(buf,10);
+		// 離婚
+		char_divorce(cs);
+	}
+#ifdef ENABLE_SC_SAVING
+	status_delete_scdata(cs->account_id, cs->char_id);
+#endif
+	return 0;
+}
 
 
 /*---------------------------------------------------
@@ -241,6 +279,7 @@ int parse_hotkey_txt(struct mmo_charstatus *p)
 
 
 
+
 // 離婚(char削除時に使用)
 int char_divorce(struct mmo_charstatus *cs)
 {
@@ -268,45 +307,6 @@ int char_divorce(struct mmo_charstatus *cs)
 	return 0;
 }
 
-
-// キャラ削除に伴うデータ削除
-int char_delete(struct mmo_charstatus *cs)
-{
-	int j;
-
-	// ペット削除
-	if (cs->pet_id)
-		inter_pet_delete(cs->pet_id);
-	if (cs->hom_id)
-		inter_homun_delete(cs->hom_id);
-	for (j = 0; j < MAX_INVENTORY; j++)
-		if (cs->inventory[j].card[0] == (short)0xff00)
-			inter_pet_delete(MakeDWord(cs->inventory[j].card[1],cs->inventory[j].card[2]));
-	for (j = 0; j < MAX_CART; j++)
-		if (cs->cart[j].card[0] == (short)0xff00)
-			inter_pet_delete( MakeDWord(cs->cart[j].card[1],cs->cart[j].card[2]) );
-	// ギルド脱退
-	if (cs->guild_id)
-		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);
-	// パーティー脱退
-	if (cs->party_id)
-		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
-	// 離婚
-	if (cs->partner_id){
-		// 離婚情報をmapに通知
-		unsigned char buf[10];
-		WBUFW(buf,0) = 0x2b12;
-		WBUFL(buf,2) = cs->char_id;
-		WBUFL(buf,6) = cs->partner_id;
-		mapif_sendall(buf,10);
-		// 離婚
-		char_divorce(cs);
-	}
-#ifdef ENABLE_SC_SAVING
-	status_delete_scdata(cs->account_id, cs->char_id);
-#endif
-	return 0;
-}
 
 
 void char_read_fame_list(void)
