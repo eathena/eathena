@@ -209,6 +209,9 @@ static void char_db_txt_destroy(CharDB* self)
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	//TODO
 
 	// flush data
 	mmo_char_sync(db);
@@ -218,6 +221,16 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status)
 
 static bool char_db_txt_remove(CharDB* self, const int char_id)
 {
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	struct mmo_charstatus* tmp = idb_remove(chars, char_id);
+	if( tmp == NULL )
+	{// error condition - entry not present
+		ShowError("char_db_txt_remove: no such character with id %d\n", char_id);
+		return false;
+	}
+
 	return true;
 }
 
@@ -311,11 +324,14 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 
 static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
 {
+	//TODO: look up entry, copy name
 	return true;
 }
 
 static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id)
 {
+	//TODO: scan database for name, copy charid
+
 //	ARR_FIND( 0, char_num, i,
 //		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
 //		(!name_ignoring_case && strncmpi(char_dat[i].name, name, NAME_LENGTH) == 0) );
@@ -326,6 +342,7 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id)
 
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id)
 {
+	//TODO: scan database for account+slot, copy charid
 	return true;
 }
 

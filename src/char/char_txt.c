@@ -12,6 +12,7 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "../common/utils.h"
+#include "chardb.h"
 #include "charlog.h"
 #include "int_guild.h"
 #include "int_homun.h"
@@ -24,12 +25,9 @@
 #include <string.h>
 
 // temporary imports
+extern CharDB* chars;
 #include "char.h"
-extern int login_fd;
-extern int char_fd;
 extern int char_num, char_max;
-extern char wisp_server_name[NAME_LENGTH];
-#define TRIM_CHARS "\032\t\x0A\x0D "
 //Custom limits for the fame lists. [Skotlex]
 extern int fame_list_size_chemist;
 extern int fame_list_size_smith;
@@ -38,19 +36,7 @@ extern int fame_list_size_taekwon;
 extern struct fame_list smith_fame_list[MAX_FAME_LIST];
 extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
 extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
-extern DBMap* auth_db;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
-extern DBMap* online_char_db;
-extern bool name_ignoring_case;
-extern void set_all_offline(int id);
 extern int mmo_hotkeys_tostr(char *str, struct mmo_charstatus *p);
-extern void char_read_fame_list(void);
 
 
 
@@ -81,16 +67,9 @@ int char_delete(struct mmo_charstatus *cs)
 	if (cs->party_id)
 		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
 	// —£¥
-	if (cs->partner_id){
-		// —£¥î•ñ‚ðmap‚É’Ê’m
-		unsigned char buf[10];
-		WBUFW(buf,0) = 0x2b12;
-		WBUFL(buf,2) = cs->char_id;
-		WBUFL(buf,6) = cs->partner_id;
-		mapif_sendall(buf,10);
-		// —£¥
-		char_divorce(cs);
-	}
+	if (cs->partner_id)
+		char_divorce(cs->char_id, cs->partner_id);
+
 #ifdef ENABLE_SC_SAVING
 	status_delete_scdata(cs->account_id, cs->char_id);
 #endif
@@ -275,36 +254,6 @@ int parse_hotkey_txt(struct mmo_charstatus *p)
 #else
 	return 0;
 #endif
-}
-
-
-
-
-// —£¥(charíœŽž‚ÉŽg—p)
-int char_divorce(struct mmo_charstatus *cs)
-{
-	int i, j;
-
-	if (cs == NULL)
-		return 0;
-
-	if (cs->partner_id <= 0)
-		return 0;
-	
-	ARR_FIND( 0, char_num, i, char_dat[i].char_id == cs->partner_id && char_dat[i].partner_id == cs->char_id );
-	if( i == char_num )
-		return 0;
-
-	cs->partner_id = 0;
-	char_dat[i].partner_id = 0;
-
-	for(j = 0; j < MAX_INVENTORY; j++)
-		if (char_dat[i].inventory[j].nameid == WEDDING_RING_M || char_dat[i].inventory[j].nameid == WEDDING_RING_F)
-			memset(&char_dat[i].inventory[j], 0, sizeof(char_dat[i].inventory[0]));
-		if (cs->inventory[j].nameid == WEDDING_RING_M || cs->inventory[j].nameid == WEDDING_RING_F)
-			memset(&cs->inventory[j], 0, sizeof(cs->inventory[0]));
-
-	return 0;
 }
 
 

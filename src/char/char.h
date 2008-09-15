@@ -29,6 +29,7 @@ int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
 int mapif_sendall(unsigned char *buf, unsigned int len);
 
 int search_character_online(int aid, int cid);
+void char_divorce(int partner_id1, int partner_id2);
 
 // char config
 extern char db_path[];

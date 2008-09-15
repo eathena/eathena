@@ -813,6 +813,44 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 }
 
 
+void char_divorce(int partner_id1, int partner_id2)
+{
+	struct mmo_charstatus cd1, cd2;
+	unsigned char buf[10];
+	int i;
+
+	if( !chars->load_num(chars, &cd1, partner_id1) || !chars->load_num(chars, &cd2, partner_id2) )
+		return; // char not found
+
+	if( cd1.partner_id != cd2.char_id || cd2.partner_id != cd1.char_id )
+		return; // not married to each other
+
+	// end marriage
+	cd1.partner_id = 0;
+	cd2.partner_id = 0;
+
+	// remove rings from both partners' inventory
+	for( i = 0; i < MAX_INVENTORY; ++i )
+	{
+		if( cd1.inventory[i].nameid == WEDDING_RING_M || cd1.inventory[i].nameid == WEDDING_RING_F )
+			memset(&cd1.inventory[i], 0, sizeof(struct item));
+		if( cd2.inventory[i].nameid == WEDDING_RING_M || cd2.inventory[i].nameid == WEDDING_RING_F )
+			memset(&cd2.inventory[i], 0, sizeof(struct item));
+	}
+
+	// update data
+	//FIXME: unsafe
+	chars->save(chars, &cd1);
+	chars->save(chars, &cd2);
+
+	// notify all mapservers
+	WBUFW(buf,0) = 0x2b12;
+	WBUFL(buf,2) = partner_id1;
+	WBUFL(buf,6) = partner_id2;
+	mapif_sendall(buf,10);
+}
+
+
 //------------------------------------------------
 //Invoked 15 seconds after mapif_disconnectplayer in case the map server doesn't
 //replies/disconnect the player we tried to kick. [Skotlex]

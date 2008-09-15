@@ -59,9 +59,6 @@ extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 extern void char_update_fame_list(int type, int index, int fame);
 extern void set_all_offline(int id);
 extern void char_read_fame_list(void);
-extern DBMap* char_db_;
-extern int divorce_char_sql(int partner_id1, int partner_id2);
-
 
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
@@ -671,11 +668,7 @@ int parse_frommap(int fd)
 			if( RFIFOREST(fd) < 10 )
 				return 0;
 
-#ifdef TXT_ONLY
-			//TODO!
-#else
-			divorce_char_sql(RFIFOL(fd,2), RFIFOL(fd,6));
-#endif
+			char_divorce(RFIFOL(fd,2), RFIFOL(fd,6));
 			RFIFOSKIP(fd,10);
 		break;
 

@@ -213,28 +213,6 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 
 
 /*----------------------------------------------------------------------------------------------------------*/
-/* Divorce Players */
-/*----------------------------------------------------------------------------------------------------------*/
-int divorce_char_sql(int partner_id1, int partner_id2)
-{
-	unsigned char buf[64];
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `partner_id`='0' WHERE `char_id`='%d' OR `char_id`='%d'", char_db, partner_id1, partner_id2) )
-		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE (`nameid`='%d' OR `nameid`='%d') AND (`char_id`='%d' OR `char_id`='%d')", inventory_db, WEDDING_RING_M, WEDDING_RING_F, partner_id1, partner_id2) )
-		Sql_ShowDebug(sql_handle);
-
-	WBUFW(buf,0) = 0x2b12;
-	WBUFL(buf,2) = partner_id1;
-	WBUFL(buf,6) = partner_id2;
-	mapif_sendall(buf,10);
-
-	return 0;
-}
-
-
-
-/*----------------------------------------------------------------------------------------------------------*/
 /* Delete char - davidsiaw */
 /*----------------------------------------------------------------------------------------------------------*/
 /* Returns 0 if successful
@@ -281,7 +259,7 @@ int delete_char_sql(int char_id)
 
 	/* Divorce [Wizputer] */
 	if( partner_id )
-		divorce_char_sql(char_id, partner_id);
+		char_divorce(char_id, partner_id);
 
 	/* De-addopt [Zephyrus] */
 	if( father_id || mother_id )
