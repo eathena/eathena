@@ -1,5 +1,7 @@
 Date		Added
 ======
+2008/09/18
+	* Rev. 13218 Merged updates to nameless Quest from trunk. [L0ne_W0lf]
 2008/08/10
 	* Fixed: several typos (bugreport:2029 bugreport:2023 bugreport:1839) [Yommy]
 	* Fixed: hugel bingo quest (bugreport:1556) [Yommy]
