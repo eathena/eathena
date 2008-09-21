@@ -1,4 +1,7 @@
 
+2008/09/21
+	* Rev.13223 Merged item_db and item_trade from trunk. [L0ne_W0lf]
+	- Mercenary items not merged fully, or teleport scrolls.
 2008/07/25
 	* Updated: massive item_db update from Trunk [akrus]
 	- Added: 2765-2771,14500
