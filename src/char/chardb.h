@@ -7,6 +7,7 @@
 #include "../common/mmo.h" // struct mmo_charstatus, NAME_LENGTH
 
 typedef struct CharDB CharDB;
+typedef struct CharDBIterator CharDBIterator;
 
 // standard engines
 #ifdef WITH_TXT
@@ -15,6 +16,22 @@ CharDB* char_db_txt(void);
 #ifdef WITH_SQL
 CharDB* char_db_sql(void);
 #endif
+
+
+struct CharDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(CharDBIterator* self);
+
+	/// Fetches the next character in the database.
+	/// Fills ch with the character data.
+	/// @param self Iterator
+	/// @param ch Character data
+	/// @return true if successful
+	bool (*next)(CharDBIterator* self, struct mmo_charstatus* acc);
+};
 
 
 struct CharDB
@@ -40,19 +57,21 @@ struct CharDB
 	// look up name using charid
 	bool (*id2name)(CharDB* self, int char_id, char name[NAME_LENGTH]);
 
-	// look up charid using name
-	bool (*name2id)(CharDB* self, const char* name, int* char_id);
+	// look up charid/accid using name
+	bool (*name2id)(CharDB* self, const char* name, int* char_id, int* account_id);
 
 	// look up charid using accid + slot
 	bool (*slot2id)(CharDB* self, int account_id, int slot, int* char_id);
+
+	/// Returns a new forward iterator.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CharDBIterator* (*iterator)(CharDB* self);
 };
 
 
-extern int char_num, char_max;
-
-
 struct mmo_charstatus* search_character(int aid, int cid);
-struct mmo_charstatus* search_character_byname(char* character_name);
 int search_character_index(char* character_name);
 char* search_character_name(int index);
 

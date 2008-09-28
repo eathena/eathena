@@ -16,8 +16,9 @@
 #include <stdio.h>
 
 //temporary imports
+extern CharDB* chars;
+
 #include "char.h"
-extern int char_num, char_max;
 extern int login_fd;
 extern uint32 login_ip;
 extern char login_ip_str[128];
@@ -46,7 +47,6 @@ extern char char_ip_str[128];
 extern int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int disconnect_player(int account_id);
-extern int char_delete(struct mmo_charstatus *cs);
 extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 extern void set_char_offline(int char_id, int account_id);
@@ -180,7 +180,6 @@ int parse_fromlogin(int fd)
 
 			if( acc > 0 )
 			{
-#ifdef TXT_ONLY
 				int i, j;
 
 				struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
@@ -188,115 +187,54 @@ int parse_fromlogin(int fd)
 					node->sex = sex;
 
 				// process every char on this account
-				for( i = 0; i < char_num; ++i )
-				if( char_dat[i].account_id == acc )
+				for( i = 0; i < MAX_CHARS; ++i )
 				{
-					int jobclass = char_dat[i].class_;
-					char_dat[i].sex = sex;
-					if (jobclass == JOB_BARD || jobclass == JOB_DANCER ||
-					    jobclass == JOB_CLOWN || jobclass == JOB_GYPSY ||
-					    jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
-						// job modification
-						if (jobclass == JOB_BARD || jobclass == JOB_DANCER) {
-							char_dat[i].class_ = (sex) ? JOB_BARD : JOB_DANCER;
-						} else if (jobclass == JOB_CLOWN || jobclass == JOB_GYPSY) {
-							char_dat[i].class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
-						} else if (jobclass == JOB_BABY_BARD || jobclass == JOB_BABY_DANCER) {
-							char_dat[i].class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
-						}
-						// remove specifical skills of classes 19, 4020 and 4042
-						for(j = 315; j <= 322; j++) {
-							if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
-								if (char_dat[i].skill_point > USHRT_MAX - char_dat[i].skill[j].lv)
-									char_dat[i].skill_point = USHRT_MAX;
-								else
-									char_dat[i].skill_point += char_dat[i].skill[j].lv;
-								char_dat[i].skill[j].id = 0;
-								char_dat[i].skill[j].lv = 0;
-							}
-						}
-						// remove specifical skills of classes 20, 4021 and 4043
-						for(j = 323; j <= 330; j++) {
-							if (char_dat[i].skill[j].id > 0 && !char_dat[i].skill[j].flag) {
-								if (char_dat[i].skill_point > USHRT_MAX - char_dat[i].skill[j].lv)
-									char_dat[i].skill_point = USHRT_MAX;
-								else
-									char_dat[i].skill_point += char_dat[i].skill[j].lv;
+					struct mmo_charstatus cd;
+					if( !chars->load_slot(chars, &cd, acc, i) )
+						continue;
 
-								char_dat[i].skill[j].id = 0;
-								char_dat[i].skill[j].lv = 0;
-							}
-						}
-					}
-					// to avoid any problem with equipment and invalid sex, equipment is unequiped.
-					for (j = 0; j < MAX_INVENTORY; j++) {
-						if (char_dat[i].inventory[j].nameid && char_dat[i].inventory[j].equip)
-							char_dat[i].inventory[j].equip = 0;
-					}
-					char_dat[i].weapon = 0;
-					char_dat[i].shield = 0;
-					char_dat[i].head_top = 0;
-					char_dat[i].head_mid = 0;
-					char_dat[i].head_bottom = 0;
+					cd.sex = sex;
 
-					if (char_dat[i].guild_id)	//If there is a guild, update the guild_member data [Skotlex]
-						inter_guild_sex_changed(char_dat[i].guild_id, acc, char_dat[i].char_id, sex);
-				}
-#else
-				int char_id[MAX_CHARS];
-				int class_[MAX_CHARS];
-				int guild_id[MAX_CHARS];
-				int num;
-				int i;
-				char* data;
-
-				struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
-				if( node != NULL )
-					node->sex = sex;
-
-				// get characters
-				if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`class`,`guild_id` FROM `%s` WHERE `account_id` = '%d'", char_db, acc) )
-					Sql_ShowDebug(sql_handle);
-				for( i = 0; i < MAX_CHARS && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
-				{
-					Sql_GetData(sql_handle, 0, &data, NULL); char_id[i] = atoi(data);
-					Sql_GetData(sql_handle, 1, &data, NULL); class_[i] = atoi(data);
-					Sql_GetData(sql_handle, 2, &data, NULL); guild_id[i] = atoi(data);
-				}
-				num = i;
-				for( i = 0; i < num; ++i )
-				{
-					if( class_[i] == JOB_BARD || class_[i] == JOB_DANCER ||
-						class_[i] == JOB_CLOWN || class_[i] == JOB_GYPSY ||
-						class_[i] == JOB_BABY_BARD || class_[i] == JOB_BABY_DANCER )
+					if (cd.class_ == JOB_BARD || cd.class_ == JOB_DANCER ||
+					    cd.class_ == JOB_CLOWN || cd.class_ == JOB_GYPSY ||
+					    cd.class_ == JOB_BABY_BARD || cd.class_ == JOB_BABY_DANCER)
 					{
 						// job modification
-						if( class_[i] == JOB_BARD || class_[i] == JOB_DANCER )
-							class_[i] = (sex ? JOB_BARD : JOB_DANCER);
-						else if( class_[i] == JOB_CLOWN || class_[i] == JOB_GYPSY )
-							class_[i] = (sex ? JOB_CLOWN : JOB_GYPSY);
-						else if( class_[i] == JOB_BABY_BARD || class_[i] == JOB_BABY_DANCER )
-							class_[i] = (sex ? JOB_BABY_BARD : JOB_BABY_DANCER);
-						// remove specifical skills of classes 19,20 4020,4021 and 4042,4043
-						if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `skill_point` = `skill_point` +"
-							" (SELECT SUM(lv) FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330' AND `lv` > '0')"
-							" WHERE `char_id` = '%d'",
-							char_db, skill_db, char_id[i], char_id[i]) )
-							Sql_ShowDebug(sql_handle);
-						if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id` = '%d' AND `id` >= '315' AND `id` <= '330'", skill_db, char_id[i]) )
-							Sql_ShowDebug(sql_handle);
+						if( cd.class_ == JOB_BARD || cd.class_ == JOB_DANCER )
+							cd.class_ = (sex) ? JOB_BARD : JOB_DANCER;
+						else
+						if( cd.class_ == JOB_CLOWN || cd.class_ == JOB_GYPSY )
+							cd.class_ = (sex) ? JOB_CLOWN : JOB_GYPSY;
+						else
+						if( cd.class_ == JOB_BABY_BARD || cd.class_ == JOB_BABY_DANCER )
+							cd.class_ = (sex) ? JOB_BABY_BARD : JOB_BABY_DANCER;
+						
+						// reset points in bard/dancer song skills
+						for( j = 315; j <= 330; j++ )
+						{
+							if( cd.skill[j].id > 0 && !cd.skill[j].flag )
+							{
+								cd.skill_point = max(cd.skill_point, cd.skill_point + cd.skill[j].lv); // overflow check
+								cd.skill[j].id = 0;
+								cd.skill[j].lv = 0;
+							}
+						}
 					}
-					// to avoid any problem with equipment and invalid sex, equipment is unequiped.
-					if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `equip` = '0' WHERE `char_id` = '%d'", inventory_db, char_id[i]) )
-						Sql_ShowDebug(sql_handle);
-					if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d', `weapon`='0', `shield`='0', `head_top`='0', `head_mid`='0', `head_bottom`='0' WHERE `char_id`='%d'", char_db, class_[i], char_id[i]) )
-						Sql_ShowDebug(sql_handle);
 
-					if( guild_id[i] )// If there is a guild, update the guild_member data [Skotlex]
-						inter_guild_sex_changed(guild_id[i], acc, char_id[i], sex);
+					// to avoid any problem with equipment and invalid sex, equipment is unequiped.
+					for( j = 0; j < MAX_INVENTORY; j++ )
+						cd.inventory[j].equip = 0;
+
+					cd.weapon = 0;
+					cd.shield = 0;
+					cd.head_top = 0;
+					cd.head_mid = 0;
+					cd.head_bottom = 0;
+
+					//If there is a guild, update the guild_member data [Skotlex]
+					if( cd.guild_id > 0 )
+						inter_guild_sex_changed(cd.guild_id, acc, cd.char_id, sex);
 				}
-				Sql_FreeResult(sql_handle);
-#endif
 
 				// disconnect player if online on char-server
 				disconnect_player(acc);

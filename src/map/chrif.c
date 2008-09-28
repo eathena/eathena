@@ -38,7 +38,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 	 6,30,-1,-1,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, F->2b0a, F->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	11,10,10, 6,11,-1,266,10,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, F->2b15, U->2b16, U->2b17
 	 2,10, 2,-1,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
-	-1,10, 8, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, U->2b22, U->2b23, U->2b24, U->2b25, U->2b26, U->2b27
+	-1,10,-1, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, F->2b22, U->2b23, U->2b24, U->2b25, U->2b26, U->2b27
 };
 
 //Used Packets:
@@ -84,7 +84,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b1f: Incoming, chrif_disconnectplayer -> 'disconnects a player (aid X) with the message XY ... 0x81 ..' [Sirius]
 //2b20: Incoming, chrif_removemap -> 'remove maps of a server (sample: its going offline)' [Sirius]
 //2b21: Incoming, chrif_save_ack. Returned after a character has been "final saved" on the char-server. [Skotlex]
-//2b22: Incoming, chrif_updatefamelist_ack. Updated one position in the fame list.
+//2b22: FREE
 //2b23: Outgoing, chrif_keepalive. charserver ping.
 //2b24: Incoming, chrif_keepalive_ack. charserver ping reply.
 //2b25: Incoming, chrif_deadopt -> 'Removes baby from Father ID and Mother ID'
@@ -1081,27 +1081,27 @@ int chrif_buildfamelist(void)
 int chrif_recvfamelist(int fd)
 {
 	int num, size;
-	int total = 0, len = 8;
+	int total = 0, len = 10;
 
 	memset (smith_fame_list, 0, sizeof(smith_fame_list));
 	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
 	memset (taekwon_fame_list, 0, sizeof(taekwon_fame_list));
 
-	size = RFIFOW(fd, 6); //Blacksmith block size
+	size = RFIFOW(fd, 4); //Blacksmith block size
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;
 
-	size = RFIFOW(fd, 4); //Alchemist block size
+	size = RFIFOW(fd, 6); //Alchemist block size
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
 	}
 	total += num;
 
-	size = RFIFOW(fd, 2); //Total packet length
+	size = RFIFOW(fd, 8); //Taekwon block size
 	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
 		memcpy(&taekwon_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
  		len += sizeof(struct fame_list);
@@ -1111,26 +1111,6 @@ int chrif_recvfamelist(int fd)
 	ShowInfo("Received Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 
 	return 0;
-}
-
-/// fame ranking update confirmation
-/// R 2b22 <table>.B <index>.B <value>.L
-int chrif_updatefamelist_ack(int fd)
-{
-	struct fame_list* list;
-	uint8 index;
-	switch (RFIFOB(fd,2))
-	{
-		case 1: list = smith_fame_list;   break;
-		case 2: list = chemist_fame_list; break;
-		case 3: list = taekwon_fame_list; break;
-		default: return 0;
-	}
-	index = RFIFOB(fd, 3);
-	if (index >= MAX_FAME_LIST)
-		return 0;
-	list[index].fame = RFIFOL(fd,4);
-	return 1;
 }
 
 int chrif_save_scdata(struct map_session_data *sd)
@@ -1440,7 +1420,6 @@ int chrif_parse(int fd)
 		case 0x2b1f: chrif_disconnectplayer(fd); break;
 		case 0x2b20: chrif_removemap(fd); break;
 		case 0x2b21: chrif_save_ack(fd); break;
-		case 0x2b22: chrif_updatefamelist_ack(fd); break;
 		case 0x2b24: chrif_keepalive_ack(fd); break;
 		case 0x2b25: chrif_deadopt(RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 		case 0x2b27: chrif_authfail(fd); break;

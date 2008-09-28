@@ -26,6 +26,7 @@
 #include <stdlib.h>
 
 // temporary stuff
+extern CharDB* chars;
 extern int save_accreg2(unsigned char* buf, int len);
 extern int request_accreg2(int account_id, int char_id);
 
@@ -420,13 +421,6 @@ int mapif_parse_WisRequest(int fd)
 	char name[NAME_LENGTH];
 	int fd2;
 	int aid, cid;
-#ifdef TXT_ONLY
-	struct mmo_charstatus* char_status;
-#else
-	char esc_name[NAME_LENGTH*2+1];// escaped name
-	char* data;
-	size_t len;
-#endif
 
 	if( RFIFOW(fd,2)-52 >= sizeof(wd->msg) )
 	{
@@ -441,38 +435,11 @@ int mapif_parse_WisRequest(int fd)
 	safestrncpy(name, (char*)RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
 
 	// search if character exists before to ask all map-servers
-#ifdef TXT_ONLY
-	char_status = search_character_byname(name);
-	if( char_status == NULL )
+	if( !chars->name2id(chars, name, &cid, &aid) )
 	{
 		mapif_wis_end(fd, (char*)RFIFOP(fd,4), 1);
 		return 0;
 	}
-#else
-	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`, `char_id`, `name` FROM `%s` WHERE `name`='%s'", char_db, esc_name) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{
-		mapif_wis_end(fd, (char*)RFIFOP(fd,4), 1);
-		Sql_FreeResult(sql_handle);
-		return 0;
-	}
-#endif
-
-	// Character exists. So, ask all map-servers
-	// to be sure of the correct name, rewrite it
-#ifdef TXT_ONLY
-	aid = char_status->account_id;
-	cid = char_status->char_id;
-	safestrncpy(name, char_status->name, NAME_LENGTH);
-#else
-	Sql_GetData(sql_handle, 0, &data, &len); aid = atoi(data);
-	Sql_GetData(sql_handle, 1, &data, &len); cid = atoi(data);
-	Sql_GetData(sql_handle, 2, &data, &len); safestrncpy(name, data, NAME_LENGTH);
-	Sql_FreeResult(sql_handle);
-#endif
 
 	// if talking to self, don't ask other servers.
 	if( strncmp((const char*)RFIFOP(fd,4), name, NAME_LENGTH) == 0 )

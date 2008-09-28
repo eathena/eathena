@@ -47,7 +47,7 @@ static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name);
 static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot);
 static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH]);
-static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id);
+static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id);
 static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_id, bool load_everything);
 static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool is_new);
@@ -191,7 +191,7 @@ static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 	return true;
 }
 
-static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id)
+static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
 	//TODO: support NULL
 	//TODO: use db->case_sensitive
@@ -876,7 +876,7 @@ int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf)
 	return j;
 }
 
-
+/*
 
 //Clears the given party id from all characters.
 //Since sometimes the party format changes and parties must be wiped, this 
@@ -886,6 +886,8 @@ void char_clearparty(int party_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", char_db, party_id) )
 		Sql_ShowDebug(sql_handle);
 }
+
+*/
 
 
 int char_married(int pl1, int pl2)

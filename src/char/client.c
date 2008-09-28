@@ -359,12 +359,13 @@ int parse_char(int fd)
 			if (cmd == 0x68) FIFOSD_CHECK(46);
 			if (cmd == 0x1fb) FIFOSD_CHECK(56);
 		{
-			int cid = RFIFOL(fd,2);
-			struct mmo_charstatus* cs = NULL;
-			ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, cid);
-			memcpy(email, RFIFOP(fd,6), 40);
-			RFIFOSKIP(fd,RFIFOREST(fd)); // hack to make the other deletion packet work
+			struct mmo_charstatus cs;
 
+			int char_id = RFIFOL(fd,2);
+			memcpy(email, RFIFOP(fd,6), 40);
+			RFIFOSKIP(fd, cmd==0x68?46:56);
+
+			ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, char_id);
 /*
 #ifdef TXT_ONLY
 			if (e_mail_check(email) == 0)
@@ -383,7 +384,7 @@ int parse_char(int fd)
 					break;
 				}
 				// we change the packet to set it like selection.
-				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].char_id == cid );
+				ARR_FIND( 0, MAX_CHARS, i, sd->found_char[i] != -1 && char_dat[sd->found_char[i]].char_id == char_id );
 				if( i < MAX_CHARS )
 				{
 					// we save new e-mail
@@ -425,10 +426,12 @@ int parse_char(int fd)
 				break;
 			}
 
+			// load char data
+			chars->load_num(chars, &cs, char_id); //TODO: verify return value
+
 			// check if this char exists
-			//TODO: look up if char with 'cid' is on this sd->account_id
-			if( i == MAX_CHARS )
-			{ // Such a character does not exist in the account
+			if( cs.account_id != sd->account_id )
+			{// Such a character does not exist in the account
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x70;
 				WFIFOB(fd,2) = 0;
@@ -438,11 +441,10 @@ int parse_char(int fd)
 
 #ifdef TXT_ONLY
 			// deletion process
-			cs = &char_dat[sd->found_char[i]];
-			char_delete(cs);
+			char_delete(&cs);
 #else
 			/* Delete character */
-			if(delete_char_sql(cid)<0){
+			if(delete_char_sql(char_id)<0){
 				//can't delete the char
 				//either SQL error or can't delete by some CONFIG conditions
 				//del fail

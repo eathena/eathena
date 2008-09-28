@@ -18,23 +18,11 @@
 #include "int_homun.h"
 #include "int_party.h"
 #include "int_pet.h"
-//#include "int_status.h"
+#include "int_status.h"
 #include "inter.h"
 #include "map.h"
 #include <stdlib.h>
 #include <string.h>
-
-//temporary stuff
-int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-extern int fame_list_size_chemist;
-extern int fame_list_size_smith;
-extern int fame_list_size_taekwon;
-// Char-server-side stored fame lists [DracoRPG]
-extern struct fame_list smith_fame_list[MAX_FAME_LIST];
-extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
-extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
-#define TRIM_CHARS "\032\t\x0A\x0D "
-
 
 
 // private declarations
@@ -363,63 +351,4 @@ int delete_char_sql(int char_id)
 	else if( guild_id )
 		inter_guild_leave(guild_id, account_id, char_id);// Leave your guild.
 	return 0;
-}
-
-
-void char_read_fame_list(void)
-{
-	int i;
-	char* data;
-	size_t len;
-
-	// Empty ranking lists
-	memset(smith_fame_list, 0, sizeof(smith_fame_list));
-	memset(chemist_fame_list, 0, sizeof(chemist_fame_list));
-	memset(taekwon_fame_list, 0, sizeof(taekwon_fame_list));
-	// Build Blacksmith ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH, fame_list_size_smith) )
-		Sql_ShowDebug(sql_handle);
-	for( i = 0; i < fame_list_size_smith && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
-	{
-		// char_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		smith_fame_list[i].id = atoi(data);
-		// fame
-		Sql_GetData(sql_handle, 1, &data, &len);
-		smith_fame_list[i].fame = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(smith_fame_list[i].name, data, min(len, NAME_LENGTH));
-	}
-	// Build Alchemist ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d' OR `class`='%d' OR `class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST, fame_list_size_chemist) )
-		Sql_ShowDebug(sql_handle);
-	for( i = 0; i < fame_list_size_chemist && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
-	{
-		// char_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		chemist_fame_list[i].id = atoi(data);
-		// fame
-		Sql_GetData(sql_handle, 1, &data, &len);
-		chemist_fame_list[i].fame = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(chemist_fame_list[i].name, data, min(len, NAME_LENGTH));
-	}
-	// Build Taekwon ranking list
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`fame`,`name` FROM `%s` WHERE `fame`>0 AND (`class`='%d') ORDER BY `fame` DESC LIMIT 0,%d", char_db, JOB_TAEKWON, fame_list_size_taekwon) )
-		Sql_ShowDebug(sql_handle);
-	for( i = 0; i < fame_list_size_taekwon && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
-	{
-		// char_id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		taekwon_fame_list[i].id = atoi(data);
-		// fame
-		Sql_GetData(sql_handle, 1, &data, &len);
-		taekwon_fame_list[i].fame = atoi(data);
-		// name
-		Sql_GetData(sql_handle, 2, &data, &len);
-		memcpy(taekwon_fame_list[i].name, data, min(len, NAME_LENGTH));
-	}
-	Sql_FreeResult(sql_handle);
 }

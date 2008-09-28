@@ -11,6 +11,7 @@
 #include "char.h"
 #include "chardb.h"
 #include "charlog.h"
+#include "int_fame.h"
 #include "int_status.h"
 #include "int_storage.h"
 #include "inter.h"
@@ -48,15 +49,6 @@ extern int char_db_setoffline(DBKey key, void* data, va_list ap);
 extern int char_send_fame_list(int fd);  
 extern void* create_online_char_data(DBKey key, va_list args);
 extern int online_check;
-//Custom limits for the fame lists. [Skotlex]
-extern int fame_list_size_chemist;
-extern int fame_list_size_smith;
-extern int fame_list_size_taekwon;
-// Char-server-side stored fame lists [DracoRPG]
-extern struct fame_list smith_fame_list[MAX_FAME_LIST];
-extern struct fame_list chemist_fame_list[MAX_FAME_LIST];
-extern struct fame_list taekwon_fame_list[MAX_FAME_LIST];
-extern void char_update_fame_list(int type, int index, int fame);
 extern void set_all_offline(int id);
 extern void char_read_fame_list(void);
 
@@ -491,14 +483,10 @@ int parse_frommap(int fd)
 				return 0;
 		{
 			int result = 0; // 0-login-server request done, 1-player not found, 2-gm level too low, 3-login-server offline
-#ifdef TXT_ONLY
-			char character_name[NAME_LENGTH];
-#else
-			char esc_name[NAME_LENGTH*2+1];
-#endif
+			struct mmo_charstatus cd;
 
+			char name[NAME_LENGTH];
 			int acc = RFIFOL(fd,2); // account_id of who ask (-1 if server itself made this request)
-			const char* name = (char*)RFIFOP(fd,6); // name of the target character
 			int type = RFIFOW(fd,30); // type of operation: 1-block, 2-ban, 3-unblock, 4-unban
 			short year = RFIFOW(fd,32);
 			short month = RFIFOW(fd,34);
@@ -506,43 +494,15 @@ int parse_frommap(int fd)
 			short hour = RFIFOW(fd,38);
 			short minute = RFIFOW(fd,40);
 			short second = RFIFOW(fd,42);
+			safestrncpy(name, (char*)RFIFOP(fd,6), NAME_LENGTH); // name of the target character
 			RFIFOSKIP(fd,44);
 
-#ifdef TXT_ONLY
-			safestrncpy(character_name, name, NAME_LENGTH);
-			i = search_character_index(character_name);
-			if( i < 0 )
-			{
+			if( !chars->load_str(chars, &cd, name) )
 				result = 1; // 1-player not found
-			}
-#else
-			Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-			if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`,`name` FROM `%s` WHERE `name` = '%s'", char_db, esc_name) )
-				Sql_ShowDebug(sql_handle);
-			else
-			if( Sql_NumRows(sql_handle) == 0 )
-			{
-				result = 1; // 1-player not found
-			}
-			else
-			if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-				Sql_ShowDebug(sql_handle);
-				//FIXME: set proper result value?
-#endif
 			else
 			{
-				char name[NAME_LENGTH];
-				int account_id;
-
-#ifdef TXT_ONLY
-				account_id = char_dat[i].account_id;
-				safestrncpy(name, char_dat[i].name, NAME_LENGTH);
-#else
-				char* data;
-
-				Sql_GetData(sql_handle, 0, &data, NULL); account_id = atoi(data);
-				Sql_GetData(sql_handle, 1, &data, NULL); safestrncpy(name, data, sizeof(name));
-#endif
+				int account_id = cd.account_id;
+				safestrncpy(name, cd.name, NAME_LENGTH);
 
 				if( login_fd <= 0 )
 					result = 3; // 3-login-server offline
@@ -593,12 +553,10 @@ int parse_frommap(int fd)
 				}
 			}
 
-#ifndef TXT_ONLY
-			Sql_FreeResult(sql_handle);
-#endif
-
 			// send answer if a player ask, not if the server ask
-			if( acc != -1 && type != 5) { // Don't send answer for changesex
+			// Don't send answer for changesex
+			if( acc != -1 && type != 5 )
+			{
 				WFIFOHEAD(fd,34);
 				WFIFOW(fd, 0) = 0x2b0f;
 				WFIFOL(fd, 2) = acc;
@@ -614,52 +572,13 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 11)
 				return 0;
 		{
-			int cid = RFIFOL(fd, 2);
-			int fame = RFIFOL(fd, 6);
-			char type = RFIFOB(fd, 10);
-			int size;
-			struct fame_list* list;
-			int player_pos;
-			int fame_pos;
-
-			switch(type)
-			{
-				case 1:  size = fame_list_size_smith;   list = smith_fame_list;   break;
-				case 2:  size = fame_list_size_chemist; list = chemist_fame_list; break;
-				case 3:  size = fame_list_size_taekwon; list = taekwon_fame_list; break;
-				default: size = 0;                      list = NULL;              break;
-			}
-
-			ARR_FIND(0, size, player_pos, list[player_pos].id == cid);// position of the player
-			ARR_FIND(0, size, fame_pos, list[fame_pos].fame <= fame);// where the player should be
-
-			if( player_pos == size && fame_pos == size )
-				;// not on list and not enough fame to get on it
-			else if( fame_pos == player_pos )
-			{// same position
-				list[player_pos].fame = fame;
-				char_update_fame_list(type, player_pos, fame);
-			}
-			else
-			{// move in the list
-				if( player_pos == size )
-				{// new ranker - not in the list
-					ARR_MOVE(size - 1, fame_pos, list, struct fame_list);
-					list[fame_pos].id = cid;
-					list[fame_pos].fame = fame;
-					chars->id2name(chars, cid, list[fame_pos].name); //TODO: check return value?
-				}
-				else
-				{// already in the list
-					if( fame_pos == size )
-						--fame_pos;// move to the end of the list
-					ARR_MOVE(player_pos, fame_pos, list, struct fame_list);
-					list[fame_pos].fame = fame;
-				}
-				char_send_fame_list(-1);
-			}
-
+			int cid = RFIFOL(fd,2);
+			int fame = RFIFOL(fd,6);
+			char type = RFIFOB(fd,10);
 			RFIFOSKIP(fd,11);
+
+			if( fame_list_update((enum fame_type)type, cid, fame) )
+				char_send_fame_list(-1);
 		}
 		break;
 
@@ -793,8 +712,6 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,19);
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
-
-			
 
 			if( chars->load_num(chars, &cd, char_id) && //TODO: verify account_id?
 				node != NULL &&

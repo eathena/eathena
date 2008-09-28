@@ -22,6 +22,7 @@
 #include "chardb.h"
 #include "charlog.h"
 #include "inter.h"
+#include "int_fame.h"
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_pet.h"
@@ -40,7 +41,6 @@ extern int parse_char(int fd);
 extern char friends_txt[1024];
 extern char hotkeys_txt[1024];
 char char_txt[1024];
-extern void char_read_fame_list(void);
 extern DBMap* char_db_;
 extern int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf);
 
@@ -70,17 +70,6 @@ struct s_subnet {
 	uint32 map_ip;
 } subnet[16];
 int subnet_count = 0;
-
-
-//Custom limits for the fame lists. [Skotlex]
-int fame_list_size_chemist = MAX_FAME_LIST;
-int fame_list_size_smith = MAX_FAME_LIST;
-int fame_list_size_taekwon = MAX_FAME_LIST;
-
-// Char-server-side stored fame lists [DracoRPG]
-struct fame_list smith_fame_list[MAX_FAME_LIST];
-struct fame_list chemist_fame_list[MAX_FAME_LIST];
-struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
 int console = 0;
 
@@ -703,7 +692,7 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 	} // else, all letters/symbols are authorised (except control char removed before)
 
 	// check name (already in use?)
-	if( chars->name2id(chars, name, NULL) )
+	if( chars->name2id(chars, name, NULL, NULL) )
 		return -1; // name already exists
 
 	//check other inputs
@@ -1049,34 +1038,18 @@ int save_accreg2(unsigned char* buf, int len)
 }
 
 
-// Send map-servers the fame ranking lists
+// Send the fame ranking lists to map-server(s)
+// S 2b1b <len>.w <bs len>.w <alch len>.w <tk len>.w <bs data>.?b<alch data>.?b <tk data>.?b
 int char_send_fame_list(int fd)
 {
-	int i, len = 8;
-	unsigned char buf[32000];
+	unsigned char buf[3 * MAX_FAME_LIST * sizeof(struct fame_list)];
+	int len = 10;
 	
 	WBUFW(buf,0) = 0x2b1b;
-
-	for(i = 0; i < fame_list_size_smith && smith_fame_list[i].id; i++) {
-		memcpy(WBUFP(buf, len), &smith_fame_list[i], sizeof(struct fame_list));
-		len += sizeof(struct fame_list);
-	}
-	// add blacksmith's block length
-	WBUFW(buf, 6) = len;
-
-	for(i = 0; i < fame_list_size_chemist && chemist_fame_list[i].id; i++) {
-		memcpy(WBUFP(buf, len), &chemist_fame_list[i], sizeof(struct fame_list));
-		len += sizeof(struct fame_list);
-	}
-	// add alchemist's block length
-	WBUFW(buf, 4) = len;
-
-	for(i = 0; i < fame_list_size_taekwon && taekwon_fame_list[i].id; i++) {
-		memcpy(WBUFP(buf, len), &taekwon_fame_list[i], sizeof(struct fame_list));
-		len += sizeof(struct fame_list);
-	}
-	// add total packet length
-	WBUFW(buf, 2) = len;
+	len += WBUFW(buf,4) = fame_list_tobuf(WBUFP(buf,len), FAME_SMITH);
+	len += WBUFW(buf,6) = fame_list_tobuf(WBUFP(buf,len), FAME_CHEMIST);
+	len += WBUFW(buf,8) = fame_list_tobuf(WBUFP(buf,len), FAME_TAEKWON);
+	WBUFW(buf,2) = len;
 
 	if( fd != -1 )
 		mapif_send(fd, buf, len);
@@ -1084,16 +1057,6 @@ int char_send_fame_list(int fd)
 		mapif_sendall(buf, len);
 
 	return 0;
-}
-
-void char_update_fame_list(int type, int index, int fame)
-{
-	unsigned char buf[8];
-	WBUFW(buf,0) = 0x2b22;
-	WBUFB(buf,2) = type;
-	WBUFB(buf,3) = index;
-	WBUFL(buf,4) = fame;
-	mapif_sendall(buf, 8);
 }
 
 
@@ -1340,27 +1303,11 @@ int char_config_read(const char* cfgName)
 #endif
 		} else if (strcmpi(w1, "console") == 0) {
 			console = config_switch(w2);
-		} else if (strcmpi(w1, "fame_list_alchemist") == 0) {
-			fame_list_size_chemist = atoi(w2);
-			if (fame_list_size_chemist > MAX_FAME_LIST) {
-				ShowWarning("Max fame list size is %d (fame_list_alchemist)\n", MAX_FAME_LIST);
-				fame_list_size_chemist = MAX_FAME_LIST;
-			}
-		} else if (strcmpi(w1, "fame_list_blacksmith") == 0) {
-			fame_list_size_smith = atoi(w2);
-			if (fame_list_size_smith > MAX_FAME_LIST) {
-				ShowWarning("Max fame list size is %d (fame_list_blacksmith)\n", MAX_FAME_LIST);
-				fame_list_size_smith = MAX_FAME_LIST;
-			}
-		} else if (strcmpi(w1, "fame_list_taekwon") == 0) {
-			fame_list_size_taekwon = atoi(w2);
-			if (fame_list_size_taekwon > MAX_FAME_LIST) {
-				ShowWarning("Max fame list size is %d (fame_list_taekwon)\n", MAX_FAME_LIST);
-				fame_list_size_taekwon = MAX_FAME_LIST;
-			}
 		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
 			guild_exp_rate = atoi(w2);
 		}
+		else if( fame_config_read(w1,w2) )
+			continue;
 		else if( charlog_config_read(w1,w2) )
 			continue;
 		else if (strcmpi(w1, "import") == 0)

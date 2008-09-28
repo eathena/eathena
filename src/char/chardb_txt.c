@@ -20,6 +20,7 @@
 #include <string.h>
 
 // temporary stuff
+extern CharDB* chars;
 extern int autosave_interval;
 extern int parse_friend_txt(struct mmo_charstatus *p);
 extern int parse_hotkey_txt(struct mmo_charstatus *p);
@@ -50,7 +51,7 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name);
 static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
 static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH]);
-static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id);
+static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id);
 int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
 static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
@@ -169,15 +170,13 @@ static bool char_db_txt_init(CharDB* self)
 
 		if( db->next_char_id < ch.char_id)
 			db->next_char_id = ch.char_id + 1;
-
-		char_num++;
 	}
 
 	// close data file
 	fclose(fp);
 
-	ShowStatus("mmo_char_init: %d characters read in %s.\n", char_num, db->char_db);
-	char_log("mmo_char_init: %d characters read in %s.\n", char_num, db->char_db);
+	ShowStatus("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
+	char_log("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
 	char_log("Id for the next created character: %d.\n", db->next_char_id);
 
 	// initialize data saving timer
@@ -328,9 +327,14 @@ static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 	return true;
 }
 
-static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id)
+static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
 	//TODO: scan database for name, copy charid
+
+	//TODO: support NULL
+	//TODO: use db->case_sensitive
+	//TODO: decide whether to fill in 'unknown_char_name' if lookup fails
+	//TODO: decide on the return values for the individual cases
 
 //	ARR_FIND( 0, char_num, i,
 //		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
@@ -860,13 +864,6 @@ struct mmo_charstatus* search_character(int aid, int cid)
 	return NULL;
 }
 	
-struct mmo_charstatus* search_character_byname(char* character_name)
-{
-	int i = search_character_index(character_name);
-	if (i == -1) return NULL;
-	return &char_dat[i];
-}
-
 //----------------------------------------------
 // Search an character id
 //   (return character index or -1 (if not found))
@@ -927,25 +924,31 @@ void char_clearparty(int party_id)
 			char_dat[i].party_id = 0;
 	}
 }
+*/
 
 
-
-int char_married(int pl1,int pl2)
+int char_married(int pl1, int pl2)
 {
-	return (char_dat[pl1].char_id == char_dat[pl2].partner_id && char_dat[pl2].char_id == char_dat[pl1].partner_id);
+	struct mmo_charstatus cd1, cd2;
+	if( !chars->load_num(chars, &cd1, pl1) || !chars->load_num(chars, &cd2, pl2) )
+		return 0; //Some character not found??
+
+	return( cd1.char_id == cd2.partner_id && cd2.char_id == cd1.partner_id );
 }
 
 int char_child(int parent_id, int child_id)
 {
-	return (char_dat[parent_id].child == char_dat[child_id].char_id && 
-		((char_dat[parent_id].char_id == char_dat[child_id].father) || 
-		(char_dat[parent_id].char_id == char_dat[child_id].mother)));		
+	struct mmo_charstatus parent, child;
+	if( !chars->load_num(chars, &parent, parent_id) || !chars->load_num(chars, &child, child_id) )
+		return 0; //Some character not found??
+
+	return( parent.child == child.char_id && (parent.char_id == child.father || parent.char_id == child.mother) );
 }
 
 int char_family(int cid1, int cid2, int cid3)
 {
 	struct mmo_charstatus cd1, cd2, cd3;
-	if( !chars->get_num(chars, &cd1, cid1) || !chars->get_num(chars, &cd2, cid2) || !chars->get_num(chars, &cd3, cid3) )
+	if( !chars->load_num(chars, &cd1, cid1) || !chars->load_num(chars, &cd2, cid2) || !chars->load_num(chars, &cd3, cid3) )
 		return 0; //Some character not found??
 
 	//Unless the dbs are corrupted, these 3 checks should suffice, even though 
@@ -961,4 +964,3 @@ int char_family(int cid1, int cid2, int cid3)
 
 	return 0;
 }
-*/
