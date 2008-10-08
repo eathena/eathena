@@ -6,6 +6,7 @@
 //= noicewall: Disables Icewall skill.
 //= To disable Icewall on a specific map add the mapname here.
 //= 1.6a Re-enabled icewalls for cities [Lupus]
+//= 1.7 fixed map names for aru castles
 //============================================================
 
 ayo_in01	mapflag	noicewall
@@ -121,10 +122,10 @@ schg_cas02	mapflag	noicewall
 schg_cas03	mapflag	noicewall
 schg_cas04	mapflag	noicewall
 schg_cas05	mapflag	noicewall
-arug_cas05	mapflag	noicewall
-arug_cas05	mapflag	noicewall
-arug_cas05	mapflag	noicewall
-arug_cas05	mapflag	noicewall
+arug_cas01	mapflag	noicewall
+arug_cas02	mapflag	noicewall
+arug_cas03	mapflag	noicewall
+arug_cas04	mapflag	noicewall
 arug_cas05	mapflag	noicewall
 // Novice Guild Castles ===
 nguild_alde	mapflag	noicewall
