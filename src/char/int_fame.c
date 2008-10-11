@@ -1,5 +1,9 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
 #include "../common/db.h"
 #include "../common/mmo.h"
+#include "../common/strlib.h"
 #include "../common/showmsg.h"
 #include "chardb.h"
 #include "int_fame.h"
@@ -8,6 +12,7 @@
 
 // temporary imports
 extern CharDB* chars;
+extern char unknown_char_name[NAME_LENGTH];
 
 
 //Custom limits for the fame lists. [Skotlex]
@@ -66,7 +71,8 @@ bool fame_list_update(enum fame_type type, int charid, int fame)
 		ARR_MOVE(size - 1, fame_pos, list, struct fame_list);
 		list[fame_pos].id = charid;
 		list[fame_pos].fame = fame;
-		chars->id2name(chars, charid, list[fame_pos].name); //TODO: check return value?
+		if( !chars->id2name(chars, charid, list[fame_pos].name) )
+			safestrncpy(list[fame_pos].name, unknown_char_name, NAME_LENGTH);
 	}
 	else
 	{// already in the list

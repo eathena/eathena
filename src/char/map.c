@@ -460,7 +460,8 @@ int parse_frommap(int fd)
 			WFIFOHEAD(fd,30);
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
-			chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6)); //TODO: check return value?
+			if( !chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6)) )
+				safestrncpy((char*)WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
 			WFIFOSET(fd,30);
 
 			RFIFOSKIP(fd,6);

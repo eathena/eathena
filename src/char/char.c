@@ -776,11 +776,7 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 		return -2; // abort
 
 	//Retrieve the newly auto-generated char id
-#ifdef TXT_ONLY
 	char_id = cd.char_id;
-#else
-	char_id = (int)Sql_LastInsertId(sql_handle);
-#endif
 
 	// validation success, log result
 #ifdef TXT_ONLY

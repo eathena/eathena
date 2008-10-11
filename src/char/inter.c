@@ -101,9 +101,9 @@ static int inter_config_read(const char* cfgName)
 		if (strcmpi(w1, "storage_txt") == 0)
 			strncpy(storage_txt, w2, sizeof(storage_txt));
 		else
-		if (strcmpi(w1, "party_txt") == 0)
-			strncpy(party_txt, w2, sizeof(party_txt));
-		else
+//		if (strcmpi(w1, "party_txt") == 0)
+//			strncpy(party_txt, w2, sizeof(party_txt));
+//		else
 		if (strcmpi(w1, "pet_txt") == 0)
 			strncpy(pet_txt, w2, sizeof(pet_txt));
 		else
@@ -199,7 +199,7 @@ int inter_save(void)
 #ifdef ENABLE_SC_SAVING
 	inter_status_save();
 #endif
-	inter_party_save();
+	inter_party_sync();
 	inter_guild_save();
 	inter_storage_save();
 	inter_guild_storage_save();

@@ -31,15 +31,24 @@ extern void mmo_hotkeys_sync(void);
 /// internal structure
 typedef struct CharDB_TXT
 {
-	CharDB vtable;      // public interface
+	CharDB vtable;       // public interface
 
-	DBMap* chars;       // in-memory character storage
-	int next_char_id;   // auto_increment
-	int save_timer;     // save timer id
+	DBMap* chars;        // in-memory character storage
+	int next_char_id;    // auto_increment
+	int save_timer;      // save timer id
 
-	char char_db[1024]; // character data storage file
+	char char_db[1024];  // character data storage file
+	bool case_sensitive; // how to look up usernames
 
 } CharDB_TXT;
+
+/// internal structure
+typedef struct CharDBIterator_TXT
+{
+	CharDBIterator vtable;      // public interface
+
+	DBIterator* iter;
+} CharDBIterator_TXT;
 
 /// internal functions
 static bool char_db_txt_init(CharDB* self);
@@ -53,6 +62,10 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* status, i
 static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH]);
 static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id);
+static CharDBIterator* char_db_txt_iterator(CharDB* self);
+static void char_db_txt_iter_destroy(CharDBIterator* self);
+static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch);
+
 int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
 static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
 static void mmo_char_sync(CharDB_TXT* db);
@@ -75,6 +88,7 @@ CharDB* char_db_txt(void)
 	db->vtable.id2name   = &char_db_txt_id2name;
 	db->vtable.name2id   = &char_db_txt_name2id;
 	db->vtable.slot2id   = &char_db_txt_slot2id;
+	db->vtable.iterator  = &char_db_txt_iterator;
 
 	// initialize to default values
 	db->chars = NULL;
@@ -82,6 +96,7 @@ CharDB* char_db_txt(void)
 	db->save_timer = INVALID_TIMER;
 	// other settings
 	safestrncpy(db->char_db, "save/athena.txt", sizeof(db->char_db));
+	db->case_sensitive = false;
 
 	return &db->vtable;
 }
@@ -205,15 +220,38 @@ static void char_db_txt_destroy(CharDB* self)
 	aFree(db);
 }
 
-static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status)
+static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
+	struct mmo_charstatus* tmp;
 
-	//TODO
+	// decide on the char id to assign
+	int char_id = ( cd->char_id != -1 ) ? cd->char_id : db->next_char_id;
+
+	// check if the char_id is free
+	tmp = idb_get(chars, char_id);
+	if( tmp != NULL )
+	{// error condition - entry already present
+		ShowError("char_db_txt_create: cannot create character %d:'%s', this id is already occupied by %d:'%s'!\n", char_id, cd->name, char_id, tmp->name);
+		return false;
+	}
+
+	// copy the data and store it in the db
+	CREATE(tmp, struct mmo_charstatus, 1);
+	memcpy(tmp, cd, sizeof(struct mmo_charstatus));
+	tmp->char_id = char_id;
+	idb_put(chars, char_id, tmp);
+
+	// increment the auto_increment value
+	if( char_id >= db->next_char_id )
+		db->next_char_id = char_id + 1;
 
 	// flush data
 	mmo_char_sync(db);
+
+	// write output
+	cd->char_id = char_id;
 
 	return true;
 }
@@ -278,10 +316,10 @@ static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	// retrieve data
 	struct DBIterator* iter = chars->iterator(chars);
 	struct mmo_charstatus* tmp;
+	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
 
-	//TODO: "If exact character name is not found, the function checks without case sensitive and returns index if only 1 character is found"
 	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
-		if( strcmp(name, tmp->name) == 0 )
+		if( compare(name, tmp->name) == 0 )
 			break;
 	iter->destroy(iter);
 
@@ -305,7 +343,7 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 	struct DBIterator* iter = chars->iterator(chars);
 	struct mmo_charstatus* tmp;
 
-	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); (struct mmo_charstatus*)tmp = iter->next(iter,NULL) )
+	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
 		if( account_id == tmp->account_id && slot == tmp->slot )
 			break;
 	iter->destroy(iter);
@@ -323,31 +361,111 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 
 static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
 {
-	//TODO: look up entry, copy name
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// retrieve data
+	struct mmo_charstatus* tmp = idb_get(chars, char_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	if( name != NULL )
+		safestrncpy(name, tmp->name, sizeof(name));
+	
 	return true;
 }
 
 static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
-	//TODO: scan database for name, copy charid
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
 
-	//TODO: support NULL
-	//TODO: use db->case_sensitive
-	//TODO: decide whether to fill in 'unknown_char_name' if lookup fails
-	//TODO: decide on the return values for the individual cases
+	// retrieve data
+	struct DBIterator* iter = chars->iterator(chars);
+	struct mmo_charstatus* tmp;
+	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
 
-//	ARR_FIND( 0, char_num, i,
-//		(name_ignoring_case && strncmp(char_dat[i].name, name, NAME_LENGTH) == 0) ||
-//		(!name_ignoring_case && strncmpi(char_dat[i].name, name, NAME_LENGTH) == 0) );
-//	if( i < char_num )
+	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
+		if( compare(name, tmp->name) == 0 )
+			break;
+	iter->destroy(iter);
+
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	if( char_id != NULL )
+		*char_id = tmp->char_id;
+	if( account_id != NULL )
+		*account_id = tmp->account_id;
 
 	return true;
 }
 
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id)
 {
-	//TODO: scan database for account+slot, copy charid
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+
+	// retrieve data
+	struct DBIterator* iter = chars->iterator(chars);
+	struct mmo_charstatus* tmp;
+
+	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
+		if( account_id == tmp->account_id && slot == tmp->slot )
+			break;
+	iter->destroy(iter);
+
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	if( char_id != NULL )
+		*char_id = tmp->char_id;
+
 	return true;
+}
+
+/// Returns a new forward iterator.
+static CharDBIterator* char_db_txt_iterator(CharDB* self)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)aCalloc(1, sizeof(CharDBIterator_TXT));
+
+	// set up the vtable
+	iter->vtable.destroy = &char_db_txt_iter_destroy;
+	iter->vtable.next    = &char_db_txt_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(chars);
+
+	return &iter->vtable;
+}
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void char_db_txt_iter_destroy(CharDBIterator* self)
+{
+	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
+	dbi_destroy(iter->iter);
+	aFree(iter);
+}
+
+/// Fetches the next account in the database.
+static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch)
+{
+	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
+	struct mmo_charstatus* tmp = (struct mmo_charstatus*)dbi_next(iter->iter);
+	if( dbi_exists(iter->iter) )
+	{
+		memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+		return true;
+	}
+	return false;
 }
 
 
@@ -816,116 +934,7 @@ int mmo_chars_tobuf(CharDB* chars, struct char_session_data* sd, uint8* buf)
 //		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]]);
 
 }
-
-
-
-
-/*
-
-extern DBMap* auth_db;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
-extern DBMap* online_char_db;
-extern bool name_ignoring_case;
-
-extern int mmo_friends_list_data_str(char *str, struct mmo_charstatus *p);
-extern int mmo_hotkeys_tostr(char *str, struct mmo_charstatus *p);
-extern int parse_friend_txt(struct mmo_charstatus *p);
-extern int parse_hotkey_txt(struct mmo_charstatus *p);
-extern void mmo_hotkeys_sync(void);
-extern void mmo_friends_sync(void);
-extern int autosave_interval;
-
-
-
-//TODO:
-// - search char data by account id (multiple results)
-// - search char data by char id
-// - search char data by account id and char id
-
-void mmo_char_sync(void);
-
-
-
-
-//Search character data from the aid/cid givem
-struct mmo_charstatus* search_character(int aid, int cid)
-{
-	int i;
-	for (i = 0; i < char_num; i++) {
-		if (char_dat[i].char_id == cid && char_dat[i].account_id == aid)
-			return &char_dat[i];
-	}
-	return NULL;
-}
-	
-//----------------------------------------------
-// Search an character id
-//   (return character index or -1 (if not found))
-//   If exact character name is not found,
-//   the function checks without case sensitive
-//   and returns index if only 1 character is found
-//   and similar to the searched name.
-//----------------------------------------------
-int search_character_index(char* character_name)
-{
-	int i, quantity, index;
-
-	quantity = 0;
-	index = -1;
-	for(i = 0; i < char_num; i++) {
-		// Without case sensitive check (increase the number of similar character names found)
-		if (stricmp(char_dat[i].name, character_name) == 0) {
-			// Strict comparison (if found, we finish the function immediatly with correct value)
-			if (strcmp(char_dat[i].name, character_name) == 0)
-				return i;
-			quantity++;
-			index = i;
-		}
-	}
-	// Here, the exact character name is not found
-	// We return the found index of a similar account ONLY if there is 1 similar character
-	if (quantity == 1)
-		return index;
-
-	// Exact character name is not found and 0 or more than 1 similar characters have been found ==> we say not found
-	return -1;
-}
-
-//Loads a character's name and stores it in the buffer given (must be NAME_LENGTH in size)
-//Returns 1 on found, 0 on not found (buffer is filled with Unknown char name)
-int char_loadName(int char_id, char* name)
-{
-	int j;
-	for( j = 0; j < char_num && char_dat[j].char_id != char_id; ++j )
-		;// find char
-	if( j < char_num )
-		strncpy(name, char_dat[j].name, NAME_LENGTH);
-	else
-		strncpy(name, unknown_char_name, NAME_LENGTH);
-
-	return (j < char_num) ? 1 : 0;
-}
-
-//Clears the given party id from all characters.
-//Since sometimes the party format changes and parties must be wiped, this 
-//method is required to prevent stress during the "party not found!" stages.
-void char_clearparty(int party_id)
-{
-	int i;
-	for(i = 0; i < char_num; i++)
-  	{
-		if (char_dat[i].party_id == party_id)
-			char_dat[i].party_id = 0;
-	}
-}
-*/
-
+ 
 
 int char_married(int pl1, int pl2)
 {

@@ -96,13 +96,13 @@ void mmo_friends_sync(void)
 
 	// Friends List data save (davidsiaw)
 	fp = lock_fopen(friends_txt, &lock);
-
+/*
 	for(i = 0; i < char_num; i++)
 	{
 		mmo_friends_list_data_str(line, &char_dat[i]);
 		fprintf(fp, "%s\n", line);
 	}
-
+*/
 	lock_fclose(fp, friends_txt, &lock);
 }
 
@@ -115,13 +115,13 @@ void mmo_hotkeys_sync(void)
 
 	// Hotkey List data save (Skotlex)
 	fp = lock_fopen(hotkeys_txt, &lock);
-
+/*
 	for(i = 0; i < char_num; i++)
 	{
 		mmo_hotkeys_tostr(line, &char_dat[i]);
 		fprintf(fp, "%s\n", line);
 	}
-
+*/
 	lock_fclose(fp, hotkeys_txt, &lock);
 }
 

@@ -37,6 +37,15 @@ typedef struct CharDB_SQL
 
 } CharDB_SQL;
 
+/// internal structure
+typedef struct CharDBIterator_SQL
+{
+	CharDBIterator vtable;    // public interface
+
+	CharDB_SQL* db;
+	int last_char_id;
+} CharDBIterator_SQL;
+
 /// internal functions
 static bool char_db_sql_init(CharDB* self);
 static void char_db_sql_destroy(CharDB* self);
@@ -49,6 +58,10 @@ static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH]);
 static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id);
+static CharDBIterator* char_db_sql_iterator(CharDB* self);
+static void char_db_sql_iter_destroy(CharDBIterator* self);
+static bool char_db_sql_iter_next(CharDBIterator* self, struct mmo_charstatus* ch);
+
 static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_id, bool load_everything);
 static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool is_new);
 
@@ -69,6 +82,7 @@ CharDB* char_db_sql(void)
 	db->vtable.id2name   = &char_db_sql_id2name;
 	db->vtable.name2id   = &char_db_sql_name2id;
 	db->vtable.slot2id   = &char_db_sql_slot2id;
+	db->vtable.iterator  = &char_db_sql_iterator;
 
 	// initialize to default values
 	db->chars = NULL;
@@ -102,14 +116,56 @@ static void char_db_sql_destroy(CharDB* self)
 	aFree(db);
 }
 
-static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* status)
+static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 {
-	return true;
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
+
+	// decide on the char id to assign
+	int char_id;
+	if( cd->char_id != -1 )
+	{// caller specifies it manually
+		char_id = cd->char_id;
+	}
+	else
+	{// ask the database
+		char* data;
+		size_t len;
+
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`char_id`)+1 FROM `%s`", db->char_db) )
+		{
+			Sql_ShowDebug(sql_handle);
+			return false;
+		}
+		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+		{
+			Sql_ShowDebug(sql_handle);
+			Sql_FreeResult(sql_handle);
+			return false;
+		}
+
+		Sql_GetData(sql_handle, 0, &data, &len);
+		char_id = ( data != NULL ) ? atoi(data) : 0;
+		Sql_FreeResult(sql_handle);
+
+		if( char_id < START_CHAR_NUM )
+			char_id = START_CHAR_NUM;
+
+	}
+
+	// zero value is prohibited
+	if( char_id == 0 )
+		return false;
+
+	// insert the data into the database
+	cd->char_id = char_id;
+	return mmo_char_tosql(db, cd, true);
 }
 
 static bool char_db_sql_remove(CharDB* self, const int char_id)
 {
-	return true;
+	// not implemented yet
+	return false;
 }
 
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)
@@ -187,46 +243,152 @@ static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 
 static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
 {
-	//TODO: support NULL
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
+	char* data;
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", db->char_db, char_id)
+	||  SQL_SUCCESS != Sql_NextRow(sql_handle)
+	) {
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL);
+	if( name != NULL )
+		safestrncpy(name, data, sizeof(name));
+	Sql_FreeResult(sql_handle);
+
 	return true;
 }
 
 static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
-	//TODO: support NULL
-	//TODO: use db->case_sensitive
-	//TODO: decide whether to fill in 'unknown_char_name' if lookup fails
-	//TODO: decide on the return values for the individual cases
-
-/*
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
+	char esc_name[2*NAME_LENGTH+1];
 	char* data;
-	size_t len;
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
+	Sql_EscapeString(sql_handle, esc_name, name);
+
+	// get the list of char IDs for this char name
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`account_id` FROM `%s` WHERE `name`= %s '%s'",
+		db->char_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
+	{
 		Sql_ShowDebug(sql_handle);
-	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		Sql_GetData(sql_handle, 0, &data, &len);
-		memset(name, 0, NAME_LENGTH);
-		memcpy(name, data, min(len, NAME_LENGTH));
-		return 1;
+		return false;
 	}
-	else
-	{
-		memcpy(name, unknown_char_name, NAME_LENGTH);
+
+	if( Sql_NumRows(sql_handle) > 1 )
+	{// serious problem - duplicit char name
+		ShowError("char_db_sql_name2id: multiple chars found when looking up char '%s'!\n", name);
+		Sql_FreeResult(sql_handle);
+		return false;
 	}
-*/
+
+	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+	{// no such entry
+		Sql_FreeResult(sql_handle);
+		return false;
+	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL); if( char_id != NULL ) *char_id = atoi(data);
+	Sql_GetData(sql_handle, 1, &data, NULL); if( account_id != NULL ) *account_id = atoi(data);
+	Sql_FreeResult(sql_handle);
+
 	return true;
 }
 
 static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id)
 {
-	//TODO: support NULL
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
+	char* data;
 
-//	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `account_id` = '%d' AND `char_num` = '%d'", char_db, sd->account_id, slot) )
-//		Sql_ShowDebug(sql_handle);
+	// get the list of char IDs for this acc/slot
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",
+		db->char_db, account_id, slot) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	if( Sql_NumRows(sql_handle) > 1 )
+	{// serious problem - multiple chars on same slot
+		ShowError("char_db_sql_slot2id: multiple chars found when looking up acc/slot '%d'/'%d'!\n", account_id, slot);
+		Sql_FreeResult(sql_handle);
+		return false;
+	}
+
+	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+	{// no such entry
+		Sql_FreeResult(sql_handle);
+		return false;
+	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL);
+	if( char_id != NULL )
+		*char_id = atoi(data);
+	Sql_FreeResult(sql_handle);
 
 	return true;
+}
+
+/// Returns a new forward iterator.
+static CharDBIterator* char_db_sql_iterator(CharDB* self)
+{
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)aCalloc(1, sizeof(CharDBIterator_SQL));
+
+	// set up the vtable
+	iter->vtable.destroy = &char_db_sql_iter_destroy;
+	iter->vtable.next    = &char_db_sql_iter_next;
+
+	// fill data
+	iter->db = db;
+	iter->last_char_id = -1;
+
+	return &iter->vtable;
+}
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void char_db_sql_iter_destroy(CharDBIterator* self)
+{
+	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
+	aFree(iter);
+}
+
+/// Fetches the next account in the database.
+static bool char_db_sql_iter_next(CharDBIterator* self, struct mmo_charstatus* ch)
+{
+	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
+	CharDB_SQL* db = (CharDB_SQL*)iter->db;
+	Sql* sql_handle = db->chars;
+	int char_id;
+	char* data;
+
+	// get next char ID
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `char_id` > '%d' ORDER BY `char_id` ASC LIMIT 1",
+		db->char_db, iter->last_char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
+		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
+		data != NULL )
+	{// get char data
+		char_id = atoi(data);
+		if( mmo_char_fromsql(db, ch, char_id, true) )
+		{
+			iter->last_char_id = char_id;
+			Sql_FreeResult(sql_handle);
+			return true;
+		}
+	}
+	Sql_FreeResult(sql_handle);
+	return false;
 }
 
 
@@ -875,19 +1037,6 @@ int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf)
 	SqlStmt_Free(stmt);
 	return j;
 }
-
-/*
-
-//Clears the given party id from all characters.
-//Since sometimes the party format changes and parties must be wiped, this 
-//method is required to prevent stress during the "party not found!" stages.
-void char_clearparty(int party_id)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", char_db, party_id) )
-		Sql_ShowDebug(sql_handle);
-}
-
-*/
 
 
 int char_married(int pl1, int pl2)

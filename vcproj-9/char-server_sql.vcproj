@@ -380,6 +380,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_party.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_party.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_registry.c"
 				>
 			</File>
@@ -409,6 +417,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\map.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb_sql.c"
 				>
 			</File>
 		</Filter>
@@ -442,14 +458,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_sql\int_mail.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_party.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_party.h"
 			>
 		</File>
 		<File
