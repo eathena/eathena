@@ -40,6 +40,7 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id);
 static bool party_db_txt_save(PartyDB* self, const struct party_data* p);
 static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party_id);
 static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const char* name);
+
 static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str);
 static bool mmo_party_tostr(PartyDB_TXT* db, const struct party* p, char* str);
 static bool mmo_party_sync(PartyDB_TXT* db);
@@ -208,6 +209,8 @@ static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
+	struct mmo_charstatus cd;
+	int i;
 
 	// retrieve data
 	struct party_data* tmp = idb_get(parties, party_id);
@@ -218,6 +221,20 @@ static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party
 
 	// store it
 	memcpy(p, tmp, sizeof(struct party_data));
+
+	//Lookup players for rest of data.
+	for( i = 0; i < MAX_PARTY; i++ )
+	{
+		struct party_member* m = &p->party.member[i];
+
+		if( !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
+			continue;
+
+		safestrncpy(m->name, cd.name, sizeof(m->name));
+		m->class_ = cd.class_;
+		m->map = cd.last_point.map;
+		m->lv = cd.base_level;
+	}
 
 	return true;
 }
@@ -259,7 +276,7 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str)
 	memset(p, 0, sizeof(struct party));
 
 	if( sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &party_id, name, &exp, &item) != 4 )
-		return 1;
+		return false;
 
 	p->party_id = party_id;
 	safestrncpy(p->name, name, sizeof(p->name));
@@ -271,40 +288,25 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str)
 
 	for( i = 0; i < MAX_PARTY; i++ )
 	{
-		struct party_member *m = &p->member[i];
-		struct mmo_charstatus cd;
+		struct party_member* m = &p->member[i];
 		int account_id;
 		int char_id;
 		int leader;
 
 		if( str == NULL )
-			return 1;
+			return false;
 
 		if( sscanf(str + 1, "%d,%d,%d\t", &account_id, &char_id, &leader) != 3 )
-			return 1;
+			return false;
 
 		m->account_id = account_id;
 		m->char_id = char_id; 
 		m->leader = leader ? 1:0;
 
 		str = strchr(str + 1, '\t');
-
-#ifndef TXT_SQL_CONVERT
-		if( !m->account_id )
-			continue;
-
-		//Lookup player for rest of data.
-		if( !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
-			continue;
-		
-		safestrncpy(m->name, cd.name, sizeof(m->name));
-		m->class_ = cd.class_;
-		m->map = cd.last_point.map;
-		m->lv = cd.base_level;
-#endif //TXT_SQL_CONVERT
 	}
 
-	return 0;
+	return true;
 }
 
 static bool mmo_party_tostr(PartyDB_TXT* db, const struct party* p, char* str)

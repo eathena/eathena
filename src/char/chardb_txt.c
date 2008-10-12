@@ -133,8 +133,7 @@ static bool char_db_txt_init(CharDB* self)
 	while( fgets(line, sizeof(line), fp) != NULL )
 	{
 		int char_id, n;
-		struct mmo_charstatus ch;
-		struct mmo_charstatus* tmp;
+		struct mmo_charstatus* ch;
 		struct regs reg;
 		line_count++;
 
@@ -149,14 +148,18 @@ static bool char_db_txt_init(CharDB* self)
 			continue;
 		}
 
-		ret = mmo_char_fromstr(self, line, &ch, &reg);
+		// allocate memory for the char entry
+		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
+
+		// parse char data
+		ret = mmo_char_fromstr(self, line, ch, &reg);
 
 		// Initialize char regs
-		inter_charreg_save(ch.char_id, &reg);
+		inter_charreg_save(ch->char_id, &reg);
 		// Initialize friends list
-		parse_friend_txt(&ch);  // Grab friends for the character
+		parse_friend_txt(ch);  // Grab friends for the character
 		// Initialize hotkey list
-		parse_hotkey_txt(&ch);  // Grab hotkeys for the character
+		parse_hotkey_txt(ch);  // Grab hotkeys for the character
 
 		if( ret <= 0 )
 		{
@@ -175,16 +178,16 @@ static bool char_db_txt_init(CharDB* self)
 			default: break;
 			}
 			char_log("%s", line);
+
+			aFree(ch);
 			continue;
 		}
 
 		// record entry in db
-		tmp = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
-		memcpy(tmp, &ch, sizeof(struct mmo_charstatus));
-		idb_put(chars, ch.account_id, tmp);
+		idb_put(chars, ch->account_id, ch);
 
-		if( db->next_char_id < ch.char_id)
-			db->next_char_id = ch.char_id + 1;
+		if( db->next_char_id < ch->char_id)
+			db->next_char_id = ch->char_id + 1;
 	}
 
 	// close data file
@@ -238,7 +241,7 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 	}
 
 	// copy the data and store it in the db
-	CREATE(tmp, struct mmo_charstatus, 1);
+	tmp = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 	memcpy(tmp, cd, sizeof(struct mmo_charstatus));
 	tmp->char_id = char_id;
 	idb_put(chars, char_id, tmp);

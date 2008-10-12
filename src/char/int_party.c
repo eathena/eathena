@@ -609,6 +609,8 @@ int inter_party_init(void)
 	parties = party_db_sql();
 #endif
 
+	parties->init(parties);
+
 	return 0;
 }
 

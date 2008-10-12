@@ -18,7 +18,7 @@ static DBMap* charreg_db = NULL; // int char_id -> struct regs*
 
 static void* create_regs(DBKey key, va_list args)
 {
-	return (struct regs*)aCalloc(sizeof(struct regs), 1);
+	return (struct regs*)aMalloc(sizeof(struct regs));
 }
 
 
@@ -124,7 +124,7 @@ int inter_accreg_init(void)
 
 	while( fgets(line, sizeof(line), fp) )
 	{
-		reg = (struct regs*)aCalloc(sizeof(struct regs), 1);
+		reg = (struct regs*)aCalloc(1, sizeof(struct regs));
 		if( reg == NULL )
 		{
 			ShowFatalError("inter: accreg: out of memory!\n");
@@ -133,7 +133,10 @@ int inter_accreg_init(void)
 
 		// load account id
 		if( sscanf(line, "%d\t%n", &account_id, &n) != 1 || account_id <= 0 )
+		{
+			aFree(reg);
 			continue;
+		}
 
 		// load regs for this account
 		if( inter_accreg_fromstr(line + n, reg) != 0 )
@@ -175,6 +178,7 @@ int inter_charreg_tostr(char* str, const struct regs* reg)
 
 bool inter_charreg_fromstr(const char* str, struct regs* reg)
 {
+	//FIXME: doesn't obey size limits
 	int i;
 	int len;
 
