@@ -42,7 +42,7 @@ extern char friends_txt[1024];
 extern char hotkeys_txt[1024];
 char char_txt[1024];
 extern DBMap* char_db_;
-extern int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf);
+extern int mmo_chars_tobuf(int account_id, uint8* buf);
 
 
 int login_fd=-1, char_fd=-1;
@@ -452,8 +452,8 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	WFIFOHEAD(fd, 4 + 20 + MAX_CHARS*108); // or 106(!)
 	WFIFOW(fd,0) = 0x6b;
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
-	j += mmo_chars_tobuf(sd, WFIFOP(fd,j));
-	WFIFOW(fd,2) = 4 + 20 + j; // packet len
+	j += mmo_chars_tobuf(sd->account_id, WFIFOP(fd,j));
+	WFIFOW(fd,2) = j; // packet len
 	WFIFOSET(fd,j);
 
 	return 0;

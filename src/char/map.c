@@ -23,6 +23,7 @@ extern CharDB* chars;
 
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
+extern void set_char_charselect(int account_id);
 #include "char.h"
 extern int char_num, char_max;
 extern int login_fd;
@@ -378,7 +379,7 @@ int parse_frommap(int fd)
 			idb_put(auth_db, account_id, node);
 
 			//Set char to "@ char select" in online db [Kevin]
-			set_char_online(-3, 99, account_id);
+			set_char_charselect(account_id);
 
 			WFIFOHEAD(fd,7);
 			WFIFOW(fd,0) = 0x2b03;

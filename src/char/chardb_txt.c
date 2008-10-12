@@ -8,6 +8,7 @@
 #include "../common/mapindex.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
+#include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
@@ -26,6 +27,7 @@ extern int parse_friend_txt(struct mmo_charstatus *p);
 extern int parse_hotkey_txt(struct mmo_charstatus *p);
 extern void mmo_friends_sync(void);
 extern void mmo_hotkeys_sync(void);
+extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
 /// internal structure
@@ -69,7 +71,6 @@ static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* c
 int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
 static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
 static void mmo_char_sync(CharDB_TXT* db);
-int mmo_chars_tobuf(CharDB* chars, struct char_session_data* sd, uint8* buf);
 
 /// public constructor
 CharDB* char_db_txt(void)
@@ -184,7 +185,7 @@ static bool char_db_txt_init(CharDB* self)
 		}
 
 		// record entry in db
-		idb_put(chars, ch->account_id, ch);
+		idb_put(chars, ch->char_id, ch);
 
 		if( db->next_char_id < ch->char_id)
 			db->next_char_id = ch->char_id + 1;
@@ -199,7 +200,7 @@ static bool char_db_txt_init(CharDB* self)
 
 	// initialize data saving timer
 	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-	db->save_timer = add_timer_interval(gettick() + 1000, mmo_char_sync_timer, 0, (intptr)chars, autosave_interval);
+	db->save_timer = add_timer_interval(gettick() + 1000, mmo_char_sync_timer, 0, (intptr)db, autosave_interval);
 
 	return true;
 }
@@ -910,32 +911,21 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-int mmo_chars_tobuf(CharDB* chars, struct char_session_data* sd, uint8* buf)
+//=====================================================================================================
+// Loads the basic character roster for the given account. Returns total buffer used.
+int mmo_chars_tobuf(int account_id, uint8* buf)
 {
-	struct mmo_charstatus cd;
-	int i;
+	int i, j;
 
-	// TODO: iterate over all chars on account instead of bruteforcing
-	chars->load_slot(chars, &cd, sd->account_id, i);
+	j = 0;
+	for( i = 0; i < MAX_CHARS; ++i )
+	{
+		struct mmo_charstatus cd;
+		if( chars->load_slot(chars, &cd, account_id, i) )
+			j += mmo_char_tobuf(WBUFP(buf,j), &cd);
+	}
 
-//	for(i = 0; i < found_num; i++)
-//		j += mmo_char_tobuf(WFIFOP(fd,j), &char_dat[sd->found_char[i]]);
-
+	return j;
 }
  
 

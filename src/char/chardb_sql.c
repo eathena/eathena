@@ -22,6 +22,7 @@
 // temporary stuff
 extern int storage_fromsql(int account_id, struct storage_data* p);
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
+extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
 /// internal structure
@@ -921,7 +922,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 
 
 
-extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 extern void set_all_offline_sql(void);
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 #define TRIM_CHARS "\032\t\x0A\x0D "
@@ -957,7 +957,7 @@ int mmo_char_sql_init(void)
 	return 0;
 }
 
-
+/*
 static void* create_charstatus(DBKey key, va_list args)
 {
 	struct mmo_charstatus *cp;
@@ -965,13 +965,12 @@ static void* create_charstatus(DBKey key, va_list args)
 	cp->char_id = key.i;
 	return cp;
 }
-
-
+*/
 
 
 //=====================================================================================================
 // Loads the basic character roster for the given account. Returns total buffer used.
-int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf)
+int mmo_chars_tobuf(int account_id, uint8* buf)
 {
 	SqlStmt* stmt;
 	struct mmo_charstatus p;
@@ -991,7 +990,7 @@ int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf)
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`hair`,`hair_color`,"
 		"`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`"
-		" FROM `%s` WHERE `account_id`='%d' AND `char_num` < '%d'", char_db, sd->account_id, MAX_CHARS)
+		" FROM `%s` WHERE `account_id`='%d' AND `char_num` < '%d'", char_db, account_id, MAX_CHARS)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0,  SQLDT_INT,    &p.char_id, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1,  SQLDT_UCHAR,  &p.slot, 0, NULL, NULL)
@@ -1032,7 +1031,7 @@ int mmo_chars_tobuf(struct char_session_data* sd, uint8* buf)
 		return 0;
 	}
 	for( i = 0; i < MAX_CHARS && SQL_SUCCESS == SqlStmt_NextRow(stmt); i++ )
-		j += mmo_char_tobuf(WBUFP(buf, j), &p);
+		j += mmo_char_tobuf(WBUFP(buf,j), &p);
 
 	SqlStmt_Free(stmt);
 	return j;
