@@ -160,13 +160,34 @@ static bool party_db_txt_create(PartyDB* self, struct party_data* p)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
+	struct party_data* tmp;
 
-	//TODO
-//	p->party.party_id = party_newid++;
-//	idb_put(party_db, p->party.party_id, p);
+	// decide on the party id to assign
+	int party_id = ( p->party.party_id != -1 ) ? p->party.party_id : db->next_party_id;
+
+	// check if the party_id is free
+	tmp = idb_get(parties, party_id);
+	if( tmp != NULL )
+	{// error condition - entry already present
+		ShowError("party_db_txt_create: cannot create party %d:'%s', this id is already occupied by %d:'%s'!\n", party_id, p->party.name, party_id, tmp->party.name);
+		return false;
+	}
+
+	// copy the data and store it in the db
+	CREATE(tmp, struct party_data, 1);
+	memcpy(tmp, p, sizeof(struct party_data));
+	tmp->party.party_id = party_id;
+	idb_put(parties, party_id, tmp);
+
+	// increment the auto_increment value
+	if( party_id >= db->next_party_id )
+		db->next_party_id = party_id + 1;
 
 	// flush data
 	mmo_party_sync(db);
+
+	// write output
+	p->party.party_id = party_id;
 
 	return true;
 }

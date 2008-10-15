@@ -1,6 +1,7 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/mmo.h"
@@ -48,6 +49,9 @@ char default_codepage[32] = ""; //Feature by irmin.
 
 unsigned int party_share_level = 10;
 char main_chat_nick[16] = "Main";
+bool party_break_without_leader = false;
+bool party_auto_reassign_leader = false;
+
 
 // recv. packet list
 int inter_recv_packet_length[] = {
@@ -151,6 +155,12 @@ static int inter_config_read(const char* cfgName)
 		else
 		if (strcmpi(w1, "party_share_level") == 0)
 			party_share_level = atoi(w2);
+		else
+		if( strcmpi(w1, "party.break_without_leader") == 0 )
+			party_break_without_leader = config_switch(w2);
+		else
+		if( strcmpi(w1, "party.auto_reassign_leader") == 0 )
+			party_auto_reassign_leader = config_switch(w2);
 		else
 		if (strcmpi(w1, "import") == 0)
 			inter_config_read(w2);

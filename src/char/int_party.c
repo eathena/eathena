@@ -25,6 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+// extern imports
+extern bool party_break_without_leader;
+extern bool party_auto_reassign_leader;
+
 // party database
 PartyDB* parties = NULL;
 
@@ -42,7 +46,8 @@ static int int_party_check_lv(struct party_data *p)
 	p->min_lv = UINT_MAX;
 	p->max_lv = 0;
 
-	for(i=0;i<MAX_PARTY;i++){
+	for(i=0;i<MAX_PARTY;i++)
+	{
 		if(!p->party.member[i].online)
 			continue;
 
@@ -116,20 +121,12 @@ int party_check_exp_share(struct party_data *p)
 }
 
 // Is there any member in the party?
-// If not, delete party data.
-int party_check_empty(struct party_data *p)
+bool party_check_empty(struct party_data *p)
 {
 	int i;
 
 	ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id > 0 );
-	if( i < MAX_PARTY )
-		return 0;
-
-	// If there is no member, then break the party
-	mapif_party_broken(p->party.party_id, 0);
-	parties->remove(parties, p->party.party_id);
-
-	return 1;
+	return ( i == MAX_PARTY );
 }
 
 
@@ -312,6 +309,7 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 	memcpy(&p.party.member[0], leader, sizeof(struct party_member));
 	p.party.member[0].leader = 1;
 	p.party.member[0].online = 1; //TODO: assess the significance of this line (was missing in TXT)
+	int_party_calc_state(&p);
 
 	if( !parties->create(parties, &p) )
 	{// failed to create party
@@ -319,7 +317,6 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 		return 0;
 	}
 
-	int_party_calc_state(&p);
 	mapif_party_created(fd, leader->account_id, leader->char_id, &p.party);
 	mapif_party_info(fd, &p.party);
 
@@ -365,22 +362,12 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 
 	memcpy(&p.party.member[i], member, sizeof(struct party_member));
 	p.party.member[i].leader = 0;
-	if (p.party.member[i].online)
-		p.party.count++;
-	p.size++;
-	if (p.size == 3) //Check family state.
-		int_party_calc_state(&p);
-	else //Check even share range.
-	if( member->lv < p.min_lv || member->lv > p.max_lv || p.family )
-	{
-		if (p.family) p.family = 0; //Family state broken.
-		int_party_check_lv(&p);
-	}
+	int_party_calc_state(&p);
+	parties->save(parties, &p); // PS_ADDMEMBER[i]
 
 	mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 0);
 	mapif_party_info(-1, &p.party);
 
-	parties->save(parties, &p); // PS_ADDMEMBER[i]
 
 	return 0;
 }
@@ -413,6 +400,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 {
 	struct party_data p;
 	int i,j=-1;
+	bool leader;
 
 	if( !parties->load_num(parties, &p, party_id) )
 	{// Party does not exist
@@ -424,47 +412,49 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 	if( i >= MAX_PARTY )
 		return 0; //Member not found?
 
-	mapif_party_leaved(party_id, account_id, char_id);
+	leader = p.party.member[i].leader;
 
-	//FIXME: !!!!!!!!!!!!!
-#ifdef TXT_ONLY
-	if(p.party.member[i].online)
-		p.party.count--;
-	memset(&p.party.member[i], 0, sizeof(struct party_member));
-	p.size--;
-	if (p.party.member[i].lv == p.min_lv || p.party.member[i].lv == p.max_lv || p.family)
-	{
-		if(p.family)
-			p.family = 0; //Family state broken.
-		int_party_check_lv(&p);
-	}
-#else
-	if (p.party.member[i].leader)
-	{// disband party
-		p.party.member[i].account_id = 0;
-		for (j = 0; j < MAX_PARTY; j++) {
-			if (!p.party.member[j].account_id)
-				continue;
-			mapif_party_leaved(party_id, p.party.member[j].account_id, p.party.member[j].char_id);
-			p.party.member[j].account_id = 0;
-		}
-		//Party gets deleted on the check_empty call below.
-	} else {
-		inter_party_tosql(&p.party,PS_DELMEMBER,i);
-		j = p.party.member[i].lv;
-		if(p.party.member[i].online) p.party.count--;
-		memset(&p.party.member[i], 0, sizeof(struct party_member));
-		p.size--;
-		if (j == p.min_lv || j == p.max_lv || p.family)
+	if( leader && party_break_without_leader )
+	{// kick all members from party
+		for( j = 0; j < MAX_PARTY; j++ )
 		{
-			if(p.family) p.family = 0; //Family state broken.
-			int_party_check_lv(&p);
+			if( p.party.member[j].account_id != 0 )
+			{
+				mapif_party_leaved(party_id, p.party.member[j].account_id, p.party.member[j].char_id);
+				p.party.member[j].account_id = 0;
+			}
 		}
 	}
-#endif
+	else
+	{// only remove self
+		mapif_party_leaved(party_id, account_id, char_id);
+		memset(&p.party.member[i], 0, sizeof(struct party_member));
+	}
 
-	if (party_check_empty(&p) == 0)
+	if( leader && party_auto_reassign_leader )
+	{// grant leadership to another party member
+		ARR_FIND( 0, MAX_PARTY, i, p.party.member[i].account_id != 0 && p.party.member[i].online );
+		if( i == MAX_PARTY )
+			ARR_FIND( 0, MAX_PARTY, i, p.party.member[i].account_id != 0 );
+
+		if( i < MAX_PARTY )
+			p.party.member[i].leader = 1;
+
+		//TODO: notify the mapserver (somehow)
+	}
+
+	int_party_calc_state(&p);
+
+	if( !party_check_empty(&p) )
+	{
+		parties->save(parties, &p); // PS_DELMEMBER[i]
 		mapif_party_info(-1, &p.party);
+	}
+	else
+	{// no members -> break the party
+		parties->remove(parties, p.party.party_id);
+		mapif_party_broken(p.party.party_id, 0);
+	}
 
 	return 0;
 }
@@ -482,46 +472,35 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	if( i >= MAX_PARTY )
 		return 0;
 
-	if (p.party.member[i].online != online)
+	if( p.party.member[i].online != online )
 	{
 		p.party.member[i].online = online;
-		if (online)
+
+		if( online )
 			p.party.count++;
 		else
 			p.party.count--;
-		// Even share check situations: Family state (always breaks)
-		// character logging on/off is max/min level (update level range) 
-		// or character logging on/off has a different level (update level range using new level)
-		if (p.family ||
-			(p.party.member[i].lv <= p.min_lv || p.party.member[i].lv >= p.max_lv) ||
-			(p.party.member[i].lv != lv && (lv <= p.min_lv || lv >= p.max_lv))
-			)
-		{
-			p.party.member[i].lv = lv;
-			int_party_check_lv(&p);
-		}
-		//Send online/offline update.
-		mapif_party_membermoved(&p.party, i);
+
+		int_party_check_lv(&p);
 	}
 
-	if (p.party.member[i].lv != lv)
+	if( p.party.member[i].lv != lv )
 	{
-		if(p.party.member[i].lv == p.min_lv || p.party.member[i].lv == p.max_lv)
-		{
-			p.party.member[i].lv = lv;
-			int_party_check_lv(&p);
-		} else
-			p.party.member[i].lv = lv;
-		//There is no need to send level update to map servers
-		//since they do nothing with it.
+		p.party.member[i].lv = lv;
+		int_party_check_lv(&p);
 	}
 
-	if (p.party.member[i].map != map) {
+	if( p.party.member[i].map != map )
+	{
 		p.party.member[i].map = map;
-		mapif_party_membermoved(&p.party, i);
 	}
 
-	//FIXME: no data saving?
+#ifdef TXT_ONLY
+	//FIXME: this is just here to update some non-persistent variables
+	parties->save(parties, &p);
+#endif
+
+	mapif_party_membermoved(&p.party, i);
 
 	return 0;
 }
