@@ -1,15 +1,21 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include "../common/mmo.h"
 #include "../common/malloc.h"
-#include "../common/socket.h"
-#include "../common/db.h"
-#include "../common/lock.h"
+#include "../common/mmo.h"
 #include "../common/showmsg.h"
+#include "../common/socket.h"
+#include "../common/utils.h"
 #include "char.h"
 #include "inter.h"
 #include "int_pet.h"
+
+#ifdef TXT_ONLY
+#include "../common/db.h"
+#include "../common/lock.h"
+#else
+#include "../common/sql.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +23,6 @@
 
 char pet_txt[1024]="save/pet.txt";
 
-#ifndef TXT_SQL_CONVERT
 static DBMap* pet_db; // int pet_id -> struct s_pet*
 static int pet_newid = 100;
 
@@ -40,7 +45,7 @@ int inter_pet_tostr(char *str,struct s_pet *p)
 
 	return 0;
 }
-#endif //TXT_SQL_CONVERT
+
 int inter_pet_fromstr(char *str,struct s_pet *p)
 {
 	int s;
@@ -79,7 +84,7 @@ int inter_pet_fromstr(char *str,struct s_pet *p)
 
 	return 0;
 }
-#ifndef TXT_SQL_CONVERT
+
 int inter_pet_init()
 {
 	char line[8192];
@@ -119,26 +124,33 @@ void inter_pet_final()
 	return;
 }
 
-int inter_pet_save_sub(DBKey key,void *data,va_list ap)
-{
-	char line[8192];
-	FILE *fp;
-	inter_pet_tostr(line,(struct s_pet *)data);
-	fp=va_arg(ap,FILE *);
-	fprintf(fp,"%s\n",line);
-	return 0;
-}
-
 int inter_pet_save()
 {
+	DBIterator* iter;
+	void* data;
 	FILE *fp;
 	int lock;
-	if( (fp=lock_fopen(pet_txt,&lock))==NULL ){
-		ShowError("int_pet: can't write [%s] !!! data is lost !!!\n",pet_txt);
+
+	fp = lock_fopen(pet_txt, &lock);
+	if( fp == NULL )
+	{
+		ShowError("int_pet: can't write [%s] !!! data is lost !!!\n", pet_txt);
 		return 1;
 	}
-	pet_db->foreach(pet_db,inter_pet_save_sub,fp);
-	lock_fclose(fp,pet_txt,&lock);
+
+	iter = pet_db->iterator(pet_db);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_pet* pd = (struct s_pet*) data;
+		char line[8192];
+
+		inter_pet_tostr(line, pd);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, pet_txt, &lock);
+
 	return 0;
 }
 
@@ -155,32 +167,32 @@ int inter_pet_delete(int pet_id)
 	return 0;
 }
 
-int mapif_pet_created(int fd,int account_id,struct s_pet *p)
+int mapif_pet_created(int fd, int account_id, struct s_pet *p)
 {
-        WFIFOHEAD(fd, 11);
-	WFIFOW(fd,0)=0x3880;
-	WFIFOL(fd,2)=account_id;
+	WFIFOHEAD(fd, 11);
+	WFIFOW(fd,0) = 0x3880;
+	WFIFOL(fd,2) = account_id;
 	if(p!=NULL){
-		WFIFOB(fd,6)=0;
-		WFIFOL(fd,7)=p->pet_id;
-		ShowInfo("Created pet (%d - %s)\n",p->pet_id,p->name);
+		WFIFOB(fd,6) = 0;
+		WFIFOL(fd,7) = p->pet_id;
+		ShowInfo("Created pet (%d - %s)\n", p->pet_id, p->name);
 	}else{
-		WFIFOB(fd,6)=1;
-		WFIFOL(fd,7)=0;
+		WFIFOB(fd,6) = 1;
+		WFIFOL(fd,7) = 0;
 	}
 	WFIFOSET(fd,11);
 
 	return 0;
 }
 
-int mapif_pet_info(int fd,int account_id,struct s_pet *p)
+int mapif_pet_info(int fd, int account_id, struct s_pet *p)
 {
 	WFIFOHEAD(fd, sizeof(struct s_pet) + 9);
-	WFIFOW(fd,0)=0x3881;
-	WFIFOW(fd,2)=sizeof(struct s_pet) + 9;
-	WFIFOL(fd,4)=account_id;
-	WFIFOB(fd,8)=0;
-	memcpy(WFIFOP(fd,9),p,sizeof(struct s_pet));
+	WFIFOW(fd,0) = 0x3881;
+	WFIFOW(fd,2) = sizeof(struct s_pet) + 9;
+	WFIFOL(fd,4) = account_id;
+	WFIFOB(fd,8) = 0;
+	memcpy(WFIFOP(fd,9), p, sizeof(struct s_pet));
 	WFIFOSET(fd,WFIFOW(fd,2));
 
 	return 0;
@@ -188,40 +200,40 @@ int mapif_pet_info(int fd,int account_id,struct s_pet *p)
 
 int mapif_pet_noinfo(int fd,int account_id)
 {
-        WFIFOHEAD(fd, sizeof(struct s_pet) + 9);
-	WFIFOW(fd,0)=0x3881;
-	WFIFOW(fd,2)=sizeof(struct s_pet) + 9;
-	WFIFOL(fd,4)=account_id;
-	WFIFOB(fd,8)=1;
-	memset(WFIFOP(fd,9),0,sizeof(struct s_pet));
+	WFIFOHEAD(fd, sizeof(struct s_pet) + 9);
+	WFIFOW(fd,0) = 0x3881;
+	WFIFOW(fd,2) = sizeof(struct s_pet) + 9;
+	WFIFOL(fd,4) = account_id;
+	WFIFOB(fd,8) = 1;
+	memset(WFIFOP(fd,9), 0, sizeof(struct s_pet));
 	WFIFOSET(fd,WFIFOW(fd,2));
 
 	return 0;
 }
 
-int mapif_save_pet_ack(int fd,int account_id,int flag)
+int mapif_save_pet_ack(int fd, int account_id, int flag)
 {
-        WFIFOHEAD(fd, 7);
-	WFIFOW(fd,0)=0x3882;
-	WFIFOL(fd,2)=account_id;
-	WFIFOB(fd,6)=flag;
+	WFIFOHEAD(fd,7);
+	WFIFOW(fd,0) = 0x3882;
+	WFIFOL(fd,2) = account_id;
+	WFIFOB(fd,6) = flag;
 	WFIFOSET(fd,7);
 
 	return 0;
 }
 
-int mapif_delete_pet_ack(int fd,int flag)
+int mapif_delete_pet_ack(int fd, int flag)
 {
-        WFIFOHEAD(fd, 3);
-	WFIFOW(fd,0)=0x3883;
-	WFIFOB(fd,2)=flag;
+	WFIFOHEAD(fd,3);
+	WFIFOW(fd,0) = 0x3883;
+	WFIFOB(fd,2) = flag;
 	WFIFOSET(fd,3);
 
 	return 0;
 }
 
-int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet_lv,short pet_egg_id,
-	short pet_equip,short intimate,short hungry,char rename_flag,char incuvate,char *pet_name)
+int mapif_create_pet(int fd, int account_id, int char_id, short pet_class, short pet_lv, short pet_egg_id,
+	short pet_equip, short intimate, short hungry, char rename_flag, char incuvate, char *pet_name)
 {
 	struct s_pet *p;
 	p= (struct s_pet *) aCalloc(sizeof(struct s_pet), 1);
@@ -230,12 +242,15 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 		mapif_pet_created(fd,account_id,NULL);
 		return 0;
 	}
-//	memset(p,0,sizeof(struct s_pet)); unnecessary after aCalloc [Skotlex]
-	p->pet_id = pet_newid++;
+
 	memcpy(p->name,pet_name,NAME_LENGTH);
 	if(incuvate == 1)
-		p->account_id = p->char_id = 0;
-	else {
+	{
+		p->account_id = 0;
+		p->char_id = 0;
+	}
+	else
+	{
 		p->account_id = account_id;
 		p->char_id = char_id;
 	}
@@ -248,15 +263,10 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 	p->rename_flag = rename_flag;
 	p->incuvate = incuvate;
 
-	if(p->hungry < 0)
-		p->hungry = 0;
-	else if(p->hungry > 100)
-		p->hungry = 100;
-	if(p->intimate < 0)
-		p->intimate = 0;
-	else if(p->intimate > 1000)
-		p->intimate = 1000;
+	p->hungry = cap_value(p->hungry, 0, 100);
+	p->intimate = cap_value(p->intimate, 0, 1000);
 
+	p->pet_id = pet_newid++;
 	idb_put(pet_db,p->pet_id,p);
 
 	mapif_pet_created(fd,account_id,p);
@@ -264,110 +274,111 @@ int mapif_create_pet(int fd,int account_id,int char_id,short pet_class,short pet
 	return 0;
 }
 
-int mapif_load_pet(int fd,int account_id,int char_id,int pet_id)
+int mapif_load_pet(int fd, int account_id, int char_id, int pet_id)
 {
 	struct s_pet *p;
 	p = (struct s_pet*)idb_get(pet_db,pet_id);
-	if(p!=NULL) {
-		if(p->incuvate == 1) {
-			p->account_id = p->char_id = 0;
-			mapif_pet_info(fd,account_id,p);
-		}
-		else if(account_id == p->account_id && char_id == p->char_id)
-			mapif_pet_info(fd,account_id,p);
-		else
-			mapif_pet_noinfo(fd,account_id);
+	if(p ==NULL) {
+		mapif_pet_noinfo(fd,account_id);
+		return 0;
+	}
+
+	if( p->incuvate == 1 )
+	{
+		p->account_id = p->char_id = 0;
+		mapif_pet_info(fd, account_id, p);
 	}
 	else
-		mapif_pet_noinfo(fd,account_id);
+	if(account_id == p->account_id && char_id == p->char_id)
+		mapif_pet_info(fd, account_id, p);
+	else
+		mapif_pet_noinfo(fd, account_id);
 
 	return 0;
 }
 
-static void* create_pet(DBKey key, va_list args) {
+static void* create_pet(DBKey key, va_list args)
+{
 	struct s_pet *p;
 	p=(struct s_pet *)aCalloc(sizeof(struct s_pet),1);
 	p->pet_id = key.i;
 	return p;
 }
-int mapif_save_pet(int fd,int account_id,struct s_pet *data)
+
+int mapif_save_pet(int fd, int account_id, struct s_pet *data)
 {
-	struct s_pet *p;
-	int pet_id, len;
-	RFIFOHEAD(fd);
-	len=RFIFOW(fd,2);
-	
-	if(sizeof(struct s_pet)!=len-8) {
-		ShowError("inter pet: data size error %d %d\n",sizeof(struct s_pet),len-8);
+	int len = RFIFOW(fd,2);
+	if( sizeof(struct s_pet) != len - 8 )
+	{
+		ShowError("inter pet: data size error %d %d\n", sizeof(struct s_pet), len - 8);
+		return 0;
 	}
-	else{
+	else
+	{
+#ifdef TXT_ONLY
+		struct s_pet *p;
+		int pet_id;
+
 		pet_id = data->pet_id;
 		if (pet_id == 0)
 			pet_id = data->pet_id = pet_newid++;
 		p = (struct s_pet*)idb_ensure(pet_db,pet_id,create_pet);
-		if(data->hungry < 0)
-			data->hungry = 0;
-		else if(data->hungry > 100)
-			data->hungry = 100;
-		if(data->intimate < 0)
-			data->intimate = 0;
-		else if(data->intimate > 1000)
-			data->intimate = 1000;
+#endif
+
+		data->hungry = cap_value(data->hungry, 0, 100);
+		data->intimate = cap_value(data->intimate, 0, 1000);
+
+#ifdef TXT_ONLY
 		memcpy(p,data,sizeof(struct s_pet));
 		if(p->incuvate == 1)
 			p->account_id = p->char_id = 0;
+#else
+		inter_pet_tosql(data->pet_id,data);
+#endif
 
-		mapif_save_pet_ack(fd,account_id,0);
+		mapif_save_pet_ack(fd, account_id, 0);
 	}
 
 	return 0;
 }
 
-int mapif_delete_pet(int fd,int pet_id)
+int mapif_delete_pet(int fd, int pet_id)
 {
-	mapif_delete_pet_ack(fd,inter_pet_delete(pet_id));
+	mapif_delete_pet_ack(fd, inter_pet_delete(pet_id));
 
 	return 0;
 }
 
 int mapif_parse_CreatePet(int fd)
 {
-	RFIFOHEAD(fd);
-	mapif_create_pet(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOW(fd,10),RFIFOW(fd,12),RFIFOW(fd,14),RFIFOW(fd,16),RFIFOW(fd,18),
-		RFIFOW(fd,20),RFIFOB(fd,22),RFIFOB(fd,23),(char*)RFIFOP(fd,24));
+	mapif_create_pet(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), RFIFOW(fd,16), RFIFOW(fd,18),
+		RFIFOW(fd,20), RFIFOB(fd,22), RFIFOB(fd,23), (char*)RFIFOP(fd,24));
 	return 0;
 }
 
 int mapif_parse_LoadPet(int fd)
 {
-	RFIFOHEAD(fd);
-	mapif_load_pet(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10));
+	mapif_load_pet(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10));
 	return 0;
 }
 
 int mapif_parse_SavePet(int fd)
 {
-	RFIFOHEAD(fd);
-	mapif_save_pet(fd,RFIFOL(fd,4),(struct s_pet *)RFIFOP(fd,8));
+	mapif_save_pet(fd, RFIFOL(fd,4), (struct s_pet *)RFIFOP(fd,8));
 	return 0;
 }
 
 int mapif_parse_DeletePet(int fd)
 {
-	RFIFOHEAD(fd);
-	mapif_delete_pet(fd,RFIFOL(fd,2));
+	mapif_delete_pet(fd, RFIFOL(fd,2));
 	return 0;
 }
 
-// map server からの通信
-// ・１パケットのみ解析すること
-// ・パケット長データはinter.cにセットしておくこと
-// ・パケット長チェックや、RFIFOSKIPは呼び出し元で行われるので行ってはならない
-// ・エラーなら0(false)、そうでないなら1(true)をかえさなければならない
+// communication with map-server
 int inter_pet_parse_frommap(int fd)
 {
-	RFIFOHEAD(fd);
-	switch(RFIFOW(fd,0)){
+	switch(RFIFOW(fd,0))
+	{
 	case 0x3080: mapif_parse_CreatePet(fd); break;
 	case 0x3081: mapif_parse_LoadPet(fd); break;
 	case 0x3082: mapif_parse_SavePet(fd); break;
@@ -377,4 +388,3 @@ int inter_pet_parse_frommap(int fd)
 	}
 	return 1;
 }
-#endif //TXT_SQL_CONVERT
