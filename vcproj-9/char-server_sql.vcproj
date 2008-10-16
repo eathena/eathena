@@ -408,6 +408,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_status.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_status.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\inter.c"
 				>
 			</File>
@@ -441,6 +449,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\petdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb_sql.c"
 				>
 			</File>
 		</Filter>

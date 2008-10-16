@@ -1231,8 +1231,8 @@ int char_config_read(const char* cfgName)
 #ifdef TXT_ONLY
 		} else if (strcmpi(w1, "email_creation") == 0) {
 			email_creation = config_switch(w2);
-		} else if (strcmpi(w1, "scdata_txt") == 0) { //By Skotlex
-			strcpy(scdata_txt, w2);
+//		} else if (strcmpi(w1, "scdata_txt") == 0) { //By Skotlex
+//			strcpy(scdata_txt, w2);
 		} else if (strcmpi(w1, "char_txt") == 0) {
 			strcpy(char_txt, w2);
 		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
