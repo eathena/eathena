@@ -44,7 +44,7 @@ static bool mmo_pet_tostr(const struct s_pet* pd, char* str);
 static bool mmo_pet_sync(PetDB_TXT* db);
 
 /// public constructor
-PetDB* party_db_txt(void)
+PetDB* pet_db_txt(void)
 {
 	PetDB_TXT* db = (PetDB_TXT*)aCalloc(1, sizeof(PetDB_TXT));
 
@@ -213,9 +213,6 @@ static bool mmo_pet_fromstr(struct s_pet* p, char* str)
 
 static bool mmo_pet_tostr(const struct s_pet* p, char* str)
 {
-	p->hungry = cap_value(p->hungry, 0, 100);
-	p->intimate = cap_value(p->intimate, 0, 1000);
-
 	sprintf(str, "%d,%d,%s\t%d,%d,%d,%d,%d,%d,%d,%d,%d",
 		p->pet_id, p->class_, p->name, p->account_id, p->char_id, p->level, p->egg_id,
 		p->equip, p->intimate, p->hungry, p->rename_flag, p->incuvate);
@@ -237,13 +234,13 @@ static bool mmo_pet_sync(PetDB_TXT* db)
 		return false;
 	}
 
-	iter = db->iterator(pet_db);
+	iter = db->pets->iterator(db->pets);
 	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
 		struct s_pet* pd = (struct s_pet*) data;
 		char line[8192];
 
-		inter_pet_tostr(line, pd);
+		mmo_pet_tostr(pd, line);
 		fprintf(fp, "%s\n", line);
 	}
 	iter->destroy(iter);

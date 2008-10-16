@@ -388,6 +388,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_pet.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_pet.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_registry.c"
 				>
 			</File>
@@ -427,6 +435,14 @@
 				RelativePath="..\src\char\partydb_sql.c"
 				>
 			</File>
+			<File
+				RelativePath="..\src\char\petdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_sql.c"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath="..\src\char_sql\int_auction.c"
@@ -458,14 +474,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_sql\int_mail.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_pet.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_pet.h"
 			>
 		</File>
 		<File

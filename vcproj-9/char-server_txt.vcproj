@@ -254,6 +254,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_pet.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_pet.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_registry.c"
 				>
 			</File>
@@ -291,6 +299,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\partydb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_txt.c"
 				>
 			</File>
 		</Filter>
@@ -432,14 +448,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_txt\int_homun.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_pet.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_pet.h"
 			>
 		</File>
 		<File

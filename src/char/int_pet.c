@@ -176,7 +176,10 @@ int mapif_save_pet(int fd, int account_id, struct s_pet *data)
 
 int mapif_delete_pet(int fd, int pet_id)
 {
-	mapif_delete_pet_ack(fd, inter_pet_delete(pet_id));
+	if( pets->remove(pets, pet_id) )
+		mapif_delete_pet_ack(fd, 0);
+	else
+		mapif_delete_pet_ack(fd, 1);
 
 	return 0;
 }
@@ -221,7 +224,17 @@ int inter_pet_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_pet_init()
+bool inter_pet_delete(int pet_id)
+{
+	return pets->remove(pets, pet_id);
+}
+
+void inter_pet_sync(void)
+{
+	pets->sync(pets);
+}
+
+void inter_pet_init(void)
 {
 #ifdef TXT_ONLY
 	pets = pet_db_txt();
@@ -230,11 +243,9 @@ int inter_pet_init()
 #endif
 
 	pets->init(pets);
-
-	return 0;
 }
 
-void inter_pet_final()
+void inter_pet_final(void)
 {
 	pets->destroy(pets);
 }

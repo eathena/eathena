@@ -213,7 +213,7 @@ int inter_save(void)
 	inter_guild_save();
 	inter_storage_save();
 	inter_guild_storage_save();
-	inter_pet_save();
+	inter_pet_sync();
 	inter_homun_save();
 	inter_accreg_sync();
 
