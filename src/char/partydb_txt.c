@@ -24,10 +24,10 @@ typedef struct PartyDB_TXT
 {
 	PartyDB vtable;      // public interface
 
-	DBMap* parties;      // in-memory character storage
+	DBMap* parties;      // in-memory party storage
 	int next_party_id;   // auto_increment
 
-	char party_db[1024]; // character data storage file
+	char party_db[1024]; // party data storage file
 
 } PartyDB_TXT;
 
@@ -41,8 +41,8 @@ static bool party_db_txt_save(PartyDB* self, const struct party_data* p);
 static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party_id);
 static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const char* name);
 
-static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str);
-static bool mmo_party_tostr(PartyDB_TXT* db, const struct party* p, char* str);
+static bool mmo_party_fromstr(struct party* p, char* str);
+static bool mmo_party_tostr(const struct party* p, char* str);
 static bool mmo_party_sync(PartyDB_TXT* db);
 
 /// public constructor
@@ -330,7 +330,7 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str)
 	return true;
 }
 
-static bool mmo_party_tostr(PartyDB_TXT* db, const struct party* p, char* str)
+static bool mmo_party_tostr(const struct party* p, char* str)
 {
 	int i, len;
 
@@ -365,7 +365,7 @@ static bool mmo_party_sync(PartyDB_TXT* db)
 	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
 	{
 		char buf[8192]; // ought to be big enough ^^
-		mmo_party_tostr(db, &p->party, buf);
+		mmo_party_tostr(&p->party, buf);
 		fprintf(fp, "%s\n", buf);
 	}
 	iter->destroy(iter);

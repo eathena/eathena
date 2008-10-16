@@ -26,64 +26,6 @@ char pet_txt[1024]="save/pet.txt";
 static DBMap* pet_db; // int pet_id -> struct s_pet*
 static int pet_newid = 100;
 
-int inter_pet_tostr(char *str,struct s_pet *p)
-{
-	int len;
-
-	if(p->hungry < 0)
-		p->hungry = 0;
-	else if(p->hungry > 100)
-		p->hungry = 100;
-	if(p->intimate < 0)
-		p->intimate = 0;
-	else if(p->intimate > 1000)
-		p->intimate = 1000;
-
-	len=sprintf(str,"%d,%d,%s\t%d,%d,%d,%d,%d,%d,%d,%d,%d",
-		p->pet_id,p->class_,p->name,p->account_id,p->char_id,p->level,p->egg_id,
-		p->equip,p->intimate,p->hungry,p->rename_flag,p->incuvate);
-
-	return 0;
-}
-
-int inter_pet_fromstr(char *str,struct s_pet *p)
-{
-	int s;
-	int tmp_int[16];
-	char tmp_str[256];
-
-	memset(p,0,sizeof(struct s_pet));
-
-	s=sscanf(str,"%d,%d,%[^\t]\t%d,%d,%d,%d,%d,%d,%d,%d,%d",&tmp_int[0],&tmp_int[1],tmp_str,&tmp_int[2],
-		&tmp_int[3],&tmp_int[4],&tmp_int[5],&tmp_int[6],&tmp_int[7],&tmp_int[8],&tmp_int[9],&tmp_int[10]);
-
-	if(s!=12)
-		return 1;
-
-	p->pet_id = tmp_int[0];
-	p->class_ = tmp_int[1];
-	memcpy(p->name,tmp_str,NAME_LENGTH);
-	p->account_id = tmp_int[2];
-	p->char_id = tmp_int[3];
-	p->level = tmp_int[4];
-	p->egg_id = tmp_int[5];
-	p->equip = tmp_int[6];
-	p->intimate = tmp_int[7];
-	p->hungry = tmp_int[8];
-	p->rename_flag = tmp_int[9];
-	p->incuvate = tmp_int[10];
-
-	if(p->hungry < 0)
-		p->hungry = 0;
-	else if(p->hungry > 100)
-		p->hungry = 100;
-	if(p->intimate < 0)
-		p->intimate = 0;
-	else if(p->intimate > 1000)
-		p->intimate = 1000;
-
-	return 0;
-}
 
 int inter_pet_init()
 {
@@ -92,26 +34,34 @@ int inter_pet_init()
 	FILE *fp;
 	int c=0;
 
-	pet_db= idb_alloc(DB_OPT_RELEASE_DATA);
+	pet_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
-	if( (fp=fopen(pet_txt,"r"))==NULL )
+	fp = fopen(pet_txt, "r");
+	if( fp == NULL )
 		return 1;
-	while(fgets(line, sizeof(line), fp))
+
+	while( fgets(line, sizeof(line), fp) )
 	{
 		p = (struct s_pet*)aCalloc(sizeof(struct s_pet), 1);
-		if(p==NULL){
+		if( p == NULL )
+		{
 			ShowFatalError("int_pet: out of memory!\n");
 			exit(EXIT_FAILURE);
 		}
-		memset(p,0,sizeof(struct s_pet));
-		if(inter_pet_fromstr(line,p)==0 && p->pet_id>0){
+
+		if( inter_pet_fromstr(line,p) == 0 && p->pet_id > 0 )
+		{
 			if( p->pet_id >= pet_newid)
-				pet_newid=p->pet_id+1;
-			idb_put(pet_db,p->pet_id,p);
-		}else{
+				pet_newid = p->pet_id+1;
+
+			idb_put(pet_db, p->pet_id, p);
+		}
+		else
+		{
 			ShowError("int_pet: broken data [%s] line %d\n",pet_txt,c);
 			aFree(p);
 		}
+
 		c++;
 	}
 	fclose(fp);

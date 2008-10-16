@@ -47,6 +47,7 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id);
 static bool party_db_sql_save(PartyDB* self, const struct party_data* p);
 static bool party_db_sql_load_num(PartyDB* self, struct party_data* p, int party_id);
 static bool party_db_sql_load_str(PartyDB* self, struct party_data* p, const char* name);
+
 static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id);
 static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, int index);
 
