@@ -187,7 +187,7 @@ static bool char_db_txt_init(CharDB* self)
 		// record entry in db
 		idb_put(chars, ch->char_id, ch);
 
-		if( db->next_char_id < ch->char_id)
+		if( ch->char_id >= db->next_char_id )
 			db->next_char_id = ch->char_id + 1;
 	}
 

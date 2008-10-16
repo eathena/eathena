@@ -122,7 +122,7 @@ static bool party_db_txt_init(PartyDB* self)
 		memcpy(tmp, &p, sizeof(struct party_data));
 		idb_put(parties, p.party.party_id, tmp);
 
-		if( db->next_party_id < p.party.party_id)
+		if( p.party.party_id >= db->next_party_id )
 			db->next_party_id = p.party.party_id + 1;
 	}
 
