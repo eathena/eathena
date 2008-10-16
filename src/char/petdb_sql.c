@@ -6,7 +6,9 @@
 #include "../common/mmo.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
+#include "inter.h" // sql_handle
 #include "petdb.h"
+#include <stdlib.h>
 
 
 /// internal structure
@@ -30,10 +32,9 @@ static bool pet_db_sql_create(PetDB* self, struct s_pet* pd);
 static bool pet_db_sql_remove(PetDB* self, const int pet_id);
 static bool pet_db_sql_save(PetDB* self, const struct s_pet* pd);
 static bool pet_db_sql_load_num(PetDB* self, struct s_pet* pd, int pet_id);
-static bool pet_db_sql_load_str(PetDB* self, struct s_pet* pd, const char* name);
 
 static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id);
-static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, int flag, int index);
+static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, bool is_new);
 
 /// public constructor
 PetDB* pet_db_sql(void)
@@ -48,7 +49,6 @@ PetDB* pet_db_sql(void)
 	db->vtable.remove    = &pet_db_sql_remove;
 	db->vtable.save      = &pet_db_sql_save;
 	db->vtable.load_num  = &pet_db_sql_load_num;
-	db->vtable.load_str  = &pet_db_sql_load_str;
 
 	// initialize to default values
 	db->pets = NULL;
@@ -67,12 +67,19 @@ static bool pet_db_sql_init(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
 
+	//TODO: do it properly
+	db->pets = sql_handle;
+
+	return true;
 }
 
 static void pet_db_sql_destroy(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
 
+	//TODO: do it properly
+	db->pets = NULL;
+	aFree(db);
 }
 
 static bool pet_db_sql_sync(PetDB* self)
@@ -83,37 +90,70 @@ static bool pet_db_sql_sync(PetDB* self)
 static bool pet_db_sql_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
+	Sql* sql_handle = db->pets;
 
+	// decide on the pet id to assign
+	int pet_id;
+	if( pd->pet_id != -1 )
+	{// caller specifies it manually
+		pet_id = pd->pet_id;
+	}
+	else
+	{// ask the database
+		char* data;
+		size_t len;
+
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`pet_id`)+1 FROM `%s`", db->pet_db) )
+		{
+			Sql_ShowDebug(sql_handle);
+			return false;
+		}
+		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+		{
+			Sql_ShowDebug(sql_handle);
+			Sql_FreeResult(sql_handle);
+			return false;
+		}
+
+		Sql_GetData(sql_handle, 0, &data, &len);
+		pet_id = ( data != NULL ) ? atoi(data) : 0;
+		Sql_FreeResult(sql_handle);
+	}
+
+	// zero value is prohibited
+	if( pet_id == 0 )
+		return false;
+
+	// insert the data into the database
+	pd->pet_id = pet_id;
+	return mmo_pet_tosql(db, pd, true);
 }
 
 static bool pet_db_sql_remove(PetDB* self, const int pet_id)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
+	Sql* sql_handle = db->pets;
 
-/*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `pet_id`='%d'", pet_db, pet_id) )
+	//TODO: doesn't return proper value
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `pet_id`='%d'", db->pet_db, pet_id) )
 		Sql_ShowDebug(sql_handle);
-	return 0;
-*/
+
+	return true;
 }
 
 static bool pet_db_sql_save(PetDB* self, const struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-
+	return mmo_pet_tosql(db, pd, false);
 }
 
 static bool pet_db_sql_load_num(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-
+	return mmo_pet_fromsql(db, pd, pet_id);
 }
 
-static bool pet_db_sql_load_str(PetDB* self, struct s_pet* pd, const char* name)
-{
-	PetDB_SQL* db = (PetDB_SQL*)self;
-
-}
 
 static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id)
 {
@@ -158,7 +198,7 @@ static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id)
 */
 }
 
-static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, int flag, int index)
+static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, bool is_new)
 {
 /*
 	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)

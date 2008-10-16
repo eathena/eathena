@@ -25,7 +25,6 @@ typedef struct PetDB_TXT
 	int next_pet_id;     // auto_increment
 
 	char pet_db[1024];   // pet data storage file
-	bool case_sensitive; // how to look up names
 
 } PetDB_TXT;
 
@@ -37,7 +36,6 @@ static bool pet_db_txt_create(PetDB* self, struct s_pet* pd);
 static bool pet_db_txt_remove(PetDB* self, const int pet_id);
 static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd);
 static bool pet_db_txt_load_num(PetDB* self, struct s_pet* pd, int pet_id);
-static bool pet_db_txt_load_str(PetDB* self, struct s_pet* pd, const char* name);
 
 static bool mmo_pet_fromstr(struct s_pet* pd, char* str);
 static bool mmo_pet_tostr(const struct s_pet* pd, char* str);
@@ -56,7 +54,6 @@ PetDB* pet_db_txt(void)
 	db->vtable.remove    = &pet_db_txt_remove;
 	db->vtable.save      = &pet_db_txt_save;
 	db->vtable.load_num  = &pet_db_txt_load_num;
-	db->vtable.load_str  = &pet_db_txt_load_str;
 
 	// initialize to default values
 	db->pets = NULL;
@@ -130,13 +127,23 @@ static bool pet_db_txt_init(PetDB* self)
 static void pet_db_txt_destroy(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
+	DBMap* pets = db->pets;
 
+	// write data
+	mmo_pet_sync(db);
+
+	// delete pet database
+	pets->destroy(pets, NULL);
+	db->pets = NULL;
+
+	// delete entire structure
+	aFree(db);
 }
 
 static bool pet_db_txt_sync(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
-
+	return mmo_pet_sync(db);
 }
 
 static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
@@ -168,12 +175,6 @@ static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 }
 
 static bool pet_db_txt_load_num(PetDB* self, struct s_pet* pd, int pet_id)
-{
-	PetDB_TXT* db = (PetDB_TXT*)self;
-
-}
-
-static bool pet_db_txt_load_str(PetDB* self, struct s_pet* pd, const char* name)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
 

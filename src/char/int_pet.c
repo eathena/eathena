@@ -17,7 +17,7 @@
 #include <string.h>
 
 
-// party database
+// pet database
 PetDB* pets = NULL;
 
 

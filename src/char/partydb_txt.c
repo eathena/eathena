@@ -27,6 +27,7 @@ typedef struct PartyDB_TXT
 	DBMap* parties;      // in-memory party storage
 	int next_party_id;   // auto_increment
 
+	bool case_sensitive;
 	char party_db[1024]; // party data storage file
 
 } PartyDB_TXT;
@@ -64,6 +65,7 @@ PartyDB* party_db_txt(void)
 	db->parties = NULL;
 	db->next_party_id = START_PARTY_NUM;
 	// other settings
+	db->case_sensitive = false;
 	safestrncpy(db->party_db, "save/party.txt", sizeof(db->party_db));
 
 	return &db->vtable;
@@ -151,8 +153,6 @@ static void party_db_txt_destroy(PartyDB* self)
 static bool party_db_txt_sync(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
-
 	return mmo_party_sync(db);
 }
 
@@ -268,9 +268,10 @@ static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const cha
 	// retrieve data
 	struct DBIterator* iter = parties->iterator(parties);
 	struct party_data* tmp;
+	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
 
 	for( tmp = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct party_data*)iter->next(iter,NULL) )
-		if( strcmp(name, tmp->party.name) == 0 )
+		if( compare(name, tmp->party.name) == 0 )
 			break;
 	iter->destroy(iter);
 

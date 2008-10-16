@@ -151,6 +151,8 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id)
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	Sql* sql_handle = db->parties;
 
+	//TODO: no transactions and doesn't return proper value
+
 	// Break the party
 	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", db->char_db, party_id) )
 		Sql_ShowDebug(sql_handle);

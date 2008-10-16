@@ -32,9 +32,6 @@ struct PetDB
 
 	// retrieve data using pet id
 	bool (*load_num)(PetDB* self, struct s_pet* pd, int pet_id);
-
-	// retrieve data using pet name
-	bool (*load_str)(PetDB* self, struct s_pet* pd, const char* name);
 };
 
 
