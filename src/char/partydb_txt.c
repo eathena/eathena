@@ -108,7 +108,7 @@ static bool party_db_txt_init(PartyDB* self)
 			continue;
 		}
 
-		if( !mmo_party_fromstr(db, &p.party, line) )
+		if( !mmo_party_fromstr(&p.party, line) )
 		{
 			ShowError("party_db_txt_init: skipping invalid data: %s", line);
 			continue;
@@ -286,7 +286,7 @@ static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const cha
 }
 
 
-static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str)
+static bool mmo_party_fromstr(struct party* p, char* str)
 {
 	int i, j;
 	int party_id;

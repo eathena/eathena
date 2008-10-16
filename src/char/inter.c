@@ -108,9 +108,9 @@ static int inter_config_read(const char* cfgName)
 //		if (strcmpi(w1, "party_txt") == 0)
 //			strncpy(party_txt, w2, sizeof(party_txt));
 //		else
-		if (strcmpi(w1, "pet_txt") == 0)
-			strncpy(pet_txt, w2, sizeof(pet_txt));
-		else
+//		if (strcmpi(w1, "pet_txt") == 0)
+//			strncpy(pet_txt, w2, sizeof(pet_txt));
+//		else
 		if (strcmpi(w1, "accreg_txt") == 0)
 			strncpy(accreg_txt, w2, sizeof(accreg_txt));
 		else
