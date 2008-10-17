@@ -1408,7 +1408,7 @@ int intif_Mail_requestinbox(int char_id, unsigned char flag)
 		return 0;
 
 	WFIFOHEAD(inter_fd,7);
-	WFIFOW(inter_fd,0) = 0x3048;
+	WFIFOW(inter_fd,0) = 0x3070;
 	WFIFOL(inter_fd,2) = char_id;
 	WFIFOB(inter_fd,6) = flag;
 	WFIFOSET(inter_fd,7);
@@ -1457,7 +1457,7 @@ int intif_Mail_read(int mail_id)
 		return 0;
 
 	WFIFOHEAD(inter_fd,6);
-	WFIFOW(inter_fd,0) = 0x3049;
+	WFIFOW(inter_fd,0) = 0x3071;
 	WFIFOL(inter_fd,2) = mail_id;
 	WFIFOSET(inter_fd,6);
 
@@ -1472,7 +1472,7 @@ int intif_Mail_getattach(int char_id, int mail_id)
 		return 0;
 
 	WFIFOHEAD(inter_fd,10);
-	WFIFOW(inter_fd,0) = 0x304a;
+	WFIFOW(inter_fd,0) = 0x3072;
 	WFIFOL(inter_fd,2) = char_id;
 	WFIFOL(inter_fd,6) = mail_id;
 	WFIFOSET(inter_fd, 10);
@@ -1514,7 +1514,7 @@ int intif_Mail_delete(int char_id, int mail_id)
 		return 0;
 
 	WFIFOHEAD(inter_fd,10);
-	WFIFOW(inter_fd,0) = 0x304b;
+	WFIFOW(inter_fd,0) = 0x3073;
 	WFIFOL(inter_fd,2) = char_id;
 	WFIFOL(inter_fd,6) = mail_id;
 	WFIFOSET(inter_fd,10);
@@ -1561,7 +1561,7 @@ int intif_Mail_return(int char_id, int mail_id)
 		return 0;
 
 	WFIFOHEAD(inter_fd,10);
-	WFIFOW(inter_fd,0) = 0x304c;
+	WFIFOW(inter_fd,0) = 0x3074;
 	WFIFOL(inter_fd,2) = char_id;
 	WFIFOL(inter_fd,6) = mail_id;
 	WFIFOSET(inter_fd,10);
@@ -1609,7 +1609,7 @@ int intif_Mail_send(int account_id, struct mail_message *msg)
 		return 0;
 
 	WFIFOHEAD(inter_fd,len);
-	WFIFOW(inter_fd,0) = 0x304d;
+	WFIFOW(inter_fd,0) = 0x3075;
 	WFIFOW(inter_fd,2) = len;
 	WFIFOL(inter_fd,4) = account_id;
 	memcpy(WFIFOP(inter_fd,8), msg, sizeof(struct mail_message));

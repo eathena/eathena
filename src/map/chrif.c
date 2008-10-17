@@ -503,7 +503,7 @@ int chrif_scdata_request(int account_id, int char_id)
 	chrif_check(-1);
 
 	WFIFOHEAD(char_fd,10);
-	WFIFOW(char_fd,0) = 0x2afc;
+	WFIFOW(char_fd,0) = 0x30a0;
 	WFIFOL(char_fd,2) = account_id;
 	WFIFOL(char_fd,6) = char_id;
 	WFIFOSET(char_fd,10);
@@ -1126,7 +1126,7 @@ int chrif_save_scdata(struct map_session_data *sd)
 	tick = gettick();
 	
 	WFIFOHEAD(char_fd, 14 + SC_MAX*sizeof(struct status_change_data));
-	WFIFOW(char_fd,0) = 0x2b1c;
+	WFIFOW(char_fd,0) = 0x30a1;
 	WFIFOL(char_fd,4) = sd->status.account_id;
 	WFIFOL(char_fd,8) = sd->status.char_id;
 	for (i = 0; i < SC_MAX; i++)

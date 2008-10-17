@@ -1006,34 +1006,6 @@ int char_lan_config_read(const char *lancfgName)
 }
 
 
-int request_accreg2(int account_id, int char_id)
-{
-	if (login_fd > 0) {
-		WFIFOHEAD(login_fd,10);
-		WFIFOW(login_fd,0) = 0x272e;
-		WFIFOL(login_fd,2) = account_id;
-		WFIFOL(login_fd,6) = char_id;
-		WFIFOSET(login_fd,10);
-		return 1;
-	}
-	return 0;
-}
-
-//Send packet forward to login-server for account saving
-int save_accreg2(unsigned char* buf, int len)
-{
-	if (login_fd > 0) {
-		WFIFOHEAD(login_fd,len+4);
-		memcpy(WFIFOP(login_fd,4), buf, len);
-		WFIFOW(login_fd,0) = 0x2728;
-		WFIFOW(login_fd,2) = len+4;
-		WFIFOSET(login_fd,len+4);
-		return 1;
-	}
-	return 0;
-}
-
-
 // Send the fame ranking lists to map-server(s)
 // S 2b1b <len>.w <bs len>.w <alch len>.w <tk len>.w <bs data>.?b<alch data>.?b <tk data>.?b
 int char_send_fame_list(int fd)

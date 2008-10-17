@@ -61,9 +61,8 @@ int char_delete(struct mmo_charstatus *cs)
 	if (cs->partner_id)
 		char_divorce(cs->char_id, cs->partner_id);
 
-#ifdef ENABLE_SC_SAVING
-	status_delete_scdata(cs->account_id, cs->char_id);
-#endif
+	inter_status_delete(cs->char_id);
+
 	return 0;
 }
 

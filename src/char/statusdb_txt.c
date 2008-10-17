@@ -29,7 +29,6 @@ typedef struct StatusDB_TXT
 static bool status_db_txt_init(StatusDB* self);
 static void status_db_txt_destroy(StatusDB* self);
 static bool status_db_txt_sync(StatusDB* self);
-static bool status_db_txt_create(StatusDB* self, struct scdata* sc);
 static bool status_db_txt_remove(StatusDB* self, const int char_id);
 static bool status_db_txt_save(StatusDB* self, const struct scdata* sc);
 static bool status_db_txt_load_num(StatusDB* self, struct scdata* sc, int char_id);
@@ -48,7 +47,6 @@ StatusDB* status_db_txt(void)
 	db->vtable.init      = &status_db_txt_init;
 	db->vtable.destroy   = &status_db_txt_destroy;
 	db->vtable.sync      = &status_db_txt_sync;
-	db->vtable.create    = &status_db_txt_create;
 	db->vtable.remove    = &status_db_txt_remove;
 	db->vtable.save      = &status_db_txt_save;
 	db->vtable.load_num  = &status_db_txt_load_num;
@@ -82,34 +80,47 @@ static bool status_db_txt_init(StatusDB* self)
 	if( fp == NULL )
 	{
 		ShowError("status_db_txt_init: Cannot open file %s!\n", db->status_db);
-		return;
+		return false;
 	}
 
 	while( fgets(line, sizeof(line), fp) )
 	{
 		struct scdata* sc = (struct scdata*)aCalloc(1, sizeof(struct scdata));
 
-		if( !inter_scdata_fromstr(line, sc) )
+		if( !mmo_status_fromstr(sc, line) )
 		{
 			ShowError("status_db_txt_init: Broken line data: %s\n", line);
 			aFree(sc);
 			continue;
 		}
 
-		sc = (struct scdata*)idb_put(scdata_db, sc->char_id, sc);
+		sc = (struct scdata*)idb_put(statuses, sc->char_id, sc);
 		if (sc) {
-			ShowError("Duplicate entry in %s for character %d\n", filename, sc->char_id);
+			ShowError("Duplicate entry in %s for character %d\n", db->status_db, sc->char_id);
 			if (sc->data) aFree(sc->data);
 			aFree(sc);
 		}
 	}
 
 	fclose(fp);
+
+	return true;
 }
 
 static void status_db_txt_destroy(StatusDB* self)
 {
-	scdata_db->destroy(scdata_db, scdata_db_final);
+	StatusDB_TXT* db = (StatusDB_TXT*)self;
+	DBMap* statuses = db->statuses;
+
+	// write data
+	mmo_status_sync(db);
+
+	// delete status database
+	statuses->destroy(statuses, scdata_db_final);
+	db->statuses = NULL;
+
+	// delete entire structure
+	aFree(db);
 }
 
 static bool status_db_txt_sync(StatusDB* self)
@@ -118,33 +129,56 @@ static bool status_db_txt_sync(StatusDB* self)
 	return mmo_status_sync(db);
 }
 
-static bool status_db_txt_create(StatusDB* self, struct scdata* sc)
-{
-}
-
 static bool status_db_txt_remove(StatusDB* self, const int char_id)
 {
-	struct scdata* scdata = (struct scdata*)idb_remove(scdata_db, cid);
-	if (scdata)
-	{
-		if (scdata->data)
-			aFree(scdata->data);
-		aFree(scdata);
+	StatusDB_TXT* db = (StatusDB_TXT*)self;
+	DBMap* statuses = db->statuses;
+
+	struct scdata* tmp = (struct scdata*)idb_remove(statuses, char_id);
+	if( tmp == NULL )
+	{// error condition - entry not present
+		ShowError("status_db_txt_remove: no such entry for character with id %d\n", char_id);
+		return false;
 	}
+
+	aFree(tmp->data);
+	aFree(tmp);
+
+	return true;
 }
 
 static bool status_db_txt_save(StatusDB* self, const struct scdata* sc)
 {
+/*
 	struct scdata *data;
 	data = (struct scdata*)aCalloc(1, sizeof(struct scdata));
 	data->account_id = va_arg(args, int);
 	data->char_id = key.i;
 	return data;
+*/
+	return true;
 }
 
 static bool status_db_txt_load_num(StatusDB* self, struct scdata* sc, int char_id)
 {
-	return (struct scdata*)scdata_db->ensure(scdata_db, i2key(cid), create_scdata, aid);
+	StatusDB_TXT* db = (StatusDB_TXT*)self;
+	DBMap* statuses = db->statuses;
+
+	// retrieve data
+	struct scdata* tmp = idb_get(statuses, char_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	sc->account_id = tmp->account_id;
+	sc->char_id = tmp->char_id;
+	sc->count = tmp->count;
+	sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
+	memcpy(sc->data, tmp->data, sc->count * sizeof(struct status_change_data));
+
+	return true;
 }
 
 
@@ -152,17 +186,14 @@ static bool mmo_status_fromstr(struct scdata* sc, char* str)
 {
 	int i, len, next;
 	
-	if( sscanf(line, "%d,%d,%d\t%n", &sc->account_id, &sc->char_id, &sc->count, &next) < 3 )
+	if( sscanf(str, "%d,%d,%d\t%n", &sc->account_id, &sc->char_id, &sc->count, &next) < 3 )
 		return false;
 
-	if( sc->count < 1 )
-		return false;
-	
 	sc->data = (struct status_change_data*)aCalloc(sc->count, sizeof (struct status_change_data));
 
 	for( i = 0; i < sc->count; i++ )
 	{
-		if (sscanf(line + next, "%hu,%d,%d,%d,%d,%d\t%n", &sc->data[i].type, &sc->data[i].tick,
+		if (sscanf(str + next, "%hu,%d,%d,%d,%d,%d\t%n", &sc->data[i].type, &sc->data[i].tick,
 			&sc->data[i].val1, &sc->data[i].val2, &sc->data[i].val3, &sc->data[i].val4, &len) < 6)
 		{
 			aFree(sc->data);
@@ -178,10 +209,10 @@ static bool mmo_status_tostr(const struct scdata* sc, char* str)
 {
 	int i, len;
 
-	len = sprintf(line, "%d,%d,%d\t", sc->account_id, sc->char_id, sc->count);
-	for(i = 0; i < sc->count; i++)
+	len = sprintf(str, "%d,%d,%d\t", sc->account_id, sc->char_id, sc->count);
+	for( i = 0; i < sc->count; i++ )
 	{
-		len += sprintf(line + len, "%d,%d,%d,%d,%d,%d\t", sc->data[i].type, sc->data[i].tick,
+		len += sprintf(str + len, "%d,%d,%d,%d,%d,%d\t", sc->data[i].type, sc->data[i].tick,
 			sc->data[i].val1, sc->data[i].val2, sc->data[i].val3, sc->data[i].val4);
 	}
 
@@ -195,10 +226,10 @@ static bool mmo_status_sync(StatusDB_TXT* db)
 	FILE *fp;
 	int lock;
 
-	fp = lock_fopen(scdata_txt, &lock);
+	fp = lock_fopen(db->status_db, &lock);
 	if( fp == NULL )
 	{
-		ShowError("mmo_status_sync: can't write [%s] !!! data is lost !!!\n", scdata_txt);
+		ShowError("mmo_status_sync: can't write [%s] !!! data is lost !!!\n", db->status_db);
 		return false;
 	}
 
@@ -211,12 +242,12 @@ static bool mmo_status_sync(StatusDB_TXT* db)
 		if( sc->count == 0 )
 			continue;
 
-		inter_status_tostr(line, sc);
+		mmo_status_tostr(sc, line);
 		fprintf(fp, "%s\n", line);
 	}
 	iter->destroy(iter);
 
-	lock_fclose(fp, scdata_txt, &lock);
+	lock_fclose(fp, db->status_db, &lock);
 
 	return true;
 }

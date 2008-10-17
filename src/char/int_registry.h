@@ -16,6 +16,7 @@ bool inter_charreg_save(int char_id, struct regs* reg);
 
 int inter_registry_init(void);
 int inter_registry_final(void);
+int inter_registry_parse_frommap(int fd);
 
 #ifdef TXT_ONLY
 int inter_accreg_sync(void);

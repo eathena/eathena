@@ -451,12 +451,12 @@ int inter_mail_parse_frommap(int fd)
 {
 	switch(RFIFOW(fd,0))
 	{
-		case 0x3048: mapif_parse_Mail_requestinbox(fd); break;
-		case 0x3049: mapif_parse_Mail_read(fd); break;
-		case 0x304a: mapif_parse_Mail_getattach(fd); break;
-		case 0x304b: mapif_parse_Mail_delete(fd); break;
-		case 0x304c: mapif_parse_Mail_return(fd); break;
-		case 0x304d: mapif_parse_Mail_send(fd); break;
+		case 0x3070: mapif_parse_Mail_requestinbox(fd); break;
+		case 0x3071: mapif_parse_Mail_read(fd); break;
+		case 0x3072: mapif_parse_Mail_getattach(fd); break;
+		case 0x3073: mapif_parse_Mail_delete(fd); break;
+		case 0x3074: mapif_parse_Mail_return(fd); break;
+		case 0x3075: mapif_parse_Mail_send(fd); break;
 		default:
 			return 0;
 	}

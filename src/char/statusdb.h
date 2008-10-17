@@ -33,8 +33,6 @@ struct StatusDB
 
 	bool (*sync)(StatusDB* self);
 
-	bool (*create)(StatusDB* self, struct scdata* sc);
-
 	bool (*remove)(StatusDB* self, const int char_id);
 
 	bool (*save)(StatusDB* self, const struct scdata* sc);

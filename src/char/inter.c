@@ -28,8 +28,6 @@
 
 // temporary stuff
 extern CharDB* chars;
-extern int save_accreg2(unsigned char* buf, int len);
-extern int request_accreg2(int account_id, int char_id);
 
 #define WISDATA_TTL (60*1000)	// Expiration time of non-acknowledged whisper data (60 seconds)
 #define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
@@ -55,16 +53,17 @@ bool party_auto_reassign_leader = false;
 
 // recv. packet list
 int inter_recv_packet_length[] = {
-	-1,-1, 7,-1, -1,13,36, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3000-
-	 6,-1, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0,	// 3010-
-	-1, 6,-1,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0,	// 3020-
-	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1,	// 3030-
-	 5, 9, 0, 0,  0, 0, 0, 0,  7, 6,10,10, 10,-1,  0, 0,	// 3040-
-	-1,-1,10,10,  0,-1, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3050-  Auction System [Zephyrus]
-	 6,-1,10, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3060-  Quest system [Kevin]
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3070-
-	48,14,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3080-
-	-1,10,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3090-  Homunculus packets [albator]
+	-1,-1, 7,-1, -1,13,36, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3000-  unsorted inter packets
+	 0, 0, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0,	// 3010-  Guild storage
+	-1, 6,-1,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0,	// 3020-  Party
+	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1,	// 3030-  Guild
+	 5, 9, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3040-  Guild (continued)
+	-1,-1,10,10,  0,-1, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3050-  Auction System
+	 6,-1,10, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3060-  Quest system
+	 7, 6,10,10, 10,-1, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3070-  Mail system
+	48,14,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3080-  Pet
+	-1,10,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3090-  Homunculus
+	10,-1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30A0-  Status
 };
 
 struct WisData {
@@ -206,9 +205,6 @@ int inter_log(char *fmt,...)
 // ÉZÅ[Éu
 int inter_save(void)
 {
-#ifdef ENABLE_SC_SAVING
-	inter_status_save();
-#endif
 	inter_party_sync();
 	inter_guild_save();
 	inter_storage_save();
@@ -216,6 +212,7 @@ int inter_save(void)
 	inter_pet_sync();
 	inter_homun_save();
 	inter_accreg_sync();
+	inter_status_sync();
 
 	return 0;
 }
@@ -328,25 +325,6 @@ static void mapif_wis_end(int fd, const char* src, int flag)
 	safestrncpy((char*)WFIFOP(fd,2), src, NAME_LENGTH);
 	WFIFOB(fd,26) = flag;
 	WFIFOSET(fd,27);
-}
-
-// Account registry transfer to map-server
-static void mapif_account_reg(int fd, unsigned char *src)
-{
-	WBUFW(src,0) = 0x3804; //NOTE: writing to RFIFO
-	mapif_sendallwos(fd, src, WBUFW(src,2));
-}
-
-// Send the requested regs
-static void mapif_regs_reply(int fd, int account_id, int char_id, int type, const struct regs* reg)
-{
-	WFIFOHEAD(fd, 13 + ACCOUNT_REG_NUM * 288);
-	WFIFOW(fd,0) = 0x3804;
-	WFIFOL(fd,4) = account_id;
-	WFIFOL(fd,8) = char_id;
-	WFIFOB(fd,12) = type;
-	WFIFOW(fd,2) = 13 + inter_regs_tobuf(WFIFOP(fd,13), ACCOUNT_REG_NUM * 288, reg);
-	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
 //Request to kick char from a certain map server. [Skotlex]
@@ -514,70 +492,6 @@ int mapif_parse_WisToGM(int fd)
 	return 0;
 }
 
-// save incoming registry
-// 3004 <length>.w <aid>.l <cid>.l <type>.b { <str>.s <val>.s }*
-int mapif_parse_Registry(int fd)
-{
-	int length = RFIFOW(fd,2);
-	int account_id = RFIFOL(fd,4);
-	int char_id = RFIFOL(fd,8);
-	int type = RFIFOB(fd,12);
-	uint8* buf = RFIFOP(fd,13);
-
-	switch( type )
-	{
-	case 3: //Character registry
-	{
-		struct regs reg;
-		inter_regs_frombuf(buf, length-13, &reg);
-		inter_charreg_save(account_id, &reg);
-		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
-		return 0;
-	}
-	break;
-
-	case 2: //Account Registry
-	{
-		struct regs reg;
-		inter_regs_frombuf(buf, length-13, &reg);
-		inter_accreg_save(char_id, &reg);
-		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
-		return 0;
-	}
-	break;
-
-	case 1: //Account2 registry, must be sent over to login server.
-		return save_accreg2(RFIFOP(fd,4), length-4);
-	default: //Error?
-		return 1;
-	}
-}
-
-// Request the value of all registries.
-int mapif_parse_RegistryRequest(int fd)
-{
-	if( RFIFOB(fd,12) )
-	{// Load Char Registry
-		struct regs charreg;
-		inter_charreg_load(RFIFOL(fd,6), &charreg);
-		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3,&charreg);
-	}
-
-	if( RFIFOB(fd,11) )
-	{// Load Account Registry
-		struct regs accreg;
-		inter_accreg_load(RFIFOL(fd,2), &accreg);
-		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2,&accreg);
-	}
-
-	if( RFIFOB(fd,10) )
-	{// Ask Login Server for Account2 values.
-		request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6));
-	}
-
-	return 1;
-}
-
 static void mapif_namechange_ack(int fd, int account_id, int char_id, int type, int flag, char *name)
 {
 	WFIFOHEAD(fd, NAME_LENGTH+13);
@@ -671,20 +585,20 @@ int inter_parse_frommap(int fd)
 	case 0x3001: mapif_parse_WisRequest(fd); break;
 	case 0x3002: mapif_parse_WisReply(fd); break;
 	case 0x3003: mapif_parse_WisToGM(fd); break;
-	case 0x3004: mapif_parse_Registry(fd); break;
-	case 0x3005: mapif_parse_RegistryRequest(fd); break;
 	case 0x3006: mapif_parse_NameChangeRequest(fd); break;
 	default:
-		if(  inter_party_parse_frommap(fd)
+		if(  inter_storage_parse_frommap(fd)
+		  || inter_party_parse_frommap(fd)
 		  || inter_guild_parse_frommap(fd)
-		  || inter_storage_parse_frommap(fd)
-		  || inter_pet_parse_frommap(fd)
-		  || inter_homun_parse_frommap(fd)
 #ifndef TXT_ONLY
-		  || inter_mail_parse_frommap(fd)
 		  || inter_auction_parse_frommap(fd)
 		  || inter_quest_parse_frommap(fd)
+		  || inter_mail_parse_frommap(fd)
 #endif
+		  || inter_pet_parse_frommap(fd)
+		  || inter_homun_parse_frommap(fd)
+		  || inter_status_parse_frommap(fd)
+		  || inter_registry_parse_frommap(fd)
 		   )
 			break;
 		else

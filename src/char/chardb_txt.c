@@ -265,7 +265,7 @@ static bool char_db_txt_remove(CharDB* self, const int char_id)
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
 
-	struct mmo_charstatus* tmp = idb_remove(chars, char_id);
+	struct mmo_charstatus* tmp = (struct mmo_charstatus*)idb_remove(chars, char_id);
 	if( tmp == NULL )
 	{// error condition - entry not present
 		ShowError("char_db_txt_remove: no such character with id %d\n", char_id);

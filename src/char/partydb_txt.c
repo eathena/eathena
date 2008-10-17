@@ -197,7 +197,7 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id)
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
 
-	struct party_data* tmp = idb_remove(parties, party_id);
+	struct party_data* tmp = (struct party_data*)idb_remove(parties, party_id);
 	if( tmp == NULL )
 	{// error condition - entry not present
 		ShowError("party_db_txt_remove: no such party with id %d\n", party_id);
