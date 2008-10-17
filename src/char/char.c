@@ -1355,9 +1355,6 @@ void do_final(void)
 	if (char_fd > 0)
 		do_close(char_fd);
 
-#ifdef ENABLE_SC_SAVING
-	status_final();
-#endif
 	inter_final();
 	mapindex_final();
 
@@ -1446,9 +1443,6 @@ int do_init(int argc, char **argv)
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	char_read_fame_list(); //Read fame lists.
-#ifdef ENABLE_SC_SAVING
-	status_init();
-#endif
 	ShowInfo("char server initialized.\n");
 
 	set_defaultparse(parse_char);

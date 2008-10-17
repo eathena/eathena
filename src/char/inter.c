@@ -248,6 +248,7 @@ int inter_init(void)
 	wis_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	inter_registry_init();
+	inter_status_init();
 	inter_party_init();
 	inter_guild_init();
 	inter_storage_init();
@@ -265,6 +266,7 @@ int inter_init(void)
 void inter_final(void)
 {
 	inter_registry_final();
+	inter_status_final();
 	wis_db->destroy(wis_db, NULL);
 	inter_party_final();
 	inter_guild_final();
