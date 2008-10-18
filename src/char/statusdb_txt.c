@@ -30,8 +30,8 @@ static bool status_db_txt_init(StatusDB* self);
 static void status_db_txt_destroy(StatusDB* self);
 static bool status_db_txt_sync(StatusDB* self);
 static bool status_db_txt_remove(StatusDB* self, const int char_id);
-static bool status_db_txt_save(StatusDB* self, const struct scdata* sc);
-static bool status_db_txt_load_num(StatusDB* self, struct scdata* sc, int char_id);
+static bool status_db_txt_save(StatusDB* self, struct scdata* sc);
+static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id);
 
 static bool mmo_status_fromstr(struct scdata* sc, char* str);
 static bool mmo_status_tostr(const struct scdata* sc, char* str);
@@ -49,7 +49,7 @@ StatusDB* status_db_txt(void)
 	db->vtable.sync      = &status_db_txt_sync;
 	db->vtable.remove    = &status_db_txt_remove;
 	db->vtable.save      = &status_db_txt_save;
-	db->vtable.load_num  = &status_db_txt_load_num;
+	db->vtable.load      = &status_db_txt_load;
 
 	// initialize to default values
 	db->statuses = NULL;
@@ -147,25 +147,40 @@ static bool status_db_txt_remove(StatusDB* self, const int char_id)
 	return true;
 }
 
-static bool status_db_txt_save(StatusDB* self, const struct scdata* sc)
+static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 {
-/*
-	struct scdata *data;
-	data = (struct scdata*)aCalloc(1, sizeof(struct scdata));
-	data->account_id = va_arg(args, int);
-	data->char_id = key.i;
-	return data;
-*/
+	StatusDB_TXT* db = (StatusDB_TXT*)self;
+	DBMap* statuses = db->statuses;
+	struct scdata* tmp;
+
+	// transfer data
+	tmp = aMalloc(sizeof(struct scdata));
+	tmp->account_id = sc->account_id;
+	tmp->char_id = sc->char_id;
+	tmp->count = sc->count;
+	tmp->data = sc->data;
+	sc->count = 0;
+	sc->data = NULL;
+
+	// store new entry
+	tmp = idb_put(statuses, tmp->char_id, tmp);
+	if( tmp != NULL )
+	{
+		//TODO: error message about inconsistency
+		aFree(tmp->data);
+		aFree(tmp);
+	}
+
 	return true;
 }
 
-static bool status_db_txt_load_num(StatusDB* self, struct scdata* sc, int char_id)
+static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBMap* statuses = db->statuses;
 
 	// retrieve data
-	struct scdata* tmp = idb_get(statuses, char_id);
+	struct scdata* tmp = idb_remove(statuses, char_id);
 	if( tmp == NULL )
 	{// entry not found
 		return false;
@@ -175,8 +190,10 @@ static bool status_db_txt_load_num(StatusDB* self, struct scdata* sc, int char_i
 	sc->account_id = tmp->account_id;
 	sc->char_id = tmp->char_id;
 	sc->count = tmp->count;
-	sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
-	memcpy(sc->data, tmp->data, sc->count * sizeof(struct status_change_data));
+	sc->data = tmp->data;
+
+	// destroy old entry
+	aFree(tmp);
 
 	return true;
 }

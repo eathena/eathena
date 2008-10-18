@@ -79,27 +79,16 @@ bool inter_status_frombuf(uint8* buf, size_t size, struct scdata* sc)
 
 
 // Deliver status change data.
-void mapif_status_load(int fd, int aid, int cid)
+void mapif_status_load(int fd, const struct scdata* sc)
 {
-	struct scdata sc;
-
-	if( !statuses->load_num(statuses, &sc, cid) )
-		return; // no data
-
-	// since status is only saved on final-save, erase data to prevent exploits
-	//NOTE: if the mapserver crashes without a save handler in place, this data will be lost.
-	statuses->remove(statuses, cid);
-
-	WFIFOHEAD(fd, 14 + sc.count * sizeof(struct status_change_data));
+	WFIFOHEAD(fd, 14 + sc->count * sizeof(struct status_change_data));
 	WFIFOW(fd,0) = 0x2b1d;
-	WFIFOW(fd,2) = 14 + sc.count * sizeof(struct status_change_data);
-	WFIFOL(fd,4) = aid;
-	WFIFOL(fd,8) = cid;
-	WFIFOW(fd,12) = sc.count;
-	inter_status_tobuf(WFIFOP(fd,14), sc.count * sizeof(struct status_change_data), &sc);
+	WFIFOW(fd,2) = 14 + sc->count * sizeof(struct status_change_data);
+	WFIFOL(fd,4) = sc->account_id;
+	WFIFOL(fd,8) = sc->char_id;
+	WFIFOW(fd,12) = sc->count;
+	inter_status_tobuf(WFIFOP(fd,14), sc->count * sizeof(struct status_change_data), sc);
 	WFIFOSET(fd, WFIFOW(fd,2));
-
-	aFree(sc.data);
 }
 
 
@@ -107,8 +96,15 @@ void mapif_parse_StatusLoad(int fd)
 {
 	int aid = RFIFOL(fd,2);
 	int cid = RFIFOL(fd,6);
+	struct scdata sc;
 
-	mapif_status_load(fd, aid, cid);
+	//NOTE: destructive read
+	if( !statuses->load(statuses, &sc, cid) )
+		return; // no data
+
+	mapif_status_load(fd, &sc);
+
+	aFree(sc.data);
 }
 
 void mapif_parse_StatusSave(int fd)
@@ -128,9 +124,10 @@ void mapif_parse_StatusSave(int fd)
 		return;
 	}
 
+	//NOTE: destructive write
 	statuses->save(statuses, &sc);
 
-	//TODO: deallocate sc->data
+	aFree(sc.data);
 }
 
 

@@ -28,8 +28,8 @@ static bool status_db_sql_init(StatusDB* self);
 static void status_db_sql_destroy(StatusDB* self);
 static bool status_db_sql_sync(StatusDB* self);
 static bool status_db_sql_remove(StatusDB* self, const int char_id);
-static bool status_db_sql_save(StatusDB* self, const struct scdata* sc);
-static bool status_db_sql_load_num(StatusDB* self, struct scdata* sc, int char_id);
+static bool status_db_sql_save(StatusDB* self, struct scdata* sc);
+static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id);
 
 static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id);
 static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc);
@@ -45,7 +45,7 @@ StatusDB* status_db_sql(void)
 	db->vtable.sync      = &status_db_sql_sync;
 	db->vtable.remove    = &status_db_sql_remove;
 	db->vtable.save      = &status_db_sql_save;
-	db->vtable.load_num  = &status_db_sql_load_num;
+	db->vtable.load      = &status_db_sql_load;
 
 	// initialize to default values
 	db->statuses = NULL;
@@ -75,8 +75,10 @@ static bool status_db_sql_remove(StatusDB* self, const int char_id)
 {
 }
 
-static bool status_db_sql_save(StatusDB* self, const struct scdata* sc)
+static bool status_db_sql_save(StatusDB* self, struct scdata* sc)
 {
+	//TODO: destructive save
+
 /*
 	struct status_change_data data;
 	StringBuf buf;
@@ -98,8 +100,10 @@ static bool status_db_sql_save(StatusDB* self, const struct scdata* sc)
 */
 }
 
-static bool status_db_sql_load_num(StatusDB* self, struct scdata* sc, int char_id)
+static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 {
+	//TODO: destructive load
+
 /*
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",
 		scdata_db, aid, cid) )

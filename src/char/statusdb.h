@@ -35,10 +35,8 @@ struct StatusDB
 
 	bool (*remove)(StatusDB* self, const int char_id);
 
-	bool (*save)(StatusDB* self, const struct scdata* sc);
-
-	// retrieve data using char id
-	bool (*load_num)(StatusDB* self, struct scdata* sc, int char_id);
+	bool (*save)(StatusDB* self, struct scdata* sc);
+	bool (*load)(StatusDB* self, struct scdata* sc, int char_id);
 };
 
 
