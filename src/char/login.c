@@ -22,25 +22,7 @@ extern CharDB* chars;
 extern int login_fd;
 extern uint32 login_ip;
 extern char login_ip_str[128];
-#define AUTH_TIMEOUT 30000
-struct auth_node {
-	int account_id;
-	int char_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	uint32 ip;
-	int sex;
-	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	int gmlevel;
-};
 extern DBMap* auth_db;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
 extern DBMap* online_char_db;
 extern uint32 char_ip;
 extern char char_ip_str[128];

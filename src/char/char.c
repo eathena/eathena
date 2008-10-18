@@ -118,34 +118,14 @@ int save_log = 1; // show loading/saving messages
 //-----------------------------------------------------
 // Auth database
 //-----------------------------------------------------
-#define AUTH_TIMEOUT 30000
-
-struct auth_node {
-	int account_id;
-	int char_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	uint32 ip;
-	int sex;
-	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	int gmlevel;
-};
-
 DBMap* auth_db; // int account_id -> struct auth_node*
 
 //-----------------------------------------------------
 // Online User Database
 //-----------------------------------------------------
-
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
-
 DBMap* online_char_db; // int account_id -> struct online_char_data*
+
+
 int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 
 void* create_online_char_data(DBKey key, va_list args)

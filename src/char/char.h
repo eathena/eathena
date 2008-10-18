@@ -50,6 +50,27 @@ extern int start_armor;
 extern struct point start_point;
 extern int autosave_interval;
 
+// auth system
+#define AUTH_TIMEOUT 30000
 
+struct auth_node {
+	int account_id;
+	int char_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 ip;
+	int sex;
+	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
+	int gmlevel;
+};
+
+// online user tracking system
+struct online_char_data {
+	int account_id;
+	int char_id;
+	int fd;
+	int waiting_disconnect;
+	short server; // -2: unknown server, -1: not connected, 0+: id of server
+};
 
 #endif /* _CHAR_H_ */

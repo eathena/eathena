@@ -13,14 +13,6 @@
 #include "inter.h"
 #include "int_party.h"
 #include "partydb.h"
-
-#ifdef TXT_ONLY
-#include "../common/lock.h"
-#else
-#include "../common/mapindex.h"
-#include "../common/sql.h"
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

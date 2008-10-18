@@ -18,28 +18,9 @@
 extern CharDB* chars;
 
 extern int login_fd;
-struct auth_node {
-	int account_id;
-	int char_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	uint32 ip;
-	int sex;
-	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	int gmlevel;
-};
 extern DBMap* auth_db;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
 extern DBMap* online_char_db;
-extern int char_num, char_max;
 #include "char.h"
-extern struct mmo_charstatus *char_dat;
 extern void set_char_offline(int char_id, int account_id);
 extern int email_creation;
 extern int search_mapserver(unsigned short map, uint32 ip, uint16 port);
@@ -53,12 +34,6 @@ extern int make_new_char(struct char_session_data* sd, const char* name_, int st
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 extern int char_delete(struct mmo_charstatus *cs);
 extern bool char_new;
-
-#include "../common/sql.h"
-extern DBMap* char_db_;
-int make_new_char_sql(struct char_session_data* sd, char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style);
-int delete_char_sql(int char_id);
-
 
 
 

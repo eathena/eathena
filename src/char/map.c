@@ -25,26 +25,8 @@ extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
 extern void set_char_charselect(int account_id);
 #include "char.h"
-extern int char_num, char_max;
 extern int login_fd;
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
-};
 extern DBMap* online_char_db; // int account_id -> struct online_char_data*
-struct auth_node {
-	int account_id;
-	int char_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	uint32 ip;
-	int sex;
-	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
-	int gmlevel;
-};
 extern DBMap* auth_db; // int account_id -> struct auth_node*
 extern int char_db_setoffline(DBKey key, void* data, va_list ap);
 extern int char_send_fame_list(int fd);  
