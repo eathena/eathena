@@ -29,11 +29,9 @@ extern int login_fd;
 extern DBMap* online_char_db; // int account_id -> struct online_char_data*
 extern DBMap* auth_db; // int account_id -> struct auth_node*
 extern int char_db_setoffline(DBKey key, void* data, va_list ap);
-extern int char_send_fame_list(int fd);  
 extern void* create_online_char_data(DBKey key, va_list args);
 extern int online_check;
 extern void set_all_offline(int id);
-extern void char_read_fame_list(void);
 
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
@@ -132,8 +130,6 @@ int parse_frommap(int fd)
 			WFIFOB(fd,2) = 0;
 			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH);
 			WFIFOSET(fd,3+NAME_LENGTH);
-
-			char_send_fame_list(fd); //Send fame list.
 
 			{
 			unsigned char buf[16384];
@@ -479,20 +475,6 @@ int parse_frommap(int fd)
 		}
 		break;
 
-		case 0x2b10: // Update and send fame ranking list
-			if (RFIFOREST(fd) < 11)
-				return 0;
-		{
-			int cid = RFIFOL(fd,2);
-			int fame = RFIFOL(fd,6);
-			char type = RFIFOB(fd,10);
-			RFIFOSKIP(fd,11);
-
-			if( fame_list_update((enum fame_type)type, cid, fame) )
-				char_send_fame_list(-1);
-		}
-		break;
-
 		// Divorce chars
 		case 0x2b11:
 			if( RFIFOREST(fd) < 10 )
@@ -541,14 +523,6 @@ int parse_frommap(int fd)
 				return 0;
 			set_char_online(id, RFIFOL(fd,2),RFIFOL(fd,6));
 			RFIFOSKIP(fd,10);
-		break;
-
-		case 0x2b1a: // Build and send fame ranking lists [DracoRPG]
-			if (RFIFOREST(fd) < 2)
-				return 0;
-			char_read_fame_list();
-			char_send_fame_list(-1);
-			RFIFOSKIP(fd,2);
 		break;
 
 		case 0x2b23: // map-server alive packet

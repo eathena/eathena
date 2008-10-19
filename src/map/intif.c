@@ -31,7 +31,7 @@
 
 
 static const int packet_len_table[]={
-	-1,-1,27,-1, -1, 0,37, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3800-0x380f
+	-1,-1,27,-1, -1,-1,37, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3800-0x380f
 	 0, 0, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
 	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
 	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
@@ -208,7 +208,7 @@ int intif_wis_message(struct map_session_data *sd, char *nick, char *mes, int me
 }
 
 // The reply of Wisp/page
-int intif_wis_replay(int id, int flag)
+int intif_wis_reply(int id, int flag)
 {
 	if (CheckForCharServer())
 		return 0;
@@ -303,16 +303,16 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 }
 
 //Request the registries for this player.
-int intif_request_registry(struct map_session_data *sd, int flag)
+void intif_request_registry(struct map_session_data *sd, int flag)
 {
-	nullpo_retr(0, sd);
+	nullpo_retv(sd);
 
 	sd->save_reg.account2_num = -1;
 	sd->save_reg.account_num = -1;
 	sd->save_reg.global_num = -1;
 
 	if (CheckForCharServer())
-		return 0;
+		return;
 
 	WFIFOHEAD(inter_fd,6);
 	WFIFOW(inter_fd,0) = 0x3005;
@@ -322,8 +322,38 @@ int intif_request_registry(struct map_session_data *sd, int flag)
 	WFIFOB(inter_fd,11) = (flag&2?1:0); //Request Acc Reg
 	WFIFOB(inter_fd,12) = (flag&4?1:0); //Request Char Reg
 	WFIFOSET(inter_fd,13);
+}
 
-	return 0;
+void intif_request_fame_list(void)
+{
+	if (CheckForCharServer())
+		return;
+	WFIFOHEAD(inter_fd,2);
+	WFIFOW(inter_fd,0) = 0x30b1;
+	WFIFOSET(inter_fd,2);
+}
+
+void intif_fame_update(struct map_session_data* sd)
+{
+	char type; // enum fame_type
+	if (CheckForCharServer())
+		return;
+
+	switch(sd->class_ & MAPID_UPPERMASK)
+	{
+		case MAPID_BLACKSMITH: type = 1; break;
+		case MAPID_ALCHEMIST:  type = 2; break;
+		case MAPID_TAEKWON:    type = 3; break;
+		default:
+			return;
+	}
+
+	WFIFOHEAD(inter_fd, 11);
+	WFIFOW(inter_fd,0) = 0x30b0;
+	WFIFOL(inter_fd,2) = sd->status.char_id;
+	WFIFOL(inter_fd,6) = sd->status.fame;
+	WFIFOB(inter_fd,10) = type;
+	WFIFOSET(inter_fd,11);
 }
 
 int intif_request_guild_storage(int account_id,int guild_id)
@@ -799,11 +829,11 @@ int intif_parse_WisMessage(int fd)
 	sd = map_nick2sd(name);
 	if(sd == NULL || strcmp(sd->status.name, name) != 0)
 	{	//Not found
-		intif_wis_replay(id,1);
+		intif_wis_reply(id,1);
 		return 0;
 	}
 	if(sd->state.ignoreAll) {
-		intif_wis_replay(id, 2);
+		intif_wis_reply(id, 2);
 		return 0;
 	}
 	wisp_source = (char *) RFIFOP(fd,8); // speed up [Yor]
@@ -814,12 +844,12 @@ int intif_parse_WisMessage(int fd)
 	
 	if (i < MAX_IGNORE_LIST && sd->ignore[i].name[0] != '\0')
 	{	//Ignored
-		intif_wis_replay(id, 2);
+		intif_wis_reply(id, 2);
 		return 0;
 	}
 	//Success to send whisper.
 	clif_wis_message(sd->fd, wisp_source, (char*)RFIFOP(fd,56),RFIFOW(fd,2)-56);
-	intif_wis_replay(id,0);   // ‘—M¬Œ÷
+	intif_wis_reply(id,0);   // ‘—M¬Œ÷
 	return 0;
 }
 
@@ -927,6 +957,39 @@ int intif_parse_Registers(int fd)
 	if (flag && sd->save_reg.global_num > -1 && sd->save_reg.account_num > -1 && sd->save_reg.account2_num > -1)
 		pc_reg_received(sd); //Received all registry values, execute init scripts and what-not. [Skotlex]
 	return 1;
+}
+
+void intif_parse_FameLists(int fd)
+{
+	int num, size;
+	int total = 0, len = 10;
+
+	memset (smith_fame_list, 0, sizeof(smith_fame_list));
+	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
+	memset (taekwon_fame_list, 0, sizeof(taekwon_fame_list));
+
+	size = RFIFOW(fd, 4); //Blacksmith block size
+	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
+		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
+	}
+	total += num;
+
+	size = RFIFOW(fd, 6); //Alchemist block size
+	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
+		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
+	}
+	total += num;
+
+	size = RFIFOW(fd, 8); //Taekwon block size
+	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
+		memcpy(&taekwon_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
+ 		len += sizeof(struct fame_list);
+	}
+	total += num;
+
+	ShowInfo("Received Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
 }
 
 int intif_parse_LoadGuildStorage(int fd)
@@ -1901,6 +1964,7 @@ int intif_parse(int fd)
 	case 0x3802:	intif_parse_WisEnd(fd); break;
 	case 0x3803:	mapif_parse_WisToGM(fd); break;
 	case 0x3804:	intif_parse_Registers(fd); break;
+	case 0x3805:	intif_parse_FameLists(fd); break;
 	case 0x3806:	intif_parse_ChangeNameOk(fd); break;
 	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
 	case 0x3819:	intif_parse_SaveGuildStorage(fd); break;

@@ -3,8 +3,10 @@
 
 #include "../common/db.h"
 #include "../common/mmo.h"
+#include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/showmsg.h"
+#include "char.h"
 #include "chardb.h"
 #include "int_fame.h"
 #include <stdlib.h>
@@ -13,6 +15,7 @@
 // temporary imports
 extern CharDB* chars;
 extern char unknown_char_name[NAME_LENGTH];
+void char_read_fame_list(void);
 
 
 //Custom limits for the fame lists. [Skotlex]
@@ -43,7 +46,7 @@ bool get_fame_list(enum fame_type type, struct fame_list** list, int* size)
 	return( list != NULL );
 }
 
-/// Updates ranking list.
+/// Alters fame of a single character and updates ranking list.
 /// @return true if anything changed, false otherwise
 bool fame_list_update(enum fame_type type, int charid, int fame)
 {
@@ -137,4 +140,68 @@ bool fame_config_read(const char* key, const char* value)
 		return false;
 
 	return true;
+}
+
+
+// Send the fame ranking lists to map-server(s)
+// S 3805 <len>.w <bs len>.w <alch len>.w <tk len>.w <bs data>.?b<alch data>.?b <tk data>.?b
+int char_send_fame_list(int fd)
+{
+	unsigned char buf[3 * MAX_FAME_LIST * sizeof(struct fame_list)];
+	int len = 10;
+	
+	WBUFW(buf,0) = 0x3805;
+	len += WBUFW(buf,4) = fame_list_tobuf(WBUFP(buf,len), FAME_SMITH);
+	len += WBUFW(buf,6) = fame_list_tobuf(WBUFP(buf,len), FAME_CHEMIST);
+	len += WBUFW(buf,8) = fame_list_tobuf(WBUFP(buf,len), FAME_TAEKWON);
+	WBUFW(buf,2) = len;
+
+	if( fd != -1 )
+		mapif_send(fd, buf, len);
+	else
+		mapif_sendall(buf, len);
+
+	return 0;
+}
+
+
+// update a char's fame and send back an updated fame list
+void mapif_parse_FameChange(int fd)
+{
+	int cid = RFIFOL(fd,2);
+	int fame = RFIFOL(fd,6);
+	enum fame_type type = (enum fame_type)RFIFOB(fd,10);
+
+	if( fame_list_update(type, cid, fame) )
+		char_send_fame_list(-1);
+}
+
+// Build and send fame ranking lists
+void mapif_parse_FameListRequest(int fd)
+{
+	char_read_fame_list(); // required since there's no real sync with the CharDB
+	char_send_fame_list(fd);
+}
+
+
+int inter_fame_parse_frommap(int fd)
+{
+	switch(RFIFOW(fd,0))
+	{
+	case 0x30B0: mapif_parse_FameChange(fd); break;
+	case 0x30B1: mapif_parse_FameListRequest(fd); break;
+	default:
+		return 0;
+	}
+	return 1;
+}
+
+void inter_fame_init(void)
+{
+	char_read_fame_list();
+}
+
+void inter_fame_final(void)
+{
+
 }

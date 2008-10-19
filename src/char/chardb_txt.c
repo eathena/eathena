@@ -156,7 +156,7 @@ static bool char_db_txt_init(CharDB* self)
 		ret = mmo_char_fromstr(self, line, ch, &reg);
 
 		// Initialize char regs
-		inter_charreg_save(ch->char_id, &reg);
+		//inter_charreg_save(ch->char_id, &reg);
 		// Initialize friends list
 		parse_friend_txt(ch);  // Grab friends for the character
 		// Initialize hotkey list

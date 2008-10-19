@@ -31,45 +31,25 @@ void char_read_fame_list(void)
 		if( cd.fame == 0 )
 			continue;
 
+		list = NULL;
 		if( cd.class_ == JOB_BLACKSMITH || cd.class_ == JOB_WHITESMITH || cd.class_ == JOB_BABY_BLACKSMITH )
-		{
 			get_fame_list(FAME_SMITH, &list, &size);
-			ARR_FIND( 0, size, i, cd.fame > list[i].fame );
-			if( i < size )
-			{// insert new entry
-				ARR_MOVERIGHT(size-1, i, list, struct fame_list);
-				list[i].id = cd.char_id;
-				list[i].fame = cd.fame;
-				safestrncpy(list[i].name, cd.name, NAME_LENGTH);
-
-			}
-		}
 		else
 		if( cd.class_ == JOB_ALCHEMIST || cd.class_ == JOB_CREATOR || cd.class_ == JOB_BABY_ALCHEMIST )
-		{
 			get_fame_list(FAME_CHEMIST, &list, &size);
-			ARR_FIND( 0, size, i, cd.fame > list[i].fame );
-			if( i < size )
-			{// insert new entry
-				ARR_MOVERIGHT(size-1, i, list, struct fame_list);
-				list[i].id = cd.char_id;
-				list[i].fame = cd.fame;
-				safestrncpy(list[i].name, cd.name, NAME_LENGTH);
-
-			}
-		}
 		else
 		if( cd.class_ == JOB_TAEKWON )
-		{
 			get_fame_list(FAME_TAEKWON, &list, &size);
+
+		if( list != NULL )
+		{
 			ARR_FIND( 0, size, i, cd.fame > list[i].fame );
 			if( i < size )
 			{// insert new entry
-				ARR_MOVERIGHT(size-1, i, list, struct fame_list);
+				ARR_MOVELEFT(size-1, i, list, struct fame_list);
 				list[i].id = cd.char_id;
 				list[i].fame = cd.fame;
 				safestrncpy(list[i].name, cd.name, NAME_LENGTH);
-
 			}
 		}
 	}

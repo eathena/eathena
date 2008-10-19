@@ -22,11 +22,13 @@ int intif_wis_message(struct map_session_data *sd,char *nick,char *mes,int mes_l
 int intif_wis_message_to_gm(char *Wisp_name, int min_gm_level, char *mes);
 
 int intif_saveregistry(struct map_session_data *sd, int type);
-int intif_request_registry(struct map_session_data *sd, int flag);
+void intif_request_registry(struct map_session_data *sd, int flag);
+
+void intif_request_fame_list(void);
+void intif_fame_update(struct map_session_data* sd);
 
 int intif_request_guild_storage(int account_id, int guild_id);
 int intif_send_guild_storage(int account_id, struct guild_storage *gstor);
-
 
 int intif_create_party(struct party_member *member,char *name,int item,int item2);
 int intif_request_partyinfo(int party_id);

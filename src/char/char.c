@@ -985,29 +985,6 @@ int char_lan_config_read(const char *lancfgName)
 	return 0;
 }
 
-
-// Send the fame ranking lists to map-server(s)
-// S 2b1b <len>.w <bs len>.w <alch len>.w <tk len>.w <bs data>.?b<alch data>.?b <tk data>.?b
-int char_send_fame_list(int fd)
-{
-	unsigned char buf[3 * MAX_FAME_LIST * sizeof(struct fame_list)];
-	int len = 10;
-	
-	WBUFW(buf,0) = 0x2b1b;
-	len += WBUFW(buf,4) = fame_list_tobuf(WBUFP(buf,len), FAME_SMITH);
-	len += WBUFW(buf,6) = fame_list_tobuf(WBUFP(buf,len), FAME_CHEMIST);
-	len += WBUFW(buf,8) = fame_list_tobuf(WBUFP(buf,len), FAME_TAEKWON);
-	WBUFW(buf,2) = len;
-
-	if( fd != -1 )
-		mapif_send(fd, buf, len);
-	else
-		mapif_sendall(buf, len);
-
-	return 0;
-}
-
-
 //--------------------------------------------
 // Test to know if an IP come from LAN or WAN.
 //--------------------------------------------
@@ -1377,10 +1354,6 @@ int do_init(int argc, char **argv)
 
 	ShowInfo("Finished reading the char-server configuration.\n");
 
-	inter_config_read(INTER_CONF_NAME);
-	inter_init();
-	ShowInfo("Finished reading the inter-server configuration.\n");
-
 	// chars database init
 	chars->init(chars);
 
@@ -1393,9 +1366,11 @@ int do_init(int argc, char **argv)
 	ShowInfo("Initializing char server.\n");
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
-
-	char_read_fame_list(); //Read fame lists.
 	ShowInfo("char server initialized.\n");
+
+	inter_config_read(INTER_CONF_NAME);
+	inter_init();
+	ShowInfo("Finished reading the inter-server configuration.\n");
 
 	set_defaultparse(parse_char);
 

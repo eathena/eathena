@@ -501,14 +501,6 @@
 			>
 		</File>
 		<File
-			RelativePath="..\src\char_sql\int_status.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_status.h"
-			>
-		</File>
-		<File
 			RelativePath="..\src\char_sql\int_storage.c"
 			>
 		</File>

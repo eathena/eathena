@@ -467,14 +467,6 @@
 			>
 		</File>
 		<File
-			RelativePath="..\src\char_txt\int_status.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_status.h"
-			>
-		</File>
-		<File
 			RelativePath="..\src\char_txt\int_storage.c"
 			>
 		</File>

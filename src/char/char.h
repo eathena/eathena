@@ -30,6 +30,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len);
 
 int search_character_online(int aid, int cid);
 void char_divorce(int partner_id1, int partner_id2);
+int char_delete(int char_id);
 
 // char config
 extern char db_path[];

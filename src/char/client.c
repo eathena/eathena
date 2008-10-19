@@ -32,7 +32,6 @@ extern int lan_subnetcheck(uint32 ip);
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
-extern int char_delete(struct mmo_charstatus *cs);
 extern bool char_new;
 
 
@@ -414,23 +413,17 @@ int parse_char(int fd)
 				break;
 			}
 
-#ifdef TXT_ONLY
 			// deletion process
-			char_delete(&cs);
-#else
-			/* Delete character */
-			if(delete_char_sql(char_id)<0){
-				//can't delete the char
-				//either SQL error or can't delete by some CONFIG conditions
-				//del fail
+			if( char_delete(char_id) < 0 )
+			{
+				//can't delete the char, either SQL error or can't delete by some CONFIG conditions
 				WFIFOW(fd, 0) = 0x70;
 				WFIFOB(fd, 2) = 0;
 				WFIFOSET(fd, 3);
 				break;
 			}
-#endif
 
-			/* Char successfully deleted.*/
+			// Char successfully deleted.
 			WFIFOHEAD(fd,2);
 			WFIFOW(fd,0) = 0x6f;
 			WFIFOSET(fd,2);

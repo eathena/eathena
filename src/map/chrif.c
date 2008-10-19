@@ -35,10 +35,10 @@ static DBMap* auth_db; // int id -> struct auth_node*
 static const int packet_len_table[0x3d] = { // U - used, F - free
 	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,35,30,-1,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
-	 6,30,-1,-1,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, F->2b0a, F->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
-	11,10,10, 6,11,-1,266,10,	// 2b10-2b17: U->2b10, U->2b11, U->2b12, U->2b13, U->2b14, F->2b15, U->2b16, U->2b17
-	 2,10, 2,-1,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, U->2b1a, U->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
-	-1,10,-1, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, F->2b22, U->2b23, U->2b24, U->2b25, U->2b26, U->2b27
+	 6,30, 0, 0,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, F->2b0a, F->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
+	 0,10,10, 6,11, 0,266,10,	// 2b10-2b17: F->2b10, U->2b11, U->2b12, U->2b13, U->2b14, F->2b15, U->2b16, U->2b17
+	 2,10, 0, 0,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, F->2b1a, F->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
+	-1,10, 0, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, F->2b22, U->2b23, U->2b24, U->2b25, U->2b26, U->2b27
 };
 
 //Used Packets:
@@ -66,7 +66,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b0d: Incoming, chrif_changedsex -> 'Change sex of acc XY'
 //2b0e: Outgoing, chrif_char_ask_name -> 'Do some operations (change sex, ban / unban etc)'
 //2b0f: Incoming, chrif_char_ask_name_answer -> 'answer of the 2b0e'
-//2b10: Outgoing, chrif_updatefamelist -> 'Update the fame ranking lists and send them'
+//2b10: FREE
 //2b11: Outgoing, chrif_divorce -> 'tell the charserver to do divorce'
 //2b12: Incoming, chrif_divorceack -> 'divorce chars
 //2b13: Incoming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
@@ -76,8 +76,8 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 //2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
-//2b1a: Outgoing, chrif_buildfamelist -> 'Build the fame ranking lists and send them'
-//2b1b: Incoming, chrif_recvfamelist -> 'Receive fame ranking lists'
+//2b1a: FREE
+//2b1b: FREE
 //2b1c: Outgoing, chrif_save_scdata -> 'Send sc_data of player for saving.'
 //2b1d: Incoming, chrif_load_scdata -> 'received sc_data of player for loading.'
 //2b1e: Incoming, chrif_update_ip -> 'Reqest forwarded from char-server for interserver IP sync.' [Lance]
@@ -427,6 +427,7 @@ int chrif_connectack(int fd)
 	chrif_connected = 1;
 
 	chrif_sendmap(fd);
+	intif_request_fame_list();
 
 	ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
 	ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
@@ -1039,80 +1040,6 @@ int chrif_disconnectplayer(int fd)
 	return 0;
 }
 
-/*==========================================
- * Request/Receive top 10 Fame character list
- *------------------------------------------*/
-
-int chrif_updatefamelist(struct map_session_data* sd)
-{
-	char type;
-	chrif_check(-1);
-
-	switch(sd->class_ & MAPID_UPPERMASK)
-	{
-		case MAPID_BLACKSMITH: type = 1; break;
-		case MAPID_ALCHEMIST:  type = 2; break;
-		case MAPID_TAEKWON:    type = 3; break;
-		default:
-			return 0;
-	}
-
-	WFIFOHEAD(char_fd, 11);
-	WFIFOW(char_fd,0) = 0x2b10;
-	WFIFOL(char_fd,2) = sd->status.char_id;
-	WFIFOL(char_fd,6) = sd->status.fame;
-	WFIFOB(char_fd,10) = type;
-	WFIFOSET(char_fd,11);
-
-	return 0;
-}
-
-int chrif_buildfamelist(void)
-{
-	chrif_check(-1);
-
-	WFIFOHEAD(char_fd,2);
-	WFIFOW(char_fd,0) = 0x2b1a;
-	WFIFOSET(char_fd,2);
-
-	return 0;
-}
-
-int chrif_recvfamelist(int fd)
-{
-	int num, size;
-	int total = 0, len = 10;
-
-	memset (smith_fame_list, 0, sizeof(smith_fame_list));
-	memset (chemist_fame_list, 0, sizeof(chemist_fame_list));
-	memset (taekwon_fame_list, 0, sizeof(taekwon_fame_list));
-
-	size = RFIFOW(fd, 4); //Blacksmith block size
-	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
-		memcpy(&smith_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
- 		len += sizeof(struct fame_list);
-	}
-	total += num;
-
-	size = RFIFOW(fd, 6); //Alchemist block size
-	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
-		memcpy(&chemist_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
- 		len += sizeof(struct fame_list);
-	}
-	total += num;
-
-	size = RFIFOW(fd, 8); //Taekwon block size
-	for (num = 0; len < size && num < MAX_FAME_LIST; num++) {
-		memcpy(&taekwon_fame_list[num], RFIFOP(fd,len), sizeof(struct fame_list));
- 		len += sizeof(struct fame_list);
-	}
-	total += num;
-
-	ShowInfo("Received Fame List of '"CL_WHITE"%d"CL_RESET"' characters.\n", total);
-
-	return 0;
-}
-
 int chrif_save_scdata(struct map_session_data *sd)
 {	//parses the sc_data of the player and sends it to the char-server for saving. [Skotlex]
 #ifdef ENABLE_SC_SAVING
@@ -1414,7 +1341,6 @@ int chrif_parse(int fd)
 		case 0x2b12: chrif_divorceack(RFIFOL(fd,2), RFIFOL(fd,6)); break;
 		case 0x2b13: chrif_accountdeletion(fd); break;
 		case 0x2b14: chrif_accountban(fd); break;
-		case 0x2b1b: chrif_recvfamelist(fd); break;
 		case 0x2b1d: chrif_load_scdata(fd); break;
 		case 0x2b1e: chrif_update_ip(fd); break;
 		case 0x2b1f: chrif_disconnectplayer(fd); break;

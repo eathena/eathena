@@ -36,9 +36,14 @@ char hotkeys_txt[1024] = "save/hotkeys.txt";
 
 
 // キャラ削除に伴うデータ削除
-int char_delete(struct mmo_charstatus *cs)
+int char_delete(int char_id)
 {
+	struct mmo_charstatus cd, *cs;
 	int j;
+
+	cs = &cd;
+	if( !chars->load_num(chars, &cd, char_id) )
+		return 1;
 
 	// ペット削除
 	if (cs->pet_id)

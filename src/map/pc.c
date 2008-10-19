@@ -214,9 +214,11 @@ int pc_delspiritball(struct map_session_data *sd,int count,int type)
 void pc_addfame(struct map_session_data *sd,int count)
 {
 	nullpo_retv(sd);
+
 	sd->status.fame += count;
 	if(sd->status.fame > MAX_FAME)
 		sd->status.fame = MAX_FAME;
+
 	switch(sd->class_&MAPID_UPPERMASK){
 		case MAPID_BLACKSMITH: // Blacksmith
 			clif_fame_blacksmith(sd,count);
@@ -228,7 +230,8 @@ void pc_addfame(struct map_session_data *sd,int count)
 			clif_fame_taekwon(sd,count);
 			break;	
 	}
-	chrif_updatefamelist(sd);
+
+	intif_fame_update(sd);
 }
 
 // Check whether a player ID is in the fame rankers' list of its job, returns his/her position if so, 0 else
@@ -5579,15 +5582,16 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	//if you were previously famous, not anymore.
 	if (fame_flag) {
 		chrif_save(sd,0);
-		chrif_buildfamelist();
-	} else if (sd->status.fame > 0) {
+		intif_request_fame_list();
+	} else
+	if (sd->status.fame > 0) {
 		//It may be that now they are famous?
  		switch (sd->class_&MAPID_UPPERMASK) {
 			case MAPID_BLACKSMITH:
 			case MAPID_ALCHEMIST:
 			case MAPID_TAEKWON:
 				chrif_save(sd,0);
-				chrif_buildfamelist();
+				intif_request_fame_list();
 			break;
 		}
 	}
