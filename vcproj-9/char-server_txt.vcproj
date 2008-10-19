@@ -246,6 +246,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_message.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_message.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_party.c"
 				>
 			</File>
