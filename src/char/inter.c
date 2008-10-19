@@ -113,8 +113,8 @@ static int inter_config_read(const char* cfgName)
 		if (strcmpi(w1, "guild_storage_txt") == 0)
 			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 		else
-		if (strcmpi(w1, "homun_txt") == 0)
-			strncpy(homun_txt, w2, sizeof(homun_txt));
+//		if (strcmpi(w1, "homun_txt") == 0)
+//			strncpy(homun_txt, w2, sizeof(homun_txt));
 		if (strcmpi(w1, "inter_log_filename") == 0)
 			strncpy(inter_log_filename, w2, sizeof(inter_log_filename));
 #else
@@ -201,7 +201,7 @@ int inter_save(void)
 	inter_storage_save();
 	inter_guild_storage_save();
 	inter_pet_sync();
-	inter_homun_save();
+	inter_homun_sync();
 	inter_accreg_sync();
 	inter_status_sync();
 

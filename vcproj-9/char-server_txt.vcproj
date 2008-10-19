@@ -234,6 +234,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\homundb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_fame.c"
 				>
 			</File>
@@ -243,6 +251,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\int_fame_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_homun.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_homun.h"
 				>
 			</File>
 			<File
@@ -464,14 +480,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_txt\int_guild.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_homun.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_homun.h"
 			>
 		</File>
 		<File

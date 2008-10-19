@@ -770,6 +770,7 @@ int merc_create_homunculus_request(struct map_session_data *sd, int class_)
 	homun.luk = base->luk *10;
 
 	// Request homunculus creation
+	homun.hom_id = -1;
 	intif_homunculus_create(sd->status.account_id, &homun); 
 	return 1;
 }
