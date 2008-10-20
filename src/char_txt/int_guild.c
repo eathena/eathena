@@ -304,7 +304,7 @@ int inter_guild_fromstr(char* str, struct guild* g)
 }
 
 #ifndef TXT_SQL_CONVERT
-// ƒMƒ‹ƒhéƒf[ƒ^‚Ì•¶š—ñ‚Ö‚Ì•ÏŠ·
+// ã‚®ãƒ«ãƒ‰åŸãƒ‡ãƒ¼ã‚¿ã®æ–‡å­—åˆ—ã¸ã®å¤‰æ›
 int inter_guildcastle_tostr(char *str, struct guild_castle *gc)
 {
 	int len;
@@ -319,7 +319,7 @@ int inter_guildcastle_tostr(char *str, struct guild_castle *gc)
 }
 #endif ///TXT_SQL_CONVERT
 
-// ƒMƒ‹ƒhéƒf[ƒ^‚Ì•¶š—ñ‚©‚ç‚Ì•ÏŠ·
+// ã‚®ãƒ«ãƒ‰åŸãƒ‡ãƒ¼ã‚¿ã®æ–‡å­—åˆ—ã‹ã‚‰ã®å¤‰æ›
 int inter_guildcastle_fromstr(char *str, struct guild_castle *gc)
 {
 	int castleid, guildid, economy, defense, triggerE, triggerD, nextTime, payTime, createTime, visibleC;
@@ -361,7 +361,7 @@ int inter_guildcastle_fromstr(char *str, struct guild_castle *gc)
 }
 
 #ifndef TXT_SQL_CONVERT
-// ƒMƒ‹ƒhŠÖ˜Aƒf[ƒ^ƒx[ƒX“Ç‚İ‚İ
+// ã‚®ãƒ«ãƒ‰é–¢é€£ãƒ‡ãƒ¼ã‚¿ãƒ™ãƒ¼ã‚¹èª­ã¿è¾¼ã¿
 int inter_guild_readdb(void)
 {
 	int i;
@@ -388,7 +388,7 @@ int inter_guild_readdb(void)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒf[ƒ^‚Ì“Ç‚İ‚İ
+// ã‚®ãƒ«ãƒ‰ãƒ‡ãƒ¼ã‚¿ã®èª­ã¿è¾¼ã¿
 int inter_guild_init()
 {
 	char line[16384];
@@ -432,7 +432,7 @@ int inter_guild_init()
 	}
 	fclose(fp);
 
-	c = 0;//ƒJƒEƒ“ƒ^‰Šú‰»
+	c = 0;//ã‚«ã‚¦ãƒ³ã‚¿åˆæœŸåŒ–
 
 	if ((fp = fopen(castle_txt, "r")) == NULL) {
 		return 1;
@@ -457,9 +457,10 @@ int inter_guild_init()
 
 	fclose(fp);
 
-	if (!c) {
+	if( c == 0 )
+	{
 		ShowStatus(" %s - making Default Data...\n", castle_txt);
-		//ƒfƒtƒHƒ‹ƒgƒf[ƒ^‚ğì¬
+		//ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆãƒ‡ãƒ¼ã‚¿ã‚’ä½œæˆ
 		for(i = 0; i < MAX_GUILDCASTLE; i++) {
 			gc = (struct guild_castle *) aCalloc(sizeof(struct guild_castle), 1);
 			if (gc == NULL) {
@@ -488,7 +489,7 @@ struct guild *inter_guild_search(int guild_id)
 	return (struct guild*)idb_get(guild_db, guild_id);
 }
 
-// ƒMƒ‹ƒhƒf[ƒ^‚ÌƒZ[ƒu
+// ã‚®ãƒ«ãƒ‰ãƒ‡ãƒ¼ã‚¿ã®ã‚»ãƒ¼ãƒ–
 int inter_guild_save()
 {
 	FILE *fp;
@@ -535,7 +536,7 @@ int inter_guild_save()
 	return 0;
 }
 
-// ƒMƒ‹ƒh–¼ŒŸõ
+// ã‚®ãƒ«ãƒ‰åæ¤œç´¢
 struct guild* search_guildname(char *str)
 {
 	DBIterator* iter;
@@ -552,7 +553,7 @@ struct guild* search_guildname(char *str)
 	return g;
 }
 
-// ƒMƒ‹ƒh‚ª‹ó‚©‚Ç‚¤‚©ƒ`ƒFƒbƒN
+// ã‚®ãƒ«ãƒ‰ãŒç©ºã‹ã©ã†ã‹ãƒã‚§ãƒƒã‚¯
 static bool guild_check_empty(struct guild *g)
 {
 	int i;
@@ -560,7 +561,7 @@ static bool guild_check_empty(struct guild *g)
 	if( i < g->max_member)
 		return false; // not empty
 
-	// ’N‚à‚¢‚È‚¢‚Ì‚Å‰ğU
+	// èª°ã‚‚ã„ãªã„ã®ã§è§£æ•£
 	guild_db->foreach(guild_db, guild_break_sub, g->guild_id);
 	inter_guild_storage_delete(g->guild_id);
 	mapif_guild_broken(g->guild_id, 0);
@@ -578,7 +579,7 @@ unsigned int guild_nextexp(int level)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒXƒLƒ‹‚ª‚ ‚é‚©Šm”F
+// ã‚®ãƒ«ãƒ‰ã‚¹ã‚­ãƒ«ãŒã‚ã‚‹ã‹ç¢ºèª
 int guild_checkskill(struct guild *g, int id)
 {
 	int idx = id - GD_SKILLBASE;
@@ -591,18 +592,18 @@ int guild_checkskill(struct guild *g, int id)
 	return g->skill[idx].lv;
 }
 
-// ƒMƒ‹ƒh‚Ìî•ñ‚ÌÄŒvZ
+// ã‚®ãƒ«ãƒ‰ã®æƒ…å ±ã®å†è¨ˆç®—
 int guild_calcinfo(struct guild *g)
 {
 	int i, c;
 	unsigned int nextexp;
 	struct guild before = *g;
 
-	// ƒXƒLƒ‹ID‚Ìİ’è
+	// ã‚¹ã‚­ãƒ«IDã®è¨­å®š
 	for(i = 0; i < MAX_GUILDSKILL; i++)
 		g->skill[i].id=i+GD_SKILLBASE;
 
-	// ƒMƒ‹ƒhƒŒƒxƒ‹
+	// ã‚®ãƒ«ãƒ‰ãƒ¬ãƒ™ãƒ«
 	if (g->guild_lv <= 0)
 		g->guild_lv = 1;
 	nextexp = guild_nextexp(g->guild_lv);
@@ -615,10 +616,10 @@ int guild_calcinfo(struct guild *g)
 		}
 	}
 
-	// ƒMƒ‹ƒh‚ÌŸ‚ÌŒoŒ±’l
+	// ã‚®ãƒ«ãƒ‰ã®æ¬¡ã®çµŒé¨“å€¤
 	g->next_exp = guild_nextexp(g->guild_lv);
 
-	// ƒƒ“ƒoãŒÀiƒMƒ‹ƒhŠg’£“K—pj
+	// ãƒ¡ãƒ³ãƒä¸Šé™ï¼ˆã‚®ãƒ«ãƒ‰æ‹¡å¼µé©ç”¨ï¼‰
 	g->max_member = 16 + guild_checkskill(g, GD_EXTENSION) * 6; //Guild Extention skill - currently adds 6 to max per skill lv.
 	if(g->max_member > MAX_GUILD)
 	{	
@@ -626,7 +627,7 @@ int guild_calcinfo(struct guild *g)
 		g->max_member = MAX_GUILD;
 	}
 
-	// •½‹ÏƒŒƒxƒ‹‚ÆƒIƒ“ƒ‰ƒCƒ“l”
+	// å¹³å‡ãƒ¬ãƒ™ãƒ«ã¨ã‚ªãƒ³ãƒ©ã‚¤ãƒ³äººæ•°
 	g->average_lv = 0;
 	g->connect_member = 0;
 	c = 0;
@@ -640,7 +641,7 @@ int guild_calcinfo(struct guild *g)
 	}
 	if(c) g->average_lv /= c;
 
-	// ‘Sƒf[ƒ^‚ğ‘—‚é•K—v‚ª‚ ‚è‚»‚¤
+	// å…¨ãƒ‡ãƒ¼ã‚¿ã‚’é€ã‚‹å¿…è¦ãŒã‚ã‚Šãã†
 	if (g->max_member != before.max_member ||
 		g->guild_lv != before.guild_lv ||
 		g->skill_point != before.skill_point) {
@@ -652,9 +653,9 @@ int guild_calcinfo(struct guild *g)
 }
 
 //-------------------------------------------------------------------
-// map server‚Ö‚Ì’ÊM
+// map serverã¸ã®é€šä¿¡
 
-// ƒMƒ‹ƒhì¬‰Â”Û
+// ã‚®ãƒ«ãƒ‰ä½œæˆå¯å¦
 int mapif_guild_created(int fd, int account_id, struct guild *g)
 {
 	WFIFOHEAD(fd, 10);
@@ -670,7 +671,7 @@ int mapif_guild_created(int fd, int account_id, struct guild *g)
 	return 0;
 }
 
-// ƒMƒ‹ƒhî•ñŒ©‚Â‚©‚ç‚¸
+// ã‚®ãƒ«ãƒ‰æƒ…å ±è¦‹ã¤ã‹ã‚‰ãš
 int mapif_guild_noinfo(int fd, int guild_id)
 {
 	WFIFOHEAD(fd, 8);
@@ -683,7 +684,7 @@ int mapif_guild_noinfo(int fd, int guild_id)
 	return 0;
 }
 
-// ƒMƒ‹ƒhî•ñ‚Ü‚Æ‚ß‘—‚è
+// ã‚®ãƒ«ãƒ‰æƒ…å ±ã¾ã¨ã‚é€ã‚Š
 int mapif_guild_info(int fd, struct guild *g)
 {
 	unsigned char buf[8+sizeof(struct guild)];
@@ -699,7 +700,7 @@ int mapif_guild_info(int fd, struct guild *g)
 	return 0;
 }
 
-// ƒƒ“ƒo’Ç‰Á‰Â”Û
+// ãƒ¡ãƒ³ãƒè¿½åŠ å¯å¦
 int mapif_guild_memberadded(int fd, int guild_id, int account_id, int char_id, int flag)
 {
 	WFIFOHEAD(fd, 15);
@@ -713,7 +714,7 @@ int mapif_guild_memberadded(int fd, int guild_id, int account_id, int char_id, i
 	return 0;
 }
 
-// ’E‘Ş/’Ç•ú’Ê’m
+// è„±é€€/è¿½æ”¾é€šçŸ¥
 int mapif_guild_leaved(int guild_id, int account_id, int char_id, int flag, const char *name, const char *mes)
 {
 	unsigned char buf[79];
@@ -732,7 +733,7 @@ int mapif_guild_leaved(int guild_id, int account_id, int char_id, int flag, cons
 	return 0;
 }
 
-// ƒIƒ“ƒ‰ƒCƒ“ó‘Ô‚ÆLvXV’Ê’m
+// ã‚ªãƒ³ãƒ©ã‚¤ãƒ³çŠ¶æ…‹ã¨Lvæ›´æ–°é€šçŸ¥
 int mapif_guild_memberinfoshort(struct guild *g, int idx)
 {
 	unsigned char buf[19];
@@ -748,7 +749,7 @@ int mapif_guild_memberinfoshort(struct guild *g, int idx)
 	return 0;
 }
 
-// ‰ğU’Ê’m
+// è§£æ•£é€šçŸ¥
 int mapif_guild_broken(int guild_id, int flag)
 {
 	unsigned char buf[7];
@@ -762,7 +763,7 @@ int mapif_guild_broken(int guild_id, int flag)
 	return 0;
 }
 
-// ƒMƒ‹ƒh“à”­Œ¾
+// ã‚®ãƒ«ãƒ‰å†…ç™ºè¨€
 int mapif_guild_message(int guild_id, int account_id, char *mes, int len, int sfd)
 {
 	unsigned char buf[2048];
@@ -777,7 +778,7 @@ int mapif_guild_message(int guild_id, int account_id, char *mes, int len, int sf
 	return 0;
 }
 
-// ƒMƒ‹ƒhŠî–{î•ñ•ÏX’Ê’m
+// ã‚®ãƒ«ãƒ‰åŸºæœ¬æƒ…å ±å¤‰æ›´é€šçŸ¥
 int mapif_guild_basicinfochanged(int guild_id, int type, const void *data, int len)
 {
 	unsigned char buf[2048];
@@ -791,7 +792,7 @@ int mapif_guild_basicinfochanged(int guild_id, int type, const void *data, int l
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒƒ“ƒoî•ñ•ÏX’Ê’m
+// ã‚®ãƒ«ãƒ‰ãƒ¡ãƒ³ãƒæƒ…å ±å¤‰æ›´é€šçŸ¥
 int mapif_guild_memberinfochanged(int guild_id, int account_id, int char_id, int type, const void *data, int len)
 {
 	unsigned char buf[4096];
@@ -808,7 +809,7 @@ int mapif_guild_memberinfochanged(int guild_id, int account_id, int char_id, int
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒXƒLƒ‹ƒAƒbƒv’Ê’m
+// ã‚®ãƒ«ãƒ‰ã‚¹ã‚­ãƒ«ã‚¢ãƒƒãƒ—é€šçŸ¥
 int mapif_guild_skillupack(int guild_id, int skill_num, int account_id)
 {
 	unsigned char buf[14];
@@ -822,7 +823,7 @@ int mapif_guild_skillupack(int guild_id, int skill_num, int account_id)
 	return 0;
 }
 
-// ƒMƒ‹ƒh“¯–¿/“G‘Î’Ê’m
+// ã‚®ãƒ«ãƒ‰åŒç›Ÿ/æ•µå¯¾é€šçŸ¥
 int mapif_guild_alliance(int guild_id1, int guild_id2, int account_id1, int account_id2, int flag, const char *name1, const char *name2)
 {
 	unsigned char buf[67];
@@ -843,7 +844,7 @@ int mapif_guild_alliance(int guild_id1, int guild_id2, int account_id1, int acco
 	return 0;
 }
 
-// ƒMƒ‹ƒh–ğE•ÏX’Ê’m
+// ã‚®ãƒ«ãƒ‰å½¹è·å¤‰æ›´é€šçŸ¥
 int mapif_guild_position(struct guild *g, int idx)
 {
 	unsigned char buf[2048];
@@ -858,7 +859,7 @@ int mapif_guild_position(struct guild *g, int idx)
 	return 0;
 }
 
-// ƒMƒ‹ƒh’m•ÏX’Ê’m
+// ã‚®ãƒ«ãƒ‰å‘ŠçŸ¥å¤‰æ›´é€šçŸ¥
 int mapif_guild_notice(struct guild *g)
 {
 	unsigned char buf[186];
@@ -872,7 +873,7 @@ int mapif_guild_notice(struct guild *g)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒGƒ“ƒuƒŒƒ€•ÏX’Ê’m
+// ã‚®ãƒ«ãƒ‰ã‚¨ãƒ³ãƒ–ãƒ¬ãƒ å¤‰æ›´é€šçŸ¥
 int mapif_guild_emblem(struct guild *g)
 {
 	unsigned char buf[2048];
@@ -946,9 +947,9 @@ int mapif_guild_castle_alldataload(int fd)
 }
 
 //-------------------------------------------------------------------
-// map server‚©‚ç‚Ì’ÊM
+// map serverã‹ã‚‰ã®é€šä¿¡
 
-// ƒMƒ‹ƒhì¬—v‹
+// ã‚®ãƒ«ãƒ‰ä½œæˆè¦æ±‚
 int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_member *master)
 {
 	struct guild *g;
@@ -1001,7 +1002,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	for(i = 1; i < MAX_GUILDPOSITION-1; i++)
 		sprintf(g->position[i].name, "Position %d", i + 1);
 
-	// ‚±‚±‚ÅƒMƒ‹ƒhî•ñŒvZ‚ª•K—v‚Æv‚í‚ê‚é
+	// ã“ã“ã§ã‚®ãƒ«ãƒ‰æƒ…å ±è¨ˆç®—ãŒå¿…è¦ã¨æ€ã‚ã‚Œã‚‹
 	g->max_member = 16;
 	g->average_lv = master->lv;
 	g->connect_member = 1;
@@ -1020,7 +1021,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	return 0;
 }
 
-// ƒMƒ‹ƒhî•ñ—v‹
+// ã‚®ãƒ«ãƒ‰æƒ…å ±è¦æ±‚
 int mapif_parse_GuildInfo(int fd, int guild_id)
 {
 	struct guild *g;
@@ -1035,7 +1036,7 @@ int mapif_parse_GuildInfo(int fd, int guild_id)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒƒ“ƒo’Ç‰Á—v‹
+// ã‚®ãƒ«ãƒ‰ãƒ¡ãƒ³ãƒè¿½åŠ è¦æ±‚
 int mapif_parse_GuildAddMember(int fd, int guild_id, struct guild_member *m)
 {
 	struct guild *g;
@@ -1082,10 +1083,10 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	}
 
 	if( flag )
-	{	// ’Ç•ú‚Ìê‡’Ç•úƒŠƒXƒg‚É“ü‚ê‚é
+	{	// è¿½æ”¾ã®å ´åˆè¿½æ”¾ãƒªã‚¹ãƒˆã«å…¥ã‚Œã‚‹
 		ARR_FIND( 0, MAX_GUILDEXPULSION, j, g->expulsion[j].account_id == 0 );
 		if (j == MAX_GUILDEXPULSION)
-		{	// ˆê”t‚È‚Ì‚ÅŒÃ‚¢‚Ì‚ğÁ‚·
+		{	// ä¸€æ¯ãªã®ã§å¤ã„ã®ã‚’æ¶ˆã™
 			for(j = 0; j < MAX_GUILDEXPULSION - 1; j++)
 				g->expulsion[j] = g->expulsion[j+1];
 			j = MAX_GUILDEXPULSION - 1;
@@ -1101,12 +1102,12 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	memset(&g->member[i], 0, sizeof(struct guild_member));
 
 	if (guild_check_empty(g) == 0)
-		mapif_guild_info(-1,g);// ‚Ü‚¾l‚ª‚¢‚é‚Ì‚Åƒf[ƒ^‘—M
+		mapif_guild_info(-1,g);// ã¾ã äººãŒã„ã‚‹ã®ã§ãƒ‡ãƒ¼ã‚¿é€ä¿¡
 
 	return 0;
 }
 
-// ƒIƒ“ƒ‰ƒCƒ“/LvXV
+// ã‚ªãƒ³ãƒ©ã‚¤ãƒ³/Lvæ›´æ–°
 int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id, int char_id, int online, int lv, int class_)
 {
 	struct guild *g;
@@ -1149,7 +1150,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 	return 0;
 }
 
-// ƒMƒ‹ƒh‰ğUˆ——pi“¯–¿/“G‘Î‚ğ‰ğœj
+// ã‚®ãƒ«ãƒ‰è§£æ•£å‡¦ç†ç”¨ï¼ˆåŒç›Ÿ/æ•µå¯¾ã‚’è§£é™¤ï¼‰
 int guild_break_sub(DBKey key, void *data, va_list ap)
 {
 	struct guild *g = (struct guild *)data;
@@ -1163,7 +1164,7 @@ int guild_break_sub(DBKey key, void *data, va_list ap)
 	return 0;
 }
 
-// ƒMƒ‹ƒh‰ğU—v‹
+// ã‚®ãƒ«ãƒ‰è§£æ•£è¦æ±‚
 int mapif_parse_BreakGuild(int fd, int guild_id)
 {
 	struct guild *g;
@@ -1183,13 +1184,13 @@ int mapif_parse_BreakGuild(int fd, int guild_id)
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒƒbƒZ[ƒW‘—M
+// ã‚®ãƒ«ãƒ‰ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸é€ä¿¡
 int mapif_parse_GuildMessage(int fd, int guild_id, int account_id, char *mes, int len)
 {
 	return mapif_guild_message(guild_id, account_id, mes, len, fd);
 }
 
-// ƒMƒ‹ƒhŠî–{ƒf[ƒ^•ÏX—v‹
+// ã‚®ãƒ«ãƒ‰åŸºæœ¬ãƒ‡ãƒ¼ã‚¿å¤‰æ›´è¦æ±‚
 int mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char *data, int len)
 {
 	struct guild *g;
@@ -1217,7 +1218,7 @@ int mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char 
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒƒ“ƒoƒf[ƒ^•ÏX—v‹
+// ã‚®ãƒ«ãƒ‰ãƒ¡ãƒ³ãƒãƒ‡ãƒ¼ã‚¿å¤‰æ›´è¦æ±‚
 int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int char_id, int type, const char *data, int len)
 {
 	int i;
@@ -1235,7 +1236,7 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 		return 0;
 	}
 	switch(type) {
-	case GMI_POSITION:	// –ğE
+	case GMI_POSITION:	// å½¹è·
 		g->member[i].position = *((int *)data);
 		break;
 	case GMI_EXP:	// EXP
@@ -1301,7 +1302,7 @@ int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
 	return mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
 }
 
-// ƒMƒ‹ƒh–ğE–¼•ÏX—v‹
+// ã‚®ãƒ«ãƒ‰å½¹è·åå¤‰æ›´è¦æ±‚
 int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_position *p)
 {
 	struct guild *g = (struct guild*)idb_get(guild_db, guild_id);
@@ -1316,7 +1317,7 @@ int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_positi
 	return 0;
 }
 
-// ƒMƒ‹ƒhƒXƒLƒ‹ƒAƒbƒv—v‹
+// ã‚®ãƒ«ãƒ‰ã‚¹ã‚­ãƒ«ã‚¢ãƒƒãƒ—è¦æ±‚
 int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id)
 {
 	struct guild *g = (struct guild*)idb_get(guild_db, guild_id);
@@ -1355,7 +1356,7 @@ static int mapif_parse_GuildDeleteAlliance(struct guild *g, int guild_id, int ac
 	return 0;
 }
 
-// ƒMƒ‹ƒh“¯–¿—v‹
+// ã‚®ãƒ«ãƒ‰åŒç›Ÿè¦æ±‚
 int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_id1, int account_id2, int flag)
 {
 	struct guild *g[2];
@@ -1381,7 +1382,7 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 					break;
 				}
 		}
-	} else {	// ŠÖŒW‰ğÁ
+	} else {	// é–¢ä¿‚è§£æ¶ˆ
 		for(i = 0; i < 2 - (flag & 1); i++) {
 			for(j = 0; j < MAX_GUILDALLIANCE; j++)
 				if (g[i]->alliance[j].guild_id == g[1-i]->guild_id && g[i]->alliance[j].opposition == (flag & 1)) {
@@ -1395,7 +1396,7 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 	return 0;
 }
 
-// ƒMƒ‹ƒh’m•ÏX—v‹
+// ã‚®ãƒ«ãƒ‰å‘ŠçŸ¥å¤‰æ›´è¦æ±‚
 int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *mes2)
 {
 	struct guild *g;
@@ -1409,7 +1410,7 @@ int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *
 	return mapif_guild_notice(g);
 }
 
-// ƒMƒ‹ƒhƒGƒ“ƒuƒŒƒ€•ÏX—v‹
+// ã‚®ãƒ«ãƒ‰ã‚¨ãƒ³ãƒ–ãƒ¬ãƒ å¤‰æ›´è¦æ±‚
 int mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const char *data)
 {
 	struct guild *g;
@@ -1531,11 +1532,11 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 	return mapif_guild_master_changed(g, g->member[0].account_id, g->member[0].char_id);
 }
 
-// map server ‚©‚ç‚Ì’ÊM
-// E‚PƒpƒPƒbƒg‚Ì‚İ‰ğÍ‚·‚é‚±‚Æ
-// EƒpƒPƒbƒg’·ƒf[ƒ^‚Íinter.c‚ÉƒZƒbƒg‚µ‚Ä‚¨‚­‚±‚Æ
-// EƒpƒPƒbƒg’·ƒ`ƒFƒbƒN‚âARFIFOSKIP‚ÍŒÄ‚Ño‚µŒ³‚Ås‚í‚ê‚é‚Ì‚Ås‚Á‚Ä‚Í‚È‚ç‚È‚¢
-// EƒGƒ‰[‚È‚ç0(false)A‚»‚¤‚Å‚È‚¢‚È‚ç1(true)‚ğ‚©‚¦‚³‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
+// map server ã‹ã‚‰ã®é€šä¿¡
+// ãƒ»ï¼‘ãƒ‘ã‚±ãƒƒãƒˆã®ã¿è§£æã™ã‚‹ã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒ‡ãƒ¼ã‚¿ã¯inter.cã«ã‚»ãƒƒãƒˆã—ã¦ãŠãã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒã‚§ãƒƒã‚¯ã‚„ã€RFIFOSKIPã¯å‘¼ã³å‡ºã—å…ƒã§è¡Œã‚ã‚Œã‚‹ã®ã§è¡Œã£ã¦ã¯ãªã‚‰ãªã„
+// ãƒ»ã‚¨ãƒ©ãƒ¼ãªã‚‰0(false)ã€ãã†ã§ãªã„ãªã‚‰1(true)ã‚’ã‹ãˆã•ãªã‘ã‚Œã°ãªã‚‰ãªã„
 int inter_guild_parse_frommap(int fd)
 {
 	RFIFOHEAD(fd);
@@ -1571,7 +1572,7 @@ int inter_guild_mapif_init(int fd)
 	return mapif_guild_castle_alldataload(fd);
 }
 
-// ƒT[ƒo[‚©‚ç’E‘Ş—v‹iƒLƒƒƒ‰íœ—pj
+// ã‚µãƒ¼ãƒãƒ¼ã‹ã‚‰è„±é€€è¦æ±‚ï¼ˆã‚­ãƒ£ãƒ©å‰Šé™¤ç”¨ï¼‰
 int inter_guild_leave(int guild_id, int account_id, int char_id)
 {
 	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");

@@ -1,3 +1,4 @@
+
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
@@ -1236,7 +1237,7 @@ int mapif_guild_castle_alldataload(int fd)
 // Packet received from map server
 
 
-// ƒMƒ‹ƒhì¬—v‹
+// ã‚®ãƒ«ãƒ‰ä½œæˆè¦æ±‚
 int mapif_parse_CreateGuild(int fd,int account_id,char *name,struct guild_member *master)
 {
 	struct guild *g;
@@ -1929,11 +1930,11 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 	return mapif_guild_master_changed(g, g->member[0].account_id, g->member[0].char_id);
 }
 
-// map server ‚©‚ç‚Ì’ÊM
-// E‚PƒpƒPƒbƒg‚Ì‚İ‰ğÍ‚·‚é‚±‚Æ
-// EƒpƒPƒbƒg’·ƒf[ƒ^‚Íinter.c‚ÉƒZƒbƒg‚µ‚Ä‚¨‚­‚±‚Æ
-// EƒpƒPƒbƒg’·ƒ`ƒFƒbƒN‚âARFIFOSKIP‚ÍŒÄ‚Ño‚µŒ³‚Ås‚í‚ê‚é‚Ì‚Ås‚Á‚Ä‚Í‚È‚ç‚È‚¢
-// EƒGƒ‰[‚È‚ç0(false)A‚»‚¤‚Å‚È‚¢‚È‚ç1(true)‚ğ‚©‚¦‚³‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
+// map server ã‹ã‚‰ã®é€šä¿¡
+// ãƒ»ï¼‘ãƒ‘ã‚±ãƒƒãƒˆã®ã¿è§£æã™ã‚‹ã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒ‡ãƒ¼ã‚¿ã¯inter.cã«ã‚»ãƒƒãƒˆã—ã¦ãŠãã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒã‚§ãƒƒã‚¯ã‚„ã€RFIFOSKIPã¯å‘¼ã³å‡ºã—å…ƒã§è¡Œã‚ã‚Œã‚‹ã®ã§è¡Œã£ã¦ã¯ãªã‚‰ãªã„
+// ãƒ»ã‚¨ãƒ©ãƒ¼ãªã‚‰0(false)ã€ãã†ã§ãªã„ãªã‚‰1(true)ã‚’ã‹ãˆã•ãªã‘ã‚Œã°ãªã‚‰ãªã„
 int inter_guild_parse_frommap(int fd)
 {
 	RFIFOHEAD(fd);
@@ -1969,7 +1970,7 @@ int inter_guild_mapif_init(int fd)
 	return mapif_guild_castle_alldataload(fd);
 }
 
-// ƒT[ƒo[‚©‚ç’E‘Ş—v‹iƒLƒƒƒ‰íœ—pj
+// ã‚µãƒ¼ãƒãƒ¼ã‹ã‚‰è„±é€€è¦æ±‚ï¼ˆã‚­ãƒ£ãƒ©å‰Šé™¤ç”¨ï¼‰
 int inter_guild_leave(int guild_id, int account_id, int char_id)
 {
 	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");

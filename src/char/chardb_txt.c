@@ -688,7 +688,7 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 	}
 #endif //TXT_SQL_CONVERT
 	if (str[next] == '\n' || str[next] == '\r')
-		return 1;	// 新規データ
+		return 1;	// 譁ｰ隕上ョ繝ｼ繧ｿ
 
 	next++;
 

@@ -193,7 +193,7 @@ int inter_log(char *fmt,...)
 }
 
 #ifdef TXT_ONLY
-// ƒZ[ƒu
+// ã‚»ãƒ¼ãƒ–
 int inter_save(void)
 {
 	inter_party_sync();
@@ -363,15 +363,15 @@ int inter_check_length(int fd, int length)
 	return length;
 }
 
-// map server ‚©‚ç‚Ì’ÊMi‚PƒpƒPƒbƒg‚Ì‚İ‰ğÍ‚·‚é‚±‚Æj
-// ƒGƒ‰[‚È‚ç0(false)Aˆ—‚Å‚«‚½‚È‚ç1A
-// ƒpƒPƒbƒg’·‚ª‘«‚è‚È‚¯‚ê‚Î2‚ğ‚©‚¦‚³‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
+// map server ã‹ã‚‰ã®é€šä¿¡ï¼ˆï¼‘ãƒ‘ã‚±ãƒƒãƒˆã®ã¿è§£æã™ã‚‹ã“ã¨ï¼‰
+// ã‚¨ãƒ©ãƒ¼ãªã‚‰0(false)ã€å‡¦ç†ã§ããŸãªã‚‰1ã€
+// ãƒ‘ã‚±ãƒƒãƒˆé•·ãŒè¶³ã‚Šãªã‘ã‚Œã°2ã‚’ã‹ãˆã•ãªã‘ã‚Œã°ãªã‚‰ãªã„
 int inter_parse_frommap(int fd)
 {
 	int cmd = RFIFOW(fd,0);
 	int len = 0;
 
-	// interIŠÇŠ‚©‚ğ’²‚×‚é
+	// interé¯–ç®¡è½„ã‹ã‚’èª¿ã¹ã‚‹
 	if( cmd < 0x3000 || cmd >= 0x3000 + ARRAYLENGTH(inter_recv_packet_length) )
 		return 0;
 
@@ -379,7 +379,7 @@ int inter_parse_frommap(int fd)
 	if (inter_recv_packet_length[cmd-0x3000] == 0)
 		return 0;
 
-	// ƒpƒPƒbƒg’·‚ğ’²‚×‚é
+	// ãƒ‘ã‚±ãƒƒãƒˆé•·ã‚’èª¿ã¹ã‚‹
 	len = inter_check_length(fd, inter_recv_packet_length[cmd - 0x3000]);
 	if( len == 0 )
 		return 2;

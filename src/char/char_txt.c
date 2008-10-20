@@ -35,7 +35,7 @@ char friends_txt[1024] = "save/friends.txt";
 char hotkeys_txt[1024] = "save/hotkeys.txt";
 
 
-// ƒLƒƒƒ‰íœ‚É”º‚¤ƒf[ƒ^íœ
+// ã‚­ãƒ£ãƒ©å‰Šé™¤ã«ä¼´ã†ãƒ‡ãƒ¼ã‚¿å‰Šé™¤
 int char_delete(int char_id)
 {
 	struct mmo_charstatus cd, *cs;
@@ -45,7 +45,7 @@ int char_delete(int char_id)
 	if( !chars->load_num(chars, &cd, char_id) )
 		return 1;
 
-	// ƒyƒbƒgíœ
+	// ãƒšãƒƒãƒˆå‰Šé™¤
 	if (cs->pet_id)
 		inter_pet_delete(cs->pet_id);
 	if (cs->hom_id)
@@ -56,13 +56,13 @@ int char_delete(int char_id)
 	for (j = 0; j < MAX_CART; j++)
 		if (cs->cart[j].card[0] == (short)0xff00)
 			inter_pet_delete( MakeDWord(cs->cart[j].card[1],cs->cart[j].card[2]) );
-	// ƒMƒ‹ƒh’E‘Ş
+	// ã‚®ãƒ«ãƒ‰è„±é€€
 	if (cs->guild_id)
 		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);
-	// ƒp[ƒeƒB[’E‘Ş
+	// ãƒ‘ãƒ¼ãƒ†ã‚£ãƒ¼è„±é€€
 	if (cs->party_id)
 		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
-	// —£¥
+	// é›¢å©š
 	if (cs->partner_id)
 		char_divorce(cs->char_id, cs->partner_id);
 

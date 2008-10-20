@@ -18,15 +18,15 @@
 #include <string.h>
 #include <stdlib.h>
 
-// ƒtƒ@ƒCƒ‹–¼‚ÌƒfƒtƒHƒ‹ƒg
-// inter_config_read()‚ÅÄİ’è‚³‚ê‚é
+// ãƒ•ã‚¡ã‚¤ãƒ«åã®ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆ
+// inter_config_read()ã§å†è¨­å®šã•ã‚Œã‚‹
 char storage_txt[1024]="save/storage.txt";
 char guild_storage_txt[1024]="save/g_storage.txt";
 
 static DBMap* storage_db; // int account_id -> struct storage_data*
 static DBMap* guild_storage_db; // int guild_id -> struct guild_storage*
 
-// ‘qŒÉƒf[ƒ^‚ğ•¶š—ñ‚É•ÏŠ·
+// å€‰åº«ãƒ‡ãƒ¼ã‚¿ã‚’æ–‡å­—åˆ—ã«å¤‰æ›
 bool storage_tostr(char* str, int account_id, struct storage_data* p)
 {
 	int i,j;
@@ -51,7 +51,7 @@ bool storage_tostr(char* str, int account_id, struct storage_data* p)
 	return true;
 }
 
-// •¶š—ñ‚ğ‘qŒÉƒf[ƒ^‚É•ÏŠ·
+// æ–‡å­—åˆ—ã‚’å€‰åº«ãƒ‡ãƒ¼ã‚¿ã«å¤‰æ›
 bool storage_fromstr(char* str, int* account_id, struct storage_data* p)
 {
 	int tmp_int[256];
@@ -206,7 +206,7 @@ bool storage_save(int account_id, struct storage_data* storage)
 }
 
 //---------------------------------------------------------
-// ‘qŒÉƒf[ƒ^‚ğ“Ç‚İ‚Ş
+// å€‰åº«ãƒ‡ãƒ¼ã‚¿ã‚’èª­ã¿è¾¼ã‚€
 int inter_storage_init()
 {
 	char line[65536];
@@ -286,7 +286,7 @@ void inter_storage_final() {
 }
 
 //---------------------------------------------------------
-// ‘qŒÉƒf[ƒ^‚ğ‘‚«‚Ş
+// å€‰åº«ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€
 int inter_storage_save()
 {
 	struct DBIterator* iter;
@@ -314,7 +314,7 @@ int inter_storage_save()
 }
 
 //---------------------------------------------------------
-// ‘qŒÉƒf[ƒ^‚ğ‘‚«‚Ş
+// å€‰åº«ãƒ‡ãƒ¼ã‚¿ã‚’æ›¸ãè¾¼ã‚€
 int inter_guild_storage_save()
 {
 	struct DBIterator* iter;
@@ -343,7 +343,7 @@ int inter_guild_storage_save()
 	return 0;
 }
 
-// ‘qŒÉƒf[ƒ^íœ
+// å€‰åº«ãƒ‡ãƒ¼ã‚¿å‰Šé™¤
 int inter_storage_delete(int account_id)
 {
 	struct storage_data *s = (struct storage_data*)idb_get(storage_db,account_id);
@@ -358,7 +358,7 @@ int inter_storage_delete(int account_id)
 	return 0;
 }
 
-// ƒMƒ‹ƒh‘qŒÉƒf[ƒ^íœ
+// ã‚®ãƒ«ãƒ‰å€‰åº«ãƒ‡ãƒ¼ã‚¿å‰Šé™¤
 int inter_guild_storage_delete(int guild_id)
 {
 	struct guild_storage *gs = (struct guild_storage*)idb_get(guild_storage_db,guild_id);
@@ -382,7 +382,7 @@ struct guild_storage *guild2storage(int guild_id)
 }
 
 //---------------------------------------------------------
-// map server‚Ö‚Ì’ÊM
+// map serverã¸ã®é€šä¿¡
 
 int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 {
@@ -417,7 +417,7 @@ int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 }
 
 //---------------------------------------------------------
-// map server‚©‚ç‚Ì’ÊM
+// map serverã‹ã‚‰ã®é€šä¿¡
 
 int mapif_parse_LoadGuildStorage(int fd)
 {
@@ -448,11 +448,11 @@ int mapif_parse_SaveGuildStorage(int fd)
 	return 0;
 }
 
-// map server ‚©‚ç‚Ì’ÊM
-// E‚PƒpƒPƒbƒg‚Ì‚İ‰ğÍ‚·‚é‚±‚Æ
-// EƒpƒPƒbƒg’·ƒf[ƒ^‚Íinter.c‚ÉƒZƒbƒg‚µ‚Ä‚¨‚­‚±‚Æ
-// EƒpƒPƒbƒg’·ƒ`ƒFƒbƒN‚âARFIFOSKIP‚ÍŒÄ‚Ño‚µŒ³‚Ås‚í‚ê‚é‚Ì‚Ås‚Á‚Ä‚Í‚È‚ç‚È‚¢
-// EƒGƒ‰[‚È‚ç0(false)A‚»‚¤‚Å‚È‚¢‚È‚ç1(true)‚ğ‚©‚¦‚³‚È‚¯‚ê‚Î‚È‚ç‚È‚¢
+// map server ã‹ã‚‰ã®é€šä¿¡
+// ãƒ»ï¼‘ãƒ‘ã‚±ãƒƒãƒˆã®ã¿è§£æã™ã‚‹ã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒ‡ãƒ¼ã‚¿ã¯inter.cã«ã‚»ãƒƒãƒˆã—ã¦ãŠãã“ã¨
+// ãƒ»ãƒ‘ã‚±ãƒƒãƒˆé•·ãƒã‚§ãƒƒã‚¯ã‚„ã€RFIFOSKIPã¯å‘¼ã³å‡ºã—å…ƒã§è¡Œã‚ã‚Œã‚‹ã®ã§è¡Œã£ã¦ã¯ãªã‚‰ãªã„
+// ãƒ»ã‚¨ãƒ©ãƒ¼ãªã‚‰0(false)ã€ãã†ã§ãªã„ãªã‚‰1(true)ã‚’ã‹ãˆã•ãªã‘ã‚Œã°ãªã‚‰ãªã„
 int inter_storage_parse_frommap(int fd)
 {
 	RFIFOHEAD(fd);
