@@ -1,0 +1,94 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
+#ifndef _CHARSERVERDB_H_
+#define _CHARSERVERDB_H_
+
+// TODO include DB interface headers
+// [ data reference ]
+// characters : character, char variables, quest data, sc data, hotkeys, inventory (indexed by charid and only affects individual characters)
+// storages : account/guild/cart? storages (indexed by type and id)
+// fame : alchemist/blacksmith/taekwon fame (indexed by type and id)
+// mails : mails
+// auctions : auctions
+// pets : pets
+// homunculus : homunculus
+// groups : families, friends, parties, guilds
+
+
+
+typedef struct CharServerDB CharServerDB;
+
+
+
+// charserver_db_<engine>
+#define CHARSERVERDB_CONSTRUCTOR_(engine) charserver_db_##engine
+#define CHARSERVERDB_CONSTRUCTOR(engine) CHARSERVERDB_CONSTRUCTOR_(engine)
+
+// standard engines
+#ifdef WITH_TXT
+CharServerDB* charserver_db_txt(void);
+#endif
+#ifdef WITH_SQL
+CharServerDB* charserver_db_sql(void);
+#endif
+// extra engines
+#ifdef CHARSERVERDB_ENGINE_0
+CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_0)(void);
+#endif
+#ifdef CHARSERVERDB_ENGINE_1
+CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_1)(void);
+#endif
+#ifdef CHARSERVERDB_ENGINE_2
+CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_2)(void);
+#endif
+#ifdef CHARSERVERDB_ENGINE_3
+CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_3)(void);
+#endif
+#ifdef CHARSERVERDB_ENGINE_4
+CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_4)(void);
+#endif
+
+
+
+struct CharServerDB
+{
+	/// Initializes this database engine, making it ready for use.
+	/// Call this after setting the properties.
+	///
+	/// @param self Database engine
+	/// @return true if successful
+	bool (*init)(CharServerDB* self);
+
+	/// Destroys this database engine, releasing all allocated memory (including itself).
+	///
+	/// @param self Database engine
+	void (*destroy)(CharServerDB* self);
+
+	/// Gets a property from this database engine.
+	/// These read-only properties must be implemented:
+	/// "engine.name" -> "txt", "sql", ...
+	/// "engine.version" -> internal version
+	/// "engine.comment" -> anything (suggestion: description or specs of the engine)
+	///
+	/// @param self Database engine
+	/// @param key Property name
+	/// @param buf Buffer for the value
+	/// @param buflen Buffer length
+	/// @return true if successful
+	bool (*get_property)(CharServerDB* self, const char* key, char* buf, size_t buflen);
+
+	/// Sets a property in this database engine.
+	///
+	/// @param self Database engine
+	/// @param key Property name
+	/// @param value Property value
+	/// @return true if successful
+	bool (*set_property)(CharServerDB* self, const char* key, const char* value);
+
+	// TODO DB interface accessors
+};
+
+
+
+#endif /* _CHARSERVERDB_H_ */

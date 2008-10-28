@@ -29,7 +29,44 @@
 #include "int_party.h"
 #include "int_storage.h"
 #include "int_status.h"
+#include "charserverdb.h"
 
+// CharServerDB engines available
+static struct{
+	CharServerDB* (*constructor)(void);
+	CharServerDB* engine;
+} charserver_engines[] = {
+// standard engines
+#ifdef WITH_TXT
+	{charserver_db_txt, NULL},
+#endif
+#ifdef WITH_SQL
+	{charserver_db_sql, NULL},
+#endif
+// extra engines
+#ifdef CHARSERVERDB_ENGINE_0
+	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_0), NULL},
+#endif
+#ifdef CHARSERVERDB_ENGINE_1
+	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_1), NULL},
+#endif
+#ifdef CHARSERVERDB_ENGINE_2
+	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_2), NULL},
+#endif
+#ifdef CHARSERVERDB_ENGINE_3
+	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_3), NULL},
+#endif
+#ifdef CHARSERVERDB_ENGINE_4
+	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_4), NULL},
+#endif
+	// end of structure
+	{NULL, NULL}
+};
+// account database
+CharServerDB* charserver = NULL;
+
+// database engine
+static CharServerDB* dbs = NULL;
 // chars database
 CharDB* chars = NULL;
 
@@ -59,6 +96,7 @@ uint16 char_port = 6121;
 int char_maintenance = 0;
 bool char_new = true;
 int char_new_display = 0;
+char charserver_engine[256] = "auto";// name of the engine to use (defaults to auto, for the first valid engine)
 
 int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
@@ -118,12 +156,12 @@ int save_log = 1; // show loading/saving messages
 //-----------------------------------------------------
 // Auth database
 //-----------------------------------------------------
-DBMap* auth_db; // int account_id -> struct auth_node*
+DBMap* auth_db = NULL; // int account_id -> struct auth_node*
 
 //-----------------------------------------------------
 // Online User Database
 //-----------------------------------------------------
-DBMap* online_char_db; // int account_id -> struct online_char_data*
+DBMap* online_char_db = NULL; // int account_id -> struct online_char_data*
 
 
 int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
@@ -1237,11 +1275,56 @@ int char_config_read(const char* cfgName)
 			continue;
 		else if (strcmpi(w1, "import") == 0)
 			char_config_read(w2);
+		else if(!strcmpi(w1, "charserver.engine"))
+			safestrncpy(charserver_engine, w2, sizeof(charserver_engine));
+		else
+		{// try the account engines
+			int i;
+			for( i = 0; charserver_engines[i].constructor; ++i )
+			{
+				CharServerDB* engine = charserver_engines[i].engine;
+				if( engine )
+					engine->set_property(engine, w1, w2);
+			}
+			// try others
+		}
 	}
 	fclose(fp);
 	
 	ShowInfo("Done reading %s.\n", cfgName);
 	return 0;
+}
+
+/// Select the engine based on the config settings.
+/// Updates the config setting with the selected engine if using 'auto'.
+///
+/// @return true if a valid engine is found and initialized
+static bool init_charserver_engine(void)
+{
+	int i;
+	bool try_all = (strcmp(charserver_engine,"auto") == 0);
+
+	for( i = 0; charserver_engines[i].constructor; ++i )
+	{
+		char name[sizeof(charserver_engine)];
+		CharServerDB* engine = charserver_engines[i].engine;
+		if( engine && engine->get_property(engine, "engine.name", name, sizeof(name)) &&
+			(try_all || strcmp(name, charserver_engine) == 0) )
+		{
+			if( !engine->init(engine) )
+			{
+				ShowError("init_charserver_engine: failed to initialize engine '%s'.\n", name);
+				continue;// try next
+			}
+			if( try_all )
+				safestrncpy(charserver_engine, name, sizeof(charserver_engine));
+			ShowInfo("Using charserver engine '%s'.\n", charserver_engine);
+			charserver = engine;
+			return true;
+		}
+	}
+	ShowError("init_charserver_engine: charserver engine '%s' not found.\n", charserver_engine);
+	return false;
 }
 
 
@@ -1260,9 +1343,22 @@ void set_server_type(void)
 
 void do_final(void)
 {
+	int i;
+
 	//TODO: pick one
 	ShowStatus("Terminating server.\n");
 	ShowInfo("Doing final stage...\n");
+
+	for( i = 0; charserver_engines[i].constructor; ++i )
+	{// destroy all charserver engines
+		CharServerDB* engine = charserver_engines[i].engine;
+		if( engine )
+		{
+			engine->destroy(engine);
+			charserver_engines[i].engine = NULL;
+		}
+	}
+	charserver = NULL; // destroyed in charserver_engines
 
 #ifdef TXT_ONLY
 
@@ -1336,7 +1432,10 @@ int do_init(int argc, char **argv)
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
 
-	// intialize engines (to accept config settings)
+	// create engines (to accept config settings)
+	for( i = 0; charserver_engines[i].constructor; ++i )
+		charserver_engines[i].engine = charserver_engines[i].constructor();
+
 #ifdef TXT_ONLY
 	chars = char_db_txt();
 #else
@@ -1345,6 +1444,7 @@ int do_init(int argc, char **argv)
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
+	inter_config_read(INTER_CONF_NAME);
 
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
 		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
@@ -1352,25 +1452,21 @@ int do_init(int argc, char **argv)
 		ShowNotice("And then change the user/password to use in conf/char_athena.conf (or conf/import/char_conf.txt)\n");
 	}
 
-	ShowInfo("Finished reading the char-server configuration.\n");
-
-	// chars database init
-	chars->init(chars);
-
+	ShowInfo("Initializing char server.\n");
 	charlog_init();
 	// a newline in the log...
 	char_log("");
-	// moved behind char_config_read in case we changed the filename [celest]
-	char_log("The char-server starting...\n");
+	char_log("The char-server is starting...\n");
 
-	ShowInfo("Initializing char server.\n");
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	ShowInfo("char server initialized.\n");
 
-	inter_config_read(INTER_CONF_NAME);
+	if( !init_charserver_engine() )
+		;// TODO stop server
+
+	// chars database init
+	chars->init(chars);
 	inter_init();
-	ShowInfo("Finished reading the inter-server configuration.\n");
 
 	set_defaultparse(parse_char);
 
@@ -1420,8 +1516,6 @@ int do_init(int argc, char **argv)
 	{
 		//##TODO invoke a CONSOLE_START plugin event
 	}
-
-	ShowInfo("End of char server initilization function.\n");
 
 	char_fd = make_listen_bind(bind_ip, char_port);
 #ifdef TXT_ONLY
