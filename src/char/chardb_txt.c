@@ -12,10 +12,12 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
-#include "chardb.h"
 #include "charlog.h"
 #include "int_registry.h"
 #include "inter.h"
+#include "chardb.h"
+#include "charserverdb_txt.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,19 +32,6 @@ extern void mmo_hotkeys_sync(void);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
-/// internal structure
-typedef struct CharDB_TXT
-{
-	CharDB vtable;       // public interface
-
-	DBMap* chars;        // in-memory character storage
-	int next_char_id;    // auto_increment
-	int save_timer;      // save timer id
-
-	char char_db[1024];  // character data storage file
-	bool case_sensitive; // how to look up usernames
-
-} CharDB_TXT;
 
 /// internal structure
 typedef struct CharDBIterator_TXT
@@ -53,8 +42,6 @@ typedef struct CharDBIterator_TXT
 } CharDBIterator_TXT;
 
 /// internal functions
-static bool char_db_txt_init(CharDB* self);
-static void char_db_txt_destroy(CharDB* self);
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status);
 static bool char_db_txt_remove(CharDB* self, const int char_id);
 static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* status);
@@ -73,13 +60,11 @@ static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
 static void mmo_char_sync(CharDB_TXT* db);
 
 /// public constructor
-CharDB* char_db_txt(void)
+CharDB_TXT* char_db_txt(CharServerDB_TXT* owner)
 {
 	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &char_db_txt_init;
-	db->vtable.destroy   = &char_db_txt_destroy;
 	db->vtable.create    = &char_db_txt_create;
 	db->vtable.remove    = &char_db_txt_remove;
 	db->vtable.save      = &char_db_txt_save;
@@ -92,6 +77,7 @@ CharDB* char_db_txt(void)
 	db->vtable.iterator  = &char_db_txt_iterator;
 
 	// initialize to default values
+	db->owner = owner;
 	db->chars = NULL;
 	db->next_char_id = START_CHAR_NUM;
 	db->save_timer = INVALID_TIMER;
@@ -99,16 +85,15 @@ CharDB* char_db_txt(void)
 	safestrncpy(db->char_db, "save/athena.txt", sizeof(db->char_db));
 	db->case_sensitive = false;
 
-	return &db->vtable;
+	return db;
 }
 
 
 /* ------------------------------------------------------------------------- */
 
 
-static bool char_db_txt_init(CharDB* self)
+bool char_db_txt_init(CharDB_TXT* db)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars;
 
 	char line[65536];
@@ -153,7 +138,7 @@ static bool char_db_txt_init(CharDB* self)
 		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 
 		// parse char data
-		ret = mmo_char_fromstr(self, line, ch, &reg);
+		ret = mmo_char_fromstr(&db->vtable, line, ch, &reg);
 
 		// Initialize char regs
 		//inter_charreg_save(ch->char_id, &reg);
@@ -205,9 +190,8 @@ static bool char_db_txt_init(CharDB* self)
 	return true;
 }
 
-static void char_db_txt_destroy(CharDB* self)
+void char_db_txt_destroy(CharDB_TXT* db)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
 
 	// stop saving timer

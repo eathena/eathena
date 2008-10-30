@@ -4,6 +4,7 @@
 #ifndef _CHARSERVERDB_H_
 #define _CHARSERVERDB_H_
 
+#include "chardb.h"
 // TODO include DB interface headers
 // [ data reference ]
 // characters : character, char variables, quest data, sc data, hotkeys, inventory (indexed by charid and only affects individual characters)
@@ -86,6 +87,8 @@ struct CharServerDB
 	/// @return true if successful
 	bool (*set_property)(CharServerDB* self, const char* key, const char* value);
 
+	/// TODO
+	CharDB* (*chardb)(CharServerDB* self);
 	// TODO DB interface accessors
 };
 

@@ -12,10 +12,10 @@
 
 
 /// Initializes this database engine, making it ready for use.
-bool charserver_db_sql_init(CharServerDB* self)
+static bool charserver_db_sql_init(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-	Sql* handle;
+	Sql* sql_handle;
 	const char* username;
 	const char* password;
 	const char* hostname;
@@ -23,7 +23,7 @@ bool charserver_db_sql_init(CharServerDB* self)
 	const char* database;
 	const char* codepage;
 
-	handle = Sql_Malloc();
+	sql_handle = Sql_Malloc();
 	username = db->global_db_username;
 	password = db->global_db_password;
 	hostname = db->global_db_hostname;
@@ -31,31 +31,31 @@ bool charserver_db_sql_init(CharServerDB* self)
 	database = db->global_db_database;
 	codepage = db->global_codepage;
 
-	if( SQL_ERROR == Sql_Connect(handle, username, password, hostname, port, database) )
+	if( SQL_ERROR == Sql_Connect(sql_handle, username, password, hostname, port, database) )
 	{
-		Sql_ShowDebug(handle);
-		Sql_Free(handle);
+		Sql_ShowDebug(sql_handle);
+		Sql_Free(sql_handle);
 		return false;
 	}
 
-	db->handle = handle;
-	if( codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(handle, codepage) )
-		Sql_ShowDebug(handle);
+	db->sql_handle = sql_handle;
+	if( codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, codepage) )
+		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-
-	return true;
+	return char_db_sql_init(db->chardb);
 }
 
 
 
 /// Destroys this database engine, releasing all allocated memory (including itself).
-void charserver_db_sql_destroy(CharServerDB* self)
+static void charserver_db_sql_destroy(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
-	Sql_Free(db->handle);
-	db->handle = NULL;
+	char_db_sql_destroy(db->chardb);
+	Sql_Free(db->sql_handle);
+	db->sql_handle = NULL;
 	// TODO DB interfaces
 	aFree(db);
 }
@@ -63,7 +63,7 @@ void charserver_db_sql_destroy(CharServerDB* self)
 
 
 /// Gets a property from this database engine.
-bool charserver_db_sql_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
+static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 	const char* signature;
@@ -119,7 +119,7 @@ bool charserver_db_sql_get_property(CharServerDB* self, const char* key, char* b
 
 
 /// Sets a property in this database engine.
-bool charserver_db_sql_set_property(CharServerDB* self, const char* key, const char* value)
+static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, const char* value)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 	const char* signature;
@@ -158,6 +158,15 @@ bool charserver_db_sql_set_property(CharServerDB* self, const char* key, const c
 
 
 
+/// TODO
+static CharDB* charserver_db_sql_chardb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+	return NULL;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_sql(void)
 {
@@ -168,10 +177,12 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.destroy      = charserver_db_sql_destroy;
 	db->vtable.get_property = charserver_db_sql_get_property;
 	db->vtable.set_property = charserver_db_sql_set_property;
+	db->vtable.chardb       = charserver_db_sql_chardb;
 	// TODO DB interfaces
 
 	// initialize to default values
-	db->handle = NULL;
+	db->sql_handle = NULL;
+	db->chardb = char_db_sql(db);
 	// global sql settings
 	safestrncpy(db->global_db_hostname, "127.0.0.1", sizeof(db->global_db_hostname));
 	db->global_db_port = 3306;

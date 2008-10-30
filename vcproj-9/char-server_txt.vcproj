@@ -214,14 +214,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\chardb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\chardb_txt.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\charlog.h"
 				>
 			</File>
@@ -477,6 +469,14 @@
 		<Filter
 			Name="db"
 			>
+			<File
+				RelativePath="..\src\char\chardb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\chardb_txt.c"
+				>
+			</File>
 			<File
 				RelativePath="..\src\char\charserverdb.h"
 				>

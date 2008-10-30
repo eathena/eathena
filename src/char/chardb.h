@@ -9,13 +9,6 @@
 typedef struct CharDB CharDB;
 typedef struct CharDBIterator CharDBIterator;
 
-// standard engines
-#ifdef WITH_TXT
-CharDB* char_db_txt(void);
-#endif
-#ifdef WITH_SQL
-CharDB* char_db_sql(void);
-#endif
 
 
 struct CharDBIterator
@@ -36,9 +29,6 @@ struct CharDBIterator
 
 struct CharDB
 {
-	bool (*init)(CharDB* self);
-	void (*destroy)(CharDB* self);
-
 	bool (*create)(CharDB* self, struct mmo_charstatus* status);
 
 	bool (*remove)(CharDB* self, const int char_id);

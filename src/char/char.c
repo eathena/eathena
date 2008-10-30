@@ -62,7 +62,7 @@ static struct{
 	// end of structure
 	{NULL, NULL}
 };
-// account database
+// charserver engine
 CharServerDB* charserver = NULL;
 
 // database engine
@@ -1278,7 +1278,7 @@ int char_config_read(const char* cfgName)
 		else if(!strcmpi(w1, "charserver.engine"))
 			safestrncpy(charserver_engine, w2, sizeof(charserver_engine));
 		else
-		{// try the account engines
+		{// try the charserver engines
 			int i;
 			for( i = 0; charserver_engines[i].constructor; ++i )
 			{
@@ -1349,17 +1349,6 @@ void do_final(void)
 	ShowStatus("Terminating server.\n");
 	ShowInfo("Doing final stage...\n");
 
-	for( i = 0; charserver_engines[i].constructor; ++i )
-	{// destroy all charserver engines
-		CharServerDB* engine = charserver_engines[i].engine;
-		if( engine )
-		{
-			engine->destroy(engine);
-			charserver_engines[i].engine = NULL;
-		}
-	}
-	charserver = NULL; // destroyed in charserver_engines
-
 #ifdef TXT_ONLY
 
 	inter_save();
@@ -1372,8 +1361,6 @@ void do_final(void)
 	*/
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	auth_db->destroy(auth_db, NULL);
-	
-	chars->destroy(chars);
 
 	if (login_fd > 0)
 		do_close(login_fd);
@@ -1407,7 +1394,6 @@ void do_final(void)
 		do_close(login_fd);
 	if (char_fd > 0)
 		do_close(char_fd);
-	char_db_->destroy(char_db_, NULL);
 	online_char_db->destroy(online_char_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 
@@ -1415,6 +1401,18 @@ void do_final(void)
 
 	charlog_final();
 #endif
+
+	for( i = 0; charserver_engines[i].constructor; ++i )
+	{// destroy all charserver engines
+		CharServerDB* engine = charserver_engines[i].engine;
+		if( engine )
+		{
+			engine->destroy(engine);
+			charserver_engines[i].engine = NULL;
+		}
+	}
+	charserver = NULL; // destroyed in charserver_engines
+	chars = NULL;
 
 	ShowInfo("ok! all done...\n");
 }
@@ -1435,12 +1433,6 @@ int do_init(int argc, char **argv)
 	// create engines (to accept config settings)
 	for( i = 0; charserver_engines[i].constructor; ++i )
 		charserver_engines[i].engine = charserver_engines[i].constructor();
-
-#ifdef TXT_ONLY
-	chars = char_db_txt();
-#else
-	chars = char_db_sql();
-#endif
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
@@ -1463,9 +1455,8 @@ int do_init(int argc, char **argv)
 
 	if( !init_charserver_engine() )
 		;// TODO stop server
+	chars = charserver->chardb(charserver);
 
-	// chars database init
-	chars->init(chars);
 	inter_init();
 
 	set_defaultparse(parse_char);
