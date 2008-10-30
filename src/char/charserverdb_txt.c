@@ -97,6 +97,7 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 static CharDB* charserver_db_txt_chardb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
 	return &db->chardb->vtable;
 }
 

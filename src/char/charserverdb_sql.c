@@ -162,7 +162,8 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-	return NULL;
+
+	return &db->chardb->vtable;
 }
 
 
