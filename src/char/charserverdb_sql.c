@@ -163,7 +163,7 @@ static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
-	return &db->chardb->vtable;
+	return &db->chardb;
 }
 
 

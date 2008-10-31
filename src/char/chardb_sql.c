@@ -14,7 +14,6 @@
 #include "char.h"
 #include "charlog.h"
 #include "inter.h"
-#include "chardb.h"
 #include "charserverdb_sql.h"
 
 #include <stdio.h>
@@ -27,6 +26,19 @@ extern int memitemdata_to_sql(const struct item items[], int max, int id, int ta
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
+/// internal structure
+typedef struct CharDB_SQL
+{
+	CharDB vtable;    // public interface
+
+	CharServerDB_SQL* owner;
+	Sql* chars;       // SQL character storage
+
+	// other settings
+	bool case_sensitive;
+	char char_db[32];
+
+} CharDB_SQL;
 
 /// internal structure
 typedef struct CharDBIterator_SQL
@@ -38,6 +50,8 @@ typedef struct CharDBIterator_SQL
 } CharDBIterator_SQL;
 
 /// internal functions
+static bool char_db_sql_init(CharDB* self);
+static void char_db_sql_destroy(CharDB* self);
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* status);
 static bool char_db_sql_remove(CharDB* self, const int char_id);
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* status);
@@ -55,11 +69,13 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool is_new);
 
 /// public constructor
-CharDB_SQL* char_db_sql(CharServerDB_SQL* owner)
+CharDB* char_db_sql(CharServerDB_SQL* owner)
 {
 	CharDB_SQL* db = (CharDB_SQL*)aCalloc(1, sizeof(CharDB_SQL));
 
 	// set up the vtable
+	db->vtable.init      = &char_db_sql_init;
+	db->vtable.destroy   = &char_db_sql_destroy;
 	db->vtable.create    = &char_db_sql_create;
 	db->vtable.remove    = &char_db_sql_remove;
 	db->vtable.save      = &char_db_sql_save;
@@ -78,24 +94,23 @@ CharDB_SQL* char_db_sql(CharServerDB_SQL* owner)
 	db->case_sensitive = false;
 	safestrncpy(db->char_db, "char", sizeof(db->char_db));
 
-	return db;
+	return &db->vtable;
 }
 
 
 /* ------------------------------------------------------------------------- */
 
 
-bool char_db_sql_init(CharDB_SQL* db)
+static bool char_db_sql_init(CharDB* self)
 {
-	//TODO: do it properly
+	CharDB_SQL* db = (CharDB_SQL*)self;
 	db->chars = db->owner->sql_handle;
-
 	return true;
 }
 
-void char_db_sql_destroy(CharDB_SQL* db)
+static void char_db_sql_destroy(CharDB* self)
 {
-	//TODO: do it properly
+	CharDB_SQL* db = (CharDB_SQL*)self;
 	db->chars = NULL;
 	aFree(db);
 }

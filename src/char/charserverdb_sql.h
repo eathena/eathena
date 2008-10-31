@@ -16,7 +16,6 @@
 
 
 typedef struct CharServerDB_SQL CharServerDB_SQL;
-typedef struct CharDB_SQL CharDB_SQL;
 
 
 
@@ -27,7 +26,7 @@ struct CharServerDB_SQL
 
 	Sql* sql_handle;// SQL connection handle
 	// TODO DB interfaces
-	CharDB_SQL* chardb;
+	CharDB* chardb;
 
 	// global sql settings
 	char   global_db_hostname[32];
@@ -38,26 +37,9 @@ struct CharServerDB_SQL
 	char   global_codepage[32];
 };
 
-/// internal structure
-struct CharDB_SQL
-{
-	CharDB vtable;    // public interface
-
-	CharServerDB_SQL* owner;
-	Sql* chars;       // SQL character storage
-
-	// other settings
-	bool case_sensitive;
-	char char_db[32];
-
-};
 
 
-
-CharDB_SQL* char_db_sql(CharServerDB_SQL* owner);
-bool char_db_sql_init(CharDB_SQL* self);
-void char_db_sql_destroy(CharDB_SQL* self);
-
+CharDB* char_db_sql(CharServerDB_SQL* owner);
 
 
 #endif /* _CHARSERVERDB_SQL_H_ */
