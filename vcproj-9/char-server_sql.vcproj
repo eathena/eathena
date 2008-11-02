@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="char-server_sql"
 	ProjectGUID="{D356871D-58E1-450B-967A-E4E9646175AF}"
 	RootNamespace="char-server_sql"
@@ -336,6 +336,14 @@
 			Name="char_sql"
 			>
 			<File
+				RelativePath="..\src\char\castledb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\castledb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\char.c"
 				>
 			</File>
@@ -360,6 +368,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\guilddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\homundb.h"
 				>
 			</File>
@@ -377,6 +393,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\int_fame_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_guild.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_guild.h"
 				>
 			</File>
 			<File
@@ -506,14 +530,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_sql\int_auction.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_guild.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_guild.h"
 			>
 		</File>
 		<File

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="char-server_txt"
 	ProjectGUID="{D356871D-58E1-450B-967A-E3E9646175AF}"
 	RootNamespace="char-server_txt"
@@ -202,6 +202,14 @@
 			Name="char_txt"
 			>
 			<File
+				RelativePath="..\src\char\castledb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\castledb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\char.c"
 				>
 			</File>
@@ -226,6 +234,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\guilddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\homundb.h"
 				>
 			</File>
@@ -243,6 +259,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\int_fame_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_guild.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_guild.h"
 				>
 			</File>
 			<File
@@ -490,14 +514,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\src\char_txt\int_guild.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_txt\int_guild.h"
-			>
-		</File>
 		<File
 			RelativePath="..\src\char_txt\int_storage.c"
 			>

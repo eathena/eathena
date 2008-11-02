@@ -4,8 +4,6 @@
 #ifndef _INT_HOMUN_H_
 #define _INT_HOMUN_H_
 
-struct s_homunculus;
-
 int inter_homun_init(void);
 void inter_homun_final(void);
 void inter_homun_sync(void);

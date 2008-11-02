@@ -104,12 +104,12 @@ static int inter_config_read(const char* cfgName)
 		if (strcmpi(w1, "accreg_txt") == 0)
 			strncpy(accreg_txt, w2, sizeof(accreg_txt));
 		else
-		if (strcmpi(w1, "guild_txt") == 0)
-			strncpy(guild_txt, w2, sizeof(guild_txt));
-		else
-		if (strcmpi(w1, "castle_txt") == 0)
-			strncpy(castle_txt, w2, sizeof(castle_txt));
-		else
+//		if (strcmpi(w1, "guild_txt") == 0)
+//			strncpy(guild_txt, w2, sizeof(guild_txt));
+//		else
+//		if (strcmpi(w1, "castle_txt") == 0)
+//			strncpy(castle_txt, w2, sizeof(castle_txt));
+//		else
 		if (strcmpi(w1, "guild_storage_txt") == 0)
 			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 		else
@@ -197,7 +197,7 @@ int inter_log(char *fmt,...)
 int inter_save(void)
 {
 	inter_party_sync();
-	inter_guild_save();
+	inter_guild_sync();
 	inter_storage_save();
 	inter_guild_storage_save();
 	inter_pet_sync();

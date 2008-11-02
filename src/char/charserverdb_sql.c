@@ -43,7 +43,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	return char_db_sql_init(db->chardb);
+	return db->chardb->init(db->chardb);
 }
 
 
@@ -53,7 +53,7 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
-	char_db_sql_destroy(db->chardb);
+	db->chardb->destroy(db->chardb);
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
 	// TODO DB interfaces
@@ -163,7 +163,7 @@ static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
-	return &db->chardb;
+	return db->chardb;
 }
 
 

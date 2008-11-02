@@ -17,7 +17,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
 	// TODO DB interfaces
-	return char_db_txt_init(db->chardb);
+	return db->chardb->init(db->chardb);
 }
 
 
@@ -28,7 +28,7 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
 	// TODO DB interfaces
-	char_db_txt_destroy(db->chardb);
+	db->chardb->destroy(db->chardb);
 	db->chardb = NULL;
 	aFree(db);
 }
@@ -98,7 +98,7 @@ static CharDB* charserver_db_txt_chardb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	return &db->chardb;
+	return db->chardb;
 }
 
 
