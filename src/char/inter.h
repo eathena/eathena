@@ -4,7 +4,9 @@
 #ifndef _INTER_H_
 #define _INTER_H_
 
-int inter_init(void);
+#include "charserverdb.h"
+
+int inter_init(CharServerDB* db);
 void inter_final(void);
 int inter_parse_frommap(int fd);
 int inter_mapif_init(int fd);

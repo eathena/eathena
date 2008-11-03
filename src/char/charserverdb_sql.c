@@ -23,6 +23,9 @@ static bool charserver_db_sql_init(CharServerDB* self)
 	const char* database;
 	const char* codepage;
 
+	if( db->initialized )
+		return true;// already initialized
+
 	sql_handle = Sql_Malloc();
 	username = db->global_db_username;
 	password = db->global_db_password;
@@ -43,7 +46,10 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	return db->chardb->init(db->chardb);
+	if( db->chardb->init(db->chardb) && rank_db_sql_init(db->rankdb) )
+		db->initialized = true;
+
+	return db->initialized;
 }
 
 
@@ -54,9 +60,10 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
 	db->chardb->destroy(db->chardb);
+	rank_db_sql_destroy(db->rankdb);
+	// TODO DB interfaces
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
-	// TODO DB interfaces
 	aFree(db);
 }
 
@@ -168,6 +175,16 @@ static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 
 
 
+/// Returns the database interface that handles rankings.
+static RankDB* charserver_db_sql_rankdb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->rankdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_sql(void)
 {
@@ -179,11 +196,14 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.get_property = charserver_db_sql_get_property;
 	db->vtable.set_property = charserver_db_sql_set_property;
 	db->vtable.chardb       = charserver_db_sql_chardb;
+	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	// TODO DB interfaces
 
 	// initialize to default values
 	db->sql_handle = NULL;
+	db->initialized = false;
 	db->chardb = char_db_sql(db);
+	db->rankdb = rank_db_sql(db);
 	// global sql settings
 	safestrncpy(db->global_db_hostname, "127.0.0.1", sizeof(db->global_db_hostname));
 	db->global_db_port = 3306;
@@ -192,6 +212,7 @@ CharServerDB* charserver_db_sql(void)
 	safestrncpy(db->global_db_database, "ragnarok", sizeof(db->global_db_database));
 	safestrncpy(db->global_codepage, "", sizeof(db->global_codepage));
 	// other settings
+	safestrncpy(db->table_chars, "char", sizeof(db->table_chars));
 
 	return &db->vtable;
 }

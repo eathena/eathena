@@ -16,8 +16,13 @@ static bool charserver_db_txt_init(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
+	if( db->initialized )
+		return true;
+
 	// TODO DB interfaces
-	return db->chardb->init(db->chardb);
+	if( db->chardb->init(db->chardb) && rank_db_txt_init(db->rankdb) )
+		db->initialized = true;
+	return db->initialized;
 }
 
 
@@ -30,6 +35,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	// TODO DB interfaces
 	db->chardb->destroy(db->chardb);
 	db->chardb = NULL;
+	rank_db_txt_destroy(db->rankdb);
+	db->rankdb = NULL;
 	aFree(db);
 }
 
@@ -103,6 +110,16 @@ static CharDB* charserver_db_txt_chardb(CharServerDB* self)
 
 
 
+/// Returns the database interface that handles rankings.
+static RankDB* charserver_db_txt_rankdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->rankdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_txt(void)
 {
@@ -114,10 +131,13 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.get_property = charserver_db_txt_get_property;
 	db->vtable.set_property = charserver_db_txt_set_property;
 	db->vtable.chardb       = charserver_db_txt_chardb;
+	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	// TODO DB interfaces
 
 	db->chardb = char_db_txt(db);
+	db->rankdb = rank_db_txt(db);
 	// initialize to default values
+	db->initialized = false;
 	// other settings
 
 	return &db->vtable;

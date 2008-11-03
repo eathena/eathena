@@ -1,5 +1,11 @@
 Date	Added
 
+2008/11/03
+	* Modified char_athena.conf: [FlavioJS]
+	- Added 'rankdb.enable'
+	- Renamed 'fame_list_blacksmith' to 'rankdb.blacksmith_top_rankers'
+	- Renamed 'fame_list_alchemist' to 'rankdb.alchemist_top_rankers'
+	- Renamed 'fame_list_taekwon' to 'rankdb.taekwon_top_rankers'
 2008/08/19
 	* Added global sql settings 'sql.*' to inter_athena.conf.
 	* Commented 'ipban.sql.*' and 'account.sql.*' so they default to the global settings.

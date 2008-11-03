@@ -13,7 +13,7 @@
 #include "chardb.h"
 #include "inter.h"
 #include "int_auction.h"
-#include "int_fame.h"
+#include "int_rank.h"
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_mail.h"
@@ -63,7 +63,7 @@ int inter_recv_packet_length[] = {
 	48,14,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3080-  Pet
 	-1,10,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3090-  Homunculus
 	10,-1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30A0-  Status
-	10, 2, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30B0-  Fame
+	10, 2, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30B0-  Rank
 };
 
 /*==========================================
@@ -210,7 +210,7 @@ int inter_save(void)
 #endif
 
 // initialize
-int inter_init(void)
+int inter_init(CharServerDB* db)
 {
 #ifndef TXT_ONLY
 	ShowInfo ("interserver initialize...\n");
@@ -242,7 +242,7 @@ int inter_init(void)
 	inter_mail_init();
 	inter_auction_init();
 #endif
-	inter_fame_init();
+	inter_rank_init(db->rankdb(db));
 
 	return 0;
 }
@@ -262,7 +262,7 @@ void inter_final(void)
 	inter_mail_final();
 	inter_auction_final();
 #endif
-	inter_fame_final();
+	inter_rank_final();
 }
 
 // map server connection
@@ -399,7 +399,7 @@ int inter_parse_frommap(int fd)
 		  || inter_pet_parse_frommap(fd)
 		  || inter_homun_parse_frommap(fd)
 		  || inter_status_parse_frommap(fd)
-		  || inter_fame_parse_frommap(fd)
+		  || inter_rank_parse_frommap(fd)
 		  || inter_registry_parse_frommap(fd)
 		   )
 			break;

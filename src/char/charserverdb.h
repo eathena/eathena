@@ -3,13 +3,20 @@
 
 #ifndef _CHARSERVERDB_H_
 #define _CHARSERVERDB_H_
+/// \file
+/// Public interface of the database engine.
+/// Includes all the database interfaces.
+/// Everything exposed by this header is meant to be used by external code.
+
+
 
 #include "chardb.h"
+#include "rankdb.h"
 // TODO include DB interface headers
 // [ data reference ]
 // characters : character, char variables, quest data, sc data, hotkeys, inventory (indexed by charid and only affects individual characters)
 // storages : account/guild/cart? storages (indexed by type and id)
-// fame : alchemist/blacksmith/taekwon fame (indexed by type and id)
+// ranks : alchemist/blacksmith/taekwon rank (indexed by type and id)
 // mails : mails
 // auctions : auctions
 // pets : pets
@@ -89,6 +96,14 @@ struct CharServerDB
 
 	/// TODO
 	CharDB* (*chardb)(CharServerDB* self);
+
+	/// Returns the database interface that handles rankings.
+	/// Returns NULL if rankings are not supported.
+	///
+	/// @param self Database engine
+	/// @return Interface for rankings
+	RankDB* (*rankdb)(CharServerDB* self);
+
 	// TODO DB interface accessors
 };
 

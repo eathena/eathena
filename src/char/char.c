@@ -22,7 +22,7 @@
 #include "chardb.h"
 #include "charlog.h"
 #include "inter.h"
-#include "int_fame.h"
+#include "int_rank.h"
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_pet.h"
@@ -1269,7 +1269,7 @@ int char_config_read(const char* cfgName)
 		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
 			guild_exp_rate = atoi(w2);
 		}
-		else if( fame_config_read(w1,w2) )
+		else if( rank_config_read(w1,w2) )
 			continue;
 		else if( charlog_config_read(w1,w2) )
 			continue;
@@ -1457,7 +1457,7 @@ int do_init(int argc, char **argv)
 		;// TODO stop server
 	chars = charserver->chardb(charserver);
 
-	inter_init();
+	inter_init(charserver);
 
 	set_defaultparse(parse_char);
 

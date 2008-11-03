@@ -11,7 +11,7 @@
 #include "char.h"
 #include "chardb.h"
 #include "charlog.h"
-#include "int_fame.h"
+#include "int_rank.h"
 #include "int_status.h"
 #include "int_storage.h"
 #include "inter.h"

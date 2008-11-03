@@ -3,6 +3,14 @@
 
 #ifndef _CHARSERVERDB_TXT_H_
 #define _CHARSERVERDB_TXT_H_
+/// \file
+/// \extends charserver.h
+/// Global header for the TXT database engine and interfaces.
+/// Everything exposed by this header has protected access (only the engine and interface code can use it).
+
+// TODO in Aegis when you are ranked and change job, the rank points in that rank remain intact 
+//      and are continued whenever we change back to the same kind of job (they are kept separate from char)
+// TODO char.fame => famedb.txt {int rank_id, int char_id, int points}.*
 
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
@@ -24,13 +32,19 @@ struct CharServerDB_TXT
 {
 	CharServerDB vtable;
 
+	bool initialized;
 	// TODO DB interfaces
 	CharDB* chardb;
+	RankDB* rankdb;
 };
 
 
 
 CharDB* char_db_txt(CharServerDB_TXT* owner);
+
+RankDB* rank_db_txt(CharServerDB_TXT* owner);
+bool    rank_db_txt_init(RankDB* self);
+void    rank_db_txt_destroy(RankDB* self);
 
 
 
