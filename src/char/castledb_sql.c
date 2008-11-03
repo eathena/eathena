@@ -1,0 +1,161 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
+
+#include "../common/cbasetypes.h"
+#include "../common/db.h"
+#include "../common/malloc.h"
+#include "../common/mmo.h"
+#include "../common/showmsg.h"
+#include "../common/sql.h"
+#include "../common/strlib.h"
+#include "castledb.h"
+#include <string.h>
+
+/// internal structure
+typedef struct CastleDB_SQL
+{
+	CastleDB vtable;    // public interface
+
+	Sql* castles;       // SQL castle storage
+
+	// other settings
+	char castle_db[32];
+
+} CastleDB_SQL;
+
+/// internal functions
+static bool castle_db_sql_init(CastleDB* self);
+static void castle_db_sql_destroy(CastleDB* self);
+static bool castle_db_sql_sync(CastleDB* self);
+static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc);
+static bool castle_db_sql_remove(CastleDB* self, const int castle_id);
+static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc);
+static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id);
+
+static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id);
+static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc);
+
+/// public constructor
+CastleDB* castle_db_sql(void)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &castle_db_sql_init;
+	db->vtable.destroy   = &castle_db_sql_destroy;
+	db->vtable.sync      = &castle_db_sql_sync;
+	db->vtable.create    = &castle_db_sql_create;
+	db->vtable.remove    = &castle_db_sql_remove;
+	db->vtable.save      = &castle_db_sql_save;
+	db->vtable.load_num  = &castle_db_sql_load_num;
+
+	// initialize to default values
+	db->castles = NULL;
+	// other settings
+	safestrncpy(db->castle_db, "guild_castle", sizeof(db->castle_db));
+
+	return &db->vtable;
+}
+
+
+/* ------------------------------------------------------------------------- */
+
+
+static bool castle_db_sql_init(CastleDB* self)
+{
+}
+
+static void castle_db_sql_destroy(CastleDB* self)
+{
+}
+
+static bool castle_db_sql_sync(CastleDB* self)
+{
+}
+
+static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
+{
+}
+
+static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
+{
+}
+
+static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
+{
+}
+
+static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
+{
+}
+
+
+static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id)
+{
+/*
+	char* data;
+
+	if( gc == NULL )
+		return 0;
+	if( castle_id == -1 )
+		return 0;
+
+	memset(gc,0,sizeof(struct guild_castle));
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, "
+		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`"
+		" FROM `%s` WHERE `castle_id`='%d'", guild_castle_db, castle_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return 0;
+	}
+
+	// ARU: This needs to be set even if there are no SQL results
+	gc->castle_id = castle_id;
+
+	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+	{
+		Sql_FreeResult(sql_handle);
+		return 1; //Assume empty castle.
+	}
+
+	Sql_GetData(sql_handle,  1, &data, NULL); gc->guild_id =  atoi(data);
+	Sql_GetData(sql_handle,  2, &data, NULL); gc->economy = atoi(data);
+	Sql_GetData(sql_handle,  3, &data, NULL); gc->defense = atoi(data);
+	Sql_GetData(sql_handle,  4, &data, NULL); gc->triggerE = atoi(data);
+	Sql_GetData(sql_handle,  5, &data, NULL); gc->triggerD = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); gc->nextTime = atoi(data);
+	Sql_GetData(sql_handle,  7, &data, NULL); gc->payTime = atoi(data);
+	Sql_GetData(sql_handle,  8, &data, NULL); gc->createTime = atoi(data);
+	Sql_GetData(sql_handle,  9, &data, NULL); gc->visibleC = atoi(data);
+	Sql_GetData(sql_handle, 10, &data, NULL); gc->guardian[0].visible = atoi(data);
+	Sql_GetData(sql_handle, 11, &data, NULL); gc->guardian[1].visible = atoi(data);
+	Sql_GetData(sql_handle, 12, &data, NULL); gc->guardian[2].visible = atoi(data);
+	Sql_GetData(sql_handle, 13, &data, NULL); gc->guardian[3].visible = atoi(data);
+	Sql_GetData(sql_handle, 14, &data, NULL); gc->guardian[4].visible = atoi(data);
+	Sql_GetData(sql_handle, 15, &data, NULL); gc->guardian[5].visible = atoi(data);
+	Sql_GetData(sql_handle, 16, &data, NULL); gc->guardian[6].visible = atoi(data);
+	Sql_GetData(sql_handle, 17, &data, NULL); gc->guardian[7].visible = atoi(data);
+
+	Sql_FreeResult(sql_handle);
+*/
+	return true;
+}
+
+static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
+{
+/*
+	// `guild_castle` (`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, `visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)
+
+	if ( gc == NULL )
+		return 0;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` "
+		"(`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`,"
+		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)"
+		"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime, gc->createTime, gc->visibleC,
+		gc->guardian[0].visible, gc->guardian[1].visible, gc->guardian[2].visible, gc->guardian[3].visible, gc->guardian[4].visible, gc->guardian[5].visible, gc->guardian[6].visible, gc->guardian[7].visible) )
+		Sql_ShowDebug(sql_handle);
+*/
+	return true;
+}
