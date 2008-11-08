@@ -4,7 +4,10 @@
 #ifndef _INT_GUILD_H_
 #define _INT_GUILD_H_
 
-int inter_guild_init(void);
+#include "guilddb.h"
+#include "castledb.h"
+
+int inter_guild_init(GuildDB* gdb, CastleDB* cdb);
 void inter_guild_final(void);
 void inter_guild_sync(void);
 int inter_guild_parse_frommap(int fd);

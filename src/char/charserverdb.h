@@ -10,7 +10,9 @@
 
 
 
+#include "castledb.h"
 #include "chardb.h"
+#include "guilddb.h"
 #include "rankdb.h"
 // TODO include DB interface headers
 // [ data reference ]
@@ -95,7 +97,11 @@ struct CharServerDB
 	bool (*set_property)(CharServerDB* self, const char* key, const char* value);
 
 	/// TODO
+	CastleDB* (*castledb)(CharServerDB* self);
+
 	CharDB* (*chardb)(CharServerDB* self);
+
+	GuildDB* (*guilddb)(CharServerDB* self);
 
 	/// Returns the database interface that handles rankings.
 	/// Returns NULL if rankings are not supported.

@@ -34,13 +34,17 @@ struct CharServerDB_TXT
 
 	bool initialized;
 	// TODO DB interfaces
+	CastleDB* castledb;
 	CharDB* chardb;
+	GuildDB* guilddb;
 	RankDB* rankdb;
 };
 
 
 
+CastleDB* castle_db_txt(CharServerDB_TXT* owner);
 CharDB* char_db_txt(CharServerDB_TXT* owner);
+GuildDB* guild_db_txt(CharServerDB_TXT* owner);
 
 RankDB* rank_db_txt(CharServerDB_TXT* owner);
 bool    rank_db_txt_init(RankDB* self);

@@ -46,7 +46,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	if( db->chardb->init(db->chardb) && rank_db_sql_init(db->rankdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && rank_db_sql_init(db->rankdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -59,8 +59,14 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
+	db->castledb->destroy(db->castledb);
+	db->castledb = NULL;
 	db->chardb->destroy(db->chardb);
+	db->chardb = NULL;
+	db->guilddb->destroy(db->guilddb);
+	db->guilddb = NULL;
 	rank_db_sql_destroy(db->rankdb);
+	db->rankdb = NULL;
 	// TODO DB interfaces
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
@@ -166,11 +172,31 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 
 
 /// TODO
+static CastleDB* charserver_db_sql_castledb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->castledb;
+}
+
+
+
+/// TODO
 static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
 	return db->chardb;
+}
+
+
+
+/// TODO
+static GuildDB* charserver_db_sql_guilddb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->guilddb;
 }
 
 
@@ -195,15 +221,21 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.destroy      = charserver_db_sql_destroy;
 	db->vtable.get_property = charserver_db_sql_get_property;
 	db->vtable.set_property = charserver_db_sql_set_property;
+	db->vtable.castledb     = charserver_db_sql_castledb;
 	db->vtable.chardb       = charserver_db_sql_chardb;
+	db->vtable.guilddb      = charserver_db_sql_guilddb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	// TODO DB interfaces
 
 	// initialize to default values
 	db->sql_handle = NULL;
 	db->initialized = false;
+
+	db->castledb = castle_db_sql(db);
 	db->chardb = char_db_sql(db);
+	db->guilddb = guild_db_sql(db);
 	db->rankdb = rank_db_sql(db);
+
 	// global sql settings
 	safestrncpy(db->global_db_hostname, "127.0.0.1", sizeof(db->global_db_hostname));
 	db->global_db_port = 3306;

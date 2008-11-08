@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
+#include "charserverdb_sql.h"
 #include "guilddb.h"
 #include <string.h>
 
@@ -19,6 +20,7 @@ typedef struct GuildDB_SQL
 {
 	GuildDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* guilds;       // SQL guild storage
 
 	// other settings
@@ -40,7 +42,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id);
 static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag);
 
 /// public constructor
-GuildDB* guild_db_sql(void)
+GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)aCalloc(1, sizeof(GuildDB_SQL));
 
@@ -55,6 +57,7 @@ GuildDB* guild_db_sql(void)
 	db->vtable.name2id   = &guild_db_sql_name2id;
 
 	// initialize to default values
+	db->owner = owner;
 	db->guilds = NULL;
 	// other settings
 	safestrncpy(db->guild_db, "guild", sizeof(db->guild_db));
@@ -68,14 +71,21 @@ GuildDB* guild_db_sql(void)
 
 static bool guild_db_sql_init(GuildDB* self)
 {
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	db->guilds = db->owner->sql_handle;
+	return true;
 }
 
 static void guild_db_sql_destroy(GuildDB* self)
 {
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	db->guilds = NULL;
+	aFree(db);
 }
 
 static bool guild_db_sql_sync(GuildDB* self)
 {
+	return true;
 }
 
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="char-server_txt"
 	ProjectGUID="{D356871D-58E1-450B-967A-E3E9646175AF}"
 	RootNamespace="char-server_txt"
@@ -201,14 +201,6 @@
 		<Filter
 			Name="char_txt"
 			>
-			<File
-				RelativePath="..\src\char\castledb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\castledb_txt.c"
-				>
-			</File>
 			<File
 				RelativePath="..\src\char\char.c"
 				>
@@ -489,6 +481,14 @@
 		<Filter
 			Name="db"
 			>
+			<File
+				RelativePath="..\src\char\castledb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\castledb_txt.c"
+				>
+			</File>
 			<File
 				RelativePath="..\src\char\chardb.h"
 				>

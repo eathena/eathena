@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "castledb.h"
+#include "charserverdb_txt.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -18,6 +19,7 @@ typedef struct CastleDB_TXT
 {
 	CastleDB vtable;      // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* castles;       // in-memory castle storage
 	int next_castle_id;   // auto_increment
 
@@ -39,7 +41,7 @@ static bool mmo_castle_tostr(const struct guild_castle* gc, char* str);
 static bool mmo_castle_sync(CastleDB_TXT* db);
 
 /// public constructor
-CastleDB* castle_db_txt(void)
+CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)aCalloc(1, sizeof(CastleDB_TXT));
 
@@ -53,6 +55,7 @@ CastleDB* castle_db_txt(void)
 	db->vtable.load_num  = &castle_db_txt_load_num;
 
 	// initialize to default values
+	db->owner = owner;
 	db->castles = NULL;
 	db->next_castle_id = START_CASTLE_NUM;
 	// other settings
@@ -72,6 +75,7 @@ static bool castle_db_txt_init(CastleDB* self)
 
 	char line[16384];
 	FILE* fp;
+	int count = 0;
 
 	// create castle database
 	db->castles = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -83,52 +87,49 @@ static bool castle_db_txt_init(CastleDB* self)
 		return 1;
 
 	// load data file
-/*
-	c = 0;
 	while( fgets(line, sizeof(line), fp) )
 	{
 		struct guild_castle* gc = (struct guild_castle *) aCalloc(sizeof(struct guild_castle), 1);
-		if(gc == NULL){
-			ShowFatalError("int_guild: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-		if (inter_guildcastle_fromstr(line, gc) == 0) {
-			idb_put(castle_db, gc->castle_id, gc);
-		} else {
-			ShowError("int_guild: broken data [%s] line %d\n", castle_txt, c);
+
+		if( !mmo_castle_fromstr(gc, line) )
+		{
+			ShowError("castle_db_txt_init: skipping invalid data: %s", line);
 			aFree(gc);
+			continue;
 		}
-		c++;
+
+		// record entry in db
+		idb_put(castles, gc->castle_id, gc);
+
+		if( gc->castle_id >= db->next_castle_id )
+			db->next_castle_id = gc->castle_id + 1;
+
+		count++;
 	}
-*/
 
 	// close data file
 	fclose(fp);
 
-/*
-	if( c == 0 )
+	if( count == 0 )
 	{// empty castles file, set up a default layout
-		ShowStatus(" %s - making Default Data...\n", castle_txt);
-		for(i = 0; i < MAX_GUILDCASTLE; i++)
+		int i;
+		ShowStatus(" %s - making Default Data...\n", db->castle_db);
+		for( i = 0; i < MAX_GUILDCASTLE; ++i )
 		{
 			struct guild_castle* gc = (struct guild_castle *) aCalloc(sizeof(struct guild_castle), 1);
-			if (gc == NULL) {
-				ShowFatalError("int_guild: out of memory!\n");
-				exit(EXIT_FAILURE);
-			}
 			gc->castle_id = i;
-			idb_put(castle_db, gc->castle_id, gc);
+			idb_put(castles, gc->castle_id, gc);
 		}
-		ShowStatus(" %s - making done\n",castle_txt);
-		return 0;
+		ShowStatus(" %s - making done\n", db->castle_db);
 	}
-*/
 
 	return true;
 }
 
 static void castle_db_txt_destroy(CastleDB* self)
 {
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
 }
 
 static bool castle_db_txt_sync(CastleDB* self)

@@ -7,6 +7,7 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "charserverdb_txt.h"
 #include "guilddb.h"
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +19,7 @@ typedef struct GuildDB_TXT
 {
 	GuildDB vtable;      // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* guilds;       // in-memory guild storage
 	int next_guild_id;   // auto_increment
 
@@ -40,7 +42,7 @@ static bool mmo_guild_tostr(const struct guild* g, char* str);
 static bool mmo_guild_sync(GuildDB_TXT* db);
 
 /// public constructor
-GuildDB* guild_db_txt(void)
+GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)aCalloc(1, sizeof(GuildDB_TXT));
 
@@ -55,6 +57,7 @@ GuildDB* guild_db_txt(void)
 	db->vtable.name2id   = &guild_db_txt_name2id;
 
 	// initialize to default values
+	db->owner = owner;
 	db->guilds = NULL;
 	db->next_guild_id = START_GUILD_NUM;
 	// other settings

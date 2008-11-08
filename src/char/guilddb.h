@@ -32,14 +32,6 @@
 
 typedef struct GuildDB GuildDB;
 
-// standard engines
-#ifdef WITH_TXT
-GuildDB* guild_db_txt(void);
-#endif
-#ifdef WITH_SQL
-GuildDB* guild_db_sql(void);
-#endif
-
 
 struct GuildDB
 {

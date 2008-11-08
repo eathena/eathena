@@ -1146,29 +1146,22 @@ int inter_guild_leave(int guild_id, int account_id, int char_id)
 void inter_guild_sync(void)
 {
 	guilds->sync(guilds);
+	castles->sync(castles);
 }
 
-int inter_guild_init(void)
+int inter_guild_init(GuildDB* gdb, CastleDB* cdb)
 {
+	guilds = gdb;
+	castles = cdb;
+
 	//Read guild exp table
 	inter_guild_exp_readdb();
-
-#ifdef TXT_ONLY
-	guilds = guild_db_txt();
-	castles = castle_db_txt();
-#else
-	guilds = guild_db_sql();
-	castles = castle_db_sql();
-#endif
-
-	guilds->init(guilds);
-	castles->init(castles);
 
 	return 0;
 }
 
 void inter_guild_final(void)
 {
-	guilds->destroy(guilds);
-	castles->destroy(castles);
+	guilds = NULL;
+	castles = NULL;
 }

@@ -20,8 +20,9 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->chardb->init(db->chardb) && rank_db_txt_init(db->rankdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && rank_db_txt_init(db->rankdb) )
 		db->initialized = true;
+
 	return db->initialized;
 }
 
@@ -33,8 +34,12 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
 	// TODO DB interfaces
+	db->castledb->destroy(db->castledb);
+	db->castledb = NULL;
 	db->chardb->destroy(db->chardb);
 	db->chardb = NULL;
+	db->guilddb->destroy(db->guilddb);
+	db->guilddb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
 	aFree(db);
@@ -101,11 +106,31 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 
 
 /// TODO
+static CastleDB* charserver_db_txt_castledb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->castledb;
+}
+
+
+
+/// TODO
 static CharDB* charserver_db_txt_chardb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
 	return db->chardb;
+}
+
+
+
+/// TODO
+static GuildDB* charserver_db_txt_guilddb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->guilddb;
 }
 
 
@@ -130,12 +155,17 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.destroy      = charserver_db_txt_destroy;
 	db->vtable.get_property = charserver_db_txt_get_property;
 	db->vtable.set_property = charserver_db_txt_set_property;
+	db->vtable.castledb     = charserver_db_txt_castledb;
 	db->vtable.chardb       = charserver_db_txt_chardb;
+	db->vtable.guilddb      = charserver_db_txt_guilddb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	// TODO DB interfaces
 
+	db->castledb = castle_db_txt(db);
 	db->chardb = char_db_txt(db);
+	db->guilddb = guild_db_txt(db);
 	db->rankdb = rank_db_txt(db);
+
 	// initialize to default values
 	db->initialized = false;
 	// other settings

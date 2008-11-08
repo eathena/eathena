@@ -9,14 +9,6 @@
 typedef struct CastleDB CastleDB;
 typedef struct CastleDBIterator CastleDBIterator;
 
-// standard engines
-#ifdef WITH_TXT
-CastleDB* castle_db_txt(void);
-#endif
-#ifdef WITH_SQL
-CastleDB* castle_db_sql(void);
-#endif
-
 
 struct CastleDBIterator
 {

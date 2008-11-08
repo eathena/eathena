@@ -35,7 +35,9 @@ struct CharServerDB_SQL
 	Sql* sql_handle;// SQL connection handle
 	bool initialized;
 	// TODO DB interfaces
+	CastleDB* castledb;
 	CharDB* chardb;
+	GuildDB* guilddb;
 	RankDB* rankdb;
 
 	// global sql settings
@@ -50,8 +52,9 @@ struct CharServerDB_SQL
 };
 
 
-
+CastleDB* castle_db_sql(CharServerDB_SQL* owner);
 CharDB* char_db_sql(CharServerDB_SQL* owner);
+GuildDB* guild_db_sql(CharServerDB_SQL* owner);
 
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
 bool    rank_db_sql_init(RankDB* self);

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="char-server_sql"
 	ProjectGUID="{D356871D-58E1-450B-967A-E4E9646175AF}"
 	RootNamespace="char-server_sql"
@@ -336,14 +336,6 @@
 			Name="char_sql"
 			>
 			<File
-				RelativePath="..\src\char\castledb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\castledb_sql.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\char.c"
 				>
 			</File>
@@ -365,14 +357,6 @@
 			</File>
 			<File
 				RelativePath="..\src\char\client.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guilddb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guilddb_sql.c"
 				>
 			</File>
 			<File
@@ -500,6 +484,14 @@
 			Name="db"
 			>
 			<File
+				RelativePath="..\src\char\castledb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\castledb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\chardb.h"
 				>
 			</File>
@@ -517,6 +509,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\charserverdb_sql.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_sql.c"
 				>
 			</File>
 			<File

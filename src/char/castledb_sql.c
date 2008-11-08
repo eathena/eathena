@@ -9,6 +9,7 @@
 #include "../common/sql.h"
 #include "../common/strlib.h"
 #include "castledb.h"
+#include "charserverdb_sql.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -17,6 +18,7 @@ typedef struct CastleDB_SQL
 {
 	CastleDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* castles;       // SQL castle storage
 
 	// other settings
@@ -50,7 +52,7 @@ static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int ca
 static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc);
 
 /// public constructor
-CastleDB* castle_db_sql(void)
+CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
 
@@ -65,6 +67,7 @@ CastleDB* castle_db_sql(void)
 	db->vtable.iterator  = &castle_db_sql_iterator;
 
 	// initialize to default values
+	db->owner = owner;
 	db->castles = NULL;
 	// other settings
 	safestrncpy(db->castle_db, "guild_castle", sizeof(db->castle_db));
@@ -78,14 +81,21 @@ CastleDB* castle_db_sql(void)
 
 static bool castle_db_sql_init(CastleDB* self)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	db->castles = db->owner->sql_handle;
+	return true;
 }
 
 static void castle_db_sql_destroy(CastleDB* self)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	db->castles = NULL;
+	aFree(db);
 }
 
 static bool castle_db_sql_sync(CastleDB* self)
 {
+	return true;
 }
 
 static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
