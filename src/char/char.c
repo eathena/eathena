@@ -222,9 +222,6 @@ void set_char_charselect(int account_id)
 void set_char_online(int map_id, int char_id, int account_id)
 {
 	struct online_char_data* character;
-#ifndef TXT_ONLY
-	struct mmo_charstatus *cp;
-#endif
 	
 #ifndef TXT_ONLY
 	//Update DB
@@ -254,12 +251,6 @@ void set_char_online(int map_id, int char_id, int account_id)
 		character->waiting_disconnect = -1;
 	}
 
-#ifndef TXT_ONLY
-	//Set char online in guild cache. If char is in memory, use the guild id on it, otherwise seek it.
-	cp = (struct mmo_charstatus*)idb_get(char_db_,char_id);
-	inter_guild_CharOnline(char_id, cp?cp->guild_id:-1);
-#endif
-
 	//Notify login server
 	if (login_fd > 0 && !session[login_fd]->flag.eof)
 	{	
@@ -282,11 +273,6 @@ void set_char_offline(int char_id, int account_id)
 	}
 	else
 	{
-		struct mmo_charstatus* cp = (struct mmo_charstatus*)idb_get(char_db_,char_id);
-		inter_guild_CharOffline(char_id, cp?cp->guild_id:-1);
-		if (cp)
-			idb_remove(char_db_,char_id);
-
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id) )
 			Sql_ShowDebug(sql_handle);
 	}

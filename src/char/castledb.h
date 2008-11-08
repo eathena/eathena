@@ -7,6 +7,7 @@
 #include "../common/mmo.h" // struct guild_castle
 
 typedef struct CastleDB CastleDB;
+typedef struct CastleDBIterator CastleDBIterator;
 
 // standard engines
 #ifdef WITH_TXT
@@ -15,6 +16,22 @@ CastleDB* castle_db_txt(void);
 #ifdef WITH_SQL
 CastleDB* castle_db_sql(void);
 #endif
+
+
+struct CastleDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(CastleDBIterator* self);
+
+	/// Fetches the next castle in the database.
+	/// Fills gc with the castle data.
+	/// @param self Iterator
+	/// @param gc Castle data
+	/// @return true if successful
+	bool (*next)(CastleDBIterator* self, struct guild_castle* gc);
+};
 
 
 struct CastleDB
@@ -32,6 +49,12 @@ struct CastleDB
 	bool (*save)(CastleDB* self, const struct guild_castle* gc);
 
 	bool (*load_num)(CastleDB* self, struct guild_castle* gc, int castle_id);
+
+	/// Returns a new forward iterator.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CastleDBIterator* (*iterator)(CastleDB* self);
 };
 
 

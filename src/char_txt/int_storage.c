@@ -330,12 +330,9 @@ int inter_guild_storage_save()
 	for( data = (struct guild_storage*)iter->first(iter,NULL); iter->exists(iter); data = (struct guild_storage*)iter->next(iter,NULL) )
 	{
 		char line[65536];
-		if(inter_guild_search(data->guild_id) != NULL)
-		{
-			guild_storage_tostr(line,data);
-			if(*line)
-				fprintf(fp,"%s\n",line);
-		}
+		guild_storage_tostr(line,data);
+		if(*line)
+			fprintf(fp,"%s\n",line);
 	}
 	iter->destroy(iter);
 
@@ -375,10 +372,7 @@ int inter_guild_storage_delete(int guild_id)
 
 struct guild_storage *guild2storage(int guild_id)
 {
-	struct guild_storage* gs = NULL;
-	if(inter_guild_search(guild_id) != NULL)
-		gs = (struct guild_storage*)idb_ensure(guild_storage_db, guild_id, create_guildstorage);
-	return gs;
+	return (struct guild_storage*)idb_ensure(guild_storage_db, guild_id, create_guildstorage);
 }
 
 //---------------------------------------------------------

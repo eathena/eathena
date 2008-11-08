@@ -33,7 +33,7 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g);
 static bool guild_db_txt_remove(GuildDB* self, const int guild_id);
 static bool guild_db_txt_save(GuildDB* self, const struct guild* g);
 static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id);
-static bool guild_db_txt_name2id(GuildDB* self, struct guild* g, const char* name);
+static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id);
 
 static bool mmo_guild_fromstr(struct guild* g, char* str);
 static bool mmo_guild_tostr(const struct guild* g, char* str);
@@ -73,13 +73,18 @@ static bool guild_db_txt_init(GuildDB* self)
 	DBMap* guilds;
 
 	char line[16384];
-	FILE *fp;
+	FILE* fp;
 
-	guild_db = idb_alloc(DB_OPT_RELEASE_DATA);
+	// create guild database
+	db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
+	guilds = db->guilds;
 
-	fp = fopen(guild_txt, "r");
+	// open data file
+	fp = fopen(db->guild_db, "r");
 	if( fp == NULL )
 		return 1;
+
+	// load data file
 /*
 	while( fgets(line, sizeof(line), fp) )
 	{
@@ -109,7 +114,9 @@ static bool guild_db_txt_init(GuildDB* self)
 	}
 */
 
+	// close data file
 	fclose(fp);
+
 	return true;
 }
 
@@ -160,7 +167,7 @@ static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id)
 */
 }
 
-static bool guild_db_txt_name2id(GuildDB* self, struct guild* g, const char* name)
+static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 /*
 	DBIterator* iter;
@@ -456,7 +463,6 @@ static bool mmo_guild_sync(GuildDB_TXT* db)
 	int lock;
 	DBIterator* iter;
 	struct guild* g;
-	struct guild_castle* gc;
 
 	// save guild data
 	fp = lock_fopen(guild_txt, &lock);
@@ -477,23 +483,6 @@ static bool mmo_guild_sync(GuildDB_TXT* db)
 
 //	fprintf(fp, "%d\t%%newid%%\n", guild_newid);
 	lock_fclose(fp, guild_txt, &lock);
-
-	// save castle data
-	if ((fp = lock_fopen(castle_txt,&lock)) == NULL) {
-		ShowError("int_guild: can't write [%s] !!! data is lost !!!\n", castle_txt);
-		return 1;
-	}
-
-	iter = castle_db->iterator(castle_db);
-	for( gc = (struct guild_castle*)iter->first(iter,NULL); iter->exists(iter); gc = (struct guild_castle*)iter->next(iter,NULL) )
-	{
-		char line[16384];
-		inter_guildcastle_tostr(line, gc);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, castle_txt, &lock);
 */
 
 	return true;

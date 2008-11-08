@@ -23,7 +23,7 @@ struct CharDBIterator
 	/// @param self Iterator
 	/// @param ch Character data
 	/// @return true if successful
-	bool (*next)(CharDBIterator* self, struct mmo_charstatus* acc);
+	bool (*next)(CharDBIterator* self, struct mmo_charstatus* ch);
 };
 
 

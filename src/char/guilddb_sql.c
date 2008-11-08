@@ -34,7 +34,7 @@ static bool guild_db_sql_create(GuildDB* self, struct guild* g);
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id);
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g);
 static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id);
-static bool guild_db_sql_name2id(GuildDB* self, struct guild* g, const char* name);
+static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id);
 
 static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id);
 static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag);
@@ -80,6 +80,9 @@ static bool guild_db_sql_sync(GuildDB* self)
 
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
+/*
+	if (!inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL)) {
+*/
 }
 
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
@@ -94,7 +97,7 @@ static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id)
 {
 }
 
-static bool guild_db_sql_name2id(GuildDB* self, struct guild* g, const char* name)
+static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 /*
 	int guild_id;
@@ -309,6 +312,13 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 
 static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 {
+	//TODO: recognize GS_MEMBER_DELETED modified flag in guild member structure
+/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `account_id` = '%d' and `char_id` = '%d'", guild_member_db, account_id, char_id) )
+		Sql_ShowDebug(sql_handle);
+	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id` = '0' WHERE `char_id` = '%d'", char_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+*/
 /*
 	// Table guild (GS_BASIC_MASK)
 	// GS_EMBLEM `emblem_len`,`emblem_id`,`emblem_data`

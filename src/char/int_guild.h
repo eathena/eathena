@@ -12,10 +12,6 @@ void inter_guild_delete(int guild_id);
 void inter_guild_mapif_init(int fd);
 int inter_guild_leave(int guild_id, int account_id, int char_id);
 int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender);
-
-#ifndef TXT_ONLY
-int inter_guild_CharOnline(int char_id, int guild_id);
-int inter_guild_CharOffline(int char_id, int guild_id);
-#endif
+void mapif_parse_BreakGuild(int fd, int guild_id);
 
 #endif /* _INT_GUILD_H_ */

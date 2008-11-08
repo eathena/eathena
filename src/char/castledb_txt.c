@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "castledb.h"
+#include <stdio.h>
 #include <string.h>
 
 #define START_CASTLE_NUM 1
@@ -72,12 +73,16 @@ static bool castle_db_txt_init(CastleDB* self)
 	char line[16384];
 	FILE* fp;
 
-	castle_db = idb_alloc(DB_OPT_RELEASE_DATA);
+	// create castle database
+	db->castles = idb_alloc(DB_OPT_RELEASE_DATA);
+	castles = db->castles;
 
-	fp = fopen(castle_txt, "r");
+	// open data file
+	fp = fopen(db->castle_db, "r");
 	if( fp == NULL )
 		return 1;
 
+	// load data file
 /*
 	c = 0;
 	while( fgets(line, sizeof(line), fp) )
@@ -96,11 +101,13 @@ static bool castle_db_txt_init(CastleDB* self)
 		c++;
 	}
 */
+
+	// close data file
 	fclose(fp);
 
 /*
 	if( c == 0 )
-	{// set up a default castle layout
+	{// empty castles file, set up a default layout
 		ShowStatus(" %s - making Default Data...\n", castle_txt);
 		for(i = 0; i < MAX_GUILDCASTLE; i++)
 		{
@@ -215,5 +222,26 @@ static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 static bool mmo_castle_sync(CastleDB_TXT* db)
 {
 /*
+	FILE *fp;
+	int lock;
+	DBIterator* iter;
+	struct guild_castle* gc;
+
+	// save castle data
+	if ((fp = lock_fopen(castle_txt,&lock)) == NULL) {
+		ShowError("int_guild: can't write [%s] !!! data is lost !!!\n", castle_txt);
+		return 1;
+	}
+
+	iter = castle_db->iterator(castle_db);
+	for( gc = (struct guild_castle*)iter->first(iter,NULL); iter->exists(iter); gc = (struct guild_castle*)iter->next(iter,NULL) )
+	{
+		char line[16384];
+		inter_guildcastle_tostr(line, gc);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, castle_txt, &lock);
 */
 }
