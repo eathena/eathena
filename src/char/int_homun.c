@@ -154,22 +154,15 @@ void inter_homun_sync(void)
 	homuns->sync(homuns);
 }
 
-int inter_homun_init()
+int inter_homun_init(HomunDB* db)
 {
-#ifdef TXT_ONLY
-	homuns = homun_db_txt();
-#else
-	homuns = homun_db_sql();
-#endif
-
-	homuns->init(homuns);
-
+	homuns = db;
 	return 0;
 }
 
 void inter_homun_final()
 {
-	homuns->destroy(homuns);
+	homuns = NULL;
 }
 
 void inter_homun_delete(int homun_id)

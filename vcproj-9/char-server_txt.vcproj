@@ -234,14 +234,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\homundb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\homundb_txt.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\int_guild.c"
 				>
 			</File>
@@ -499,6 +491,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\charserverdb_txt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb_txt.c"
 				>
 			</File>
 			<File

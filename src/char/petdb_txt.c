@@ -58,7 +58,7 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	db->vtable.load_num  = &pet_db_txt_load_num;
 
 	// initialize to default values
-	db->owner = NULL;
+	db->owner = owner;
 	db->pets = NULL;
 	db->next_pet_id = START_PET_NUM;
 	// other settings

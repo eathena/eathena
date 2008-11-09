@@ -4,7 +4,9 @@
 #ifndef _INT_HOMUN_H_
 #define _INT_HOMUN_H_
 
-int inter_homun_init(void);
+#include "homundb.h"
+
+int inter_homun_init(HomunDB* db);
 void inter_homun_final(void);
 void inter_homun_sync(void);
 int inter_homun_parse_frommap(int fd);

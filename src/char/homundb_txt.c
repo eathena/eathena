@@ -7,6 +7,7 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "charserverdb_txt.h"
 #include "homundb.h"
 #include <string.h>
 
@@ -17,6 +18,7 @@ typedef struct HomunDB_TXT
 {
 	HomunDB vtable;      // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* homuns;       // in-memory homun storage
 	int next_homun_id;   // auto_increment
 
@@ -38,7 +40,7 @@ static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str);
 static bool mmo_homun_sync(HomunDB_TXT* db);
 
 /// public constructor
-HomunDB* homun_db_txt(void)
+HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
 
@@ -52,6 +54,7 @@ HomunDB* homun_db_txt(void)
 	db->vtable.load_num  = &homun_db_txt_load_num;
 
 	// initialize to default values
+	db->owner = owner;
 	db->homuns = NULL;
 	db->next_homun_id = START_HOMUN_NUM;
 	// other settings

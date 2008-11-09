@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
+#include "charserverdb_sql.h"
 #include "homundb.h"
 #include <string.h>
 
@@ -16,6 +17,7 @@ typedef struct HomunDB_SQL
 {
 	HomunDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* homuns;       // SQL homun storage
 
 	// other settings
@@ -36,7 +38,7 @@ static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homu
 static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd);
 
 /// public constructor
-HomunDB* homun_db_sql(void)
+HomunDB* homun_db_sql(CharServerDB_SQL* owner)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)aCalloc(1, sizeof(HomunDB_SQL));
 
@@ -50,6 +52,7 @@ HomunDB* homun_db_sql(void)
 	db->vtable.load_num  = &homun_db_sql_load_num;
 
 	// initialize to default values
+	db->owner = owner;
 	db->homuns = NULL;
 	// other settings
 	safestrncpy(db->homun_db, "homun", sizeof(db->homun_db));
@@ -63,14 +66,21 @@ HomunDB* homun_db_sql(void)
 
 static bool homun_db_sql_init(HomunDB* self)
 {
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	db->homuns = db->owner->sql_handle;
+	return true;
 }
 
 static void homun_db_sql_destroy(HomunDB* self)
 {
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	db->homuns = NULL;
+	aFree(db);
 }
 
 static bool homun_db_sql_sync(HomunDB* self)
 {
+	return true;
 }
 
 static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)

@@ -8,14 +8,6 @@
 
 typedef struct HomunDB HomunDB;
 
-// standard engines
-#ifdef WITH_TXT
-HomunDB* homun_db_txt(void);
-#endif
-#ifdef WITH_SQL
-HomunDB* homun_db_sql(void);
-#endif
-
 
 struct HomunDB
 {

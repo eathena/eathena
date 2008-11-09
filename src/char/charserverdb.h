@@ -13,6 +13,7 @@
 #include "castledb.h"
 #include "chardb.h"
 #include "guilddb.h"
+#include "homundb.h"
 #include "petdb.h"
 #include "rankdb.h"
 // TODO include DB interface headers
@@ -103,6 +104,8 @@ struct CharServerDB
 	CharDB* (*chardb)(CharServerDB* self);
 
 	GuildDB* (*guilddb)(CharServerDB* self);
+
+	HomunDB* (*homundb)(CharServerDB* self);
 
 	PetDB* (*petdb)(CharServerDB* self);
 

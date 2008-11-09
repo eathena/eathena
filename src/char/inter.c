@@ -237,7 +237,7 @@ int inter_init(CharServerDB* db)
 	inter_guild_init(db->guilddb(db), db->castledb(db));
 	inter_storage_init();
 	inter_pet_init(db->petdb(db));
-	inter_homun_init();
+	inter_homun_init(db->homundb(db));
 #ifndef TXT_ONLY
 	inter_mail_init();
 	inter_auction_init();

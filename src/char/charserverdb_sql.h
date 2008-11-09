@@ -38,6 +38,7 @@ struct CharServerDB_SQL
 	CastleDB* castledb;
 	CharDB* chardb;
 	GuildDB* guilddb;
+	HomunDB* homundb;
 	PetDB* petdb;
 	RankDB* rankdb;
 
@@ -56,6 +57,7 @@ struct CharServerDB_SQL
 CastleDB* castle_db_sql(CharServerDB_SQL* owner);
 CharDB* char_db_sql(CharServerDB_SQL* owner);
 GuildDB* guild_db_sql(CharServerDB_SQL* owner);
+HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
 
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
