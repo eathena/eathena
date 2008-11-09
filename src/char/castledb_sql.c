@@ -108,10 +108,14 @@ static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
 
 static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return mmo_castle_tosql(db, gc);
 }
 
 static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return mmo_castle_fromsql(db, gc, castle_id);
 }
 
 
@@ -175,32 +179,33 @@ static bool castle_db_sql_iter_next(CastleDBIterator* self, struct guild_castle*
 
 static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id)
 {
-/*
+	Sql* sql_handle = db->castles;
 	char* data;
 
 	if( gc == NULL )
-		return 0;
-	if( castle_id == -1 )
-		return 0;
+		return false;
+	if( castle_id == -1 ) //TODO: is this needed?
+		return false;
 
 	memset(gc,0,sizeof(struct guild_castle));
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, "
+
+	// query for castle data
+	if( SQL_ERROR == Sql_Query(sql_handle,
+		"SELECT `castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, "
 		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`"
-		" FROM `%s` WHERE `castle_id`='%d'", guild_castle_db, castle_id) )
+		" FROM `%s` WHERE `castle_id`='%d'", db->castle_db, castle_id) )
 	{
 		Sql_ShowDebug(sql_handle);
-		return 0;
+		return false;
 	}
-
-	// ARU: This needs to be set even if there are no SQL results
-	gc->castle_id = castle_id;
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{
+	{// no such entry
 		Sql_FreeResult(sql_handle);
-		return 1; //Assume empty castle.
+		return false;
 	}
 
+	Sql_GetData(sql_handle,  0, &data, NULL); gc->castle_id = atoi(data);
 	Sql_GetData(sql_handle,  1, &data, NULL); gc->guild_id =  atoi(data);
 	Sql_GetData(sql_handle,  2, &data, NULL); gc->economy = atoi(data);
 	Sql_GetData(sql_handle,  3, &data, NULL); gc->defense = atoi(data);
@@ -220,25 +225,32 @@ static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int ca
 	Sql_GetData(sql_handle, 17, &data, NULL); gc->guardian[7].visible = atoi(data);
 
 	Sql_FreeResult(sql_handle);
-*/
+
 	return true;
 }
 
 static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
 {
-/*
 	// `guild_castle` (`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, `visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)
+	Sql* sql_handle = db->castles;
 
 	if ( gc == NULL )
-		return 0;
+		return false;
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` "
+	if( SQL_ERROR == Sql_Query(sql_handle,
+		"REPLACE INTO `%s` "
 		"(`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`,"
 		"`visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)"
-		"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
-		guild_castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense, gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime, gc->createTime, gc->visibleC,
-		gc->guardian[0].visible, gc->guardian[1].visible, gc->guardian[2].visible, gc->guardian[3].visible, gc->guardian[4].visible, gc->guardian[5].visible, gc->guardian[6].visible, gc->guardian[7].visible) )
+		"VALUES "
+		"('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')",
+		db->castle_db, gc->castle_id, gc->guild_id,  gc->economy, gc->defense,
+		gc->triggerE, gc->triggerD, gc->nextTime, gc->payTime, gc->createTime, gc->visibleC,
+		gc->guardian[0].visible, gc->guardian[1].visible, gc->guardian[2].visible, gc->guardian[3].visible,
+		gc->guardian[4].visible, gc->guardian[5].visible, gc->guardian[6].visible, gc->guardian[7].visible)
+	) {
 		Sql_ShowDebug(sql_handle);
-*/
+		return false;
+	}
+
 	return true;
 }

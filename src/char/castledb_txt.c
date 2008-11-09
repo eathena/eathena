@@ -3,6 +3,7 @@
 
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
+#include "../common/lock.h"
 #include "../common/malloc.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
@@ -130,6 +131,16 @@ static void castle_db_txt_destroy(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
 	DBMap* castles = db->castles;
+
+	// write data
+	mmo_castle_sync(db);
+
+	// delete castle database
+	castles->destroy(castles, NULL);
+	db->castles = NULL;
+
+	// delete entire structure
+	aFree(db);
 }
 
 static bool castle_db_txt_sync(CastleDB* self)
@@ -152,63 +163,70 @@ static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 
 static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 {
-/*
-*/
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+	int castle_id = gc->castle_id;
+
+	// retrieve previous data
+	struct guild_castle* tmp = idb_get(castles, castle_id);
+	if( tmp == NULL )
+	{// error condition - entry not found
+		return false;
+	}
+	
+	// overwrite with new data
+	memcpy(tmp, gc, sizeof(struct guild_castle));
+
+	return true;
 }
 
 static bool castle_db_txt_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
-/*
-*/
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+
+	// retrieve data
+	struct guild_castle* tmp = idb_get(castles, castle_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(gc, tmp, sizeof(struct guild_castle));
+
+	return true;
 }
 
 
 /// parses the castle data string into a castle data structure
 static bool mmo_castle_fromstr(struct guild_castle* gc, char* str)
 {
-/*
-	int castleid, guildid, economy, defense, triggerE, triggerD, nextTime, payTime, createTime, visibleC;
-	int guardian[8];
 	int dummy;
 
 	memset(gc, 0, sizeof(struct guild_castle));
-	// structure of guild castle with the guardian hp included
+
+	// structure of guild castle with the guardian hp included (old one)
 	if( sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-		&castleid, &guildid, &economy, &defense, &triggerE, &triggerD, &nextTime, &payTime, &createTime, &visibleC,
-		&guardian[0], &guardian[1], &guardian[2], &guardian[3], &guardian[4], &guardian[5], &guardian[6], &guardian[7],
+		&gc->castle_id, &gc->guild_id, &gc->economy, &gc->defense,
+		&gc->triggerE, &gc->triggerD, &gc->nextTime, &gc->payTime, &gc->createTime, &gc->visibleC,
+		&gc->guardian[0].visible, &gc->guardian[1].visible, &gc->guardian[2].visible, &gc->guardian[3].visible,
+		&gc->guardian[4].visible, &gc->guardian[5].visible, &gc->guardian[6].visible, &gc->guardian[7].visible,
 		&dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy, &dummy) != 26 )
 	// structure of guild castle without the hps (current one)
 	if( sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
-		&castleid, &guildid, &economy, &defense, &triggerE, &triggerD, &nextTime, &payTime, &createTime, &visibleC,
-		&guardian[0], &guardian[1], &guardian[2], &guardian[3], &guardian[4], &guardian[5], &guardian[6], &guardian[7]) != 18 )
-		return 1;
+		&gc->castle_id, &gc->guild_id, &gc->economy, &gc->defense,
+		&gc->triggerE, &gc->triggerD, &gc->nextTime, &gc->payTime, &gc->createTime, &gc->visibleC,
+		&gc->guardian[0].visible, &gc->guardian[1].visible, &gc->guardian[2].visible, &gc->guardian[3].visible,
+		&gc->guardian[4].visible, &gc->guardian[5].visible, &gc->guardian[6].visible, &gc->guardian[7].visible) != 18 )
+		return false;
 
-	gc->castle_id = castleid;
-	gc->guild_id = guildid;
-	gc->economy = economy;
-	gc->defense = defense;
-	gc->triggerE = triggerE;
-	gc->triggerD = triggerD;
-	gc->nextTime = nextTime;
-	gc->payTime = payTime;
-	gc->createTime = createTime;
-	gc->visibleC = visibleC;
-	gc->guardian[0].visible = guardian[0];
-	gc->guardian[1].visible = guardian[1];
-	gc->guardian[2].visible = guardian[2];
-	gc->guardian[3].visible = guardian[3];
-	gc->guardian[4].visible = guardian[4];
-	gc->guardian[5].visible = guardian[5];
-	gc->guardian[6].visible = guardian[6];
-	gc->guardian[7].visible = guardian[7];
-*/
 	return true;
 }
 
 /// serializes the castle data structure into the provided string
 static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 {
-/*
 	int len;
 
 	len = sprintf(str, "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
@@ -216,33 +234,37 @@ static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 	              gc->triggerD, gc->nextTime, gc->payTime, gc->createTime, gc->visibleC,
 	              gc->guardian[0].visible, gc->guardian[1].visible, gc->guardian[2].visible, gc->guardian[3].visible,
 	              gc->guardian[4].visible, gc->guardian[5].visible, gc->guardian[6].visible, gc->guardian[7].visible);
-*/
+
 	return true;
 }
 
 static bool mmo_castle_sync(CastleDB_TXT* db)
 {
-/*
+	DBIterator* iter;
+	void* data;
 	FILE *fp;
 	int lock;
-	DBIterator* iter;
-	struct guild_castle* gc;
 
 	// save castle data
-	if ((fp = lock_fopen(castle_txt,&lock)) == NULL) {
-		ShowError("int_guild: can't write [%s] !!! data is lost !!!\n", castle_txt);
-		return 1;
+	fp = lock_fopen(db->castle_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_castle_sync: can't write [%s] !!! data is lost !!!\n", db->castle_db);
+		return false;
 	}
 
-	iter = castle_db->iterator(castle_db);
-	for( gc = (struct guild_castle*)iter->first(iter,NULL); iter->exists(iter); gc = (struct guild_castle*)iter->next(iter,NULL) )
+	iter = db->castles->iterator(db->castles);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
+		struct guild_castle* gc = (struct guild_castle*) data;
 		char line[16384];
-		inter_guildcastle_tostr(line, gc);
+
+		mmo_castle_tostr(gc, line);
 		fprintf(fp, "%s\n", line);
 	}
 	iter->destroy(iter);
 
-	lock_fclose(fp, castle_txt, &lock);
-*/
+	lock_fclose(fp, db->castle_db, &lock);
+
+	return true;
 }

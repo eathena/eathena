@@ -451,8 +451,8 @@ struct guild_castle {
 	int createTime;
 	int visibleC;
 	struct {
-		unsigned visible : 1;
 		int id; // object id
+		bool visible;
 	} guardian[MAX_GUARDIANS];
 	int* temp_guardians; // ids of temporary guardians (mobs)
 	int temp_guardians_max;
