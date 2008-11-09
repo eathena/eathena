@@ -16,6 +16,7 @@
 #include "homundb.h"
 #include "petdb.h"
 #include "rankdb.h"
+#include "statusdb.h"
 // TODO include DB interface headers
 // [ data reference ]
 // characters : character, char variables, quest data, sc data, hotkeys, inventory (indexed by charid and only affects individual characters)
@@ -116,6 +117,7 @@ struct CharServerDB
 	/// @return Interface for rankings
 	RankDB* (*rankdb)(CharServerDB* self);
 
+	StatusDB* (*statusdb)(CharServerDB* self);
 	// TODO DB interface accessors
 };
 

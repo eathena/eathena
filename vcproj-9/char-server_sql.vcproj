@@ -455,14 +455,6 @@
 				RelativePath="..\src\char\partydb_sql.c"
 				>
 			</File>
-			<File
-				RelativePath="..\src\char\statusdb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\statusdb_sql.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="db"
@@ -525,6 +517,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\rankdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb_sql.c"
 				>
 			</File>
 		</Filter>

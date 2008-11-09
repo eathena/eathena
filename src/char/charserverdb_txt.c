@@ -20,7 +20,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -46,6 +46,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->petdb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
+	db->statusdb->destroy(db->statusdb);
+	db->statusdb = NULL;
 	aFree(db);
 }
 
@@ -169,6 +171,16 @@ static RankDB* charserver_db_txt_rankdb(CharServerDB* self)
 
 
 
+/// TODO
+static StatusDB* charserver_db_txt_statusdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->statusdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_txt(void)
 {
@@ -185,6 +197,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.homundb      = charserver_db_txt_homundb;
 	db->vtable.petdb        = charserver_db_txt_petdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
+	db->vtable.statusdb     = charserver_db_txt_statusdb;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_txt(db);
@@ -193,6 +206,7 @@ CharServerDB* charserver_db_txt(void)
 	db->homundb = homun_db_txt(db);
 	db->petdb = pet_db_txt(db);
 	db->rankdb = rank_db_txt(db);
+	db->statusdb = status_db_txt(db);
 
 	// initialize to default values
 	db->initialized = false;

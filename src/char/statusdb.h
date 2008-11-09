@@ -8,14 +8,6 @@
 
 typedef struct StatusDB StatusDB;
 
-// standard engines
-#ifdef WITH_TXT
-StatusDB* status_db_txt(void);
-#endif
-#ifdef WITH_SQL
-StatusDB* status_db_sql(void);
-#endif
-
 
 struct status_change_data;
 

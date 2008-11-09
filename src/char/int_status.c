@@ -12,20 +12,14 @@
 StatusDB* statuses = NULL;
 
 
-void inter_status_init(void)
+void inter_status_init(StatusDB* db)
 {
-#ifdef TXT_ONLY
-	statuses = status_db_txt();
-#else
-	statuses = status_db_sql();
-#endif
-
-	statuses->init(statuses);
+	statuses = db;
 }
 
 void inter_status_final(void)
 {
-	statuses->destroy(statuses);
+	statuses = NULL;
 }
 
 void inter_status_sync(void)

@@ -6,7 +6,7 @@
 #include "../common/mmo.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
-#include "inter.h" // sql_handle
+#include "charserverdb_sql.h"
 #include "statusdb.h"
 #include <stdlib.h>
 
@@ -16,6 +16,7 @@ typedef struct StatusDB_SQL
 {
 	StatusDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* statuses;      // SQL status storage
 
 	// other settings
@@ -35,7 +36,7 @@ static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc);
 
 /// public constructor
-StatusDB* status_db_sql(void)
+StatusDB* status_db_sql(CharServerDB_SQL* owner)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)aCalloc(1, sizeof(StatusDB_SQL));
 
@@ -48,6 +49,7 @@ StatusDB* status_db_sql(void)
 	db->vtable.load      = &status_db_sql_load;
 
 	// initialize to default values
+	db->owner = owner;
 	db->statuses = NULL;
 	// other settings
 	safestrncpy(db->status_db, "sc_data", sizeof(db->status_db));
@@ -61,10 +63,16 @@ StatusDB* status_db_sql(void)
 
 static bool status_db_sql_init(StatusDB* self)
 {
+	StatusDB_SQL* db = (StatusDB_SQL*)self;
+	db->statuses = db->owner->sql_handle;
+	return true;
 }
 
 static void status_db_sql_destroy(StatusDB* self)
 {
+	StatusDB_SQL* db = (StatusDB_SQL*)self;
+	db->statuses = NULL;
+	aFree(db);
 }
 
 static bool status_db_sql_sync(StatusDB* self)

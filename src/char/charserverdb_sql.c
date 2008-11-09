@@ -46,7 +46,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->statusdb->init(db->statusdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -71,6 +71,8 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->petdb = NULL;
 	rank_db_sql_destroy(db->rankdb);
 	db->rankdb = NULL;
+	db->statusdb->destroy(db->statusdb);
+	db->statusdb = NULL;
 	// TODO DB interfaces
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
@@ -235,6 +237,16 @@ static RankDB* charserver_db_sql_rankdb(CharServerDB* self)
 
 
 
+/// TODO
+static StatusDB* charserver_db_sql_statusdb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->statusdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_sql(void)
 {
@@ -251,6 +263,7 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.homundb      = charserver_db_sql_homundb;
 	db->vtable.petdb        = charserver_db_sql_petdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
+	db->vtable.statusdb     = charserver_db_sql_statusdb;
 	// TODO DB interfaces
 
 	// initialize to default values
@@ -263,6 +276,7 @@ CharServerDB* charserver_db_sql(void)
 	db->homundb = homun_db_sql(db);
 	db->petdb = pet_db_sql(db);
 	db->rankdb = rank_db_sql(db);
+	db->statusdb = status_db_sql(db);
 
 	// global sql settings
 	safestrncpy(db->global_db_hostname, "127.0.0.1", sizeof(db->global_db_hostname));

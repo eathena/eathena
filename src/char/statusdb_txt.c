@@ -9,6 +9,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "../common/utils.h"
+#include "charserverdb_txt.h"
 #include "statusdb.h"
 #include <stdio.h>
 #include <string.h>
@@ -19,6 +20,7 @@ typedef struct StatusDB_TXT
 {
 	StatusDB vtable;      // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* statuses;      // in-memory status storage
 
 	char status_db[1024]; // status data storage file
@@ -39,7 +41,7 @@ static bool mmo_status_sync(StatusDB_TXT* db);
 static int scdata_db_final(DBKey k, void* d, va_list ap);
 
 /// public constructor
-StatusDB* status_db_txt(void)
+StatusDB* status_db_txt(CharServerDB_TXT* owner)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)aCalloc(1, sizeof(StatusDB_TXT));
 
@@ -52,6 +54,7 @@ StatusDB* status_db_txt(void)
 	db->vtable.load      = &status_db_txt_load;
 
 	// initialize to default values
+	db->owner = owner;
 	db->statuses = NULL;
 	// other settings
 	safestrncpy(db->status_db, "save/scdata.txt", sizeof(db->status_db));

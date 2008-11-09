@@ -232,7 +232,7 @@ int inter_init(CharServerDB* db)
 #endif
 	inter_message_init();
 	inter_registry_init();
-	inter_status_init();
+	inter_status_init(db->statusdb(db));
 	inter_party_init();
 	inter_guild_init(db->guilddb(db), db->castledb(db));
 	inter_storage_init();

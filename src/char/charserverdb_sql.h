@@ -41,6 +41,7 @@ struct CharServerDB_SQL
 	HomunDB* homundb;
 	PetDB* petdb;
 	RankDB* rankdb;
+	StatusDB* statusdb;
 
 	// global sql settings
 	char   global_db_hostname[32];
@@ -59,6 +60,7 @@ CharDB* char_db_sql(CharServerDB_SQL* owner);
 GuildDB* guild_db_sql(CharServerDB_SQL* owner);
 HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
+StatusDB* status_db_sql(CharServerDB_SQL* owner);
 
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
 bool    rank_db_sql_init(RankDB* self);

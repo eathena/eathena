@@ -40,6 +40,7 @@ struct CharServerDB_TXT
 	HomunDB* homundb;
 	PetDB* petdb;
 	RankDB* rankdb;
+	StatusDB* statusdb;
 };
 
 
@@ -48,6 +49,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner);
 GuildDB* guild_db_txt(CharServerDB_TXT* owner);
 HomunDB* homun_db_txt(CharServerDB_TXT* owner);
 PetDB* pet_db_txt(CharServerDB_TXT* owner);
+StatusDB* status_db_txt(CharServerDB_TXT* owner);
 
 RankDB* rank_db_txt(CharServerDB_TXT* owner);
 bool    rank_db_txt_init(RankDB* self);
