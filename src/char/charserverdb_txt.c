@@ -20,7 +20,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && rank_db_txt_init(db->rankdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -40,6 +40,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->chardb = NULL;
 	db->guilddb->destroy(db->guilddb);
 	db->guilddb = NULL;
+	db->petdb->destroy(db->petdb);
+	db->petdb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
 	aFree(db);
@@ -135,6 +137,16 @@ static GuildDB* charserver_db_txt_guilddb(CharServerDB* self)
 
 
 
+/// TODO
+static PetDB* charserver_db_txt_petdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->petdb;
+}
+
+
+
 /// Returns the database interface that handles rankings.
 static RankDB* charserver_db_txt_rankdb(CharServerDB* self)
 {
@@ -158,12 +170,14 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.castledb     = charserver_db_txt_castledb;
 	db->vtable.chardb       = charserver_db_txt_chardb;
 	db->vtable.guilddb      = charserver_db_txt_guilddb;
+	db->vtable.petdb        = charserver_db_txt_petdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_txt(db);
 	db->chardb = char_db_txt(db);
 	db->guilddb = guild_db_txt(db);
+	db->petdb = pet_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 
 	// initialize to default values

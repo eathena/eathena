@@ -8,14 +8,6 @@
 
 typedef struct PetDB PetDB;
 
-// standard engines
-#ifdef WITH_TXT
-PetDB* pet_db_txt(void);
-#endif
-#ifdef WITH_SQL
-PetDB* pet_db_sql(void);
-#endif
-
 
 struct PetDB
 {

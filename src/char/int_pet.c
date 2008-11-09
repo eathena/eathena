@@ -234,18 +234,12 @@ void inter_pet_sync(void)
 	pets->sync(pets);
 }
 
-void inter_pet_init(void)
+void inter_pet_init(PetDB* db)
 {
-#ifdef TXT_ONLY
-	pets = pet_db_txt();
-#else
-	pets = pet_db_sql();
-#endif
-
-	pets->init(pets);
+	pets = db;
 }
 
 void inter_pet_final(void)
 {
-	pets->destroy(pets);
+	pets = NULL;
 }

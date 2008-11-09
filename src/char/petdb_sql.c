@@ -6,7 +6,7 @@
 #include "../common/mmo.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
-#include "inter.h" // sql_handle
+#include "charserverdb_sql.h"
 #include "petdb.h"
 #include <stdlib.h>
 
@@ -16,6 +16,7 @@ typedef struct PetDB_SQL
 {
 	PetDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* pets;       // SQL pet storage
 
 	// other settings
@@ -37,7 +38,7 @@ static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id);
 static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, bool is_new);
 
 /// public constructor
-PetDB* pet_db_sql(void)
+PetDB* pet_db_sql(CharServerDB_SQL* owner)
 {
 	PetDB_SQL* db = (PetDB_SQL*)aCalloc(1, sizeof(PetDB_SQL));
 
@@ -51,6 +52,7 @@ PetDB* pet_db_sql(void)
 	db->vtable.load_num  = &pet_db_sql_load_num;
 
 	// initialize to default values
+	db->owner = owner;
 	db->pets = NULL;
 	// other settings
 	db->case_sensitive = false;
@@ -66,18 +68,13 @@ PetDB* pet_db_sql(void)
 static bool pet_db_sql_init(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-
-	//TODO: do it properly
-	db->pets = sql_handle;
-
+	db->pets = db->owner->sql_handle;
 	return true;
 }
 
 static void pet_db_sql_destroy(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-
-	//TODO: do it properly
 	db->pets = NULL;
 	aFree(db);
 }

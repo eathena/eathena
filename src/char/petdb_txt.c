@@ -9,6 +9,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "../common/utils.h"
+#include "charserverdb_txt.h"
 #include "petdb.h"
 #include <stdio.h>
 #include <string.h>
@@ -21,6 +22,7 @@ typedef struct PetDB_TXT
 {
 	PetDB vtable;       // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* pets;         // in-memory pet storage
 	int next_pet_id;     // auto_increment
 
@@ -42,7 +44,7 @@ static bool mmo_pet_tostr(const struct s_pet* pd, char* str);
 static bool mmo_pet_sync(PetDB_TXT* db);
 
 /// public constructor
-PetDB* pet_db_txt(void)
+PetDB* pet_db_txt(CharServerDB_TXT* owner)
 {
 	PetDB_TXT* db = (PetDB_TXT*)aCalloc(1, sizeof(PetDB_TXT));
 
@@ -56,6 +58,7 @@ PetDB* pet_db_txt(void)
 	db->vtable.load_num  = &pet_db_txt_load_num;
 
 	// initialize to default values
+	db->owner = NULL;
 	db->pets = NULL;
 	db->next_pet_id = START_PET_NUM;
 	// other settings

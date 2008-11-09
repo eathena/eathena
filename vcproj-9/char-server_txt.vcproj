@@ -338,14 +338,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\petdb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\petdb_txt.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\statusdb.h"
 				>
 			</File>
@@ -507,6 +499,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\charserverdb_txt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_txt.c"
 				>
 			</File>
 			<File

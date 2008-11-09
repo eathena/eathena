@@ -4,7 +4,9 @@
 #ifndef _INT_PET_H_
 #define _INT_PET_H_
 
-void inter_pet_init(void);
+#include "petdb.h"
+
+void inter_pet_init(PetDB* db);
 void inter_pet_final(void);
 void inter_pet_sync(void);
 bool inter_pet_delete(int pet_id);
