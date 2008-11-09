@@ -572,20 +572,13 @@ void inter_party_sync(void)
 	parties->sync(parties);
 }
 
-int inter_party_init(void)
+int inter_party_init(PartyDB* db)
 {
-#ifdef TXT_ONLY
-	parties = party_db_txt();
-#else
-	parties = party_db_sql();
-#endif
-
-	parties->init(parties);
-
+	parties = db;
 	return 0;
 }
 
 void inter_party_final(void)
 {
-	parties->destroy(parties);
+	parties = NULL;
 }

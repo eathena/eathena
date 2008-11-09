@@ -14,6 +14,7 @@
 #include "chardb.h"
 #include "guilddb.h"
 #include "homundb.h"
+#include "partydb.h"
 #include "petdb.h"
 #include "rankdb.h"
 #include "statusdb.h"
@@ -107,6 +108,8 @@ struct CharServerDB
 	GuildDB* (*guilddb)(CharServerDB* self);
 
 	HomunDB* (*homundb)(CharServerDB* self);
+
+	PartyDB* (*partydb)(CharServerDB* self);
 
 	PetDB* (*petdb)(CharServerDB* self);
 

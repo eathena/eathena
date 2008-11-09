@@ -32,16 +32,18 @@ struct CharServerDB_SQL
 {
 	CharServerDB vtable;
 
-	Sql* sql_handle;// SQL connection handle
-	bool initialized;
 	// TODO DB interfaces
 	CastleDB* castledb;
 	CharDB* chardb;
 	GuildDB* guilddb;
 	HomunDB* homundb;
+	PartyDB* partydb;
 	PetDB* petdb;
 	RankDB* rankdb;
 	StatusDB* statusdb;
+
+	Sql* sql_handle;// SQL connection handle
+	bool initialized;
 
 	// global sql settings
 	char   global_db_hostname[32];
@@ -55,16 +57,19 @@ struct CharServerDB_SQL
 };
 
 
+
 CastleDB* castle_db_sql(CharServerDB_SQL* owner);
 CharDB* char_db_sql(CharServerDB_SQL* owner);
 GuildDB* guild_db_sql(CharServerDB_SQL* owner);
 HomunDB* homun_db_sql(CharServerDB_SQL* owner);
+PartyDB* party_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
 StatusDB* status_db_sql(CharServerDB_SQL* owner);
 
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
 bool    rank_db_sql_init(RankDB* self);
 void    rank_db_sql_destroy(RankDB* self);
+
 
 
 #endif /* _CHARSERVERDB_SQL_H_ */

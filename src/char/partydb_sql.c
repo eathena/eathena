@@ -6,7 +6,8 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
-#include "inter.h" // sql_handle
+#include "charserverdb_sql.h"
+#include "inter.h" // char_db[]
 #include "int_party.h"
 #include "partydb.h"
 #include <stdlib.h>
@@ -29,6 +30,7 @@ typedef struct PartyDB_SQL
 {
 	PartyDB vtable;    // public interface
 
+	CharServerDB_SQL* owner;
 	Sql* parties;      // SQL party storage
 
 	// other settings
@@ -52,7 +54,7 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id);
 static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, int index);
 
 /// public constructor
-PartyDB* party_db_sql(void)
+PartyDB* party_db_sql(CharServerDB_SQL* owner)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)aCalloc(1, sizeof(PartyDB_SQL));
 
@@ -67,6 +69,7 @@ PartyDB* party_db_sql(void)
 	db->vtable.load_str  = &party_db_sql_load_str;
 
 	// initialize to default values
+	db->owner = owner;
 	db->parties = NULL;
 	// other settings
 	db->case_sensitive = false;
@@ -83,18 +86,13 @@ PartyDB* party_db_sql(void)
 static bool party_db_sql_init(PartyDB* self)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-
-	//TODO: do it properly
-	db->parties = sql_handle;
-
+	db->parties = db->owner->sql_handle;
 	return true;
 }
 
 static void party_db_sql_destroy(PartyDB* self)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-
-	//TODO: do it properly
 	db->parties = NULL;
 	aFree(db);
 }

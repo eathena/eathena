@@ -46,7 +46,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->statusdb->init(db->statusdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->statusdb->init(db->statusdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -67,6 +67,8 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->guilddb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
+	db->partydb->destroy(db->partydb);
+	db->partydb = NULL;
 	db->petdb->destroy(db->petdb);
 	db->petdb = NULL;
 	rank_db_sql_destroy(db->rankdb);
@@ -218,6 +220,16 @@ static HomunDB* charserver_db_sql_homundb(CharServerDB* self)
 
 
 /// TODO
+static PartyDB* charserver_db_sql_partydb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->partydb;
+}
+
+
+
+/// TODO
 static PetDB* charserver_db_sql_petdb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -261,22 +273,24 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.chardb       = charserver_db_sql_chardb;
 	db->vtable.guilddb      = charserver_db_sql_guilddb;
 	db->vtable.homundb      = charserver_db_sql_homundb;
+	db->vtable.partydb      = charserver_db_sql_partydb;
 	db->vtable.petdb        = charserver_db_sql_petdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	db->vtable.statusdb     = charserver_db_sql_statusdb;
 	// TODO DB interfaces
 
-	// initialize to default values
-	db->sql_handle = NULL;
-	db->initialized = false;
-
 	db->castledb = castle_db_sql(db);
 	db->chardb = char_db_sql(db);
 	db->guilddb = guild_db_sql(db);
 	db->homundb = homun_db_sql(db);
+	db->partydb = party_db_sql(db);
 	db->petdb = pet_db_sql(db);
 	db->rankdb = rank_db_sql(db);
 	db->statusdb = status_db_sql(db);
+
+	// initialize to default values
+	db->sql_handle = NULL;
+	db->initialized = false;
 
 	// global sql settings
 	safestrncpy(db->global_db_hostname, "127.0.0.1", sizeof(db->global_db_hostname));

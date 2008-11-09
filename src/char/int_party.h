@@ -4,7 +4,9 @@
 #ifndef _INT_PARTY_H_
 #define _INT_PARTY_H_
 
-int inter_party_init(void);
+#include "partydb.h"
+
+int inter_party_init(PartyDB* db);
 void inter_party_final(void);
 void inter_party_sync(void);
 int inter_party_parse_frommap(int fd);

@@ -20,7 +20,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -42,6 +42,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->guilddb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
+	db->partydb->destroy(db->partydb);
+	db->partydb = NULL;
 	db->petdb->destroy(db->petdb);
 	db->petdb = NULL;
 	rank_db_txt_destroy(db->rankdb);
@@ -152,6 +154,16 @@ static HomunDB* charserver_db_txt_homundb(CharServerDB* self)
 
 
 /// TODO
+static PartyDB* charserver_db_txt_partydb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->partydb;
+}
+
+
+
+/// TODO
 static PetDB* charserver_db_txt_petdb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -195,6 +207,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.chardb       = charserver_db_txt_chardb;
 	db->vtable.guilddb      = charserver_db_txt_guilddb;
 	db->vtable.homundb      = charserver_db_txt_homundb;
+	db->vtable.partydb      = charserver_db_txt_partydb;
 	db->vtable.petdb        = charserver_db_txt_petdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
@@ -204,6 +217,7 @@ CharServerDB* charserver_db_txt(void)
 	db->chardb = char_db_txt(db);
 	db->guilddb = guild_db_txt(db);
 	db->homundb = homun_db_txt(db);
+	db->partydb = party_db_txt(db);
 	db->petdb = pet_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 	db->statusdb = status_db_txt(db);

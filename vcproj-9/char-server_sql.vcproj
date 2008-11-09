@@ -447,14 +447,6 @@
 				RelativePath="..\src\char\map.h"
 				>
 			</File>
-			<File
-				RelativePath="..\src\char\partydb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\partydb_sql.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="db"
@@ -501,6 +493,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb_sql.c"
 				>
 			</File>
 			<File

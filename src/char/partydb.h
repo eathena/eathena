@@ -8,14 +8,6 @@
 
 typedef struct PartyDB PartyDB;
 
-// standard engines
-#ifdef WITH_TXT
-PartyDB* party_db_txt(void);
-#endif
-#ifdef WITH_SQL
-PartyDB* party_db_sql(void);
-#endif
-
 
 struct party_data
 {

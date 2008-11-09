@@ -321,14 +321,6 @@
 				RelativePath="..\src\char\map.h"
 				>
 			</File>
-			<File
-				RelativePath="..\src\char\partydb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\partydb_txt.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="common"
@@ -491,6 +483,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb_txt.c"
 				>
 			</File>
 			<File

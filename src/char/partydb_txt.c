@@ -7,6 +7,7 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "charserverdb_txt.h"
 #include "chardb.h"
 #include "int_party.h"
 #include "partydb.h"
@@ -24,6 +25,7 @@ typedef struct PartyDB_TXT
 {
 	PartyDB vtable;      // public interface
 
+	CharServerDB_TXT* owner;
 	DBMap* parties;      // in-memory party storage
 	int next_party_id;   // auto_increment
 
@@ -47,7 +49,7 @@ static bool mmo_party_tostr(const struct party* p, char* str);
 static bool mmo_party_sync(PartyDB_TXT* db);
 
 /// public constructor
-PartyDB* party_db_txt(void)
+PartyDB* party_db_txt(CharServerDB_TXT* owner)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));
 
@@ -62,6 +64,7 @@ PartyDB* party_db_txt(void)
 	db->vtable.load_str  = &party_db_txt_load_str;
 
 	// initialize to default values
+	db->owner = owner;
 	db->parties = NULL;
 	db->next_party_id = START_PARTY_NUM;
 	// other settings
