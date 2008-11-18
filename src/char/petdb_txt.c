@@ -152,7 +152,8 @@ static bool pet_db_txt_sync(PetDB* self)
 static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
-
+/*
+*/
 }
 
 static bool pet_db_txt_remove(PetDB* self, const int pet_id)
@@ -174,13 +175,38 @@ static bool pet_db_txt_remove(PetDB* self, const int pet_id)
 static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
+	DBMap* pets = db->pets;
+	int pet_id = pd->pet_id;
 
+	// retrieve previous data
+	struct s_pet* tmp = idb_get(pets, pet_id);
+	if( tmp == NULL )
+	{// error condition - entry not found
+		return false;
+	}
+	
+	// overwrite with new data
+	memcpy(tmp, pd, sizeof(struct s_pet));
+
+	return true;
 }
 
 static bool pet_db_txt_load_num(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
+	DBMap* pets = db->pets;
 
+	// retrieve data
+	struct s_pet* tmp = idb_get(pets, pet_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(pd, tmp, sizeof(struct s_pet));
+
+	return true;
 }
 
 static bool mmo_pet_fromstr(struct s_pet* p, char* str)
