@@ -45,7 +45,6 @@ int chrif_searchcharid(int char_id);
 int chrif_changeemail(int id, const char *actual_email, const char *new_email);
 int chrif_char_ask_name(int acc, const char* character_name, unsigned short operation_type, int year, int month, int day, int hour, int minute, int second);
 int chrif_save_scdata(struct map_session_data *sd);
-int chrif_ragsrvinfo(int base_rate,int job_rate, int drop_rate);
 int chrif_char_offline(struct map_session_data *sd);
 int chrif_char_offline_nsd(int account_id, int char_id);
 int chrif_char_reset_offline(void);

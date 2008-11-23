@@ -83,11 +83,7 @@ int parse_frommap(int fd)
 				WBUFW(buf,2) = j * 4 + 10;
 				mapif_sendallwos(fd, buf, WBUFW(buf,2));
 			}
-#ifndef TXT_ONLY
 			memset(&server[id], 0, sizeof(struct mmo_map_server));
-			if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `ragsrvinfo` WHERE `index`='%d'", server[id].fd) )
-				Sql_ShowDebug(sql_handle);
-#endif
 			server[id].fd = -1;
 			online_char_db->foreach(online_char_db,char_db_setoffline,id); //Tag relevant chars as 'in disconnected' server.
 		}
@@ -482,28 +478,6 @@ int parse_frommap(int fd)
 
 			char_divorce(RFIFOL(fd,2), RFIFOL(fd,6));
 			RFIFOSKIP(fd,10);
-		break;
-
-		case 0x2b16: // Receive rates [Wizputer]
-			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,8))
-				return 0;
-#ifndef TXT_ONLY
-		{
-			char motd[256];
-			char esc_motd[sizeof(motd)*2+1];
-			char esc_server_name[sizeof(server_name)*2+1];
-
-			strncpy(motd, (char*)RFIFOP(fd,10), 255); //First copy it to make sure the motd fits.
-			motd[255] = '\0';
-			Sql_EscapeString(sql_handle, esc_motd, motd);
-			Sql_EscapeString(sql_handle, esc_server_name, server_name);
-
-			if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `ragsrvinfo` SET `index`='%d',`name`='%s',`exp`='%d',`jexp`='%d',`drop`='%d',`motd`='%s'",
-				fd, esc_server_name, RFIFOW(fd,2), RFIFOW(fd,4), RFIFOW(fd,6), esc_motd) )
-				Sql_ShowDebug(sql_handle);
-		}
-#endif
-			RFIFOSKIP(fd,RFIFOW(fd,8));
 		break;
 
 		case 0x2b17: // Character disconnected set online 0 [Wizputer]

@@ -4132,9 +4132,6 @@ int atcommand_reloadbattleconf(const int fd, struct map_session_data* sd, const 
 	)
   	{	//Drop rates changed.
 		mob_reload(); //Needed as well so rate changes take effect.
-#ifndef TXT_ONLY
-		chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
-#endif
 	}
 	clif_displaymessage(fd, msg_txt(255));
 	return 0;

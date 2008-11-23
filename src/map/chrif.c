@@ -72,7 +72,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b13: Incoming, chrif_accountdeletion -> 'Delete acc XX, if the player is on, kick ....'
 //2b14: Incoming, chrif_accountban -> 'not sure: kick the player with message XY'
 //2b15: FREE
-//2b16: Outgoing, chrif_ragsrvinfo -> 'sends motd / rates ....'
+//2b16: FREE
 //2b17: Outgoing, chrif_char_offline -> 'tell the charserver that the char is now offline'
 //2b18: Outgoing, chrif_char_reset_offline -> 'set all players OFF!'
 //2b19: Outgoing, chrif_char_online -> 'tell the charserver that the char .. is online'
@@ -93,7 +93,6 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 
 int chrif_connected = 0;
 int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
-int srvinfo;
 static char char_ip_str[128];
 static uint32 char_ip = 0;
 static uint16 char_port = 6121;
@@ -1118,45 +1117,6 @@ int chrif_load_scdata(int fd)
 	return 0;
 }
 
-/*==========================================
- * Send rates and motd to char server [Wizputer]
- * S 2b16 <base rate>.w <job rate>.w <drop rate>.w <motd len>.w <motd>.256B
- *------------------------------------------*/
- int chrif_ragsrvinfo(int base_rate, int job_rate, int drop_rate)
-{
-	char buf[256];
-	FILE *fp;
-	int i;
-
-	chrif_check(-1);
-
-	WFIFOHEAD(char_fd, sizeof(buf) + 10);
-	WFIFOW(char_fd,0) = 0x2b16;
-	WFIFOW(char_fd,2) = base_rate;
-	WFIFOW(char_fd,4) = job_rate;
-	WFIFOW(char_fd,6) = drop_rate;
-	WFIFOW(char_fd,8) = sizeof(buf) + 10;
-
-	if ((fp = fopen(motd_txt, "r")) != NULL) {
-		if (fgets(buf, sizeof(buf), fp) != NULL)
-		{
-			for(i = 0; buf[i]; i++) {
-				if (buf[i] == '\r' || buf[i] == '\n') {
-					buf[i] = 0;
-					break;
-				}
-			}
-			memcpy(WFIFOP(char_fd,10), buf, sizeof(buf));
-		}
-		fclose(fp);
-	} else {
-		memset(buf, 0, sizeof(buf)); //No data found, send empty packets?
-		memcpy(WFIFOP(char_fd,10), buf, sizeof(buf));
-	}
-	WFIFOSET(char_fd,WFIFOW(char_fd,8));
-	return 0;
-}
-
 
 /*=========================================
  * Tell char-server charcter disconnected [Wizputer]
@@ -1445,17 +1405,8 @@ int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
 
 		chrif_connect(char_fd);
 		chrif_connected = (chrif_state == 2);
-#ifndef TXT_ONLY
-		srvinfo = 0;
-#endif /* not TXT_ONLY */
-	} else {
-#ifndef TXT_ONLY
-		if (srvinfo == 0) {
-			chrif_ragsrvinfo(battle_config.base_exp_rate, battle_config.job_exp_rate, battle_config.item_rate_common);
-			srvinfo = 1;
-		}
-#endif /* not TXT_ONLY */
 	}
+
 	if (chrif_isconnected()) displayed = 0;
 	return 0;
 }
