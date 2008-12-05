@@ -23,6 +23,7 @@ struct char_session_data {
 #define LAN_CONF_NAME   "conf/subnet_athena.conf"
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 
+void log_char(const char* fmt, ...);
 
 int mapif_send(int fd,unsigned char *buf, unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
@@ -36,7 +37,6 @@ int char_delete(int char_id);
 extern char db_path[];
 extern int char_name_option;
 extern char char_name_letters[];
-extern int log_char;
 extern int log_inter;
 extern int guild_exp_rate;
 extern int save_log;

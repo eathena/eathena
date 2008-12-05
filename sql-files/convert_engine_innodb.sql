@@ -5,7 +5,6 @@
 ALTER TABLE `auction` ENGINE = InnoDB;
 ALTER TABLE `cart_inventory` ENGINE = InnoDB;
 ALTER TABLE `char` ENGINE = InnoDB;
-ALTER TABLE `charlog` ENGINE = InnoDB;
 ALTER TABLE `friends` ENGINE = InnoDB;
 ALTER TABLE `global_reg_value` ENGINE = InnoDB;
 ALTER TABLE `guild` ENGINE = InnoDB;
@@ -24,7 +23,6 @@ ALTER TABLE `ipbanlist` ENGINE = InnoDB;
 #ALTER TABLE `item_db` ENGINE = InnoDB;
 #ALTER TABLE `item_db2` ENGINE = InnoDB;
 ALTER TABLE `login` ENGINE = InnoDB;
-#ALTER TABLE `loginlog` ENGINE = InnoDB;
 ALTER TABLE `mail` ENGINE = InnoDB;
 ALTER TABLE `mapreg` ENGINE = InnoDB;
 ALTER TABLE `memo` ENGINE = InnoDB;

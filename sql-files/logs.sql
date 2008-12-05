@@ -125,3 +125,13 @@ CREATE TABLE `loginlog` (
   INDEX (`ip`)
 ) ENGINE=MyISAM ;
 
+#Database: log
+#Table: charlog
+CREATE TABLE `charlog` (
+  `time` datetime NOT NULL default '0000-00-00 00:00:00',
+  `char_id` int(11) NOT NULL default '0',
+  `account_id` int(11) NOT NULL default '0',
+  `slot` tinyint(4) NOT NULL default '0',
+  `name` varchar(23) NOT NULL default '',
+  `message` varchar(255) NOT NULL default '',
+) ENGINE=MyISAM; 

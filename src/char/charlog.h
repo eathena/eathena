@@ -5,7 +5,7 @@
 #define __CHARLOG_H_INCLUDED__
 
 
-void char_log(char *fmt, ...);
+void charlog_log(int char_id, int account_id, int slot, const char* name, const char* msg, ...);
 bool charlog_init(void);
 bool charlog_final(void);
 bool charlog_config_read(const char* w1, const char* w2);

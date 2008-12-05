@@ -35,7 +35,6 @@ extern CharDB* chars;
 extern char accreg_txt[1024];
 char inter_log_filename[1024] = "log/inter.log";
 #else
-Sql* sql_handle = NULL;
 int char_server_port = 3306;
 char char_server_ip[32] = "127.0.0.1";
 char char_server_id[32] = "ragnarok";

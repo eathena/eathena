@@ -117,7 +117,8 @@ int max_connect_user = 0;
 int gm_allow_level = 99;
 
 // char config
-int log_char = 1;	// loggin char or not [devil]
+static char char_log_filename[1024] = "log/char.log";
+static bool log_char_enabled = false; // charserver logging
 int log_inter = 1;	// loggin inter or not [devil]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
@@ -579,7 +580,7 @@ int parse_console(char* buf)
 
 	sscanf(buf, "%[^\n]", command);
 
-	//login_log("Console command :%s\n", command);
+	log_char("Console command :%s\n", command);
 
 	if( strcmpi("shutdown", command) == 0 ||
 	    strcmpi("exit", command) == 0 ||
@@ -783,19 +784,7 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 	char_id = cd.char_id;
 
 	// validation success, log result
-#ifdef TXT_ONLY
-	char_log("make new char: account: %d, slot %d, name: %s, stats: %d/%d/%d/%d/%d/%d, hair: %d, hair color: %d.\n",
-	         sd->account_id, slot, name, str, agi, vit, int_, dex, luk, hair_style, hair_color);
-#else
-	if (log_char) {
-		char esc_name[NAME_LENGTH*2+1];
-		Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `char_msg`,`account_id`,`char_num`,`name`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hair`,`hair_color`)"
-			"VALUES (NOW(), '%s', '%d', '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			charlog_db, "make new char", sd->account_id, slot, esc_name, str, agi, vit, int_, dex, luk, hair_style, hair_color) )
-			Sql_ShowDebug(sql_handle);
-	}
-#endif
+	charlog_log(cd.char_id, cd.account_id, cd.slot, cd.name, "make new char (stats:%d/%d/%d/%d/%d/%d, hair-style:%d, hair-color:%d)", str, agi, vit, int_, dex, luk, hair_style, hair_color);
 
 	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, slot, name);
 	return char_id;
@@ -952,6 +941,26 @@ int ping_login_server(int tid, unsigned int tick, int id, intptr data)
 	return 0;
 }
 
+
+/// server event logging
+void log_char(const char* fmt, ...)
+{
+	FILE* log_fp;
+	va_list ap;
+
+	if( !log_char_enabled )
+		return;
+
+	log_fp = fopen(char_log_filename, "a");
+	if( log_fp == NULL )
+		return;
+
+	va_start(ap, fmt);
+	vfprintf(log_fp, fmt, ap);
+	va_end(ap);
+
+	fclose(log_fp);
+}
 
 //----------------------------------
 // Reading Lan Support configuration
@@ -1229,8 +1238,8 @@ int char_config_read(const char* cfgName)
 			start_armor = atoi(w2);
 			if (start_armor < 0)
 				start_armor = 0;
-		} else if(strcmpi(w1,"log_char")==0) {		//log char or not [devil]
-			log_char = atoi(w2);
+		} else if(strcmpi(w1,"log_char")==0) {
+			log_char_enabled = atoi(w2);
 		} else if (strcmpi(w1, "unknown_char_name") == 0) {
 			strcpy(unknown_char_name, w2);
 			unknown_char_name[NAME_LENGTH-1] = '\0';
@@ -1355,10 +1364,6 @@ void do_final(void)
 
 	inter_final();
 	mapindex_final();
-
-	char_log("----End of char-server (normal end with closing of all files).\n");
-	charlog_final();
-
 #else
 
 	//check SQL save progress.
@@ -1379,11 +1384,10 @@ void do_final(void)
 		do_close(char_fd);
 	online_char_db->destroy(online_char_db, NULL);
 	auth_db->destroy(auth_db, NULL);
-
-	Sql_Free(sql_handle);
-
-	charlog_final();
 #endif
+
+	log_char("----End of char-server (normal shutdown).\n");
+	charlog_final();
 
 	for( i = 0; charserver_engines[i].constructor; ++i )
 	{// destroy all charserver engines
@@ -1428,10 +1432,8 @@ int do_init(int argc, char **argv)
 	}
 
 	ShowInfo("Initializing char server.\n");
+	log_char("The char-server is starting...\n");
 	charlog_init();
-	// a newline in the log...
-	char_log("");
-	char_log("The char-server is starting...\n");
 
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -1492,9 +1494,8 @@ int do_init(int argc, char **argv)
 	}
 
 	char_fd = make_listen_bind(bind_ip, char_port);
-#ifdef TXT_ONLY
-	char_log("The char-server is ready (Server is listening on the port %d).\n", char_port);
-#endif
+
+	log_char("The char-server is ready (Server is listening on the port %d).\n", char_port);
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 
 	return 0;

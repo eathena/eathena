@@ -328,11 +328,7 @@ int char_delete(int char_id)
 		Sql_ShowDebug(sql_handle);
 #endif
 
-	if (log_char) {
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s`(`time`, `account_id`,`char_num`,`char_msg`,`name`) VALUES (NOW(), '%d', '%d', 'Deleted char (CID %d)', '%s')",
-			charlog_db, account_id, 0, char_id, esc_name) )
-			Sql_ShowDebug(sql_handle);
-	}
+	charlog_log(char_id, account_id, -1, name, "Deleted char");
 
 	/* delete character */
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )

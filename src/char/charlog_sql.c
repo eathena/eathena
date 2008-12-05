@@ -6,32 +6,56 @@
 #include "../common/socket.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h> // exit
+#include <string.h>
 
-char   log_db_hostname[32] = "127.0.0.1";
-uint16 log_db_port = 3306;
-char   log_db_username[32] = "ragnarok";
-char   log_db_password[32] = "ragnarok";
-char   log_db_database[32] = "log";
-char   charlog_table[256] = "charlog";
+static char   log_db_hostname[32] = "127.0.0.1";
+static uint16 log_db_port = 3306;
+static char   log_db_username[32] = "ragnarok";
+static char   log_db_password[32] = "ragnarok";
+static char   log_db_database[32] = "log";
+static char   charlog_table[256] = "charlog";
+static bool   log_char_enabled = true;
 
-Sql* sql_handle;
-bool enabled = false;
+static Sql* sql_handle = NULL;
+static bool init_done = false;
 
 
 /*=============================================
- * Records an event in the char log
+ * Records an event in the character log
  *---------------------------------------------*/
-void char_log(char *fmt, ...)
+void charlog_log(int char_id, int account_id, int slot, const char* name, const char* msg, ...)
 {
-	char esc_username[NAME_LENGTH*2+1];
+	va_list ap;
+	char message[255+1];
 	char esc_message[255*2+1];
-	int retcode;
+	char esc_name[NAME_LENGTH*2+1];
 
-	if( !enabled )
+	if( !log_char_enabled )
 		return;
+	if( !init_done )
+		return;
+
+	// prepare formatted message
+	va_start(ap, msg);
+	vsnprintf(message, sizeof(message)-1, msg, ap);
+	va_end(ap);
+
+	// escape message
+	Sql_EscapeStringLen(sql_handle, esc_message, message, strnlen(message, 255));
+
+	// escape name
+	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
+
+	// write log entry
+	if( SQL_ERROR == Sql_Query(sql_handle,
+	    "INSERT INTO `%s` (`time`, `char_id`, `account_id`, `slot`, `name`, `message`) "
+		"VALUES(NOW(), '%d', '%d', '%d', '%s', '%s'",
+		charlog_table, char_id, account_id, slot, esc_name, esc_message) )
+		Sql_ShowDebug(sql_handle);
 }
+
 
 bool charlog_init(void)
 {
@@ -44,20 +68,27 @@ bool charlog_init(void)
 		exit(EXIT_FAILURE);
 	}
 
-	enabled = true;
+	init_done = true;
 
 	return true;
 }
+
 
 bool charlog_final(void)
 {
 	Sql_Free(sql_handle);
 	sql_handle = NULL;
+	init_done = false;
+
 	return true;
 }
 
+
 bool charlog_config_read(const char* key, const char* value)
 {
+	if( strcmpi(key, "log_char") == 0 )
+		log_char_enabled = atoi(value);
+	else
 	if( strcmpi(key, "log_db_ip") == 0 )
 		safestrncpy(log_db_hostname, value, sizeof(log_db_hostname));
 	else

@@ -108,26 +108,6 @@ CREATE TABLE IF NOT EXISTS `char` (
 ) ENGINE=MyISAM AUTO_INCREMENT=150000; 
 
 --
--- Table structure for table `charlog`
---
-
-CREATE TABLE IF NOT EXISTS `charlog` (
-  `time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `char_msg` varchar(255) NOT NULL default 'char select',
-  `account_id` int(11) NOT NULL default '0',
-  `char_num` tinyint(4) NOT NULL default '0',
-  `name` varchar(23) NOT NULL default '',
-  `str` int(11) unsigned NOT NULL default '0',
-  `agi` int(11) unsigned NOT NULL default '0',
-  `vit` int(11) unsigned NOT NULL default '0',
-  `int` int(11) unsigned NOT NULL default '0',
-  `dex` int(11) unsigned NOT NULL default '0',
-  `luk` int(11) unsigned NOT NULL default '0',
-  `hair` tinyint(4) NOT NULL default '0',
-  `hair_color` int(11) NOT NULL default '0'
-) ENGINE=MyISAM; 
-
---
 -- Table structure for table `friends`
 --
 

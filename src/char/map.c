@@ -115,10 +115,8 @@ int parse_frommap(int fd)
 			ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
 						id, j, CONVIP(server[id].ip), server[id].port);
 			ShowStatus("Map-server %d loading complete.\n", id);
-#ifdef TXT_ONLY
-			char_log("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete.\n",
+			log_char("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete.\n",
 						id, j, CONVIP(server[id].ip), server[id].port, id);
-#endif
 
 			// send name for wisp to player
 			WFIFOHEAD(fd, 3 + NAME_LENGTH);
@@ -132,9 +130,7 @@ int parse_frommap(int fd)
 			int x;
 			if (j == 0) {
 				ShowWarning("Map-server %d has NO maps.\n", id);
-#ifdef TXT_ONLY
-				char_log("WARNING: Map-server %d has NO maps.\n", id);
-#endif
+				log_char("WARNING: Map-server %d has NO maps.\n", id);
 			} else {
 				// Transmitting maps information to the other map-servers
 				WBUFW(buf,0) = 0x2b04;

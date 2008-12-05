@@ -234,13 +234,13 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 8 || RFIFOREST(fd) < (8 + RFIFOL(fd,4)))
 				return 0;
 			if (RFIFOL(fd,4) < 1)
-				char_log("Receiving a message for broadcast, but message is void.\n");
+				log_char("Receiving a message for broadcast, but message is void.\n");
 			else
 			{
 				// at least 1 map-server
 				ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd >= 0 );
 				if (i == MAX_MAP_SERVERS)
-					char_log("'ladmin': Receiving a message for broadcast, but no map-server is online.\n");
+					log_char("'ladmin': Receiving a message for broadcast, but no map-server is online.\n");
 				else {
 					unsigned char buf[128];
 					char message[4096]; // +1 to add a null terminated if not exist in the packet
@@ -256,15 +256,15 @@ int parse_fromlogin(int fd)
 						p++;
 					// if message is only composed of spaces
 					if (p[0] == '\0')
-						char_log("Receiving a message for broadcast, but message is only a lot of spaces.\n");
+						log_char("Receiving a message for broadcast, but message is only a lot of spaces.\n");
 					// else send message to all map-servers
 					else {
 						if (RFIFOW(fd,2) == 0) {
-							char_log("'ladmin': Receiving a message for broadcast (message (in yellow): %s)\n",
+							log_char("'ladmin': Receiving a message for broadcast (message (in yellow): %s)\n",
 							         message);
 							lp = 4;
 						} else {
-							char_log("'ladmin': Receiving a message for broadcast (message (in blue): %s)\n",
+							log_char("'ladmin': Receiving a message for broadcast (message (in blue): %s)\n",
 							         message);
 							lp = 8;
 						}

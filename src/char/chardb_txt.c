@@ -128,8 +128,8 @@ static bool char_db_txt_init(CharDB* self)
 	if( fp == NULL )
 	{
 		ShowError("Characters file not found: %s.\n", db->char_db);
-		char_log("Characters file not found: %s.\n", db->char_db);
-		char_log("Id for the next created character: %d.\n", db->next_char_id);
+		log_char("Characters file not found: %s.\n", db->char_db);
+		log_char("Id for the next created character: %d.\n", db->next_char_id);
 		return false;
 	}
 
@@ -171,17 +171,17 @@ static bool char_db_txt_init(CharDB* self)
 			ShowError("               -> Character saved in log file.\n");
 			switch( ret )
 			{
-			case  0: char_log("Unable to get a character in the next line - Basic structure of line (before inventory) is incorrect (character not readed):\n"); break;
-			case -1: char_log("Duplicate character id in the next character line (character not readed):\n"); break;
-			case -2: char_log("Duplicate character name in the next character line (character not readed):\n"); break;
-			case -3: char_log("Invalid memo point structure in the next character line (character not readed):\n"); break;
-			case -4: char_log("Invalid inventory item structure in the next character line (character not readed):\n"); break;
-			case -5: char_log("Invalid cart item structure in the next character line (character not readed):\n"); break;
-			case -6: char_log("Invalid skill structure in the next character line (character not readed):\n"); break;
-			case -7: char_log("Invalid register structure in the next character line (character not readed):\n"); break;
+			case  0: log_char("Unable to get a character in the next line - Basic structure of line (before inventory) is incorrect (character not readed):\n"); break;
+			case -1: log_char("Duplicate character id in the next character line (character not readed):\n"); break;
+			case -2: log_char("Duplicate character name in the next character line (character not readed):\n"); break;
+			case -3: log_char("Invalid memo point structure in the next character line (character not readed):\n"); break;
+			case -4: log_char("Invalid inventory item structure in the next character line (character not readed):\n"); break;
+			case -5: log_char("Invalid cart item structure in the next character line (character not readed):\n"); break;
+			case -6: log_char("Invalid skill structure in the next character line (character not readed):\n"); break;
+			case -7: log_char("Invalid register structure in the next character line (character not readed):\n"); break;
 			default: break;
 			}
-			char_log("%s", line);
+			log_char("%s", line);
 
 			aFree(ch);
 			continue;
@@ -198,8 +198,8 @@ static bool char_db_txt_init(CharDB* self)
 	fclose(fp);
 
 	ShowStatus("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
-	char_log("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
-	char_log("Id for the next created character: %d.\n", db->next_char_id);
+	log_char("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
+	log_char("Id for the next created character: %d.\n", db->next_char_id);
 
 	// initialize data saving timer
 	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
@@ -686,7 +686,7 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 		ShowWarning("mmo_auth_init: ******WARNING: character name has wisp server name.\n");
 		ShowWarning("               Character name '%s' = wisp server name '%s'.\n", p->name, wisp_server_name);
 		ShowWarning("               Character readed. Suggestion: change the wisp server name.\n");
-		char_log("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'.\n",
+		log_char("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'.\n",
 		          p->name, wisp_server_name);
 	}
 #endif //TXT_SQL_CONVERT
@@ -872,7 +872,7 @@ static void mmo_char_sync(CharDB_TXT* db)
 	if( fp == NULL )
 	{
 		ShowWarning("Server cannot save characters.\n");
-		char_log("WARNING: Server cannot save characters.\n");
+		log_char("WARNING: Server cannot save characters.\n");
 		return;
 	}
 

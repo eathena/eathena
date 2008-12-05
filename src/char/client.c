@@ -171,19 +171,9 @@ int parse_char(int fd)
 
 			cd.sex = sd->sex; //FIXME: is this a good idea?
 
-#ifdef TXT_ONLY
-			char_log("Character Selected, Account ID: %d, Character Slot: %d, Character Name: %s.\n", sd->account_id, slot, cd.name);
-#else
-			if (log_char) {
-				char esc_name[NAME_LENGTH*2+1];
-
-				Sql_EscapeStringLen(sql_handle, esc_name, cd.name, strnlen(cd.name, NAME_LENGTH));
-				if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s`(`time`, `account_id`,`char_num`,`name`) VALUES (NOW(), '%d', '%d', '%s')",
-					charlog_db, sd->account_id, slot, esc_name) )
-					Sql_ShowDebug(sql_handle);
-			}
+			charlog_log(cd.char_id, cd.account_id, cd.slot, cd.name, "char select");
 			ShowInfo("Selected char: (Account %d: %d - %s)\n", sd->account_id, slot, cd.name);
-#endif
+
 			// searching map server
 			i = search_mapserver(cd.last_point.map,-1,-1);
 
