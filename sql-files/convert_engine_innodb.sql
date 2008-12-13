@@ -17,7 +17,6 @@ ALTER TABLE `guild_skill` ENGINE = InnoDB;
 ALTER TABLE `guild_storage` ENGINE = InnoDB;
 ALTER TABLE `homunculus` ENGINE = InnoDB;
 ALTER TABLE `hotkey` ENGINE = InnoDB;
-ALTER TABLE `interlog` ENGINE = InnoDB;
 ALTER TABLE `inventory` ENGINE = InnoDB;
 ALTER TABLE `ipbanlist` ENGINE = InnoDB;
 #ALTER TABLE `item_db` ENGINE = InnoDB;

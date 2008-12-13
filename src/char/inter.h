@@ -11,7 +11,6 @@ void inter_final(void);
 int inter_parse_frommap(int fd);
 int inter_mapif_init(int fd);
 int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
-int inter_log(char *fmt,...);
 
 extern unsigned int party_share_level;
 extern char main_chat_nick[16];
@@ -29,9 +28,7 @@ extern char char_db[256];
 extern char scdata_db[256];
 extern char cart_db[256];
 extern char inventory_db[256];
-extern char charlog_db[256];
 extern char storage_db[256];
-extern char interlog_db[256];
 extern char reg_db[256];
 extern char skill_db[256];
 extern char memo_db[256];

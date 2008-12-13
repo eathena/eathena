@@ -8,7 +8,6 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "chardb.h"
-#include "charlog.h"
 #include "int_guild.h"
 #include "int_storage.h"
 #include "inter.h"

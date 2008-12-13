@@ -12,6 +12,7 @@
 #include "char.h"
 #include "guilddb.h"
 #include "inter.h"
+#include "interlog.h"
 #include "int_storage.h"
 #include "int_guild.h"
 #include <string.h>
@@ -504,9 +505,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	mapif_guild_info(fd, &g);
 
 	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g.guild_id, g.name, g.master);
-
-	if(log_inter)
-		inter_log("guild %s (id=%d) created by master %s (id=%d)\n", name, g.guild_id, master->name, master->account_id);
+	interlog_log("guild %s (id=%d) created by master %s (id=%d)\n", name, g.guild_id, master->name, master->account_id);
 
 	return 0;
 }
@@ -685,9 +684,7 @@ void mapif_parse_BreakGuild(int fd, int guild_id)
 	if( guild_break(guild_id) )
 	{
 		mapif_guild_broken(guild_id, 0);
-
-		if( log_inter )
-			inter_log("guild (id=%d) broken\n", guild_id);
+		interlog_log("guild (id=%d) broken\n", guild_id);
 	}
 }
 
@@ -1022,8 +1019,7 @@ void mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value
 		if( !guilds->load_num(guilds, &g, gid) )
 			safestrncpy(g.name, "??", sizeof(g.name));
 
-		if(log_inter)
-			inter_log("guild %s (id=%d) %s castle id=%d\n", g.name, gid, (value) ? "occupy" : "abandon", castle_id);
+		interlog_log("guild %s (id=%d) %s castle id=%d\n", g.name, gid, (value) ? "occupy" : "abandon", castle_id);
 
 		gc.guild_id = value;
 

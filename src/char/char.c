@@ -119,7 +119,6 @@ int gm_allow_level = 99;
 // char config
 static char char_log_filename[1024] = "log/char.log";
 static bool log_char_enabled = false; // charserver logging
-int log_inter = 1;	// loggin inter or not [devil]
 int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
 char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
 int guild_exp_rate = 100;
@@ -1070,8 +1069,6 @@ void inter_config_read(const char* cfgName)
 			strcpy(reg_db,w2);
 		else if(!strcmpi(w1,"skill_db"))
 			strcpy(skill_db,w2);
-		else if(!strcmpi(w1,"interlog_db"))
-			strcpy(interlog_db,w2);
 		else if(!strcmpi(w1,"memo_db"))
 			strcpy(memo_db,w2);
 		else if(!strcmpi(w1,"guild_db"))

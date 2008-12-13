@@ -13,7 +13,6 @@
 #include "../common/timer.h"
 #include "../common/utils.h"
 #include "chardb.h"
-#include "charlog.h"
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_party.h"

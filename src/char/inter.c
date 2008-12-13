@@ -12,6 +12,7 @@
 #include "char.h"
 #include "chardb.h"
 #include "inter.h"
+#include "interlog.h"
 #include "int_auction.h"
 #include "int_rank.h"
 #include "int_guild.h"
@@ -33,7 +34,6 @@ extern CharDB* chars;
 
 #ifdef TXT_ONLY
 extern char accreg_txt[1024];
-char inter_log_filename[1024] = "log/inter.log";
 #else
 int char_server_port = 3306;
 char char_server_ip[32] = "127.0.0.1";
@@ -111,11 +111,9 @@ static int inter_config_read(const char* cfgName)
 //		else
 		if (strcmpi(w1, "guild_storage_txt") == 0)
 			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
-		else
+//		else
 //		if (strcmpi(w1, "homun_txt") == 0)
 //			strncpy(homun_txt, w2, sizeof(homun_txt));
-		if (strcmpi(w1, "inter_log_filename") == 0)
-			strncpy(inter_log_filename, w2, sizeof(inter_log_filename));
 #else
 		if(!strcmpi(w1,"char_server_ip"))
 			strcpy(char_server_ip,w2);
@@ -136,9 +134,6 @@ static int inter_config_read(const char* cfgName)
 			strcpy(default_codepage,w2);
 #endif
 		else
-		if(strcmpi(w1,"log_inter")==0)
-			log_inter = atoi(w2);
-		else
 		if(strcmpi(w1, "main_chat_nick")==0)
 			strcpy(main_chat_nick, w2);
 		else
@@ -150,7 +145,9 @@ static int inter_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "party.auto_reassign_leader") == 0 )
 			party_auto_reassign_leader = config_switch(w2);
-		else
+
+		else if( interlog_config_read(w1,w2) )
+			continue;
 		if (strcmpi(w1, "import") == 0)
 			inter_config_read(w2);
 	}
@@ -158,36 +155,6 @@ static int inter_config_read(const char* cfgName)
 
 	ShowInfo ("done reading %s.\n", cfgName);
 
-	return 0;
-}
-
-// interserver logging
-int inter_log(char *fmt,...)
-{
-#ifdef TXT_ONLY
-	FILE *logfp;
-	va_list ap;
-
-	va_start(ap,fmt);
-	logfp = fopen(inter_log_filename, "a");
-	if (logfp) {
-		vfprintf(logfp, fmt, ap);
-		fclose(logfp);
-	}
-	va_end(ap);
-#else
-	char str[255];
-	char esc_str[sizeof(str)*2+1];// escaped str
-	va_list ap;
-
-	va_start(ap,fmt);
-	vsnprintf(str, sizeof(str), fmt, ap);
-	va_end(ap);
-
-	Sql_EscapeStringLen(sql_handle, esc_str, str, strnlen(str, sizeof(str)));
-	if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` (`time`, `log`) VALUES (NOW(),  '%s')", interlog_db, esc_str) )
-		Sql_ShowDebug(sql_handle);
-#endif
 	return 0;
 }
 

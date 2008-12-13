@@ -310,6 +310,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\interlog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\interlog_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\login.c"
 				>
 			</File>

@@ -17,7 +17,6 @@ ALTER TABLE `guild_skill` ENGINE = MyISAM;
 ALTER TABLE `guild_storage` ENGINE = MyISAM;
 ALTER TABLE `homunculus` ENGINE = MyISAM;
 ALTER TABLE `hotkey` ENGINE = MyISAM;
-ALTER TABLE `interlog` ENGINE = MyISAM;
 ALTER TABLE `inventory` ENGINE = MyISAM;
 ALTER TABLE `ipbanlist` ENGINE = MyISAM;
 #ALTER TABLE `item_db` ENGINE = MyISAM;

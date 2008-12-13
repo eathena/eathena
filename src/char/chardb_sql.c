@@ -12,7 +12,6 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
-#include "charlog.h"
 #include "inter.h"
 #include "charserverdb_sql.h"
 

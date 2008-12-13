@@ -323,15 +323,6 @@ CREATE TABLE IF NOT EXISTS `homunculus` (
   PRIMARY KEY  (`homun_id`)
 ) ENGINE=MyISAM;
 
--- 
--- Table structure for table `interlog`
---
-
-CREATE TABLE IF NOT EXISTS `interlog` (
-  `time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `log` varchar(255) NOT NULL default ''
-) ENGINE=MyISAM; 
-
 --
 -- Table structure for table `inventory`
 --

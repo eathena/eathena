@@ -1,3 +1,4 @@
+-- script converts the `charlog` table and moves it to the `log` database.
 -- NOTE: change `ragnarok` and `log` to whatever your database names are.
 
 START TRANSACTION;
@@ -11,7 +12,7 @@ CREATE TABLE `log`.`charlog` (
   `message` varchar(255) NOT NULL default '',
 ) ENGINE=MyISAM; 
 
-INSERT INTO `arcomage`.`charlog` 
+INSERT INTO `log`.`charlog` 
   SELECT `time`, (SELECT `char_id` FROM `ragnarok`.`char` as c WHERE l.`account_id` = c.`account_id` AND l.`char_num` = c.`char_num`) as `char_id`, `account_id`, `char_num` as `slot`, `name`, `char_msg` as `message`
   FROM `ragnarok`.`charlog` as l ;
 
