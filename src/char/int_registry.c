@@ -81,8 +81,8 @@ int save_accreg2(unsigned char* buf, int len)
 	return 0;
 }
 
-// Account registry transfer to map-server
-static void mapif_account_reg(int fd, unsigned char *src)
+// registry transfer to map-server
+static void mapif_regs(int fd, unsigned char *src)
 {
 	WBUFW(src,0) = 0x3804; //NOTE: writing to RFIFO
 	mapif_sendallwos(fd, src, WBUFW(src,2));
@@ -117,8 +117,8 @@ int mapif_parse_Registry(int fd)
 	{
 		struct regs reg;
 		inter_regs_frombuf(buf, length-13, &reg);
-		inter_charreg_save(account_id, &reg);
-		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
+		inter_charreg_save(char_id, &reg);
+		mapif_regs(fd,RFIFOP(fd,0)); // Send regs to other map servers.
 		return 0;
 	}
 	break;
@@ -127,14 +127,16 @@ int mapif_parse_Registry(int fd)
 	{
 		struct regs reg;
 		inter_regs_frombuf(buf, length-13, &reg);
-		inter_accreg_save(char_id, &reg);
-		mapif_account_reg(fd,RFIFOP(fd,0));	// Send updated accounts to other map servers.
+		inter_accreg_save(account_id, &reg);
+		mapif_regs(fd,RFIFOP(fd,0)); // Send regs to other map servers.
 		return 0;
 	}
 	break;
 
-	case 1: //Account2 registry, must be sent over to login server.
-		return save_accreg2(RFIFOP(fd,4), length-4);
+	case 1: //Account2 registry
+		return save_accreg2(RFIFOP(fd,4), length-4); // must be sent over to login server.
+	break;
+
 	default: //Error?
 		return 1;
 	}
@@ -143,23 +145,29 @@ int mapif_parse_Registry(int fd)
 // Request the value of all registries.
 int mapif_parse_RegistryRequest(int fd)
 {
-	if( RFIFOB(fd,12) )
+	int account_id = RFIFOL(fd,2);
+	int char_id = RFIFOL(fd,6);
+	int accreg2 = RFIFOB(fd,10);
+	int accreg = RFIFOB(fd,11);
+	int charreg = RFIFOB(fd,12);
+
+	if( charreg )
 	{// Load Char Registry
 		struct regs charreg;
-		inter_charreg_load(RFIFOL(fd,6), &charreg);
-		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),3,&charreg);
+		inter_charreg_load(char_id, &charreg);
+		mapif_regs_reply(fd, account_id, char_id, 3, &charreg);
 	}
 
-	if( RFIFOB(fd,11) )
+	if( accreg )
 	{// Load Account Registry
 		struct regs accreg;
-		inter_accreg_load(RFIFOL(fd,2), &accreg);
-		mapif_regs_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6),2,&accreg);
+		inter_accreg_load(account_id, &accreg);
+		mapif_regs_reply(fd, account_id, char_id, 2, &accreg);
 	}
 
-	if( RFIFOB(fd,10) )
+	if( accreg2 )
 	{// Ask Login Server for Account2 values.
-		request_accreg2(RFIFOL(fd,2),RFIFOL(fd,6));
+		request_accreg2(account_id, char_id);
 	}
 
 	return 1;
