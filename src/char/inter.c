@@ -91,9 +91,9 @@ static int inter_config_read(const char* cfgName)
 			continue;
 
 #ifdef TXT_ONLY
-		if (strcmpi(w1, "storage_txt") == 0)
-			strncpy(storage_txt, w2, sizeof(storage_txt));
-		else
+//		if (strcmpi(w1, "storage_txt") == 0)
+//			strncpy(storage_txt, w2, sizeof(storage_txt));
+//		else
 //		if (strcmpi(w1, "party_txt") == 0)
 //			strncpy(party_txt, w2, sizeof(party_txt));
 //		else
@@ -102,15 +102,15 @@ static int inter_config_read(const char* cfgName)
 //		else
 		if (strcmpi(w1, "accreg_txt") == 0)
 			strncpy(accreg_txt, w2, sizeof(accreg_txt));
-		else
+//		else
 //		if (strcmpi(w1, "guild_txt") == 0)
 //			strncpy(guild_txt, w2, sizeof(guild_txt));
 //		else
 //		if (strcmpi(w1, "castle_txt") == 0)
 //			strncpy(castle_txt, w2, sizeof(castle_txt));
 //		else
-		if (strcmpi(w1, "guild_storage_txt") == 0)
-			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
+//		if (strcmpi(w1, "guild_storage_txt") == 0)
+//			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
 //		else
 //		if (strcmpi(w1, "homun_txt") == 0)
 //			strncpy(homun_txt, w2, sizeof(homun_txt));

@@ -54,6 +54,8 @@ typedef struct CharDBIterator_TXT
 	CharDBIterator vtable;      // public interface
 
 	DBIterator* iter;
+	int account_id;
+	bool has_account_id;
 } CharDBIterator_TXT;
 
 /// internal functions
@@ -69,6 +71,7 @@ static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id);
 static CharDBIterator* char_db_txt_iterator(CharDB* self);
+static CharDBIterator* char_db_txt_characters(CharDB* self, int account_id);
 static void char_db_txt_iter_destroy(CharDBIterator* self);
 static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch);
 
@@ -94,6 +97,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->vtable.name2id   = &char_db_txt_name2id;
 	db->vtable.slot2id   = &char_db_txt_slot2id;
 	db->vtable.iterator  = &char_db_txt_iterator;
+	db->vtable.characters = &char_db_txt_characters;
 
 	// initialize to default values
 	db->owner = owner;
@@ -439,7 +443,7 @@ static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* cha
 	return true;
 }
 
-/// Returns a new forward iterator.
+/// Returns an iterator over all the characters.
 static CharDBIterator* char_db_txt_iterator(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -452,6 +456,26 @@ static CharDBIterator* char_db_txt_iterator(CharDB* self)
 
 	// fill data
 	iter->iter = db_iterator(chars);
+	iter->has_account_id = false;
+
+	return &iter->vtable;
+}
+
+/// Returns an iterator over all the characters of the account.
+static CharDBIterator* char_db_txt_characters(CharDB* self, int account_id)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	DBMap* chars = db->chars;
+	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)aCalloc(1, sizeof(CharDBIterator_TXT));
+
+	// set up the vtable
+	iter->vtable.destroy = &char_db_txt_iter_destroy;
+	iter->vtable.next    = &char_db_txt_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(chars);
+	iter->account_id = account_id;
+	iter->has_account_id = true;
 
 	return &iter->vtable;
 }
@@ -464,17 +488,24 @@ static void char_db_txt_iter_destroy(CharDBIterator* self)
 	aFree(iter);
 }
 
-/// Fetches the next account in the database.
+/// Fetches the next character.
 static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
-	struct mmo_charstatus* tmp = (struct mmo_charstatus*)dbi_next(iter->iter);
-	if( dbi_exists(iter->iter) )
+	struct mmo_charstatus* tmp;
+
+	while( true )
 	{
+		tmp = (struct mmo_charstatus*)dbi_next(iter->iter);
+		if( tmp == NULL )
+			return false;// not found
+
+		if( iter->has_account_id && iter->account_id != tmp->account_id )
+			continue;// wrong account, try next
+
 		memcpy(ch, tmp, sizeof(struct mmo_charstatus));
 		return true;
 	}
-	return false;
 }
 
 

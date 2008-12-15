@@ -24,6 +24,9 @@ extern int storage_fromsql(int account_id, struct storage_data* p);
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
+/// Maximum number of character ids cached in the iterator.
+#define CHARDBITERATOR_MAXCACHE 16000
+
 
 /// internal structure
 typedef struct CharDB_SQL
@@ -45,7 +48,10 @@ typedef struct CharDBIterator_SQL
 	CharDBIterator vtable;    // public interface
 
 	CharDB_SQL* db;
-	int last_char_id;
+	int* ids_arr;
+	int ids_num;
+	int pos;
+	bool has_more;
 } CharDBIterator_SQL;
 
 /// internal functions
@@ -61,6 +67,7 @@ static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id);
 static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id);
 static CharDBIterator* char_db_sql_iterator(CharDB* self);
+static CharDBIterator* char_db_sql_characters(CharDB* self, int account_id);
 static void char_db_sql_iter_destroy(CharDBIterator* self);
 static bool char_db_sql_iter_next(CharDBIterator* self, struct mmo_charstatus* ch);
 
@@ -85,6 +92,7 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->vtable.name2id   = &char_db_sql_name2id;
 	db->vtable.slot2id   = &char_db_sql_slot2id;
 	db->vtable.iterator  = &char_db_sql_iterator;
+	db->vtable.characters = &char_db_sql_characters;
 
 	// initialize to default values
 	db->owner = owner;
@@ -332,7 +340,87 @@ static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* cha
 	return true;
 }
 
-/// Returns a new forward iterator.
+/// Private. Fills the cache of the iterator with ids.
+static void char_db_sql_iter_P_fillcache(CharDBIterator_SQL* iter)
+{
+	CharDB_SQL* db = iter->db;
+	Sql* sql_handle = db->chars;
+	int res;
+	int last_id = 0;
+	bool has_last_id = false;
+
+	if( iter->ids_num > 0 )
+	{
+		last_id = iter->ids_arr[iter->ids_num-1];
+		has_last_id = true;
+	}
+
+	if( has_last_id )
+		res = Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `char_id`>%d ORDER BY `char_id` ASC LIMIT %d", db->char_db, last_id, CHARDBITERATOR_MAXCACHE+1);
+	else
+		res = Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` ORDER BY `char_id` ASC LIMIT %d", db->char_db, CHARDBITERATOR_MAXCACHE+1);
+	if( res == SQL_ERROR )
+	{
+		Sql_ShowDebug(sql_handle);
+		iter->ids_num = 0;
+		iter->pos = -1;
+		iter->has_more = false;
+	}
+	else if( Sql_NumRows(sql_handle) == 0 )
+	{
+		iter->ids_num = 0;
+		iter->pos = -1;
+		iter->has_more = false;
+	}
+	else
+	{
+		int i;
+
+		if( Sql_NumRows(sql_handle) > CHARDBITERATOR_MAXCACHE )
+		{
+			iter->has_more = true;
+			iter->ids_num = CHARDBITERATOR_MAXCACHE;
+		}
+		else
+			iter->ids_num = (int)Sql_NumRows(sql_handle);
+		if( has_last_id )
+		{
+			++iter->ids_num;
+			RECREATE(iter->ids_arr, int, iter->ids_num);
+			iter->ids_arr[0] = last_id;
+			iter->pos = 0;
+			i = 1;
+		}
+		else
+		{
+			RECREATE(iter->ids_arr, int, iter->ids_num);
+			iter->pos = -1;
+			i = 0;
+		}
+
+		while( i < iter->ids_num )
+		{
+			char* data;
+			int res = Sql_NextRow(sql_handle);
+			if( res == SQL_SUCCESS )
+				res = Sql_GetData(sql_handle, 0, &data, NULL);
+			if( res == SQL_ERROR )
+				Sql_ShowDebug(sql_handle);
+			if( res != SQL_SUCCESS )
+				break;
+
+			if( data == NULL )
+				continue;
+
+			iter->ids_arr[i] = atoi(data);
+			++i;
+		}
+		iter->ids_num = i;
+	}
+	Sql_FreeResult(sql_handle);
+}
+
+/// Returns an iterator over all the characters.
 static CharDBIterator* char_db_sql_iterator(CharDB* self)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -344,7 +432,61 @@ static CharDBIterator* char_db_sql_iterator(CharDB* self)
 
 	// fill data
 	iter->db = db;
-	iter->last_char_id = -1;
+	iter->ids_arr = NULL;
+	iter->ids_num = 0;
+	iter->pos = -1;
+	iter->has_more = true;// auto load on next
+
+	return &iter->vtable;
+}
+
+/// Returns an iterator over all the characters of the account.
+static CharDBIterator* char_db_sql_characters(CharDB* self, int account_id)
+{
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)aCalloc(1, sizeof(CharDBIterator_SQL));
+
+	// set up the vtable
+	iter->vtable.destroy = &char_db_sql_iter_destroy;
+	iter->vtable.next    = &char_db_sql_iter_next;
+
+	// fill data
+	iter->db = db;
+	iter->ids_arr = NULL;
+	iter->ids_num = 0;
+	iter->pos = -1;
+	iter->has_more = false;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`=%d ORDER BY `char_id` ASC", db->char_db, account_id) )
+		Sql_ShowDebug(sql_handle);
+	else if( Sql_NumRows(sql_handle) > 0 )
+	{
+		int i;
+
+		iter->ids_num = (int)Sql_NumRows(sql_handle);
+		CREATE(iter->ids_arr, int, iter->ids_num);
+
+		i = 0;
+		while( i < iter->ids_num )
+		{
+			char* data;
+			int res = Sql_NextRow(sql_handle);
+			if( res == SQL_SUCCESS )
+				res = Sql_GetData(sql_handle, 0, &data, NULL);
+			if( res == SQL_ERROR )
+				Sql_ShowDebug(sql_handle);
+			if( res != SQL_SUCCESS )
+				break;
+
+			if( data == NULL )
+				continue;
+
+			iter->ids_arr[i] = atoi(data);
+			++i;
+		}
+		iter->ids_num = i;
+	}
+	Sql_FreeResult(sql_handle);
 
 	return &iter->vtable;
 }
@@ -353,40 +495,27 @@ static CharDBIterator* char_db_sql_iterator(CharDB* self)
 static void char_db_sql_iter_destroy(CharDBIterator* self)
 {
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
+	if( iter->ids_arr )
+		aFree(iter->ids_arr);
 	aFree(iter);
 }
 
-/// Fetches the next account in the database.
+/// Fetches the next character.
 static bool char_db_sql_iter_next(CharDBIterator* self, struct mmo_charstatus* ch)
 {
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
 	CharDB_SQL* db = (CharDB_SQL*)iter->db;
 	Sql* sql_handle = db->chars;
-	int char_id;
-	char* data;
 
-	// get next char ID
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `char_id` > '%d' ORDER BY `char_id` ASC LIMIT 1",
-		db->char_db, iter->last_char_id) )
+	while( iter->pos+1 >= iter->ids_num )
 	{
-		Sql_ShowDebug(sql_handle);
-		return false;
+		if( !iter->has_more )
+			return false;
+		char_db_sql_iter_P_fillcache(iter);
 	}
 
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
-		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
-		data != NULL )
-	{// get char data
-		char_id = atoi(data);
-		if( mmo_char_fromsql(db, ch, char_id, true) )
-		{
-			iter->last_char_id = char_id;
-			Sql_FreeResult(sql_handle);
-			return true;
-		}
-	}
-	Sql_FreeResult(sql_handle);
-	return false;
+	++iter->pos;
+	return mmo_char_fromsql(db, ch, iter->ids_arr[iter->pos], true);
 }
 
 

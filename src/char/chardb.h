@@ -18,7 +18,7 @@ struct CharDBIterator
 	/// @param self Iterator
 	void (*destroy)(CharDBIterator* self);
 
-	/// Fetches the next character in the database.
+	/// Fetches the next character.
 	/// Fills ch with the character data.
 	/// @param self Iterator
 	/// @param ch Character data
@@ -56,11 +56,17 @@ struct CharDB
 	// look up charid using accid + slot
 	bool (*slot2id)(CharDB* self, int account_id, int slot, int* char_id);
 
-	/// Returns a new forward iterator.
+	/// Returns an iterator over all the characters.
 	///
 	/// @param self Database
 	/// @return Iterator
 	CharDBIterator* (*iterator)(CharDB* self);
+
+	/// Returns an iterator over all the characters of the account.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CharDBIterator* (*characters)(CharDB* self, int account_id);
 };
 
 
