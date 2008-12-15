@@ -17,6 +17,7 @@
 #include "partydb.h"
 #include "petdb.h"
 #include "rankdb.h"
+#include "regdb.h"
 #include "statusdb.h"
 // TODO include DB interface headers
 // [ data reference ]
@@ -121,6 +122,10 @@ struct CharServerDB
 	RankDB* (*rankdb)(CharServerDB* self);
 
 	StatusDB* (*statusdb)(CharServerDB* self);
+
+	AccRegDB* (*accregdb)(CharServerDB* self);
+
+	CharRegDB* (*charregdb)(CharServerDB* self);
 	// TODO DB interface accessors
 };
 

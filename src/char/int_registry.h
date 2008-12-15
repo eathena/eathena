@@ -4,24 +4,11 @@
 #ifndef _INT_REGISTRY_H_
 #define _INT_REGISTRY_H_
 
-#include "../common/cbasetypes.h"
-#include "../common/mmo.h"
+#include "regdb.h"
 
-int inter_regs_tobuf(uint8* buf, size_t size, const struct regs* reg);
-int inter_regs_frombuf(const uint8* buf, size_t size, struct regs* reg);
-bool inter_accreg_load(int account_id, struct regs* reg);
-bool inter_accreg_save(int account_id, struct regs* reg);
-bool inter_charreg_load(int char_id, struct regs* reg);
-bool inter_charreg_save(int char_id, struct regs* reg);
-
-int inter_registry_init(void);
+int inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb);
 int inter_registry_final(void);
+int inter_registry_sync(void);
 int inter_registry_parse_frommap(int fd);
-
-#ifdef TXT_ONLY
-int inter_accreg_sync(void);
-int inter_charreg_tostr(char* str, const struct regs* reg);
-bool inter_charreg_fromstr(const char* str, struct regs* reg);
-#endif
 
 #endif /* _INT_REGISTRY_H_ */

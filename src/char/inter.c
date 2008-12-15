@@ -168,7 +168,7 @@ int inter_save(void)
 	inter_guild_storage_save();
 	inter_pet_sync();
 	inter_homun_sync();
-	inter_accreg_sync();
+	inter_registry_sync();
 	inter_status_sync();
 
 	return 0;
@@ -197,7 +197,7 @@ int inter_init(CharServerDB* db)
 	}
 #endif
 	inter_message_init();
-	inter_registry_init();
+	inter_registry_init(db->accregdb(db), db->charregdb(db));
 	inter_status_init(db->statusdb(db));
 	inter_party_init(db->partydb(db));
 	inter_guild_init(db->guilddb(db), db->castledb(db));

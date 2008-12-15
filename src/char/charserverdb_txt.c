@@ -20,7 +20,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -50,6 +50,11 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->rankdb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
+	db->accregdb->destroy(db->accregdb);
+	db->accregdb = NULL;
+	db->charregdb->destroy(db->charregdb);
+	db->charregdb = NULL;
+
 	aFree(db);
 }
 
@@ -193,6 +198,26 @@ static StatusDB* charserver_db_txt_statusdb(CharServerDB* self)
 
 
 
+/// TODO
+static AccRegDB* charserver_db_txt_accregdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->accregdb;
+}
+
+
+
+/// TODO
+static CharRegDB* charserver_db_txt_charregdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->charregdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_txt(void)
 {
@@ -211,6 +236,8 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.petdb        = charserver_db_txt_petdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
+	db->vtable.accregdb     = charserver_db_txt_accregdb;
+	db->vtable.charregdb    = charserver_db_txt_charregdb;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_txt(db);
@@ -221,6 +248,8 @@ CharServerDB* charserver_db_txt(void)
 	db->petdb = pet_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 	db->statusdb = status_db_txt(db);
+	db->accregdb = accreg_db_txt(db);
+	db->charregdb = charreg_db_txt(db);
 
 	// initialize to default values
 	db->initialized = false;

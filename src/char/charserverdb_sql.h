@@ -41,6 +41,8 @@ struct CharServerDB_SQL
 	PetDB* petdb;
 	RankDB* rankdb;
 	StatusDB* statusdb;
+	AccRegDB* accregdb;
+	CharRegDB* charregdb;
 
 	Sql* sql_handle;// SQL connection handle
 	bool initialized;
@@ -65,6 +67,8 @@ HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 PartyDB* party_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
 StatusDB* status_db_sql(CharServerDB_SQL* owner);
+AccRegDB* accreg_db_sql(CharServerDB_SQL* owner);
+CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);
 
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
 bool    rank_db_sql_init(RankDB* self);

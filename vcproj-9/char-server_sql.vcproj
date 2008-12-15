@@ -416,10 +416,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_registry_sql.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\int_status.c"
 				>
 			</File>
@@ -525,6 +521,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\rankdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\regdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\regdb_sql.c"
 				>
 			</File>
 			<File

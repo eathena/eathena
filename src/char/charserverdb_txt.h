@@ -41,6 +41,8 @@ struct CharServerDB_TXT
 	PetDB* petdb;
 	RankDB* rankdb;
 	StatusDB* statusdb;
+	AccRegDB* accregdb;
+	CharRegDB* charregdb;
 
 	bool initialized;
 };
@@ -54,6 +56,8 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner);
 PartyDB* party_db_txt(CharServerDB_TXT* owner);
 PetDB* pet_db_txt(CharServerDB_TXT* owner);
 StatusDB* status_db_txt(CharServerDB_TXT* owner);
+AccRegDB* accreg_db_txt(CharServerDB_TXT* owner);
+CharRegDB* charreg_db_txt(CharServerDB_TXT* owner);
 
 RankDB* rank_db_txt(CharServerDB_TXT* owner);
 bool    rank_db_txt_init(RankDB* self);

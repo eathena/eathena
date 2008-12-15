@@ -7,8 +7,15 @@
 #include "../common/strlib.h"
 #include "char.h" // mapif_sendallwos()
 #include "int_registry.h"
+#include "regdb.h"
 #include <stdio.h>
 #include <string.h>
+
+
+// accreg and charreg database
+AccRegDB* accregs = NULL;
+CharRegDB* charregs = NULL;
+
 
 // temporary imports
 extern int login_fd;
@@ -117,7 +124,7 @@ int mapif_parse_Registry(int fd)
 	{
 		struct regs reg;
 		inter_regs_frombuf(buf, length-13, &reg);
-		inter_charreg_save(char_id, &reg);
+		charregs->save(charregs, &reg, char_id);
 		mapif_regs(fd,RFIFOP(fd,0)); // Send regs to other map servers.
 		return 0;
 	}
@@ -127,7 +134,7 @@ int mapif_parse_Registry(int fd)
 	{
 		struct regs reg;
 		inter_regs_frombuf(buf, length-13, &reg);
-		inter_accreg_save(account_id, &reg);
+		accregs->save(accregs, &reg, account_id);
 		mapif_regs(fd,RFIFOP(fd,0)); // Send regs to other map servers.
 		return 0;
 	}
@@ -154,14 +161,14 @@ int mapif_parse_RegistryRequest(int fd)
 	if( charreg )
 	{// Load Char Registry
 		struct regs charreg;
-		inter_charreg_load(char_id, &charreg);
+		charregs->load(charregs, &charreg, char_id);
 		mapif_regs_reply(fd, account_id, char_id, 3, &charreg);
 	}
 
 	if( accreg )
 	{// Load Account Registry
 		struct regs accreg;
-		inter_accreg_load(account_id, &accreg);
+		accregs->load(accregs, &accreg, account_id);
 		mapif_regs_reply(fd, account_id, char_id, 2, &accreg);
 	}
 
@@ -184,4 +191,27 @@ int inter_registry_parse_frommap(int fd)
 		return 0;
 	}
 	return 1;
+}
+
+int inter_registry_sync(void)
+{
+	accregs->sync(accregs);
+	charregs->sync(charregs);
+	return 0;
+}
+
+
+int inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb)
+{
+	accregs = accregdb;
+	charregs = charregdb;
+	return 0;
+}
+
+
+int inter_registry_final(void)
+{
+	accregs = NULL;
+	charregs = NULL;
+	return 0;
 }

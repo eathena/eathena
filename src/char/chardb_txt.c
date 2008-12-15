@@ -12,8 +12,8 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
-#include "int_registry.h"
 #include "inter.h"
+#include "regdb.h"
 #include "charserverdb_txt.h"
 
 #include <stdio.h>
@@ -22,12 +22,15 @@
 
 // temporary stuff
 extern CharDB* chars;
+extern CharRegDB* charregs;
 extern int autosave_interval;
 extern int parse_friend_txt(struct mmo_charstatus *p);
 extern int parse_hotkey_txt(struct mmo_charstatus *p);
 extern void mmo_friends_sync(void);
 extern void mmo_hotkeys_sync(void);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
+extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
+extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
 
 
 /// internal structure
@@ -777,7 +780,7 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 	next++;
 
 	// parse character regs
-	if( !inter_charreg_fromstr(str + next, reg) )
+	if( !mmo_charreg_fromstr(reg, str + next) )
 		return -7;
 
 	return 1;
@@ -851,7 +854,10 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 
 	// registry
 	if( reg != NULL )
-		str_p += inter_charreg_tostr(str_p, reg);
+	{
+		mmo_charreg_tostr(reg, str_p);
+		str_p += strlen(str_p);
+	}
 	*(str_p++) = '\t';
 
 	*str_p = '\0';
@@ -882,7 +888,7 @@ static void mmo_char_sync(CharDB_TXT* db)
 		char line[65536]; // ought to be big enough
 		struct regs reg;
 
-		inter_charreg_load(ch->char_id, &reg);
+		charregs->load(charregs, &reg, ch->char_id);
 		mmo_char_tostr(line, ch, &reg);
 		fprintf(fp, "%s\n", line);
 	}

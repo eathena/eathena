@@ -46,7 +46,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->statusdb->init(db->statusdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -75,6 +75,10 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->rankdb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
+	db->accregdb->destroy(db->accregdb);
+	db->accregdb = NULL;
+	db->charregdb->destroy(db->charregdb);
+	db->charregdb = NULL;
 	// TODO DB interfaces
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
@@ -259,6 +263,26 @@ static StatusDB* charserver_db_sql_statusdb(CharServerDB* self)
 
 
 
+/// TODO
+static AccRegDB* charserver_db_sql_accregdb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->accregdb;
+}
+
+
+
+/// TODO
+static CharRegDB* charserver_db_sql_charregdb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->charregdb;
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_sql(void)
 {
@@ -277,6 +301,8 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.petdb        = charserver_db_sql_petdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	db->vtable.statusdb     = charserver_db_sql_statusdb;
+	db->vtable.accregdb     = charserver_db_sql_accregdb;
+	db->vtable.charregdb    = charserver_db_sql_charregdb;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_sql(db);
@@ -287,6 +313,8 @@ CharServerDB* charserver_db_sql(void)
 	db->petdb = pet_db_sql(db);
 	db->rankdb = rank_db_sql(db);
 	db->statusdb = status_db_sql(db);
+	db->accregdb = accreg_db_sql(db);
+	db->charregdb = charreg_db_sql(db);
 
 	// initialize to default values
 	db->sql_handle = NULL;
