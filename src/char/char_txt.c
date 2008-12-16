@@ -35,7 +35,7 @@ char hotkeys_txt[1024] = "save/hotkeys.txt";
 
 
 // キャラ削除に伴うデータ削除
-int char_delete(int char_id)
+int char_delete(int char_id)// TODO reimplement generic version in char.c
 {
 	struct mmo_charstatus cd, *cs;
 	int j;

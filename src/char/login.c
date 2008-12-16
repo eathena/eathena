@@ -161,19 +161,18 @@ int parse_fromlogin(int fd)
 
 			if( acc > 0 )
 			{
-				int i, j;
+				struct mmo_charstatus cd;
+				CharDBIterator* it;
+				int j;
 
 				struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
 				if( node != NULL )
 					node->sex = sex;
 
 				// process every char on this account
-				for( i = 0; i < MAX_CHARS; ++i )
+				it = chars->characters(chars, acc);
+				while( it->next(it, &cd) )
 				{
-					struct mmo_charstatus cd;
-					if( !chars->load_slot(chars, &cd, acc, i) )
-						continue;
-
 					cd.sex = sex;
 
 					if (cd.class_ == JOB_BARD || cd.class_ == JOB_DANCER ||
@@ -216,6 +215,7 @@ int parse_fromlogin(int fd)
 					if( cd.guild_id > 0 )
 						inter_guild_sex_changed(cd.guild_id, acc, cd.char_id, sex);
 				}
+				it->destroy(it);
 
 				// disconnect player if online on char-server
 				disconnect_player(acc);
@@ -309,17 +309,24 @@ int parse_fromlogin(int fd)
 			RFIFOSKIP(fd, RFIFOW(fd,2));
 		break;
 
-#ifdef TXT_ONLY
 		// Account deletion notification (from login-server)
 		case 0x2730:
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			// Deletion of all characters of the account
 
-			//TODO: iterate over all chars, discard those with 'account_id == RFIFOL(fd,2)'
+			{// discard all chars with 'account_id == RFIFOL(fd,2)'
+				struct mmo_charstatus cd;
+				CharDBIterator* it;
+
+				it = chars->characters(chars, RFIFOL(fd,2));
+				while( it->next(it, &cd) )
+					char_delete(cd.char_id);
+				it->destroy(it);
+			}
 
 			// Deletion of the storage
-			inter_storage_delete(RFIFOL(fd,2));
+			//inter_storage_delete(RFIFOL(fd,2));
 			// send to all map-servers to disconnect the player
 			{
 				unsigned char buf[6];
@@ -331,7 +338,6 @@ int parse_fromlogin(int fd)
 			disconnect_player(RFIFOL(fd,2));
 			RFIFOSKIP(fd,6);
 		break;
-#endif
 
 		// State change of account/ban notification (from login-server)
 		case 0x2731:

@@ -164,7 +164,7 @@ int parse_char(int fd)
 			}
 #endif
 
-			if( !chars->load_slot(chars, &cd, sd->account_id, slot) )
+			if( !chars->load_num(chars, &cd, sd->slots[slot]) )
 			{	//Not found?? May be forged packet.
 				break;
 			}
@@ -267,7 +267,9 @@ int parse_char(int fd)
 		case 0x67:
 			FIFOSD_CHECK(37);
 		{
+			struct mmo_charstatus cd;
 			int result;
+			int char_id;
 
 			char name[NAME_LENGTH];
 			int str = RFIFOB(fd,26);
@@ -282,18 +284,19 @@ int parse_char(int fd)
 			safestrncpy(name, (const char*)RFIFOP(fd,2), NAME_LENGTH);
 			RFIFOSKIP(fd,37);
 
-			if( !char_new ) //turn character creation on/off [Kevin]
-				result = -2;
+			if( !char_new || sd->slots[i] )
+				result = -2;// can't create or slot is occupied, reject
 			else
-				result = make_new_char(sd, name, RFIFOB(fd,26),RFIFOB(fd,27),RFIFOB(fd,28),RFIFOB(fd,29),RFIFOB(fd,30),RFIFOB(fd,31),RFIFOB(fd,32),RFIFOW(fd,33),RFIFOW(fd,35));
+				result = char_create(sd->account_id, name, str, agi, vit, int_, dex, luk, slot, haircolor, hairstyle, &char_id);
 
 			//'Charname already exists' (-1), 'Char creation denied' (-2) and 'You are underaged' (-3)
-			if (result < 0)
+			if( result < 0 || chars->load_num(chars, &cd, char_id) )
 			{
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x6e;
 				switch (result) {
 				case -1: WFIFOB(fd,2) = 0x00; break;
+				default:
 				case -2: WFIFOB(fd,2) = 0xFF; break;
 				case -3: WFIFOB(fd,2) = 0x01; break;
 				}
@@ -301,16 +304,15 @@ int parse_char(int fd)
 			}
 			else
 			{
-				struct mmo_charstatus ch;
 				int len;
 
-				// retrieve data
-				chars->load_num(chars, &ch, result); //NOTE: only the short data is needed here
-
+				cd.slot = slot; // XXX if different, update slot in the database?
+				sd->slots[slot] = cd.char_id;
+				++sd->chars_num;
 				// send to player
 				WFIFOHEAD(fd,110);
 				WFIFOW(fd,0) = 0x6d;
-				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &ch);
+				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &cd);
 				WFIFOSET(fd,len);
 			}
 		}
@@ -323,10 +325,8 @@ int parse_char(int fd)
 			if (cmd == 0x68) FIFOSD_CHECK(46);
 			if (cmd == 0x1fb) FIFOSD_CHECK(56);
 		{
-			struct mmo_charstatus cs;
-
 			int char_id = RFIFOL(fd,2);
-			memcpy(email, RFIFOP(fd,6), 40);
+			safestrncpy(email, RFIFOP(fd,6), sizeof(email));
 			RFIFOSKIP(fd, cmd==0x68?46:56);
 
 			ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, char_id);
@@ -385,31 +385,18 @@ int parse_char(int fd)
 			) {	//Fail
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x70;
-				WFIFOB(fd,2) = 0; // 00 = Incorrect Email address
+				WFIFOB(fd,2) = 1; // Incorrect Email address
 				WFIFOSET(fd,3);
 				break;
 			}
 
-			// load char data
-			chars->load_num(chars, &cs, char_id); //TODO: verify return value
-
-			// check if this char exists
-			if( cs.account_id != sd->account_id )
-			{// Such a character does not exist in the account
+			ARR_FIND(0, MAX_CHARS, i, sd->slots[i] == char_id);
+			if( i == MAX_CHARS || char_delete(char_id) != 0 )
+			{// not in the client view or failed to delete
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x70;
-				WFIFOB(fd,2) = 0;
+				WFIFOB(fd,2) = 0; // character deletion denied
 				WFIFOSET(fd,3);
-				break;
-			}
-
-			// deletion process
-			if( char_delete(char_id) < 0 )
-			{
-				//can't delete the char, either SQL error or can't delete by some CONFIG conditions
-				WFIFOW(fd, 0) = 0x70;
-				WFIFOB(fd, 2) = 0;
-				WFIFOSET(fd, 3);
 				break;
 			}
 
@@ -417,6 +404,33 @@ int parse_char(int fd)
 			WFIFOHEAD(fd,2);
 			WFIFOW(fd,0) = 0x6f;
 			WFIFOSET(fd,2);
+			// update client view
+			sd->slots[i] = 0;
+			if( sd->chars_num > MAX_CHARS )
+			{// fill free slot with extra character
+				struct mmo_charstatus cd;
+				CharDBIterator* it;
+
+				it = chars->characters(chars, sd->account_id);
+				while( it->next(it, &cd) )
+				{
+					int j;
+					ARR_FIND(0, MAX_CHARS, j, sd->slots[j] == cd.char_id);
+					if( j < MAX_CHARS )
+						continue;// already displayed
+
+					// send character
+					cd.slot = i; // XXX if different, update slot in the database?
+					WFIFOHEAD(fd,2+108);
+					WFIFOW(fd,0) = 0x6f;
+					j = 2 + mmo_char_tobuf(WFIFOP(fd,2), &cd);
+					WFIFOSET(fd,j);
+					sd->slots[i] = cd.char_id;
+					break;
+				}
+				it->destroy(it);
+			}
+			--sd->chars_num;
 		}
 		break;
 
@@ -434,6 +448,11 @@ int parse_char(int fd)
 			FIFOSD_CHECK(34);
 			//not implemented
 			RFIFOSKIP(fd,34);
+
+			WFIFOHEAD(fd,4);
+			WFIFOW(fd,0) = 0x290;
+			WFIFOW(fd,2) = 3; // character rename failed
+			WFIFOSET(fd,4);
 		break;
 
 		// login as map-server

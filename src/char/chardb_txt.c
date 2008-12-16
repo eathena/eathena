@@ -948,24 +948,6 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 	inter_save();
 	return 0;
 }
-
-
-//=====================================================================================================
-// Loads the basic character roster for the given account. Returns total buffer used.
-int mmo_chars_tobuf(int account_id, uint8* buf)
-{
-	int i, j;
-
-	j = 0;
-	for( i = 0; i < MAX_CHARS; ++i )
-	{
-		struct mmo_charstatus cd;
-		if( chars->load_slot(chars, &cd, account_id, i) )
-			j += mmo_char_tobuf(WBUFP(buf,j), &cd);
-	}
-
-	return j;
-}
  
 
 int char_married(int pl1, int pl2)

@@ -4,6 +4,8 @@
 #ifndef _CHAR_H_
 #define _CHAR_H_
 
+#include "../common/mmo.h" // MAX_CHARS
+
 enum {
 	TABLE_INVENTORY,
 	TABLE_CART,
@@ -17,6 +19,8 @@ struct char_session_data {
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;
+	int chars_num;// total number of characters in the account
+	int slots[MAX_CHARS];// client view of the characters/slots (array of char_id's, 0=free)
 };
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
@@ -31,6 +35,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len);
 
 int search_character_online(int aid, int cid);
 void char_divorce(int partner_id1, int partner_id2);
+int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);
 int char_delete(int char_id);
 
 // char config

@@ -31,6 +31,8 @@
 #include "int_status.h"
 #include "charserverdb.h"
 
+#include <string.h>
+
 // CharServerDB engines available
 static struct{
 	CharServerDB* (*constructor)(void);
@@ -79,7 +81,6 @@ extern char friends_txt[1024];
 extern char hotkeys_txt[1024];
 char char_txt[1024];
 extern DBMap* char_db_;
-extern int mmo_chars_tobuf(int account_id, uint8* buf);
 
 
 int login_fd=-1, char_fd=-1;
@@ -445,18 +446,56 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 //----------------------------------------
 int mmo_char_send006b(int fd, struct char_session_data* sd)
 {
-	int j;
+	struct mmo_charstatus cd_arr[MAX_CHARS];
+	struct mmo_charstatus cd;
+	CharDBIterator* it;
+	int i,j;
 
 #ifndef TXT_ONLY
 	if (save_log)
 		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
 #endif
 
+	// load characters
+	memset(cd_arr, 0, sizeof(cd_arr));
+	sd->chars_num = 0;
+	it = chars->characters(chars, sd->account_id);
+	while( it->next(it, &cd) )
+	{
+		++sd->chars_num;
+		if( cd.slot < MAX_CHARS )
+		{// use slot position
+			if( cd_arr[cd.slot].account_id == sd->account_id )
+			{// move occupant to first free slot
+				ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
+				if( i < MAX_CHARS )
+					memcpy(&cd_arr[i], &cd_arr[cd.slot], sizeof(struct mmo_charstatus));
+			}
+			memcpy(&cd_arr[cd.slot], &cd, sizeof(struct mmo_charstatus));
+		}
+		else
+		{// use first free slot
+			ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
+			if( i < MAX_CHARS )
+				memcpy(&cd_arr[i], &cd, sizeof(struct mmo_charstatus));
+		}
+	}
+	it->destroy(it);
+
+	// update client view
+	for( i = 0; i < MAX_CHARS; ++i )
+	{
+		cd_arr[i].slot = i; // XXX if different, update slot in the database?
+		sd->slots[i] = cd_arr[i].char_id;
+	}
+
 	j = 24; // offset
 	WFIFOHEAD(fd, 4 + 20 + MAX_CHARS*108); // or 106(!)
 	WFIFOW(fd,0) = 0x6b;
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
-	j += mmo_chars_tobuf(sd->account_id, WFIFOP(fd,j));
+	for( i = 0; i < MAX_CHARS; ++i )
+		if( cd_arr[i].account_id == sd->account_id )
+			j += mmo_char_tobuf(WFIFOP(fd,j), &cd_arr[i]);
 	WFIFOW(fd,2) = j; // packet len
 	WFIFOSET(fd,j);
 
@@ -661,11 +700,10 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 //-----------------------------------
 // Function to create a new character
 //-----------------------------------
-int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style)
+int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id)
 {
 	struct mmo_charstatus cd;
 	char name[NAME_LENGTH];
-	int char_id;
 	int i;
 
 	safestrncpy(name, name_, NAME_LENGTH);
@@ -708,25 +746,15 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
 		return -2; // invalid input
 
-#ifndef TXT_ONLY
-	// check the number of already existing chars in this account
-	if( char_per_account != 0 ) {
-		if( SQL_ERROR == Sql_Query(sql_handle, "SELECT 1 FROM `%s` WHERE `account_id` = '%d'", char_db, sd->account_id) )
-			Sql_ShowDebug(sql_handle);
-		if( Sql_NumRows(sql_handle) >= char_per_account )
-			return -2; // character account limit exceeded
-	}
-#endif
-
 	// check char slot
-	if( chars->slot2id(chars, sd->account_id, slot, &i) )
+	if( chars->slot2id(chars, account_id, slot, &i) )
 		return -2; // slot already in use
 
 	// insert new char to database
 	memset(&cd, 0, sizeof(cd));
 
 	cd.char_id = -1;
-	cd.account_id = sd->account_id;
+	cd.account_id = account_id;
 	cd.slot = slot;
 	safestrncpy(cd.name, name, NAME_LENGTH);
 	cd.class_ = 0;
@@ -780,13 +808,14 @@ int make_new_char(struct char_session_data* sd, const char* name_, int str, int 
 		return -2; // abort
 
 	//Retrieve the newly auto-generated char id
-	char_id = cd.char_id;
+	if( out_char_id )
+		*out_char_id = cd.char_id;
 
 	// validation success, log result
 	charlog_log(cd.char_id, cd.account_id, cd.slot, cd.name, "make new char (stats:%d/%d/%d/%d/%d/%d, hair-style:%d, hair-color:%d)", str, agi, vit, int_, dex, luk, hair_style, hair_color);
 
-	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", sd->account_id, char_id, slot, name);
-	return char_id;
+	ShowInfo("Created char: account: %d, char: %d, slot: %d, name: %s\n", account_id, cd.char_id, slot, name);
+	return 0;
 }
 
 

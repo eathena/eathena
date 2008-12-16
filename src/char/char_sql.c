@@ -204,7 +204,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 /* Returns 0 if successful
  * Returns < 0 for error
  */
-int char_delete(int char_id)
+int char_delete(int char_id)// TODO reimplement generic version in char.c
 {
 	char name[NAME_LENGTH];
 	char esc_name[NAME_LENGTH*2+1]; //Name needs be escaped.
