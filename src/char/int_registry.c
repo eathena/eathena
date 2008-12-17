@@ -201,6 +201,12 @@ int inter_registry_sync(void)
 }
 
 
+bool inter_charreg_delete(int char_id)
+{
+	return charregs->remove(charregs, char_id);
+}
+
+
 int inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb)
 {
 	accregs = accregdb;

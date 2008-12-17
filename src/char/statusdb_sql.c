@@ -81,6 +81,10 @@ static bool status_db_sql_sync(StatusDB* self)
 
 static bool status_db_sql_remove(StatusDB* self, const int char_id)
 {
+	/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id` = '%d' AND `char_id`='%d'", scdata_db, account_id, char_id) )
+		Sql_ShowDebug(sql_handle);
+	*/
 }
 
 static bool status_db_sql_save(StatusDB* self, struct scdata* sc)

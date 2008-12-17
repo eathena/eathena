@@ -170,6 +170,45 @@ static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 
 static bool char_db_sql_remove(CharDB* self, const int char_id)
 {
+	/*
+
+	// delete memo areas
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", memo_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	// delete inventory
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", inventory_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	// delete cart inventory
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", cart_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	// delete skills
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", skill_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	// delete char's friends list
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id` = '%d'", friend_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	// delete char from other's friend list
+	//NOTE: Won't this cause problems for people who are already online? [Skotlex]
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `friend_id` = '%d'", friend_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+#ifdef HOTKEY_SAVING
+	// delete hotkeys
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", hotkey_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+#endif
+
+	// delete character
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
+		Sql_ShowDebug(sql_handle);
+
+	*/
+
 	// not implemented yet
 	return false;
 }

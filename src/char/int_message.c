@@ -11,11 +11,11 @@
 #include "../common/timer.h"
 #include "char.h"
 #include "int_message.h"
+#include "charserverdb.h"
 #include <string.h>
 
 // temporary stuff
-#include "chardb.h"
-extern CharDB* chars;
+extern CharServerDB* charserver;
 
 #define WISDATA_TTL (60*1000)	// Expiration time of non-acknowledged whisper data (60 seconds)
 #define WISDELLIST_MAX 256   	// Number of elements of Wisp/page data deletion list
@@ -143,6 +143,7 @@ int mapif_parse_WisToGM(int fd)
 // 3001 <length>.w <src name>.24b <dst name>.24b <message>.?b
 int mapif_parse_WisRequest(int fd)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct WisData* wd;
 	char name[NAME_LENGTH];
 	int fd2;

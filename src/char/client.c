@@ -15,7 +15,7 @@
 #include "map.h"
 
 //temporary imports
-extern CharDB* chars;
+extern CharServerDB* charserver;
 
 extern int login_fd;
 extern DBMap* auth_db;
@@ -38,6 +38,7 @@ extern bool char_new;
 
 int parse_char(int fd)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	int i;
 	char email[40];
 	unsigned short cmd;

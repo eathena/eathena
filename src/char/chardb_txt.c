@@ -21,8 +21,7 @@
 #include <string.h>
 
 // temporary stuff
-extern CharDB* chars;
-extern CharRegDB* charregs;
+extern CharServerDB* charserver;
 extern int autosave_interval;
 extern int parse_friend_txt(struct mmo_charstatus *p);
 extern int parse_hotkey_txt(struct mmo_charstatus *p);
@@ -518,7 +517,6 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 	int tmp_int[256];
 	unsigned int tmp_uint[2]; //To read exp....
 	int next, len, i, j;
-	struct mmo_charstatus tmp;
 
 	// initilialise character
 	memset(p, '\0', sizeof(struct mmo_charstatus));
@@ -700,14 +698,14 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 #ifndef TXT_SQL_CONVERT
 	// Some checks
 	//TODO: just a check is needed here (loading all data is excessive)
-	if( chars->load_num(chars, &tmp, p->char_id) )
+	if( chars->id2name(chars, p->char_id, NULL) )
 	{
 		ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
-		ShowError("               character id #%d -> new character not readed.\n", p->char_id);
+		ShowError("               character id #%d -> new character not read.\n", p->char_id);
 		ShowError("               Character saved in log file."CL_RESET"\n");
 		return -1;
 	}
-	if( chars->load_str(chars, &tmp, p->name) )
+	if( chars->name2id(chars, p->name, NULL, NULL) )
 	{
 		ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
 		ShowError("               character name '%s' -> new character not read.\n", p->name);
@@ -898,6 +896,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 /// Dumps the entire char db (+ associated data) to disk
 static void mmo_char_sync(CharDB_TXT* db)
 {
+	CharRegDB* charregs = charserver->charregdb(charserver);
 	int lock;
 	FILE *fp;
 	void* data;
@@ -952,6 +951,7 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 
 int char_married(int pl1, int pl2)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd1, cd2;
 	if( !chars->load_num(chars, &cd1, pl1) || !chars->load_num(chars, &cd2, pl2) )
 		return 0; //Some character not found??
@@ -961,6 +961,7 @@ int char_married(int pl1, int pl2)
 
 int char_child(int parent_id, int child_id)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus parent, child;
 	if( !chars->load_num(chars, &parent, parent_id) || !chars->load_num(chars, &child, child_id) )
 		return 0; //Some character not found??
@@ -970,6 +971,7 @@ int char_child(int parent_id, int child_id)
 
 int char_family(int cid1, int cid2, int cid3)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd1, cd2, cd3;
 	if( !chars->load_num(chars, &cd1, cid1) || !chars->load_num(chars, &cd2, cid2) || !chars->load_num(chars, &cd3, cid3) )
 		return 0; //Some character not found??

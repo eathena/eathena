@@ -22,13 +22,14 @@
 #include "chardb.h"
 #include "charlog.h"
 #include "inter.h"
-#include "int_rank.h"
 #include "int_guild.h"
 #include "int_homun.h"
-#include "int_pet.h"
 #include "int_party.h"
-#include "int_storage.h"
+#include "int_pet.h"
+#include "int_rank.h"
+#include "int_registry.h"
 #include "int_status.h"
+#include "int_storage.h"
 #include "charserverdb.h"
 
 #include <string.h>
@@ -66,11 +67,6 @@ static struct{
 };
 // charserver engine
 CharServerDB* charserver = NULL;
-
-// database engine
-static CharServerDB* dbs = NULL;
-// chars database
-CharDB* chars = NULL;
 
 
 // temporary imports
@@ -446,6 +442,7 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 //----------------------------------------
 int mmo_char_send006b(int fd, struct char_session_data* sd)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd_arr[MAX_CHARS];
 	struct mmo_charstatus cd;
 	CharDBIterator* it;
@@ -702,6 +699,7 @@ int mapif_send(int fd, unsigned char *buf, unsigned int len)
 //-----------------------------------
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd;
 	char name[NAME_LENGTH];
 	int i;
@@ -821,6 +819,7 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 
 void char_divorce(int partner_id1, int partner_id2)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd1, cd2;
 	unsigned char buf[10];
 	int i;
@@ -854,6 +853,99 @@ void char_divorce(int partner_id1, int partner_id2)
 	WBUFL(buf,2) = partner_id1;
 	WBUFL(buf,6) = partner_id2;
 	mapif_sendall(buf,10);
+}
+
+
+int char_delete(int char_id)
+{
+	CharDB* chars = charserver->chardb(charserver);
+	struct mmo_charstatus cd;
+	int i;
+
+	if( !chars->load_num(chars, &cd, char_id) )
+	{
+		ShowError("char_delete: Unable to fetch data for char %d, deletion aborted.\n", char_id);
+		return 1;
+	}
+
+	//check for config char del condition [Lupus]
+	if( ( char_del_level > 0 && cd.base_level >= (unsigned int)(char_del_level) )
+	 || ( char_del_level < 0 && cd.base_level <= (unsigned int)(-char_del_level) )
+	) {
+		ShowInfo("char_delete: Deletion of char %d:'%s' aborted due to min/max level restrictions (has %d).\n", cd.char_id, cd.name, cd.base_level);
+		return -1;
+	}
+
+	// delete the hatched pet if you have one...
+	if( cd.pet_id )
+		inter_pet_delete(cd.pet_id);
+
+	// delete all pets that are stored in eggs (inventory + cart)
+	for( i = 0; i < MAX_INVENTORY; i++ )
+		if( cd.inventory[i].card[0] == (short)0xff00 ) // CARD0_PET
+			inter_pet_delete(MakeDWord(cd.inventory[i].card[1],cd.inventory[i].card[2]));
+	for( i = 0; i < MAX_CART; i++ )
+		if( cd.cart[i].card[0] == (short)0xff00 ) // CARD0_PET
+			inter_pet_delete(MakeDWord(cd.cart[i].card[1],cd.cart[i].card[2]));
+
+	// delete homunculus
+	if( cd.hom_id )
+		inter_homun_delete(cd.hom_id);
+
+	// leave party
+	if( cd.party_id )
+		inter_party_leave(cd.party_id, cd.account_id, cd.char_id);
+
+	// leave/break guild
+	if( cd.guild_id )
+		inter_guild_leave(cd.guild_id, cd.account_id, cd.char_id);
+
+	// divorce
+	if( cd.partner_id )
+		char_divorce(cd.char_id, cd.partner_id);
+
+	// De-addopt
+	if( cd.father || cd.mother )
+	{// Char is Baby
+		unsigned char buf[64];
+		struct mmo_charstatus fd, md;
+
+		if( cd.father && chars->load_num(chars, &fd, cd.father) )
+		{
+			fd.child = 0;
+			fd.skill[410].id = 0;
+			fd.skill[410].lv = 0;
+			fd.skill[410].flag = 0;
+			chars->save(chars, &fd);
+		}
+		if( cd.mother && chars->load_num(chars, &md, cd.mother) )
+		{
+			md.child = 0;
+			md.skill[410].id = 0;
+			md.skill[410].lv = 0;
+			md.skill[410].flag = 0;
+			chars->save(chars, &md);
+		}
+
+		WBUFW(buf,0) = 0x2b25;
+		WBUFL(buf,2) = cd.father;
+		WBUFL(buf,6) = cd.mother;
+		WBUFL(buf,10) = char_id; // Baby
+		mapif_sendall(buf,14);
+	}
+
+	// clear status changes
+	inter_status_delete(cd.char_id);
+
+	// delete character registry
+	inter_charreg_delete(cd.char_id);
+
+	// delete the character and all associated data
+	chars->remove(chars, cd.char_id);
+
+	charlog_log(cd.char_id, cd.account_id, -1, cd.name, "Deleted char");
+
+	return 0;
 }
 
 
@@ -1425,7 +1517,6 @@ void do_final(void)
 		}
 	}
 	charserver = NULL; // destroyed in charserver_engines
-	chars = NULL;
 
 	ShowInfo("ok! all done...\n");
 }
@@ -1466,7 +1557,6 @@ int do_init(int argc, char **argv)
 
 	if( !init_charserver_engine() )
 		;// TODO stop server
-	chars = charserver->chardb(charserver);
 
 	inter_init(charserver);
 

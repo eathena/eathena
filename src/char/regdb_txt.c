@@ -354,12 +354,7 @@ static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 	DBMap* charregs = db->charregs;
 
-	struct regs* tmp = (struct regs*)idb_remove(charregs, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("charreg_db_txt_remove: no entry for char id %d\n", char_id);
-		return false;
-	}
+	idb_remove(charregs, char_id);
 
 	return true;
 }

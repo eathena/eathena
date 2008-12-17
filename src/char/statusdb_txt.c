@@ -138,14 +138,11 @@ static bool status_db_txt_remove(StatusDB* self, const int char_id)
 	DBMap* statuses = db->statuses;
 
 	struct scdata* tmp = (struct scdata*)idb_remove(statuses, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("status_db_txt_remove: no such entry for character with id %d\n", char_id);
-		return false;
+	if( tmp != NULL )
+	{// deallocation
+		aFree(tmp->data);
+		aFree(tmp);
 	}
-
-	aFree(tmp->data);
-	aFree(tmp);
 
 	return true;
 }

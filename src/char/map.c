@@ -18,7 +18,7 @@
 #include <string.h>
 
 //temporary imports
-extern CharDB* chars;
+extern CharServerDB* charserver;
 
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
@@ -60,6 +60,7 @@ int search_mapserver(unsigned short map, uint32 ip, uint16 port)
 
 int parse_frommap(int fd)
 {
+	CharDB* chars = charserver->chardb(charserver);
 	int i, j;
 	int id;
 

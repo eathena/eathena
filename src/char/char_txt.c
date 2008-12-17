@@ -34,43 +34,6 @@ char friends_txt[1024] = "save/friends.txt";
 char hotkeys_txt[1024] = "save/hotkeys.txt";
 
 
-// キャラ削除に伴うデータ削除
-int char_delete(int char_id)// TODO reimplement generic version in char.c
-{
-	struct mmo_charstatus cd, *cs;
-	int j;
-
-	cs = &cd;
-	if( !chars->load_num(chars, &cd, char_id) )
-		return 1;
-
-	// ペット削除
-	if (cs->pet_id)
-		inter_pet_delete(cs->pet_id);
-	if (cs->hom_id)
-		inter_homun_delete(cs->hom_id);
-	for (j = 0; j < MAX_INVENTORY; j++)
-		if (cs->inventory[j].card[0] == (short)0xff00)
-			inter_pet_delete(MakeDWord(cs->inventory[j].card[1],cs->inventory[j].card[2]));
-	for (j = 0; j < MAX_CART; j++)
-		if (cs->cart[j].card[0] == (short)0xff00)
-			inter_pet_delete( MakeDWord(cs->cart[j].card[1],cs->cart[j].card[2]) );
-	// ギルド脱退
-	if (cs->guild_id)
-		inter_guild_leave(cs->guild_id, cs->account_id, cs->char_id);
-	// パーティー脱退
-	if (cs->party_id)
-		inter_party_leave(cs->party_id, cs->account_id, cs->char_id);
-	// 離婚
-	if (cs->partner_id)
-		char_divorce(cs->char_id, cs->partner_id);
-
-	inter_status_delete(cs->char_id);
-
-	return 0;
-}
-
-
 /*---------------------------------------------------
   Make a data line for friends list
  --------------------------------------------------*/

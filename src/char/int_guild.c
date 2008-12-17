@@ -29,6 +29,7 @@ CastleDB* castles = NULL;
 
 static unsigned int guild_exp[100];
 void mapif_guild_info(int fd, struct guild *g);
+void mapif_guild_broken(int guild_id, int flag);
 
 
 // Read exp_guild.txt
@@ -114,6 +115,9 @@ static bool guild_break(int guild_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%d'", char_db, guild_id) )
 		Sql_ShowDebug(sql_handle);
 #endif
+
+	mapif_guild_broken(guild_id, 0);
+	interlog_log("guild (id=%d) broken\n", guild_id);
 
 	return true;
 }
@@ -578,6 +582,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		//TODO
 #else
 		// Unknown guild, just update the player
+		//FIXME: this might need handling on the mapserver instead of here
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%d' AND `char_id`='%d'", char_db, account_id, char_id) )
 			Sql_ShowDebug(sql_handle);
 		// mapif_guild_leaved(guild_id,account_id,char_id,flag,g->member[i].name,mes);
@@ -590,6 +595,12 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	if( i == g.max_member )
 	{
 		//TODO
+		return 0;
+	}
+
+	if( i == 0 )
+	{// guild master
+		guild_break(guild_id);
 		return 0;
 	}
 
@@ -619,7 +630,6 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	if( guild_check_empty(&g) )
 	{
 		guild_break(guild_id);
-		mapif_guild_broken(guild_id, 0);
 		return 0;
 	}
 
@@ -681,11 +691,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 // ギルド解散要求
 void mapif_parse_BreakGuild(int fd, int guild_id)
 {
-	if( guild_break(guild_id) )
-	{
-		mapif_guild_broken(guild_id, 0);
-		interlog_log("guild (id=%d) broken\n", guild_id);
-	}
+	guild_break(guild_id);
 }
 
 // ギルドメッセージ送信

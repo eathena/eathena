@@ -12,10 +12,11 @@
 #include "int_storage.h"
 #include "inter.h"
 #include "map.h"
+#include "charserverdb.h"
 #include <stdio.h>
 
 //temporary imports
-extern CharDB* chars;
+extern CharServerDB* charserver;
 
 #include "char.h"
 extern int login_fd;
@@ -37,8 +38,9 @@ extern void set_char_offline(int char_id, int account_id);
 
 int parse_fromlogin(int fd)
 {
+	CharDB* chars = charserver->chardb(charserver);
+	struct char_session_data* sd;
 	int i;
-	struct char_session_data *sd;
 
 	// only login-server can have an access to here.
 	// so, if it isn't the login-server, we disconnect the session.
@@ -313,8 +315,8 @@ int parse_fromlogin(int fd)
 		case 0x2730:
 			if (RFIFOREST(fd) < 6)
 				return 0;
-			// Deletion of all characters of the account
 
+			// Deletion of all characters of the account
 			{// discard all chars with 'account_id == RFIFOL(fd,2)'
 				struct mmo_charstatus cd;
 				CharDBIterator* it;
