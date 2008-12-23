@@ -152,24 +152,52 @@ static bool pet_db_txt_sync(PetDB* self)
 static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
-/*
-*/
+	DBMap* pets = db->pets;
+	struct s_pet* tmp;
+
+	// decide on the pet id to assign
+	int pet_id = ( pd->pet_id != -1 ) ? pd->pet_id : db->next_pet_id;
+
+	// check if the pet id is free
+	tmp = idb_get(pets, pet_id);
+	if( tmp != NULL )
+	{// error condition - entry already present
+		ShowError("pet_db_txt_create: cannot create pet %d:'%s', this id is already occupied by %d:'%s'!\n", pet_id, pd->name, pet_id, tmp->name);
+		return false;
+	}
+
+	// copy the data and store it in the db
+	CREATE(tmp, struct s_pet, 1);
+	memcpy(tmp, pd, sizeof(struct s_pet));
+	tmp->pet_id = pet_id;
+	idb_put(pets, pet_id, tmp);
+
+	// increment the auto_increment value
+	if( pet_id >= db->next_pet_id )
+		db->next_pet_id = pet_id + 1;
+
+	// flush data
+	mmo_pet_sync(db);
+
+	// write output
+	pd->pet_id = pet_id;
+
+	return true;
 }
 
 static bool pet_db_txt_remove(PetDB* self, const int pet_id)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
-/*
-	struct s_pet *p;
-	p = (struct s_pet*)idb_get(pet_db,pet_id);
-	if( p == NULL)
-		return 1;
-	else {
-		idb_remove(pet_db,pet_id);
-		ShowInfo("Deleted pet (pet_id: %d)\n",pet_id);
+	DBMap* pets = db->pets;
+
+	struct s_pet* tmp = (struct s_pet*)idb_remove(pets, pet_id);
+	if( tmp == NULL )
+	{// error condition - entry not present
+		ShowError("pet_db_txt_remove: no such pet with id %d\n", pet_id);
+		return false;
 	}
-	return 0;
-*/
+
+	return true;
 }
 
 static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
