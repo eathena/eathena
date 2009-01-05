@@ -1500,6 +1500,7 @@ int intif_parse_Mail_inboxreceived(int fd)
 
 	//FIXME: this operation is not safe [ultramage]
 	memcpy(&sd->mail.inbox, RFIFOP(fd,9), sizeof(struct mail_data));
+	sd->mail.changed = false; // cache is now in sync
 
 	if (flag)
 		clif_Mail_refreshinbox(sd);
@@ -1696,7 +1697,9 @@ static void intif_parse_Mail_send(int fd)
 	memcpy(&msg, RFIFOP(fd,4), sizeof(struct mail_message));
 	fail = (msg.id == 0);
 
-	if( (sd = map_charid2sd(msg.send_id)) )
+	// notify sender
+	sd = map_charid2sd(msg.send_id);
+	if( sd != NULL )
 	{
 		if( fail )
 			mail_deliveryfail(sd, &msg);
@@ -1711,9 +1714,11 @@ static void intif_parse_Mail_send(int fd)
 	if( fail )
 		return;
 
-	if( (sd = map_charid2sd(msg.dest_id)) )
+	// notify recipient (if online)
+	sd = map_charid2sd(msg.dest_id);
+	if( sd != NULL )
 	{
-		sd->mail.inbox.changed = true;
+		sd->mail.changed = true;
 		clif_Mail_new(sd->fd, msg.id, msg.send_name, msg.title);
 	}
 }
@@ -1728,7 +1733,7 @@ static void intif_parse_Mail_new(int fd)
 	if( sd == NULL )
 		return;
 
-	sd->mail.inbox.changed = true;
+	sd->mail.changed = true;
 	clif_Mail_new(sd->fd, mail_id, sender_name, title);
 }
 
