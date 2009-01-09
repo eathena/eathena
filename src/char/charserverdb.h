@@ -14,6 +14,7 @@
 #include "chardb.h"
 #include "guilddb.h"
 #include "homundb.h"
+#include "maildb.h"
 #include "partydb.h"
 #include "petdb.h"
 #include "rankdb.h"
@@ -120,6 +121,8 @@ struct CharServerDB
 	/// @param self Database engine
 	/// @return Interface for rankings
 	RankDB* (*rankdb)(CharServerDB* self);
+
+	MailDB* (*maildb)(CharServerDB* self);
 
 	StatusDB* (*statusdb)(CharServerDB* self);
 

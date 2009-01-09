@@ -376,6 +376,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_mail.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_mail.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_message.c"
 				>
 			</File>
@@ -500,6 +508,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\maildb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\partydb.h"
 				>
 			</File>
@@ -546,14 +562,6 @@
 		</File>
 		<File
 			RelativePath="..\src\char_sql\int_auction.h"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_mail.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_mail.h"
 			>
 		</File>
 		<File

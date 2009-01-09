@@ -170,6 +170,7 @@ int inter_save(void)
 	inter_homun_sync();
 	inter_registry_sync();
 	inter_status_sync();
+	inter_mail_sync();
 
 	return 0;
 }
@@ -204,8 +205,8 @@ int inter_init(CharServerDB* db)
 	inter_storage_init();
 	inter_pet_init(db->petdb(db));
 	inter_homun_init(db->homundb(db));
+	inter_mail_init(db->maildb(db), db->chardb(db));
 #ifndef TXT_ONLY
-	inter_mail_init();
 	inter_auction_init();
 #endif
 	inter_rank_init(db->rankdb(db));
@@ -224,8 +225,8 @@ void inter_final(void)
 	inter_storage_final();
 	inter_pet_final();
 	inter_homun_final();
-#ifndef TXT_ONLY
 	inter_mail_final();
+#ifndef TXT_ONLY
 	inter_auction_final();
 #endif
 	inter_rank_final();

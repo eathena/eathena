@@ -226,14 +226,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\guilddb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guilddb_txt.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\int_guild.c"
 				>
 			</File>
@@ -247,6 +239,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\int_homun.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_mail.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_mail.h"
 				>
 			</File>
 			<File
@@ -482,11 +482,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\guilddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\homundb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb_txt.c"
 				>
 			</File>
 			<File

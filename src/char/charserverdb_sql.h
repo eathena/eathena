@@ -40,6 +40,7 @@ struct CharServerDB_SQL
 	PartyDB* partydb;
 	PetDB* petdb;
 	RankDB* rankdb;
+	MailDB* maildb;
 	StatusDB* statusdb;
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
@@ -66,6 +67,7 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner);
 HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 PartyDB* party_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
+MailDB* mail_db_sql(CharServerDB_SQL* owner);
 StatusDB* status_db_sql(CharServerDB_SQL* owner);
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner);
 CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);

@@ -20,7 +20,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		return true;
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->maildb->init(db->maildb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -48,6 +48,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->petdb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
+	db->maildb->destroy(db->maildb);
+	db->maildb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
 	db->accregdb->destroy(db->accregdb);
@@ -189,6 +191,16 @@ static RankDB* charserver_db_txt_rankdb(CharServerDB* self)
 
 
 /// TODO
+static MailDB* charserver_db_txt_maildb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->maildb;
+}
+
+
+
+/// TODO
 static StatusDB* charserver_db_txt_statusdb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -235,6 +247,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.partydb      = charserver_db_txt_partydb;
 	db->vtable.petdb        = charserver_db_txt_petdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
+	db->vtable.maildb       = charserver_db_txt_maildb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
 	db->vtable.charregdb    = charserver_db_txt_charregdb;
@@ -247,6 +260,7 @@ CharServerDB* charserver_db_txt(void)
 	db->partydb = party_db_txt(db);
 	db->petdb = pet_db_txt(db);
 	db->rankdb = rank_db_txt(db);
+	db->maildb = mail_db_txt(db);
 	db->statusdb = status_db_txt(db);
 	db->accregdb = accreg_db_txt(db);
 	db->charregdb = charreg_db_txt(db);
