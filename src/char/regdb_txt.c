@@ -113,7 +113,7 @@ static bool accreg_db_txt_init(AccRegDB* self)
 		}
 
 		// load regs for this account
-		if( mmo_accreg_fromstr(reg, line + n) != 0 )
+		if( !mmo_accreg_fromstr(reg, line + n) )
 		{
 			ShowError("accreg_db_txt_init: broken data [%s] account id %d\n", db->accreg_db, account_id);
 			aFree(reg);
