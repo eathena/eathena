@@ -19,8 +19,22 @@ static bool charserver_db_txt_init(CharServerDB* self)
 	if( db->initialized )
 		return true;
 
-	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->frienddb->init(db->frienddb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->hotkeydb->init(db->hotkeydb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_txt_init(db->rankdb) && db->maildb->init(db->maildb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
+	// dependencies: charregdb < chardb
+	if(
+		db->accregdb->init(db->accregdb) &&
+		db->charregdb->init(db->charregdb) &&
+		db->castledb->init(db->castledb) &&
+		db->chardb->init(db->chardb) &&
+		db->frienddb->init(db->frienddb) &&
+		db->guilddb->init(db->guilddb) &&
+		db->homundb->init(db->homundb) &&
+		db->hotkeydb->init(db->hotkeydb) &&
+		db->partydb->init(db->partydb) &&
+		db->petdb->init(db->petdb) &&
+		rank_db_txt_init(db->rankdb) &&
+		db->maildb->init(db->maildb) &&
+		db->statusdb->init(db->statusdb)
+	)
 		db->initialized = true;
 
 	return db->initialized;

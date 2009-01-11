@@ -113,8 +113,9 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	FriendDB* friends = charserver->frienddb(charserver);
-	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
+	FriendDB* friends = db->owner->frienddb;
+	HotkeyDB* hotkeys = db->owner->hotkeydb;
+	CharRegDB* charregs = db->owner->charregdb;
 	DBMap* chars;
 
 	char line[65536];
@@ -161,7 +162,7 @@ static bool char_db_txt_init(CharDB* self)
 		// parse char data
 		ret = mmo_char_fromstr(self, line, ch, &reg);
 
-		//inter_charreg_save(ch->char_id, &reg); // Initialize char regs
+		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
 		//friends->load(friends, &ch->friends, ch->char_id); // Initialize friends list
 		//hotkeys->load(hotkeys, &ch->hotkeys, ch->char_id); // Initialize hotkey list
 
@@ -891,7 +892,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 /// Dumps the entire char db (+ associated data) to disk
 static void mmo_char_sync(CharDB_TXT* db)
 {
-	CharRegDB* charregs = charserver->charregdb(charserver);
+	CharRegDB* charregs = db->owner->charregdb;
 	int lock;
 	FILE *fp;
 	void* data;
@@ -927,8 +928,8 @@ static void mmo_char_sync(CharDB_TXT* db)
 int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	CharDB_TXT* db = (CharDB_TXT*)data;
-	FriendDB* friends = charserver->frienddb(charserver);
-	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
+	FriendDB* friends = db->owner->frienddb;
+	HotkeyDB* hotkeys = db->owner->hotkeydb;
 
 	if (save_log)
 		ShowInfo("Saving all files...\n");

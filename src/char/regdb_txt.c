@@ -432,6 +432,8 @@ bool mmo_charreg_tostr(const struct regs* reg, char* str)
 	char* p = str;
 	int i;
 
+	p[0] = '\0';
+
 	for( i = 0; i < reg->reg_num; ++i )
 		if( reg->reg[i].str[0] != '\0' )
 			p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);

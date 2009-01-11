@@ -17,9 +17,6 @@
 
 #define START_PARTY_NUM 1
 
-// temp
-extern CharServerDB* charserver;
-
 
 /// internal structure
 typedef struct PartyDB_TXT
@@ -234,7 +231,7 @@ static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
-	CharDB* chars = charserver->chardb(charserver);
+	CharDB* chars = db->owner->chardb;
 	struct mmo_charstatus cd;
 	int i;
 
