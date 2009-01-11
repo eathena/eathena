@@ -28,6 +28,14 @@ typedef struct CastleDB_TXT
 
 } CastleDB_TXT;
 
+typedef struct CastleDBIterator_TXT
+{
+	CastleDBIterator vtable;      // public interface
+
+	DBIterator* iter;
+
+} CastleDBIterator_TXT;
+
 /// internal functions
 static bool castle_db_txt_init(CastleDB* self);
 static void castle_db_txt_destroy(CastleDB* self);
@@ -36,6 +44,9 @@ static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc);
 static bool castle_db_txt_remove(CastleDB* self, const int castle_id);
 static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc);
 static bool castle_db_txt_load_num(CastleDB* self, struct guild_castle* gc, int castle_id);
+static CastleDBIterator* castle_db_txt_iterator(CastleDB* self);
+static void castle_db_txt_iter_destroy(CastleDBIterator* self);
+static bool castle_db_txt_iter_next(CastleDBIterator* self, struct guild_castle* gc);
 
 static bool mmo_castle_fromstr(struct guild_castle* gc, char* str);
 static bool mmo_castle_tostr(const struct guild_castle* gc, char* str);
@@ -54,6 +65,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &castle_db_txt_remove;
 	db->vtable.save      = &castle_db_txt_save;
 	db->vtable.load_num  = &castle_db_txt_load_num;
+	db->vtable.iterator  = &castle_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;
@@ -196,6 +208,48 @@ static bool castle_db_txt_load_num(CastleDB* self, struct guild_castle* gc, int 
 	memcpy(gc, tmp, sizeof(struct guild_castle));
 
 	return true;
+}
+
+/// Returns an iterator over all the characters.
+static CastleDBIterator* castle_db_txt_iterator(CastleDB* self)
+{
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+	CastleDBIterator_TXT* iter = (CastleDBIterator_TXT*)aCalloc(1, sizeof(CastleDBIterator_TXT));
+
+	// set up the vtable
+	iter->vtable.destroy = &castle_db_txt_iter_destroy;
+	iter->vtable.next    = &castle_db_txt_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(castles);
+
+	return &iter->vtable;
+}
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void castle_db_txt_iter_destroy(CastleDBIterator* self)
+{
+	CastleDBIterator_TXT* iter = (CastleDBIterator_TXT*)self;
+	dbi_destroy(iter->iter);
+	aFree(iter);
+}
+
+/// Fetches the next castle.
+static bool castle_db_txt_iter_next(CastleDBIterator* self, struct guild_castle* gc)
+{
+	CastleDBIterator_TXT* iter = (CastleDBIterator_TXT*)self;
+	struct guild_castle* tmp;
+
+	while( true )
+	{
+		tmp = (struct guild_castle*)dbi_next(iter->iter);
+		if( tmp == NULL )
+			return false;// not found
+
+		memcpy(gc, tmp, sizeof(struct guild_castle));
+		return true;
+	}
 }
 
 
