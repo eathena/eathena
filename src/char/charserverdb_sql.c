@@ -46,7 +46,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->maildb->init(db->maildb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
+	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->frienddb->init(db->frienddb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->hotkeydb->init(db->hotkeydb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->maildb->init(db->maildb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
 		db->initialized = true;
 
 	return db->initialized;
@@ -63,10 +63,14 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->castledb = NULL;
 	db->chardb->destroy(db->chardb);
 	db->chardb = NULL;
+	db->frienddb->destroy(db->frienddb);
+	db->frienddb = NULL;
 	db->guilddb->destroy(db->guilddb);
 	db->guilddb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
+	db->hotkeydb->destroy(db->hotkeydb);
+	db->hotkeydb = NULL;
 	db->partydb->destroy(db->partydb);
 	db->partydb = NULL;
 	db->petdb->destroy(db->petdb);
@@ -206,6 +210,16 @@ static CharDB* charserver_db_sql_chardb(CharServerDB* self)
 
 
 /// TODO
+static FriendDB* charserver_db_sql_frienddb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->frienddb;
+}
+
+
+
+/// TODO
 static GuildDB* charserver_db_sql_guilddb(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -221,6 +235,16 @@ static HomunDB* charserver_db_sql_homundb(CharServerDB* self)
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
 	return db->homundb;
+}
+
+
+
+/// TODO
+static HotkeyDB* charserver_db_sql_hotkeydb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->hotkeydb;
 }
 
 
@@ -307,8 +331,10 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.set_property = charserver_db_sql_set_property;
 	db->vtable.castledb     = charserver_db_sql_castledb;
 	db->vtable.chardb       = charserver_db_sql_chardb;
+	db->vtable.frienddb     = charserver_db_sql_frienddb;
 	db->vtable.guilddb      = charserver_db_sql_guilddb;
 	db->vtable.homundb      = charserver_db_sql_homundb;
+	db->vtable.hotkeydb     = charserver_db_sql_hotkeydb;
 	db->vtable.partydb      = charserver_db_sql_partydb;
 	db->vtable.petdb        = charserver_db_sql_petdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
@@ -320,8 +346,10 @@ CharServerDB* charserver_db_sql(void)
 
 	db->castledb = castle_db_sql(db);
 	db->chardb = char_db_sql(db);
+	db->frienddb = friend_db_sql(db);
 	db->guilddb = guild_db_sql(db);
 	db->homundb = homun_db_sql(db);
+	db->hotkeydb = hotkey_db_sql(db);
 	db->partydb = party_db_sql(db);
 	db->petdb = pet_db_sql(db);
 	db->rankdb = rank_db_sql(db);

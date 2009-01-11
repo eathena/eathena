@@ -210,10 +210,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\char_txt.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\charlog.h"
 				>
 			</File>
@@ -482,6 +478,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\frienddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\frienddb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\guilddb.h"
 				>
 			</File>
@@ -495,6 +499,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb_txt.c"
 				>
 			</File>
 			<File

@@ -12,8 +12,10 @@
 
 #include "castledb.h"
 #include "chardb.h"
+#include "frienddb.h"
 #include "guilddb.h"
 #include "homundb.h"
+#include "hotkeydb.h"
 #include "maildb.h"
 #include "partydb.h"
 #include "petdb.h"
@@ -107,9 +109,13 @@ struct CharServerDB
 
 	CharDB* (*chardb)(CharServerDB* self);
 
+	FriendDB* (*frienddb)(CharServerDB* self);
+
 	GuildDB* (*guilddb)(CharServerDB* self);
 
 	HomunDB* (*homundb)(CharServerDB* self);
+
+	HotkeyDB* (*hotkeydb)(CharServerDB* self);
 
 	PartyDB* (*partydb)(CharServerDB* self);
 

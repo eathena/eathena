@@ -73,8 +73,6 @@ CharServerDB* charserver = NULL;
 extern int parse_fromlogin(int fd);
 extern int parse_char(int fd);
 #include "map.h"
-extern char friends_txt[1024];
-extern char hotkeys_txt[1024];
 char char_txt[1024];
 extern DBMap* char_db_;
 
@@ -1315,10 +1313,10 @@ int char_config_read(const char* cfgName)
 //			strcpy(scdata_txt, w2);
 		} else if (strcmpi(w1, "char_txt") == 0) {
 			strcpy(char_txt, w2);
-		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
-			strcpy(friends_txt, w2);
-		} else if (strcmpi(w1, "hotkeys_txt") == 0) { //By davidsiaw
-			strcpy(hotkeys_txt, w2);
+//		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
+//			strcpy(friends_txt, w2);
+//		} else if (strcmpi(w1, "hotkeys_txt") == 0) { //By davidsiaw
+//			strcpy(hotkeys_txt, w2);
 #endif
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);

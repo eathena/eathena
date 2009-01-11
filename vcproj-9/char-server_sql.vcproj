@@ -492,6 +492,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\frienddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\frienddb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\guilddb.h"
 				>
 			</File>
@@ -505,6 +513,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb_sql.c"
 				>
 			</File>
 			<File

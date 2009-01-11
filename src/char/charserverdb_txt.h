@@ -35,8 +35,10 @@ struct CharServerDB_TXT
 	// TODO DB interfaces
 	CastleDB* castledb;
 	CharDB* chardb;
+	FriendDB* frienddb;
 	GuildDB* guilddb;
 	HomunDB* homundb;
+	HotkeyDB* hotkeydb;
 	PartyDB* partydb;
 	PetDB* petdb;
 	RankDB* rankdb;
@@ -52,8 +54,10 @@ struct CharServerDB_TXT
 
 CastleDB* castle_db_txt(CharServerDB_TXT* owner);
 CharDB* char_db_txt(CharServerDB_TXT* owner);
+FriendDB* friend_db_txt(CharServerDB_TXT* owner);
 GuildDB* guild_db_txt(CharServerDB_TXT* owner);
 HomunDB* homun_db_txt(CharServerDB_TXT* owner);
+HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner);
 PartyDB* party_db_txt(CharServerDB_TXT* owner);
 PetDB* pet_db_txt(CharServerDB_TXT* owner);
 MailDB* mail_db_txt(CharServerDB_TXT* owner);

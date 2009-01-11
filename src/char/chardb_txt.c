@@ -23,10 +23,6 @@
 // temporary stuff
 extern CharServerDB* charserver;
 extern int autosave_interval;
-extern int parse_friend_txt(struct mmo_charstatus *p);
-extern int parse_hotkey_txt(struct mmo_charstatus *p);
-extern void mmo_friends_sync(void);
-extern void mmo_hotkeys_sync(void);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
@@ -117,6 +113,8 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
+	FriendDB* friends = charserver->frienddb(charserver);
+	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
 	DBMap* chars;
 
 	char line[65536];
@@ -163,12 +161,9 @@ static bool char_db_txt_init(CharDB* self)
 		// parse char data
 		ret = mmo_char_fromstr(self, line, ch, &reg);
 
-		// Initialize char regs
-		//inter_charreg_save(ch->char_id, &reg);
-		// Initialize friends list
-		parse_friend_txt(ch);  // Grab friends for the character
-		// Initialize hotkey list
-		parse_hotkey_txt(ch);  // Grab hotkeys for the character
+		//inter_charreg_save(ch->char_id, &reg); // Initialize char regs
+		//friends->load(friends, &ch->friends, ch->char_id); // Initialize friends list
+		//hotkeys->load(hotkeys, &ch->hotkeys, ch->char_id); // Initialize hotkey list
 
 		if( ret <= 0 )
 		{
@@ -926,24 +921,26 @@ static void mmo_char_sync(CharDB_TXT* db)
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->char_db, &lock);
-
-	// save associated data
-	mmo_friends_sync();
-
-#ifdef HOTKEY_SAVING
-	mmo_hotkeys_sync();
-#endif
 }
 
 /// Periodic data saving function
 int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	CharDB_TXT* db = (CharDB_TXT*)data;
+	FriendDB* friends = charserver->frienddb(charserver);
+	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
 
 	if (save_log)
 		ShowInfo("Saving all files...\n");
 
 	mmo_char_sync(db);
+
+	friends->sync(friends);
+
+#ifdef HOTKEY_SAVING
+	hotkeys->sync(hotkeys);
+#endif
+
 	inter_save();
 	return 0;
 }
