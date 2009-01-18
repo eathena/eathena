@@ -19,6 +19,7 @@
 #include "maildb.h"
 #include "partydb.h"
 #include "petdb.h"
+#include "questdb.h"
 #include "rankdb.h"
 #include "regdb.h"
 #include "statusdb.h"
@@ -120,6 +121,8 @@ struct CharServerDB
 	PartyDB* (*partydb)(CharServerDB* self);
 
 	PetDB* (*petdb)(CharServerDB* self);
+
+	QuestDB* (*questdb)(CharServerDB* self);
 
 	/// Returns the database interface that handles rankings.
 	/// Returns NULL if rankings are not supported.

@@ -171,6 +171,7 @@ int inter_save(void)
 	inter_registry_sync();
 	inter_status_sync();
 	inter_mail_sync();
+	inter_quest_sync();
 
 	return 0;
 }
@@ -206,6 +207,7 @@ int inter_init(CharServerDB* db)
 	inter_pet_init(db->petdb(db));
 	inter_homun_init(db->homundb(db));
 	inter_mail_init(db->maildb(db), db->chardb(db));
+	inter_quest_init(db->questdb(db));
 #ifndef TXT_ONLY
 	inter_auction_init();
 #endif
@@ -226,6 +228,7 @@ void inter_final(void)
 	inter_pet_final();
 	inter_homun_final();
 	inter_mail_final();
+	inter_quest_final();
 #ifndef TXT_ONLY
 	inter_auction_final();
 #endif

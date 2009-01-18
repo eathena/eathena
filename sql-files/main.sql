@@ -498,7 +498,7 @@ CREATE TABLE IF NOT EXISTS `quest` (
 ) ENGINE=MyISAM;
 
 --
--- Table structure for table `quest_mob`
+-- Table structure for table `quest_objective`
 --
 
 CREATE TABLE IF NOT EXISTS `quest_objective` (

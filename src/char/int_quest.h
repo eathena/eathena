@@ -4,9 +4,11 @@
 #ifndef _QUEST_H_
 #define _QUEST_H_
 
-/*questlog system*/
-struct quest;
+#include "questdb.h"
 
+void inter_quest_init(QuestDB* db);
+void inter_quest_final(void);
+void inter_quest_sync(void);
 int inter_quest_parse_frommap(int fd);
 
 #endif

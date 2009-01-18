@@ -41,6 +41,7 @@ struct CharServerDB_SQL
 	HotkeyDB* hotkeydb;
 	PartyDB* partydb;
 	PetDB* petdb;
+	QuestDB* questdb;
 	RankDB* rankdb;
 	MailDB* maildb;
 	StatusDB* statusdb;
@@ -71,6 +72,7 @@ HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner);
 PartyDB* party_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
+QuestDB* quest_db_sql(CharServerDB_SQL* owner);
 MailDB* mail_db_sql(CharServerDB_SQL* owner);
 StatusDB* status_db_sql(CharServerDB_SQL* owner);
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner);

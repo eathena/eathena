@@ -45,8 +45,22 @@ static bool charserver_db_sql_init(CharServerDB* self)
 	if( codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, codepage) )
 		Sql_ShowDebug(sql_handle);
 
-	// TODO DB interfaces
-	if( db->castledb->init(db->castledb) && db->chardb->init(db->chardb) && db->frienddb->init(db->frienddb) && db->guilddb->init(db->guilddb) && db->homundb->init(db->homundb) && db->hotkeydb->init(db->hotkeydb) && db->partydb->init(db->partydb) && db->petdb->init(db->petdb) && rank_db_sql_init(db->rankdb) && db->maildb->init(db->maildb) && db->statusdb->init(db->statusdb) && db->accregdb->init(db->accregdb) && db->charregdb->init(db->charregdb) )
+	if(
+		db->accregdb->init(db->accregdb) &&
+		db->charregdb->init(db->charregdb) &&
+		db->castledb->init(db->castledb) &&
+		db->chardb->init(db->chardb) &&
+		db->frienddb->init(db->frienddb) &&
+		db->guilddb->init(db->guilddb) &&
+		db->homundb->init(db->homundb) &&
+		db->hotkeydb->init(db->hotkeydb) &&
+		db->partydb->init(db->partydb) &&
+		db->petdb->init(db->petdb) &&
+		db->questdb->init(db->questdb) &&
+		rank_db_sql_init(db->rankdb) &&
+		db->maildb->init(db->maildb) &&
+		db->statusdb->init(db->statusdb)
+	)
 		db->initialized = true;
 
 	return db->initialized;
@@ -75,6 +89,8 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->partydb = NULL;
 	db->petdb->destroy(db->petdb);
 	db->petdb = NULL;
+	db->questdb->destroy(db->questdb);
+	db->questdb = NULL;
 	rank_db_sql_destroy(db->rankdb);
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
@@ -85,7 +101,7 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->accregdb = NULL;
 	db->charregdb->destroy(db->charregdb);
 	db->charregdb = NULL;
-	// TODO DB interfaces
+
 	Sql_Free(db->sql_handle);
 	db->sql_handle = NULL;
 	aFree(db);
@@ -269,6 +285,16 @@ static PetDB* charserver_db_sql_petdb(CharServerDB* self)
 
 
 
+/// TODO
+static QuestDB* charserver_db_sql_questdb(CharServerDB* self)
+{
+	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
+
+	return db->questdb;
+}
+
+
+
 /// Returns the database interface that handles rankings.
 static RankDB* charserver_db_sql_rankdb(CharServerDB* self)
 {
@@ -337,6 +363,7 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.hotkeydb     = charserver_db_sql_hotkeydb;
 	db->vtable.partydb      = charserver_db_sql_partydb;
 	db->vtable.petdb        = charserver_db_sql_petdb;
+	db->vtable.questdb      = charserver_db_sql_questdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	db->vtable.maildb       = charserver_db_sql_maildb;
 	db->vtable.statusdb     = charserver_db_sql_statusdb;
@@ -352,6 +379,7 @@ CharServerDB* charserver_db_sql(void)
 	db->hotkeydb = hotkey_db_sql(db);
 	db->partydb = party_db_sql(db);
 	db->petdb = pet_db_sql(db);
+	db->questdb = quest_db_sql(db);
 	db->rankdb = rank_db_sql(db);
 	db->maildb = mail_db_sql(db);
 	db->statusdb = status_db_sql(db);

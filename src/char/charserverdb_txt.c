@@ -31,6 +31,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->hotkeydb->init(db->hotkeydb) &&
 		db->partydb->init(db->partydb) &&
 		db->petdb->init(db->petdb) &&
+		db->questdb->init(db->questdb) &&
 		rank_db_txt_init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
 		db->statusdb->init(db->statusdb)
@@ -47,7 +48,6 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	// TODO DB interfaces
 	db->castledb->destroy(db->castledb);
 	db->castledb = NULL;
 	db->chardb->destroy(db->chardb);
@@ -64,6 +64,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->partydb = NULL;
 	db->petdb->destroy(db->petdb);
 	db->petdb = NULL;
+	db->questdb->destroy(db->questdb);
+	db->questdb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
@@ -218,6 +220,16 @@ static PetDB* charserver_db_txt_petdb(CharServerDB* self)
 
 
 
+/// TODO
+static QuestDB* charserver_db_txt_questdb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->questdb;
+}
+
+
+
 /// Returns the database interface that handles rankings.
 static RankDB* charserver_db_txt_rankdb(CharServerDB* self)
 {
@@ -286,6 +298,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.hotkeydb     = charserver_db_txt_hotkeydb;
 	db->vtable.partydb      = charserver_db_txt_partydb;
 	db->vtable.petdb        = charserver_db_txt_petdb;
+	db->vtable.questdb      = charserver_db_txt_questdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	db->vtable.maildb       = charserver_db_txt_maildb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
@@ -301,6 +314,7 @@ CharServerDB* charserver_db_txt(void)
 	db->hotkeydb = hotkey_db_txt(db);
 	db->partydb = party_db_txt(db);
 	db->petdb = pet_db_txt(db);
+	db->questdb = quest_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 	db->maildb = mail_db_txt(db);
 	db->statusdb = status_db_txt(db);
