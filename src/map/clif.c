@@ -11329,7 +11329,6 @@ void clif_parse_Check(int fd, struct map_session_data *sd)
 	// no info
 }
 
-#ifndef TXT_ONLY
 /*==========================================
  * MAIL SYSTEM
  * By Zephyrus
@@ -11743,6 +11742,7 @@ void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 	sd->cansendmail_tick = gettick() + 1000; // 1 Second flood Protection
 }
 
+#ifndef TXT_ONLY
 /*==========================================
  * AUCTION SYSTEM
  * By Zephyrus

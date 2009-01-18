@@ -1454,7 +1454,6 @@ int intif_quest_add(int char_id, struct quest * qd)
 	return 0;
 }
 
-#ifndef TXT_ONLY
 
 /*==========================================
  * MAIL SYSTEM
@@ -1737,6 +1736,7 @@ static void intif_parse_Mail_new(int fd)
 	clif_Mail_new(sd->fd, mail_id, sender_name, title);
 }
 
+#ifndef TXT_ONLY
 /*==========================================
  * AUCTION SYSTEM
  * By Zephyrus

@@ -415,7 +415,6 @@ int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target
 int do_final_clif(void);
 int do_init_clif(void);
 
-#ifndef TXT_ONLY
 // MAIL SYSTEM
 void clif_Mail_window(int fd, int flag);
 void clif_Mail_read(struct map_session_data *sd, int mail_id);
@@ -426,6 +425,7 @@ void clif_Mail_new(int fd, int mail_id, const char *sender, const char *title);
 void clif_Mail_refreshinbox(struct map_session_data *sd);
 void clif_Mail_getattachment(int fd, uint8 flag);
 // AUCTION SYSTEM
+#ifndef TXT_ONLY
 void clif_Auction_openwindow(struct map_session_data *sd);
 void clif_Auction_results(struct map_session_data *sd, short count, short pages, uint8 *buf);
 void clif_Auction_message(int fd, unsigned char flag);

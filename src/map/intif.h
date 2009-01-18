@@ -79,7 +79,6 @@ int intif_request_questlog(struct map_session_data * sd);
 int intif_quest_delete(int char_id, int quest_id);
 int intif_quest_add(int char_id, struct quest * qd);
 
-#ifndef TXT_ONLY
 // MAIL SYSTEM
 int intif_Mail_requestinbox(int char_id, unsigned char flag);
 int intif_Mail_read(int mail_id);
@@ -88,6 +87,7 @@ int intif_Mail_delete(int char_id, int mail_id);
 int intif_Mail_return(int char_id, int mail_id);
 int intif_Mail_send(int account_id, struct mail_message *msg);
 // AUCTION SYSTEM
+#ifndef TXT_ONLY
 int intif_Auction_requestlist(int char_id, short type, int price, const char* searchtext, short page);
 int intif_Auction_register(struct auction_data *auction);
 int intif_Auction_cancel(int char_id, unsigned int auction_id);
