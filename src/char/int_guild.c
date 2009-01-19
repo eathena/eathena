@@ -67,8 +67,8 @@ int inter_guild_exp_readdb(void)
 
 static bool guild_break(int guild_id)
 {
+/*
 #ifdef TXT_ONLY
-/* TODO
 	struct DBIterator* iter;
 	struct guild* tmp;
 
@@ -81,40 +81,14 @@ static bool guild_break(int guild_id)
 				tmp->alliance[i].guild_id = 0;
 	}
 	iter->destroy(iter);
-*/
-	inter_guild_storage_delete(guild_id);
-	guilds->remove(guilds, guild_id);
 #else
-	// Delete guild from sql
-	//printf("- Delete guild %d from guild\n",guild_id);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_storage_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, guild_id, guild_id) )
 		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	//printf("- Update guild %d of char\n",guild_id);
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id`='0' WHERE `guild_id`='%d'", char_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
 #endif
+*/
+
+	inter_guild_storage_delete(guild_id);
+	guilds->remove(guilds, guild_id);
 
 	mapif_guild_broken(guild_id, 0);
 	interlog_log("guild (id=%d) broken\n", guild_id);
@@ -578,15 +552,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 
 	if( !guilds->load_num(guilds, &g, guild_id) )
 	{
-#ifdef TXT_ONLY
 		//TODO
-#else
-		// Unknown guild, just update the player
-		//FIXME: this might need handling on the mapserver instead of here
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%d' AND `char_id`='%d'", char_db, account_id, char_id) )
-			Sql_ShowDebug(sql_handle);
-		// mapif_guild_leaved(guild_id,account_id,char_id,flag,g->member[i].name,mes);
-#endif
 		return 0;
 	}
 

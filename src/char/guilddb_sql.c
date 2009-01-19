@@ -97,6 +97,25 @@ static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 {
+/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+*/
 }
 
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
