@@ -180,24 +180,6 @@ int inter_save(void)
 // initialize
 int inter_init(CharServerDB* db)
 {
-#ifndef TXT_ONLY
-	ShowInfo ("interserver initialize...\n");
-
-	//DB connection initialized
-	sql_handle = Sql_Malloc();
-	ShowInfo("Connect Character DB server.... (Character Server)\n");
-	if( SQL_ERROR == Sql_Connect(sql_handle, char_server_id, char_server_pw, char_server_ip, (uint16)char_server_port, char_server_db) )
-	{
-		Sql_ShowDebug(sql_handle);
-		Sql_Free(sql_handle);
-		exit(EXIT_FAILURE);
-	}
-
-	if( *default_codepage ) {
-		if( SQL_ERROR == Sql_SetEncoding(sql_handle, default_codepage) )
-			Sql_ShowDebug(sql_handle);
-	}
-#endif
 	inter_message_init();
 	inter_registry_init(db->accregdb(db), db->charregdb(db));
 	inter_status_init(db->statusdb(db));

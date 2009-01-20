@@ -32,7 +32,6 @@ extern int disconnect_player(int account_id);
 extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 extern void set_char_offline(int char_id, int account_id);
-#include "../common/sql.h"
 
 
 

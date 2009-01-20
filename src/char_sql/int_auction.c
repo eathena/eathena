@@ -7,7 +7,6 @@
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
-#include "../common/sql.h"
 #include "../common/timer.h"
 #include "char.h"
 #include "inter.h"
@@ -17,6 +16,13 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+
+#ifndef TXT_ONLY
+#include "../common/sql.h"
+static Sql* sql_handle = NULL;
+#endif
+
 
 static DBMap* auction_db_ = NULL; // int auction_id -> struct auction_data*
 

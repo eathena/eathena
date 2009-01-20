@@ -8,7 +8,6 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
-#include "../common/sql.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "../common/utils.h"
@@ -23,6 +22,12 @@
 #include "map.h"
 #include <stdlib.h>
 #include <string.h>
+
+
+#ifndef TXT_ONLY
+#include "../common/sql.h"
+static Sql* sql_handle = NULL;
+#endif
 
 
 // private declarations

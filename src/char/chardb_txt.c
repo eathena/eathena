@@ -23,7 +23,6 @@
 // temporary stuff
 extern CharServerDB* charserver;
 extern int autosave_interval;
-extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
 
@@ -943,47 +942,5 @@ int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
 #endif
 
 	inter_save();
-	return 0;
-}
- 
-
-int char_married(int pl1, int pl2)
-{
-	CharDB* chars = charserver->chardb(charserver);
-	struct mmo_charstatus cd1, cd2;
-	if( !chars->load_num(chars, &cd1, pl1) || !chars->load_num(chars, &cd2, pl2) )
-		return 0; //Some character not found??
-
-	return( cd1.char_id == cd2.partner_id && cd2.char_id == cd1.partner_id );
-}
-
-int char_child(int parent_id, int child_id)
-{
-	CharDB* chars = charserver->chardb(charserver);
-	struct mmo_charstatus parent, child;
-	if( !chars->load_num(chars, &parent, parent_id) || !chars->load_num(chars, &child, child_id) )
-		return 0; //Some character not found??
-
-	return( parent.child == child.char_id && (parent.char_id == child.father || parent.char_id == child.mother) );
-}
-
-int char_family(int cid1, int cid2, int cid3)
-{
-	CharDB* chars = charserver->chardb(charserver);
-	struct mmo_charstatus cd1, cd2, cd3;
-	if( !chars->load_num(chars, &cd1, cid1) || !chars->load_num(chars, &cd2, cid2) || !chars->load_num(chars, &cd3, cid3) )
-		return 0; //Some character not found??
-
-	//Unless the dbs are corrupted, these 3 checks should suffice, even though 
-	//we could do a lot more checks and force cross-reference integrity.
-	if( cd1.partner_id == cid2 && cd1.child == cid3 )
-		return cid3; //cid1/cid2 parents. cid3 child.
-
-	if( cd1.partner_id == cid3 && cd1.child == cid2 )
-		return cid2; //cid1/cid3 parents. cid2 child.
-
-	if( cd2.partner_id == cid3 && cd2.child == cid1 )
-		return cid1; //cid2/cid3 parents. cid1 child.
-
 	return 0;
 }

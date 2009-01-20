@@ -38,6 +38,10 @@ void char_divorce(int partner_id1, int partner_id2);
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);
 int char_delete(int char_id);
 
+int char_married(int pl1,int pl2);
+int char_child(int parent_id, int child_id);
+int char_family(int cid1, int cid2, int cid3);
+
 // char config
 extern char db_path[];
 extern int char_name_option;

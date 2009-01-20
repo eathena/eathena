@@ -6,7 +6,6 @@
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
-#include "../common/sql.h"
 #include "../common/timer.h"
 
 #include "char.h"

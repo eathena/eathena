@@ -70,9 +70,4 @@ struct CharDB
 };
 
 
-int char_married(int pl1,int pl2);
-int char_child(int parent_id, int child_id);
-int char_family(int cid1, int cid2, int cid3);
-
-
 #endif /* _CHARDB_H_ */

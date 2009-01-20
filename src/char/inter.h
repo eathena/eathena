@@ -20,10 +20,6 @@ int inter_save(void);
 //For TXT->SQL conversion
 extern char accreg_txt[];
 #else
-#include "../common/sql.h"
-extern Sql* sql_handle;
-extern Sql* lsql_handle;
-
 extern char char_db[256];
 extern char scdata_db[256];
 extern char cart_db[256];
@@ -48,7 +44,6 @@ extern char hotkey_db[256];
 extern char auction_db[256];
 extern char quest_db[256];
 extern char quest_obj_db[256];
-
 #endif
 
 #endif /* _INTER_H_ */

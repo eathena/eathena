@@ -6,13 +6,18 @@
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h" // StringBuf
-#include "../common/sql.h"
 #include "char.h"
 #include "inter.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+
+#ifndef TXT_ONLY
+#include "../common/sql.h"
+static Sql* sql_handle = NULL;
+#endif
 
 
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);

@@ -22,7 +22,6 @@
 // temporary stuff
 extern int storage_fromsql(int account_id, struct storage_data* p);
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 /// Maximum number of character ids cached in the iterator.
 #define CHARDBITERATOR_MAXCACHE 16000
@@ -486,6 +485,7 @@ static CharDBIterator* char_db_sql_iterator(CharDB* self)
 static CharDBIterator* char_db_sql_characters(CharDB* self, int account_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)aCalloc(1, sizeof(CharDBIterator_SQL));
 
 	// set up the vtable
@@ -1077,125 +1077,5 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 #endif
 	*/
 
-	return 0;
-}
-
-
-
-
-
-
-
-
-
-
-
-extern void set_all_offline_sql(void);
-extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-#define TRIM_CHARS "\032\t\x0A\x0D "
-
-
-
-// holds active players' data
-DBMap* char_db_; // int char_id -> struct mmo_charstatus*
-
-
-int mmo_char_sql_init(void)
-{
-	ShowInfo("Begin Initializing.......\n");
-	char_db_= idb_alloc(DB_OPT_RELEASE_DATA);
-
-	if(char_per_account == 0){
-	  ShowStatus("Chars per Account: 'Unlimited'.......\n");
-	}else{
-		ShowStatus("Chars per Account: '%d'.......\n", char_per_account);
-	}
-
-	//the 'set offline' part is now in check_login_conn ...
-	//if the server connects to loginserver
-	//it will dc all off players
-	//and send the loginserver the new state....
-
-	// Force all users offline in sql when starting char-server
-	// (useful when servers crashs and don't clean the database)
-	set_all_offline_sql();
-
-	ShowInfo("Finished initilizing.......\n");
-
-	return 0;
-}
-
-/*
-static void* create_charstatus(DBKey key, va_list args)
-{
-	struct mmo_charstatus *cp;
-	cp = (struct mmo_charstatus *) aCalloc(1,sizeof(struct mmo_charstatus));
-	cp->char_id = key.i;
-	return cp;
-}
-*/
-
-int char_married(int pl1, int pl2)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `partner_id` FROM `%s` WHERE `char_id` = '%d'", char_db, pl1) )
-		Sql_ShowDebug(sql_handle);
-	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		char* data;
-
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		if( pl2 == atoi(data) )
-		{
-			Sql_FreeResult(sql_handle);
-			return 1;
-		}
-	}
-	Sql_FreeResult(sql_handle);
-	return 0;
-}
-
-int char_child(int parent_id, int child_id)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `child` FROM `%s` WHERE `char_id` = '%d'", char_db, parent_id) )
-		Sql_ShowDebug(sql_handle);
-	else if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		char* data;
-
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		if( child_id == atoi(data) )
-		{
-			Sql_FreeResult(sql_handle);
-			return 1;
-		}
-	}
-	Sql_FreeResult(sql_handle);
-	return 0;
-}
-
-int char_family(int pl1, int pl2, int pl3)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`partner_id`,`child` FROM `%s` WHERE `char_id` IN ('%d','%d','%d')", char_db, pl1, pl2, pl3) )
-		Sql_ShowDebug(sql_handle);
-	else while( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		int charid;
-		int partnerid;
-		int childid;
-		char* data;
-
-		Sql_GetData(sql_handle, 0, &data, NULL); charid = atoi(data);
-		Sql_GetData(sql_handle, 1, &data, NULL); partnerid = atoi(data);
-		Sql_GetData(sql_handle, 2, &data, NULL); childid = atoi(data);
-
-		if( (pl1 == charid    && ((pl2 == partnerid && pl3 == childid  ) || (pl2 == childid   && pl3 == partnerid))) ||
-			(pl1 == partnerid && ((pl2 == charid    && pl3 == childid  ) || (pl2 == childid   && pl3 == charid   ))) ||
-			(pl1 == childid   && ((pl2 == charid    && pl3 == partnerid) || (pl2 == partnerid && pl3 == charid   ))) )
-		{
-			Sql_FreeResult(sql_handle);
-			return childid;
-		}
-	}
-	Sql_FreeResult(sql_handle);
 	return 0;
 }
