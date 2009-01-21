@@ -343,10 +343,10 @@ int inter_parse_frommap(int fd)
 		  || inter_storage_parse_frommap(fd)
 		  || inter_party_parse_frommap(fd)
 		  || inter_guild_parse_frommap(fd)
+		  || inter_mail_parse_frommap(fd)
+		  || inter_quest_parse_frommap(fd)
 #ifndef TXT_ONLY
 		  || inter_auction_parse_frommap(fd)
-		  || inter_quest_parse_frommap(fd)
-		  || inter_mail_parse_frommap(fd)
 #endif
 		  || inter_pet_parse_frommap(fd)
 		  || inter_homun_parse_frommap(fd)
