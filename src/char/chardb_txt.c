@@ -162,8 +162,6 @@ static bool char_db_txt_init(CharDB* self)
 		ret = mmo_char_fromstr(self, line, ch, &reg);
 
 		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
-		//friends->load(friends, &ch->friends, ch->char_id); // Initialize friends list
-		//hotkeys->load(hotkeys, &ch->hotkeys, ch->char_id); // Initialize hotkey list
 
 		if( ret <= 0 )
 		{

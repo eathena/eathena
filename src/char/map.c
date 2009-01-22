@@ -61,6 +61,8 @@ int search_mapserver(unsigned short map, uint32 ip, uint16 port)
 int parse_frommap(int fd)
 {
 	CharDB* chars = charserver->chardb(charserver);
+	FriendDB* friends = charserver->frienddb(charserver);
+	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
 	int i, j;
 	int id;
 
@@ -227,9 +229,9 @@ int parse_frommap(int fd)
 
 				if( chars->save(chars, &cd) )
 				{
-					#ifdef TXT_ONLY
 					storage_save(cd.account_id, &cd.storage);
-					#endif
+					friends->save(friends, &cd.friends, cd.char_id);
+					hotkeys->save(hotkeys, &cd.hotkeys, cd.char_id);
 				}
 				//TODO: error handling
 			}
@@ -532,9 +534,11 @@ int parse_frommap(int fd)
 				node->ip == ip )
 			{// auth ok
 				cd.sex = sex; //FIXME: is this ok?
-				#ifdef TXT_ONLY
-				storage_load(cd.account_id, &cd.storage);
-				#endif
+
+				// load auxiliary data
+				storage_load(account_id, &cd.storage);
+				friends->load(friends, &cd.friends, char_id);
+				hotkeys->load(hotkeys, &cd.hotkeys, char_id);			
 
 				WFIFOHEAD(fd,24 + sizeof(struct mmo_charstatus));
 				WFIFOW(fd,0) = 0x2afd;

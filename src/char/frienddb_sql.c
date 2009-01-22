@@ -109,8 +109,50 @@ static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_
 
 static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id)
 {
+/*
+	struct s_friend tmp_friend;
+
+	//`friends` (`char_id`, `friend_account`, `friend_id`)
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=? LIMIT %d", char_db, friend_db, MAX_FRIENDS)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
+	||	SQL_ERROR == SqlStmt_Execute(stmt)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &tmp_friend.account_id, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_INT,    &tmp_friend.char_id, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, &tmp_friend.name, sizeof(tmp_friend.name), NULL, NULL) )
+		SqlStmt_ShowDebug(stmt);
+
+	for( i = 0; i < MAX_FRIENDS && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
+		memcpy(&p->friends[i], &tmp_friend, sizeof(tmp_friend));
+*/
 }
 
 static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int char_id)
 {
+/*
+	//Save friends
+	ARR_FIND( 0, MAX_FRIENDS, i, p->friends[i].char_id != cp->friends[i].char_id || p->friends[i].account_id != cp->friends[i].account_id );
+	if( i < MAX_FRIENDS )
+	{
+		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", friend_db, p->char_id) )
+			Sql_ShowDebug(sql_handle);
+
+		StringBuf_Clear(&buf);
+		StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", friend_db);
+		for( i = 0, count = 0; i < MAX_FRIENDS; ++i )
+		{
+			if( p->friends[i].char_id > 0 )
+			{
+				if( count != 0 )
+					StringBuf_AppendStr(&buf, ",");
+				StringBuf_Printf(&buf, "('%d','%d','%d')", p->char_id, p->friends[i].account_id, p->friends[i].char_id);
+				count++;
+			}
+		}
+		if( count > 0 )
+		{
+			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+				Sql_ShowDebug(sql_handle);
+		}
+	}
+*/
 }

@@ -21,15 +21,22 @@ static Sql* sql_handle = NULL;
 
 
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
+int storage_fromsql(int account_id, struct storage_data* p);
 
 
 #define STORAGE_MEMINC	16
 
 /// Save guild_storage data to sql
-int storage_tosql(int account_id, struct storage_data* p)
+bool storage_save(int account_id, struct storage_data* storage)
 {
-	memitemdata_to_sql(p->items, MAX_STORAGE, account_id, TABLE_STORAGE);
-	return 0;
+	memitemdata_to_sql(storage->items, MAX_STORAGE, account_id, TABLE_STORAGE);
+	return true;
+}
+
+bool storage_load(int account_id, struct storage_data* storage)
+{
+	storage_fromsql(account_id, storage);
+	return true;
 }
 
 #ifndef TXT_SQL_CONVERT

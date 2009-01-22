@@ -20,7 +20,6 @@
 #include <string.h>
 
 // temporary stuff
-extern int storage_fromsql(int account_id, struct storage_data* p);
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 
 /// Maximum number of character ids cached in the iterator.
@@ -567,7 +566,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	Sql* sql_handle = db->chars;
 
 	int i,j;
-	char t_msg[128] = "";
 	StringBuf buf;
 	SqlStmt* stmt;
 	char last_map[MAP_NAME_LENGTH_EXT];
@@ -576,11 +574,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	struct point tmp_point;
 	struct item tmp_item;
 	struct s_skill tmp_skill;
-	struct s_friend tmp_friend;
-#ifdef HOTKEY_SAVING
-	struct hotkey tmp_hotkey;
-	int hotkey_num;
-#endif
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	
@@ -665,8 +658,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	p->last_point.map = mapindex_name2id(last_map);
 	p->save_point.map = mapindex_name2id(save_map);
 
-	strcat(t_msg, " status");
-
 	if (!load_everything) // For quick selection of data when displaying the char menu
 	{
 		SqlStmt_Free(stmt);
@@ -688,8 +679,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		tmp_point.map = mapindex_name2id(point_map);
 		memcpy(&p->memo_point[i], &tmp_point, sizeof(tmp_point));
 	}
-	strcat(t_msg, " memo");
-
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	StringBuf_Init(&buf);
@@ -715,7 +704,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	for( i = 0; i < MAX_INVENTORY && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
 		memcpy(&p->inventory[i], &tmp_item, sizeof(tmp_item));
-	strcat(t_msg, " inventory");
 
 	//read cart
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
@@ -742,11 +730,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	for( i = 0; i < MAX_CART && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
 		memcpy(&p->cart[i], &tmp_item, sizeof(tmp_item));
-	strcat(t_msg, " cart");
-
-	//read storage
-	storage_fromsql(p->account_id, &p->storage);
-	strcat(t_msg, " storage");
 
 	//read skill
 	//`skill` (`char_id`, `id`, `lv`)
@@ -765,55 +748,12 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		else
 			ShowWarning("mmo_char_fromsql: ignoring invalid skill (id=%u,lv=%u) of character %s (AID=%d,CID=%d)\n", tmp_skill.id, tmp_skill.lv, p->name, p->account_id, p->char_id);
 	}
-	strcat(t_msg, " skills");
-
-	//read friends
-	//`friends` (`char_id`, `friend_account`, `friend_id`)
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=? LIMIT %d", char_db, friend_db, MAX_FRIENDS)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
-	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &tmp_friend.account_id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_INT,    &tmp_friend.char_id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, &tmp_friend.name, sizeof(tmp_friend.name), NULL, NULL) )
-		SqlStmt_ShowDebug(stmt);
-
-	for( i = 0; i < MAX_FRIENDS && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-		memcpy(&p->friends[i], &tmp_friend, sizeof(tmp_friend));
-	strcat(t_msg, " friends");
-
-#ifdef HOTKEY_SAVING
-	//read hotkeys
-	//`hotkey` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `hotkey`, `type`, `itemskill_id`, `skill_lvl` FROM `%s` WHERE `char_id`=?", hotkey_db)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
-	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &hotkey_num, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_UCHAR,  &tmp_hotkey.type, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_UINT,   &tmp_hotkey.id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &tmp_hotkey.lv, 0, NULL, NULL) )
-		SqlStmt_ShowDebug(stmt);
-
-	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) )
-	{
-		if( hotkey_num >= 0 && hotkey_num < MAX_HOTKEYS )
-			memcpy(&p->hotkeys[hotkey_num], &tmp_hotkey, sizeof(tmp_hotkey));
-		else
-			ShowWarning("mmo_char_fromsql: ignoring invalid hotkey (hotkey=%d,type=%u,id=%u,lv=%u) of character %s (AID=%d,CID=%d)\n", hotkey_num, tmp_hotkey.type, tmp_hotkey.id, tmp_hotkey.lv, p->name, p->account_id, p->char_id);
-	}
-	strcat(t_msg, " hotkeys");
-#endif
 
 	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
 
 	if( save_log )
-		ShowInfo("Loaded char (%d - %s): %s\n", char_id, p->name, t_msg);	//ok. all data load successfuly!
-
-/*	TODO: update cache
-	struct mmo_charstatus* cp;
-	cp = (struct mmo_charstatus*)idb_ensure(char_db_, char_id, create_charstatus);
-	memcpy(cp, p, sizeof(struct mmo_charstatus));
-	*/
+		ShowInfo("Loaded char (%d - %s)\n", char_id, p->name);	//ok. all data load successfuly!
 
 	return true;
 }
@@ -825,7 +765,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 	int i = 0;
 	int count = 0;
 	int diff = 0;
-	char save_status[128]; //For displaying save information. [Skotlex]
 	struct mmo_charstatus tmp;
 	struct mmo_charstatus* cp = &tmp;
 	char esc_name[NAME_LENGTH*2+1];
@@ -834,16 +773,8 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 	//TODO: add cache
 	//TODO: if "is_new", don't consider doing this step and just 'memset' it or something
 	mmo_char_fromsql(db, cp, p->char_id, true);
-/*
-#ifndef TXT_SQL_CONVERT
-	cp = (struct mmo_charstatus*)idb_ensure(char_db_, p->char_id, create_charstatus);
-#else
-	cp = (struct mmo_charstatus*)aCalloc(1, sizeof(struct mmo_charstatus));
-#endif
-	*/
 
 	StringBuf_Init(&buf);
-	memset(save_status, 0, sizeof(save_status));
 
 	if( is_new )
 	{// Insert the barebones to then update the rest.
@@ -853,30 +784,15 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 		{
 			Sql_ShowDebug(sql_handle);
 		}
-
-		strcat(save_status, " creation");
 	}
 
 	//map inventory data
 	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
-	{
 		memitemdata_to_sql(p->inventory, MAX_INVENTORY, p->char_id, TABLE_INVENTORY);
-		strcat(save_status, " inventory");
-	}
 
 	//map cart data
 	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
-	{
 		memitemdata_to_sql(p->cart, MAX_CART, p->char_id, TABLE_CART);
-		strcat(save_status, " cart");
-	}
-
-	//map storage data
-	if( memcmp(p->storage.items, cp->storage.items, sizeof(p->storage.items)) )
-	{
-		memitemdata_to_sql(p->storage.items, MAX_STORAGE, p->account_id, TABLE_STORAGE);
-		strcat(save_status, " storage");
-	}
 
 	if (
 		(p->base_exp != cp->base_exp) || (p->base_level != cp->base_level) ||
@@ -915,7 +831,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 		{
 			Sql_ShowDebug(sql_handle);
 		}
-		strcat(save_status, " status");
 	}
 
 	//Values that will seldom change (to speed up saving)
@@ -941,8 +856,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 		{
 			Sql_ShowDebug(sql_handle);
 		}
-
-		strcat(save_status, " status2");
 	}
 
 	//memo points
@@ -973,8 +886,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 				Sql_ShowDebug(sql_handle);
 		}
-		
-		strcat(save_status, " memo");
 	}
 
 /*
@@ -1009,73 +920,12 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 				Sql_ShowDebug(sql_handle);
 		}
-
-		strcat(save_status, " skills");
 	}
-
-	//Save friends
-	ARR_FIND( 0, MAX_FRIENDS, i, p->friends[i].char_id != cp->friends[i].char_id || p->friends[i].account_id != cp->friends[i].account_id );
-	if( i < MAX_FRIENDS )
-	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", friend_db, p->char_id) )
-			Sql_ShowDebug(sql_handle);
-
-		StringBuf_Clear(&buf);
-		StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", friend_db);
-		for( i = 0, count = 0; i < MAX_FRIENDS; ++i )
-		{
-			if( p->friends[i].char_id > 0 )
-			{
-				if( count != 0 )
-					StringBuf_AppendStr(&buf, ",");
-				StringBuf_Printf(&buf, "('%d','%d','%d')", p->char_id, p->friends[i].account_id, p->friends[i].char_id);
-				count++;
-			}
-		}
-		if( count > 0 )
-		{
-			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-				Sql_ShowDebug(sql_handle);
-		}
-
-		strcat(save_status, " friends");
-	}
-
-#ifdef HOTKEY_SAVING
-	// hotkeys
-	StringBuf_Clear(&buf);
-	StringBuf_Printf(&buf, "REPLACE INTO `%s` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`) VALUES ", hotkey_db);
-	diff = 0;
-	for(i = 0; i < ARRAYLENGTH(p->hotkeys); i++){
-		if(memcmp(&p->hotkeys[i], &cp->hotkeys[i], sizeof(struct hotkey)))
-		{
-			if( diff )
-				StringBuf_AppendStr(&buf, ",");// not the first hotkey
-			StringBuf_Printf(&buf, "('%d','%u','%u','%u','%u')", p->char_id, (unsigned int)i, (unsigned int)p->hotkeys[i].type, p->hotkeys[i].id , (unsigned int)p->hotkeys[i].lv);
-			diff = 1;
-		}
-	}
-	if(diff) {
-		if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-			Sql_ShowDebug(sql_handle);
-		else
-			strcat(save_status, " hotkeys");
-	}
-#endif
 
 	StringBuf_Destroy(&buf);
 
-	if (save_status[0]!='\0' && save_log)
-		ShowInfo("Saved char %d - %s:%s.\n", p->char_id, p->name, save_status);
+	if( save_log )
+		ShowInfo("Saved char %d - %s.\n", p->char_id, p->name);
 
-	//TODO: update cache
-/*
-#ifndef TXT_SQL_CONVERT
-	memcpy(cp, p, sizeof(struct mmo_charstatus));
-#else
-	aFree(cp);
-#endif
-	*/
-
-	return 0;
+	return true;
 }
