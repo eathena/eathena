@@ -44,6 +44,7 @@ struct CharServerDB_SQL
 	QuestDB* questdb;
 	RankDB* rankdb;
 	MailDB* maildb;
+	AuctionDB* auctiondb;
 	StatusDB* statusdb;
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
@@ -74,6 +75,7 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner);
 PetDB* pet_db_sql(CharServerDB_SQL* owner);
 QuestDB* quest_db_sql(CharServerDB_SQL* owner);
 MailDB* mail_db_sql(CharServerDB_SQL* owner);
+AuctionDB* auction_db_sql(CharServerDB_SQL* owner);
 StatusDB* status_db_sql(CharServerDB_SQL* owner);
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner);
 CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);

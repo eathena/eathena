@@ -10,6 +10,7 @@
 
 
 
+#include "auctiondb.h"
 #include "castledb.h"
 #include "chardb.h"
 #include "frienddb.h"
@@ -132,6 +133,8 @@ struct CharServerDB
 	RankDB* (*rankdb)(CharServerDB* self);
 
 	MailDB* (*maildb)(CharServerDB* self);
+
+	AuctionDB* (*auctiondb)(CharServerDB* self);
 
 	StatusDB* (*statusdb)(CharServerDB* self);
 

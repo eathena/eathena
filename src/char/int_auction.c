@@ -16,6 +16,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+// Databases
+static AuctionDB* auctions = NULL;
+static MailDB* mails = NULL;
+
 
 /// 6 - You have won the auction
 /// 7 - You have failed to win the auction
@@ -160,12 +164,19 @@ int inter_auction_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_auction_init(void)
+void inter_auction_sync(void)
 {
-	return 0;
+	auctions->sync(auctions);
+}
+
+void inter_auction_init(AuctionDB* adb, MailDB* mdb)
+{
+	auctions = adb;
+	mails = mdb;
 }
 
 void inter_auction_final(void)
 {
-	return;
+	auctions = NULL;
+	mails = NULL;
 }

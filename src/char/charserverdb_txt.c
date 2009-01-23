@@ -32,6 +32,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->partydb->init(db->partydb) &&
 		db->petdb->init(db->petdb) &&
 		db->questdb->init(db->questdb) &&
+		db->auctiondb->init(db->auctiondb) &&
 		rank_db_txt_init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
 		db->statusdb->init(db->statusdb)
@@ -66,6 +67,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->petdb = NULL;
 	db->questdb->destroy(db->questdb);
 	db->questdb = NULL;
+	db->auctiondb->destroy(db->auctiondb);
+	db->auctiondb = NULL;
 	rank_db_txt_destroy(db->rankdb);
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
@@ -251,6 +254,16 @@ static MailDB* charserver_db_txt_maildb(CharServerDB* self)
 
 
 /// TODO
+static AuctionDB* charserver_db_txt_auctiondb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->auctiondb;
+}
+
+
+
+/// TODO
 static StatusDB* charserver_db_txt_statusdb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -301,6 +314,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.questdb      = charserver_db_txt_questdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	db->vtable.maildb       = charserver_db_txt_maildb;
+	db->vtable.auctiondb    = charserver_db_txt_auctiondb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
 	db->vtable.charregdb    = charserver_db_txt_charregdb;
@@ -317,6 +331,7 @@ CharServerDB* charserver_db_txt(void)
 	db->questdb = quest_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 	db->maildb = mail_db_txt(db);
+	db->auctiondb = auction_db_txt(db);
 	db->statusdb = status_db_txt(db);
 	db->accregdb = accreg_db_txt(db);
 	db->charregdb = charreg_db_txt(db);

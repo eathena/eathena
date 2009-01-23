@@ -172,6 +172,7 @@ int inter_save(void)
 	inter_status_sync();
 	inter_mail_sync();
 	inter_quest_sync();
+	inter_auction_sync();
 
 	return 0;
 }
@@ -190,9 +191,7 @@ int inter_init(CharServerDB* db)
 	inter_homun_init(db->homundb(db));
 	inter_mail_init(db->maildb(db), db->chardb(db));
 	inter_quest_init(db->questdb(db));
-#ifndef TXT_ONLY
-	inter_auction_init();
-#endif
+	inter_auction_init(db->auctiondb(db), db->maildb(db));
 	inter_rank_init(db->rankdb(db));
 
 	return 0;
@@ -211,9 +210,7 @@ void inter_final(void)
 	inter_homun_final();
 	inter_mail_final();
 	inter_quest_final();
-#ifndef TXT_ONLY
 	inter_auction_final();
-#endif
 	inter_rank_final();
 }
 
@@ -345,9 +342,7 @@ int inter_parse_frommap(int fd)
 		  || inter_guild_parse_frommap(fd)
 		  || inter_mail_parse_frommap(fd)
 		  || inter_quest_parse_frommap(fd)
-#ifndef TXT_ONLY
 		  || inter_auction_parse_frommap(fd)
-#endif
 		  || inter_pet_parse_frommap(fd)
 		  || inter_homun_parse_frommap(fd)
 		  || inter_status_parse_frommap(fd)
