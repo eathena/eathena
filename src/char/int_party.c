@@ -22,7 +22,7 @@ extern bool party_break_without_leader;
 extern bool party_auto_reassign_leader;
 
 // party database
-PartyDB* parties = NULL;
+static PartyDB* parties = NULL;
 
 void mapif_party_optionchanged(int fd, struct party *p, int account_id, int flag);
 int party_check_exp_share(struct party_data *p);

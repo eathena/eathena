@@ -15,8 +15,8 @@
 #include <stdlib.h>
 
 // Databases
-MailDB* mails = NULL;
-CharDB* chars = NULL;
+static MailDB* mails = NULL;
+static CharDB* chars = NULL;
 
 
 /*==========================================

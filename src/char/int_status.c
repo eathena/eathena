@@ -9,7 +9,7 @@
 #include <string.h>
 
 // status database
-StatusDB* statuses = NULL;
+static StatusDB* statuses = NULL;
 
 
 void inter_status_init(StatusDB* db)

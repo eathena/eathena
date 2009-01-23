@@ -20,8 +20,8 @@
 #include <stdlib.h>
 
 // databases
-GuildDB* guilds = NULL;
-CastleDB* castles = NULL;
+static GuildDB* guilds = NULL;
+static CastleDB* castles = NULL;
 
 // LSB = 0 => Alliance, LSB = 1 => Opposition
 #define GUILD_ALLIANCE_TYPE_MASK 0x01

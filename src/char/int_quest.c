@@ -19,7 +19,7 @@
 
 
 // quest database
-QuestDB* quests = NULL;
+static QuestDB* quests = NULL;
 
 
 //Send questlog to map server

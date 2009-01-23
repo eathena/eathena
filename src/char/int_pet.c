@@ -18,7 +18,7 @@
 
 
 // pet database
-PetDB* pets = NULL;
+static PetDB* pets = NULL;
 
 
 int mapif_pet_created(int fd, int account_id, struct s_pet *p)

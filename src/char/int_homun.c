@@ -19,7 +19,7 @@
 #include <string.h>
 
 // homun database
-HomunDB* homuns = NULL;
+static HomunDB* homuns = NULL;
 
 
 static void mapif_homunculus_created(int fd, int account_id, struct s_homunculus *sh, unsigned char flag)

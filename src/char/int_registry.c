@@ -13,8 +13,8 @@
 
 
 // accreg and charreg database
-AccRegDB* accregs = NULL;
-CharRegDB* charregs = NULL;
+static AccRegDB* accregs = NULL;
+static CharRegDB* charregs = NULL;
 
 
 // temporary imports
