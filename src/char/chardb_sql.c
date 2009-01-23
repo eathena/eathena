@@ -22,6 +22,7 @@
 // temporary stuff
 extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 
+
 /// Maximum number of character ids cached in the iterator.
 #define CHARDBITERATOR_MAXCACHE 16000
 
@@ -186,21 +187,6 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", skill_db, char_id) )
 		Sql_ShowDebug(sql_handle);
 
-	// delete char's friends list
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id` = '%d'", friend_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-
-	// delete char from other's friend list
-	//NOTE: Won't this cause problems for people who are already online? [Skotlex]
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `friend_id` = '%d'", friend_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-
-#ifdef HOTKEY_SAVING
-	// delete hotkeys
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", hotkey_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-#endif
-
 	// delete character
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
 		Sql_ShowDebug(sql_handle);
@@ -225,63 +211,32 @@ static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 
 static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
 {
-	CharDB_SQL* db = (CharDB_SQL*)self;
-	Sql* sql_handle = db->chars;
-	char esc_name[2*NAME_LENGTH+1];
+//	CharDB_SQL* db = (CharDB_SQL*)self;
 	int char_id;
-	char* data;
 
-	Sql_EscapeString(sql_handle, esc_name, name);
-
-	// get the list of char IDs for this char name
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `name`= %s '%s'",
-		db->char_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
-	{
-		Sql_ShowDebug(sql_handle);
+	// find char id
+	if( !self->name2id(self, name, &char_id, NULL) )
+	{// entry not found
 		return false;
 	}
 
-	if( Sql_NumRows(sql_handle) > 1 )
-	{// serious problem - duplicit char name
-		ShowError("char_db_sql_load_str: multiple chars found when retrieving data for char '%s'!\n", name);
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{// no such entry
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-
-	Sql_GetData(sql_handle, 0, &data, NULL);
-	char_id = atoi(data);
-	Sql_FreeResult(sql_handle);
-
-	return char_db_sql_load_num(self, ch, char_id);
+	// retrieve data
+	return self->load_num(self, ch, char_id);
 }
 
 static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
 {
-	CharDB_SQL* db = (CharDB_SQL*)self;
-	Sql* sql_handle = db->chars;
-	char* data;
+//	CharDB_SQL* db = (CharDB_SQL*)self;
 	int char_id;
 
-	if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'", char_db, account_id, slot)
-	 || SQL_SUCCESS != Sql_NextRow(sql_handle)
-	) {
-		//Not found?? May be forged packet.
-		Sql_ShowDebug(sql_handle);
-		Sql_FreeResult(sql_handle);
+	// find char id
+	if( !self->slot2id(self, account_id, slot, &char_id) )
+	{// entry not found
 		return false;
 	}
 
-	Sql_GetData(sql_handle, 0, &data, NULL);
-	char_id = atoi(data);
-	Sql_FreeResult(sql_handle);
-
-	return char_db_sql_load_num(self, ch, char_id);
+	// retrieve data
+	return self->load_num(self, ch, char_id);
 }
 
 static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])

@@ -21,7 +21,6 @@
 #include <string.h>
 
 // temporary stuff
-extern CharServerDB* charserver;
 extern int autosave_interval;
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
@@ -315,53 +314,32 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 
 static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
+//	CharDB_TXT* db = (CharDB_TXT*)self;
+	int char_id;
 
-	// retrieve data
-	struct DBIterator* iter = chars->iterator(chars);
-	struct mmo_charstatus* tmp;
-	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
-
-	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
-		if( compare(name, tmp->name) == 0 )
-			break;
-	iter->destroy(iter);
-
-	if( tmp == NULL )
+	// find char id
+	if( !self->name2id(self, name, &char_id, NULL) )
 	{// entry not found
 		return false;
 	}
 
-	// store it
-	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
-
-	return true;
+	// retrieve data
+	return self->load_num(self, ch, char_id);
 }
 
 static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
+//	CharDB_TXT* db = (CharDB_TXT*)self;
+	int char_id;
 
-	// retrieve data
-	struct DBIterator* iter = chars->iterator(chars);
-	struct mmo_charstatus* tmp;
-
-	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
-		if( account_id == tmp->account_id && slot == tmp->slot )
-			break;
-	iter->destroy(iter);
-
-	if( tmp == NULL )
+	// find char id
+	if( !self->slot2id(self, account_id, slot, &char_id) )
 	{// entry not found
 		return false;
 	}
 
-	// store it
-	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
-
-	return true;
+	// retrieve data
+	return self->load_num(self, ch, char_id);
 }
 
 static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])

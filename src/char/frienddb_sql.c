@@ -90,6 +90,11 @@ static bool friend_db_sql_remove(FriendDB* self, const int char_id)
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->friend_db, char_id) )
 		Sql_ShowDebug(sql_handle);
+
+	// delete char from other's friend list
+	//NOTE: Won't this cause problems for people who are already online? [Skotlex]
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `friend_id` = '%d'", friend_db, char_id) )
+		Sql_ShowDebug(sql_handle);
 */
 	return true;
 }

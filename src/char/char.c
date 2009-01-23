@@ -856,6 +856,8 @@ void char_divorce(int partner_id1, int partner_id2)
 int char_delete(int char_id)
 {
 	CharDB* chars = charserver->chardb(charserver);
+	FriendDB* friends = charserver->frienddb(charserver);
+	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
 	struct mmo_charstatus cd;
 	int i;
 
@@ -936,6 +938,12 @@ int char_delete(int char_id)
 
 	// delete character registry
 	inter_charreg_delete(cd.char_id);
+
+	// delete friends list
+	friends->remove(friends, cd.char_id);
+
+	// delete hotkeys list
+	hotkeys->remove(hotkeys, cd.char_id);
 
 	// delete the character and all associated data
 	chars->remove(chars, cd.char_id);
