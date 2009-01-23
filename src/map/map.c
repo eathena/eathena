@@ -39,9 +39,7 @@
 #include "atcommand.h"
 #include "charcommand.h"
 #include "log.h"
-#ifndef TXT_ONLY
 #include "mail.h"
-#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

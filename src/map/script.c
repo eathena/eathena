@@ -12728,9 +12728,7 @@ BUILDIN_FUNC(openmail)
 	if( sd == NULL )
 		return 0;
 
-#ifndef TXT_ONLY
 	mail_openmail(sd);
-#endif
 	return 0;
 }
 
@@ -12742,9 +12740,7 @@ BUILDIN_FUNC(openauction)
 	if( sd == NULL )
 		return 0;
 
-#ifndef TXT_ONLY
 	clif_Auction_openwindow(sd);
-#endif
 	return 0;
 }
 

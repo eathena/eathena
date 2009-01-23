@@ -1736,7 +1736,7 @@ static void intif_parse_Mail_new(int fd)
 	clif_Mail_new(sd->fd, mail_id, sender_name, title);
 }
 
-#ifndef TXT_ONLY
+
 /*==========================================
  * AUCTION SYSTEM
  * By Zephyrus
@@ -1930,7 +1930,6 @@ static void intif_parse_Auction_message(int fd)
 	clif_Auction_message(sd->fd, result);
 }
 
-#endif
 
 //-----------------------------------------------------------------
 // inter server‚©‚ç‚Ì’ÊM
@@ -2004,23 +2003,21 @@ int intif_parse(int fd)
 	case 0x3860:	intif_parse_questlog(fd); break;
 	case 0x3861:	intif_parse_questAdd(fd); break;
 	case 0x3862:	intif_parse_questDelete(fd); break;
-
-#ifndef TXT_ONLY
-// Mail System
+	// Mail System
 	case 0x3848:	intif_parse_Mail_inboxreceived(fd); break;
 	case 0x3849:	intif_parse_Mail_new(fd); break;
 	case 0x384a:	intif_parse_Mail_getattach(fd); break;
 	case 0x384b:	intif_parse_Mail_delete(fd); break;
 	case 0x384c:	intif_parse_Mail_return(fd); break;
 	case 0x384d:	intif_parse_Mail_send(fd); break;
-// Auction System
+	// Auction System
 	case 0x3850:	intif_parse_Auction_results(fd); break;
 	case 0x3851:	intif_parse_Auction_register(fd); break;
 	case 0x3852:	intif_parse_Auction_cancel(fd); break;
 	case 0x3853:	intif_parse_Auction_close(fd); break;
 	case 0x3854:	intif_parse_Auction_message(fd); break;
 	case 0x3855:	intif_parse_Auction_bid(fd); break;
-#endif
+
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;

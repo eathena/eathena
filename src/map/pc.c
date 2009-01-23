@@ -6712,15 +6712,10 @@ int pc_divorce(struct map_session_data *sd)
 
 	if( (p_sd = map_charid2sd(sd->status.partner_id)) == NULL )
 	{ // Lets char server do the divorce
-#ifndef TXT_ONLY
 		if( chrif_divorce(sd->status.char_id, sd->status.partner_id) )
 			return -1; // No char server connected
 
 		return 0;
-#else
-		ShowError("pc_divorce: p_sd nullpo\n");
-		return -1;
-#endif
 	}
 
 	// Both players online, lets do the divorce manually

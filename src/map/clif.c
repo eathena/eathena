@@ -7038,9 +7038,7 @@ int clif_refresh(struct map_session_data *sd)
 	if( pc_isdead(sd) ) //When you refresh, resend the death packet.
 		clif_clearunit_single(sd->bl.id,1,sd->fd);
 
-#ifndef TXT_ONLY
 	mail_clear(sd);
-#endif
 
 	return 0;
 }
@@ -7982,9 +7980,7 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sd->state.changemap = false;
 	}
 	
-#ifndef TXT_ONLY
 	mail_clear(sd);
-#endif
 
 	quest_pc_login(sd);
 
@@ -11742,7 +11738,7 @@ void clif_parse_Mail_send(int fd, struct map_session_data *sd)
 	sd->cansendmail_tick = gettick() + 1000; // 1 Second flood Protection
 }
 
-#ifndef TXT_ONLY
+
 /*==========================================
  * AUCTION SYSTEM
  * By Zephyrus
@@ -12025,7 +12021,6 @@ void clif_parse_Auction_buysell(int fd, struct map_session_data* sd)
 	intif_Auction_requestlist(sd->status.char_id, type, 0, "", 1);
 }
 
-#endif
 
 /*==========================================
  * CASH/POINT SHOP
@@ -12757,7 +12752,6 @@ static int packetdb_readdb(void)
 		{clif_parse_Check,"check"},
 		{clif_parse_Adopt_request,"adoptrequest"},
 		{clif_parse_Adopt_reply,"adoptreply"},
-#ifndef TXT_ONLY
 		// MAIL SYSTEM
 		{clif_parse_Mail_refreshinbox,"mailrefresh"},
 		{clif_parse_Mail_read,"mailread"},
@@ -12776,7 +12770,6 @@ static int packetdb_readdb(void)
 		{clif_parse_Auction_cancel,"auctioncancel"},
 		{clif_parse_Auction_close,"auctionclose"},
 		{clif_parse_Auction_bid,"auctionbid"},
-#endif
 		{clif_parse_cashshop_buy,"cashshopbuy"},
 		{clif_parse_ViewPlayerEquip,"viewplayerequip"},
 		{clif_parse_EquipTick,"equiptickbox"},

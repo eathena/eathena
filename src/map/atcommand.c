@@ -33,10 +33,7 @@
 #include "script.h"
 #include "trade.h"
 #include "unit.h"
-
-#ifndef TXT_ONLY
 #include "mail.h"
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -6846,9 +6843,7 @@ int atcommand_misceffect(const int fd, struct map_session_data* sd, const char* 
 int atcommand_mail(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	nullpo_retr(0,sd);
-#ifndef TXT_ONLY
 	mail_openmail(sd);
-#endif
 	return 0;
 }
 
@@ -8149,9 +8144,7 @@ int atcommand_auction(const int fd, struct map_session_data *sd, const char *com
 {
 	nullpo_retr(0,sd);
 
-#ifndef TXT_ONLY
 	clif_Auction_openwindow(sd);
-#endif
 
 	return 0;
 }
