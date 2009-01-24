@@ -66,6 +66,12 @@ FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 /* ------------------------------------------------------------------------- */
 
 
+static void* create_friendlist(DBKey key, va_list args)
+{
+	return (friendlist*)aMalloc(sizeof(friendlist));
+}
+
+
 static bool friend_db_txt_init(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -131,7 +137,7 @@ static void friend_db_txt_destroy(FriendDB* self)
 	// write data
 	mmo_frienddb_sync(db);
 
-	// delete pet database
+	// delete friend database
 	friends->destroy(friends, NULL);
 	db->friends = NULL;
 
@@ -165,7 +171,15 @@ static bool friend_db_txt_save(FriendDB* self, const friendlist* list, const int
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
 	DBMap* friends = db->friends;
 
-	//TODO
+	// retrieve previous data / allocate new data
+	friendlist* tmp = idb_ensure(friends, char_id, create_friendlist);
+	if( tmp == NULL )
+	{// error condition - allocation problem?
+		return false;
+	}
+
+	// overwrite with new data
+	memcpy(tmp, list, sizeof(friendlist));
 
 	return true;
 }
@@ -175,7 +189,16 @@ static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
 	DBMap* friends = db->friends;
 
-	//TODO
+	// retrieve data
+	friendlist* tmp = idb_get(friends, char_id);
+	if( tmp == NULL )
+	{// if no data, just fake it
+		memset(list, 0, sizeof(friendlist));
+		return true;
+	}
+
+	// store it
+	memcpy(list, tmp, sizeof(friendlist));
 
 	return true;
 }
