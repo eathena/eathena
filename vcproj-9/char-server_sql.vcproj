@@ -360,6 +360,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_auction.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_auction.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_guild.c"
 				>
 			</File>
@@ -471,6 +479,14 @@
 		<Filter
 			Name="db"
 			>
+			<File
+				RelativePath="..\src\char\auctiondb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\auctiondb_sql.c"
+				>
+			</File>
 			<File
 				RelativePath="..\src\char\castledb.h"
 				>
@@ -588,14 +604,6 @@
 				>
 			</File>
 		</Filter>
-		<File
-			RelativePath="..\src\char_sql\int_auction.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_auction.h"
-			>
-		</File>
 		<File
 			RelativePath="..\src\char_sql\int_storage.c"
 			>
