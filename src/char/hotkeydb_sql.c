@@ -4,11 +4,13 @@
 #include "../common/cbasetypes.h"
 #include "../common/malloc.h"
 #include "../common/mmo.h"
+#include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
 #include "charserverdb_sql.h"
 #include "hotkeydb.h"
 #include <stdlib.h>
+#include <string.h>
 
 
 /// internal structure
@@ -85,10 +87,11 @@ static bool hotkey_db_sql_remove(HotkeyDB* self, const int char_id)
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
 	Sql* sql_handle = db->hotkeys;
 
-	//TODO: doesn't return proper value
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->hotkey_db, char_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
 
 	return true;
 }
@@ -108,55 +111,80 @@ static bool hotkey_db_sql_load(HotkeyDB* self, hotkeylist* list, const int char_
 
 static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_id)
 {
-/*
-#ifdef HOTKEY_SAVING
+	Sql* sql_handle = db->hotkeys;
+	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
 	struct hotkey tmp_hotkey;
 	int hotkey_num;
-#endif
+	bool result = false;
 
-	//`hotkey` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `hotkey`, `type`, `itemskill_id`, `skill_lvl` FROM `%s` WHERE `char_id`=?", hotkey_db)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
+	do
+	{
+
+	//`hotkey` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`)
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `hotkey`, `type`, `itemskill_id`, `skill_lvl` FROM `%s` WHERE `char_id`=%d", db->hotkey_db, char_id)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &hotkey_num, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &hotkey_num,      0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_UCHAR,  &tmp_hotkey.type, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_UINT,   &tmp_hotkey.id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &tmp_hotkey.lv, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_UINT,   &tmp_hotkey.id,   0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &tmp_hotkey.lv,   0, NULL, NULL) )
+	{
 		SqlStmt_ShowDebug(stmt);
+		break;
+	}
 
 	while( SQL_SUCCESS == SqlStmt_NextRow(stmt) )
 	{
 		if( hotkey_num >= 0 && hotkey_num < MAX_HOTKEYS )
-			memcpy(&p->hotkeys[hotkey_num], &tmp_hotkey, sizeof(tmp_hotkey));
+			memcpy(&(*list)[hotkey_num], &tmp_hotkey, sizeof(tmp_hotkey));
 		else
-			ShowWarning("mmo_char_fromsql: ignoring invalid hotkey (hotkey=%d,type=%u,id=%u,lv=%u) of character %s (AID=%d,CID=%d)\n", hotkey_num, tmp_hotkey.type, tmp_hotkey.id, tmp_hotkey.lv, p->name, p->account_id, p->char_id);
+			ShowWarning("mmo_hotkeylist_fromsql: ignoring invalid hotkey (hotkey=%d,type=%u,id=%u,lv=%u) of character with CID=%d\n", hotkey_num, tmp_hotkey.type, tmp_hotkey.id, tmp_hotkey.lv, char_id);
 	}
-*/
-	return true;
+
+	result = true;
+
+	}
+	while(0);
+
+	return result;
 }
 
 static bool mmo_hotkeylist_tosql(HotkeyDB_SQL* db, const hotkeylist* list, int char_id)
 {
-/*
-	StringBuf_Printf(&buf, "REPLACE INTO `%s` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`) VALUES ", hotkey_db);
-	diff = 0;
-	for(i = 0; i < ARRAYLENGTH(p->hotkeys); i++){
-		if(memcmp(&p->hotkeys[i], &cp->hotkeys[i], sizeof(struct hotkey)))
-		{
-			if( diff )
-				StringBuf_AppendStr(&buf, ",");// not the first hotkey
-			StringBuf_Printf(&buf, "('%d','%u','%u','%u','%u')", p->char_id, (unsigned int)i, (unsigned int)p->hotkeys[i].type, p->hotkeys[i].id , (unsigned int)p->hotkeys[i].lv);
-			diff = 1;
-		}
-	}
-	if(diff) {
-		if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-			Sql_ShowDebug(sql_handle);
-		else
-			strcat(save_status, " hotkeys");
+	Sql* sql_handle = db->hotkeys;
+	StringBuf buf;
+	bool result = false;
+	int i, count;
+
+	StringBuf_Init(&buf);
+
+	do
+	{
+
+	StringBuf_Printf(&buf, "REPLACE INTO `%s` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`) VALUES ", db->hotkey_db);
+	for( i = 0, count = 0; i < MAX_HOTKEYS; ++i )
+	{
+		if( count != 0 )
+			StringBuf_AppendStr(&buf, ",");
+
+		StringBuf_Printf(&buf, "('%d','%d','%u','%u','%u')", char_id, i, (*list)[i].type, (*list)[i].id , (*list)[i].lv);
+		count++;
 	}
 
+	if( count > 0 )
+	{
+		if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+		{
+			Sql_ShowDebug(sql_handle);
+			break;
+		}
+	}
+
+	result = true;
+
+	}
+	while(0);
+
 	StringBuf_Destroy(&buf);
-*/
-	return true;
+
+	return result;
 }

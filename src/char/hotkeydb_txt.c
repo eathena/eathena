@@ -66,6 +66,12 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 /* ------------------------------------------------------------------------- */
 
 
+static void* create_hotkeylist(DBKey key, va_list args)
+{
+	return (hotkeylist*)aMalloc(sizeof(hotkeylist));
+}
+
+
 static bool hotkey_db_txt_init(HotkeyDB* self)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -131,7 +137,7 @@ static void hotkey_db_txt_destroy(HotkeyDB* self)
 	// write data
 	mmo_hotkeydb_sync(db);
 
-	// delete pet database
+	// delete hotkey database
 	hotkeys->destroy(hotkeys, NULL);
 	db->hotkeys = NULL;
 
@@ -165,7 +171,15 @@ static bool hotkey_db_txt_save(HotkeyDB* self, const hotkeylist* list, const int
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
 	DBMap* hotkeys = db->hotkeys;
 
-	//TODO
+	// retrieve previous data / allocate new data
+	hotkeylist* tmp = idb_ensure(hotkeys, char_id, create_hotkeylist);
+	if( tmp == NULL )
+	{// error condition - allocation problem?
+		return false;
+	}
+
+	// overwrite with new data
+	memcpy(tmp, list, sizeof(hotkeylist));
 
 	return true;
 }
@@ -175,7 +189,16 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
 	DBMap* hotkeys = db->hotkeys;
 
-	//TODO
+	// retrieve data
+	hotkeylist* tmp = idb_get(hotkeys, char_id);
+	if( tmp == NULL )
+	{// if no data, just fake it
+		memset(list, 0, sizeof(hotkeylist));
+		return true;
+	}
+
+	// store it
+	memcpy(list, tmp, sizeof(hotkeylist));
 
 	return true;
 }

@@ -135,6 +135,8 @@ static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_
 	bool result = false;
 	int i;
 
+	memset(list, 0, sizeof(friendlist));
+
 	do
 	{
 
@@ -167,6 +169,8 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 	bool result = false;
 	int i, count;
 
+	StringBuf_Init(&buf);
+
 	//TODO: transaction
 
 	do
@@ -178,7 +182,6 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 		break;
 	}
 
-	StringBuf_Init(&buf);
 	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", db->friend_db);
 	for( i = 0, count = 0; i < MAX_FRIENDS; ++i )
 	{
@@ -187,6 +190,7 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 
 		if( count != 0 )
 			StringBuf_AppendStr(&buf, ",");
+
 		StringBuf_Printf(&buf, "('%d','%d','%d')", char_id, (*list)[i].account_id, (*list)[i].char_id);
 		count++;
 	}
@@ -204,6 +208,8 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 
 	}
 	while(0);
+
+	StringBuf_Destroy(&buf);
 
 	return result;
 }
