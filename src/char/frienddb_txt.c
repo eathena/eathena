@@ -24,7 +24,7 @@ typedef struct FriendDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* friends;       // in-memory friend storage
 
-	char friend_db[1024]; // friend data storage file
+	const char* friend_db; // friend data storage file
 
 } FriendDB_TXT;
 
@@ -56,8 +56,9 @@ FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->friends = NULL;
+
 	// other settings
-	safestrncpy(db->friend_db, "save/friends.txt", sizeof(db->friend_db));
+	db->friend_db = db->owner->file_friends;
 
 	return &db->vtable;
 }

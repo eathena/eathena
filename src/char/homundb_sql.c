@@ -21,7 +21,8 @@ typedef struct HomunDB_SQL
 	Sql* homuns;       // SQL homun storage
 
 	// other settings
-	char homun_db[32];
+	const char* homun_db;
+	const char* homun_skill_db;
 
 } HomunDB_SQL;
 
@@ -54,8 +55,10 @@ HomunDB* homun_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->homuns = NULL;
+
 	// other settings
-	safestrncpy(db->homun_db, "homun", sizeof(db->homun_db));
+	db->homun_db = db->owner->table_homuns;
+	db->homun_skill_db = db->owner->table_homun_skills;
 
 	return &db->vtable;
 }

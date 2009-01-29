@@ -28,7 +28,7 @@ typedef struct PartyDB_TXT
 	int next_party_id;   // auto_increment
 
 	bool case_sensitive;
-	char party_db[1024]; // party data storage file
+	const char* party_db; // party data storage file
 
 } PartyDB_TXT;
 
@@ -65,9 +65,10 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->parties = NULL;
 	db->next_party_id = START_PARTY_NUM;
+
 	// other settings
 	db->case_sensitive = false;
-	safestrncpy(db->party_db, "save/party.txt", sizeof(db->party_db));
+	db->party_db = db->owner->file_parties;
 
 	return &db->vtable;
 }

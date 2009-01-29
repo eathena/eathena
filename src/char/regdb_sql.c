@@ -27,7 +27,7 @@ typedef struct AccRegDB_SQL
 	Sql* accregs;           // SQL accreg storage
 	
 	// other settings
-	char accreg_db[32];
+	const char* accreg_db;
 
 } AccRegDB_SQL;
 
@@ -58,8 +58,9 @@ AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->accregs = NULL;
+
 	// other settings
-	safestrncpy(db->accreg_db, "global_reg_value", sizeof(db->accreg_db));
+	db->accreg_db = db->owner->table_registry;
 
 	return &db->vtable;
 }
@@ -120,7 +121,7 @@ static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_i
 	memset(reg, 0, sizeof(struct regs));
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'", reg_db, account_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'", db->accreg_db, account_id) )
 		Sql_ShowDebug(sql_handle);
 	for( i = 0; i < MAX_REG_NUM && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
@@ -182,7 +183,7 @@ typedef struct CharRegDB_SQL
 	Sql* charregs;           // SQL charreg storage
 	
 	// other settings
-	char charreg_db[32];
+	const char* charreg_db;
 
 } CharRegDB_SQL;
 
@@ -213,8 +214,9 @@ CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->charregs = NULL;
+
 	// other settings
-	safestrncpy(db->charreg_db, "global_reg_value", sizeof(db->charreg_db));
+	db->charreg_db = db->owner->table_registry;
 
 	return &db->vtable;
 }

@@ -59,8 +59,34 @@ struct CharServerDB_SQL
 	char   global_db_password[32];
 	char   global_db_database[32];
 	char   global_codepage[32];
+
 	// settings
+	char table_auctions[256];
+	char table_carts[256];
+	char table_castles[256];
 	char table_chars[256];
+	char table_friends[256];
+	char table_guilds[256];
+	char table_guild_alliances[256];
+	char table_guild_expulsions[256];
+	char table_guild_members[256];
+	char table_guild_positions[256];
+	char table_guild_skills[256];
+	char table_guild_storages[256];
+	char table_homuns[256];
+	char table_homun_skills[256];
+	char table_hotkeys[256];
+	char table_inventories[256];
+	char table_mails[256];
+	char table_memos[256];
+	char table_parties[256];
+	char table_pets[256];
+	char table_quests[256];
+	char table_quest_objectives[256];
+	char table_registry[256];
+	char table_skills[256];
+	char table_statuses[256];
+	char table_storages[256];
 };
 
 

@@ -32,16 +32,6 @@
 // temporary stuff
 extern CharDB* chars;
 
-#ifdef TXT_ONLY
-extern char accreg_txt[1024];
-#else
-int char_server_port = 3306;
-char char_server_ip[32] = "127.0.0.1";
-char char_server_id[32] = "ragnarok";
-char char_server_pw[32] = "ragnarok";
-char char_server_db[32] = "ragnarok";
-char default_codepage[32] = ""; //Feature by irmin.
-#endif
 
 unsigned int party_share_level = 10;
 char main_chat_nick[16] = "Main";
@@ -90,50 +80,6 @@ static int inter_config_read(const char* cfgName)
 		if (sscanf(line,"%[^:]: %[^\r\n]", w1, w2) != 2)
 			continue;
 
-#ifdef TXT_ONLY
-//		if (strcmpi(w1, "storage_txt") == 0)
-//			strncpy(storage_txt, w2, sizeof(storage_txt));
-//		else
-//		if (strcmpi(w1, "party_txt") == 0)
-//			strncpy(party_txt, w2, sizeof(party_txt));
-//		else
-//		if (strcmpi(w1, "pet_txt") == 0)
-//			strncpy(pet_txt, w2, sizeof(pet_txt));
-//		else
-		if (strcmpi(w1, "accreg_txt") == 0)
-			strncpy(accreg_txt, w2, sizeof(accreg_txt));
-//		else
-//		if (strcmpi(w1, "guild_txt") == 0)
-//			strncpy(guild_txt, w2, sizeof(guild_txt));
-//		else
-//		if (strcmpi(w1, "castle_txt") == 0)
-//			strncpy(castle_txt, w2, sizeof(castle_txt));
-//		else
-//		if (strcmpi(w1, "guild_storage_txt") == 0)
-//			strncpy(guild_storage_txt, w2, sizeof(guild_storage_txt));
-//		else
-//		if (strcmpi(w1, "homun_txt") == 0)
-//			strncpy(homun_txt, w2, sizeof(homun_txt));
-#else
-		if(!strcmpi(w1,"char_server_ip"))
-			strcpy(char_server_ip,w2);
-		else
-		if(!strcmpi(w1,"char_server_port"))
-			char_server_port = atoi(w2);
-		else
-		if(!strcmpi(w1,"char_server_id"))
-			strcpy(char_server_id,w2);
-		else
-		if(!strcmpi(w1,"char_server_pw"))
-			strcpy(char_server_pw,w2);
-		else
-		if(!strcmpi(w1,"char_server_db"))
-			strcpy(char_server_db,w2);
-		else
-		if(!strcmpi(w1,"default_codepage"))
-			strcpy(default_codepage,w2);
-#endif
-		else
 		if(strcmpi(w1, "main_chat_nick")==0)
 			strcpy(main_chat_nick, w2);
 		else

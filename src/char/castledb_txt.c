@@ -24,7 +24,7 @@ typedef struct CastleDB_TXT
 	DBMap* castles;       // in-memory castle storage
 	int next_castle_id;   // auto_increment
 
-	char castle_db[1024]; // castle data storage file
+	const char* castle_db; // castle data storage file
 
 } CastleDB_TXT;
 
@@ -71,8 +71,9 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->castles = NULL;
 	db->next_castle_id = START_CASTLE_NUM;
+
 	// other settings
-	safestrncpy(db->castle_db, "save/castle.txt", sizeof(db->castle_db));
+	db->castle_db = db->owner->file_castles;
 
 	return &db->vtable;
 }

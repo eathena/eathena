@@ -17,33 +17,6 @@ extern char main_chat_nick[16];
 
 #ifdef TXT_ONLY
 int inter_save(void);
-//For TXT->SQL conversion
-extern char accreg_txt[];
-#else
-extern char char_db[256];
-extern char scdata_db[256];
-extern char cart_db[256];
-extern char inventory_db[256];
-extern char storage_db[256];
-extern char reg_db[256];
-extern char skill_db[256];
-extern char memo_db[256];
-extern char guild_db[256];
-extern char guild_alliance_db[256];
-extern char guild_castle_db[256];
-extern char guild_expulsion_db[256];
-extern char guild_member_db[256];
-extern char guild_position_db[256];
-extern char guild_skill_db[256];
-extern char guild_storage_db[256];
-extern char party_db[256];
-extern char friend_db[256];
-extern char pet_db[256];
-extern char mail_db[256];
-extern char hotkey_db[256];
-extern char auction_db[256];
-extern char quest_db[256];
-extern char quest_obj_db[256];
 #endif
 
 #endif /* _INTER_H_ */

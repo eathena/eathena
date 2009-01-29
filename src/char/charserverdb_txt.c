@@ -112,10 +112,57 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 	if( strncmpi(key, signature, strlen(signature)) == 0 )
 	{
 		key += strlen(signature);
-		return false;// not found
-	}
 
-	// TODO DB interface properties
+		// savefile paths
+		if( strcmpi(key, "accreg_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_accregs);
+		else
+		if( strcmpi(key, "auction_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_auctions);
+		else
+		if( strcmpi(key, "castle_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_castles);
+		else
+		if( strcmpi(key, "athena_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_chars);
+		else
+		if( strcmpi(key, "friends_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_friends);
+		else
+		if( strcmpi(key, "guild_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_guilds);
+		else
+		if( strcmpi(key, "guild_storage_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_guild_storages);
+		else
+		if( strcmpi(key, "homun_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_homuns);
+		else
+		if( strcmpi(key, "hotkeys_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_hotkeys);
+		else
+		if( strcmpi(key, "mail_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_mails);
+		else
+		if( strcmpi(key, "party_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_parties);
+		else
+		if( strcmpi(key, "pet_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_pets);
+		else
+		if( strcmpi(key, "quest_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_quests);
+		else
+		if( strcmpi(key, "scdata_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_statuses);
+		else
+		if( strcmpi(key, "storage_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_storages);
+
+		else
+			return false;// not found
+		return true;
+	}
 
 	return false;// not found
 }
@@ -133,10 +180,57 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 	if( strncmp(key, signature, strlen(signature)) == 0 )
 	{
 		key += strlen(signature);
-		return false;// not found
-	}
 
-	// TODO DB interface properties
+		// savefile paths
+		if( strcmpi(key, "accreg_txt") == 0 )
+			safestrncpy(db->file_accregs, value, sizeof(db->file_accregs));
+		else
+		if( strcmpi(key, "auction_txt") == 0 )
+			safestrncpy(db->file_auctions, value, sizeof(db->file_auctions));
+		else
+		if( strcmpi(key, "castle_txt") == 0 )
+			safestrncpy(db->file_castles, value, sizeof(db->file_castles));
+		else
+		if( strcmpi(key, "char_txt") == 0 )
+			safestrncpy(db->file_chars, value, sizeof(db->file_chars));
+		else
+		if( strcmpi(key, "friends_txt") == 0 )
+			safestrncpy(db->file_friends, value, sizeof(db->file_friends));
+		else
+		if( strcmpi(key, "guild_txt") == 0 )
+			safestrncpy(db->file_guilds, value, sizeof(db->file_guilds));
+		else
+		if( strcmpi(key, "guild_storage_txt") == 0 )
+			safestrncpy(db->file_guild_storages, value, sizeof(db->file_guild_storages));
+		else
+		if( strcmpi(key, "homun_txt") == 0 )
+			safestrncpy(db->file_homuns, value, sizeof(db->file_homuns));
+		else
+		if( strcmpi(key, "hotkeys_txt") == 0 )
+			safestrncpy(db->file_hotkeys, value, sizeof(db->file_hotkeys));
+		else
+		if( strcmpi(key, "mail_txt") == 0 )
+			safestrncpy(db->file_mails, value, sizeof(db->file_mails));
+		else
+		if( strcmpi(key, "party_txt") == 0 )
+			safestrncpy(db->file_parties, value, sizeof(db->file_parties));
+		else
+		if( strcmpi(key, "pet_txt") == 0 )
+			safestrncpy(db->file_pets, value, sizeof(db->file_pets));
+		else
+		if( strcmpi(key, "quest_txt") == 0 )
+			safestrncpy(db->file_quests, value, sizeof(db->file_quests));
+		else
+		if( strcmpi(key, "scdata_txt") == 0 )
+			safestrncpy(db->file_statuses, value, sizeof(db->file_statuses));
+		else
+		if( strcmpi(key, "storage_txt") == 0 )
+			safestrncpy(db->file_storages, value, sizeof(db->file_storages));
+
+		else
+			return false;// not found
+		return true;
+	}
 
 	return false;// not found
 }
@@ -338,7 +432,23 @@ CharServerDB* charserver_db_txt(void)
 
 	// initialize to default values
 	db->initialized = false;
+
 	// other settings
+	safestrncpy(db->file_accregs, "save/accreg.txt", sizeof(db->file_accregs));
+	safestrncpy(db->file_auctions, "save/auction.txt", sizeof(db->file_auctions));
+	safestrncpy(db->file_castles, "save/castle.txt", sizeof(db->file_castles));
+	safestrncpy(db->file_chars, "save/athena.txt", sizeof(db->file_chars));
+	safestrncpy(db->file_friends, "save/friends.txt", sizeof(db->file_friends));
+	safestrncpy(db->file_guilds, "save/guild.txt", sizeof(db->file_guilds));
+	safestrncpy(db->file_guild_storages, "save/g_storage.txt", sizeof(db->file_guild_storages));
+	safestrncpy(db->file_homuns, "save/homun.txt", sizeof(db->file_homuns));
+	safestrncpy(db->file_hotkeys, "save/hotkeys.txt", sizeof(db->file_hotkeys));
+	safestrncpy(db->file_mails, "save/mail.txt", sizeof(db->file_mails));
+	safestrncpy(db->file_parties, "save/party.txt", sizeof(db->file_parties));
+	safestrncpy(db->file_pets, "save/pet.txt", sizeof(db->file_pets));
+	safestrncpy(db->file_quests, "save/quest.txt", sizeof(db->file_quests));
+	safestrncpy(db->file_statuses, "save/scdata.txt", sizeof(db->file_statuses));
+	safestrncpy(db->file_storages, "save/storage.txt", sizeof(db->file_storages));
 
 	return &db->vtable;
 }

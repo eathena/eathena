@@ -23,7 +23,7 @@ typedef struct GuildDB_TXT
 	DBMap* guilds;       // in-memory guild storage
 	int next_guild_id;   // auto_increment
 
-	char guild_db[1024]; // guild data storage file
+	const char* guild_db; // guild data storage file
 
 } GuildDB_TXT;
 
@@ -60,8 +60,9 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->guilds = NULL;
 	db->next_guild_id = START_GUILD_NUM;
+
 	// other settings
-	safestrncpy(db->guild_db, "save/guild.txt", sizeof(db->guild_db));
+	db->guild_db = db->owner->file_guilds;
 
 	return &db->vtable;
 }

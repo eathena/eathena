@@ -24,7 +24,7 @@ typedef struct HotkeyDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* hotkeys;       // in-memory hotkey storage
 
-	char hotkey_db[1024]; // hotkey data storage file
+	const char* hotkey_db; // hotkey data storage file
 
 } HotkeyDB_TXT;
 
@@ -56,8 +56,9 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->hotkeys = NULL;
+
 	// other settings
-	safestrncpy(db->hotkey_db, "save/hotkeys.txt", sizeof(db->hotkey_db));
+	db->hotkey_db = db->owner->file_hotkeys;
 
 	return &db->vtable;
 }

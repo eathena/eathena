@@ -27,37 +27,11 @@
 #ifndef TXT_ONLY
 #include "../common/sql.h"
 static Sql* sql_handle = NULL;
+static char inventory_db[256] = "baadf00d";
+static char cart_db[256] = "baadf00d";
+static char storage_db[256] = "baadf00d";
+static char guild_storage_db[256] = "baadf00d";
 #endif
-
-
-// private declarations
-char char_db[256] = "char";
-char scdata_db[256] = "sc_data";
-char cart_db[256] = "cart_inventory";
-char inventory_db[256] = "inventory";
-char storage_db[256] = "storage";
-char reg_db[256] = "global_reg_value";
-char skill_db[256] = "skill";
-char memo_db[256] = "memo";
-char guild_db[256] = "guild";
-char guild_alliance_db[256] = "guild_alliance";
-char guild_castle_db[256] = "guild_castle";
-char guild_expulsion_db[256] = "guild_expulsion";
-char guild_member_db[256] = "guild_member";
-char guild_position_db[256] = "guild_position";
-char guild_skill_db[256] = "guild_skill";
-char guild_storage_db[256] = "guild_storage";
-char party_db[256] = "party";
-char pet_db[256] = "pet";
-char mail_db[256] = "mail"; // MAIL SYSTEM
-char auction_db[256] = "auction"; // Auctions System
-char friend_db[256] = "friends";
-char hotkey_db[256] = "hotkey";
-char quest_db[256] = "quest";
-char quest_obj_db[256] = "quest_objective";
-
-
-
 
 
 /// Saves an array of 'item' entries into the specified table.

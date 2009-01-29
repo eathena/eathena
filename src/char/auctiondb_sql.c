@@ -20,7 +20,7 @@ typedef struct AuctionDB_SQL
 	Sql* auctions;       // SQL auction storage
 
 	// other settings
-	char auction_db[32];
+	const char* auction_db;
 
 } AuctionDB_SQL;
 
@@ -45,8 +45,9 @@ AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->auctions = NULL;
+
 	// other settings
-	safestrncpy(db->auction_db, "auction", sizeof(db->auction_db));
+	db->auction_db = db->owner->table_auctions;
 
 	return &db->vtable;
 }

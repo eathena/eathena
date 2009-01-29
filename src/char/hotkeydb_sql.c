@@ -22,7 +22,7 @@ typedef struct HotkeyDB_SQL
 	Sql* hotkeys;       // SQL hotkey storage
 
 	// other settings
-	char hotkey_db[32];
+	const char* hotkey_db;
 
 } HotkeyDB_SQL;
 
@@ -53,8 +53,9 @@ HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->hotkeys = NULL;
+
 	// other settings
-	safestrncpy(db->hotkey_db, "hotkey", sizeof(db->hotkey_db));
+	db->hotkey_db = db->owner->table_hotkeys;
 
 	return &db->vtable;
 }

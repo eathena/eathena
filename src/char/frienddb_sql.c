@@ -21,8 +21,8 @@ typedef struct FriendDB_SQL
 	Sql* friends;       // SQL friend storage
 
 	// other settings
-	char friend_db[32];
-	char char_db[32];
+	const char* friend_db;
+	const char* char_db;
 
 } FriendDB_SQL;
 
@@ -53,9 +53,10 @@ FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->friends = NULL;
+
 	// other settings
-	safestrncpy(db->friend_db, "friends", sizeof(db->friend_db));
-	safestrncpy(db->char_db, "char", sizeof(db->char_db));
+	db->friend_db = db->owner->table_friends;
+	db->char_db = db->owner->table_chars;
 
 	return &db->vtable;
 }

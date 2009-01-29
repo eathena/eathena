@@ -21,8 +21,8 @@ typedef struct QuestDB_SQL
 	Sql* quests;       // SQL quest storage
 
 	// other settings
-	char quest_db[32];
-	char objective_db[32];
+	const char* quest_db;
+	const char* objective_db;
 
 } QuestDB_SQL;
 
@@ -54,9 +54,10 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->quests = NULL;
+
 	// other settings
-	safestrncpy(db->quest_db, "quest", sizeof(db->quest_db));
-	safestrncpy(db->objective_db, "quest_objective", sizeof(db->objective_db));
+	db->quest_db = db->owner->table_quests;
+	db->objective_db = db->owner->table_quest_objectives;
 
 	return &db->vtable;
 }

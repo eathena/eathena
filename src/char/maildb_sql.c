@@ -22,7 +22,7 @@ typedef struct MailDB_SQL
 	Sql* mails;  // sql handler
 
 	// other settings
-	char mail_db[32];
+	const char* mail_db;
 
 } MailDB_SQL;
 
@@ -60,7 +60,7 @@ MailDB* mail_db_sql(CharServerDB_SQL* owner)
 	db->mails = NULL;
 
 	// other settings
-	safestrncpy(db->mail_db, "mail", sizeof(db->mail_db));
+	db->mail_db = db->owner->table_mails;
 
 	return &db->vtable;
 }

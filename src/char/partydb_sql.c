@@ -35,8 +35,8 @@ typedef struct PartyDB_SQL
 
 	// other settings
 	bool case_sensitive;
-	char char_db[32];
-	char party_db[32];
+	const char* char_db;
+	const char* party_db;
 
 } PartyDB_SQL;
 
@@ -71,10 +71,11 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->parties = NULL;
+
 	// other settings
 	db->case_sensitive = false;
-	safestrncpy(db->char_db, "char", sizeof(db->party_db));
-	safestrncpy(db->party_db, "party", sizeof(db->party_db));
+	db->char_db = db->owner->table_chars;
+	db->party_db = db->owner->table_parties;
 
 	return &db->vtable;
 }
@@ -256,7 +257,7 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 	// load members
 	if( SQL_ERROR == Sql_Query(sql_handle,
 		"SELECT `account_id`,`char_id`,`name`,`base_level`,`last_map`,`online`,`class` FROM `%s` WHERE `party_id`='%d'",
-		char_db, party_id)
+		db->char_db, party_id)
 	) {
 		Sql_ShowDebug(sql_handle);
 		return false;

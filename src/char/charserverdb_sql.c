@@ -139,6 +139,7 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 	if( strncmpi(key, signature, strlen(signature)) == 0 )
 	{
 		key += strlen(signature);
+
 		if( strcmpi(key, "db_hostname") == 0 )
 			safesnprintf(buf, buflen, "%s", db->global_db_hostname);
 		else
@@ -157,11 +158,90 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "codepage") == 0 )
 			safesnprintf(buf, buflen, "%s", db->global_codepage);
 		else
+
+		// table names
+		if( strcmpi(key, "auction_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_auctions);
+		else
+		if( strcmpi(key, "cart_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_carts);
+		else
+		if( strcmpi(key, "guild_castle_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_castles);
+		else
+		if( strcmpi(key, "char_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_chars);
+		else
+		if( strcmpi(key, "friend_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_friends);
+		else
+		if( strcmpi(key, "guild_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guilds);
+		else
+		if( strcmpi(key, "guild_alliance_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_alliances);
+		else
+		if( strcmpi(key, "guild_expulsion_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_expulsions);
+		else
+		if( strcmpi(key, "guild_member_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_members);
+		else
+		if( strcmpi(key, "guild_position_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_positions);
+		else
+		if( strcmpi(key, "guild_skill_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_skills);
+		else
+		if( strcmpi(key, "guild_storage") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_guild_storages);
+		else
+		if( strcmpi(key, "homun_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_homuns);
+		else
+		if( strcmpi(key, "homun_skill_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_homun_skills);
+		else
+		if( strcmpi(key, "hotkey_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_hotkeys);
+		else
+		if( strcmpi(key, "inventory_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_inventories);
+		else
+		if( strcmpi(key, "mail_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_mails);
+		else
+		if( strcmpi(key, "memo_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_memos);
+		else
+		if( strcmpi(key, "party_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_parties);
+		else
+		if( strcmpi(key, "pet_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_pets);
+		else
+		if( strcmpi(key, "quest_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_quests);
+		else
+		if( strcmpi(key, "quest_obj_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_quest_objectives);
+		else
+		if( strcmpi(key, "reg_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_registry);
+		else
+		if( strcmpi(key, "scdata_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_statuses);
+		else
+		if( strcmpi(key, "skill_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_skills);
+		else
+		if( strcmpi(key, "storage_db") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_storages);
+
+		else
 			return false;// not found
 		return true;
 	}
-
-	// TODO DB interface properties
 
 	return false;// not found
 }
@@ -179,6 +259,7 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 	if( strncmp(key, signature, strlen(signature)) == 0 )
 	{
 		key += strlen(signature);
+
 		if( strcmpi(key, "db_hostname") == 0 )
 			safestrncpy(db->global_db_hostname, value, sizeof(db->global_db_hostname));
 		else
@@ -196,12 +277,90 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 		else
 		if( strcmpi(key, "codepage") == 0 )
 			safestrncpy(db->global_codepage, value, sizeof(db->global_codepage));
+
+		// table names
+		if( strcmpi(key, "auction_db") == 0 )
+			safestrncpy(db->table_auctions, value, sizeof(db->table_auctions));
+		else
+		if( strcmpi(key, "cart_db") == 0 )
+			safestrncpy(db->table_carts, value, sizeof(db->table_carts));
+		else
+		if( strcmpi(key, "guild_castle_db") == 0 )
+			safestrncpy(db->table_castles, value, sizeof(db->table_castles));
+		else
+		if( strcmpi(key, "char_db") == 0 )
+			safestrncpy(db->table_chars, value, sizeof(db->table_chars));
+		else
+		if( strcmpi(key, "friend_db") == 0 )
+			safestrncpy(db->table_friends, value, sizeof(db->table_friends));
+		else
+		if( strcmpi(key, "guild_db") == 0 )
+			safestrncpy(db->table_guilds, value, sizeof(db->table_guilds));
+		else
+		if( strcmpi(key, "guild_alliance") == 0 )
+			safestrncpy(db->table_guild_alliances, value, sizeof(db->table_guild_alliances));
+		else
+		if( strcmpi(key, "guild_expulsion") == 0 )
+			safestrncpy(db->table_guild_expulsions, value, sizeof(db->table_guild_expulsions));
+		else
+		if( strcmpi(key, "guild_member") == 0 )
+			safestrncpy(db->table_guild_members, value, sizeof(db->table_guild_members));
+		else
+		if( strcmpi(key, "guild_position") == 0 )
+			safestrncpy(db->table_guild_positions, value, sizeof(db->table_guild_positions));
+		else
+		if( strcmpi(key, "guild_skill") == 0 )
+			safestrncpy(db->table_guild_skills, value, sizeof(db->table_guild_skills));
+		else
+		if( strcmpi(key, "guild_storage") == 0 )
+			safestrncpy(db->table_guild_storages, value, sizeof(db->table_guild_storages));
+		else
+		if( strcmpi(key, "homun_db") == 0 )
+			safestrncpy(db->table_homuns, value, sizeof(db->table_homuns));
+		else
+		if( strcmpi(key, "homun_skill_db") == 0 )
+			safestrncpy(db->table_homun_skills, value, sizeof(db->table_homun_skills));
+		else
+		if( strcmpi(key, "hotkey_db") == 0 )
+			safestrncpy(db->table_hotkeys, value, sizeof(db->table_hotkeys));
+		else
+		if( strcmpi(key, "inventory_db") == 0 )
+			safestrncpy(db->table_inventories, value, sizeof(db->table_inventories));
+		else
+		if( strcmpi(key, "mail_db") == 0 )
+			safestrncpy(db->table_mails, value, sizeof(db->table_mails));
+		else
+		if( strcmpi(key, "memo_db") == 0 )
+			safestrncpy(db->table_memos, value, sizeof(db->table_memos));
+		else
+		if( strcmpi(key, "party_db") == 0 )
+			safestrncpy(db->table_parties, value, sizeof(db->table_parties));
+		else
+		if( strcmpi(key, "pet_db") == 0 )
+			safestrncpy(db->table_pets, value, sizeof(db->table_pets));
+		else
+		if( strcmpi(key, "quest_db") == 0 )
+			safestrncpy(db->table_quests, value, sizeof(db->table_quests));
+		else
+		if( strcmpi(key, "quest_obj_db") == 0 )
+			safestrncpy(db->table_quest_objectives, value, sizeof(db->table_quest_objectives));
+		else
+		if( strcmpi(key, "reg_db") == 0 )
+			safestrncpy(db->table_registry, value, sizeof(db->table_registry));
+		else
+		if( strcmpi(key, "scdata_db") == 0 )
+			safestrncpy(db->table_statuses, value, sizeof(db->table_statuses));
+		else
+		if( strcmpi(key, "skill_db") == 0 )
+			safestrncpy(db->table_skills, value, sizeof(db->table_skills));
+		else
+		if( strcmpi(key, "storage_db") == 0 )
+			safestrncpy(db->table_storages, value, sizeof(db->table_storages));
+
 		else
 			return false;// not found
 		return true;
 	}
-
-	// TODO DB interface properties
 
 	return false;// not found
 }
@@ -412,8 +571,34 @@ CharServerDB* charserver_db_sql(void)
 	safestrncpy(db->global_db_password, "ragnarok", sizeof(db->global_db_password));
 	safestrncpy(db->global_db_database, "ragnarok", sizeof(db->global_db_database));
 	safestrncpy(db->global_codepage, "", sizeof(db->global_codepage));
+
 	// other settings
+	safestrncpy(db->table_auctions, "auction", sizeof(db->table_auctions));
+	safestrncpy(db->table_carts, "cart_inventory", sizeof(db->table_carts));
+	safestrncpy(db->table_castles, "guild_castle", sizeof(db->table_castles));
 	safestrncpy(db->table_chars, "char", sizeof(db->table_chars));
+	safestrncpy(db->table_friends, "friends", sizeof(db->table_friends));
+	safestrncpy(db->table_guilds, "guild", sizeof(db->table_guilds));
+	safestrncpy(db->table_guild_alliances, "guild_alliance", sizeof(db->table_guild_alliances));
+	safestrncpy(db->table_guild_expulsions, "guild_expulsion", sizeof(db->table_guild_expulsions));
+	safestrncpy(db->table_guild_members, "guild_member", sizeof(db->table_guild_members));
+	safestrncpy(db->table_guild_positions, "guild_position", sizeof(db->table_guild_positions));
+	safestrncpy(db->table_guild_skills, "guild_skill", sizeof(db->table_guild_skills));
+	safestrncpy(db->table_guild_storages, "guild_storage", sizeof(db->table_guild_storages));
+	safestrncpy(db->table_homuns, "homunculus", sizeof(db->table_homuns));
+	safestrncpy(db->table_homun_skills, "skill_homunculus", sizeof(db->table_homun_skills));
+	safestrncpy(db->table_hotkeys, "hotkey", sizeof(db->table_hotkeys));
+	safestrncpy(db->table_inventories, "inventory", sizeof(db->table_inventories));
+	safestrncpy(db->table_mails, "mail", sizeof(db->table_mails));
+	safestrncpy(db->table_memos, "memo", sizeof(db->table_memos));
+	safestrncpy(db->table_parties, "party", sizeof(db->table_parties));
+	safestrncpy(db->table_pets, "pet", sizeof(db->table_pets));
+	safestrncpy(db->table_quests, "quest", sizeof(db->table_quests));
+	safestrncpy(db->table_quest_objectives, "quest_objective", sizeof(db->table_quest_objectives));
+	safestrncpy(db->table_registry, "global_reg_value", sizeof(db->table_registry));
+	safestrncpy(db->table_skills, "skill", sizeof(db->table_skills));
+	safestrncpy(db->table_statuses, "sc_data", sizeof(db->table_statuses));
+	safestrncpy(db->table_storages, "storage", sizeof(db->table_storages));
 
 	return &db->vtable;
 }

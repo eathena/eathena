@@ -22,7 +22,7 @@ typedef struct CastleDB_SQL
 	Sql* castles;       // SQL castle storage
 
 	// other settings
-	char castle_db[32];
+	const char* castle_db;
 
 } CastleDB_SQL;
 
@@ -69,8 +69,9 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->castles = NULL;
+
 	// other settings
-	safestrncpy(db->castle_db, "guild_castle", sizeof(db->castle_db));
+	db->castle_db = db->owner->table_castles;
 
 	return &db->vtable;
 }

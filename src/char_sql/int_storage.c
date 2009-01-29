@@ -14,9 +14,13 @@
 #include <stdlib.h>
 
 
+//FIXME
 #ifndef TXT_ONLY
 #include "../common/sql.h"
 static Sql* sql_handle = NULL;
+char guild_db[] = "baadf00d";
+char storage_db[] = "baadf00d";
+char guild_storage_db[] = "baadf00d";
 #endif
 
 

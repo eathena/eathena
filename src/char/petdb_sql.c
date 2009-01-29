@@ -21,7 +21,7 @@ typedef struct PetDB_SQL
 
 	// other settings
 	bool case_sensitive;
-	char pet_db[32];
+	const char* pet_db;
 
 } PetDB_SQL;
 
@@ -54,9 +54,10 @@ PetDB* pet_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->pets = NULL;
+
 	// other settings
 	db->case_sensitive = false;
-	safestrncpy(db->pet_db, "pet", sizeof(db->pet_db));
+	db->pet_db = db->owner->table_pets;
 
 	return &db->vtable;
 }

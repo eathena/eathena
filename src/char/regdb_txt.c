@@ -24,7 +24,7 @@ typedef struct AccRegDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* accregs;         // in-memory accreg storage
 	
-	char accreg_db[1024];   // accreg data storage file
+	const char* accreg_db;  // accreg data storage file
 
 } AccRegDB_TXT;
 
@@ -56,8 +56,9 @@ AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->accregs = NULL;
+
 	// other settings
-	safestrncpy(db->accreg_db, "save/accreg.txt", sizeof(db->accreg_db));
+	db->accreg_db = db->owner->file_accregs;
 
 	return &db->vtable;
 }

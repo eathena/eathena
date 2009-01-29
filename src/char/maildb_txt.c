@@ -26,7 +26,7 @@ typedef struct MailDB_TXT
 	DBMap* mails;              // in-memory mail storage
 	unsigned int next_mail_id; // auto_increment
 
-	char mail_db[1024];        // mail data storage file
+	const char* mail_db;       // mail data storage file
 
 } MailDB_TXT;
 
@@ -63,8 +63,9 @@ MailDB* mail_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->mails = NULL;
 	db->next_mail_id = START_MAIL_NUM;
+
 	// other settings
-	safestrncpy(db->mail_db, "save/mail.txt", sizeof(db->mail_db));
+	db->mail_db = db->owner->file_mails;
 
 	return &db->vtable;
 }

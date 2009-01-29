@@ -24,7 +24,12 @@ typedef struct GuildDB_SQL
 	Sql* guilds;       // SQL guild storage
 
 	// other settings
-	char guild_db[32];
+	const char* guild_db;
+	const char* guild_alliance_db;
+	const char* guild_expulsion_db;
+	const char* guild_member_db;
+	const char* guild_position_db;
+	const char* guild_skill_db;
 
 } GuildDB_SQL;
 
@@ -59,8 +64,14 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->guilds = NULL;
+
 	// other settings
-	safestrncpy(db->guild_db, "guild", sizeof(db->guild_db));
+	db->guild_db = db->owner->table_guilds;
+	db->guild_alliance_db = db->owner->table_guild_alliances;
+	db->guild_expulsion_db = db->owner->table_guild_expulsions;
+	db->guild_member_db = db->owner->table_guild_members;
+	db->guild_position_db = db->owner->table_guild_positions;
+	db->guild_skill_db = db->owner->table_guild_skills;
 
 	return &db->vtable;
 }

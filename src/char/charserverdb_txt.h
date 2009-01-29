@@ -50,6 +50,23 @@ struct CharServerDB_TXT
 	CharRegDB* charregdb;
 
 	bool initialized;
+
+	// settings
+	char file_accregs[256];
+	char file_auctions[256];
+	char file_castles[256];
+	char file_chars[256];
+	char file_friends[256];
+	char file_guilds[256];
+	char file_guild_storages[256];
+	char file_homuns[256];
+	char file_hotkeys[256];
+	char file_mails[256];
+	char file_parties[256];
+	char file_pets[256];
+	char file_quests[256];
+	char file_statuses[256];
+	char file_storages[256];
 };
 
 

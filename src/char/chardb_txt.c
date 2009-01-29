@@ -36,7 +36,7 @@ typedef struct CharDB_TXT
 	int next_char_id;    // auto_increment
 	int save_timer;      // save timer id
 
-	char char_db[1024];  // character data storage file
+	const char* char_db; // character data storage file
 	bool case_sensitive; // how to look up usernames
 
 } CharDB_TXT;
@@ -97,8 +97,9 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->chars = NULL;
 	db->next_char_id = START_CHAR_NUM;
 	db->save_timer = INVALID_TIMER;
+
 	// other settings
-	safestrncpy(db->char_db, "save/athena.txt", sizeof(db->char_db));
+	db->char_db = db->owner->file_chars;
 	db->case_sensitive = false;
 
 	return &db->vtable;

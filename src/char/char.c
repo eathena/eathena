@@ -68,11 +68,14 @@ CharServerDB* charserver = NULL;
 extern int parse_fromlogin(int fd);
 extern int parse_char(int fd);
 #include "map.h"
-char char_txt[1024];
 
+//FIXME
 #ifndef TXT_ONLY
 #include "../common/sql.h"
 static Sql* sql_handle = NULL;
+static char char_db[] = "baadf00d";
+static char guild_db[] = "baadf00d";
+static char guild_member_db[] = "baadf00d";
 #endif
 
 
@@ -1201,87 +1204,6 @@ int lan_subnetcheck(uint32 ip)
 }
 
 
-void inter_config_read(const char* cfgName)
-{
-	char line[1024], w1[1024], w2[1024];
-	FILE* fp;
-
-	ShowInfo("Reading file %s...\n", cfgName);
-
-	if ((fp = fopen(cfgName, "r")) == NULL) {
-		ShowError("file not found: %s\n", cfgName);
-		return;
-	}
-
-	while(fgets(line, sizeof(line), fp))
-	{
-		if(line[0] == '/' && line[1] == '/')
-			continue;
-
-		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
-			continue;
-
-#ifndef TXT_ONLY
-		if(!strcmpi(w1,"char_db"))
-			strcpy(char_db,w2);
-		else if(!strcmpi(w1,"scdata_db"))
-			strcpy(scdata_db,w2);
-		else if(!strcmpi(w1,"cart_db"))
-			strcpy(cart_db,w2);
-		else if(!strcmpi(w1,"inventory_db"))
-			strcpy(inventory_db, w2);
-		else if(!strcmpi(w1,"storage_db"))
-			strcpy(storage_db,w2);
-		else if(!strcmpi(w1,"reg_db"))
-			strcpy(reg_db,w2);
-		else if(!strcmpi(w1,"skill_db"))
-			strcpy(skill_db,w2);
-		else if(!strcmpi(w1,"memo_db"))
-			strcpy(memo_db,w2);
-		else if(!strcmpi(w1,"guild_db"))
-			strcpy(guild_db,w2);
-		else if(!strcmpi(w1,"guild_alliance_db"))
-			strcpy(guild_alliance_db,w2);
-		else if(!strcmpi(w1,"guild_castle_db"))
-			strcpy(guild_castle_db,w2);
-		else if(!strcmpi(w1,"guild_expulsion_db"))
-			strcpy(guild_expulsion_db,w2);
-		else if(!strcmpi(w1,"guild_member_db"))
-			strcpy(guild_member_db,w2);
-		else if(!strcmpi(w1,"guild_skill_db"))
-			strcpy(guild_skill_db,w2);
-		else if(!strcmpi(w1,"guild_position_db"))
-			strcpy(guild_position_db,w2);
-		else if(!strcmpi(w1,"guild_storage_db"))
-			strcpy(guild_storage_db,w2);
-		else if(!strcmpi(w1,"party_db"))
-			strcpy(party_db,w2);
-		else if(!strcmpi(w1,"pet_db"))
-			strcpy(pet_db,w2);
-		else if(!strcmpi(w1,"mail_db"))
-			strcpy(mail_db,w2);
-		else if(!strcmpi(w1,"auction_db"))
-			strcpy(auction_db,w2);
-		else if(!strcmpi(w1,"friend_db"))
-			strcpy(friend_db,w2);
-		else if(!strcmpi(w1,"hotkey_db"))
-			strcpy(hotkey_db,w2);
-		else if(!strcmpi(w1,"quest_db"))
-			strcpy(quest_db,w2);
-		else if(!strcmpi(w1,"quest_obj_db"))
-			strcpy(quest_obj_db, w2);
-#endif
-		else if( charlog_config_read(w1,w2) )
-			continue;
-		//support the import command, just like any other config
-		else if(!strcmpi(w1,"import"))
-			inter_config_read(w2);
-	}
-	fclose(fp);
-	ShowInfo("Done reading %s.\n", cfgName);
-}
-
-
 int char_config_read(const char* cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
@@ -1357,14 +1279,6 @@ int char_config_read(const char* cfgName)
 #ifdef TXT_ONLY
 		} else if (strcmpi(w1, "email_creation") == 0) {
 			email_creation = config_switch(w2);
-//		} else if (strcmpi(w1, "scdata_txt") == 0) { //By Skotlex
-//			strcpy(scdata_txt, w2);
-		} else if (strcmpi(w1, "char_txt") == 0) {
-			strcpy(char_txt, w2);
-//		} else if (strcmpi(w1, "friends_txt") == 0) { //By davidsiaw
-//			strcpy(friends_txt, w2);
-//		} else if (strcmpi(w1, "hotkeys_txt") == 0) { //By davidsiaw
-//			strcpy(hotkeys_txt, w2);
 #endif
 		} else if (strcmpi(w1, "max_connect_user") == 0) {
 			max_connect_user = atoi(w2);
@@ -1430,7 +1344,7 @@ int char_config_read(const char* cfgName)
 		}
 		else if( rank_config_read(w1,w2) )
 			continue;
-		else if( charlog_config_read(w1,w2) )
+		else if( charlog_config_read(w1,w2) ) // FIXME: some shared settings are in here
 			continue;
 		else if (strcmpi(w1, "import") == 0)
 			char_config_read(w2);
@@ -1586,7 +1500,6 @@ int do_init(int argc, char **argv)
 
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
-	inter_config_read(INTER_CONF_NAME);
 
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
 		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");

@@ -24,7 +24,7 @@ typedef struct HomunDB_TXT
 	DBMap* homuns;       // in-memory homun storage
 	int next_homun_id;   // auto_increment
 
-	char homun_db[1024]; // homun data storage file
+	const char* homun_db; // homun data storage file
 
 } HomunDB_TXT;
 
@@ -59,8 +59,9 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->homuns = NULL;
 	db->next_homun_id = START_HOMUN_NUM;
+
 	// other settings
-	safestrncpy(db->homun_db, "save/homun.txt", sizeof(db->homun_db));
+	db->homun_db = db->owner->file_homuns;
 
 	return &db->vtable;
 }

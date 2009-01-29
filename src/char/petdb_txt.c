@@ -26,7 +26,7 @@ typedef struct PetDB_TXT
 	DBMap* pets;         // in-memory pet storage
 	int next_pet_id;     // auto_increment
 
-	char pet_db[1024];   // pet data storage file
+	const char* pet_db;  // pet data storage file
 
 } PetDB_TXT;
 
@@ -61,8 +61,9 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->pets = NULL;
 	db->next_pet_id = START_PET_NUM;
+
 	// other settings
-	safestrncpy(db->pet_db, "save/pet.txt", sizeof(db->pet_db));
+	db->pet_db = db->owner->file_pets;
 
 	return &db->vtable;
 }

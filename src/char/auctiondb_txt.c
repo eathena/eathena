@@ -26,7 +26,7 @@ typedef struct AuctionDB_TXT
 	DBMap* auctions;         // in-memory auction storage
 	int next_auction_id;     // auto_increment
 
-	char auction_db[1024];   // auction data storage file
+	const char* auction_db;  // auction data storage file
 
 } AuctionDB_TXT;
 
@@ -53,8 +53,9 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->auctions = NULL;
 	db->next_auction_id = START_AUCTION_NUM;
+
 	// other settings
-	safestrncpy(db->auction_db, "save/auction.txt", sizeof(db->auction_db));
+	db->auction_db = db->owner->file_auctions;
 
 	return &db->vtable;
 }

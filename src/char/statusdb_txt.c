@@ -23,7 +23,7 @@ typedef struct StatusDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* statuses;      // in-memory status storage
 
-	char status_db[1024]; // status data storage file
+	const char* status_db;// status data storage file
 
 } StatusDB_TXT;
 
@@ -56,8 +56,9 @@ StatusDB* status_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->statuses = NULL;
+
 	// other settings
-	safestrncpy(db->status_db, "save/scdata.txt", sizeof(db->status_db));
+	db->status_db = db->owner->file_statuses;
 
 	return &db->vtable;
 }

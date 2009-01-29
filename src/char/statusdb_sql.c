@@ -20,7 +20,7 @@ typedef struct StatusDB_SQL
 	Sql* statuses;      // SQL status storage
 
 	// other settings
-	char status_db[32];
+	const char* status_db;
 
 } StatusDB_SQL;
 
@@ -51,8 +51,9 @@ StatusDB* status_db_sql(CharServerDB_SQL* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->statuses = NULL;
+
 	// other settings
-	safestrncpy(db->status_db, "sc_data", sizeof(db->status_db));
+	db->status_db = db->owner->table_statuses;
 
 	return &db->vtable;
 }

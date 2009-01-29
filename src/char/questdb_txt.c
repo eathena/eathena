@@ -24,9 +24,9 @@ typedef struct QuestDB_TXT
 	QuestDB vtable;       // public interface
 
 	CharServerDB_TXT* owner;
-	DBMap* quests;       // in-memory pet storage
+	DBMap* quests;        // in-memory pet storage
 
-	char quest_db[1024];   // quest data storage file
+	const char* quest_db; // quest data storage file
 
 } QuestDB_TXT;
 
@@ -59,8 +59,9 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->quests = NULL;
+
 	// other settings
-	safestrncpy(db->quest_db, "save/quest.txt", sizeof(db->quest_db));
+	db->quest_db = db->owner->file_quests;
 
 	return &db->vtable;
 }
