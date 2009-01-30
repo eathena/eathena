@@ -12,7 +12,7 @@
 #include "chardb.h"
 #include "charlog.h"
 #include "inter.h"
-#include "map.h"
+#include "if_map.h"
 
 //temporary imports
 extern CharServerDB* charserver;

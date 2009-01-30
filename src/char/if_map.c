@@ -14,7 +14,7 @@
 #include "int_status.h"
 #include "int_storage.h"
 #include "inter.h"
-#include "map.h"
+#include "if_map.h"
 #include <string.h>
 
 //temporary imports

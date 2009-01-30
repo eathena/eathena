@@ -67,7 +67,7 @@ CharServerDB* charserver = NULL;
 // temporary imports
 extern int parse_fromlogin(int fd);
 extern int parse_char(int fd);
-#include "map.h"
+#include "if_map.h"
 
 //FIXME
 #ifndef TXT_ONLY

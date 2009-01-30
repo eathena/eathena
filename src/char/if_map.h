@@ -1,5 +1,5 @@
-#ifndef _MAP_H_
-#define _MAP_H_
+#ifndef _IF_MAP_H_
+#define _IF_MAP_H_
 
 #include "../common/mmo.h"
 
@@ -17,4 +17,4 @@ struct mmo_map_server
 extern struct mmo_map_server server[MAX_MAP_SERVERS];
 
 
-#endif /* _MAP_H_ */
+#endif /* _IF_MAP_H_ */

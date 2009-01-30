@@ -4,22 +4,11 @@
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
-#include "../common/mapindex.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
-#include "../common/socket.h"
 #include "../common/strlib.h"
-#include "../common/timer.h"
 #include "../common/utils.h"
 #include "char.h"
-#include "charlog.h"
-#include "int_guild.h"
-#include "int_homun.h"
-#include "int_party.h"
-#include "int_pet.h"
-#include "int_status.h"
-#include "inter.h"
-#include "map.h"
 #include <stdlib.h>
 #include <string.h>
 

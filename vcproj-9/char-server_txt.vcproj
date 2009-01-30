@@ -218,7 +218,27 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\client.c"
+				RelativePath="..\src\char\if_client.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\if_client.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\if_login.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\if_login.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\if_map.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\if_map.h"
 				>
 			</File>
 			<File
@@ -323,18 +343,6 @@
 			</File>
 			<File
 				RelativePath="..\src\char\interlog_txt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\login.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\map.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\map.h"
 				>
 			</File>
 		</Filter>

@@ -11,7 +11,7 @@
 #include "int_guild.h"
 #include "int_storage.h"
 #include "inter.h"
-#include "map.h"
+#include "if_map.h"
 #include "charserverdb.h"
 #include <stdio.h>
 
