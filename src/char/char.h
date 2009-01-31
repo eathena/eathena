@@ -82,4 +82,23 @@ struct online_char_data {
 	short server; // -2: unknown server, -1: not connected, 0+: id of server
 };
 
+struct Char_Config {
+
+	char login_ip[128];   // login-server's address/hostname
+	char char_ip[128];    // char-server's external address/hostname
+	char bind_ip[128];    // char-server's physical address/hostname
+	uint16 login_port;    // login-server's listen port
+	uint16 char_port;     // char-server's listen port
+	char userid[24];      // server-to-server userid
+	char passwd[24];      // server-to-server password
+
+	int char_maintenance; // defines appearance in server select: 0 =  (%d)#, 1 =  (On the maintenance)#, 2 =  (%d People) - over the age 18#, 3 =  (%d players) - Pay to Play#, 4 =  (%d players) - Free Play Server#
+	int char_new_display; // shows 'new' in server select if set
+	bool char_new;        // new character creation enabled/disabled
+	bool char_rename;     // when enabled, uses extended char data packet w/ char rename bit (kRO sakexe compatibility setting)
+	bool online_check;    // when enabled, access to an already online account is rejected and the mapserver is asked to disconnect the corresponding character
+};
+
+extern struct Char_Config char_config;
+
 #endif /* _CHAR_H_ */

@@ -17,10 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// extern imports
-extern bool party_break_without_leader;
-extern bool party_auto_reassign_leader;
-
 // party database
 static PartyDB* parties = NULL;
 

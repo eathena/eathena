@@ -11,6 +11,7 @@
 #include "int_guild.h"
 #include "int_storage.h"
 #include "inter.h"
+#include "if_login.h"
 #include "if_map.h"
 #include "charserverdb.h"
 #include <stdio.h>
@@ -21,18 +22,14 @@ extern CharServerDB* charserver;
 #include "char.h"
 extern int login_fd;
 extern uint32 login_ip;
-extern char login_ip_str[128];
+extern uint32 char_ip;
 extern DBMap* auth_db;
 extern DBMap* online_char_db;
-extern uint32 char_ip;
-extern char char_ip_str[128];
-extern int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int disconnect_player(int account_id);
 extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 extern void set_char_offline(int char_id, int account_id);
-
 
 
 int parse_fromlogin(int fd)
@@ -404,15 +401,15 @@ int parse_fromlogin(int fd)
 			WBUFW(buf,0) = 0x2b1e;
 			mapif_sendall(buf, 2);
 
-			new_ip = host2ip(login_ip_str);
+			new_ip = host2ip(char_config.login_ip);
 			if (new_ip && new_ip != login_ip)
 				login_ip = new_ip; //Update login up.
 
-			new_ip = host2ip(char_ip_str);
+			new_ip = host2ip(char_config.char_ip);
 			if (new_ip && new_ip != char_ip)
 			{	//Update ip.
 				char_ip = new_ip;
-				ShowInfo("Updating IP for [%s].\n", char_ip_str);
+				ShowInfo("Updating IP for [%s].\n", char_config.char_ip);
 				// notify login server about the change
 				WFIFOHEAD(fd,6);
 				WFIFOW(fd,0) = 0x2736;
@@ -432,5 +429,83 @@ int parse_fromlogin(int fd)
 	}
 
 	RFIFOFLUSH(fd);
+	return 0;
+}
+
+
+/// load this char's account id into the 'online accounts' packet
+static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
+{
+	struct online_char_data* character = (struct online_char_data*)data;
+	int* i = va_arg(ap, int*);
+
+	if(character->server > -1)
+	{
+		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
+		(*i)++;
+		return 1;
+	}
+	return 0;
+}
+
+int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
+{
+	if (login_fd > 0 && session[login_fd])
+	{
+		// send account list to login server
+		int users = online_char_db->size(online_char_db);
+		int i = 0;
+
+		WFIFOHEAD(login_fd,8+users*4);
+		WFIFOW(login_fd,0) = 0x272d;
+		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i, users);
+		WFIFOW(login_fd,2) = 8+ i*4;
+		WFIFOL(login_fd,4) = i;
+		WFIFOSET(login_fd,WFIFOW(login_fd,2));
+	}
+	return 0;
+}
+
+int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
+{
+	if (login_fd > 0 && session[login_fd] != NULL)
+		return 0;
+
+	ShowInfo("Attempt to connect to login-server...\n");
+	login_fd = make_connection(login_ip, char_config.login_port);
+	if (login_fd == -1)
+	{	//Try again later. [Skotlex]
+		login_fd = 0;
+		return 0;
+	}
+	session[login_fd]->func_parse = parse_fromlogin;
+	session[login_fd]->flag.server = 1;
+	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+	
+	WFIFOHEAD(login_fd,86);
+	WFIFOW(login_fd,0) = 0x2710;
+	memcpy(WFIFOP(login_fd,2), char_config.userid, 24);
+	memcpy(WFIFOP(login_fd,26), char_config.passwd, 24);
+	WFIFOL(login_fd,50) = 0;
+	WFIFOL(login_fd,54) = htonl(char_ip);
+	WFIFOL(login_fd,58) = htons(char_config.char_port);
+	memcpy(WFIFOP(login_fd,60), server_name, 20);
+	WFIFOW(login_fd,80) = 0;
+	WFIFOW(login_fd,82) = char_config.char_maintenance;
+	WFIFOW(login_fd,84) = char_config.char_new_display;
+	WFIFOSET(login_fd,86);
+	
+	return 1;
+}
+
+// sends a ping packet to login server (will receive pong 0x2718)
+int ping_login_server(int tid, unsigned int tick, int id, intptr data)
+{
+	if (login_fd > 0 && session[login_fd] != NULL)
+	{
+		WFIFOHEAD(login_fd,2);
+		WFIFOW(login_fd,0) = 0x2719;
+		WFIFOSET(login_fd,2);
+	}
 	return 0;
 }

@@ -17,4 +17,6 @@ struct mmo_map_server
 extern struct mmo_map_server server[MAX_MAP_SERVERS];
 
 
+extern int parse_frommap(int fd);
+
 #endif /* _IF_MAP_H_ */

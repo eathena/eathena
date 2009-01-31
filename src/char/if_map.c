@@ -29,11 +29,67 @@ extern DBMap* online_char_db; // int account_id -> struct online_char_data*
 extern DBMap* auth_db; // int account_id -> struct auth_node*
 extern int char_db_setoffline(DBKey key, void* data, va_list ap);
 extern void* create_online_char_data(DBKey key, va_list args);
-extern int online_check;
 extern void set_all_offline(int id);
 
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
+
+
+// sends data to all mapservers
+int mapif_sendall(unsigned char *buf, unsigned int len)
+{
+	int i, c;
+
+	c = 0;
+	for(i = 0; i < MAX_MAP_SERVERS; i++) {
+		int fd;
+		if ((fd = server[i].fd) > 0) {
+			WFIFOHEAD(fd,len);
+			memcpy(WFIFOP(fd,0), buf, len);
+			WFIFOSET(fd,len);
+			c++;
+		}
+	}
+
+	return c;
+}
+
+// sends data to all mapservers other than the one specified
+int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
+{
+	int i, c;
+
+	c = 0;
+	for(i = 0; i < MAX_MAP_SERVERS; i++) {
+		int fd;
+		if ((fd = server[i].fd) > 0 && fd != sfd) {
+			WFIFOHEAD(fd,len);
+			memcpy(WFIFOP(fd,0), buf, len);
+			WFIFOSET(fd,len);
+			c++;
+		}
+	}
+
+	return c;
+}
+
+// send data to a single mapserver
+int mapif_send(int fd, unsigned char *buf, unsigned int len)
+{
+	int i;
+
+	if (fd >= 0) {
+		for(i = 0; i < MAX_MAP_SERVERS; i++) {
+			if (fd == server[i].fd) {
+				WFIFOHEAD(fd,len);
+				memcpy(WFIFOP(fd,0), buf, len);
+				WFIFOSET(fd,len);
+				return 1;
+			}
+		}
+	}
+	return 0;
+}
 
 
 // Searches for the mapserver that has a given map (and optionally ip/port, if not -1).
@@ -186,7 +242,7 @@ int parse_frommap(int fd)
 				int aid = RFIFOL(fd,6+i*8);
 				int cid = RFIFOL(fd,6+i*8+4);
 				character = (struct online_char_data*)idb_ensure(online_char_db, aid, create_online_char_data);
-				if (online_check && character->server > -1 && character->server != id)
+				if (char_config.online_check && character->server > -1 && character->server != id)
 				{
 					ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
 						character->account_id, character->char_id, character->server, id, aid, cid);

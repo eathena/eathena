@@ -29,12 +29,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-// temporary stuff
-extern CharDB* chars;
 
-
-unsigned int party_share_level = 10;
 char main_chat_nick[16] = "Main";
+unsigned int party_share_level = 10;
 bool party_break_without_leader = false;
 bool party_auto_reassign_leader = false;
 

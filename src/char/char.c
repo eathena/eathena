@@ -16,6 +16,9 @@
 #include "char.h"
 #include "chardb.h"
 #include "charlog.h"
+#include "if_client.h"
+#include "if_login.h"
+#include "if_map.h"
 #include "inter.h"
 #include "int_guild.h"
 #include "int_homun.h"
@@ -60,14 +63,13 @@ static struct{
 	// end of structure
 	{NULL, NULL}
 };
+
 // charserver engine
 CharServerDB* charserver = NULL;
 
+// charserver configuration
+struct Char_Config char_config;
 
-// temporary imports
-extern int parse_fromlogin(int fd);
-extern int parse_char(int fd);
-#include "if_map.h"
 
 //FIXME
 #ifndef TXT_ONLY
@@ -80,22 +82,10 @@ static char guild_member_db[] = "baadf00d";
 
 
 int login_fd=-1, char_fd=-1;
-char userid[24];
-char passwd[24];
-char login_ip_str[128];
 uint32 login_ip = 0;
-uint16 login_port = 6900;
-char char_ip_str[128];
 uint32 char_ip = 0;
-char bind_ip_str[128];
 uint32 bind_ip = INADDR_ANY;
-uint16 char_port = 6121;
-int char_maintenance = 0;
-bool char_new = true;
-int char_new_display = 0;
 char charserver_engine[256] = "auto";// name of the engine to use (defaults to auto, for the first valid engine)
-
-int online_check = 1; //If one, it won't let players connect when their account is already registered online and will send the relevant map server a kick user request. [Skotlex]
 
 
 // Advanced subnet check [LuzZza]
@@ -134,14 +124,12 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 //TXT
 int email_creation = 0; // disabled by default
 //SQL
-bool db_use_sqldbs;
 int char_per_account = 0; //Maximum charas per account (default unlimited) [Sirius]
 int char_del_level = 0; //From which level u can delete character [Lupus]
 
 
+//FIXME: this setting needs re-work due to changes in code structure
 bool name_ignoring_case = false; // Allow or not identical name for characters but with a different case by [Yor]
-#define TRIM_CHARS "\032\t\x0A\x0D " //The following characters are trimmed regardless because they cause confusion and problems on the servers. [Skotlex]
-bool char_rename = true;
 
 #ifdef TXT_SQL_CONVERT
 int save_log = 0; //Have the logs be off by default when converting
@@ -228,7 +216,7 @@ void set_char_online(int map_id, int char_id, int account_id)
 
 	//Check to see for online conflicts
 	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
-	if (online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
+	if (char_config.online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
 	{
 		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
 			character->account_id, character->char_id, character->server, map_id, account_id, char_id);
@@ -429,76 +417,13 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 	WBUFB(buf,102) = min(p->dex, UCHAR_MAX);
 	WBUFB(buf,103) = min(p->luk, UCHAR_MAX);
 	WBUFW(buf,104) = p->slot;
-	if (char_rename) {
+	if (char_config.char_rename) {
 		WBUFW(buf,106) = 1;// Rename bit (0=rename,1=no rename)
 		return 108;
 	} else {
 		return 106;
 	}
 }
-
-//----------------------------------------
-// Function to send characters to a player
-//----------------------------------------
-int mmo_char_send006b(int fd, struct char_session_data* sd)
-{
-	CharDB* chars = charserver->chardb(charserver);
-	struct mmo_charstatus cd_arr[MAX_CHARS];
-	struct mmo_charstatus cd;
-	CharDBIterator* it;
-	int i,j;
-
-#ifndef TXT_ONLY
-	if (save_log)
-		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
-#endif
-
-	// load characters
-	memset(cd_arr, 0, sizeof(cd_arr));
-	sd->chars_num = 0;
-	it = chars->characters(chars, sd->account_id);
-	while( it->next(it, &cd) )
-	{
-		++sd->chars_num;
-		if( cd.slot < MAX_CHARS )
-		{// use slot position
-			if( cd_arr[cd.slot].account_id == sd->account_id )
-			{// move occupant to first free slot
-				ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
-				if( i < MAX_CHARS )
-					memcpy(&cd_arr[i], &cd_arr[cd.slot], sizeof(struct mmo_charstatus));
-			}
-			memcpy(&cd_arr[cd.slot], &cd, sizeof(struct mmo_charstatus));
-		}
-		else
-		{// use first free slot
-			ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
-			if( i < MAX_CHARS )
-				memcpy(&cd_arr[i], &cd, sizeof(struct mmo_charstatus));
-		}
-	}
-	it->destroy(it);
-
-	// update client view
-	for( i = 0; i < MAX_CHARS; ++i )
-	{
-		cd_arr[i].slot = i; // XXX if different, update slot in the database?
-		sd->slots[i] = cd_arr[i].char_id;
-	}
-
-	j = 24; // offset
-	WFIFOHEAD(fd, 4 + 20 + MAX_CHARS*108); // or 106(!)
-	WFIFOW(fd,0) = 0x6b;
-	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
-	for( i = 0; i < MAX_CHARS; ++i )
-		if( cd_arr[i].account_id == sd->account_id )
-			j += mmo_char_tobuf(WFIFOP(fd,j), &cd_arr[i]);
-	WFIFOW(fd,2) = j; // packet len
-	WFIFOSET(fd,j);
-
-	return 0;
-}
-
 
 void char_auth_ok(int fd, struct char_session_data *sd)
 {
@@ -512,7 +437,7 @@ void char_auth_ok(int fd, struct char_session_data *sd)
 		return;
 	}
 
-	if( online_check && (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
+	if( char_config.online_check && (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
 	{	// check if character is not online already. [Skotlex]
 		if (character->server > -1)
 		{	//Character already online. KICK KICK KICK
@@ -637,63 +562,6 @@ int parse_console(char* buf)
 }
 
 
-// sends data to all mapservers
-int mapif_sendall(unsigned char *buf, unsigned int len)
-{
-	int i, c;
-
-	c = 0;
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		int fd;
-		if ((fd = server[i].fd) > 0) {
-			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
-			WFIFOSET(fd,len);
-			c++;
-		}
-	}
-
-	return c;
-}
-
-// sends data to all mapservers other than the one specified
-int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
-{
-	int i, c;
-
-	c = 0;
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		int fd;
-		if ((fd = server[i].fd) > 0 && fd != sfd) {
-			WFIFOHEAD(fd,len);
-			memcpy(WFIFOP(fd,0), buf, len);
-			WFIFOSET(fd,len);
-			c++;
-		}
-	}
-
-	return c;
-}
-
-// send data to a single mapserver
-int mapif_send(int fd, unsigned char *buf, unsigned int len)
-{
-	int i;
-
-	if (fd >= 0) {
-		for(i = 0; i < MAX_MAP_SERVERS; i++) {
-			if (fd == server[i].fd) {
-				WFIFOHEAD(fd,len);
-				memcpy(WFIFOP(fd,0), buf, len);
-				WFIFOSET(fd,len);
-				return 1;
-			}
-		}
-	}
-	return 0;
-}
-
-
 //-----------------------------------
 // Function to create a new character
 //-----------------------------------
@@ -705,7 +573,7 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	int i;
 
 	safestrncpy(name, name_, NAME_LENGTH);
-	normalize_name(name,TRIM_CHARS);
+	normalize_name(name, "\032\t\x0A\x0D "); //The following characters are always substituted and trimmed because they cause confusion and problems on the servers. [Skotlex]
 
 	// check length of character name
 	if( name[0] == '\0' )
@@ -1033,84 +901,6 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
 }
 
 
-/// load this char's account id into the 'online accounts' packet
-static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
-{
-	struct online_char_data* character = (struct online_char_data*)data;
-	int* i = va_arg(ap, int*);
-
-	if(character->server > -1)
-	{
-		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
-		(*i)++;
-		return 1;
-	}
-	return 0;
-}
-
-int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
-{
-	if (login_fd > 0 && session[login_fd])
-	{
-		// send account list to login server
-		int users = online_char_db->size(online_char_db);
-		int i = 0;
-
-		WFIFOHEAD(login_fd,8+users*4);
-		WFIFOW(login_fd,0) = 0x272d;
-		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i, users);
-		WFIFOW(login_fd,2) = 8+ i*4;
-		WFIFOL(login_fd,4) = i;
-		WFIFOSET(login_fd,WFIFOW(login_fd,2));
-	}
-	return 0;
-}
-
-int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
-{
-	if (login_fd > 0 && session[login_fd] != NULL)
-		return 0;
-
-	ShowInfo("Attempt to connect to login-server...\n");
-	login_fd = make_connection(login_ip, login_port);
-	if (login_fd == -1)
-	{	//Try again later. [Skotlex]
-		login_fd = 0;
-		return 0;
-	}
-	session[login_fd]->func_parse = parse_fromlogin;
-	session[login_fd]->flag.server = 1;
-	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
-	
-	WFIFOHEAD(login_fd,86);
-	WFIFOW(login_fd,0) = 0x2710;
-	memcpy(WFIFOP(login_fd,2), userid, 24);
-	memcpy(WFIFOP(login_fd,26), passwd, 24);
-	WFIFOL(login_fd,50) = 0;
-	WFIFOL(login_fd,54) = htonl(char_ip);
-	WFIFOL(login_fd,58) = htons(char_port);
-	memcpy(WFIFOP(login_fd,60), server_name, 20);
-	WFIFOW(login_fd,80) = 0;
-	WFIFOW(login_fd,82) = char_maintenance;
-	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
-	WFIFOSET(login_fd,86);
-	
-	return 1;
-}
-
-// sends a ping packet to login server (will receive pong 0x2718)
-int ping_login_server(int tid, unsigned int tick, int id, intptr data)
-{
-	if (login_fd > 0 && session[login_fd] != NULL)
-	{
-		WFIFOHEAD(login_fd,2);
-		WFIFOW(login_fd,0) = 0x2719;
-		WFIFOSET(login_fd,2);
-	}
-	return 0;
-}
-
-
 /// server event logging
 void log_char(const char* fmt, ...)
 {
@@ -1204,6 +994,22 @@ int lan_subnetcheck(uint32 ip)
 }
 
 
+void char_set_defaults(void)
+{
+	safestrncpy(char_config.login_ip, "", sizeof(char_config.login_ip));
+	safestrncpy(char_config.char_ip, "", sizeof(char_config.char_ip));
+	safestrncpy(char_config.bind_ip, "", sizeof(char_config.bind_ip));
+	char_config.login_port = 6900;
+	char_config.char_port = 6121;
+	safestrncpy(char_config.userid, "s1", sizeof(char_config.userid));
+	safestrncpy(char_config.passwd, "p1", sizeof(char_config.passwd));
+	char_config.char_maintenance = 0;
+	char_config.char_new_display = 0;
+	char_config.char_new = true;
+	char_config.char_rename = true;
+	char_config.online_check = true;
+}
+
 int char_config_read(const char* cfgName)
 {
 	char line[1024], w1[1024], w2[1024];
@@ -1225,76 +1031,115 @@ int char_config_read(const char* cfgName)
 
 		remove_control_chars(w1);
 		remove_control_chars(w2);
-		if(strcmpi(w1,"timestamp_format") == 0) {
+
+		if( strcmpi(w1,"timestamp_format") == 0 )
 			strncpy(timestamp_format, w2, 20);
-		} else if(strcmpi(w1,"console_silent")==0){
+		else
+		if( strcmpi(w1,"console_silent") == 0 )
+		{
 			ShowInfo("Console Silent Setting: %d\n", atoi(w2));
 			msg_silent = atoi(w2);
-		} else if(strcmpi(w1,"stdout_with_ansisequence")==0){
+		}
+		else
+		if( strcmpi(w1,"stdout_with_ansisequence") == 0 )
 			stdout_with_ansisequence = config_switch(w2);
-		} else if (strcmpi(w1, "userid") == 0) {
-			strncpy(userid, w2, 24);
-		} else if (strcmpi(w1, "passwd") == 0) {
-			strncpy(passwd, w2, 24);
-		} else if (strcmpi(w1, "server_name") == 0) {
+		else
+		if( strcmpi(w1, "userid") == 0 )
+			safestrncpy(char_config.userid, w2, sizeof(char_config.userid));
+		else
+		if( strcmpi(w1, "passwd") == 0 )
+			safestrncpy(char_config.passwd, w2, sizeof(char_config.passwd));
+		else
+		if (strcmpi(w1, "server_name") == 0)
+		{
 			strncpy(server_name, w2, 20);
 			server_name[sizeof(server_name) - 1] = '\0';
 			ShowStatus("%s server has been initialized\n", w2);
-		} else if (strcmpi(w1, "wisp_server_name") == 0) {
+		}
+		else
+		if( strcmpi(w1, "wisp_server_name") == 0 )
+		{
 			if (strlen(w2) >= 4) {
 				memcpy(wisp_server_name, w2, sizeof(wisp_server_name));
 				wisp_server_name[sizeof(wisp_server_name) - 1] = '\0';
 			}
-		} else if (strcmpi(w1, "login_ip") == 0) {
+		}
+		else
+		if( strcmpi(w1, "login_ip") == 0 )
+		{
 			char ip_str[16];
 			login_ip = host2ip(w2);
 			if (login_ip) {
-				strncpy(login_ip_str, w2, sizeof(login_ip_str));
+				safestrncpy(char_config.login_ip, w2, sizeof(char_config.login_ip));
 				ShowStatus("Login server IP address : %s -> %s\n", w2, ip2str(login_ip, ip_str));
 			}
-		} else if (strcmpi(w1, "login_port") == 0) {
-			login_port = atoi(w2);
-		} else if (strcmpi(w1, "char_ip") == 0) {
+		}
+		else
+		if( strcmpi(w1, "login_port") == 0 )
+			char_config.login_port = (uint16)atoi(w2);
+		else
+		if( strcmpi(w1, "char_ip") == 0 )
+		{
 			char ip_str[16];
 			char_ip = host2ip(w2);
 			if (char_ip){
-				strncpy(char_ip_str, w2, sizeof(char_ip_str));
+				safestrncpy(char_config.char_ip, w2, sizeof(char_config.char_ip));
 				ShowStatus("Character server IP address : %s -> %s\n", w2, ip2str(char_ip, ip_str));
 			}
-		} else if (strcmpi(w1, "bind_ip") == 0) {
+		}
+		else
+		if( strcmpi(w1, "bind_ip") == 0 )
+		{
 			char ip_str[16];
 			bind_ip = host2ip(w2);
 			if (bind_ip) {
-				strncpy(bind_ip_str, w2, sizeof(bind_ip_str));
+				safestrncpy(char_config.bind_ip, w2, sizeof(char_config.bind_ip));
 				ShowStatus("Character server binding IP address : %s -> %s\n", w2, ip2str(bind_ip, ip_str));
 			}
-		} else if (strcmpi(w1, "char_port") == 0) {
-			char_port = atoi(w2);
-		} else if (strcmpi(w1, "char_maintenance") == 0) {
-			char_maintenance = atoi(w2);
-		} else if (strcmpi(w1, "char_new") == 0) {
-			char_new = (bool)atoi(w2);
-		} else if (strcmpi(w1, "char_new_display") == 0) {
-			char_new_display = atoi(w2);
+		}
+		else
+		if( strcmpi(w1, "char_port") == 0 )
+			char_config.char_port = (uint16)atoi(w2);
+		else
+		if( strcmpi(w1, "char_maintenance") == 0 )
+			char_config.char_maintenance = atoi(w2);
+		else
+		if( strcmpi(w1, "char_new") == 0 )
+			char_config.char_new = (bool)atoi(w2);
+		else
+		if( strcmpi(w1, "char_new_display") == 0 )
+			char_config.char_new_display = atoi(w2);
 #ifdef TXT_ONLY
-		} else if (strcmpi(w1, "email_creation") == 0) {
+		else
+		if( strcmpi(w1, "email_creation") == 0 )
 			email_creation = config_switch(w2);
 #endif
-		} else if (strcmpi(w1, "max_connect_user") == 0) {
+		else
+		if( strcmpi(w1, "max_connect_user") == 0 )
+		{
 			max_connect_user = atoi(w2);
 			if (max_connect_user < 0)
 				max_connect_user = 0; // unlimited online players
-		} else if(strcmpi(w1, "gm_allow_level") == 0) {
+		}
+		else
+		if( strcmpi(w1, "gm_allow_level") == 0 )
+		{
 			gm_allow_level = atoi(w2);
 			if(gm_allow_level < 0)
 				gm_allow_level = 99;
-		} else if (strcmpi(w1, "online_check") == 0) {
-			online_check = config_switch(w2);
-		} else if (strcmpi(w1, "autosave_time") == 0) {
+		}
+		else
+		if( strcmpi(w1, "online_check") == 0 )
+			char_config.online_check = (bool)config_switch(w2);
+		else
+		if( strcmpi(w1, "autosave_time") == 0 )
 			autosave_interval = atoi(w2)*1000;
-		} else if (strcmpi(w1, "save_log") == 0) {
+		else
+		if( strcmpi(w1, "save_log") == 0 )
 			save_log = config_switch(w2);
-		} else if (strcmpi(w1, "start_point") == 0) {
+		else
+		if( strcmpi(w1, "start_point") == 0 )
+		{
 			char map[MAP_NAME_LENGTH_EXT];
 			int x, y;
 			if (sscanf(w2, "%15[^,],%d,%d", map, &x, &y) < 3)
@@ -1304,44 +1149,57 @@ int char_config_read(const char* cfgName)
 				ShowError("Specified start_point %s not found in map-index cache.\n", map);
 			start_point.x = x;
 			start_point.y = y;
-		} else if (strcmpi(w1, "start_zeny") == 0) {
+		}
+		else
+		if( strcmpi(w1, "start_zeny") == 0 )
+		{
 			start_zeny = atoi(w2);
 			if (start_zeny < 0)
 				start_zeny = 0;
-		} else if (strcmpi(w1, "start_weapon") == 0) {
+		}
+		else
+		if( strcmpi(w1, "start_weapon") == 0 )
+		{
 			start_weapon = atoi(w2);
 			if (start_weapon < 0)
 				start_weapon = 0;
-		} else if (strcmpi(w1, "start_armor") == 0) {
+		}
+		else
+		if( strcmpi(w1, "start_armor") == 0 )
+		{
 			start_armor = atoi(w2);
 			if (start_armor < 0)
 				start_armor = 0;
-		} else if(strcmpi(w1,"log_char")==0) {
+		}
+		else
+		if( strcmpi(w1,"log_char") == 0 )
 			log_char_enabled = atoi(w2);
-		} else if (strcmpi(w1, "unknown_char_name") == 0) {
+		else
+		if( strcmpi(w1, "unknown_char_name") == 0 )
+		{
 			strcpy(unknown_char_name, w2);
 			unknown_char_name[NAME_LENGTH-1] = '\0';
-		} else if (strcmpi(w1, "name_ignoring_case") == 0) {
+		}
+		else if (strcmpi(w1, "name_ignoring_case") == 0)
 			name_ignoring_case = (bool)config_switch(w2);
-		} else if (strcmpi(w1, "char_name_option") == 0) {
+		else if (strcmpi(w1, "char_name_option") == 0)
 			char_name_option = atoi(w2);
-		} else if (strcmpi(w1, "char_name_letters") == 0) {
+		else if (strcmpi(w1, "char_name_letters") == 0)
 			strcpy(char_name_letters, w2);
-		} else if (strcmpi(w1, "char_rename") == 0) {
-			char_rename = config_switch(w2);
-		} else if(strcmpi(w1,"db_path")==0) {
+		else if (strcmpi(w1, "char_rename") == 0)
+			char_config.char_rename = (bool)config_switch(w2);
+		else if(strcmpi(w1,"db_path")==0)
 			strcpy(db_path,w2);
 #ifndef TXT_ONLY
-		} else if (strcmpi(w1, "chars_per_account") == 0) { //maxchars per account [Sirius]
+		else if (strcmpi(w1, "chars_per_account") == 0) //maxchars per account [Sirius]
 			char_per_account = atoi(w2);
-		} else if (strcmpi(w1, "char_del_level") == 0) { //disable/enable char deletion by its level condition [Lupus]
+		else if (strcmpi(w1, "char_del_level") == 0) //disable/enable char deletion by its level condition [Lupus]
 			char_del_level = atoi(w2);
 #endif
-		} else if (strcmpi(w1, "console") == 0) {
+		else if (strcmpi(w1, "console") == 0)
 			console = config_switch(w2);
-		} else if (strcmpi(w1, "guild_exp_rate") == 0) {
+		else if (strcmpi(w1, "guild_exp_rate") == 0)
 			guild_exp_rate = atoi(w2);
-		}
 		else if( rank_config_read(w1,w2) )
 			continue;
 		else if( charlog_config_read(w1,w2) ) // FIXME: some shared settings are in here
@@ -1498,10 +1356,11 @@ int do_init(int argc, char **argv)
 	for( i = 0; charserver_engines[i].constructor; ++i )
 		charserver_engines[i].engine = charserver_engines[i].constructor();
 
+	char_set_defaults();
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
 
-	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
+	if (strcmp(char_config.userid, "s1")==0 && strcmp(char_config.passwd, "p1")==0) {
 		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
 		ShowNotice("Please edit your save/account.txt file to create a proper inter-server user/password (gender 'S')\n");
 		ShowNotice("And then change the user/password to use in conf/char_athena.conf (or conf/import/char_conf.txt)\n");
@@ -1519,24 +1378,26 @@ int do_init(int argc, char **argv)
 
 	inter_init(charserver);
 
-	set_defaultparse(parse_char);
+	set_defaultparse(parse_client);
 
 	if ((naddr_ != 0) && (!login_ip || !char_ip))
 	{
+		uint32 ip = addr_[0];
 		char ip_str[16];
-		ip2str(addr_[0], ip_str);
+		ip2str(ip, ip_str);
 
 		if (naddr_ > 1)
 			ShowStatus("Multiple interfaces detected..  using %s as our IP address\n", ip_str);
 		else
 			ShowStatus("Defaulting to %s as our IP address\n", ip_str);
+
 		if (!login_ip) {
-			strcpy(login_ip_str, ip_str);
-			login_ip = str2ip(login_ip_str);
+			safestrncpy(char_config.login_ip, ip_str, sizeof(char_config.login_ip));
+			login_ip = ip;
 		}
 		if (!char_ip) {
-			strcpy(char_ip_str, ip_str);
-			char_ip = str2ip(char_ip_str);
+			safestrncpy(char_config.char_ip, ip_str, sizeof(char_config.char_ip));
+			char_ip = ip;
 		}
 	}
 
@@ -1568,10 +1429,10 @@ int do_init(int argc, char **argv)
 		//##TODO invoke a CONSOLE_START plugin event
 	}
 
-	char_fd = make_listen_bind(bind_ip, char_port);
+	char_fd = make_listen_bind(bind_ip, char_config.char_port);
 
-	log_char("The char-server is ready (Server is listening on the port %d).\n", char_port);
-	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
+	log_char("The char-server is ready (Server is listening on the port %d).\n", char_config.char_port);
+	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_config.char_port);
 
 	return 0;
 }

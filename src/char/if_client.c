@@ -24,19 +24,14 @@ extern DBMap* online_char_db;
 extern void set_char_offline(int char_id, int account_id);
 extern int email_creation;
 extern int search_mapserver(unsigned short map, uint32 ip, uint16 port);
-extern int parse_frommap(int fd);
-extern char userid[24];
-extern char passwd[24];
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int lan_subnetcheck(uint32 ip);
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style);
 extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
-extern bool char_new;
 
 
-
-int parse_char(int fd)
+int parse_client(int fd)
 {
 	CharDB* chars = charserver->chardb(charserver);
 	int i;
@@ -285,7 +280,7 @@ int parse_char(int fd)
 			safestrncpy(name, (const char*)RFIFOP(fd,2), NAME_LENGTH);
 			RFIFOSKIP(fd,37);
 
-			if( !char_new || sd->slots[i] )
+			if( !char_config.char_new || sd->slots[i] != 0 )
 				result = -2;// can't create or slot is occupied, reject
 			else
 				result = char_create(sd->account_id, name, str, agi, vit, int_, dex, luk, slot, haircolor, hairstyle, &char_id);
@@ -466,7 +461,7 @@ int parse_char(int fd)
 			l_user[23] = '\0';
 			l_pass[23] = '\0';
 			ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd <= 0 );
-			if (i == MAX_MAP_SERVERS || strcmp(l_user, userid) || strcmp(l_pass, passwd)) {
+			if (i == MAX_MAP_SERVERS || strcmp(l_user, char_config.userid) || strcmp(l_pass, char_config.passwd)) {
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2af9;
 				WFIFOB(fd,2) = 3;
@@ -517,5 +512,68 @@ int parse_char(int fd)
 	}
 
 	RFIFOFLUSH(fd);
+	return 0;
+}
+
+
+//----------------------------------------
+// Function to send characters to a player
+//----------------------------------------
+int mmo_char_send006b(int fd, struct char_session_data* sd)
+{
+	CharDB* chars = charserver->chardb(charserver);
+	struct mmo_charstatus cd_arr[MAX_CHARS];
+	struct mmo_charstatus cd;
+	CharDBIterator* it;
+	int i,j;
+
+#ifndef TXT_ONLY
+	if (save_log)
+		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
+#endif
+
+	// load characters
+	memset(cd_arr, 0, sizeof(cd_arr));
+	sd->chars_num = 0;
+	it = chars->characters(chars, sd->account_id);
+	while( it->next(it, &cd) )
+	{
+		++sd->chars_num;
+		if( cd.slot < MAX_CHARS )
+		{// use slot position
+			if( cd_arr[cd.slot].account_id == sd->account_id )
+			{// move occupant to first free slot
+				ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
+				if( i < MAX_CHARS )
+					memcpy(&cd_arr[i], &cd_arr[cd.slot], sizeof(struct mmo_charstatus));
+			}
+			memcpy(&cd_arr[cd.slot], &cd, sizeof(struct mmo_charstatus));
+		}
+		else
+		{// use first free slot
+			ARR_FIND(0, MAX_CHARS, i, cd_arr[i].account_id != sd->account_id);
+			if( i < MAX_CHARS )
+				memcpy(&cd_arr[i], &cd, sizeof(struct mmo_charstatus));
+		}
+	}
+	it->destroy(it);
+
+	// update client view
+	for( i = 0; i < MAX_CHARS; ++i )
+	{
+		cd_arr[i].slot = i; // XXX if different, update slot in the database?
+		sd->slots[i] = cd_arr[i].char_id;
+	}
+
+	j = 24; // offset
+	WFIFOHEAD(fd, 4 + 20 + MAX_CHARS*108); // or 106(!)
+	WFIFOW(fd,0) = 0x6b;
+	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
+	for( i = 0; i < MAX_CHARS; ++i )
+		if( cd_arr[i].account_id == sd->account_id )
+			j += mmo_char_tobuf(WFIFOP(fd,j), &cd_arr[i]);
+	WFIFOW(fd,2) = j; // packet len
+	WFIFOSET(fd,j);
+
 	return 0;
 }
