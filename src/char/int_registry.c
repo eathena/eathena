@@ -7,7 +7,8 @@
 #include "../common/strlib.h"
 #include "char.h" // mapif_sendallwos()
 #include "int_registry.h"
-#include "regdb.h"
+#include "accregdb.h"
+#include "charregdb.h"
 #include <stdio.h>
 #include <string.h>
 

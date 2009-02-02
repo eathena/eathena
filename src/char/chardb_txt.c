@@ -13,7 +13,7 @@
 #include "../common/timer.h"
 #include "char.h"
 #include "inter.h"
-#include "regdb.h"
+#include "charregdb.h"
 #include "charserverdb_txt.h"
 
 #include <stdio.h>

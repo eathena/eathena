@@ -4,7 +4,8 @@
 #ifndef _INT_REGISTRY_H_
 #define _INT_REGISTRY_H_
 
-#include "regdb.h"
+#include "accregdb.h"
+#include "charregdb.h"
 
 int inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb);
 int inter_registry_final(void);

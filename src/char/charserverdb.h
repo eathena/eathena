@@ -10,9 +10,11 @@
 
 
 
+#include "accregdb.h"
 #include "auctiondb.h"
 #include "castledb.h"
 #include "chardb.h"
+#include "charregdb.h"
 #include "frienddb.h"
 #include "guilddb.h"
 #include "homundb.h"
@@ -22,7 +24,6 @@
 #include "petdb.h"
 #include "questdb.h"
 #include "rankdb.h"
-#include "regdb.h"
 #include "statusdb.h"
 // TODO include DB interface headers
 // [ data reference ]

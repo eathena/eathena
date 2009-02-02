@@ -474,6 +474,14 @@
 			Name="db"
 			>
 			<File
+				RelativePath="..\src\char\accregdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\accregdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\auctiondb.h"
 				>
 			</File>
@@ -495,6 +503,14 @@
 			</File>
 			<File
 				RelativePath="..\src\char\chardb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb_txt.c"
 				>
 			</File>
 			<File
@@ -579,14 +595,6 @@
 			</File>
 			<File
 				RelativePath="..\src\char\rankdb_txt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\regdb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\regdb_txt.c"
 				>
 			</File>
 			<File
