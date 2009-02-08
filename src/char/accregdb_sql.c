@@ -93,10 +93,11 @@ static bool accreg_db_sql_remove(AccRegDB* self, const int account_id)
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
 	Sql* sql_handle = db->accregs;
 
-	//TODO: doesn't return proper value
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'", db->accreg_db, account_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
 
 	return true;
 }

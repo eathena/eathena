@@ -669,7 +669,6 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 
 #ifndef TXT_SQL_CONVERT
 	// Some checks
-	//TODO: just a check is needed here (loading all data is excessive)
 	if( chars->id2name(chars, p->char_id, NULL) )
 	{
 		ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");

@@ -94,10 +94,11 @@ static bool charreg_db_sql_remove(CharRegDB* self, const int char_id)
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
 	Sql* sql_handle = db->charregs;
 
-	//TODO: doesn't return proper value
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `account_id`='%d'", db->charreg_db, char_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
 
 	return true;
 }

@@ -132,10 +132,11 @@ static bool pet_db_sql_remove(PetDB* self, const int pet_id)
 	PetDB_SQL* db = (PetDB_SQL*)self;
 	Sql* sql_handle = db->pets;
 
-	//TODO: doesn't return proper value
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `pet_id`='%d'", db->pet_db, pet_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
 
 	return true;
 }

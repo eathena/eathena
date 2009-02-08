@@ -78,6 +78,7 @@ static void status_db_sql_destroy(StatusDB* self)
 
 static bool status_db_sql_sync(StatusDB* self)
 {
+	return true;
 }
 
 static bool status_db_sql_remove(StatusDB* self, const int char_id)

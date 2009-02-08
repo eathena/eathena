@@ -135,10 +135,11 @@ static bool mail_db_sql_remove(MailDB* self, const int mail_id)
 	MailDB_SQL* db = (MailDB_SQL*)self;
 	Sql* sql_handle = db->mails;
 
-	//TODO: doesn't return proper value
-
 	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `id`='%d'", db->mail_db, mail_id) )
+	{
 		Sql_ShowDebug(db->mails);
+		return false;
+	}
 
 	return true;
 }
