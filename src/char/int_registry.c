@@ -194,13 +194,6 @@ int inter_registry_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_registry_sync(void)
-{
-	accregs->sync(accregs);
-	charregs->sync(charregs);
-	return 0;
-}
-
 
 bool inter_charreg_delete(int char_id)
 {

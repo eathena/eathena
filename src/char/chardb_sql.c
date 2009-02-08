@@ -60,6 +60,7 @@ typedef struct CharDBIterator_SQL
 /// internal functions
 static bool char_db_sql_init(CharDB* self);
 static void char_db_sql_destroy(CharDB* self);
+static bool char_db_sql_sync(CharDB* self);
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* status);
 static bool char_db_sql_remove(CharDB* self, const int char_id);
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* status);
@@ -87,6 +88,7 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->vtable.destroy   = &char_db_sql_destroy;
 	db->vtable.create    = &char_db_sql_create;
 	db->vtable.remove    = &char_db_sql_remove;
+	db->vtable.sync      = &char_db_sql_sync;
 	db->vtable.save      = &char_db_sql_save;
 	db->vtable.load_num  = &char_db_sql_load_num;
 	db->vtable.load_str  = &char_db_sql_load_str;
@@ -128,6 +130,11 @@ static void char_db_sql_destroy(CharDB* self)
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	db->chars = NULL;
 	aFree(db);
+}
+
+static bool char_db_sql_sync(CharDB* self)
+{
+	return true;
 }
 
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)

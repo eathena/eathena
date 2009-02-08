@@ -1258,6 +1258,16 @@ static bool init_charserver_engine(void)
 	return false;
 }
 
+/// Periodic data saving function
+int charserver_sync_timer(int tid, unsigned int tick, int id, intptr data)
+{
+	if (save_log)
+		ShowInfo("Saving all files...\n");
+
+	charserver->sync(charserver);
+	return 0;
+}
+
 
 //------------------------------
 // Function called when the server
@@ -1280,47 +1290,34 @@ void do_final(void)
 	ShowStatus("Terminating server.\n");
 	ShowInfo("Doing final stage...\n");
 
-#ifdef TXT_ONLY
+	charserver->sync(charserver);
 
-	inter_save();
 	set_all_offline(-1);
-	flush_fifos();
+#ifndef TXT_ONLY
+	set_all_offline_sql();
+#endif
+
+#ifdef TXT_ONLY
 	// write online players files with no player
 	online_char_db->clear(online_char_db, NULL); //clean the db...
 	/* TODO: move to plugin
 	create_online_files();
 	*/
+#endif
+
+	inter_final();
+
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	auth_db->destroy(auth_db, NULL);
 
-	if (login_fd > 0)
-		do_close(login_fd);
-	if (char_fd > 0)
-		do_close(char_fd);
-
-	inter_final();
-	mapindex_final();
-#else
-
-	//check SQL save progress.
-	//wait until save char complete
-
-	set_all_offline(-1);
-	set_all_offline_sql();
-
-	inter_final();
-
 	flush_fifos();
 
-	mapindex_final();
-
 	if (login_fd > 0)
 		do_close(login_fd);
 	if (char_fd > 0)
 		do_close(char_fd);
-	online_char_db->destroy(online_char_db, NULL);
-	auth_db->destroy(auth_db, NULL);
-#endif
+
+	mapindex_final();
 
 	log_char("----End of char-server (normal shutdown).\n");
 	charlog_final();
@@ -1400,6 +1397,10 @@ int do_init(int argc, char **argv)
 			char_ip = ip;
 		}
 	}
+
+	// initialize data saving timer
+	add_timer_func_list(charserver_sync_timer, "charserver_sync_timer");
+	add_timer_interval(gettick() + 1000, charserver_sync_timer, 0, 0, autosave_interval);
 
 	// establish char-login connection if not present
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");

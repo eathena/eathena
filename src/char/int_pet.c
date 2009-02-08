@@ -229,11 +229,6 @@ bool inter_pet_delete(int pet_id)
 	return pets->remove(pets, pet_id);
 }
 
-void inter_pet_sync(void)
-{
-	pets->sync(pets);
-}
-
 void inter_pet_init(PetDB* db)
 {
 	pets = db;

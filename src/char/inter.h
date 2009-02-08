@@ -12,10 +12,6 @@ int inter_parse_frommap(int fd);
 int inter_mapif_init(int fd);
 int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 
-#ifdef TXT_ONLY
-int inter_save(void);
-#endif
-
 // shared inter-server config settings
 extern unsigned int party_share_level;
 extern bool party_break_without_leader;

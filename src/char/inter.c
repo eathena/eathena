@@ -101,26 +101,6 @@ static int inter_config_read(const char* cfgName)
 	return 0;
 }
 
-#ifdef TXT_ONLY
-// セーブ
-int inter_save(void)
-{
-	inter_party_sync();
-	inter_guild_sync();
-	inter_storage_save();
-	inter_guild_storage_save();
-	inter_pet_sync();
-	inter_homun_sync();
-	inter_registry_sync();
-	inter_status_sync();
-	inter_mail_sync();
-	inter_quest_sync();
-	inter_auction_sync();
-
-	return 0;
-}
-#endif
-
 // initialize
 int inter_init(CharServerDB* db)
 {

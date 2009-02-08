@@ -1111,12 +1111,6 @@ int inter_guild_leave(int guild_id, int account_id, int char_id)
 	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
 }
 
-void inter_guild_sync(void)
-{
-	guilds->sync(guilds);
-	castles->sync(castles);
-}
-
 int inter_guild_init(GuildDB* gdb, CastleDB* cdb)
 {
 	guilds = gdb;

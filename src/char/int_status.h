@@ -8,7 +8,6 @@
 
 void inter_status_init(StatusDB* db);
 void inter_status_final(void);
-void inter_status_sync(void);
 bool inter_status_delete(int char_id);
 int inter_status_parse_frommap(int fd);
 

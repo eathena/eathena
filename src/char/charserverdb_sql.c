@@ -112,6 +112,14 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 
 
 
+/// Flushes all in-memory data to secondary storage.
+static bool charserver_db_sql_sync(CharServerDB* self)
+{
+	return true; //not needed for this engine
+}
+
+
+
 /// Gets a property from this database engine.
 static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
 {
@@ -525,6 +533,7 @@ CharServerDB* charserver_db_sql(void)
 	CREATE(db, CharServerDB_SQL, 1);
 	db->vtable.init         = charserver_db_sql_init;
 	db->vtable.destroy      = charserver_db_sql_destroy;
+	db->vtable.sync         = charserver_db_sql_sync;
 	db->vtable.get_property = charserver_db_sql_get_property;
 	db->vtable.set_property = charserver_db_sql_set_property;
 	db->vtable.castledb     = charserver_db_sql_castledb;

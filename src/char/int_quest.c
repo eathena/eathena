@@ -119,11 +119,6 @@ int inter_quest_parse_frommap(int fd)
 
 }
 
-void inter_quest_sync(void)
-{
-	quests->sync(quests);
-}
-
 void inter_quest_init(QuestDB* db)
 {
 	quests = db;

@@ -22,11 +22,6 @@ void inter_status_final(void)
 	statuses = NULL;
 }
 
-void inter_status_sync(void)
-{
-	statuses->sync(statuses);
-}
-
 bool inter_status_delete(int char_id)
 {
 	return statuses->remove(statuses, char_id);

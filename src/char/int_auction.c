@@ -164,11 +164,6 @@ int inter_auction_parse_frommap(int fd)
 	return 1;
 }
 
-void inter_auction_sync(void)
-{
-	auctions->sync(auctions);
-}
-
 void inter_auction_init(AuctionDB* adb, MailDB* mdb)
 {
 	auctions = adb;

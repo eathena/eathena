@@ -85,6 +85,35 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 
 
 
+/// Flushes all in-memory data to secondary storage.
+static bool charserver_db_txt_sync(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	if( db->chardb->sync(db->chardb) &&
+		db->frienddb->sync(db->frienddb) &&
+		db->hotkeydb->sync(db->hotkeydb) &&
+		db->partydb->sync(db->partydb) &&
+		db->guilddb->sync(db->guilddb) &&
+		db->castledb->sync(db->castledb) &&
+		inter_storage_save() == 0 &&
+		inter_guild_storage_save() == 0 &&
+		db->petdb->sync(db->petdb) &&
+		db->homundb->sync(db->homundb) &&
+		db->accregdb->sync(db->accregdb) &&
+		db->charregdb->sync(db->charregdb) &&
+		db->statusdb->sync(db->statusdb) &&
+		db->maildb->sync(db->maildb) &&
+		db->questdb->sync(db->questdb) &&
+		db->auctiondb->sync(db->auctiondb)
+	)
+		return true;
+
+	return false;
+}
+
+
+
 /// Gets a property from this database engine.
 static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
 {
@@ -395,6 +424,7 @@ CharServerDB* charserver_db_txt(void)
 	CREATE(db, CharServerDB_TXT, 1);
 	db->vtable.init         = charserver_db_txt_init;
 	db->vtable.destroy      = charserver_db_txt_destroy;
+	db->vtable.sync         = charserver_db_txt_sync;
 	db->vtable.get_property = charserver_db_txt_get_property;
 	db->vtable.set_property = charserver_db_txt_set_property;
 	db->vtable.castledb     = charserver_db_txt_castledb;

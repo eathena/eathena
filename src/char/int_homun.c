@@ -149,11 +149,6 @@ int inter_homun_parse_frommap(int fd)
 	return 1;
 }
 
-void inter_homun_sync(void)
-{
-	homuns->sync(homuns);
-}
-
 int inter_homun_init(HomunDB* db)
 {
 	homuns = db;

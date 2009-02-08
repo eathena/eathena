@@ -32,6 +32,8 @@ struct CharDB
 	bool (*init)(CharDB* self);
 	void (*destroy)(CharDB* self);
 
+	bool (*sync)(CharDB* self);
+
 	bool (*create)(CharDB* self, struct mmo_charstatus* status);
 
 	bool (*remove)(CharDB* self, const int char_id);

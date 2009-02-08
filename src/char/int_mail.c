@@ -261,11 +261,6 @@ int inter_mail_parse_frommap(int fd)
 	return 1;
 }
 
-void inter_mail_sync(void)
-{
-	mails->sync(mails);
-}
-
 void inter_mail_init(MailDB* mdb, CharDB* cdb)
 {
 	mails = mdb;

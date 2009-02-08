@@ -21,7 +21,6 @@
 #include <string.h>
 
 // temporary stuff
-extern int autosave_interval;
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
 
@@ -34,7 +33,6 @@ typedef struct CharDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* chars;        // in-memory character storage
 	int next_char_id;    // auto_increment
-	int save_timer;      // save timer id
 
 	const char* char_db; // character data storage file
 	bool case_sensitive; // how to look up usernames
@@ -54,6 +52,7 @@ typedef struct CharDBIterator_TXT
 /// internal functions
 static bool char_db_txt_init(CharDB* self);
 static void char_db_txt_destroy(CharDB* self);
+static bool char_db_txt_sync(CharDB* self);
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* status);
 static bool char_db_txt_remove(CharDB* self, const int char_id);
 static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* status);
@@ -68,9 +67,9 @@ static CharDBIterator* char_db_txt_characters(CharDB* self, int account_id);
 static void char_db_txt_iter_destroy(CharDBIterator* self);
 static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch);
 
-int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
-static int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data);
-static void mmo_char_sync(CharDB_TXT* db);
+static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg);
+static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg);
+static bool mmo_char_sync(CharDB_TXT* db);
 
 /// public constructor
 CharDB* char_db_txt(CharServerDB_TXT* owner)
@@ -82,6 +81,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->vtable.destroy   = &char_db_txt_destroy;
 	db->vtable.create    = &char_db_txt_create;
 	db->vtable.remove    = &char_db_txt_remove;
+	db->vtable.sync      = &char_db_txt_sync;
 	db->vtable.save      = &char_db_txt_save;
 	db->vtable.load_num  = &char_db_txt_load_num;
 	db->vtable.load_str  = &char_db_txt_load_str;
@@ -96,7 +96,6 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->chars = NULL;
 	db->next_char_id = START_CHAR_NUM;
-	db->save_timer = INVALID_TIMER;
 
 	// other settings
 	db->char_db = db->owner->file_chars;
@@ -199,10 +198,6 @@ static bool char_db_txt_init(CharDB* self)
 	log_char("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
 	log_char("Id for the next created character: %d.\n", db->next_char_id);
 
-	// initialize data saving timer
-	add_timer_func_list(mmo_char_sync_timer, "mmo_char_sync_timer");
-	db->save_timer = add_timer_interval(gettick() + 1000, mmo_char_sync_timer, 0, (intptr)db, autosave_interval);
-
 	return true;
 }
 
@@ -210,9 +205,6 @@ static void char_db_txt_destroy(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
-
-	// stop saving timer
-	delete_timer(db->save_timer, mmo_char_sync_timer);
 
 	// write data
 	mmo_char_sync(db);
@@ -223,6 +215,12 @@ static void char_db_txt_destroy(CharDB* self)
 
 	// delete entire structure
 	aFree(db);
+}
+
+static bool char_db_txt_sync(CharDB* self)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	return mmo_char_sync(db);
 }
 
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
@@ -483,7 +481,7 @@ static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* c
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg)
+static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg)
 {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
@@ -789,7 +787,7 @@ int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, s
 //-------------------------------------------------
 // Function to create the character line (for save)
 //-------------------------------------------------
-int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
+static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 {
 	int i,j;
 	char *str_p = str;
@@ -865,7 +863,7 @@ int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 }
 
 /// Dumps the entire char db (+ associated data) to disk
-static void mmo_char_sync(CharDB_TXT* db)
+static bool mmo_char_sync(CharDB_TXT* db)
 {
 	CharRegDB* charregs = db->owner->charregdb;
 	int lock;
@@ -879,7 +877,7 @@ static void mmo_char_sync(CharDB_TXT* db)
 	{
 		ShowWarning("Server cannot save characters.\n");
 		log_char("WARNING: Server cannot save characters.\n");
-		return;
+		return false;
 	}
 
 	iter = db->chars->iterator(db->chars);
@@ -897,26 +895,6 @@ static void mmo_char_sync(CharDB_TXT* db)
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->char_db, &lock);
-}
 
-/// Periodic data saving function
-int mmo_char_sync_timer(int tid, unsigned int tick, int id, intptr data)
-{
-	CharDB_TXT* db = (CharDB_TXT*)data;
-	FriendDB* friends = db->owner->frienddb;
-	HotkeyDB* hotkeys = db->owner->hotkeydb;
-
-	if (save_log)
-		ShowInfo("Saving all files...\n");
-
-	mmo_char_sync(db);
-
-	friends->sync(friends);
-
-#ifdef HOTKEY_SAVING
-	hotkeys->sync(hotkeys);
-#endif
-
-	inter_save();
-	return 0;
+	return true;
 }

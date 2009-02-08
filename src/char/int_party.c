@@ -563,11 +563,6 @@ int inter_party_leave(int party_id, int account_id, int char_id)
 	return mapif_parse_PartyLeave(-1, party_id, account_id, char_id);
 }
 
-void inter_party_sync(void)
-{
-	parties->sync(parties);
-}
-
 int inter_party_init(PartyDB* db)
 {
 	parties = db;

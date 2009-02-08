@@ -86,6 +86,11 @@ struct CharServerDB
 	/// @param self Database engine
 	void (*destroy)(CharServerDB* self);
 
+	/// Flushes all in-memory data to secondary storage.
+	///
+	/// @param self Database engine
+	bool (*sync)(CharServerDB* self);
+
 	/// Gets a property from this database engine.
 	/// These read-only properties must be implemented:
 	/// "engine.name" -> "txt", "sql", ...
