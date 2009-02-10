@@ -1,15 +1,22 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/db.h"
+#include "../common/lock.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
 
+#include <errno.h>
+#include <stdio.h>
 #include <string.h>
 
 
 typedef struct RankDB_TXT RankDB_TXT;
+
+
+#define RANKDB_TXT_VERSION 20090210
 
 
 
@@ -17,24 +24,26 @@ typedef struct RankDB_TXT RankDB_TXT;
 struct RankDB_TXT
 {
 	RankDB vtable;
-
 	CharServerDB_TXT* owner;
+	const char* file_ranks;
+	DBMap* rank_blacksmith;// int char_id -> int points
+	DBMap* rank_alchemist;// int char_id -> int points
+	DBMap* rank_taekwon;// int char_id -> int points
+	bool dirty;
 };
 
 
 
-static bool rankid_includes_class(int rank_id, int class_)
+/// Returns the DBMap of the target rank_id or NULL if not supported.
+/// @private
+static DBMap* get_ranking(RankDB_TXT* db, int rank_id)
 {
 	switch( rank_id )
 	{
-	case RANK_BLACKSMITH:
-		return (class_ == JOB_BLACKSMITH || class_ == JOB_WHITESMITH || class_ == JOB_BABY_BLACKSMITH);
-	case RANK_ALCHEMIST:
-		return (class_ == JOB_ALCHEMIST || class_ == JOB_CREATOR || class_ == JOB_BABY_ALCHEMIST);
-	case RANK_TAEKWON:
-		return class_ == JOB_TAEKWON;
-	default:
-		return false;
+	case RANK_BLACKSMITH: return db->rank_blacksmith;
+	case RANK_ALCHEMIST: return db->rank_alchemist;
+	case RANK_TAEKWON: return db->rank_taekwon;
+	default: return NULL;
 	}
 }
 
@@ -45,34 +54,32 @@ static int rank_db_txt_get_top_rankers(RankDB* self, int rank_id, struct fame_li
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	CharDB* chardb = db->owner->chardb;
-	CharDBIterator* iter;
-	struct mmo_charstatus cd;
+	DBMap* ranking = get_ranking(db, rank_id);
+	DBIterator* iter;
 	int i;
 	int n = 0;
-	int lowest = INT_MAX;
+	DBKey k;
+	int points;
 
 	if( list == NULL || count <= 0 )
 		return 0;// nothing to do
 	memset(list, 0, count*sizeof(list[0]));
-	if( rank_id != RANK_BLACKSMITH && rank_id != RANK_ALCHEMIST && rank_id != RANK_TAEKWON )
+	if( ranking == NULL )
 	{
-		ShowError("rank_db_txt_get_top_rankers: unsupported rank_id %d.\n", rank_id);
+		ShowError("rank_db_txt_get_top_rankers: Unsupported rank_id %d.\n", rank_id);
 		return 0;
 	}
 
-	// XXX expensive
-	iter = chardb->iterator(chardb);
-	while( iter->next(iter, &cd) )
+	// get top rankers
+	iter = db_iterator(ranking);
+	for( points = (int)(intptr)iter->first(iter, &k); iter->exists(iter); points = (int)(intptr)iter->first(iter, &k) )
 	{
-		if( !rankid_includes_class(rank_id, cd.class_) )
-			continue;// wrong job
-		if( n == count && cd.fame <= lowest )
-			continue;// not enough fame to enter the list
+		int char_id = k.i;
 
-		if( lowest > cd.fame )
-			lowest = cd.fame;
+		if( points <= 0 || (n == count && points <= list[n-1].fame) )
+			continue;// not enough points to enter the list
 
-		ARR_FIND( 0, n, i, cd.fame > list[i].fame );
+		ARR_FIND( 0, n, i, points > list[i].fame );
 		if( n < count )
 		{
 			memmove(list+i+1, list+i, (n-i)*sizeof(list[0]));// new
@@ -80,11 +87,16 @@ static int rank_db_txt_get_top_rankers(RankDB* self, int rank_id, struct fame_li
 		}
 		else
 			memmove(list+i+1, list+i, (n-i-1)*sizeof(list[0]));// replace in list
-		list[i].id = cd.char_id;
-		list[i].fame = cd.fame;
-		safestrncpy(list[i].name, cd.name, sizeof(list[i].name));
+		list[i].id = char_id;
+		list[i].fame = points;
 	}
 	iter->destroy(iter);
+
+	// resolve names
+	for( i = 0; i < n; ++i )
+		if( !chardb->id2name(chardb, list[i].id, list[i].name) )
+			memset(list[i].name, 0, sizeof(list[i].name));
+
 	return n;
 }
 
@@ -95,11 +107,10 @@ static int rank_db_txt_get_top_rankers(RankDB* self, int rank_id, struct fame_li
 static int rank_db_txt_get_points(RankDB* self, int rank_id, int char_id)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
-	CharDB* chardb = db->owner->chardb;
-	struct mmo_charstatus cd;
+	DBMap* ranking = get_ranking(db, rank_id);
 
-	if( chardb->load_num(chardb, &cd, char_id) && rankid_includes_class(rank_id, cd.class_) )
-		return cd.fame;
+	if( ranking )
+		return (int)(intptr)idb_get(ranking, char_id);
 	return 0;
 }
 
@@ -109,14 +120,16 @@ static int rank_db_txt_get_points(RankDB* self, int rank_id, int char_id)
 static void rank_db_txt_set_points(RankDB* self, int rank_id, int char_id, int points)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
-	CharDB* chardb = db->owner->chardb;
-	struct mmo_charstatus cd;
+	DBMap* ranking = get_ranking(db, rank_id);
 
-	if( chardb->load_num(chardb, &cd, char_id) && rankid_includes_class(rank_id, cd.class_) )
+	if( ranking )
 	{
-		cd.fame = points;
-		chardb->save(chardb, &cd);
+		idb_put(ranking, char_id, (void*)(intptr)points);
+		db->dirty = true;
+		// TODO tell CharServerDB_TXT that something changed [FlavioJS]
 	}
+	else
+		ShowError("rank_db_txt_set_points: Unsupported rank_id. (rank_id=%d char_id=%d points=%d)\n", rank_id, char_id, points);
 }
 
 
@@ -133,6 +146,11 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 	db->vtable.set_points      = rank_db_txt_set_points;
 
 	db->owner = owner;
+	db->file_ranks = owner->file_ranks;
+	db->rank_blacksmith = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->rank_alchemist = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->rank_taekwon = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->dirty = false;
 	return &db->vtable;
 }
 
@@ -143,7 +161,73 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 bool rank_db_txt_init(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
+	FILE* fp;
+	char line[2048];
+	int linenum = 1;
+	int n = 0;
+	int version = 0;
 
+	db_clear(db->rank_blacksmith);
+	db_clear(db->rank_alchemist);
+	db_clear(db->rank_taekwon);
+
+	// read ranks file
+	fp = fopen(db->file_ranks, "r");
+	if( fp == NULL )
+	{
+		ShowError("rank_db_txt_init: Can't open ranks file '%s' (%s).\n", db->file_ranks, strerror(errno));
+		return false;
+	}
+	// read version (first line)
+	if( fgets(line, sizeof(line), fp) == NULL )
+	{// ok, empty
+		fclose(fp);
+		return true;
+	}
+	if( !(sscanf(line, "%d%n", &version, &n) == 1 && (line[n] == '\n' || line[n] == '\r')) )
+	{// error
+		ShowError("rank_db_txt_init: Missing version definition in file '%s'.\n", db->file_ranks);
+		fclose(fp);
+		return false;
+	}
+	if( version != RANKDB_TXT_VERSION )
+	{// error
+		ShowError("rank_db_txt_init: Unsupported version %d in file '%s'.\n", version, db->file_ranks);
+		fclose(fp);
+		return false;
+	}
+	// read ranks
+	while( fgets(line, sizeof(line), fp) != NULL )
+	{
+		int rank_id, char_id, points;
+
+		++linenum;
+		trim(line);
+		if( line[0] == '\0' || (line[0] == '/' && line[1] == '/') )
+			continue;// empty or line comment
+
+		if( sscanf(line, "%d %d %d", &rank_id, &char_id, &points) == 3 )
+		{
+			DBMap* ranking;
+			switch( rank_id )
+			{
+			case RANK_BLACKSMITH: ranking = db->rank_blacksmith; break;
+			case RANK_ALCHEMIST: ranking = db->rank_alchemist; break;
+			case RANK_TAEKWON: ranking = db->rank_taekwon; break;
+			default:
+				ShowWarning("rank_db_txt_init: Unsupported rank_id in line %d of file '%s', discarding rank entry. (rank_id=%d char_id=%d points=%d)", linenum, db->file_ranks, rank_id, char_id, points);
+				continue;
+			}
+			idb_put(ranking, char_id, (void*)(intptr)points);
+			continue;
+		}
+		// error
+		ShowError("rank_db_txt_init: Invalid rank format in line %d of file '%s'.", linenum, db->file_ranks);
+		fclose(fp);
+		return false;
+	}
+	// ok
+	fclose(fp);
 	return true;
 }
 
@@ -155,6 +239,56 @@ void rank_db_txt_destroy(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 
+	db_destroy(db->rank_blacksmith);
+	db_destroy(db->rank_alchemist);
+	db_destroy(db->rank_taekwon);
 	db->owner = NULL;
 	aFree(db);
+}
+
+
+
+/// Saves any pending data.
+/// @protected
+bool rank_db_txt_save(RankDB* self, bool force)
+{
+	RankDB_TXT* db = (RankDB_TXT*)self;
+	FILE* fp;
+	int lock;
+	int ranks[] = {RANK_BLACKSMITH, RANK_ALCHEMIST, RANK_TAEKWON};
+	int i;
+
+	if( !db->dirty && !force )
+		return true;// nothing to do
+
+	fp = lock_fopen(db->file_ranks, &lock);
+	if( fp == NULL )
+	{// error
+		ShowError("rank_db_txt_save: Failed to create locked file '%s'.\n", db->file_ranks);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", RANKDB_TXT_VERSION);// format version
+
+	fprintf(fp, "// Ranks file: contains all the ranking information.\n");
+	fprintf(fp, "// Structure: rank_id, char_id, points\n");
+	fprintf(fp, "//   rank_id : %d=blacksmith, %d=alchemist, %d=taekwon\n", RANK_BLACKSMITH, RANK_ALCHEMIST, RANK_TAEKWON);
+	fprintf(fp, "//   char_id : character id\n");
+	fprintf(fp, "//   points  : ranking points (also called fame in old code)\n");
+
+	for( i = 0; i < ARRAYLENGTH(ranks); ++i )
+	{
+		DBKey k;
+		int points;
+		int rank_id = ranks[i];
+		DBIterator* iter = db_iterator(get_ranking(db, rank_id));
+		for( points = (int)(intptr)iter->first(iter, &k); dbi_exists(iter); points = (int)(intptr)iter->next(iter, &k) )
+			fprintf(fp, "%d\t%d\t%d\n", rank_id, k.i, points);
+		dbi_destroy(iter);
+	}
+
+	if( lock_fclose(fp, db->file_ranks, &lock) )
+		return false;// error
+	db->dirty = false;
+	return true;
 }

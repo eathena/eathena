@@ -188,6 +188,9 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "quest_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_quests);
 		else
+		if( strcmpi(key, "file_ranks") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_ranks);
+		else
 		if( strcmpi(key, "scdata_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_statuses);
 		else
@@ -255,6 +258,9 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		else
 		if( strcmpi(key, "quest_txt") == 0 )
 			safestrncpy(db->file_quests, value, sizeof(db->file_quests));
+		else
+		if( strcmpi(key, "file_ranks") == 0 )
+			safestrncpy(db->file_ranks, value, sizeof(db->file_ranks));
 		else
 		if( strcmpi(key, "scdata_txt") == 0 )
 			safestrncpy(db->file_statuses, value, sizeof(db->file_statuses));
@@ -507,6 +513,7 @@ CharServerDB* charserver_db_txt(void)
 	safestrncpy(db->file_parties, "save/party.txt", sizeof(db->file_parties));
 	safestrncpy(db->file_pets, "save/pet.txt", sizeof(db->file_pets));
 	safestrncpy(db->file_quests, "save/quest.txt", sizeof(db->file_quests));
+	safestrncpy(db->file_ranks, "save/ranks.txt", sizeof(db->file_ranks));
 	safestrncpy(db->file_statuses, "save/scdata.txt", sizeof(db->file_statuses));
 	safestrncpy(db->file_storages, "save/storage.txt", sizeof(db->file_storages));
 

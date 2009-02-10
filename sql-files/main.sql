@@ -395,6 +395,17 @@ CREATE TABLE IF NOT EXISTS `mapreg` (
 ) ENGINE=MyISAM;
 
 --
+-- Table structure for table `ranks`
+--
+
+CREATE TABLE IF NOT EXISTS `ranks` (
+  `rank_id` INT(11) NOT NULL,
+  `char_id` INT(11) NOT NULL,
+  `points` INT(11) NOT NULL DEFAULT '0',
+  UNIQUE KEY (`rank_id`,`char_id`)
+) ENGINE=MyISAM;
+
+--
 -- Table structure for table `sc_data`
 --
 

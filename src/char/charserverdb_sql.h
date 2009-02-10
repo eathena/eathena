@@ -8,10 +8,6 @@
 /// Global header for the SQL database engine and interfaces.
 /// Everything exposed by this header has protected access (only the engine and interface code can use it).
 
-// TODO in Aegis when you are ranked and change job, the rank points in that rank remain intact 
-//      and are continued whenever we change back to the same kind of job (they are kept separate from char)
-// TODO char.fame => TABLE `ranks` (`rank_id` INT NOT NULL, `char_id` INT NOT NULL, `points` INT NOT NULL, UNIQUE (`rank_id`,`char_id`))
-
 #include "../common/cbasetypes.h"
 #include "../common/sql.h"
 #include "charserverdb.h"
@@ -19,7 +15,7 @@
 
 
 /// global defines
-#define CHARSERVERDB_SQL_VERSION 20081028
+#define CHARSERVERDB_SQL_VERSION 20090210 // update this whenever the database format changes
 
 
 
@@ -85,6 +81,7 @@ struct CharServerDB_SQL
 	char table_pets[256];
 	char table_quests[256];
 	char table_quest_objectives[256];
+	char table_ranks[256];
 	char table_registry[256];
 	char table_skills[256];
 	char table_statuses[256];
@@ -113,6 +110,7 @@ CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);
 RankDB* rank_db_sql(CharServerDB_SQL* owner);
 bool    rank_db_sql_init(RankDB* self);
 void    rank_db_sql_destroy(RankDB* self);
+bool    rank_db_sql_save(RankDB* self);
 
 
 

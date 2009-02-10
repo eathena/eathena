@@ -296,6 +296,7 @@ static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
+	RankDB* rankdb = db->owner->rankdb;
 	DBMap* chars = db->chars;
 
 	// retrieve data
@@ -307,6 +308,22 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 
 	// store it
 	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+	switch( ch->class_ )
+	{// TODO make the map-server responsible for this? (handle class2rankid logic) [FlavioJS]
+	case JOB_BLACKSMITH:
+	case JOB_WHITESMITH:
+	case JOB_BABY_BLACKSMITH:
+		ch->fame = rankdb->get_points(rankdb, RANK_BLACKSMITH, ch->char_id);
+		break;
+	case JOB_ALCHEMIST:
+	case JOB_CREATOR:
+	case JOB_BABY_ALCHEMIST:
+		ch->fame = rankdb->get_points(rankdb, RANK_ALCHEMIST, ch->char_id);
+		break;
+	case JOB_TAEKWON:
+		ch->fame = rankdb->get_points(rankdb, RANK_TAEKWON, ch->char_id);
+		break;
+	}
 
 	return true;
 }

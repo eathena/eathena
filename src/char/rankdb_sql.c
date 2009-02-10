@@ -22,28 +22,8 @@ struct RankDB_SQL
 	RankDB vtable;
 
 	CharServerDB_SQL* owner;
+	const char* table_ranks;
 };
-
-
-
-static bool rankid2classes(char* buffer, size_t buflen, int rank_id)
-{
-	switch( rank_id )
-	{
-	case RANK_BLACKSMITH:
-		safesnprintf(buffer, buflen, "(`class`=%d OR `class`=%d OR `class`=%d)", JOB_BLACKSMITH, JOB_WHITESMITH, JOB_BABY_BLACKSMITH);
-		break;
-	case RANK_ALCHEMIST:
-		safesnprintf(buffer, buflen, "(`class`=%d OR `class`=%d OR `class`=%d)", JOB_ALCHEMIST, JOB_CREATOR, JOB_BABY_ALCHEMIST);
-		break;
-	case RANK_TAEKWON:
-		safesnprintf(buffer, buflen, "`class`=%d", JOB_TAEKWON);
-		break;
-	default:
-		return false;
-	}
-	return true;
-}
 
 
 
@@ -51,25 +31,23 @@ static bool rankid2classes(char* buffer, size_t buflen, int rank_id)
 static int rank_db_sql_get_top_rankers(RankDB* self, int rank_id, struct fame_list* list, int count)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
-	char* table_chars = db->owner->table_chars;
+	const char* table_ranks = db->table_ranks;
+	const char* table_chars = db->owner->table_chars;
 	SqlStmt* stmt;
 	struct fame_list entry;
 	int i;
-	char restrict_class[256];
 
+	if( list == NULL || count <= 0 )
+		return 0;// nothing to do
 	memset(list, 0, count*sizeof(list[0]));
-	if( !rankid2classes(restrict_class, sizeof(restrict_class), rank_id) )
-	{
-		ShowError("rank_db_sql_get_top_rankers: unsupported rank_id %d.\n", rank_id);
-		return 0;
-	}
 
 	stmt = SqlStmt_Malloc(db->owner->sql_handle);
 	if( SQL_ERROR == SqlStmt_Prepare(stmt,
-		"SELECT `char_id`,`fame`,`name` FROM `%s`"
-		" WHERE `fame`>0 AND %s"
-		" ORDER BY `fame` DESC LIMIT 0,%d",
-		table_chars, restrict_class, count)
+		"SELECT r.`rank_id`, r.`points`, IFNULL(c.`name`,'')"
+		" FROM `%s` AS r LEFT JOIN `%s` AS c USING(`char_id`)"
+		" WHERE r.`rank_id`=%d AND r.`points`>0"
+		" ORDER BY r.`points` DESC LIMIT 0,%d",
+		table_ranks, table_chars, rank_id, count)
 	|| SQL_ERROR == SqlStmt_Execute(stmt) )
 	{
 		SqlStmt_ShowDebug(stmt);
@@ -104,20 +82,13 @@ static int rank_db_sql_get_points(RankDB* self, int rank_id, int char_id)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 	Sql* sql_handle = db->owner->sql_handle;
-	char* table_chars = db->owner->table_chars;
+	const char* table_ranks = db->table_ranks;
 	int points = 0;
-	char restrict_class[256];
-
-	if( !rankid2classes(restrict_class, sizeof(restrict_class), rank_id) )
-	{
-		ShowError("rank_db_sql_get_points: unsupported rank_id %d.\n", rank_id);
-		return 0;
-	}
 
 	if( SQL_ERROR == Sql_Query(sql_handle,
-		"SELECT `fame` FROM `%s`"
+		"SELECT `points` FROM `%s`"
 		" WHERE `rank_id`=%d AND `char_id`=%d",
-		table_chars, points, rank_id, char_id) )
+		table_ranks, rank_id, char_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return 0;
@@ -138,19 +109,12 @@ static void rank_db_sql_set_points(RankDB* self, int rank_id, int char_id, int p
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 	Sql* sql_handle = db->owner->sql_handle;
-	char* table_chars = db->owner->table_chars;
-	char restrict_class[256];
-
-	if( !rankid2classes(restrict_class, sizeof(restrict_class), rank_id) )
-	{
-		ShowError("rank_db_sql_set_points: unsupported rank_id %d.\n", rank_id);
-		return;
-	}
+	const char* table_ranks = db->table_ranks;
 
 	if( SQL_ERROR == Sql_Query(sql_handle,
-		"UPDATE `%s` SET `fame`=%d"
-		" WHERE `char_id`=%d AND %s",
-		table_chars, points, char_id, restrict_class) )
+		"REPLACE INTO `%s`(`rank_id`, `char_id`, `points`)"
+		" VALUES(%d, %d, %d)",
+		table_ranks, rank_id, char_id, points) )
 	{
 		Sql_ShowDebug(sql_handle);
 	}
@@ -170,6 +134,7 @@ RankDB* rank_db_sql(CharServerDB_SQL* owner)
 	db->vtable.set_points      = rank_db_sql_set_points;
 
 	db->owner = owner;
+	db->table_ranks = owner->table_ranks;
 	return &db->vtable;
 }
 
@@ -194,4 +159,15 @@ void rank_db_sql_destroy(RankDB* self)
 
 	db->owner = NULL;
 	aFree(db);
+}
+
+
+
+/// Saves any pending data.
+/// @protected
+bool rank_db_sql_save(RankDB* self)
+{
+	RankDB_SQL* db = (RankDB_SQL*)self;
+
+	return true;
 }

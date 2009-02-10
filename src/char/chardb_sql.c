@@ -535,6 +535,7 @@ static bool char_db_sql_iter_next(CharDBIterator* self, struct mmo_charstatus* c
 static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_id, bool load_everything)
 {
 	Sql* sql_handle = db->chars;
+	RankDB* rankdb = db->owner->rankdb;
 
 	int i,j;
 	StringBuf buf;
@@ -628,6 +629,22 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	}
 	p->last_point.map = mapindex_name2id(last_map);
 	p->save_point.map = mapindex_name2id(save_map);
+	switch( p->class_ )
+	{// TODO make the map-server responsible for this? (handle class2rankid logic) [FlavioJS]
+	case JOB_BLACKSMITH:
+	case JOB_WHITESMITH:
+	case JOB_BABY_BLACKSMITH:
+		p->fame = rankdb->get_points(rankdb, RANK_BLACKSMITH, p->char_id);
+		break;
+	case JOB_ALCHEMIST:
+	case JOB_CREATOR:
+	case JOB_BABY_ALCHEMIST:
+		p->fame = rankdb->get_points(rankdb, RANK_ALCHEMIST, p->char_id);
+		break;
+	case JOB_TAEKWON:
+		p->fame = rankdb->get_points(rankdb, RANK_TAEKWON, p->char_id);
+		break;
+	}
 
 	if (!load_everything) // For quick selection of data when displaying the char menu
 	{
