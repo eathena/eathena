@@ -1,5 +1,3 @@
--- TODO rename to upgrade_svn<revision>.sql when merged to trunk
-
 --
 -- Table structure for table `ranks`
 --

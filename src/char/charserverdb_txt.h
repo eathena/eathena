@@ -82,17 +82,13 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner);
 PartyDB* party_db_txt(CharServerDB_TXT* owner);
 PetDB* pet_db_txt(CharServerDB_TXT* owner);
 QuestDB* quest_db_txt(CharServerDB_TXT* owner);
+RankDB* rank_db_txt(CharServerDB_TXT* owner);
 MailDB* mail_db_txt(CharServerDB_TXT* owner);
 AuctionDB* auction_db_txt(CharServerDB_TXT* owner);
 StatusDB* status_db_txt(CharServerDB_TXT* owner);
 StorageDB* storage_db_txt(CharServerDB_TXT* owner);
 AccRegDB* accreg_db_txt(CharServerDB_TXT* owner);
 CharRegDB* charreg_db_txt(CharServerDB_TXT* owner);
-
-RankDB* rank_db_txt(CharServerDB_TXT* owner);
-bool    rank_db_txt_init(RankDB* self);
-void    rank_db_txt_destroy(RankDB* self);
-bool    rank_db_txt_save(RankDB* self, bool force);
 
 
 

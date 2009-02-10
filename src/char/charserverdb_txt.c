@@ -34,7 +34,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->petdb->init(db->petdb) &&
 		db->questdb->init(db->questdb) &&
 		db->auctiondb->init(db->auctiondb) &&
-		rank_db_txt_init(db->rankdb) &&
+		db->rankdb->init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
 		db->statusdb->init(db->statusdb) &&
 		db->storagedb->init(db->storagedb)
@@ -73,7 +73,7 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->questdb = NULL;
 	db->auctiondb->destroy(db->auctiondb);
 	db->auctiondb = NULL;
-	rank_db_txt_destroy(db->rankdb);
+	db->rankdb->destroy(db->rankdb);
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
 	db->maildb = NULL;
@@ -111,6 +111,7 @@ static bool charserver_db_txt_sync(CharServerDB* self)
 		db->storagedb->sync(db->storagedb) &&
 		db->maildb->sync(db->maildb) &&
 		db->questdb->sync(db->questdb) &&
+		db->rankdb->sync(db->rankdb) &&
 		db->auctiondb->sync(db->auctiondb)
 	)
 		return true;

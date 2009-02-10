@@ -28,6 +28,10 @@ typedef struct RankDB RankDB;
 /// Public database interface to handle rankings.
 struct RankDB
 {
+	bool (*init)(RankDB* self);
+	void (*destroy)(RankDB* self);
+	bool (*sync)(RankDB* self);
+
 	/// Gets the top rankers in rank rank_id.
 	/// Entries are sorted by points.
 	/// The buffer is zeroed before being filled.

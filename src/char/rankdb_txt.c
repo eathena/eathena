@@ -134,28 +134,6 @@ static void rank_db_txt_set_points(RankDB* self, int rank_id, int char_id, int p
 
 
 
-/// Constructs a new RankDB interface.
-/// @protected
-RankDB* rank_db_txt(CharServerDB_TXT* owner)
-{
-	RankDB_TXT* db;
-
-	CREATE(db, RankDB_TXT, 1);
-	db->vtable.get_top_rankers = rank_db_txt_get_top_rankers;
-	db->vtable.get_points      = rank_db_txt_get_points;
-	db->vtable.set_points      = rank_db_txt_set_points;
-
-	db->owner = owner;
-	db->file_ranks = owner->file_ranks;
-	db->rank_blacksmith = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
-	db->rank_alchemist = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
-	db->rank_taekwon = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
-	db->dirty = false;
-	return &db->vtable;
-}
-
-
-
 /// Initializes this RankDB interface.
 /// @protected
 bool rank_db_txt_init(RankDB* self)
@@ -291,4 +269,29 @@ bool rank_db_txt_save(RankDB* self, bool force)
 		return false;// error
 	db->dirty = false;
 	return true;
+}
+
+
+
+/// Constructs a new RankDB interface.
+/// @protected
+RankDB* rank_db_txt(CharServerDB_TXT* owner)
+{
+	RankDB_TXT* db;
+
+	CREATE(db, RankDB_TXT, 1);
+	db->vtable.init            = rank_db_txt_init;
+	db->vtable.destroy         = rank_db_txt_destroy;
+	db->vtable.sync            = rank_db_txt_save;
+	db->vtable.get_top_rankers = rank_db_txt_get_top_rankers;
+	db->vtable.get_points      = rank_db_txt_get_points;
+	db->vtable.set_points      = rank_db_txt_set_points;
+
+	db->owner = owner;
+	db->file_ranks = owner->file_ranks;
+	db->rank_blacksmith = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->rank_alchemist = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->rank_taekwon = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->dirty = false;
+	return &db->vtable;
 }

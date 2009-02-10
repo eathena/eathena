@@ -59,7 +59,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		db->petdb->init(db->petdb) &&
 		db->questdb->init(db->questdb) &&
 		db->auctiondb->init(db->auctiondb) &&
-		rank_db_sql_init(db->rankdb) &&
+		db->rankdb->init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
 		db->statusdb->init(db->statusdb) &&
 		db->storagedb->init(db->storagedb)
@@ -98,7 +98,7 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->questdb = NULL;
 	db->auctiondb->destroy(db->auctiondb);
 	db->auctiondb = NULL;
-	rank_db_sql_destroy(db->rankdb);
+	db->rankdb->destroy(db->rankdb);
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
 	db->maildb = NULL;

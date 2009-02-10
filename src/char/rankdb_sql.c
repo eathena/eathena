@@ -122,24 +122,6 @@ static void rank_db_sql_set_points(RankDB* self, int rank_id, int char_id, int p
 
 
 
-/// Constructs a new RankDB interface.
-/// @protected
-RankDB* rank_db_sql(CharServerDB_SQL* owner)
-{
-	RankDB_SQL* db;
-
-	CREATE(db, RankDB_SQL, 1);
-	db->vtable.get_top_rankers = rank_db_sql_get_top_rankers;
-	db->vtable.get_points      = rank_db_sql_get_points;
-	db->vtable.set_points      = rank_db_sql_set_points;
-
-	db->owner = owner;
-	db->table_ranks = owner->table_ranks;
-	return &db->vtable;
-}
-
-
-
 /// Initializes this RankDB interface.
 /// @protected
 bool rank_db_sql_init(RankDB* self)
@@ -170,4 +152,25 @@ bool rank_db_sql_save(RankDB* self)
 	RankDB_SQL* db = (RankDB_SQL*)self;
 
 	return true;
+}
+
+
+
+/// Constructs a new RankDB interface.
+/// @protected
+RankDB* rank_db_sql(CharServerDB_SQL* owner)
+{
+	RankDB_SQL* db;
+
+	CREATE(db, RankDB_SQL, 1);
+	db->vtable.init            = rank_db_sql_init;
+	db->vtable.destroy         = rank_db_sql_destroy;
+	db->vtable.sync            = rank_db_sql_save;
+	db->vtable.get_top_rankers = rank_db_sql_get_top_rankers;
+	db->vtable.get_points      = rank_db_sql_get_points;
+	db->vtable.set_points      = rank_db_sql_set_points;
+
+	db->owner = owner;
+	db->table_ranks = owner->table_ranks;
+	return &db->vtable;
 }
