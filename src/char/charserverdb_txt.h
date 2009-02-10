@@ -37,6 +37,7 @@ struct CharServerDB_TXT
 	CharDB* chardb;
 	FriendDB* frienddb;
 	GuildDB* guilddb;
+	GuildStorageDB* guildstoragedb;
 	HomunDB* homundb;
 	HotkeyDB* hotkeydb;
 	PartyDB* partydb;
@@ -46,6 +47,7 @@ struct CharServerDB_TXT
 	MailDB* maildb;
 	AuctionDB* auctiondb;
 	StatusDB* statusdb;
+	StorageDB* storagedb;
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
 
@@ -75,6 +77,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner);
 CharDB* char_db_txt(CharServerDB_TXT* owner);
 FriendDB* friend_db_txt(CharServerDB_TXT* owner);
 GuildDB* guild_db_txt(CharServerDB_TXT* owner);
+GuildStorageDB* guildstorage_db_txt(CharServerDB_TXT* owner);
 HomunDB* homun_db_txt(CharServerDB_TXT* owner);
 HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner);
 PartyDB* party_db_txt(CharServerDB_TXT* owner);
@@ -83,6 +86,7 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner);
 MailDB* mail_db_txt(CharServerDB_TXT* owner);
 AuctionDB* auction_db_txt(CharServerDB_TXT* owner);
 StatusDB* status_db_txt(CharServerDB_TXT* owner);
+StorageDB* storage_db_txt(CharServerDB_TXT* owner);
 AccRegDB* accreg_db_txt(CharServerDB_TXT* owner);
 CharRegDB* charreg_db_txt(CharServerDB_TXT* owner);
 

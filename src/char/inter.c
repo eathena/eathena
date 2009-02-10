@@ -109,7 +109,7 @@ int inter_init(CharServerDB* db)
 	inter_status_init(db->statusdb(db));
 	inter_party_init(db->partydb(db));
 	inter_guild_init(db->guilddb(db), db->castledb(db));
-	inter_storage_init();
+	inter_storage_init(db->storagedb(db), db->guildstoragedb(db));
 	inter_pet_init(db->petdb(db));
 	inter_homun_init(db->homundb(db));
 	inter_mail_init(db->maildb(db), db->chardb(db));

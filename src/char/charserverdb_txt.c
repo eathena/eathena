@@ -27,6 +27,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->chardb->init(db->chardb) &&
 		db->frienddb->init(db->frienddb) &&
 		db->guilddb->init(db->guilddb) &&
+		db->guildstoragedb->init(db->guildstoragedb) &&
 		db->homundb->init(db->homundb) &&
 		db->hotkeydb->init(db->hotkeydb) &&
 		db->partydb->init(db->partydb) &&
@@ -35,7 +36,8 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->auctiondb->init(db->auctiondb) &&
 		rank_db_txt_init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
-		db->statusdb->init(db->statusdb)
+		db->statusdb->init(db->statusdb) &&
+		db->storagedb->init(db->storagedb)
 	)
 		db->initialized = true;
 
@@ -57,6 +59,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->frienddb = NULL;
 	db->guilddb->destroy(db->guilddb);
 	db->guilddb = NULL;
+	db->guildstoragedb->destroy(db->guildstoragedb);
+	db->guildstoragedb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
 	db->hotkeydb->destroy(db->hotkeydb);
@@ -75,6 +79,8 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->maildb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
+	db->storagedb->destroy(db->storagedb);
+	db->storagedb = NULL;
 	db->accregdb->destroy(db->accregdb);
 	db->accregdb = NULL;
 	db->charregdb->destroy(db->charregdb);
@@ -96,13 +102,13 @@ static bool charserver_db_txt_sync(CharServerDB* self)
 		db->partydb->sync(db->partydb) &&
 		db->guilddb->sync(db->guilddb) &&
 		db->castledb->sync(db->castledb) &&
-		inter_storage_save() == 0 &&
-		inter_guild_storage_save() == 0 &&
+		db->guildstoragedb->sync(db->guildstoragedb) &&
 		db->petdb->sync(db->petdb) &&
 		db->homundb->sync(db->homundb) &&
 		db->accregdb->sync(db->accregdb) &&
 		db->charregdb->sync(db->charregdb) &&
 		db->statusdb->sync(db->statusdb) &&
+		db->storagedb->sync(db->storagedb) &&
 		db->maildb->sync(db->maildb) &&
 		db->questdb->sync(db->questdb) &&
 		db->auctiondb->sync(db->auctiondb)
@@ -307,6 +313,16 @@ static GuildDB* charserver_db_txt_guilddb(CharServerDB* self)
 
 
 /// TODO
+static GuildStorageDB* charserver_db_txt_guildstoragedb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->guildstoragedb;
+}
+
+
+
+/// TODO
 static HomunDB* charserver_db_txt_homundb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -397,6 +413,16 @@ static StatusDB* charserver_db_txt_statusdb(CharServerDB* self)
 
 
 /// TODO
+static StorageDB* charserver_db_txt_storagedb(CharServerDB* self)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
+
+	return db->storagedb;
+}
+
+
+
+/// TODO
 static AccRegDB* charserver_db_txt_accregdb(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -431,6 +457,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.chardb       = charserver_db_txt_chardb;
 	db->vtable.frienddb     = charserver_db_txt_frienddb;
 	db->vtable.guilddb      = charserver_db_txt_guilddb;
+	db->vtable.guildstoragedb = charserver_db_txt_guildstoragedb;
 	db->vtable.homundb      = charserver_db_txt_homundb;
 	db->vtable.hotkeydb     = charserver_db_txt_hotkeydb;
 	db->vtable.partydb      = charserver_db_txt_partydb;
@@ -440,6 +467,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.maildb       = charserver_db_txt_maildb;
 	db->vtable.auctiondb    = charserver_db_txt_auctiondb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
+	db->vtable.storagedb    = charserver_db_txt_storagedb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
 	db->vtable.charregdb    = charserver_db_txt_charregdb;
 	// TODO DB interfaces
@@ -448,6 +476,7 @@ CharServerDB* charserver_db_txt(void)
 	db->chardb = char_db_txt(db);
 	db->frienddb = friend_db_txt(db);
 	db->guilddb = guild_db_txt(db);
+	db->guildstoragedb = guildstorage_db_txt(db);
 	db->homundb = homun_db_txt(db);
 	db->hotkeydb = hotkey_db_txt(db);
 	db->partydb = party_db_txt(db);
@@ -457,6 +486,7 @@ CharServerDB* charserver_db_txt(void)
 	db->maildb = mail_db_txt(db);
 	db->auctiondb = auction_db_txt(db);
 	db->statusdb = status_db_txt(db);
+	db->storagedb = storage_db_txt(db);
 	db->accregdb = accreg_db_txt(db);
 	db->charregdb = charreg_db_txt(db);
 

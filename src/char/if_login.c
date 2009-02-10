@@ -9,7 +9,7 @@
 #include "../common/timer.h"
 #include "chardb.h"
 #include "int_guild.h"
-#include "int_storage.h"
+#include "int_storage.h" // inter_storage_delete()
 #include "inter.h"
 #include "if_login.h"
 #include "if_map.h"
@@ -324,7 +324,8 @@ int parse_fromlogin(int fd)
 			}
 
 			// Deletion of the storage
-			//inter_storage_delete(RFIFOL(fd,2));
+			inter_storage_delete(RFIFOL(fd,2));
+
 			// send to all map-servers to disconnect the player
 			{
 				unsigned char buf[6];

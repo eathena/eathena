@@ -17,6 +17,7 @@
 #include "charregdb.h"
 #include "frienddb.h"
 #include "guilddb.h"
+#include "guildstoragedb.h"
 #include "homundb.h"
 #include "hotkeydb.h"
 #include "maildb.h"
@@ -25,6 +26,7 @@
 #include "questdb.h"
 #include "rankdb.h"
 #include "statusdb.h"
+#include "storagedb.h"
 // TODO include DB interface headers
 // [ data reference ]
 // characters : character, char variables, quest data, sc data, hotkeys, inventory (indexed by charid and only affects individual characters)
@@ -121,6 +123,8 @@ struct CharServerDB
 
 	GuildDB* (*guilddb)(CharServerDB* self);
 
+	GuildStorageDB* (*guildstoragedb)(CharServerDB* self);
+
 	HomunDB* (*homundb)(CharServerDB* self);
 
 	HotkeyDB* (*hotkeydb)(CharServerDB* self);
@@ -143,6 +147,8 @@ struct CharServerDB
 	AuctionDB* (*auctiondb)(CharServerDB* self);
 
 	StatusDB* (*statusdb)(CharServerDB* self);
+
+	StorageDB* (*storagedb)(CharServerDB* self);
 
 	AccRegDB* (*accregdb)(CharServerDB* self);
 

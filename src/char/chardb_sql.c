@@ -20,7 +20,7 @@
 #include <string.h>
 
 // temporary stuff
-extern int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
+extern bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
 
 
 /// Maximum number of character ids cached in the iterator.

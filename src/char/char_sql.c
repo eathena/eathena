@@ -24,7 +24,7 @@ static char guild_storage_db[256] = "baadf00d";
 
 
 /// Saves an array of 'item' entries into the specified table.
-int memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch)
+bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch)
 {
 	StringBuf buf;
 	SqlStmt* stmt;
@@ -43,7 +43,7 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	case TABLE_GUILD_STORAGE: tablename = guild_storage_db; selectoption = "guild_id";   break;
 	default:
 		ShowError("Invalid table name!\n");
-		return 1;
+		return false;
 	}
 
 
@@ -162,5 +162,5 @@ int memitemdata_to_sql(const struct item items[], int max, int id, int tableswit
 	StringBuf_Destroy(&buf);
 	aFree(flag);
 
-	return 0;
+	return true;
 }
