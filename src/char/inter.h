@@ -6,10 +6,10 @@
 
 #include "charserverdb.h"
 
-int inter_init(CharServerDB* db);
+void inter_init(CharServerDB* db);
 void inter_final(void);
 int inter_parse_frommap(int fd);
-int inter_mapif_init(int fd);
+void inter_mapif_init(int fd);
 int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 
 // shared inter-server config settings

@@ -149,10 +149,9 @@ int inter_homun_parse_frommap(int fd)
 	return 1;
 }
 
-int inter_homun_init(HomunDB* db)
+void inter_homun_init(HomunDB* db)
 {
 	homuns = db;
-	return 0;
 }
 
 void inter_homun_final()

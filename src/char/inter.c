@@ -102,7 +102,7 @@ static int inter_config_read(const char* cfgName)
 }
 
 // initialize
-int inter_init(CharServerDB* db)
+void inter_init(CharServerDB* db)
 {
 	inter_message_init();
 	inter_registry_init(db->accregdb(db), db->charregdb(db));
@@ -116,8 +116,6 @@ int inter_init(CharServerDB* db)
 	inter_quest_init(db->questdb(db));
 	inter_auction_init(db->auctiondb(db), db->maildb(db));
 	inter_rank_init(db->rankdb(db));
-
-	return 0;
 }
 
 // finalize
@@ -138,10 +136,9 @@ void inter_final(void)
 }
 
 // map server connection
-int inter_mapif_init(int fd)
+void inter_mapif_init(int fd)
 {
 	inter_guild_mapif_init(fd);
-	return 0;
 }
 
 

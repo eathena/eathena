@@ -201,17 +201,15 @@ bool inter_charreg_delete(int char_id)
 }
 
 
-int inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb)
+void inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb)
 {
 	accregs = accregdb;
 	charregs = charregdb;
-	return 0;
 }
 
 
-int inter_registry_final(void)
+void inter_registry_final(void)
 {
 	accregs = NULL;
 	charregs = NULL;
-	return 0;
 }
