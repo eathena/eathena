@@ -1264,7 +1264,7 @@ int charserver_sync_timer(int tid, unsigned int tick, int id, intptr data)
 	if (save_log)
 		ShowInfo("Saving all files...\n");
 
-	charserver->sync(charserver);
+	charserver->save(charserver, false);
 	return 0;
 }
 
@@ -1290,7 +1290,7 @@ void do_final(void)
 	ShowStatus("Terminating server.\n");
 	ShowInfo("Doing final stage...\n");
 
-	charserver->sync(charserver);
+	charserver->save(charserver, false);
 
 	set_all_offline(-1);
 #ifndef TXT_ONLY

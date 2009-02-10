@@ -3,11 +3,68 @@
 
 #include "../common/cbasetypes.h"
 #include "../common/malloc.h"
+#include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/timer.h"
 #include "charserverdb_txt.h"
 
 #include <string.h>
 #include <stdlib.h>
+
+// forward declarations
+static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intptr data);
+
+
+
+/// Schedules a save operation with the specified delay.
+/// If already scheduled, adds more delay to it.
+/// @private
+static void charserver_db_txt_scheduleSave(CharServerDB_TXT* db, int delay)
+{
+	static bool registered = false;
+	if( !registered )
+	{
+		add_timer_func_list(charserver_db_txt_save_timer, "charserver_db_txt_save_timer");
+		registered = true;
+	}
+
+	if( db->save_timer == INVALID_TIMER )
+	{
+		if( delay > db->autosave_max_delay )
+			delay = db->autosave_max_delay;
+		db->save_delay = delay;
+		db->save_timer = add_timer(gettick() + delay, charserver_db_txt_save_timer, 0, (intptr)db);
+	}
+	else
+	{
+		if( delay + db->save_delay > db->autosave_max_delay )
+			delay = db->autosave_max_delay - db->save_delay;
+		if( delay )
+		{
+			db->save_delay += delay;
+			addtick_timer(db->save_timer, delay);
+		}
+	}
+}
+
+
+
+/// Timer function.
+/// Triggers a save.
+/// Reschedules the save if the operation failed.
+/// @private
+static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intptr data)
+{
+	CharServerDB_TXT* db = (CharServerDB_TXT*)data;
+
+	if( db && db->save_timer == tid )
+	{
+		db->save_timer = INVALID_TIMER;
+		if( !db->vtable.save(&db->vtable, false) );
+			charserver_db_txt_scheduleSave(db, db->autosave_retry_delay);
+	}
+	return 0;
+}
 
 
 
@@ -51,6 +108,13 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
+	if( db->save_timer != INVALID_TIMER )
+	{// try to save pending data
+		delete_timer(db->save_timer, charserver_db_txt_save_timer);
+		db->save_timer = INVALID_TIMER;
+		self->save(self, false);
+	}
+
 	db->castledb->destroy(db->castledb);
 	db->castledb = NULL;
 	db->chardb->destroy(db->chardb);
@@ -91,8 +155,9 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 
 
 
-/// Flushes all in-memory data to secondary storage.
-static bool charserver_db_txt_sync(CharServerDB* self)
+/// Saves pending data to permanent storage.
+/// If force is true, saves all cached data even if unchanged.
+static bool charserver_db_txt_save(CharServerDB* self, bool force)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
@@ -150,6 +215,15 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		key += strlen(signature);
 
 		// savefile paths
+		if( strcmpi(key, "autosave.change_delay") == 0 )
+			safesnprintf(buf, buflen, "%d", db->autosave_change_delay);
+		else
+		if( strcmpi(key, "autosave.retry_delay") == 0 )
+			safesnprintf(buf, buflen, "%d", db->autosave_retry_delay);
+		else
+		if( strcmpi(key, "autosave.max_delay") == 0 )
+			safesnprintf(buf, buflen, "%d", db->autosave_max_delay);
+		else
 		if( strcmpi(key, "accreg_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_accregs);
 		else
@@ -221,6 +295,15 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		key += strlen(signature);
 
 		// savefile paths
+		if( strcmpi(key, "autosave.change_delay") == 0 )
+			db->autosave_change_delay = atoi(value);
+		else
+		if( strcmpi(key, "autosave.retry_delay") == 0 )
+			db->autosave_retry_delay = atoi(value);
+		else
+		if( strcmpi(key, "autosave.max_delay") == 0 )
+			db->autosave_max_delay = atoi(value);
+		else
 		if( strcmpi(key, "accreg_txt") == 0 )
 			safestrncpy(db->file_accregs, value, sizeof(db->file_accregs));
 		else
@@ -449,6 +532,16 @@ static CharRegDB* charserver_db_txt_charregdb(CharServerDB* self)
 
 
 
+/// Requests a save.
+/// Called when data is changed in one of the database interfaces.
+/// @protected
+void charserver_db_txt_request_save(CharServerDB_TXT* db)
+{
+	charserver_db_txt_scheduleSave(db, db->autosave_change_delay);
+}
+
+
+
 /// constructor
 CharServerDB* charserver_db_txt(void)
 {
@@ -457,7 +550,7 @@ CharServerDB* charserver_db_txt(void)
 	CREATE(db, CharServerDB_TXT, 1);
 	db->vtable.init         = charserver_db_txt_init;
 	db->vtable.destroy      = charserver_db_txt_destroy;
-	db->vtable.sync         = charserver_db_txt_sync;
+	db->vtable.save         = charserver_db_txt_save;
 	db->vtable.get_property = charserver_db_txt_get_property;
 	db->vtable.set_property = charserver_db_txt_set_property;
 	db->vtable.castledb     = charserver_db_txt_castledb;
@@ -477,6 +570,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.storagedb    = charserver_db_txt_storagedb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
 	db->vtable.charregdb    = charserver_db_txt_charregdb;
+	db->p.request_save      = charserver_db_txt_request_save;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_txt(db);
@@ -499,8 +593,13 @@ CharServerDB* charserver_db_txt(void)
 
 	// initialize to default values
 	db->initialized = false;
+	db->save_delay = 0;
+	db->save_timer = INVALID_TIMER;
 
 	// other settings
+	db->autosave_change_delay = 1000;
+	db->autosave_retry_delay = 5000;
+	db->autosave_max_delay = 10000;
 	safestrncpy(db->file_accregs, "save/accreg.txt", sizeof(db->file_accregs));
 	safestrncpy(db->file_auctions, "save/auction.txt", sizeof(db->file_auctions));
 	safestrncpy(db->file_castles, "save/castle.txt", sizeof(db->file_castles));
