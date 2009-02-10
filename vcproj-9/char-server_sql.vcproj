@@ -468,6 +468,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_storage.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_storage.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\inter.c"
 				>
 			</File>
@@ -556,6 +564,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\guildstoragedb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guildstoragedb_sql.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\homundb.h"
 				>
 			</File>
@@ -619,15 +635,15 @@
 				RelativePath="..\src\char\statusdb_sql.c"
 				>
 			</File>
+			<File
+				RelativePath="..\src\char\storagedb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\storagedb_sql.c"
+				>
+			</File>
 		</Filter>
-		<File
-			RelativePath="..\src\char_sql\int_storage.c"
-			>
-		</File>
-		<File
-			RelativePath="..\src\char_sql\int_storage.h"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
