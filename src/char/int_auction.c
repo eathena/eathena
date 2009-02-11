@@ -52,7 +52,7 @@ static void auction_timer_reset(void)
 	auction_end_timer = add_timer(new_tick, auction_end, auction.auction_id, 0);
 }
 
-static bool auction_create(struct auction_data* auction)
+static void auction_create(struct auction_data* auction)
 {
 	const struct TimerData* t = NULL;
 	unsigned int new_tick;
@@ -63,7 +63,7 @@ static bool auction_create(struct auction_data* auction)
 	auction->item.identify = 1;
 
 	if( !auctions->create(auctions, auction) )
-		return false;
+		return; // failed
 
 	// if new end time < old end time, switch the auction_end_timer
 	t = get_timer(auction_end_timer);

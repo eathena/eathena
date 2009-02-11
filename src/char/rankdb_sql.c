@@ -124,7 +124,7 @@ static void rank_db_sql_set_points(RankDB* self, int rank_id, int char_id, int p
 
 /// Initializes this RankDB interface.
 /// @protected
-bool rank_db_sql_init(RankDB* self)
+static bool rank_db_sql_init(RankDB* self)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 
@@ -135,7 +135,7 @@ bool rank_db_sql_init(RankDB* self)
 
 /// Destroys this RankDB interface.
 /// @protected
-void rank_db_sql_destroy(RankDB* self)
+static void rank_db_sql_destroy(RankDB* self)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 
@@ -147,7 +147,7 @@ void rank_db_sql_destroy(RankDB* self)
 
 /// Saves any pending data.
 /// @protected
-bool rank_db_sql_save(RankDB* self)
+static bool rank_db_sql_save(RankDB* self)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 

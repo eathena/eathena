@@ -136,7 +136,7 @@ static void rank_db_txt_set_points(RankDB* self, int rank_id, int char_id, int p
 
 /// Initializes this RankDB interface.
 /// @protected
-bool rank_db_txt_init(RankDB* self)
+static bool rank_db_txt_init(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	FILE* fp;
@@ -213,7 +213,7 @@ bool rank_db_txt_init(RankDB* self)
 
 /// Destroys this RankDB interface.
 /// @protected
-void rank_db_txt_destroy(RankDB* self)
+static void rank_db_txt_destroy(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 
@@ -228,7 +228,7 @@ void rank_db_txt_destroy(RankDB* self)
 
 /// Saves any pending data.
 /// @protected
-bool rank_db_txt_save(RankDB* self, bool force)
+static bool rank_db_txt_save(RankDB* self, bool force)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	FILE* fp;
