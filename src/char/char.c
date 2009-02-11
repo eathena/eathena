@@ -116,8 +116,6 @@ int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
 struct point start_point = { 0, 53, 111 }; // Initial position (it's possible to set it in conf file)
-#define DEFAULT_AUTOSAVE_INTERVAL 300*1000
-int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 
 
 // storage-specific options
@@ -1132,9 +1130,6 @@ int char_config_read(const char* cfgName)
 		if( strcmpi(w1, "online_check") == 0 )
 			char_config.online_check = (bool)config_switch(w2);
 		else
-		if( strcmpi(w1, "autosave_time") == 0 )
-			autosave_interval = atoi(w2)*1000;
-		else
 		if( strcmpi(w1, "save_log") == 0 )
 			save_log = config_switch(w2);
 		else
@@ -1258,17 +1253,6 @@ static bool init_charserver_engine(void)
 	return false;
 }
 
-/// Periodic data saving function
-int charserver_sync_timer(int tid, unsigned int tick, int id, intptr data)
-{
-	if (save_log)
-		ShowInfo("Saving all files...\n");
-
-	charserver->save(charserver, false);
-	return 0;
-}
-
-
 //------------------------------
 // Function called when the server
 // has received a crash signal.
@@ -1289,8 +1273,6 @@ void do_final(void)
 	//TODO: pick one
 	ShowStatus("Terminating server.\n");
 	ShowInfo("Doing final stage...\n");
-
-	charserver->save(charserver, false);
 
 	set_all_offline(-1);
 #ifndef TXT_ONLY
@@ -1397,10 +1379,6 @@ int do_init(int argc, char **argv)
 			char_ip = ip;
 		}
 	}
-
-	// initialize data saving timer
-	add_timer_func_list(charserver_sync_timer, "charserver_sync_timer");
-	add_timer_interval(gettick() + 1000, charserver_sync_timer, 0, 0, autosave_interval);
 
 	// establish char-login connection if not present
 	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
