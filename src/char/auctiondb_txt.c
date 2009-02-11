@@ -34,6 +34,12 @@ typedef struct AuctionDB_TXT
 static bool auction_db_txt_init(AuctionDB* self);
 static void auction_db_txt_destroy(AuctionDB* self);
 static bool auction_db_txt_sync(AuctionDB* self);
+static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad);
+static bool auction_db_txt_remove(AuctionDB* self, const int mail_id);
+static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad);
+static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const int auction_id);
+static int auction_db_txt_count(AuctionDB* self, const int char_id);
+static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad);
 
 static bool mmo_auction_fromstr(struct auction_data* ad, char* str);
 static bool mmo_auction_tostr(const struct auction_data* ad, char* str);
@@ -48,6 +54,12 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	db->vtable.init      = &auction_db_txt_init;
 	db->vtable.destroy   = &auction_db_txt_destroy;
 	db->vtable.sync      = &auction_db_txt_sync;
+	db->vtable.create    = &auction_db_txt_create;
+	db->vtable.remove    = &auction_db_txt_remove;
+	db->vtable.save      = &auction_db_txt_save;
+	db->vtable.load      = &auction_db_txt_load;
+	db->vtable.count     = &auction_db_txt_count;
+	db->vtable.first     = &auction_db_txt_first;
 
 	// initialize to default values
 	db->owner = owner;
@@ -142,6 +154,87 @@ static bool auction_db_txt_sync(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
 	return mmo_auctiondb_sync(db);
+}
+
+static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)
+{
+}
+
+static bool auction_db_txt_remove(AuctionDB* self, const int mail_id)
+{
+}
+
+static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad)
+{
+}
+
+static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
+{
+}
+
+/*
+static bool auction_db_txt_search(AuctionDB* self, ...)
+{
+	unsigned char buf[5 * sizeof(struct auction_data)];
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	short i = 0, j = 0, pages = 1;
+
+	iter = auction_db_->iterator(auction_db_);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		struct auction_data* auction = (struct auction_data*)data;
+
+		if( (type == 0 && auction->type != IT_ARMOR && auction->type != IT_PETARMOR) || 
+			(type == 1 && auction->type != IT_WEAPON) ||
+			(type == 2 && auction->type != IT_CARD) ||
+			(type == 3 && auction->type != IT_ETC) ||
+			(type == 4 && !strstr(auction->item_name, searchtext)) ||
+			(type == 5 && auction->price > price) ||
+			(type == 6 && auction->seller_id != char_id) ||
+			(type == 7 && auction->buyer_id != char_id) )
+			continue;
+
+		i++;
+		if( i > 5 )
+		{ // Counting Pages of Total Results (5 Results per Page)
+			pages++;
+			i = 1; // First Result of This Page
+		}
+
+		if( page != pages )
+			continue; // This is not the requested Page
+
+		memcpy(WBUFP(buf, j * sizeof(struct auction_data)), auction, len);
+		j++; // Found Results
+	}
+	iter->destroy(iter);
+}
+*/
+
+static int auction_db_txt_count(AuctionDB* self, const int char_id)
+{
+/*
+	int i = 0;
+	struct auction_data *auction;
+	DBIterator* iter;
+	DBKey key;
+
+	iter = auction_db_->iterator(auction_db_);
+	for( auction = (struct auction_data*)iter->first(iter,&key); iter->exists(iter); auction = (struct auction_data*)iter->next(iter,&key) )
+	{
+		if( (buy && auction->buyer_id == char_id) || (!buy && auction->seller_id == char_id) )
+			i++;
+	}
+	iter->destroy(iter);
+
+	return i;
+*/
+}
+
+static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
+{
 }
 
 static bool mmo_auction_fromstr(struct auction_data* ad, char* str)
