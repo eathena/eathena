@@ -111,13 +111,11 @@ static int auction_end(int tid, unsigned int tick, int id, intptr data)
 /// 7 - You have failed to win the auction
 static void mapif_Auction_message(int char_id, unsigned char result)
 {
-	//FIXME: incorrect buffer size
-	//FIXME: send size doesn't match amount of data written
-	unsigned char buf[74];
+	unsigned char buf[7];
 	
 	WBUFW(buf,0) = 0x3854;
 	WBUFL(buf,2) = char_id;
-	WBUFL(buf,6) = result;
+	WBUFB(buf,6) = result;
 	mapif_sendall(buf,7);
 }
 

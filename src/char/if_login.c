@@ -67,14 +67,11 @@ int parse_fromlogin(int fd)
 				return 0;
 
 			if( RFIFOB(fd,2) ) {
-				ShowError("Can not connect to login-server.\n");
-				ShowError("The server communication passwords (default s1/p1) are probably invalid.\n");
-#ifdef TXT_ONLY
-				ShowInfo("Also, please make sure your accounts file (default: accounts.txt) has those values present.\n");
-#else
-				ShowInfo("Also, please make sure your login db has the correct communication username/passwords and the gender of the account is S.\n");
-#endif
-				ShowInfo("The communication passwords can be changed in map_athena.conf and char_athena.conf\n");
+				ShowError("Connection to login-server rejected.\n");
+				ShowError("Please make sure that\n");
+				ShowError("- the char-server's userid/passwd settings match an existing account\n");
+				ShowError("- the account's gender is set to 'S'\n");
+				ShowError("- the account's id is less than MAX_SERVERS (default:30)\n");
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
 				

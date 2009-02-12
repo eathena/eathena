@@ -12,22 +12,6 @@
 static StatusDB* statuses = NULL;
 
 
-void inter_status_init(StatusDB* db)
-{
-	statuses = db;
-}
-
-void inter_status_final(void)
-{
-	statuses = NULL;
-}
-
-bool inter_status_delete(int char_id)
-{
-	return statuses->remove(statuses, char_id);
-}
-
-
 int inter_status_tobuf(uint8* buf, size_t size, const struct scdata* sc)
 {
 	int i;
@@ -130,4 +114,20 @@ int inter_status_parse_frommap(int fd)
 		return 0;
 	}
 	return 1;
+}
+
+
+void inter_status_init(StatusDB* db)
+{
+	statuses = db;
+}
+
+void inter_status_final(void)
+{
+	statuses = NULL;
+}
+
+bool inter_status_delete(int char_id)
+{
+	return statuses->remove(statuses, char_id);
 }

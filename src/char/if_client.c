@@ -28,7 +28,8 @@ extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int lan_subnetcheck(uint32 ip);
 extern void set_char_online(int map_id, int char_id, int account_id);
 extern int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style);
-extern int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
+
+int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
 int parse_client(int fd)
@@ -576,4 +577,55 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	WFIFOSET(fd,j);
 
 	return 0;
+}
+
+/// Writes char data to the buffer in the format used by the client.
+/// Used in packets 0x6b (chars info) and 0x6d (new char info)
+/// Returns the size (106 or 108)
+int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
+{
+	if( buf == NULL || p == NULL )
+		return 0;
+
+	WBUFL(buf,0) = p->char_id;
+	WBUFL(buf,4) = min(p->base_exp, LONG_MAX);
+	WBUFL(buf,8) = p->zeny;
+	WBUFL(buf,12) = min(p->job_exp, LONG_MAX);
+	WBUFL(buf,16) = p->job_level;
+	WBUFL(buf,20) = 0; // probably opt1
+	WBUFL(buf,24) = 0; // probably opt2
+	WBUFL(buf,28) = p->option;
+	WBUFL(buf,32) = p->karma;
+	WBUFL(buf,36) = p->manner;
+	WBUFW(buf,40) = min(p->status_point, SHRT_MAX);
+	WBUFW(buf,42) = min(p->hp, SHRT_MAX);
+	WBUFW(buf,44) = min(p->max_hp, SHRT_MAX);
+	WBUFW(buf,46) = min(p->sp, SHRT_MAX);
+	WBUFW(buf,48) = min(p->max_sp, SHRT_MAX);
+	WBUFW(buf,50) = DEFAULT_WALK_SPEED; // p->speed;
+	WBUFW(buf,52) = p->class_;
+	WBUFW(buf,54) = p->hair;
+	WBUFW(buf,56) = p->option&0x20 ? 0 : p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
+	WBUFW(buf,58) = p->base_level;
+	WBUFW(buf,60) = min(p->skill_point, SHRT_MAX);
+	WBUFW(buf,62) = p->head_bottom;
+	WBUFW(buf,64) = p->shield;
+	WBUFW(buf,66) = p->head_top;
+	WBUFW(buf,68) = p->head_mid;
+	WBUFW(buf,70) = p->hair_color;
+	WBUFW(buf,72) = p->clothes_color;
+	memcpy(WBUFP(buf,74), p->name, NAME_LENGTH);
+	WBUFB(buf,98) = min(p->str, UCHAR_MAX);
+	WBUFB(buf,99) = min(p->agi, UCHAR_MAX);
+	WBUFB(buf,100) = min(p->vit, UCHAR_MAX);
+	WBUFB(buf,101) = min(p->int_, UCHAR_MAX);
+	WBUFB(buf,102) = min(p->dex, UCHAR_MAX);
+	WBUFB(buf,103) = min(p->luk, UCHAR_MAX);
+	WBUFW(buf,104) = p->slot;
+	if (char_config.char_rename) {
+		WBUFW(buf,106) = 1;// Rename bit (0=rename,1=no rename)
+		return 108;
+	} else {
+		return 106;
+	}
 }
