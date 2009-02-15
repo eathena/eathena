@@ -12,9 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-///FIXME: extern import
-extern bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-
 
 /// internal structure
 typedef struct StorageDB_SQL
@@ -164,5 +161,5 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct storage_data* s, int a
 
 static bool mmo_storage_tosql(StorageDB_SQL* db, const struct storage_data* s, int account_id)
 {
-	return memitemdata_to_sql(s->items, MAX_STORAGE, account_id, TABLE_STORAGE);
+	return memitemdata_to_sql(db->storages, s->items, MAX_STORAGE, account_id, db->storage_db, "account_id");
 }

@@ -19,9 +19,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// temporary stuff
-extern bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-
 
 /// Maximum number of character ids cached in the iterator.
 #define CHARDBITERATOR_MAXCACHE 16000
@@ -776,11 +773,11 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 
 	//map inventory data
 	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
-		memitemdata_to_sql(p->inventory, MAX_INVENTORY, p->char_id, TABLE_INVENTORY);
+		memitemdata_to_sql(db->chars, p->inventory, MAX_INVENTORY, p->char_id, db->inventory_db, "char_id");
 
 	//map cart data
 	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
-		memitemdata_to_sql(p->cart, MAX_CART, p->char_id, TABLE_CART);
+		memitemdata_to_sql(db->chars, p->cart, MAX_CART, p->char_id, db->cart_db, "char_id");
 
 	if (
 		(p->base_exp != cp->base_exp) || (p->base_level != cp->base_level) ||

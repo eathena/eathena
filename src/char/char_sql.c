@@ -6,6 +6,7 @@
 #include "../common/malloc.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
+#include "../common/sql.h"
 #include "../common/strlib.h"
 #include "../common/utils.h"
 #include "char.h"
@@ -13,39 +14,16 @@
 #include <string.h>
 
 
-#ifndef TXT_ONLY
-#include "../common/sql.h"
-static Sql* sql_handle = NULL;
-static char inventory_db[256] = "baadf00d";
-static char cart_db[256] = "baadf00d";
-static char storage_db[256] = "baadf00d";
-static char guild_storage_db[256] = "baadf00d";
-#endif
-
-
 /// Saves an array of 'item' entries into the specified table.
-bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch)
+bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int id, const char* tablename, const char* selectoption)
 {
 	StringBuf buf;
 	SqlStmt* stmt;
 	int i;
 	int j;
-	const char* tablename;
-	const char* selectoption;
 	struct item item; // temp storage variable
 	bool* flag; // bit array for inventory matching
 	bool found;
-
-	switch (tableswitch) {
-	case TABLE_INVENTORY:     tablename = inventory_db;     selectoption = "char_id";    break;
-	case TABLE_CART:          tablename = cart_db;          selectoption = "char_id";    break;
-	case TABLE_STORAGE:       tablename = storage_db;       selectoption = "account_id"; break;
-	case TABLE_GUILD_STORAGE: tablename = guild_storage_db; selectoption = "guild_id";   break;
-	default:
-		ShowError("Invalid table name!\n");
-		return false;
-	}
-
 
 	// The following code compares inventory with current database values
 	// and performs modification/deletion/insertion only on relevant rows.

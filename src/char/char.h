@@ -6,13 +6,6 @@
 
 #include "../common/mmo.h" // MAX_CHARS
 
-enum {
-	TABLE_INVENTORY,
-	TABLE_CART,
-	TABLE_STORAGE,
-	TABLE_GUILD_STORAGE,
-};
-
 struct char_session_data {
 	bool auth; // whether the session is authed or not
 	int account_id, login_id1, login_id2, sex;

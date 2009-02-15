@@ -12,9 +12,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-///FIXME: extern import
-extern bool memitemdata_to_sql(const struct item items[], int max, int id, int tableswitch);
-
 
 /// internal structure
 typedef struct GuildStorageDB_SQL
@@ -165,5 +162,5 @@ static bool mmo_guildstorage_fromsql(GuildStorageDB_SQL* db, struct guild_storag
 
 static bool mmo_guildstorage_tosql(GuildStorageDB_SQL* db, const struct guild_storage* gs, int guild_id)
 {
-	return memitemdata_to_sql(gs->storage_, MAX_GUILD_STORAGE, guild_id, TABLE_GUILD_STORAGE);
+	return memitemdata_to_sql(db->guildstorages, gs->storage_, MAX_GUILD_STORAGE, guild_id, db->guildstorage_db, "guild_id");
 }
