@@ -286,20 +286,20 @@ static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, in
 	char esc_name[NAME_LENGTH*2+1];// escaped party name
 	bool result = false;
 
-	// try
-	do
-	{
-
 	if( p == NULL || p->party_id == 0 )
-		break;
+		return result;
 
 	Sql_EscapeStringLen(sql_handle, esc_name, p->name, safestrnlen(p->name, NAME_LENGTH));
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
 	{
 		Sql_ShowDebug(sql_handle);
-		break;
+		return result;
 	}
+
+	// try
+	do
+	{
 
 	if( flag & PS_CREATE )
 	{// Create party
@@ -364,7 +364,11 @@ static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, in
 	} while(0);
 	// finally
 
-	result = result && ( SQL_SUCCESS == Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") );
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
 
 	return result;
 }

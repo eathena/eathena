@@ -167,15 +167,20 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 {
 	Sql* sql_handle = db->friends;
 	StringBuf buf;
-	bool result = false;
 	int i, count;
+	bool result = false;
 
-	StringBuf_Init(&buf);
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
 
-	//TODO: transaction
-
+	// try
 	do
 	{
+
+	StringBuf_Init(&buf);
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->friend_db, char_id) )
 	{
@@ -205,12 +210,20 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 		}
 	}
 
+	// success
 	result = true;
 
 	}
 	while(0);
+	// finally
 
 	StringBuf_Destroy(&buf);
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
 
 	return result;
 }

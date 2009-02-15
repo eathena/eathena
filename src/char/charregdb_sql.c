@@ -146,17 +146,35 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 	Sql* sql_handle = db->charregs;
 	SqlStmt* stmt;
 	int i;
+	bool result = false;
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
+	// try
+	do
+	{
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `char_id`='%d'", db->charreg_db, char_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		break;
+	}
 
 	if( reg->reg_num <= 0 )
-		return true;
+	{// nothing more needed
+		result = true;
+		break;
+	}
 
 	stmt = SqlStmt_Malloc(sql_handle);
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES (3,'%d',?,?)", db->charreg_db, char_id) )
 		SqlStmt_ShowDebug(stmt);
+
 	for( i = 0; i < reg->reg_num; ++i )
 	{
 		const struct global_reg* r = &reg->reg[i];
@@ -167,9 +185,29 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)r->value, strnlen(r->value, sizeof(r->value)));
 
 		if( SQL_ERROR == SqlStmt_Execute(stmt) )
+		{
 			SqlStmt_ShowDebug(stmt);
+			break;
+		}
 	}
+
+	if( i < reg->reg_num )
+		break; // failed
+
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
 	SqlStmt_Free(stmt);
 
-	return true;
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
 }
