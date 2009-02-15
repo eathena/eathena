@@ -117,25 +117,88 @@ struct CharServerDB
 	/// @return true if successful
 	bool (*set_property)(CharServerDB* self, const char* key, const char* value);
 
-	/// TODO
+	/// Returns the database interface that handles account regs.
+	///
+	/// @param self Database engine
+	/// @return Interface for account regs
+	AccRegDB* (*accregdb)(CharServerDB* self);
+
+	/// Returns the database interface that handles auctions.
+	///
+	/// @param self Database engine
+	/// @return Interface for auctions
+	AuctionDB* (*auctiondb)(CharServerDB* self);
+
+	/// Returns the database interface that handles castles.
+	///
+	/// @param self Database engine
+	/// @return Interface for castles
 	CastleDB* (*castledb)(CharServerDB* self);
 
+	/// Returns the database interface that handles characters.
+	///
+	/// @param self Database engine
+	/// @return Interface for characters
 	CharDB* (*chardb)(CharServerDB* self);
 
+	/// Returns the database interface that handles character regs.
+	///
+	/// @param self Database engine
+	/// @return Interface for character regs
+	CharRegDB* (*charregdb)(CharServerDB* self);
+
+	/// Returns the database interface that handles friends.
+	///
+	/// @param self Database engine
+	/// @return Interface for friends
 	FriendDB* (*frienddb)(CharServerDB* self);
 
+	/// Returns the database interface that handles guilds.
+	///
+	/// @param self Database engine
+	/// @return Interface for guilds
 	GuildDB* (*guilddb)(CharServerDB* self);
 
+	/// Returns the database interface that handles guild storages.
+	///
+	/// @param self Database engine
+	/// @return Interface for guild storages
 	GuildStorageDB* (*guildstoragedb)(CharServerDB* self);
 
+	/// Returns the database interface that handles homuns.
+	///
+	/// @param self Database engine
+	/// @return Interface for homuns
 	HomunDB* (*homundb)(CharServerDB* self);
 
+	/// Returns the database interface that handles hotkeys.
+	///
+	/// @param self Database engine
+	/// @return Interface for hotkeys
 	HotkeyDB* (*hotkeydb)(CharServerDB* self);
 
+	/// Returns the database interface that handles mails.
+	///
+	/// @param self Database engine
+	/// @return Interface for mails
+	MailDB* (*maildb)(CharServerDB* self);
+
+	/// Returns the database interface that handles parties.
+	///
+	/// @param self Database engine
+	/// @return Interface for parties
 	PartyDB* (*partydb)(CharServerDB* self);
 
+	/// Returns the database interface that handles pets.
+	///
+	/// @param self Database engine
+	/// @return Interface for pets
 	PetDB* (*petdb)(CharServerDB* self);
 
+	/// Returns the database interface that handles quests.
+	///
+	/// @param self Database engine
+	/// @return Interface for quests
 	QuestDB* (*questdb)(CharServerDB* self);
 
 	/// Returns the database interface that handles rankings.
@@ -145,18 +208,19 @@ struct CharServerDB
 	/// @return Interface for rankings
 	RankDB* (*rankdb)(CharServerDB* self);
 
-	MailDB* (*maildb)(CharServerDB* self);
-
-	AuctionDB* (*auctiondb)(CharServerDB* self);
-
+	/// Returns the database interface that handles statuses.
+	/// Returns NULL if rankings are not supported.
+	///
+	/// @param self Database engine
+	/// @return Interface for statuses
 	StatusDB* (*statusdb)(CharServerDB* self);
 
+	/// Returns the database interface that handles storages.
+	/// Returns NULL if rankings are not supported.
+	///
+	/// @param self Database engine
+	/// @return Interface for storages
 	StorageDB* (*storagedb)(CharServerDB* self);
-
-	AccRegDB* (*accregdb)(CharServerDB* self);
-
-	CharRegDB* (*charregdb)(CharServerDB* self);
-	// TODO DB interface accessors
 };
 
 

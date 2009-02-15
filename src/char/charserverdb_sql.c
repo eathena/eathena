@@ -10,6 +10,26 @@
 #include <stdlib.h>
 
 
+// Constructors for the individual DBs
+extern AccRegDB* accreg_db_sql(CharServerDB_SQL* owner);
+extern AuctionDB* auction_db_sql(CharServerDB_SQL* owner);
+extern CastleDB* castle_db_sql(CharServerDB_SQL* owner);
+extern CharDB* char_db_sql(CharServerDB_SQL* owner);
+extern CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);
+extern FriendDB* friend_db_sql(CharServerDB_SQL* owner);
+extern GuildDB* guild_db_sql(CharServerDB_SQL* owner);
+extern GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner);
+extern HomunDB* homun_db_sql(CharServerDB_SQL* owner);
+extern HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner);
+extern MailDB* mail_db_sql(CharServerDB_SQL* owner);
+extern PartyDB* party_db_sql(CharServerDB_SQL* owner);
+extern PetDB* pet_db_sql(CharServerDB_SQL* owner);
+extern QuestDB* quest_db_sql(CharServerDB_SQL* owner);
+extern RankDB* rank_db_sql(CharServerDB_SQL* owner);
+extern StatusDB* status_db_sql(CharServerDB_SQL* owner);
+extern StorageDB* storage_db_sql(CharServerDB_SQL* owner);
+
+
 
 /// Initializes this database engine, making it ready for use.
 static bool charserver_db_sql_init(CharServerDB* self)
@@ -388,173 +408,24 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 
 
 
-/// TODO
-static CastleDB* charserver_db_sql_castledb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->castledb;
-}
-
-
-
-/// TODO
-static CharDB* charserver_db_sql_chardb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->chardb;
-}
-
-
-
-/// TODO
-static FriendDB* charserver_db_sql_frienddb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->frienddb;
-}
-
-
-
-/// TODO
-static GuildDB* charserver_db_sql_guilddb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->guilddb;
-}
-
-
-
-/// TODO
-static GuildStorageDB* charserver_db_sql_guildstoragedb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->guildstoragedb;
-}
-
-
-
-/// TODO
-static HomunDB* charserver_db_sql_homundb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->homundb;
-}
-
-
-
-/// TODO
-static HotkeyDB* charserver_db_sql_hotkeydb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->hotkeydb;
-}
-
-
-
-/// TODO
-static PartyDB* charserver_db_sql_partydb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->partydb;
-}
-
-
-
-/// TODO
-static PetDB* charserver_db_sql_petdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->petdb;
-}
-
-
-
-/// TODO
-static QuestDB* charserver_db_sql_questdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->questdb;
-}
-
-
-
-/// Returns the database interface that handles rankings.
-static RankDB* charserver_db_sql_rankdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->rankdb;
-}
-
-
-
-/// TODO
-static MailDB* charserver_db_sql_maildb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->maildb;
-}
-
-
-
-/// TODO
-static AuctionDB* charserver_db_sql_auctiondb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->auctiondb;
-}
-
-
-
-/// TODO
-static StatusDB* charserver_db_sql_statusdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->statusdb;
-}
-
-
-
-/// TODO
-static StorageDB* charserver_db_sql_storagedb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->storagedb;
-}
-
-
-
-/// TODO
-static AccRegDB* charserver_db_sql_accregdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->accregdb;
-}
-
-
-
-/// TODO
-static CharRegDB* charserver_db_sql_charregdb(CharServerDB* self)
-{
-	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
-
-	return db->charregdb;
-}
+// Accessors for the various DB interfaces.
+static AccRegDB*       charserver_db_sql_accregdb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->accregdb;       }
+static AuctionDB*      charserver_db_sql_auctiondb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->auctiondb;      }
+static CastleDB*       charserver_db_sql_castledb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->castledb;       }
+static CharDB*         charserver_db_sql_chardb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->chardb;         }
+static CharRegDB*      charserver_db_sql_charregdb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->charregdb;      }
+static FriendDB*       charserver_db_sql_frienddb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->frienddb;       }
+static GuildDB*        charserver_db_sql_guilddb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->guilddb;        }
+static GuildStorageDB* charserver_db_sql_guildstoragedb(CharServerDB* self) { return ((CharServerDB_SQL*)self)->guildstoragedb; }
+static HomunDB*        charserver_db_sql_homundb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->homundb;        }
+static HotkeyDB*       charserver_db_sql_hotkeydb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->hotkeydb;       }
+static MailDB*         charserver_db_sql_maildb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->maildb;         }
+static PartyDB*        charserver_db_sql_partydb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->partydb;        }
+static PetDB*          charserver_db_sql_petdb         (CharServerDB* self) { return ((CharServerDB_SQL*)self)->petdb;          }
+static QuestDB*        charserver_db_sql_questdb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->questdb;        }
+static RankDB*         charserver_db_sql_rankdb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->rankdb;         }
+static StatusDB*       charserver_db_sql_statusdb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->statusdb;       }
+static StorageDB*      charserver_db_sql_storagedb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->storagedb;      }
 
 
 
