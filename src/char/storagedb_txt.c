@@ -216,7 +216,7 @@ static bool mmo_storage_fromstr(struct storage_data* s, char* str)
 	char tmp_str[256];
 	int next,len,i,j;
 
-	if( sscanf(str, "%d%n", &tmp_int[1], &next) != 2 )
+	if( sscanf(str, "%d%n", &tmp_int[1], &next) != 1 )
 		return false;
 
 	s->storage_amount = tmp_int[1]; //FIXME: limit to MAX_STORAGE?
