@@ -71,16 +71,6 @@ CharServerDB* charserver = NULL;
 struct Char_Config char_config;
 
 
-//FIXME
-#ifndef TXT_ONLY
-#include "../common/sql.h"
-static Sql* sql_handle = NULL;
-static char char_db[] = "baadf00d";
-static char guild_db[] = "baadf00d";
-static char guild_member_db[] = "baadf00d";
-#endif
-
-
 int login_fd=-1, char_fd=-1;
 uint32 login_ip = 0;
 uint32 char_ip = 0;
@@ -206,12 +196,6 @@ void set_char_online(int map_id, int char_id, int account_id)
 {
 	struct online_char_data* character;
 	
-#ifndef TXT_ONLY
-	//Update DB
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'", char_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-#endif
-
 	//Check to see for online conflicts
 	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
 	if (char_config.online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
@@ -247,19 +231,6 @@ void set_char_online(int map_id, int char_id, int account_id)
 void set_char_offline(int char_id, int account_id)
 {
 	struct online_char_data* character;
-
-#ifndef TXT_ONLY
-	if ( char_id == -1 )
-	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `account_id`='%d'", char_db, account_id) )
-			Sql_ShowDebug(sql_handle);
-	}
-	else
-	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, char_id) )
-			Sql_ShowDebug(sql_handle);
-	}
-#endif
 
 	if ((character = (struct online_char_data*)idb_get(online_char_db, account_id)) != NULL)
 	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
@@ -337,19 +308,6 @@ void set_all_offline(int id)
 	WFIFOW(login_fd,0) = 0x2737;
 	WFIFOSET(login_fd,2);
 }
-
-#ifndef TXT_ONLY
-void set_all_offline_sql(void)
-{
-	//Set all players to 'OFFLINE'
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online` = '0'", char_db) )
-		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online` = '0'", guild_member_db) )
-		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `connect_member` = '0'", guild_db) )
-		Sql_ShowDebug(sql_handle);
-}
-#endif
 
 
 //---------------------------------------------------------------------
@@ -1222,9 +1180,6 @@ void do_final(void)
 	ShowInfo("Doing final stage...\n");
 
 	set_all_offline(-1);
-#ifndef TXT_ONLY
-	set_all_offline_sql();
-#endif
 
 #ifdef TXT_ONLY
 	// write online players files with no player
