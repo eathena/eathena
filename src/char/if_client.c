@@ -53,10 +53,10 @@ int parse_client(int fd)
 		if( sd != NULL && sd->auth )
 		{
 			struct online_char_data* data = (struct online_char_data*)idb_get(online_char_db, sd->account_id);
-			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]
-				set_char_offline(-1,sd->account_id);
 			if( data != NULL && data->fd == fd)
 				data->fd = -1;
+			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]
+				set_char_offline(-1,sd->account_id);
 		}
 		do_close(fd);
 		return 0;

@@ -242,14 +242,15 @@ void set_char_offline(int char_id, int account_id)
 			character->waiting_disconnect = -1;
 		}
 
-		//If user is NOT at char screen, delete entry [Kevin]
-		if(character->char_id != -1)
+		if(character->char_id == char_id)
 		{
-			idb_remove(online_char_db, account_id);
+			character->char_id = -1;
+			character->server = -1;
 		}
 	}
-	
-	if (login_fd > 0 && !session[login_fd]->flag.eof && (char_id == -1 || character == NULL || character->char_id != -1))
+
+	//Remove char if 1- Set all offline, or 2- character is no longer connected to char-server.
+	if (login_fd > 0 && !session[login_fd]->flag.eof && (char_id == -1 || character == NULL || character->fd != -1))
 	{
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x272c;
