@@ -47,8 +47,8 @@ static bool party_db_sql_sync(PartyDB* self);
 static bool party_db_sql_create(PartyDB* self, struct party_data* p);
 static bool party_db_sql_remove(PartyDB* self, const int party_id);
 static bool party_db_sql_save(PartyDB* self, const struct party_data* p);
-static bool party_db_sql_load_num(PartyDB* self, struct party_data* p, int party_id);
-static bool party_db_sql_load_str(PartyDB* self, struct party_data* p, const char* name);
+static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id);
+static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name);
 
 static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id);
 static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, int index);
@@ -65,8 +65,8 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	db->vtable.create    = &party_db_sql_create;
 	db->vtable.remove    = &party_db_sql_remove;
 	db->vtable.save      = &party_db_sql_save;
-	db->vtable.load_num  = &party_db_sql_load_num;
-	db->vtable.load_str  = &party_db_sql_load_str;
+	db->vtable.load      = &party_db_sql_load;
+	db->vtable.name2id   = &party_db_sql_name2id;
 
 	// initialize to default values
 	db->owner = owner;
@@ -170,7 +170,7 @@ static bool party_db_sql_save(PartyDB* self, const struct party_data* p)
 	//return mmo_party_tosql(db, ch);
 }
 
-static bool party_db_sql_load_num(PartyDB* self, struct party_data* p, int party_id)
+static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 
@@ -183,12 +183,11 @@ static bool party_db_sql_load_num(PartyDB* self, struct party_data* p, int party
 	return true;
 }
 
-static bool party_db_sql_load_str(PartyDB* self, struct party_data* p, const char* name)
+static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	Sql* sql_handle = db->parties;
 	char esc_name[2*NAME_LENGTH+1];
-	int party_id;
 	char* data;
 
 	Sql_EscapeString(sql_handle, esc_name, name);
@@ -215,10 +214,11 @@ static bool party_db_sql_load_str(PartyDB* self, struct party_data* p, const cha
 	}
 
 	Sql_GetData(sql_handle, 0, &data, NULL);
-	party_id = atoi(data);
+	if( party_id != NULL )
+		*party_id = atoi(data);
 	Sql_FreeResult(sql_handle);
 
-	return party_db_sql_load_num(self, p, party_id);
+	return true;
 }
 
 

@@ -33,10 +33,10 @@ struct PartyDB
 	bool (*save)(PartyDB* self, const struct party_data* p);
 
 	// retrieve data using party id
-	bool (*load_num)(PartyDB* self, struct party_data* p, int party_id);
+	bool (*load)(PartyDB* self, struct party_data* p, int party_id);
 
-	// retrieve data using party name
-	bool (*load_str)(PartyDB* self, struct party_data* p, const char* name);
+	// look up party id using party name
+	bool (*name2id)(PartyDB* self, int* party_id, const char* name);
 };
 
 

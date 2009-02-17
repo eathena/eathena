@@ -281,8 +281,7 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 	}
 
 	// check the availability of this party name
-	// TODO: this check doesn't require full data retrieval
-	if( parties->load_str(parties, &p, name) )
+	if( parties->name2id(parties, NULL, name) )
 	{
 		mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
 		return 0;
@@ -316,7 +315,7 @@ void mapif_parse_PartyInfo(int fd, int party_id)
 {
 	struct party_data p;
 
-	if( parties->load_num(parties, &p, party_id) )
+	if( parties->load(parties, &p, party_id) )
 		mapif_party_info(fd, &p.party);
 	else
 		mapif_party_noinfo(fd, party_id);
@@ -328,7 +327,7 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 	struct party_data p;
 	int i;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 	{// party doesn't exist
 		mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 1);
 		return 0;
@@ -366,7 +365,7 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 	struct party_data p;
 	int flag = 0;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 		return 0;
 
 	p.party.exp = exp;
@@ -390,7 +389,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 	int i,j=-1;
 	bool leader;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 	{// Party does not exist
 		mapif_party_noinfo(fd, party_id); //TODO: check if this is right
 		return 0;
@@ -453,7 +452,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	struct party_data p;
 	int i;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 		return 0;
 
 	ARR_FIND( 0, MAX_PARTY, i, p.party.member[i].account_id == account_id && p.party.member[i].char_id == char_id );
@@ -498,7 +497,7 @@ int mapif_parse_BreakParty(int fd, int party_id)
 {
 	struct party_data p;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 		return 0;
 
 	parties->remove(parties, party_id);
@@ -519,7 +518,7 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	struct party_data p;
 	int i;
 
-	if( !parties->load_num(parties, &p, party_id) )
+	if( !parties->load(parties, &p, party_id) )
 		return 0;
 
 	// remove old leader flag

@@ -39,8 +39,8 @@ static bool party_db_txt_sync(PartyDB* self);
 static bool party_db_txt_create(PartyDB* self, struct party_data* p);
 static bool party_db_txt_remove(PartyDB* self, const int party_id);
 static bool party_db_txt_save(PartyDB* self, const struct party_data* p);
-static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party_id);
-static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const char* name);
+static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id);
+static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name);
 
 static bool mmo_party_fromstr(struct party* p, char* str);
 static bool mmo_party_tostr(const struct party* p, char* str);
@@ -58,8 +58,8 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	db->vtable.create    = &party_db_txt_create;
 	db->vtable.remove    = &party_db_txt_remove;
 	db->vtable.save      = &party_db_txt_save;
-	db->vtable.load_num  = &party_db_txt_load_num;
-	db->vtable.load_str  = &party_db_txt_load_str;
+	db->vtable.load      = &party_db_txt_load;
+	db->vtable.name2id   = &party_db_txt_name2id;
 
 	// initialize to default values
 	db->owner = owner;
@@ -228,7 +228,7 @@ static bool party_db_txt_save(PartyDB* self, const struct party_data* p)
 	return true;
 }
 
-static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party_id)
+static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
@@ -263,16 +263,17 @@ static bool party_db_txt_load_num(PartyDB* self, struct party_data* p, int party
 	return true;
 }
 
-static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const char* name)
+static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
 
 	// retrieve data
-	struct DBIterator* iter = parties->iterator(parties);
+	struct DBIterator* iter;
 	struct party_data* tmp;
 	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
 
+	iter = parties->iterator(parties);
 	for( tmp = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct party_data*)iter->next(iter,NULL) )
 		if( compare(name, tmp->party.name) == 0 )
 			break;
@@ -284,7 +285,8 @@ static bool party_db_txt_load_str(PartyDB* self, struct party_data* p, const cha
 	}
 
 	// store it
-	memcpy(p, tmp, sizeof(struct party_data));
+	if( party_id != NULL )
+		*party_id = tmp->party.party_id;
 
 	return true;
 }
