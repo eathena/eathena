@@ -30,44 +30,71 @@ typedef struct QuestDB_TXT
 
 } QuestDB_TXT;
 
-/// internal functions
-static bool quest_db_txt_init(QuestDB* self);
-static void quest_db_txt_destroy(QuestDB* self);
-static bool quest_db_txt_sync(QuestDB* self);
-static bool quest_db_txt_remove(QuestDB* self, const int char_id);
-static bool quest_db_txt_add(QuestDB* self, const struct quest* qd, const int char_id);
-static bool quest_db_txt_del(QuestDB* self, const int char_id, const int quest_id);
-static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* const count);
 
-static bool mmo_quests_fromstr(questlog* log, char* str);
-static bool mmo_quests_tostr(const questlog* log, char* str);
-static bool mmo_questdb_sync(QuestDB_TXT* db);
 
-/// public constructor
-QuestDB* quest_db_txt(CharServerDB_TXT* owner)
+static bool mmo_quests_fromstr(questlog* log, char* str)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)aCalloc(1, sizeof(QuestDB_TXT));
+//	const char* p = str;
+//	int i, n;
 
-	// set up the vtable
-	db->vtable.init      = &quest_db_txt_init;
-	db->vtable.destroy   = &quest_db_txt_destroy;
-	db->vtable.sync      = &quest_db_txt_sync;
-	db->vtable.add       = &quest_db_txt_add;
-	db->vtable.del       = &quest_db_txt_del;
-	db->vtable.load      = &quest_db_txt_load;
+	memset(log, 0, sizeof(questlog));
 
-	// initialize to default values
-	db->owner = owner;
-	db->quests = NULL;
+	//TODO: come up with a good data format
 
-	// other settings
-	db->quest_db = db->owner->file_quests;
-
-	return &db->vtable;
+	return true;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_quests_tostr(const questlog* log, char* str)
+{
+	char* p = str;
+	int i;
+
+	for( i = 0; i < MAX_QUEST; ++i )
+	{
+		const struct quest* qd = &(*log)[i];
+		if( qd->quest_id == 0 )
+			continue;
+		
+		//TODO: save qd->quest_id and qd->state
+		//TODO: for each qd->objectives[0..qd->num_objectives] save name and count
+	}
+
+	return true;
+}
+
+
+static bool mmo_questdb_sync(QuestDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(db->quest_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_questdb_sync: can't write [%s] !!! data is lost !!!\n", db->quest_db);
+		return false;
+	}
+
+	iter = db->quests->iterator(db->quests);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		questlog* log = (questlog*) data;
+		char line[8192];
+
+		mmo_quests_tostr(log, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->quest_db, &lock);
+
+	return true;
+}
 
 
 static bool quest_db_txt_init(QuestDB* self)
@@ -243,64 +270,26 @@ static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* co
 	return true;
 }
 
-static bool mmo_quests_fromstr(questlog* log, char* str)
+
+/// public constructor
+QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 {
-//	const char* p = str;
-//	int i, n;
+	QuestDB_TXT* db = (QuestDB_TXT*)aCalloc(1, sizeof(QuestDB_TXT));
 
-	memset(log, 0, sizeof(questlog));
+	// set up the vtable
+	db->vtable.init      = &quest_db_txt_init;
+	db->vtable.destroy   = &quest_db_txt_destroy;
+	db->vtable.sync      = &quest_db_txt_sync;
+	db->vtable.add       = &quest_db_txt_add;
+	db->vtable.del       = &quest_db_txt_del;
+	db->vtable.load      = &quest_db_txt_load;
 
-	//TODO: come up with a good data format
+	// initialize to default values
+	db->owner = owner;
+	db->quests = NULL;
 
-	return true;
-}
+	// other settings
+	db->quest_db = db->owner->file_quests;
 
-static bool mmo_quests_tostr(const questlog* log, char* str)
-{
-	char* p = str;
-	int i;
-
-	for( i = 0; i < MAX_QUEST; ++i )
-	{
-		const struct quest* qd = &(*log)[i];
-		if( qd->quest_id == 0 )
-			continue;
-		
-		//TODO: save qd->quest_id and qd->state
-		//TODO: for each qd->objectives[0..qd->num_objectives] save name and count
-	}
-
-	return true;
-}
-
-static bool mmo_questdb_sync(QuestDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	fp = lock_fopen(db->quest_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_questdb_sync: can't write [%s] !!! data is lost !!!\n", db->quest_db);
-		return false;
-	}
-
-	iter = db->quests->iterator(db->quests);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		questlog* log = (questlog*) data;
-		char line[8192];
-
-		mmo_quests_tostr(log, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->quest_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

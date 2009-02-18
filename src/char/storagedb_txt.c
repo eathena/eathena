@@ -28,43 +28,112 @@ typedef struct StorageDB_TXT
 
 } StorageDB_TXT;
 
-/// internal functions
-static bool storage_db_txt_init(StorageDB* self);
-static void storage_db_txt_destroy(StorageDB* self);
-static bool storage_db_txt_sync(StorageDB* self);
-static bool storage_db_txt_remove(StorageDB* self, const int account_id);
-static bool storage_db_txt_save(StorageDB* self, const struct storage_data* s, int account_id);
-static bool storage_db_txt_load(StorageDB* self, struct storage_data* s, int account_id);
 
-static bool mmo_storage_fromstr(struct storage_data* s, char* str);
-static bool mmo_storage_tostr(const struct storage_data* s, char* str);
-static bool mmo_storagedb_sync(StorageDB_TXT* db);
 
-/// public constructor
-StorageDB* storage_db_txt(CharServerDB_TXT* owner)
+static bool mmo_storage_fromstr(struct storage_data* s, char* str)
 {
-	StorageDB_TXT* db = (StorageDB_TXT*)aCalloc(1, sizeof(StorageDB_TXT));
+	int tmp_int[256];
+	char tmp_str[256];
+	int next,len,i,j;
 
-	// set up the vtable
-	db->vtable.init      = &storage_db_txt_init;
-	db->vtable.destroy   = &storage_db_txt_destroy;
-	db->vtable.sync      = &storage_db_txt_sync;
-	db->vtable.remove    = &storage_db_txt_remove;
-	db->vtable.save      = &storage_db_txt_save;
-	db->vtable.load      = &storage_db_txt_load;
+	if( sscanf(str, "%d%n", &tmp_int[1], &next) != 1 )
+		return false;
 
-	// initialize to default values
-	db->owner = owner;
-	db->storages = NULL;
+	s->storage_amount = tmp_int[1]; //FIXME: limit to MAX_STORAGE?
 
-	// other settings
-	db->storage_db = db->owner->file_storages;
+	next++;
+	for( i = 0; str[next] && str[next]!='\t' && i < MAX_STORAGE; i++ )
+	{
+		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
+		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) != 8)
+			  return false;
 
-	return &db->vtable;
+		s->items[i].id = tmp_int[0];
+		s->items[i].nameid = tmp_int[1];
+		s->items[i].amount = tmp_int[2];
+		s->items[i].equip = tmp_int[3];
+		s->items[i].identify = tmp_int[4];
+		s->items[i].refine = tmp_int[5];
+		s->items[i].attribute = tmp_int[6];
+			
+		for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
+			s->items[i].card[j] = tmp_int[0];
+			
+		next += len;
+		if (str[next] == ' ')
+			next++;
+	}
+
+	if( i == MAX_STORAGE && str[next] != '\0' && str[next] != '\t' )
+		ShowWarning("storage_fromstr: Found a storage line with more items than MAX_STORAGE (%d), remaining items have been discarded!\n", MAX_STORAGE);
+
+	return true;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_storage_tostr(const struct storage_data* s, char* str)
+{
+	int i,j;
+	char* p = str;
+
+	p += sprintf(p, "%d\t", s->storage_amount);
+
+	for( i = 0; i < MAX_STORAGE; i++ )
+		if( s->items[i].nameid > 0 && s->items[i].amount > 0 )
+		{
+			p += sprintf(p, "%d,%d,%d,%d,%d,%d,%d",
+				s->items[i].id, s->items[i].nameid, s->items[i].amount, s->items[i].equip,
+				s->items[i].identify, s->items[i].refine, s->items[i].attribute);
+
+			for( j = 0; j < MAX_SLOTS; j++ )
+				p += sprintf(p, ",%d", s->items[i].card[j]);
+
+			p += sprintf(p, " ");
+		}
+
+	*(p++) = '\t';
+
+	*p = '\0';
+
+	return true;
+}
+
+
+static bool mmo_storagedb_sync(StorageDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(db->storage_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_storagedb_sync: can't write [%s] !!! data is lost !!!\n", db->storage_db);
+		return false;
+	}
+
+	iter = db->storages->iterator(db->storages);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int account_id = key.i;
+		struct storage_data* s = (struct storage_data*) data;
+		char line[65536];
+
+		if( s->storage_amount == 0 )
+			continue;
+
+		mmo_storage_tostr(s, line);
+		fprintf(fp, "%d,%s\n", account_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->storage_db, &lock);
+
+	return true;
+}
 
 
 static void* create_storage(DBKey key, va_list args)
@@ -210,105 +279,25 @@ static bool storage_db_txt_load(StorageDB* self, struct storage_data* s, int acc
 }
 
 
-static bool mmo_storage_fromstr(struct storage_data* s, char* str)
+/// public constructor
+StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 {
-	int tmp_int[256];
-	char tmp_str[256];
-	int next,len,i,j;
+	StorageDB_TXT* db = (StorageDB_TXT*)aCalloc(1, sizeof(StorageDB_TXT));
 
-	if( sscanf(str, "%d%n", &tmp_int[1], &next) != 1 )
-		return false;
+	// set up the vtable
+	db->vtable.init      = &storage_db_txt_init;
+	db->vtable.destroy   = &storage_db_txt_destroy;
+	db->vtable.sync      = &storage_db_txt_sync;
+	db->vtable.remove    = &storage_db_txt_remove;
+	db->vtable.save      = &storage_db_txt_save;
+	db->vtable.load      = &storage_db_txt_load;
 
-	s->storage_amount = tmp_int[1]; //FIXME: limit to MAX_STORAGE?
+	// initialize to default values
+	db->owner = owner;
+	db->storages = NULL;
 
-	next++;
-	for( i = 0; str[next] && str[next]!='\t' && i < MAX_STORAGE; i++ )
-	{
-		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) != 8)
-			  return false;
+	// other settings
+	db->storage_db = db->owner->file_storages;
 
-		s->items[i].id = tmp_int[0];
-		s->items[i].nameid = tmp_int[1];
-		s->items[i].amount = tmp_int[2];
-		s->items[i].equip = tmp_int[3];
-		s->items[i].identify = tmp_int[4];
-		s->items[i].refine = tmp_int[5];
-		s->items[i].attribute = tmp_int[6];
-			
-		for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
-			s->items[i].card[j] = tmp_int[0];
-			
-		next += len;
-		if (str[next] == ' ')
-			next++;
-	}
-
-	if( i == MAX_STORAGE && str[next] != '\0' && str[next] != '\t' )
-		ShowWarning("storage_fromstr: Found a storage line with more items than MAX_STORAGE (%d), remaining items have been discarded!\n", MAX_STORAGE);
-
-	return true;
-}
-
-static bool mmo_storage_tostr(const struct storage_data* s, char* str)
-{
-	int i,j;
-	char* p = str;
-
-	p += sprintf(p, "%d\t", s->storage_amount);
-
-	for( i = 0; i < MAX_STORAGE; i++ )
-		if( s->items[i].nameid > 0 && s->items[i].amount > 0 )
-		{
-			p += sprintf(p, "%d,%d,%d,%d,%d,%d,%d",
-				s->items[i].id, s->items[i].nameid, s->items[i].amount, s->items[i].equip,
-				s->items[i].identify, s->items[i].refine, s->items[i].attribute);
-
-			for( j = 0; j < MAX_SLOTS; j++ )
-				p += sprintf(p, ",%d", s->items[i].card[j]);
-
-			p += sprintf(p, " ");
-		}
-
-	*(p++) = '\t';
-
-	*p = '\0';
-
-	return true;
-}
-
-static bool mmo_storagedb_sync(StorageDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	fp = lock_fopen(db->storage_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_storagedb_sync: can't write [%s] !!! data is lost !!!\n", db->storage_db);
-		return false;
-	}
-
-	iter = db->storages->iterator(db->storages);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int account_id = key.i;
-		struct storage_data* s = (struct storage_data*) data;
-		char line[65536];
-
-		if( s->storage_amount == 0 )
-			continue;
-
-		mmo_storage_tostr(s, line);
-		fprintf(fp, "%d,%s\n", account_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->storage_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

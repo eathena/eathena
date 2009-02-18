@@ -30,48 +30,89 @@ typedef struct MailDB_TXT
 
 } MailDB_TXT;
 
-/// internal functions
-static bool mail_db_txt_init(MailDB* self);
-static void mail_db_txt_destroy(MailDB* self);
-static bool mail_db_txt_sync(MailDB* self);
-static bool mail_db_txt_create(MailDB* self, struct mail_message* msg);
-static bool mail_db_txt_remove(MailDB* self, const int mail_id);
-static bool mail_db_txt_save(MailDB* self, const struct mail_message* msg);
-static bool mail_db_txt_load(MailDB* self, struct mail_message* msg, const int mail_id);
-static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int char_id);
 
-static bool mmo_mail_tostr(const struct mail_message* msg, char* str);
-static bool mmo_mail_fromstr(struct mail_message* msg, const char* str);
-static bool mmo_mail_sync(MailDB_TXT* db);
 
-/// public constructor
-MailDB* mail_db_txt(CharServerDB_TXT* owner)
+static bool mmo_mail_fromstr(struct mail_message* msg, const char* str)
 {
-	MailDB_TXT* db = (MailDB_TXT*)aCalloc(1, sizeof(MailDB_TXT));
+	char esc_title[MAIL_TITLE_LENGTH*2+1];
+	char esc_body[MAIL_BODY_LENGTH*2+1];
+	int len, n;
+	int i;
 
-	// set up the vtable
-	db->vtable.init      = &mail_db_txt_init;
-	db->vtable.destroy   = &mail_db_txt_destroy;
-	db->vtable.sync      = &mail_db_txt_sync;
-	db->vtable.create    = &mail_db_txt_create;
-	db->vtable.remove    = &mail_db_txt_remove;
-	db->vtable.save      = &mail_db_txt_save;
-	db->vtable.load      = &mail_db_txt_load;
-	db->vtable.loadall   = &mail_db_txt_loadall;
+	if( sscanf(str, "%u,%d,%[^\t]\t%d,%[^\t]\t%[^\t]\t%[^\t]\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u%n",
+	    &msg->id, &msg->send_id, msg->send_name, &msg->dest_id, msg->dest_name,
+		esc_title, esc_body, &msg->status, (unsigned long*)&msg->timestamp, &msg->zeny,
+		&msg->item.id, &msg->item.nameid, &msg->item.amount, &msg->item.equip, &msg->item.identify, &msg->item.refine, &msg->item.attribute, &len) != 17 )
+		return false;
 
-	// initialize to default values
-	db->owner = owner;
-	db->mails = NULL;
-	db->next_mail_id = START_MAIL_NUM;
+	for( i = 0; i < MAX_SLOTS; i++ )
+	{
+		if( sscanf(str + len, ",%d%n", &msg->item.card[i], &n) != 1 )
+			return false;
 
-	// other settings
-	db->mail_db = db->owner->file_mails;
+		len += n;
+	}
 
-	return &db->vtable;
+	sv_unescape_c(msg->title, esc_title, strlen(esc_title));
+	sv_unescape_c(msg->body, esc_body, strlen(esc_body));
+
+	return true;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
+{
+	char esc_title[MAIL_TITLE_LENGTH*2+1];
+	char esc_body[MAIL_BODY_LENGTH*2+1];
+	int len;
+	int i;
+
+	sv_escape_c(esc_title, msg->title, strlen(msg->title), NULL);
+	sv_escape_c(esc_body, msg->body, strlen(msg->body), NULL);
+
+	len = sprintf(str, "%u,%d,%s\t%d,%s\t%s\t%s\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u",
+	              msg->id, msg->send_id, msg->send_name, msg->dest_id, msg->dest_name,
+	              esc_title, esc_body, msg->status, (unsigned long)msg->timestamp, msg->zeny,
+	              msg->item.id, msg->item.nameid, msg->item.amount, msg->item.equip, msg->item.identify, msg->item.refine, msg->item.attribute);
+
+	for( i = 0; i < MAX_SLOTS; i++ )
+		len += sprintf(str+len, ",%d", msg->item.card[i]);
+
+	strcat(str+len, "\t");
+
+	return true;
+}
+
+
+static bool mmo_mail_sync(MailDB_TXT* db)
+{
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->mail_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_mail_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
+		return false;
+	}
+
+	iter = db->mails->iterator(db->mails);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct mail_message* msg = (struct mail_message*) data;
+		char line[8192];
+
+		mmo_mail_tostr(msg, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->mail_db, &lock);
+
+	return true;
+}
 
 
 static bool mail_db_txt_init(MailDB* self)
@@ -290,82 +331,29 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 	return true;
 }
 
-static bool mmo_mail_fromstr(struct mail_message* msg, const char* str)
+
+/// public constructor
+MailDB* mail_db_txt(CharServerDB_TXT* owner)
 {
-	char esc_title[MAIL_TITLE_LENGTH*2+1];
-	char esc_body[MAIL_BODY_LENGTH*2+1];
-	int len, n;
-	int i;
+	MailDB_TXT* db = (MailDB_TXT*)aCalloc(1, sizeof(MailDB_TXT));
 
-	if( sscanf(str, "%u,%d,%[^\t]\t%d,%[^\t]\t%[^\t]\t%[^\t]\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u%n",
-	    &msg->id, &msg->send_id, msg->send_name, &msg->dest_id, msg->dest_name,
-		esc_title, esc_body, &msg->status, (unsigned long*)&msg->timestamp, &msg->zeny,
-		&msg->item.id, &msg->item.nameid, &msg->item.amount, &msg->item.equip, &msg->item.identify, &msg->item.refine, &msg->item.attribute, &len) != 17 )
-		return false;
+	// set up the vtable
+	db->vtable.init      = &mail_db_txt_init;
+	db->vtable.destroy   = &mail_db_txt_destroy;
+	db->vtable.sync      = &mail_db_txt_sync;
+	db->vtable.create    = &mail_db_txt_create;
+	db->vtable.remove    = &mail_db_txt_remove;
+	db->vtable.save      = &mail_db_txt_save;
+	db->vtable.load      = &mail_db_txt_load;
+	db->vtable.loadall   = &mail_db_txt_loadall;
 
-	for( i = 0; i < MAX_SLOTS; i++ )
-	{
-		if( sscanf(str + len, ",%d%n", &msg->item.card[i], &n) != 1 )
-			return false;
+	// initialize to default values
+	db->owner = owner;
+	db->mails = NULL;
+	db->next_mail_id = START_MAIL_NUM;
 
-		len += n;
-	}
+	// other settings
+	db->mail_db = db->owner->file_mails;
 
-	sv_unescape_c(msg->title, esc_title, strlen(esc_title));
-	sv_unescape_c(msg->body, esc_body, strlen(esc_body));
-
-	return true;
-}
-
-static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
-{
-	char esc_title[MAIL_TITLE_LENGTH*2+1];
-	char esc_body[MAIL_BODY_LENGTH*2+1];
-	int len;
-	int i;
-
-	sv_escape_c(esc_title, msg->title, strlen(msg->title), NULL);
-	sv_escape_c(esc_body, msg->body, strlen(msg->body), NULL);
-
-	len = sprintf(str, "%u,%d,%s\t%d,%s\t%s\t%s\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u",
-	              msg->id, msg->send_id, msg->send_name, msg->dest_id, msg->dest_name,
-	              esc_title, esc_body, msg->status, (unsigned long)msg->timestamp, msg->zeny,
-	              msg->item.id, msg->item.nameid, msg->item.amount, msg->item.equip, msg->item.identify, msg->item.refine, msg->item.attribute);
-
-	for( i = 0; i < MAX_SLOTS; i++ )
-		len += sprintf(str+len, ",%d", msg->item.card[i]);
-
-	strcat(str+len, "\t");
-
-	return true;
-}
-
-static bool mmo_mail_sync(MailDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->mail_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_mail_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
-		return false;
-	}
-
-	iter = db->mails->iterator(db->mails);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct mail_message* msg = (struct mail_message*) data;
-		char line[8192];
-
-		mmo_mail_tostr(msg, line);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->mail_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

@@ -26,90 +26,6 @@ typedef struct HomunDB_SQL
 
 } HomunDB_SQL;
 
-/// internal functions
-static bool homun_db_sql_init(HomunDB* self);
-static void homun_db_sql_destroy(HomunDB* self);
-static bool homun_db_sql_sync(HomunDB* self);
-static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd);
-static bool homun_db_sql_remove(HomunDB* self, const int homun_id);
-static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd);
-static bool homun_db_sql_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id);
-
-static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homun_id);
-static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd);
-
-/// public constructor
-HomunDB* homun_db_sql(CharServerDB_SQL* owner)
-{
-	HomunDB_SQL* db = (HomunDB_SQL*)aCalloc(1, sizeof(HomunDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &homun_db_sql_init;
-	db->vtable.destroy   = &homun_db_sql_destroy;
-	db->vtable.sync      = &homun_db_sql_sync;
-	db->vtable.create    = &homun_db_sql_create;
-	db->vtable.remove    = &homun_db_sql_remove;
-	db->vtable.save      = &homun_db_sql_save;
-	db->vtable.load_num  = &homun_db_sql_load_num;
-
-	// initialize to default values
-	db->owner = owner;
-	db->homuns = NULL;
-
-	// other settings
-	db->homun_db = db->owner->table_homuns;
-	db->homun_skill_db = db->owner->table_homun_skills;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool homun_db_sql_init(HomunDB* self)
-{
-	HomunDB_SQL* db = (HomunDB_SQL*)self;
-	db->homuns = db->owner->sql_handle;
-	return true;
-}
-
-static void homun_db_sql_destroy(HomunDB* self)
-{
-	HomunDB_SQL* db = (HomunDB_SQL*)self;
-	db->homuns = NULL;
-	aFree(db);
-}
-
-static bool homun_db_sql_sync(HomunDB* self)
-{
-	return true;
-}
-
-static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)
-{
-}
-
-static bool homun_db_sql_remove(HomunDB* self, const int homun_id)
-{
-/*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `homunculus` WHERE `homun_id` = '%u'", homun_id)
-	||	SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `skill_homunculus` WHERE `homun_id` = '%u'", homun_id)
-	) {
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-	return true;
-*/
-}
-
-static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd)
-{
-}
-
-static bool homun_db_sql_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id)
-{
-}
 
 
 static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homun_id)
@@ -194,6 +110,7 @@ static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homu
 */
 }
 
+
 static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd)
 {
 /*
@@ -256,4 +173,75 @@ static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd)
 
 	return flag;
 */
+}
+
+
+static bool homun_db_sql_init(HomunDB* self)
+{
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	db->homuns = db->owner->sql_handle;
+	return true;
+}
+
+static void homun_db_sql_destroy(HomunDB* self)
+{
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	db->homuns = NULL;
+	aFree(db);
+}
+
+static bool homun_db_sql_sync(HomunDB* self)
+{
+	return true;
+}
+
+static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)
+{
+}
+
+static bool homun_db_sql_remove(HomunDB* self, const int homun_id)
+{
+/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `homunculus` WHERE `homun_id` = '%u'", homun_id)
+	||	SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `skill_homunculus` WHERE `homun_id` = '%u'", homun_id)
+	) {
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+	return true;
+*/
+}
+
+static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd)
+{
+}
+
+static bool homun_db_sql_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id)
+{
+}
+
+
+/// public constructor
+HomunDB* homun_db_sql(CharServerDB_SQL* owner)
+{
+	HomunDB_SQL* db = (HomunDB_SQL*)aCalloc(1, sizeof(HomunDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &homun_db_sql_init;
+	db->vtable.destroy   = &homun_db_sql_destroy;
+	db->vtable.sync      = &homun_db_sql_sync;
+	db->vtable.create    = &homun_db_sql_create;
+	db->vtable.remove    = &homun_db_sql_remove;
+	db->vtable.save      = &homun_db_sql_save;
+	db->vtable.load_num  = &homun_db_sql_load_num;
+
+	// initialize to default values
+	db->owner = owner;
+	db->homuns = NULL;
+
+	// other settings
+	db->homun_db = db->owner->table_homuns;
+	db->homun_skill_db = db->owner->table_homun_skills;
+
+	return &db->vtable;
 }

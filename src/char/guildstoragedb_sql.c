@@ -26,88 +26,6 @@ typedef struct GuildStorageDB_SQL
 
 } GuildStorageDB_SQL;
 
-/// internal functions
-static bool guildstorage_db_sql_init(GuildStorageDB* self);
-static void guildstorage_db_sql_destroy(GuildStorageDB* self);
-static bool guildstorage_db_sql_sync(GuildStorageDB* self);
-static bool guildstorage_db_sql_remove(GuildStorageDB* self, const int guild_id);
-static bool guildstorage_db_sql_save(GuildStorageDB* self, const struct guild_storage* gs, int guild_id);
-static bool guildstorage_db_sql_load(GuildStorageDB* self, struct guild_storage* gs, int guild_id);
-
-static bool mmo_guildstorage_fromsql(GuildStorageDB_SQL* db, struct guild_storage* gs, int guild_id);
-static bool mmo_guildstorage_tosql(GuildStorageDB_SQL* db, const struct guild_storage* gs, int guild_id);
-
-/// public constructor
-GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)aCalloc(1, sizeof(GuildStorageDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &guildstorage_db_sql_init;
-	db->vtable.destroy   = &guildstorage_db_sql_destroy;
-	db->vtable.sync      = &guildstorage_db_sql_sync;
-	db->vtable.remove    = &guildstorage_db_sql_remove;
-	db->vtable.save      = &guildstorage_db_sql_save;
-	db->vtable.load      = &guildstorage_db_sql_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->guildstorages = NULL;
-
-	// other settings
-	db->guildstorage_db = db->owner->table_guild_storages;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool guildstorage_db_sql_init(GuildStorageDB* self)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
-	db->guildstorages = db->owner->sql_handle;
-	return true;
-}
-
-static void guildstorage_db_sql_destroy(GuildStorageDB* self)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
-	db->guildstorages = NULL;
-	aFree(db);
-}
-
-static bool guildstorage_db_sql_sync(GuildStorageDB* self)
-{
-	return true;
-}
-
-static bool guildstorage_db_sql_remove(GuildStorageDB* self, const int guild_id)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
-	Sql* sql_handle = db->guildstorages;
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id`='%d'", db->guildstorage_db, guild_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	return true;
-}
-
-static bool guildstorage_db_sql_save(GuildStorageDB* self, const struct guild_storage* gs, int guild_id)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
-	return mmo_guildstorage_tosql(db, gs, guild_id);
-}
-
-static bool guildstorage_db_sql_load(GuildStorageDB* self, struct guild_storage* gs, int guild_id)
-{
-	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
-	return mmo_guildstorage_fromsql(db, gs, guild_id);
-}
 
 
 static bool mmo_guildstorage_fromsql(GuildStorageDB_SQL* db, struct guild_storage* gs, int guild_id)
@@ -160,7 +78,78 @@ static bool mmo_guildstorage_fromsql(GuildStorageDB_SQL* db, struct guild_storag
 	return true;
 }
 
+
 static bool mmo_guildstorage_tosql(GuildStorageDB_SQL* db, const struct guild_storage* gs, int guild_id)
 {
 	return memitemdata_to_sql(db->guildstorages, gs->storage_, MAX_GUILD_STORAGE, guild_id, db->guildstorage_db, "guild_id");
+}
+
+
+static bool guildstorage_db_sql_init(GuildStorageDB* self)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	db->guildstorages = db->owner->sql_handle;
+	return true;
+}
+
+static void guildstorage_db_sql_destroy(GuildStorageDB* self)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	db->guildstorages = NULL;
+	aFree(db);
+}
+
+static bool guildstorage_db_sql_sync(GuildStorageDB* self)
+{
+	return true;
+}
+
+static bool guildstorage_db_sql_remove(GuildStorageDB* self, const int guild_id)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	Sql* sql_handle = db->guildstorages;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id`='%d'", db->guildstorage_db, guild_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
+}
+
+static bool guildstorage_db_sql_save(GuildStorageDB* self, const struct guild_storage* gs, int guild_id)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	return mmo_guildstorage_tosql(db, gs, guild_id);
+}
+
+static bool guildstorage_db_sql_load(GuildStorageDB* self, struct guild_storage* gs, int guild_id)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	return mmo_guildstorage_fromsql(db, gs, guild_id);
+}
+
+
+/// public constructor
+GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)aCalloc(1, sizeof(GuildStorageDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &guildstorage_db_sql_init;
+	db->vtable.destroy   = &guildstorage_db_sql_destroy;
+	db->vtable.sync      = &guildstorage_db_sql_sync;
+	db->vtable.remove    = &guildstorage_db_sql_remove;
+	db->vtable.save      = &guildstorage_db_sql_save;
+	db->vtable.load      = &guildstorage_db_sql_load;
+
+	// initialize to default values
+	db->owner = owner;
+	db->guildstorages = NULL;
+
+	// other settings
+	db->guildstorage_db = db->owner->table_guild_storages;
+
+	return &db->vtable;
 }

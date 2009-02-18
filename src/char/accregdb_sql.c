@@ -31,88 +31,7 @@ typedef struct AccRegDB_SQL
 
 } AccRegDB_SQL;
 
-/// internal functions
-static bool accreg_db_sql_init(AccRegDB* self);
-static void accreg_db_sql_destroy(AccRegDB* self);
-static bool accreg_db_sql_sync(AccRegDB* self);
-static bool accreg_db_sql_remove(AccRegDB* self, const int account_id);
-static bool accreg_db_sql_save(AccRegDB* self, const struct regs* reg, int account_id);
-static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id);
 
-static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_id);
-static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int account_id);
-
-/// public constructor
-AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)aCalloc(1, sizeof(AccRegDB_SQL));
-
-	// set up the vtable
-	db->vtable.init    = &accreg_db_sql_init;
-	db->vtable.destroy = &accreg_db_sql_destroy;
-	db->vtable.sync    = &accreg_db_sql_sync;
-	db->vtable.remove  = &accreg_db_sql_remove;
-	db->vtable.save    = &accreg_db_sql_save;
-	db->vtable.load    = &accreg_db_sql_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->accregs = NULL;
-
-	// other settings
-	db->accreg_db = db->owner->table_registry;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool accreg_db_sql_init(AccRegDB* self)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	db->accregs = db->owner->sql_handle;
-	return true;
-}
-
-static void accreg_db_sql_destroy(AccRegDB* self)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	db->accregs = NULL;
-	aFree(db);
-}
-
-static bool accreg_db_sql_sync(AccRegDB* self)
-{
-	return true;
-}
-
-static bool accreg_db_sql_remove(AccRegDB* self, const int account_id)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	Sql* sql_handle = db->accregs;
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'", db->accreg_db, account_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	return true;
-}
-
-static bool accreg_db_sql_save(AccRegDB* self, const struct regs* reg, int account_id)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	return mmo_accreg_tosql(db, reg, account_id);
-}
-
-static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	return mmo_accreg_fromsql(db, reg, account_id);
-}
 
 static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_id)
 {
@@ -138,6 +57,7 @@ static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_i
 
 	return true;
 }
+
 
 static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int account_id)
 {
@@ -208,4 +128,74 @@ static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int accou
 	}
 
 	return result;
+}
+
+
+static bool accreg_db_sql_init(AccRegDB* self)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	db->accregs = db->owner->sql_handle;
+	return true;
+}
+
+static void accreg_db_sql_destroy(AccRegDB* self)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	db->accregs = NULL;
+	aFree(db);
+}
+
+static bool accreg_db_sql_sync(AccRegDB* self)
+{
+	return true;
+}
+
+static bool accreg_db_sql_remove(AccRegDB* self, const int account_id)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	Sql* sql_handle = db->accregs;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=2 AND `account_id`='%d'", db->accreg_db, account_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
+}
+
+static bool accreg_db_sql_save(AccRegDB* self, const struct regs* reg, int account_id)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	return mmo_accreg_tosql(db, reg, account_id);
+}
+
+static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	return mmo_accreg_fromsql(db, reg, account_id);
+}
+
+
+/// public constructor
+AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)aCalloc(1, sizeof(AccRegDB_SQL));
+
+	// set up the vtable
+	db->vtable.init    = &accreg_db_sql_init;
+	db->vtable.destroy = &accreg_db_sql_destroy;
+	db->vtable.sync    = &accreg_db_sql_sync;
+	db->vtable.remove  = &accreg_db_sql_remove;
+	db->vtable.save    = &accreg_db_sql_save;
+	db->vtable.load    = &accreg_db_sql_load;
+
+	// initialize to default values
+	db->owner = owner;
+	db->accregs = NULL;
+
+	// other settings
+	db->accreg_db = db->owner->table_registry;
+
+	return &db->vtable;
 }

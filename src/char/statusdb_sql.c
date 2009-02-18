@@ -24,42 +24,16 @@ typedef struct StatusDB_SQL
 
 } StatusDB_SQL;
 
-/// internal functions
-static bool status_db_sql_init(StatusDB* self);
-static void status_db_sql_destroy(StatusDB* self);
-static bool status_db_sql_sync(StatusDB* self);
-static bool status_db_sql_remove(StatusDB* self, const int char_id);
-static bool status_db_sql_save(StatusDB* self, struct scdata* sc);
-static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id);
 
-static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id);
-static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc);
 
-/// public constructor
-StatusDB* status_db_sql(CharServerDB_SQL* owner)
+static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 {
-	StatusDB_SQL* db = (StatusDB_SQL*)aCalloc(1, sizeof(StatusDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &status_db_sql_init;
-	db->vtable.destroy   = &status_db_sql_destroy;
-	db->vtable.sync      = &status_db_sql_sync;
-	db->vtable.remove    = &status_db_sql_remove;
-	db->vtable.save      = &status_db_sql_save;
-	db->vtable.load      = &status_db_sql_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->statuses = NULL;
-
-	// other settings
-	db->status_db = db->owner->table_statuses;
-
-	return &db->vtable;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
+{
+}
 
 
 static bool status_db_sql_init(StatusDB* self)
@@ -163,10 +137,25 @@ static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 }
 
 
-static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
+/// public constructor
+StatusDB* status_db_sql(CharServerDB_SQL* owner)
 {
-}
+	StatusDB_SQL* db = (StatusDB_SQL*)aCalloc(1, sizeof(StatusDB_SQL));
 
-static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
-{
+	// set up the vtable
+	db->vtable.init      = &status_db_sql_init;
+	db->vtable.destroy   = &status_db_sql_destroy;
+	db->vtable.sync      = &status_db_sql_sync;
+	db->vtable.remove    = &status_db_sql_remove;
+	db->vtable.save      = &status_db_sql_save;
+	db->vtable.load      = &status_db_sql_load;
+
+	// initialize to default values
+	db->owner = owner;
+	db->statuses = NULL;
+
+	// other settings
+	db->status_db = db->owner->table_statuses;
+
+	return &db->vtable;
 }

@@ -28,48 +28,87 @@ typedef struct FriendDB_TXT
 
 } FriendDB_TXT;
 
-/// internal functions
-static bool friend_db_txt_init(FriendDB* self);
-static void friend_db_txt_destroy(FriendDB* self);
-static bool friend_db_txt_sync(FriendDB* self);
-static bool friend_db_txt_remove(FriendDB* self, const int char_id);
-static bool friend_db_txt_save(FriendDB* self, const friendlist* list, const int char_id);
-static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_id);
-
-static bool mmo_friendlist_fromstr(friendlist* list, char* str);
-static bool mmo_friendlist_tostr(const friendlist* list, char* str);
-static bool mmo_frienddb_sync(FriendDB_TXT* db);
-
-/// public constructor
-FriendDB* friend_db_txt(CharServerDB_TXT* owner)
-{
-	FriendDB_TXT* db = (FriendDB_TXT*)aCalloc(1, sizeof(FriendDB_TXT));
-
-	// set up the vtable
-	db->vtable.init      = &friend_db_txt_init;
-	db->vtable.destroy   = &friend_db_txt_destroy;
-	db->vtable.sync      = &friend_db_txt_sync;
-	db->vtable.remove    = &friend_db_txt_remove;
-	db->vtable.save      = &friend_db_txt_save;
-	db->vtable.load      = &friend_db_txt_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->friends = NULL;
-
-	// other settings
-	db->friend_db = db->owner->file_friends;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
 
 
 static void* create_friendlist(DBKey key, va_list args)
 {
 	return (friendlist*)aMalloc(sizeof(friendlist));
+}
+
+
+static bool mmo_friendlist_fromstr(friendlist* list, char* str)
+{
+	const char* p = str;
+	int i, n;
+
+	memset(list, 0, sizeof(friendlist));
+
+	for( i = 0; i < MAX_FRIENDS; i++, p += n )
+	{
+		int account_id;
+		int char_id;
+		char name[NAME_LENGTH];
+
+		if( *p == '\n' || *p == '\0' )
+			break;
+
+		if( sscanf(p, ",%d,%d,%23[^,\n]%n", &account_id, &char_id, name, &n) != 3 )
+			return false;
+
+		(*list)[i].account_id = account_id;
+		(*list)[i].char_id = char_id;
+		safestrncpy((*list)[i].name, name, NAME_LENGTH);
+	}
+	
+	return true;
+}
+
+
+static bool mmo_friendlist_tostr(const friendlist* list, char* str)
+{
+	int i;
+	char* p = str;
+
+	p[0] = '\0';
+
+	for( i = 0; i < MAX_FRIENDS; i++ )
+		if( (*list)[i].account_id > 0 && (*list)[i].char_id > 0 && (*list)[i].name[0] != '\0' )
+			p += sprintf(p, ",%d,%d,%s", (*list)[i].account_id, (*list)[i].char_id, (*list)[i].name);
+
+	return true;
+}
+
+
+static bool mmo_frienddb_sync(FriendDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->friend_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_friend_sync: can't write [%s] !!! data is lost !!!\n", db->friend_db);
+		return false;
+	}
+
+	iter = db->friends->iterator(db->friends);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		friendlist* list = (friendlist*) data;
+		char line[8192];
+
+		mmo_friendlist_tostr(list, line);
+		fprintf(fp, "%d%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->friend_db, &lock);
+
+	return true;
 }
 
 
@@ -204,75 +243,26 @@ static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_
 	return true;
 }
 
-static bool mmo_friendlist_fromstr(friendlist* list, char* str)
+
+/// public constructor
+FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 {
-	const char* p = str;
-	int i, n;
+	FriendDB_TXT* db = (FriendDB_TXT*)aCalloc(1, sizeof(FriendDB_TXT));
 
-	memset(list, 0, sizeof(friendlist));
+	// set up the vtable
+	db->vtable.init      = &friend_db_txt_init;
+	db->vtable.destroy   = &friend_db_txt_destroy;
+	db->vtable.sync      = &friend_db_txt_sync;
+	db->vtable.remove    = &friend_db_txt_remove;
+	db->vtable.save      = &friend_db_txt_save;
+	db->vtable.load      = &friend_db_txt_load;
 
-	for( i = 0; i < MAX_FRIENDS; i++, p += n )
-	{
-		int account_id;
-		int char_id;
-		char name[NAME_LENGTH];
+	// initialize to default values
+	db->owner = owner;
+	db->friends = NULL;
 
-		if( *p == '\n' || *p == '\0' )
-			break;
+	// other settings
+	db->friend_db = db->owner->file_friends;
 
-		if( sscanf(p, ",%d,%d,%23[^,\n]%n", &account_id, &char_id, name, &n) != 3 )
-			return false;
-
-		(*list)[i].account_id = account_id;
-		(*list)[i].char_id = char_id;
-		safestrncpy((*list)[i].name, name, NAME_LENGTH);
-	}
-	
-	return true;
-}
-
-static bool mmo_friendlist_tostr(const friendlist* list, char* str)
-{
-	int i;
-	char* p = str;
-
-	p[0] = '\0';
-
-	for( i = 0; i < MAX_FRIENDS; i++ )
-		if( (*list)[i].account_id > 0 && (*list)[i].char_id > 0 && (*list)[i].name[0] != '\0' )
-			p += sprintf(p, ",%d,%d,%s", (*list)[i].account_id, (*list)[i].char_id, (*list)[i].name);
-
-	return true;
-}
-
-static bool mmo_frienddb_sync(FriendDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->friend_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_friend_sync: can't write [%s] !!! data is lost !!!\n", db->friend_db);
-		return false;
-	}
-
-	iter = db->friends->iterator(db->friends);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		friendlist* list = (friendlist*) data;
-		char line[8192];
-
-		mmo_friendlist_tostr(list, line);
-		fprintf(fp, "%d%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->friend_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

@@ -27,167 +27,7 @@ typedef struct GuildDB_TXT
 
 } GuildDB_TXT;
 
-/// internal functions
-static bool guild_db_txt_init(GuildDB* self);
-static void guild_db_txt_destroy(GuildDB* self);
-static bool guild_db_txt_sync(GuildDB* self);
-static bool guild_db_txt_create(GuildDB* self, struct guild* g);
-static bool guild_db_txt_remove(GuildDB* self, const int guild_id);
-static bool guild_db_txt_save(GuildDB* self, const struct guild* g);
-static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id);
-static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id);
 
-static bool mmo_guild_fromstr(struct guild* g, char* str);
-static bool mmo_guild_tostr(const struct guild* g, char* str);
-static bool mmo_guild_sync(GuildDB_TXT* db);
-
-/// public constructor
-GuildDB* guild_db_txt(CharServerDB_TXT* owner)
-{
-	GuildDB_TXT* db = (GuildDB_TXT*)aCalloc(1, sizeof(GuildDB_TXT));
-
-	// set up the vtable
-	db->vtable.init      = &guild_db_txt_init;
-	db->vtable.destroy   = &guild_db_txt_destroy;
-	db->vtable.sync      = &guild_db_txt_sync;
-	db->vtable.create    = &guild_db_txt_create;
-	db->vtable.remove    = &guild_db_txt_remove;
-	db->vtable.save      = &guild_db_txt_save;
-	db->vtable.load_num  = &guild_db_txt_load_num;
-	db->vtable.name2id   = &guild_db_txt_name2id;
-
-	// initialize to default values
-	db->owner = owner;
-	db->guilds = NULL;
-	db->next_guild_id = START_GUILD_NUM;
-
-	// other settings
-	db->guild_db = db->owner->file_guilds;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool guild_db_txt_init(GuildDB* self)
-{
-	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	DBMap* guilds;
-
-	char line[16384];
-	FILE* fp;
-
-	// create guild database
-	db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
-	guilds = db->guilds;
-
-	// open data file
-	fp = fopen(db->guild_db, "r");
-	if( fp == NULL )
-		return 1;
-
-	// load data file
-/*
-	while( fgets(line, sizeof(line), fp) )
-	{
-		j = 0;
-		if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && guild_newid <= i) {
-			guild_newid = i;
-			continue;
-		}
-
-		g = (struct guild *) aCalloc(sizeof(struct guild), 1);
-		if(g == NULL){
-			ShowFatalError("int_guild: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-		if (inter_guild_fromstr(line, g) == 0 && g->guild_id > 0)
-		{
-			if (g->guild_id >= guild_newid)
-				guild_newid = g->guild_id + 1;
-			idb_put(guild_db, g->guild_id, g);
-			guild_check_empty(g);
-			guild_calcinfo(g);
-		} else {
-			ShowError("int_guild: broken data [%s] line %d\n", guild_txt, c);
-			aFree(g);
-		}
-		c++;
-	}
-*/
-
-	// close data file
-	fclose(fp);
-
-	return true;
-}
-
-static void guild_db_txt_destroy(GuildDB* self)
-{
-	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	DBMap* guilds = db->guilds;
-
-	// write data
-	mmo_guild_sync(db);
-
-	// delete guild database
-	guilds->destroy(guilds, NULL);
-	db->guilds = NULL;
-
-	// delete entire structure
-	aFree(db);
-}
-
-static bool guild_db_txt_sync(GuildDB* self)
-{
-	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	return mmo_guild_sync(db);
-}
-
-static bool guild_db_txt_create(GuildDB* self, struct guild* g)
-{
-/*
-*/
-}
-
-static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
-{
-/*
-*/
-}
-
-static bool guild_db_txt_save(GuildDB* self, const struct guild* g)
-{
-/*
-*/
-}
-
-static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id)
-{
-/*
-	return (struct guild*)idb_get(guild_db, guild_id);
-*/
-}
-
-static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
-{
-/*
-	DBIterator* iter;
-	struct guild* g;
-
-	iter = guild_db->iterator(guild_db);
-	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
-	{
-		if (strcmpi(g->name, str) == 0)
-			break;
-	}
-	iter->destroy(iter);
-
-	return g;
-*/
-}
 
 /// parses the guild data string into a guild data structure
 static bool mmo_guild_fromstr(struct guild* g, char* str)
@@ -388,6 +228,7 @@ static bool mmo_guild_fromstr(struct guild* g, char* str)
 	return true;
 }
 
+
 /// serializes the guild data structure into the provided string
 static bool mmo_guild_tostr(const struct guild* g, char* str)
 {
@@ -460,6 +301,7 @@ static bool mmo_guild_tostr(const struct guild* g, char* str)
 	return true;
 }
 
+
 static bool mmo_guild_sync(GuildDB_TXT* db)
 {
 /*
@@ -490,4 +332,150 @@ static bool mmo_guild_sync(GuildDB_TXT* db)
 */
 
 	return true;
+}
+
+
+static bool guild_db_txt_init(GuildDB* self)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds;
+
+	char line[16384];
+	FILE* fp;
+
+	// create guild database
+	db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
+	guilds = db->guilds;
+
+	// open data file
+	fp = fopen(db->guild_db, "r");
+	if( fp == NULL )
+		return 1;
+
+	// load data file
+/*
+	while( fgets(line, sizeof(line), fp) )
+	{
+		j = 0;
+		if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && guild_newid <= i) {
+			guild_newid = i;
+			continue;
+		}
+
+		g = (struct guild *) aCalloc(sizeof(struct guild), 1);
+		if(g == NULL){
+			ShowFatalError("int_guild: out of memory!\n");
+			exit(EXIT_FAILURE);
+		}
+		if (inter_guild_fromstr(line, g) == 0 && g->guild_id > 0)
+		{
+			if (g->guild_id >= guild_newid)
+				guild_newid = g->guild_id + 1;
+			idb_put(guild_db, g->guild_id, g);
+			guild_check_empty(g);
+			guild_calcinfo(g);
+		} else {
+			ShowError("int_guild: broken data [%s] line %d\n", guild_txt, c);
+			aFree(g);
+		}
+		c++;
+	}
+*/
+
+	// close data file
+	fclose(fp);
+
+	return true;
+}
+
+static void guild_db_txt_destroy(GuildDB* self)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+
+	// write data
+	mmo_guild_sync(db);
+
+	// delete guild database
+	guilds->destroy(guilds, NULL);
+	db->guilds = NULL;
+
+	// delete entire structure
+	aFree(db);
+}
+
+static bool guild_db_txt_sync(GuildDB* self)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	return mmo_guild_sync(db);
+}
+
+static bool guild_db_txt_create(GuildDB* self, struct guild* g)
+{
+/*
+*/
+}
+
+static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
+{
+/*
+*/
+}
+
+static bool guild_db_txt_save(GuildDB* self, const struct guild* g)
+{
+/*
+*/
+}
+
+static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id)
+{
+/*
+	return (struct guild*)idb_get(guild_db, guild_id);
+*/
+}
+
+static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
+{
+/*
+	DBIterator* iter;
+	struct guild* g;
+
+	iter = guild_db->iterator(guild_db);
+	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
+	{
+		if (strcmpi(g->name, str) == 0)
+			break;
+	}
+	iter->destroy(iter);
+
+	return g;
+*/
+}
+
+
+/// public constructor
+GuildDB* guild_db_txt(CharServerDB_TXT* owner)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)aCalloc(1, sizeof(GuildDB_TXT));
+
+	// set up the vtable
+	db->vtable.init      = &guild_db_txt_init;
+	db->vtable.destroy   = &guild_db_txt_destroy;
+	db->vtable.sync      = &guild_db_txt_sync;
+	db->vtable.create    = &guild_db_txt_create;
+	db->vtable.remove    = &guild_db_txt_remove;
+	db->vtable.save      = &guild_db_txt_save;
+	db->vtable.load_num  = &guild_db_txt_load_num;
+	db->vtable.name2id   = &guild_db_txt_name2id;
+
+	// initialize to default values
+	db->owner = owner;
+	db->guilds = NULL;
+	db->next_guild_id = START_GUILD_NUM;
+
+	// other settings
+	db->guild_db = db->owner->file_guilds;
+
+	return &db->vtable;
 }

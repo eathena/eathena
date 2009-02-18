@@ -28,46 +28,107 @@ typedef struct HomunDB_TXT
 
 } HomunDB_TXT;
 
-/// internal functions
-static bool homun_db_txt_init(HomunDB* self);
-static void homun_db_txt_destroy(HomunDB* self);
-static bool homun_db_txt_sync(HomunDB* self);
-static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd);
-static bool homun_db_txt_remove(HomunDB* self, const int homun_id);
-static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd);
-static bool homun_db_txt_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id);
 
-static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str);
-static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str);
-static bool mmo_homun_sync(HomunDB_TXT* db);
 
-/// public constructor
-HomunDB* homun_db_txt(CharServerDB_TXT* owner)
+static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
+	int next, len;
 
-	// set up the vtable
-	db->vtable.init      = &homun_db_txt_init;
-	db->vtable.destroy   = &homun_db_txt_destroy;
-	db->vtable.sync      = &homun_db_txt_sync;
-	db->vtable.create    = &homun_db_txt_create;
-	db->vtable.remove    = &homun_db_txt_remove;
-	db->vtable.save      = &homun_db_txt_save;
-	db->vtable.load_num  = &homun_db_txt_load_num;
+	memset(hd, 0, sizeof(struct s_homunculus));
 
-	// initialize to default values
-	db->owner = owner;
-	db->homuns = NULL;
-	db->next_homun_id = START_HOMUN_NUM;
+	if( sscanf(str,
+		"%d,%d\t%23[^\t]\t%d,%d,%d,%d,%d,"
+		"%u,%d,%d,%d,"
+		"%u,%d,%d,"
+		"%d,%d,%d,%d,%d,%d\t%n",
+		&hd->hom_id, &hd->class_, hd->name,
+		&hd->char_id, &hd->hp, &hd->max_hp, &hd->sp, &hd->max_sp,
+		&hd->intimacy, &hd->hunger, &hd->skillpts, &hd->level,
+		&hd->exp, &hd->rename_flag, &hd->vaporize,
+		&hd->str, &hd->agi, &hd->vit, &hd->int_, &hd->dex, &hd->luk,
+		&next) != 21 )
+		return false;
 
-	// other settings
-	db->homun_db = db->owner->file_homuns;
+	//Read skills.
+	while( str[next] != '\0' && str[next] != '\n' && str[next] != '\r' )
+	{
+		int id, lv;
 
-	return &db->vtable;
+		if( sscanf(str+next, "%d,%d,%n", &id, &lv, &len) != 2 )
+			return false;
+
+		if( id >= HM_SKILLBASE && id < HM_SKILLBASE+MAX_HOMUNSKILL )
+		{
+			int i = id - HM_SKILLBASE;
+			hd->hskill[i].id = id;
+			hd->hskill[i].lv = lv;
+		} else
+			ShowError("Read Homun: Unsupported Skill ID %d for homunculus (Homun ID=%d)\n", id, hd->hom_id);
+
+		next += len;
+		if( str[next] == ' ' )
+			next++;
+	}
+
+	return true;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
+{
+	int i;
+
+	str += sprintf(str,
+		"%d,%d\t%s\t%d,%d,%d,%d,%d,"
+		"%u,%d,%d,%d,"
+		"%u,%d,%d,"
+		"%d,%d,%d,%d,%d,%d\t",
+		hd->hom_id, hd->class_, hd->name,
+		hd->char_id, hd->hp, hd->max_hp, hd->sp, hd->max_sp,
+	  	hd->intimacy, hd->hunger, hd->skillpts, hd->level,
+		hd->exp, hd->rename_flag, hd->vaporize,
+		hd->str, hd->agi, hd->vit, hd->int_, hd->dex, hd->luk);
+
+	for( i = 0; i < MAX_HOMUNSKILL; i++ )
+	{
+		if( hd->hskill[i].id && !hd->hskill[i].flag )
+			str += sprintf(str, "%d,%d,", hd->hskill[i].id, hd->hskill[i].lv);
+	}
+
+	return true;
+
+}
+
+
+static bool mmo_homun_sync(HomunDB_TXT* db)
+{
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->homun_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_homun_sync: can't write [%s] !!! data is lost !!!\n", db->homun_db);
+		return false;
+	}
+
+	iter = db->homuns->iterator(db->homuns);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_homunculus* hd = (struct s_homunculus*) data;
+		char line[8192];
+
+		mmo_homun_tostr(hd, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->homun_db, &lock);
+
+	return true;
+}
 
 
 static bool homun_db_txt_init(HomunDB* self)
@@ -226,99 +287,27 @@ static bool homun_db_txt_load_num(HomunDB* self, struct s_homunculus* hd, int ho
 }
 
 
-static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
+/// public constructor
+HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 {
-	int next, len;
+	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
 
-	memset(hd, 0, sizeof(struct s_homunculus));
+	// set up the vtable
+	db->vtable.init      = &homun_db_txt_init;
+	db->vtable.destroy   = &homun_db_txt_destroy;
+	db->vtable.sync      = &homun_db_txt_sync;
+	db->vtable.create    = &homun_db_txt_create;
+	db->vtable.remove    = &homun_db_txt_remove;
+	db->vtable.save      = &homun_db_txt_save;
+	db->vtable.load_num  = &homun_db_txt_load_num;
 
-	if( sscanf(str,
-		"%d,%d\t%23[^\t]\t%d,%d,%d,%d,%d,"
-		"%u,%d,%d,%d,"
-		"%u,%d,%d,"
-		"%d,%d,%d,%d,%d,%d\t%n",
-		&hd->hom_id, &hd->class_, hd->name,
-		&hd->char_id, &hd->hp, &hd->max_hp, &hd->sp, &hd->max_sp,
-		&hd->intimacy, &hd->hunger, &hd->skillpts, &hd->level,
-		&hd->exp, &hd->rename_flag, &hd->vaporize,
-		&hd->str, &hd->agi, &hd->vit, &hd->int_, &hd->dex, &hd->luk,
-		&next) != 21 )
-		return false;
+	// initialize to default values
+	db->owner = owner;
+	db->homuns = NULL;
+	db->next_homun_id = START_HOMUN_NUM;
 
-	//Read skills.
-	while( str[next] != '\0' && str[next] != '\n' && str[next] != '\r' )
-	{
-		int id, lv;
+	// other settings
+	db->homun_db = db->owner->file_homuns;
 
-		if( sscanf(str+next, "%d,%d,%n", &id, &lv, &len) != 2 )
-			return false;
-
-		if( id >= HM_SKILLBASE && id < HM_SKILLBASE+MAX_HOMUNSKILL )
-		{
-			int i = id - HM_SKILLBASE;
-			hd->hskill[i].id = id;
-			hd->hskill[i].lv = lv;
-		} else
-			ShowError("Read Homun: Unsupported Skill ID %d for homunculus (Homun ID=%d)\n", id, hd->hom_id);
-
-		next += len;
-		if( str[next] == ' ' )
-			next++;
-	}
-
-	return true;
-}
-
-static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
-{
-	int i;
-
-	str += sprintf(str,
-		"%d,%d\t%s\t%d,%d,%d,%d,%d,"
-		"%u,%d,%d,%d,"
-		"%u,%d,%d,"
-		"%d,%d,%d,%d,%d,%d\t",
-		hd->hom_id, hd->class_, hd->name,
-		hd->char_id, hd->hp, hd->max_hp, hd->sp, hd->max_sp,
-	  	hd->intimacy, hd->hunger, hd->skillpts, hd->level,
-		hd->exp, hd->rename_flag, hd->vaporize,
-		hd->str, hd->agi, hd->vit, hd->int_, hd->dex, hd->luk);
-
-	for( i = 0; i < MAX_HOMUNSKILL; i++ )
-	{
-		if( hd->hskill[i].id && !hd->hskill[i].flag )
-			str += sprintf(str, "%d,%d,", hd->hskill[i].id, hd->hskill[i].lv);
-	}
-
-	return true;
-}
-
-static bool mmo_homun_sync(HomunDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->homun_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_homun_sync: can't write [%s] !!! data is lost !!!\n", db->homun_db);
-		return false;
-	}
-
-	iter = db->homuns->iterator(db->homuns);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct s_homunculus* hd = (struct s_homunculus*) data;
-		char line[8192];
-
-		mmo_homun_tostr(hd, line);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->homun_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

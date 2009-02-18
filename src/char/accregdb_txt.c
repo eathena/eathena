@@ -28,48 +28,75 @@ typedef struct AccRegDB_TXT
 
 } AccRegDB_TXT;
 
-/// internal functions
-static bool accreg_db_txt_init(AccRegDB* self);
-static void accreg_db_txt_destroy(AccRegDB* self);
-static bool accreg_db_txt_sync(AccRegDB* self);
-static bool accreg_db_txt_remove(AccRegDB* self, const int account_id);
-static bool accreg_db_txt_save(AccRegDB* self, const struct regs* reg, int account_id);
-static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id);
-
-static bool mmo_accreg_fromstr(struct regs* reg, const char* str);
-static bool mmo_accreg_tostr(const struct regs* reg, char* str);
-static bool mmo_accreg_sync(AccRegDB_TXT* db);
-
-/// public constructor
-AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
-{
-	AccRegDB_TXT* db = (AccRegDB_TXT*)aCalloc(1, sizeof(AccRegDB_TXT));
-
-	// set up the vtable
-	db->vtable.init    = &accreg_db_txt_init;
-	db->vtable.destroy = &accreg_db_txt_destroy;
-	db->vtable.sync    = &accreg_db_txt_sync;
-	db->vtable.remove  = &accreg_db_txt_remove;
-	db->vtable.save    = &accreg_db_txt_save;
-	db->vtable.load    = &accreg_db_txt_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->accregs = NULL;
-
-	// other settings
-	db->accreg_db = db->owner->file_accregs;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
 
 
 static void* create_accregs(DBKey key, va_list args)
 {
 	return (struct regs*)aMalloc(sizeof(struct regs));
+}
+
+
+static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
+{
+	const char* p = str;
+	int i, n;
+
+	for( i = 0; i < ACCOUNT_REG_NUM; i++, p += n )
+	{
+		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &n) != 2) 
+			break;
+	}
+	reg->reg_num = i;
+
+	return true;
+}
+
+
+static bool mmo_accreg_tostr(const struct regs* reg, char* str)
+{
+	char* p = str;
+	int i;
+
+	for( i = 0; i < reg->reg_num; ++i )
+		p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
+
+	return true;
+}
+
+
+static bool mmo_accreg_sync(AccRegDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->accreg_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_accreg_sync: can't write [%s] !!! data is lost !!!\n", db->accreg_db);
+		return false;
+	}
+
+	iter = db->accregs->iterator(db->accregs);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int account_id = key.i;
+		struct regs* reg = (struct regs*) data;
+		char line[8192];
+
+		if( reg->reg_num == 0 )
+			continue;
+
+		mmo_accreg_tostr(reg, line);
+		fprintf(fp, "%d\t%s\n", account_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->accreg_db, &lock);
+
+	return true;
 }
 
 
@@ -205,63 +232,26 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 	return true;
 }
 
-static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
+
+/// public constructor
+AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 {
-	const char* p = str;
-	int i, n;
+	AccRegDB_TXT* db = (AccRegDB_TXT*)aCalloc(1, sizeof(AccRegDB_TXT));
 
-	for( i = 0; i < ACCOUNT_REG_NUM; i++, p += n )
-	{
-		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &n) != 2) 
-			break;
-	}
-	reg->reg_num = i;
+	// set up the vtable
+	db->vtable.init    = &accreg_db_txt_init;
+	db->vtable.destroy = &accreg_db_txt_destroy;
+	db->vtable.sync    = &accreg_db_txt_sync;
+	db->vtable.remove  = &accreg_db_txt_remove;
+	db->vtable.save    = &accreg_db_txt_save;
+	db->vtable.load    = &accreg_db_txt_load;
 
-	return true;
-}
+	// initialize to default values
+	db->owner = owner;
+	db->accregs = NULL;
 
-static bool mmo_accreg_tostr(const struct regs* reg, char* str)
-{
-	char* p = str;
-	int i;
+	// other settings
+	db->accreg_db = db->owner->file_accregs;
 
-	for( i = 0; i < reg->reg_num; ++i )
-		p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
-
-	return true;
-}
-
-static bool mmo_accreg_sync(AccRegDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->accreg_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_accreg_sync: can't write [%s] !!! data is lost !!!\n", db->accreg_db);
-		return false;
-	}
-
-	iter = db->accregs->iterator(db->accregs);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int account_id = key.i;
-		struct regs* reg = (struct regs*) data;
-		char line[8192];
-
-		if( reg->reg_num == 0 )
-			continue;
-
-		mmo_accreg_tostr(reg, line);
-		fprintf(fp, "%d\t%s\n", account_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->accreg_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

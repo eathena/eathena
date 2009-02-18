@@ -6,7 +6,6 @@
 #include "../common/mmo.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
-#include "char.h" // TABLE_STORAGE
 #include "charserverdb_sql.h"
 #include "storagedb.h"
 #include <stdlib.h>
@@ -26,88 +25,6 @@ typedef struct StorageDB_SQL
 
 } StorageDB_SQL;
 
-/// internal functions
-static bool storage_db_sql_init(StorageDB* self);
-static void storage_db_sql_destroy(StorageDB* self);
-static bool storage_db_sql_sync(StorageDB* self);
-static bool storage_db_sql_remove(StorageDB* self, const int account_id);
-static bool storage_db_sql_save(StorageDB* self, const struct storage_data* s, int account_id);
-static bool storage_db_sql_load(StorageDB* self, struct storage_data* s, int account_id);
-
-static bool mmo_storage_fromsql(StorageDB_SQL* db, struct storage_data* s, int account_id);
-static bool mmo_storage_tosql(StorageDB_SQL* db, const struct storage_data* s, int account_id);
-
-/// public constructor
-StorageDB* storage_db_sql(CharServerDB_SQL* owner)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)aCalloc(1, sizeof(StorageDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &storage_db_sql_init;
-	db->vtable.destroy   = &storage_db_sql_destroy;
-	db->vtable.sync      = &storage_db_sql_sync;
-	db->vtable.remove    = &storage_db_sql_remove;
-	db->vtable.save      = &storage_db_sql_save;
-	db->vtable.load      = &storage_db_sql_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->storages = NULL;
-
-	// other settings
-	db->storage_db = db->owner->table_storages;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool storage_db_sql_init(StorageDB* self)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)self;
-	db->storages = db->owner->sql_handle;
-	return true;
-}
-
-static void storage_db_sql_destroy(StorageDB* self)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)self;
-	db->storages = NULL;
-	aFree(db);
-}
-
-static bool storage_db_sql_sync(StorageDB* self)
-{
-	return true;
-}
-
-static bool storage_db_sql_remove(StorageDB* self, const int account_id)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)self;
-	Sql* sql_handle = db->storages;
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id`='%d'", db->storage_db, account_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	return true;
-}
-
-static bool storage_db_sql_save(StorageDB* self, const struct storage_data* s, int account_id)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)self;
-	return mmo_storage_tosql(db, s, account_id);
-}
-
-static bool storage_db_sql_load(StorageDB* self, struct storage_data* s, int account_id)
-{
-	StorageDB_SQL* db = (StorageDB_SQL*)self;
-	return mmo_storage_fromsql(db, s, account_id);
-}
 
 
 static bool mmo_storage_fromsql(StorageDB_SQL* db, struct storage_data* s, int account_id)
@@ -159,7 +76,78 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct storage_data* s, int a
 	return true;
 }
 
+
 static bool mmo_storage_tosql(StorageDB_SQL* db, const struct storage_data* s, int account_id)
 {
 	return memitemdata_to_sql(db->storages, s->items, MAX_STORAGE, account_id, db->storage_db, "account_id");
+}
+
+
+static bool storage_db_sql_init(StorageDB* self)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	db->storages = db->owner->sql_handle;
+	return true;
+}
+
+static void storage_db_sql_destroy(StorageDB* self)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	db->storages = NULL;
+	aFree(db);
+}
+
+static bool storage_db_sql_sync(StorageDB* self)
+{
+	return true;
+}
+
+static bool storage_db_sql_remove(StorageDB* self, const int account_id)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	Sql* sql_handle = db->storages;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id`='%d'", db->storage_db, account_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
+}
+
+static bool storage_db_sql_save(StorageDB* self, const struct storage_data* s, int account_id)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	return mmo_storage_tosql(db, s, account_id);
+}
+
+static bool storage_db_sql_load(StorageDB* self, struct storage_data* s, int account_id)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	return mmo_storage_fromsql(db, s, account_id);
+}
+
+
+/// public constructor
+StorageDB* storage_db_sql(CharServerDB_SQL* owner)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)aCalloc(1, sizeof(StorageDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &storage_db_sql_init;
+	db->vtable.destroy   = &storage_db_sql_destroy;
+	db->vtable.sync      = &storage_db_sql_sync;
+	db->vtable.remove    = &storage_db_sql_remove;
+	db->vtable.save      = &storage_db_sql_save;
+	db->vtable.load      = &storage_db_sql_load;
+
+	// initialize to default values
+	db->owner = owner;
+	db->storages = NULL;
+
+	// other settings
+	db->storage_db = db->owner->table_storages;
+
+	return &db->vtable;
 }

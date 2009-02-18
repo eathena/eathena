@@ -31,89 +31,6 @@ typedef struct CharRegDB_SQL
 
 } CharRegDB_SQL;
 
-/// internal functions
-static bool charreg_db_sql_init(CharRegDB* self);
-static void charreg_db_sql_destroy(CharRegDB* self);
-static bool charreg_db_sql_sync(CharRegDB* self);
-static bool charreg_db_sql_remove(CharRegDB* self, const int char_id);
-static bool charreg_db_sql_save(CharRegDB* self, const struct regs* reg, int char_id);
-static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id);
-
-static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id);
-static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int char_id);
-
-/// public constructor
-CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)aCalloc(1, sizeof(CharRegDB_SQL));
-
-	// set up the vtable
-	db->vtable.init    = &charreg_db_sql_init;
-	db->vtable.destroy = &charreg_db_sql_destroy;
-	db->vtable.sync    = &charreg_db_sql_sync;
-	db->vtable.remove  = &charreg_db_sql_remove;
-	db->vtable.save    = &charreg_db_sql_save;
-	db->vtable.load    = &charreg_db_sql_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->charregs = NULL;
-
-	// other settings
-	db->charreg_db = db->owner->table_registry;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool charreg_db_sql_init(CharRegDB* self)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	db->charregs = db->owner->sql_handle;
-	return true;
-}
-
-static void charreg_db_sql_destroy(CharRegDB* self)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	db->charregs = NULL;
-	aFree(db);
-}
-
-static bool charreg_db_sql_sync(CharRegDB* self)
-{
-	// not applicable
-	return true;
-}
-
-static bool charreg_db_sql_remove(CharRegDB* self, const int char_id)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	Sql* sql_handle = db->charregs;
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `account_id`='%d'", db->charreg_db, char_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	return true;
-}
-
-static bool charreg_db_sql_save(CharRegDB* self, const struct regs* reg, int char_id)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	return mmo_charreg_tosql(db, reg, char_id);
-}
-
-static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	return mmo_charreg_fromsql(db, reg, char_id);
-}
 
 
 static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id)
@@ -140,6 +57,7 @@ static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id
 
 	return true;
 }
+
 
 static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int char_id)
 {
@@ -210,4 +128,75 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 	}
 
 	return result;
+}
+
+
+static bool charreg_db_sql_init(CharRegDB* self)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	db->charregs = db->owner->sql_handle;
+	return true;
+}
+
+static void charreg_db_sql_destroy(CharRegDB* self)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	db->charregs = NULL;
+	aFree(db);
+}
+
+static bool charreg_db_sql_sync(CharRegDB* self)
+{
+	// not applicable
+	return true;
+}
+
+static bool charreg_db_sql_remove(CharRegDB* self, const int char_id)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	Sql* sql_handle = db->charregs;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `type`=3 AND `account_id`='%d'", db->charreg_db, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
+}
+
+static bool charreg_db_sql_save(CharRegDB* self, const struct regs* reg, int char_id)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	return mmo_charreg_tosql(db, reg, char_id);
+}
+
+static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	return mmo_charreg_fromsql(db, reg, char_id);
+}
+
+
+/// public constructor
+CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)aCalloc(1, sizeof(CharRegDB_SQL));
+
+	// set up the vtable
+	db->vtable.init    = &charreg_db_sql_init;
+	db->vtable.destroy = &charreg_db_sql_destroy;
+	db->vtable.sync    = &charreg_db_sql_sync;
+	db->vtable.remove  = &charreg_db_sql_remove;
+	db->vtable.save    = &charreg_db_sql_save;
+	db->vtable.load    = &charreg_db_sql_load;
+
+	// initialize to default values
+	db->owner = owner;
+	db->charregs = NULL;
+
+	// other settings
+	db->charreg_db = db->owner->table_registry;
+
+	return &db->vtable;
 }

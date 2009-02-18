@@ -26,43 +26,108 @@ typedef struct FriendDB_SQL
 
 } FriendDB_SQL;
 
-/// internal functions
-static bool friend_db_sql_init(FriendDB* self);
-static void friend_db_sql_destroy(FriendDB* self);
-static bool friend_db_sql_sync(FriendDB* self);
-static bool friend_db_sql_remove(FriendDB* self, const int char_id);
-static bool friend_db_sql_save(FriendDB* self, const friendlist* list, const int char_id);
-static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_id);
 
-static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id);
-static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int char_id);
 
-/// public constructor
-FriendDB* friend_db_sql(CharServerDB_SQL* owner)
+static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id)
 {
-	FriendDB_SQL* db = (FriendDB_SQL*)aCalloc(1, sizeof(FriendDB_SQL));
+	Sql* sql_handle = db->friends;
+	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
+	struct s_friend tmp_friend;
+	bool result = false;
+	int i;
 
-	// set up the vtable
-	db->vtable.init      = &friend_db_sql_init;
-	db->vtable.destroy   = &friend_db_sql_destroy;
-	db->vtable.sync      = &friend_db_sql_sync;
-	db->vtable.remove    = &friend_db_sql_remove;
-	db->vtable.save      = &friend_db_sql_save;
-	db->vtable.load      = &friend_db_sql_load;
+	memset(list, 0, sizeof(friendlist));
 
-	// initialize to default values
-	db->owner = owner;
-	db->friends = NULL;
+	do
+	{
 
-	// other settings
-	db->friend_db = db->owner->table_friends;
-	db->char_db = db->owner->table_chars;
+	//`friends` (`char_id`, `friend_account`, `friend_id`)
+	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=%d LIMIT %d", db->char_db, db->friend_db, char_id, MAX_FRIENDS)
+	||	SQL_ERROR == SqlStmt_Execute(stmt)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &tmp_friend.account_id, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_INT,    &tmp_friend.char_id, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, &tmp_friend.name, sizeof(tmp_friend.name), NULL, NULL) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
 
-	return &db->vtable;
+	for( i = 0; i < MAX_FRIENDS && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
+		memcpy(&(*list)[i], &tmp_friend, sizeof(tmp_friend));
+
+	result = true;
+
+	}
+	while(0);
+
+	return result;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int char_id)
+{
+	Sql* sql_handle = db->friends;
+	StringBuf buf;
+	int i, count;
+	bool result = false;
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
+	// try
+	do
+	{
+
+	StringBuf_Init(&buf);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->friend_db, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", db->friend_db);
+	for( i = 0, count = 0; i < MAX_FRIENDS; ++i )
+	{
+		if( (*list)[i].char_id == 0 )
+			continue;
+
+		if( count != 0 )
+			StringBuf_AppendStr(&buf, ",");
+
+		StringBuf_Printf(&buf, "('%d','%d','%d')", char_id, (*list)[i].account_id, (*list)[i].char_id);
+		count++;
+	}
+
+	if( count > 0 )
+	{
+		if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+		{
+			Sql_ShowDebug(sql_handle);
+			break;
+		}
+	}
+
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	StringBuf_Destroy(&buf);
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
+}
 
 
 static bool friend_db_sql_init(FriendDB* self)
@@ -128,102 +193,26 @@ static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_
 }
 
 
-static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id)
+/// public constructor
+FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 {
-	Sql* sql_handle = db->friends;
-	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
-	struct s_friend tmp_friend;
-	bool result = false;
-	int i;
+	FriendDB_SQL* db = (FriendDB_SQL*)aCalloc(1, sizeof(FriendDB_SQL));
 
-	memset(list, 0, sizeof(friendlist));
+	// set up the vtable
+	db->vtable.init      = &friend_db_sql_init;
+	db->vtable.destroy   = &friend_db_sql_destroy;
+	db->vtable.sync      = &friend_db_sql_sync;
+	db->vtable.remove    = &friend_db_sql_remove;
+	db->vtable.save      = &friend_db_sql_save;
+	db->vtable.load      = &friend_db_sql_load;
 
-	do
-	{
+	// initialize to default values
+	db->owner = owner;
+	db->friends = NULL;
 
-	//`friends` (`char_id`, `friend_account`, `friend_id`)
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=%d LIMIT %d", db->char_db, db->friend_db, char_id, MAX_FRIENDS)
-	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &tmp_friend.account_id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_INT,    &tmp_friend.char_id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, &tmp_friend.name, sizeof(tmp_friend.name), NULL, NULL) )
-	{
-		SqlStmt_ShowDebug(stmt);
-		break;
-	}
+	// other settings
+	db->friend_db = db->owner->table_friends;
+	db->char_db = db->owner->table_chars;
 
-	for( i = 0; i < MAX_FRIENDS && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-		memcpy(&(*list)[i], &tmp_friend, sizeof(tmp_friend));
-
-	result = true;
-
-	}
-	while(0);
-
-	return result;
-}
-
-static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int char_id)
-{
-	Sql* sql_handle = db->friends;
-	StringBuf buf;
-	int i, count;
-	bool result = false;
-
-	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
-	{
-		Sql_ShowDebug(sql_handle);
-		return result;
-	}
-
-	// try
-	do
-	{
-
-	StringBuf_Init(&buf);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->friend_db, char_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		break;
-	}
-
-	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `friend_account`, `friend_id`) VALUES ", db->friend_db);
-	for( i = 0, count = 0; i < MAX_FRIENDS; ++i )
-	{
-		if( (*list)[i].char_id == 0 )
-			continue;
-
-		if( count != 0 )
-			StringBuf_AppendStr(&buf, ",");
-
-		StringBuf_Printf(&buf, "('%d','%d','%d')", char_id, (*list)[i].account_id, (*list)[i].char_id);
-		count++;
-	}
-
-	if( count > 0 )
-	{
-		if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-		{
-			Sql_ShowDebug(sql_handle);
-			break;
-		}
-	}
-
-	// success
-	result = true;
-
-	}
-	while(0);
-	// finally
-
-	StringBuf_Destroy(&buf);
-
-	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
-	{
-		Sql_ShowDebug(sql_handle);
-		result = false;
-	}
-
-	return result;
+	return &db->vtable;
 }

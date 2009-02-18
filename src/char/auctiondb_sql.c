@@ -25,96 +25,7 @@ typedef struct AuctionDB_SQL
 
 } AuctionDB_SQL;
 
-/// internal functions
-static bool auction_db_sql_init(AuctionDB* self);
-static void auction_db_sql_destroy(AuctionDB* self);
-static bool auction_db_sql_sync(AuctionDB* self);
-static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad);
-static bool auction_db_sql_remove(AuctionDB* self, const int mail_id);
-static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad);
-static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id);
-static int auction_db_sql_count(AuctionDB* self, const int char_id);
-static bool auction_db_sql_first(AuctionDB* self, struct auction_data* ad);
 
-static bool mmo_auction_fromsql(AuctionDB_SQL* db, struct auction_data* ad, int auction_id);
-static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, bool is_new);
-
-/// public constructor
-AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
-{
-	AuctionDB_SQL* db = (AuctionDB_SQL*)aCalloc(1, sizeof(AuctionDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &auction_db_sql_init;
-	db->vtable.destroy   = &auction_db_sql_destroy;
-	db->vtable.sync      = &auction_db_sql_sync;
-	db->vtable.create    = &auction_db_sql_create;
-	db->vtable.remove    = &auction_db_sql_remove;
-	db->vtable.save      = &auction_db_sql_save;
-	db->vtable.load      = &auction_db_sql_load;
-	db->vtable.count     = &auction_db_sql_count;
-	db->vtable.first     = &auction_db_sql_first;
-
-	// initialize to default values
-	db->owner = owner;
-	db->auctions = NULL;
-
-	// other settings
-	db->auction_db = db->owner->table_auctions;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool auction_db_sql_init(AuctionDB* self)
-{
-	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
-	db->auctions = db->owner->sql_handle;
-	return true;
-}
-
-static void auction_db_sql_destroy(AuctionDB* self)
-{
-	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
-	db->auctions = NULL;
-	aFree(db);
-}
-
-static bool auction_db_sql_sync(AuctionDB* self)
-{
-	return true;
-}
-
-static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad)
-{
-}
-
-static bool auction_db_sql_remove(AuctionDB* self, const int mail_id)
-{
-/*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `auction_id` = '%d'", auction_db, auction_id) )
-		Sql_ShowDebug(sql_handle);
-*/
-}
-
-static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad)
-{
-}
-
-static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
-{
-}
-
-static int auction_db_sql_count(AuctionDB* self, const int char_id)
-{
-}
-
-static bool auction_db_sql_first(AuctionDB* self, struct auction_data* ad)
-{
-}
 
 static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, bool is_new)
 {
@@ -171,6 +82,7 @@ static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, 
 
 	return result;
 }
+
 
 static bool mmo_auction_fromsql(AuctionDB_SQL* db, struct auction_data* ad, int auction_id)
 {
@@ -229,4 +141,79 @@ static bool mmo_auction_fromsql(AuctionDB_SQL* db, struct auction_data* ad, int 
 
 	Sql_FreeResult(sql_handle);
 */
+}
+
+
+static bool auction_db_sql_init(AuctionDB* self)
+{
+	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
+	db->auctions = db->owner->sql_handle;
+	return true;
+}
+
+static void auction_db_sql_destroy(AuctionDB* self)
+{
+	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
+	db->auctions = NULL;
+	aFree(db);
+}
+
+static bool auction_db_sql_sync(AuctionDB* self)
+{
+	return true;
+}
+
+static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad)
+{
+}
+
+static bool auction_db_sql_remove(AuctionDB* self, const int mail_id)
+{
+/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `auction_id` = '%d'", auction_db, auction_id) )
+		Sql_ShowDebug(sql_handle);
+*/
+}
+
+static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad)
+{
+}
+
+static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
+{
+}
+
+static int auction_db_sql_count(AuctionDB* self, const int char_id)
+{
+}
+
+static bool auction_db_sql_first(AuctionDB* self, struct auction_data* ad)
+{
+}
+
+
+/// public constructor
+AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
+{
+	AuctionDB_SQL* db = (AuctionDB_SQL*)aCalloc(1, sizeof(AuctionDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &auction_db_sql_init;
+	db->vtable.destroy   = &auction_db_sql_destroy;
+	db->vtable.sync      = &auction_db_sql_sync;
+	db->vtable.create    = &auction_db_sql_create;
+	db->vtable.remove    = &auction_db_sql_remove;
+	db->vtable.save      = &auction_db_sql_save;
+	db->vtable.load      = &auction_db_sql_load;
+	db->vtable.count     = &auction_db_sql_count;
+	db->vtable.first     = &auction_db_sql_first;
+
+	// initialize to default values
+	db->owner = owner;
+	db->auctions = NULL;
+
+	// other settings
+	db->auction_db = db->owner->table_auctions;
+
+	return &db->vtable;
 }

@@ -26,44 +26,78 @@ typedef struct QuestDB_SQL
 
 } QuestDB_SQL;
 
-/// internal functions
-static bool quest_db_sql_init(QuestDB* self);
-static void quest_db_sql_destroy(QuestDB* self);
-static bool quest_db_sql_sync(QuestDB* self);
-static bool quest_db_sql_remove(QuestDB* self, const int char_id);
-static bool quest_db_sql_add(QuestDB* self, const struct quest* qd, const int char_id);
-static bool quest_db_sql_del(QuestDB* self, const int char_id, const int quest_id);
-static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* const count);
 
-static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int* const count);
-//static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log);
 
-/// public constructor
-QuestDB* quest_db_sql(CharServerDB_SQL* owner)
+static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int* const count)
 {
-	QuestDB_SQL* db = (QuestDB_SQL*)aCalloc(1, sizeof(QuestDB_SQL));
+	Sql* sql_handle = db->quests;
+	struct quest tmp_quest;
+	struct quest_objective tmp_objective;
+	SqlStmt* stmt;
+	int i;
+	bool result = false;
 
-	// set up the vtable
-	db->vtable.init      = &quest_db_sql_init;
-	db->vtable.destroy   = &quest_db_sql_destroy;
-	db->vtable.sync      = &quest_db_sql_sync;
-	db->vtable.add       = &quest_db_sql_add;
-	db->vtable.del       = &quest_db_sql_del;
-	db->vtable.load      = &quest_db_sql_load;
+	memset(&tmp_quest, 0, sizeof(tmp_quest));
+	memset(&tmp_objective, 0, sizeof(tmp_objective));
+	*count = 0;
 
-	// initialize to default values
-	db->owner = owner;
-	db->quests = NULL;
+	stmt = SqlStmt_Malloc(sql_handle);
 
-	// other settings
-	db->quest_db = db->owner->table_quests;
-	db->objective_db = db->owner->table_quest_objectives;
+	//TODO: transaction
 
-	return &db->vtable;
+	do
+	{
+
+	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST)
+	||	SQL_SUCCESS != SqlStmt_Execute(stmt)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &tmp_quest.quest_id, 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &tmp_quest.state, 0, NULL, NULL) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
+
+	for( i = 0; i < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
+	{
+		(*log)[i].quest_id = tmp_quest.quest_id;
+		(*log)[i].state = tmp_quest.state;
+	}
+
+	*count = i;
+
+	for( i = 0; i < *count; ++i )
+	{
+		int j, num;
+
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `num`, `name`, `count` FROM `%s` WHERE `char_id`=%d AND `quest_id`=%d LIMIT %d", db->objective_db, char_id, (*log)[i].quest_id, MAX_QUEST_OBJECTIVES)
+		||	SQL_SUCCESS != SqlStmt_Execute(stmt)
+		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &num, 0, NULL, NULL)
+		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_STRING, &tmp_objective.name, NAME_LENGTH, NULL, NULL)
+		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 2, SQLDT_INT,    &tmp_objective.count, 0, NULL, NULL) )
+		{
+			SqlStmt_ShowDebug(stmt);
+			break;
+		}
+
+		for( j = 0; j < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++j )
+		{
+			safestrncpy((*log)[i].objectives[num].name, tmp_objective.name, NAME_LENGTH);
+			(*log)[i].objectives[num].count = tmp_objective.count;
+		}
+
+		(*log)[i].num_objectives = j;
+	}
+
+	SqlStmt_Free(stmt);
+
+	// if we got here, everything succeeded
+	result = true;
+
+	}
+	while(0);
+
+	return result;
 }
-
-
-/* ------------------------------------------------------------------------- */
 
 
 static bool quest_db_sql_init(QuestDB* self)
@@ -176,73 +210,26 @@ static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* co
 }
 
 
-static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int* const count)
+/// public constructor
+QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 {
-	Sql* sql_handle = db->quests;
-	struct quest tmp_quest;
-	struct quest_objective tmp_objective;
-	SqlStmt* stmt;
-	int i;
-	bool result = false;
+	QuestDB_SQL* db = (QuestDB_SQL*)aCalloc(1, sizeof(QuestDB_SQL));
 
-	memset(&tmp_quest, 0, sizeof(tmp_quest));
-	memset(&tmp_objective, 0, sizeof(tmp_objective));
-	*count = 0;
+	// set up the vtable
+	db->vtable.init      = &quest_db_sql_init;
+	db->vtable.destroy   = &quest_db_sql_destroy;
+	db->vtable.sync      = &quest_db_sql_sync;
+	db->vtable.add       = &quest_db_sql_add;
+	db->vtable.del       = &quest_db_sql_del;
+	db->vtable.load      = &quest_db_sql_load;
 
-	stmt = SqlStmt_Malloc(sql_handle);
+	// initialize to default values
+	db->owner = owner;
+	db->quests = NULL;
 
-	//TODO: transaction
+	// other settings
+	db->quest_db = db->owner->table_quests;
+	db->objective_db = db->owner->table_quest_objectives;
 
-	do
-	{
-
-	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST)
-	||	SQL_SUCCESS != SqlStmt_Execute(stmt)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &tmp_quest.quest_id, 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &tmp_quest.state, 0, NULL, NULL) )
-	{
-		SqlStmt_ShowDebug(stmt);
-		break;
-	}
-
-	for( i = 0; i < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-	{
-		(*log)[i].quest_id = tmp_quest.quest_id;
-		(*log)[i].state = tmp_quest.state;
-	}
-
-	*count = i;
-
-	for( i = 0; i < *count; ++i )
-	{
-		int j, num;
-
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `num`, `name`, `count` FROM `%s` WHERE `char_id`=%d AND `quest_id`=%d LIMIT %d", db->objective_db, char_id, (*log)[i].quest_id, MAX_QUEST_OBJECTIVES)
-		||	SQL_SUCCESS != SqlStmt_Execute(stmt)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &num, 0, NULL, NULL)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_STRING, &tmp_objective.name, NAME_LENGTH, NULL, NULL)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 2, SQLDT_INT,    &tmp_objective.count, 0, NULL, NULL) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
-
-		for( j = 0; j < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++j )
-		{
-			safestrncpy((*log)[i].objectives[num].name, tmp_objective.name, NAME_LENGTH);
-			(*log)[i].objectives[num].count = tmp_objective.count;
-		}
-
-		(*log)[i].num_objectives = j;
-	}
-
-	SqlStmt_Free(stmt);
-
-	// if we got here, everything succeeded
-	result = true;
-
-	}
-	while(0);
-
-	return result;
+	return &db->vtable;
 }

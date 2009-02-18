@@ -30,50 +30,48 @@ typedef struct AuctionDB_TXT
 
 } AuctionDB_TXT;
 
-/// internal functions
-static bool auction_db_txt_init(AuctionDB* self);
-static void auction_db_txt_destroy(AuctionDB* self);
-static bool auction_db_txt_sync(AuctionDB* self);
-static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad);
-static bool auction_db_txt_remove(AuctionDB* self, const int mail_id);
-static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad);
-static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const int auction_id);
-static int auction_db_txt_count(AuctionDB* self, const int char_id);
-static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad);
 
-static bool mmo_auction_fromstr(struct auction_data* ad, char* str);
-static bool mmo_auction_tostr(const struct auction_data* ad, char* str);
-static bool mmo_auctiondb_sync(AuctionDB_TXT* db);
 
-/// public constructor
-AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
+static bool mmo_auction_fromstr(struct auction_data* ad, char* str)
 {
-	AuctionDB_TXT* db = (AuctionDB_TXT*)aCalloc(1, sizeof(AuctionDB_TXT));
-
-	// set up the vtable
-	db->vtable.init      = &auction_db_txt_init;
-	db->vtable.destroy   = &auction_db_txt_destroy;
-	db->vtable.sync      = &auction_db_txt_sync;
-	db->vtable.create    = &auction_db_txt_create;
-	db->vtable.remove    = &auction_db_txt_remove;
-	db->vtable.save      = &auction_db_txt_save;
-	db->vtable.load      = &auction_db_txt_load;
-	db->vtable.count     = &auction_db_txt_count;
-	db->vtable.first     = &auction_db_txt_first;
-
-	// initialize to default values
-	db->owner = owner;
-	db->auctions = NULL;
-	db->next_auction_id = START_AUCTION_NUM;
-
-	// other settings
-	db->auction_db = db->owner->file_auctions;
-
-	return &db->vtable;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_auction_tostr(const struct auction_data* ad, char* str)
+{
+}
+
+
+static bool mmo_auctiondb_sync(AuctionDB_TXT* db)
+{
+/*
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->auction_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_auction_sync: can't write [%s] !!! data is lost !!!\n", db->auction_db);
+		return false;
+	}
+
+	iter = db->auctions->iterator(db->auctions);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct auction_data* ad = (struct auction_data*) data;
+		char line[8192];
+
+		mmo_auction_tostr(ad, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->auction_db, &lock);
+*/
+	return true;
+}
 
 
 static bool auction_db_txt_init(AuctionDB* self)
@@ -237,41 +235,30 @@ static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 {
 }
 
-static bool mmo_auction_fromstr(struct auction_data* ad, char* str)
+
+/// public constructor
+AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 {
-}
+	AuctionDB_TXT* db = (AuctionDB_TXT*)aCalloc(1, sizeof(AuctionDB_TXT));
 
-static bool mmo_auction_tostr(const struct auction_data* ad, char* str)
-{
-}
+	// set up the vtable
+	db->vtable.init      = &auction_db_txt_init;
+	db->vtable.destroy   = &auction_db_txt_destroy;
+	db->vtable.sync      = &auction_db_txt_sync;
+	db->vtable.create    = &auction_db_txt_create;
+	db->vtable.remove    = &auction_db_txt_remove;
+	db->vtable.save      = &auction_db_txt_save;
+	db->vtable.load      = &auction_db_txt_load;
+	db->vtable.count     = &auction_db_txt_count;
+	db->vtable.first     = &auction_db_txt_first;
 
-static bool mmo_auctiondb_sync(AuctionDB_TXT* db)
-{
-/*
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
+	// initialize to default values
+	db->owner = owner;
+	db->auctions = NULL;
+	db->next_auction_id = START_AUCTION_NUM;
 
-	fp = lock_fopen(db->auction_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_auction_sync: can't write [%s] !!! data is lost !!!\n", db->auction_db);
-		return false;
-	}
+	// other settings
+	db->auction_db = db->owner->file_auctions;
 
-	iter = db->auctions->iterator(db->auctions);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct auction_data* ad = (struct auction_data*) data;
-		char line[8192];
-
-		mmo_auction_tostr(ad, line);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->auction_db, &lock);
-*/
-	return true;
+	return &db->vtable;
 }

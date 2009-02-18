@@ -28,48 +28,81 @@ typedef struct HotkeyDB_TXT
 
 } HotkeyDB_TXT;
 
-/// internal functions
-static bool hotkey_db_txt_init(HotkeyDB* self);
-static void hotkey_db_txt_destroy(HotkeyDB* self);
-static bool hotkey_db_txt_sync(HotkeyDB* self);
-static bool hotkey_db_txt_remove(HotkeyDB* self, const int char_id);
-static bool hotkey_db_txt_save(HotkeyDB* self, const hotkeylist* list, const int char_id);
-static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_id);
-
-static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str);
-static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str);
-static bool mmo_hotkeydb_sync(HotkeyDB_TXT* db);
-
-/// public constructor
-HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
-{
-	HotkeyDB_TXT* db = (HotkeyDB_TXT*)aCalloc(1, sizeof(HotkeyDB_TXT));
-
-	// set up the vtable
-	db->vtable.init      = &hotkey_db_txt_init;
-	db->vtable.destroy   = &hotkey_db_txt_destroy;
-	db->vtable.sync      = &hotkey_db_txt_sync;
-	db->vtable.remove    = &hotkey_db_txt_remove;
-	db->vtable.save      = &hotkey_db_txt_save;
-	db->vtable.load      = &hotkey_db_txt_load;
-
-	// initialize to default values
-	db->owner = owner;
-	db->hotkeys = NULL;
-
-	// other settings
-	db->hotkey_db = db->owner->file_hotkeys;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
 
 
 static void* create_hotkeylist(DBKey key, va_list args)
 {
 	return (hotkeylist*)aMalloc(sizeof(hotkeylist));
+}
+
+
+static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str)
+{
+	const char* p = str;
+	int i, n;
+
+	memset(list, 0, sizeof(hotkeylist));
+
+	for( i = 0; i < MAX_HOTKEYS; i++, p += n )
+	{
+		int type, id, lv;
+
+		if( sscanf(p, ",%d,%d,%d%n", &type, &id, &lv, &n) != 3 )
+			return false;
+
+		(*list)[i].type = type;
+		(*list)[i].id = id;
+		(*list)[i].lv = lv;
+	}
+
+	return true;
+}
+
+
+static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str)
+{
+	int i;
+	char* p = str;
+
+	p[0] = '\0';
+
+	for( i = 0; i < MAX_HOTKEYS; i++ )
+		p += sprintf(p, ",%d,%d,%d", (*list)[i].type, (*list)[i].id, (*list)[i].lv);
+
+	return true;
+}
+
+
+static bool mmo_hotkeydb_sync(HotkeyDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->hotkey_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_hotkeydb_sync: can't write [%s] !!! data is lost !!!\n", db->hotkey_db);
+		return false;
+	}
+
+	iter = db->hotkeys->iterator(db->hotkeys);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		hotkeylist* list = (hotkeylist*) data;
+		char line[8192];
+
+		mmo_hotkeylist_tostr(list, line);
+		fprintf(fp, "%d%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->hotkey_db, &lock);
+
+	return true;
 }
 
 
@@ -204,69 +237,26 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 	return true;
 }
 
-static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str)
+
+/// public constructor
+HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 {
-	const char* p = str;
-	int i, n;
+	HotkeyDB_TXT* db = (HotkeyDB_TXT*)aCalloc(1, sizeof(HotkeyDB_TXT));
 
-	memset(list, 0, sizeof(hotkeylist));
+	// set up the vtable
+	db->vtable.init      = &hotkey_db_txt_init;
+	db->vtable.destroy   = &hotkey_db_txt_destroy;
+	db->vtable.sync      = &hotkey_db_txt_sync;
+	db->vtable.remove    = &hotkey_db_txt_remove;
+	db->vtable.save      = &hotkey_db_txt_save;
+	db->vtable.load      = &hotkey_db_txt_load;
 
-	for( i = 0; i < MAX_HOTKEYS; i++, p += n )
-	{
-		int type, id, lv;
+	// initialize to default values
+	db->owner = owner;
+	db->hotkeys = NULL;
 
-		if( sscanf(p, ",%d,%d,%d%n", &type, &id, &lv, &n) != 3 )
-			return false;
+	// other settings
+	db->hotkey_db = db->owner->file_hotkeys;
 
-		(*list)[i].type = type;
-		(*list)[i].id = id;
-		(*list)[i].lv = lv;
-	}
-
-	return true;
-}
-
-static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str)
-{
-	int i;
-	char* p = str;
-
-	p[0] = '\0';
-
-	for( i = 0; i < MAX_HOTKEYS; i++ )
-		p += sprintf(p, ",%d,%d,%d", (*list)[i].type, (*list)[i].id, (*list)[i].lv);
-
-	return true;
-}
-
-static bool mmo_hotkeydb_sync(HotkeyDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->hotkey_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_hotkeydb_sync: can't write [%s] !!! data is lost !!!\n", db->hotkey_db);
-		return false;
-	}
-
-	iter = db->hotkeys->iterator(db->hotkeys);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		hotkeylist* list = (hotkeylist*) data;
-		char line[8192];
-
-		mmo_hotkeylist_tostr(list, line);
-		fprintf(fp, "%d%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->hotkey_db, &lock);
-
-	return true;
+	return &db->vtable;
 }

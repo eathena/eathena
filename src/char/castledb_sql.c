@@ -35,147 +35,6 @@ typedef struct CastleDBIterator_SQL
 	int last_castle_id;
 } CastleDBIterator_SQL;
 
-/// internal functions
-static bool castle_db_sql_init(CastleDB* self);
-static void castle_db_sql_destroy(CastleDB* self);
-static bool castle_db_sql_sync(CastleDB* self);
-static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc);
-static bool castle_db_sql_remove(CastleDB* self, const int castle_id);
-static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc);
-static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id);
-
-static CastleDBIterator* castle_db_sql_iterator(CastleDB* self);
-static void castle_db_sql_iter_destroy(CastleDBIterator* self);
-static bool castle_db_sql_iter_next(CastleDBIterator* self, struct guild_castle* gc);
-
-static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id);
-static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc);
-
-/// public constructor
-CastleDB* castle_db_sql(CharServerDB_SQL* owner)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &castle_db_sql_init;
-	db->vtable.destroy   = &castle_db_sql_destroy;
-	db->vtable.sync      = &castle_db_sql_sync;
-	db->vtable.create    = &castle_db_sql_create;
-	db->vtable.remove    = &castle_db_sql_remove;
-	db->vtable.save      = &castle_db_sql_save;
-	db->vtable.load_num  = &castle_db_sql_load_num;
-	db->vtable.iterator  = &castle_db_sql_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->castles = NULL;
-
-	// other settings
-	db->castle_db = db->owner->table_castles;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool castle_db_sql_init(CastleDB* self)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	db->castles = db->owner->sql_handle;
-	return true;
-}
-
-static void castle_db_sql_destroy(CastleDB* self)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	db->castles = NULL;
-	aFree(db);
-}
-
-static bool castle_db_sql_sync(CastleDB* self)
-{
-	return true;
-}
-
-static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
-{
-}
-
-static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
-{
-}
-
-static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	return mmo_castle_tosql(db, gc);
-}
-
-static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	return mmo_castle_fromsql(db, gc, castle_id);
-}
-
-
-/// Returns a new forward iterator.
-static CastleDBIterator* castle_db_sql_iterator(CastleDB* self)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)aCalloc(1, sizeof(CastleDBIterator_SQL));
-
-	// set up the vtable
-	iter->vtable.destroy = &castle_db_sql_iter_destroy;
-	iter->vtable.next    = &castle_db_sql_iter_next;
-
-	// fill data
-	iter->db = db;
-	iter->last_castle_id = -1;
-
-	return &iter->vtable;
-}
-
-/// Destroys this iterator, releasing all allocated memory (including itself).
-static void castle_db_sql_iter_destroy(CastleDBIterator* self)
-{
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
-	aFree(iter);
-}
-
-/// Fetches the next account in the database.
-static bool castle_db_sql_iter_next(CastleDBIterator* self, struct guild_castle* gc)
-{
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
-	CastleDB_SQL* db = (CastleDB_SQL*)iter->db;
-	Sql* sql_handle = db->castles;
-	int castle_id;
-	char* data;
-
-	// get next castle ID
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `castle_id` FROM `%s` WHERE `castle_id` > '%d' ORDER BY `castle_id` ASC LIMIT 1",
-		db->castle_db, iter->last_castle_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
-		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
-		data != NULL )
-	{// get castle data
-		castle_id = atoi(data);
-		if( mmo_castle_fromsql(db, gc, castle_id) )
-		{
-			iter->last_castle_id = castle_id;
-			Sql_FreeResult(sql_handle);
-			return true;
-		}
-	}
-	Sql_FreeResult(sql_handle);
-	return false;
-}
 
 
 static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id)
@@ -230,6 +89,7 @@ static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int ca
 	return true;
 }
 
+
 static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
 {
 	// `guild_castle` (`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, `visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)
@@ -254,4 +114,128 @@ static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
 	}
 
 	return true;
+}
+
+
+static bool castle_db_sql_init(CastleDB* self)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	db->castles = db->owner->sql_handle;
+	return true;
+}
+
+static void castle_db_sql_destroy(CastleDB* self)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	db->castles = NULL;
+	aFree(db);
+}
+
+static bool castle_db_sql_sync(CastleDB* self)
+{
+	return true;
+}
+
+static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
+{
+}
+
+static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
+{
+}
+
+static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return mmo_castle_tosql(db, gc);
+}
+
+static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return mmo_castle_fromsql(db, gc, castle_id);
+}
+
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void castle_db_sql_iter_destroy(CastleDBIterator* self)
+{
+	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
+	aFree(iter);
+}
+
+/// Fetches the next account in the database.
+static bool castle_db_sql_iter_next(CastleDBIterator* self, struct guild_castle* gc)
+{
+	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
+	CastleDB_SQL* db = (CastleDB_SQL*)iter->db;
+	Sql* sql_handle = db->castles;
+	int castle_id;
+	char* data;
+
+	// get next castle ID
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `castle_id` FROM `%s` WHERE `castle_id` > '%d' ORDER BY `castle_id` ASC LIMIT 1",
+		db->castle_db, iter->last_castle_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
+		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
+		data != NULL )
+	{// get castle data
+		castle_id = atoi(data);
+		if( mmo_castle_fromsql(db, gc, castle_id) )
+		{
+			iter->last_castle_id = castle_id;
+			Sql_FreeResult(sql_handle);
+			return true;
+		}
+	}
+	Sql_FreeResult(sql_handle);
+	return false;
+}
+
+/// Returns a new forward iterator.
+static CastleDBIterator* castle_db_sql_iterator(CastleDB* self)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)aCalloc(1, sizeof(CastleDBIterator_SQL));
+
+	// set up the vtable
+	iter->vtable.destroy = &castle_db_sql_iter_destroy;
+	iter->vtable.next    = &castle_db_sql_iter_next;
+
+	// fill data
+	iter->db = db;
+	iter->last_castle_id = -1;
+
+	return &iter->vtable;
+}
+
+
+/// public constructor
+CastleDB* castle_db_sql(CharServerDB_SQL* owner)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &castle_db_sql_init;
+	db->vtable.destroy   = &castle_db_sql_destroy;
+	db->vtable.sync      = &castle_db_sql_sync;
+	db->vtable.create    = &castle_db_sql_create;
+	db->vtable.remove    = &castle_db_sql_remove;
+	db->vtable.save      = &castle_db_sql_save;
+	db->vtable.load_num  = &castle_db_sql_load_num;
+	db->vtable.iterator  = &castle_db_sql_iterator;
+
+	// initialize to default values
+	db->owner = owner;
+	db->castles = NULL;
+
+	// other settings
+	db->castle_db = db->owner->table_castles;
+
+	return &db->vtable;
 }

@@ -26,141 +26,6 @@ typedef struct MailDB_SQL
 
 } MailDB_SQL;
 
-/// internal functions
-static bool mail_db_sql_init(MailDB* self);
-static void mail_db_sql_destroy(MailDB* self);
-static bool mail_db_sql_sync(MailDB* self);
-static bool mail_db_sql_create(MailDB* self, struct mail_message* msg);
-static bool mail_db_sql_remove(MailDB* self, const int mail_id);
-static bool mail_db_sql_save(MailDB* self, const struct mail_message* msg);
-static bool mail_db_sql_load(MailDB* self, struct mail_message* msg, const int mail_id);
-static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int char_id);
-
-static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool is_new);
-static bool mmo_mail_fromsql(MailDB_SQL* db, struct mail_message* msg, int mail_id);
-static bool mmo_mails_fromsql(MailDB_SQL* db, struct mail_data* md, const int char_id);
-
-/// public constructor
-MailDB* mail_db_sql(CharServerDB_SQL* owner)
-{
-	MailDB_SQL* db = (MailDB_SQL*)aCalloc(1, sizeof(MailDB_SQL));
-
-	// set up the vtable
-	db->vtable.init    = &mail_db_sql_init;
-	db->vtable.destroy = &mail_db_sql_destroy;
-	db->vtable.sync    = &mail_db_sql_sync;
-	db->vtable.create  = &mail_db_sql_create;
-	db->vtable.remove  = &mail_db_sql_remove;
-	db->vtable.save    = &mail_db_sql_save;
-	db->vtable.load    = &mail_db_sql_load;
-	db->vtable.loadall = &mail_db_sql_loadall;
-
-	// initialize to default values
-	db->owner = owner;
-	db->mails = NULL;
-
-	// other settings
-	db->mail_db = db->owner->table_mails;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool mail_db_sql_init(MailDB* self)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	db->mails = db->owner->sql_handle;
-	return true;
-}
-
-static void mail_db_sql_destroy(MailDB* self)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	db->mails = NULL;
-	aFree(db);
-}
-
-static bool mail_db_sql_sync(MailDB* self)
-{
-	return true;
-}
-
-static bool mail_db_sql_create(MailDB* self, struct mail_message* msg)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	Sql* sql_handle = db->mails;
-
-	// decide on the mail id to assign
-	int mail_id;
-	if( msg->id != -1 )
-	{// caller specifies it manually
-		mail_id = msg->id;
-	}
-	else
-	{// ask the database
-		char* data;
-		size_t len;
-
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`id`)+1 FROM `%s`", db->mail_db) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false;
-		}
-		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			Sql_FreeResult(sql_handle);
-			return false;
-		}
-
-		Sql_GetData(sql_handle, 0, &data, &len);
-		msg->id = ( data != NULL ) ? atoi(data) : 0;
-		Sql_FreeResult(sql_handle);
-	}
-
-	// zero value is prohibited
-	if( mail_id == 0 )
-		return false;
-
-	// insert the data into the database
-	msg->id = mail_id;
-	return mmo_mail_tosql(db, msg, true);
-}
-
-static bool mail_db_sql_remove(MailDB* self, const int mail_id)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	Sql* sql_handle = db->mails;
-
-	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `id`='%d'", db->mail_db, mail_id) )
-	{
-		Sql_ShowDebug(db->mails);
-		return false;
-	}
-
-	return true;
-}
-
-static bool mail_db_sql_save(MailDB* self, const struct mail_message* msg)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	return mmo_mail_tosql(db, msg, false);
-}
-
-static bool mail_db_sql_load(MailDB* self, struct mail_message* msg, const int mail_id)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	return mmo_mail_fromsql(db, msg, mail_id);
-}
-
-static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int char_id)
-{
-	MailDB_SQL* db = (MailDB_SQL*)self;
-	return mmo_mails_fromsql(db, md, char_id);
-}
 
 
 static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool is_new)
@@ -227,6 +92,7 @@ static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool 
 
 	return result;
 }
+
 
 static bool mmo_mail_fromsql(MailDB_SQL* db, struct mail_message* msg, int mail_id)
 {
@@ -353,4 +219,124 @@ static bool mmo_mails_fromsql(MailDB_SQL* db, struct mail_data* md, const int ch
 	}
 
 	return true;
+}
+
+
+static bool mail_db_sql_init(MailDB* self)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	db->mails = db->owner->sql_handle;
+	return true;
+}
+
+static void mail_db_sql_destroy(MailDB* self)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	db->mails = NULL;
+	aFree(db);
+}
+
+static bool mail_db_sql_sync(MailDB* self)
+{
+	return true;
+}
+
+static bool mail_db_sql_create(MailDB* self, struct mail_message* msg)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	Sql* sql_handle = db->mails;
+
+	// decide on the mail id to assign
+	int mail_id;
+	if( msg->id != -1 )
+	{// caller specifies it manually
+		mail_id = msg->id;
+	}
+	else
+	{// ask the database
+		char* data;
+		size_t len;
+
+		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`id`)+1 FROM `%s`", db->mail_db) )
+		{
+			Sql_ShowDebug(sql_handle);
+			return false;
+		}
+		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+		{
+			Sql_ShowDebug(sql_handle);
+			Sql_FreeResult(sql_handle);
+			return false;
+		}
+
+		Sql_GetData(sql_handle, 0, &data, &len);
+		msg->id = ( data != NULL ) ? atoi(data) : 0;
+		Sql_FreeResult(sql_handle);
+	}
+
+	// zero value is prohibited
+	if( mail_id == 0 )
+		return false;
+
+	// insert the data into the database
+	msg->id = mail_id;
+	return mmo_mail_tosql(db, msg, true);
+}
+
+static bool mail_db_sql_remove(MailDB* self, const int mail_id)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	Sql* sql_handle = db->mails;
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `id`='%d'", db->mail_db, mail_id) )
+	{
+		Sql_ShowDebug(db->mails);
+		return false;
+	}
+
+	return true;
+}
+
+static bool mail_db_sql_save(MailDB* self, const struct mail_message* msg)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	return mmo_mail_tosql(db, msg, false);
+}
+
+static bool mail_db_sql_load(MailDB* self, struct mail_message* msg, const int mail_id)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	return mmo_mail_fromsql(db, msg, mail_id);
+}
+
+static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int char_id)
+{
+	MailDB_SQL* db = (MailDB_SQL*)self;
+	return mmo_mails_fromsql(db, md, char_id);
+}
+
+
+/// public constructor
+MailDB* mail_db_sql(CharServerDB_SQL* owner)
+{
+	MailDB_SQL* db = (MailDB_SQL*)aCalloc(1, sizeof(MailDB_SQL));
+
+	// set up the vtable
+	db->vtable.init    = &mail_db_sql_init;
+	db->vtable.destroy = &mail_db_sql_destroy;
+	db->vtable.sync    = &mail_db_sql_sync;
+	db->vtable.create  = &mail_db_sql_create;
+	db->vtable.remove  = &mail_db_sql_remove;
+	db->vtable.save    = &mail_db_sql_save;
+	db->vtable.load    = &mail_db_sql_load;
+	db->vtable.loadall = &mail_db_sql_loadall;
+
+	// initialize to default values
+	db->owner = owner;
+	db->mails = NULL;
+
+	// other settings
+	db->mail_db = db->owner->table_mails;
+
+	return &db->vtable;
 }

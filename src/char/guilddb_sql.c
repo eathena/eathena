@@ -33,139 +33,6 @@ typedef struct GuildDB_SQL
 
 } GuildDB_SQL;
 
-/// internal functions
-static bool guild_db_sql_init(GuildDB* self);
-static void guild_db_sql_destroy(GuildDB* self);
-static bool guild_db_sql_sync(GuildDB* self);
-static bool guild_db_sql_create(GuildDB* self, struct guild* g);
-static bool guild_db_sql_remove(GuildDB* self, const int guild_id);
-static bool guild_db_sql_save(GuildDB* self, const struct guild* g);
-static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id);
-static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id);
-
-static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id);
-static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag);
-
-/// public constructor
-GuildDB* guild_db_sql(CharServerDB_SQL* owner)
-{
-	GuildDB_SQL* db = (GuildDB_SQL*)aCalloc(1, sizeof(GuildDB_SQL));
-
-	// set up the vtable
-	db->vtable.init      = &guild_db_sql_init;
-	db->vtable.destroy   = &guild_db_sql_destroy;
-	db->vtable.sync      = &guild_db_sql_sync;
-	db->vtable.create    = &guild_db_sql_create;
-	db->vtable.remove    = &guild_db_sql_remove;
-	db->vtable.save      = &guild_db_sql_save;
-	db->vtable.load_num  = &guild_db_sql_load_num;
-	db->vtable.name2id   = &guild_db_sql_name2id;
-
-	// initialize to default values
-	db->owner = owner;
-	db->guilds = NULL;
-
-	// other settings
-	db->guild_db = db->owner->table_guilds;
-	db->guild_alliance_db = db->owner->table_guild_alliances;
-	db->guild_expulsion_db = db->owner->table_guild_expulsions;
-	db->guild_member_db = db->owner->table_guild_members;
-	db->guild_position_db = db->owner->table_guild_positions;
-	db->guild_skill_db = db->owner->table_guild_skills;
-
-	return &db->vtable;
-}
-
-
-/* ------------------------------------------------------------------------- */
-
-
-static bool guild_db_sql_init(GuildDB* self)
-{
-	GuildDB_SQL* db = (GuildDB_SQL*)self;
-	db->guilds = db->owner->sql_handle;
-	return true;
-}
-
-static void guild_db_sql_destroy(GuildDB* self)
-{
-	GuildDB_SQL* db = (GuildDB_SQL*)self;
-	db->guilds = NULL;
-	aFree(db);
-}
-
-static bool guild_db_sql_sync(GuildDB* self)
-{
-	return true;
-}
-
-static bool guild_db_sql_create(GuildDB* self, struct guild* g)
-{
-/*
-	if (!inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL)) {
-*/
-}
-
-static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
-{
-/*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-*/
-}
-
-static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
-{
-}
-
-static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id)
-{
-}
-
-static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
-{
-/*
-	int guild_id;
-	char esc_name[NAME_LENGTH*2+1];
-	
-	Sql_EscapeStringLen(sql_handle, esc_name, str, safestrnlen(str, NAME_LENGTH));
-	//Lookup guilds with the same name
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT guild_id FROM `%s` WHERE name='%s'", guild_db, esc_name) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return -1;
-	}
-
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		char* data;
-
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		guild_id = atoi(data);
-	}
-	else
-	{
-		guild_id = 0;
-	}
-	Sql_FreeResult(sql_handle);
-	return guild_id;
-*/
-}
 
 
 static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
@@ -349,6 +216,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 */
 }
+
 
 static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 {
@@ -608,4 +476,123 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 		}
 	}
 */
+}
+
+
+static bool guild_db_sql_init(GuildDB* self)
+{
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	db->guilds = db->owner->sql_handle;
+	return true;
+}
+
+static void guild_db_sql_destroy(GuildDB* self)
+{
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	db->guilds = NULL;
+	aFree(db);
+}
+
+static bool guild_db_sql_sync(GuildDB* self)
+{
+	return true;
+}
+
+static bool guild_db_sql_create(GuildDB* self, struct guild* g)
+{
+/*
+	if (!inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL)) {
+*/
+}
+
+static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
+{
+/*
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_member_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_castle_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_position_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_skill_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", guild_expulsion_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+*/
+}
+
+static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
+{
+}
+
+static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id)
+{
+}
+
+static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
+{
+/*
+	int guild_id;
+	char esc_name[NAME_LENGTH*2+1];
+	
+	Sql_EscapeStringLen(sql_handle, esc_name, str, safestrnlen(str, NAME_LENGTH));
+	//Lookup guilds with the same name
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT guild_id FROM `%s` WHERE name='%s'", guild_db, esc_name) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return -1;
+	}
+
+	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
+	{
+		char* data;
+
+		Sql_GetData(sql_handle, 0, &data, NULL);
+		guild_id = atoi(data);
+	}
+	else
+	{
+		guild_id = 0;
+	}
+	Sql_FreeResult(sql_handle);
+	return guild_id;
+*/
+}
+
+
+/// public constructor
+GuildDB* guild_db_sql(CharServerDB_SQL* owner)
+{
+	GuildDB_SQL* db = (GuildDB_SQL*)aCalloc(1, sizeof(GuildDB_SQL));
+
+	// set up the vtable
+	db->vtable.init      = &guild_db_sql_init;
+	db->vtable.destroy   = &guild_db_sql_destroy;
+	db->vtable.sync      = &guild_db_sql_sync;
+	db->vtable.create    = &guild_db_sql_create;
+	db->vtable.remove    = &guild_db_sql_remove;
+	db->vtable.save      = &guild_db_sql_save;
+	db->vtable.load_num  = &guild_db_sql_load_num;
+	db->vtable.name2id   = &guild_db_sql_name2id;
+
+	// initialize to default values
+	db->owner = owner;
+	db->guilds = NULL;
+
+	// other settings
+	db->guild_db = db->owner->table_guilds;
+	db->guild_alliance_db = db->owner->table_guild_alliances;
+	db->guild_expulsion_db = db->owner->table_guild_expulsions;
+	db->guild_member_db = db->owner->table_guild_members;
+	db->guild_position_db = db->owner->table_guild_positions;
+	db->guild_skill_db = db->owner->table_guild_skills;
+
+	return &db->vtable;
 }

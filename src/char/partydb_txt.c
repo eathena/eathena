@@ -32,49 +32,98 @@ typedef struct PartyDB_TXT
 
 } PartyDB_TXT;
 
-/// internal functions
-static bool party_db_txt_init(PartyDB* self);
-static void party_db_txt_destroy(PartyDB* self);
-static bool party_db_txt_sync(PartyDB* self);
-static bool party_db_txt_create(PartyDB* self, struct party_data* p);
-static bool party_db_txt_remove(PartyDB* self, const int party_id);
-static bool party_db_txt_save(PartyDB* self, const struct party_data* p);
-static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id);
-static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name);
 
-static bool mmo_party_fromstr(struct party* p, char* str);
-static bool mmo_party_tostr(const struct party* p, char* str);
-static bool mmo_party_sync(PartyDB_TXT* db);
 
-/// public constructor
-PartyDB* party_db_txt(CharServerDB_TXT* owner)
+static bool mmo_party_fromstr(struct party* p, char* str)
 {
-	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));
+	int i, j;
+	int party_id;
+	char name[256];
+	int exp;
+	int item;
+	
+	memset(p, 0, sizeof(struct party));
 
-	// set up the vtable
-	db->vtable.init      = &party_db_txt_init;
-	db->vtable.destroy   = &party_db_txt_destroy;
-	db->vtable.sync      = &party_db_txt_sync;
-	db->vtable.create    = &party_db_txt_create;
-	db->vtable.remove    = &party_db_txt_remove;
-	db->vtable.save      = &party_db_txt_save;
-	db->vtable.load      = &party_db_txt_load;
-	db->vtable.name2id   = &party_db_txt_name2id;
+	if( sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &party_id, name, &exp, &item) != 4 )
+		return false;
 
-	// initialize to default values
-	db->owner = owner;
-	db->parties = NULL;
-	db->next_party_id = START_PARTY_NUM;
+	p->party_id = party_id;
+	safestrncpy(p->name, name, sizeof(p->name));
+	p->exp = exp ? 1:0;
+	p->item = item;
 
-	// other settings
-	db->case_sensitive = false;
-	db->party_db = db->owner->file_parties;
+	for( j = 0; j < 3 && str != NULL; j++ )
+		str = strchr(str + 1, '\t');
 
-	return &db->vtable;
+	for( i = 0; i < MAX_PARTY; i++ )
+	{
+		struct party_member* m = &p->member[i];
+		int account_id;
+		int char_id;
+		int leader;
+
+		if( str == NULL )
+			return false;
+
+		if( sscanf(str + 1, "%d,%d,%d\t", &account_id, &char_id, &leader) != 3 )
+			return false;
+
+		m->account_id = account_id;
+		m->char_id = char_id; 
+		m->leader = leader ? 1:0;
+
+		str = strchr(str + 1, '\t');
+	}
+
+	return true;
 }
 
 
-/* ------------------------------------------------------------------------- */
+static bool mmo_party_tostr(const struct party* p, char* str)
+{
+	int i, len;
+
+	// write basic data
+	len = sprintf(str, "%d\t%s\t%d,%d\t", p->party_id, p->name, p->exp, p->item);
+
+	// write party member data
+	for( i = 0; i < MAX_PARTY; i++ )
+	{
+		const struct party_member* m = &p->member[i];
+		len += sprintf(str + len, "%d,%d,%d\t", m->account_id, m->char_id, m->leader);
+	}
+
+	return true;
+}
+
+
+static bool mmo_party_sync(PartyDB_TXT* db)
+{
+	FILE *fp;
+	int lock;
+	struct DBIterator* iter;
+	struct party_data* p;
+
+	fp = lock_fopen(db->party_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_party_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
+		return false;
+	}
+
+	iter = db->parties->iterator(db->parties);
+	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
+	{
+		char buf[8192]; // ought to be big enough ^^
+		mmo_party_tostr(&p->party, buf);
+		fprintf(fp, "%s\n", buf);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->party_db, &lock);
+
+	return true;
+}
 
 
 static bool party_db_txt_init(PartyDB* self)
@@ -292,91 +341,29 @@ static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name)
 }
 
 
-static bool mmo_party_fromstr(struct party* p, char* str)
+/// public constructor
+PartyDB* party_db_txt(CharServerDB_TXT* owner)
 {
-	int i, j;
-	int party_id;
-	char name[256];
-	int exp;
-	int item;
-	
-	memset(p, 0, sizeof(struct party));
+	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));
 
-	if( sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &party_id, name, &exp, &item) != 4 )
-		return false;
+	// set up the vtable
+	db->vtable.init      = &party_db_txt_init;
+	db->vtable.destroy   = &party_db_txt_destroy;
+	db->vtable.sync      = &party_db_txt_sync;
+	db->vtable.create    = &party_db_txt_create;
+	db->vtable.remove    = &party_db_txt_remove;
+	db->vtable.save      = &party_db_txt_save;
+	db->vtable.load      = &party_db_txt_load;
+	db->vtable.name2id   = &party_db_txt_name2id;
 
-	p->party_id = party_id;
-	safestrncpy(p->name, name, sizeof(p->name));
-	p->exp = exp ? 1:0;
-	p->item = item;
+	// initialize to default values
+	db->owner = owner;
+	db->parties = NULL;
+	db->next_party_id = START_PARTY_NUM;
 
-	for( j = 0; j < 3 && str != NULL; j++ )
-		str = strchr(str + 1, '\t');
+	// other settings
+	db->case_sensitive = false;
+	db->party_db = db->owner->file_parties;
 
-	for( i = 0; i < MAX_PARTY; i++ )
-	{
-		struct party_member* m = &p->member[i];
-		int account_id;
-		int char_id;
-		int leader;
-
-		if( str == NULL )
-			return false;
-
-		if( sscanf(str + 1, "%d,%d,%d\t", &account_id, &char_id, &leader) != 3 )
-			return false;
-
-		m->account_id = account_id;
-		m->char_id = char_id; 
-		m->leader = leader ? 1:0;
-
-		str = strchr(str + 1, '\t');
-	}
-
-	return true;
-}
-
-static bool mmo_party_tostr(const struct party* p, char* str)
-{
-	int i, len;
-
-	// write basic data
-	len = sprintf(str, "%d\t%s\t%d,%d\t", p->party_id, p->name, p->exp, p->item);
-
-	// write party member data
-	for( i = 0; i < MAX_PARTY; i++ )
-	{
-		const struct party_member* m = &p->member[i];
-		len += sprintf(str + len, "%d,%d,%d\t", m->account_id, m->char_id, m->leader);
-	}
-
-	return true;
-}
-
-static bool mmo_party_sync(PartyDB_TXT* db)
-{
-	FILE *fp;
-	int lock;
-	struct DBIterator* iter;
-	struct party_data* p;
-
-	fp = lock_fopen(db->party_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_party_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
-		return false;
-	}
-
-	iter = db->parties->iterator(db->parties);
-	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
-	{
-		char buf[8192]; // ought to be big enough ^^
-		mmo_party_tostr(&p->party, buf);
-		fprintf(fp, "%s\n", buf);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->party_db, &lock);
-
-	return true;
+	return &db->vtable;
 }
