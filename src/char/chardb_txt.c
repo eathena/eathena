@@ -54,7 +54,7 @@ typedef struct CharDBIterator_TXT
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatus *p, struct regs* reg)
+static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct regs* reg)
 {
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
@@ -62,7 +62,7 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 	int next, len, i, j;
 
 	// initilialise character
-	memset(p, '\0', sizeof(struct mmo_charstatus));
+	memset(cd, '\0', sizeof(struct mmo_charstatus));
 	
 // Char structure of version 1500 (homun + mapindex maps)
 	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
@@ -178,7 +178,7 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 	{
 		ShowError("Char-loading: Unrecognized character data version, info lost!\n");
 		ShowDebug("Character info: %s\n", str);
-		return 0;
+		return false;
 	}
 	}	// Char structure version 384 (pet addition)
 	}	// Char structure version 1008 (marriage partner addition)
@@ -189,82 +189,82 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 		tmp_int[46] = mapindex_name2id(tmp_str[2]);
 	}	// Char structure of version 1500 (homun + mapindex maps)
 
-	memcpy(p->name, tmp_str[0], NAME_LENGTH); //Overflow protection [Skotlex]
-	p->char_id = tmp_int[0];
-	p->account_id = tmp_int[1];
-	p->slot = tmp_int[2];
-	p->class_ = tmp_int[3];
-	p->base_level = tmp_int[4];
-	p->job_level = tmp_int[5];
-	p->base_exp = tmp_uint[0];
-	p->job_exp = tmp_uint[1];
-	p->zeny = tmp_int[8];
-	p->hp = tmp_int[9];
-	p->max_hp = tmp_int[10];
-	p->sp = tmp_int[11];
-	p->max_sp = tmp_int[12];
-	p->str = tmp_int[13];
-	p->agi = tmp_int[14];
-	p->vit = tmp_int[15];
-	p->int_ = tmp_int[16];
-	p->dex = tmp_int[17];
-	p->luk = tmp_int[18];
-	p->status_point = min(tmp_int[19], USHRT_MAX);
-	p->skill_point = min(tmp_int[20], USHRT_MAX);
-	p->option = tmp_int[21];
-	p->karma = tmp_int[22];
-	p->manner = tmp_int[23];
-	p->party_id = tmp_int[24];
-	p->guild_id = tmp_int[25];
-	p->pet_id = tmp_int[26];
-	p->hair = tmp_int[27];
-	p->hair_color = tmp_int[28];
-	p->clothes_color = tmp_int[29];
-	p->weapon = tmp_int[30];
-	p->shield = tmp_int[31];
-	p->head_top = tmp_int[32];
-	p->head_mid = tmp_int[33];
-	p->head_bottom = tmp_int[34];
-	p->last_point.x = tmp_int[35];
-	p->last_point.y = tmp_int[36];
-	p->save_point.x = tmp_int[37];
-	p->save_point.y = tmp_int[38];
-	p->partner_id = tmp_int[39];
-	p->father = tmp_int[40];
-	p->mother = tmp_int[41];
-	p->child = tmp_int[42];
-	p->fame = tmp_int[43];
-	p->hom_id = tmp_int[44];
-	p->last_point.map = tmp_int[45];
-	p->save_point.map = tmp_int[46];
+	safestrncpy(cd->name, tmp_str[0], sizeof(cd->name));
+	cd->char_id = tmp_int[0];
+	cd->account_id = tmp_int[1];
+	cd->slot = tmp_int[2];
+	cd->class_ = tmp_int[3];
+	cd->base_level = tmp_int[4];
+	cd->job_level = tmp_int[5];
+	cd->base_exp = tmp_uint[0];
+	cd->job_exp = tmp_uint[1];
+	cd->zeny = tmp_int[8];
+	cd->hp = tmp_int[9];
+	cd->max_hp = tmp_int[10];
+	cd->sp = tmp_int[11];
+	cd->max_sp = tmp_int[12];
+	cd->str = tmp_int[13];
+	cd->agi = tmp_int[14];
+	cd->vit = tmp_int[15];
+	cd->int_ = tmp_int[16];
+	cd->dex = tmp_int[17];
+	cd->luk = tmp_int[18];
+	cd->status_point = min(tmp_int[19], USHRT_MAX);
+	cd->skill_point = min(tmp_int[20], USHRT_MAX);
+	cd->option = tmp_int[21];
+	cd->karma = tmp_int[22];
+	cd->manner = tmp_int[23];
+	cd->party_id = tmp_int[24];
+	cd->guild_id = tmp_int[25];
+	cd->pet_id = tmp_int[26];
+	cd->hair = tmp_int[27];
+	cd->hair_color = tmp_int[28];
+	cd->clothes_color = tmp_int[29];
+	cd->weapon = tmp_int[30];
+	cd->shield = tmp_int[31];
+	cd->head_top = tmp_int[32];
+	cd->head_mid = tmp_int[33];
+	cd->head_bottom = tmp_int[34];
+	cd->last_point.x = tmp_int[35];
+	cd->last_point.y = tmp_int[36];
+	cd->save_point.x = tmp_int[37];
+	cd->save_point.y = tmp_int[38];
+	cd->partner_id = tmp_int[39];
+	cd->father = tmp_int[40];
+	cd->mother = tmp_int[41];
+	cd->child = tmp_int[42];
+	cd->fame = tmp_int[43];
+	cd->hom_id = tmp_int[44];
+	cd->last_point.map = tmp_int[45];
+	cd->save_point.map = tmp_int[46];
 
 #ifndef TXT_SQL_CONVERT
 	// Some checks
-	if( chars->id2name(chars, p->char_id, NULL) )
+	if( chars->id2name(chars, cd->char_id, NULL) )
 	{
 		ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
-		ShowError("               character id #%d -> new character not read.\n", p->char_id);
+		ShowError("               character id #%d -> new character not read.\n", cd->char_id);
 		ShowError("               Character saved in log file."CL_RESET"\n");
-		return -1;
+		return false;
 	}
-	if( chars->name2id(chars, p->name, NULL, NULL) )
+	if( chars->name2id(chars, cd->name, NULL, NULL) )
 	{
 		ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
-		ShowError("               character name '%s' -> new character not read.\n", p->name);
+		ShowError("               character name '%s' -> new character not read.\n", cd->name);
 		ShowError("               Character saved in log file."CL_RESET"\n");
-		return -2;
+		return false;
 	}
 
-	if (strcmpi(wisp_server_name, p->name) == 0) {
+	if (strcmpi(wisp_server_name, cd->name) == 0) {
 		ShowWarning("mmo_auth_init: ******WARNING: character name has wisp server name.\n");
-		ShowWarning("               Character name '%s' = wisp server name '%s'.\n", p->name, wisp_server_name);
+		ShowWarning("               Character name '%s' = wisp server name '%s'.\n", cd->name, wisp_server_name);
 		ShowWarning("               Character readed. Suggestion: change the wisp server name.\n");
 		log_char("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'.\n",
-		          p->name, wisp_server_name);
+		          cd->name, wisp_server_name);
 	}
 #endif //TXT_SQL_CONVERT
 	if (str[next] == '\n' || str[next] == '\r')
-		return 1;	// 新規データ
+		return false;	// 新規データ
 
 	next++;
 
@@ -273,14 +273,14 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 		if (sscanf(str+next, "%d,%d,%d%n", &tmp_int[2], &tmp_int[0], &tmp_int[1], &len) != 3)
 		{	//Old string-based memo format.
 			if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
-				return -3;
+				return false;
 			tmp_int[2] = mapindex_name2id(tmp_str[0]);
 		}
 		if (i < MAX_MEMOPOINTS)
 	  	{	//Avoid overflowing (but we must also read through all saved memos)
-			p->memo_point[i].x = tmp_int[0];
-			p->memo_point[i].y = tmp_int[1];
-			p->memo_point[i].map = tmp_int[2];
+			cd->memo_point[i].x = tmp_int[0];
+			cd->memo_point[i].y = tmp_int[1];
+			cd->memo_point[i].map = tmp_int[2];
 		}
 		next += len;
 		if (str[next] == ' ')
@@ -294,22 +294,22 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
 		{
-			p->inventory[i].id = tmp_int[0];
-			p->inventory[i].nameid = tmp_int[1];
-			p->inventory[i].amount = tmp_int[2];
-			p->inventory[i].equip = tmp_int[3];
-			p->inventory[i].identify = tmp_int[4];
-			p->inventory[i].refine = tmp_int[5];
-			p->inventory[i].attribute = tmp_int[6];
+			cd->inventory[i].id = tmp_int[0];
+			cd->inventory[i].nameid = tmp_int[1];
+			cd->inventory[i].amount = tmp_int[2];
+			cd->inventory[i].equip = tmp_int[3];
+			cd->inventory[i].identify = tmp_int[4];
+			cd->inventory[i].refine = tmp_int[5];
+			cd->inventory[i].attribute = tmp_int[6];
 
 			for(j = 0; j < MAX_SLOTS && tmp_str[0] && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
-				p->inventory[i].card[j] = tmp_int[0];
+				cd->inventory[i].card[j] = tmp_int[0];
 
 			next += len;
 			if (str[next] == ' ')
 				next++;
 		} else // invalid structure
-			return -4;
+			return false;
 	}
 	next++;
 
@@ -318,31 +318,31 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
 		{
-			p->cart[i].id = tmp_int[0];
-			p->cart[i].nameid = tmp_int[1];
-			p->cart[i].amount = tmp_int[2];
-			p->cart[i].equip = tmp_int[3];
-			p->cart[i].identify = tmp_int[4];
-			p->cart[i].refine = tmp_int[5];
-			p->cart[i].attribute = tmp_int[6];
+			cd->cart[i].id = tmp_int[0];
+			cd->cart[i].nameid = tmp_int[1];
+			cd->cart[i].amount = tmp_int[2];
+			cd->cart[i].equip = tmp_int[3];
+			cd->cart[i].identify = tmp_int[4];
+			cd->cart[i].refine = tmp_int[5];
+			cd->cart[i].attribute = tmp_int[6];
 			
 			for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
-				p->cart[i].card[j] = tmp_int[0];
+				cd->cart[i].card[j] = tmp_int[0];
 			
 			next += len;
 			if (str[next] == ' ')
 				next++;
 		} else // invalid structure
-			return -5;
+			return false;
 	}
 
 	next++;
 
 	for(i = 0; str[next] && str[next] != '\t'; i++) {
 		if (sscanf(str + next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2)
-			return -6;
-		p->skill[tmp_int[0]].id = tmp_int[0];
-		p->skill[tmp_int[0]].lv = tmp_int[1];
+			return false;
+		cd->skill[tmp_int[0]].id = tmp_int[0];
+		cd->skill[tmp_int[0]].lv = tmp_int[1];
 		next += len;
 		if (str[next] == ' ')
 			next++;
@@ -352,9 +352,9 @@ static int mmo_char_fromstr(CharDB* chars, const char *str, struct mmo_charstatu
 
 	// parse character regs
 	if( !mmo_charreg_fromstr(reg, str + next) )
-		return -7;
+		return false;
 
-	return 1;
+	return true;
 }
 
 
@@ -366,7 +366,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 	int i,j;
 	char *str_p = str;
 
-	// character data
+	// base character data
 	str_p += sprintf(str_p,
 		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
 		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
@@ -387,41 +387,57 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		p->last_point.map, p->last_point.x, p->last_point.y, //
 		p->save_point.map, p->save_point.x, p->save_point.y,
 		p->partner_id,p->father,p->mother,p->child,p->fame);
-	for(i = 0; i < MAX_MEMOPOINTS; i++)
-		if (p->memo_point[i].map) {
-			str_p += sprintf(str_p, "%d,%d,%d ", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
-		}
+
+	// memo points
+	for( i = 0; i < MAX_MEMOPOINTS; i++ )
+	{
+		if( p->memo_point[i].map == 0 )
+			continue;
+
+		str_p += sprintf(str_p, "%d,%d,%d ", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+	}
 	*(str_p++) = '\t';
 
 	// inventory
-	for(i = 0; i < MAX_INVENTORY; i++)
-		if (p->inventory[i].nameid) {
-			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-				p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
-				p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
-			for(j=0; j<MAX_SLOTS; j++)
-				str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
-			str_p += sprintf(str_p," ");
-		}
+	for( i = 0; i < MAX_INVENTORY; i++ )
+	{
+		if( p->inventory[i].nameid == 0 )
+			continue;
+
+		str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+			p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
+			p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
+
+		for( j = 0; j < MAX_SLOTS; j++ )
+			str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
+
+		str_p += sprintf(str_p," ");
+	}
 	*(str_p++) = '\t';
 
 	// cart
-	for(i = 0; i < MAX_CART; i++)
-		if (p->cart[i].nameid) {
-			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-				p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
-				p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
-			for(j=0; j<MAX_SLOTS; j++)
-				str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
-			str_p += sprintf(str_p," ");
-		}
+	for( i = 0; i < MAX_CART; i++ )
+	{
+		if( p->cart[i].nameid == 0 )
+			continue;
+
+		str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
+			p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
+			p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
+
+		for( j = 0; j < MAX_SLOTS; j++ )
+			str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
+
+		str_p += sprintf(str_p," ");
+	}
 	*(str_p++) = '\t';
 
 	// skills
-	for(i = 0; i < MAX_SKILL; i++)
-		if (p->skill[i].id && p->skill[i].flag != 1) {
+	for( i = 0; i < MAX_SKILL; i++ )
+	{
+		if( p->skill[i].id && p->skill[i].flag != 1 )
 			str_p += sprintf(str_p, "%d,%d ", p->skill[i].id, (p->skill[i].flag == 0) ? p->skill[i].lv : p->skill[i].flag-2);
-		}
+	}
 	*(str_p++) = '\t';
 
 	// registry
@@ -485,7 +501,6 @@ static bool char_db_txt_init(CharDB* self)
 
 	char line[65536];
 	int line_count = 0;
-	int ret;
 	FILE* fp;
 
 	// create chars database
@@ -525,31 +540,16 @@ static bool char_db_txt_init(CharDB* self)
 		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 
 		// parse char data
-		ret = mmo_char_fromstr(self, line, ch, &reg);
-
-		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
-
-		if( ret <= 0 )
-		{
+		if( !mmo_char_fromstr(self, line, ch, &reg) )
+ 		{
 			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
-			ShowError("               -> Character saved in log file.\n");
-			switch( ret )
-			{
-			case  0: log_char("Unable to get a character in the next line - Basic structure of line (before inventory) is incorrect (character not readed):\n"); break;
-			case -1: log_char("Duplicate character id in the next character line (character not readed):\n"); break;
-			case -2: log_char("Duplicate character name in the next character line (character not readed):\n"); break;
-			case -3: log_char("Invalid memo point structure in the next character line (character not readed):\n"); break;
-			case -4: log_char("Invalid inventory item structure in the next character line (character not readed):\n"); break;
-			case -5: log_char("Invalid cart item structure in the next character line (character not readed):\n"); break;
-			case -6: log_char("Invalid skill structure in the next character line (character not readed):\n"); break;
-			case -7: log_char("Invalid register structure in the next character line (character not readed):\n"); break;
-			default: break;
-			}
+			ShowError("               -> Character data saved in log file.\n");
 			log_char("%s", line);
-
 			aFree(ch);
 			continue;
 		}
+
+		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
 
 		// record entry in db
 		idb_put(chars, ch->char_id, ch);
