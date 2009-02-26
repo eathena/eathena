@@ -30,24 +30,49 @@ typedef struct StorageDB_TXT
 
 
 
-static bool mmo_storage_fromstr(struct storage_data* s, char* str)
+static bool mmo_storage_fromstr(struct storage_data* s, const char* str)
 {
-	int tmp_int[256];
-	char tmp_str[256];
-	int next,len,i,j;
+	int amount;
+	int count;
+	int fields[1+MAX_STORAGE][2];
+	int tmp_int[7+MAX_SLOTS+1];
+	int len,i,j;
 
-	if( sscanf(str, "%d%n", &tmp_int[1], &next) != 1 )
+	// parse amount (currently ignored)
+	if( sscanf(str, "%d\t%n", &amount, &len) != 1 )
 		return false;
 
-	s->storage_amount = tmp_int[1]; //FIXME: limit to MAX_STORAGE?
+	// extract space-separated item blocks from str
+	count = sv_parse(str, strlen(str), len, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
 
-	next++;
-	for( i = 0; str[next] && str[next]!='\t' && i < MAX_STORAGE; i++ )
+	// parse individual item blocks
+	for( i = 0; i < count; ++i )
 	{
-		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) != 8)
-			  return false;
+		const char* p = &str[fields[i+1][0]];
+
+		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%n",
+		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
+			&len) != 7 )
+			return false;
+
+		p += len;
+
+		j = 0;
+		while( *p != ' ' || *p != '\0' )
+		{
+			if( sscanf(p, ",%d%n", &tmp_int[7+j], &len) != 1 )
+				return false;
+
+			p += len;
+
+			if( j == MAX_SLOTS )
+				continue; // discard card slots over max
+
+			j++;
+		}
+
+		if( i == MAX_STORAGE )
+			continue; // discard items over max
 
 		s->items[i].id = tmp_int[0];
 		s->items[i].nameid = tmp_int[1];
@@ -56,17 +81,11 @@ static bool mmo_storage_fromstr(struct storage_data* s, char* str)
 		s->items[i].identify = tmp_int[4];
 		s->items[i].refine = tmp_int[5];
 		s->items[i].attribute = tmp_int[6];
-			
-		for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
-			s->items[i].card[j] = tmp_int[0];
-			
-		next += len;
-		if (str[next] == ' ')
-			next++;
+		for( j = 0; j < MAX_SLOTS; ++j )
+			s->items[i].card[j] = tmp_int[7+j];
 	}
 
-	if( i == MAX_STORAGE && str[next] != '\0' && str[next] != '\t' )
-		ShowWarning("storage_fromstr: Found a storage line with more items than MAX_STORAGE (%d), remaining items have been discarded!\n", MAX_STORAGE);
+	s->storage_amount = amount;
 
 	return true;
 }
