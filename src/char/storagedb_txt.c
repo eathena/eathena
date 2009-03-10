@@ -58,7 +58,7 @@ static bool mmo_storage_fromstr(struct storage_data* s, const char* str)
 		p += len;
 
 		j = 0;
-		while( *p != ' ' || *p != '\0' )
+		while( *p != ' ' && *p != '\0' )
 		{
 			if( sscanf(p, ",%d%n", &tmp_int[7+j], &len) != 1 )
 				return false;
