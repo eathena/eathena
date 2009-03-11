@@ -41,6 +41,7 @@ static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 	const char* p = str;
 	int i, n;
 
+	//FIXME: no escaping - will break if str/value contains commas or spaces
 	for( i = 0; i < ACCOUNT_REG_NUM; i++, p += n )
 	{
 		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &n) != 2) 

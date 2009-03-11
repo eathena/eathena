@@ -36,6 +36,7 @@ static void* create_charregs(DBKey key, va_list args)
 
 bool mmo_charreg_fromstr(struct regs* reg, const char* str)
 {
+	//FIXME: no escaping - will break if str/value contains commas or spaces
 	//FIXME: doesn't obey size limits
 	int i;
 	int len;

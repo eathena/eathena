@@ -42,7 +42,11 @@ static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=3 AND `char_id`='%d'", db->charreg_db, char_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
 	for( i = 0; i < MAX_REG_NUM && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		char* data;
@@ -62,7 +66,7 @@ static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id
 static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int char_id)
 {
 	Sql* sql_handle = db->charregs;
-	SqlStmt* stmt;
+	SqlStmt* stmt = NULL;
 	int i;
 	bool result = false;
 

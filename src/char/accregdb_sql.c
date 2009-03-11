@@ -42,7 +42,11 @@ static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_i
 
 	//`global_reg_value` (`type`, `account_id`, `char_id`, `str`, `value`)
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `str`, `value` FROM `%s` WHERE `type`=2 AND `account_id`='%d'", db->accreg_db, account_id) )
+	{
 		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
 	for( i = 0; i < MAX_REG_NUM && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
 		char* data;

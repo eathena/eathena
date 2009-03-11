@@ -36,6 +36,8 @@ static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_
 	int hotkey_num;
 	bool result = false;
 
+	memset(list, 0, sizeof(*list));
+
 	do
 	{
 

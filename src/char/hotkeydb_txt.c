@@ -41,7 +41,7 @@ static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str)
 	const char* p = str;
 	int i, n;
 
-	memset(list, 0, sizeof(hotkeylist));
+	memset(list, 0, sizeof(*list));
 
 	for( i = 0; i < MAX_HOTKEYS; i++, p += n )
 	{
