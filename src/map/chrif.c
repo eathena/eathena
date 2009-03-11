@@ -246,7 +246,6 @@ int chrif_save(struct map_session_data *sd, int flag)
 	
 	if (flag && sd->state.active) //Store player data which is quitting.
 	{
-		//FIXME: SC are lost if there's no connection at save-time because of the way its related data is cleared immediately after this function. [Skotlex]
 		if (chrif_isconnected()) chrif_save_scdata(sd);
 		if (!chrif_auth_logout(sd, flag==1?ST_LOGOUT:ST_MAPCHANGE))
 			ShowError("chrif_save: Failed to set up player %d:%d for proper quitting!\n", sd->status.account_id, sd->status.char_id);
@@ -1072,12 +1071,9 @@ int chrif_save_scdata(struct map_session_data *sd)
 		data.val2 = sc->data[i]->val2;
 		data.val3 = sc->data[i]->val3;
 		data.val4 = sc->data[i]->val4;
-		memcpy(WFIFOP(char_fd,14 +count*sizeof(struct status_change_data)),
-			&data, sizeof(struct status_change_data));
+		memcpy(WFIFOP(char_fd, 14+count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
 		count++;
 	}
-	if (count == 0)
-		return 0; //Nothing to save.
 	WFIFOW(char_fd,12) = count;
 	WFIFOW(char_fd,2) = 14 +count*sizeof(struct status_change_data); //Total packet size
 	WFIFOSET(char_fd,WFIFOW(char_fd,2));

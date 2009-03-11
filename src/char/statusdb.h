@@ -25,10 +25,10 @@ struct StatusDB
 
 	bool (*sync)(StatusDB* self);
 
-	bool (*remove)(StatusDB* self, const int char_id);
+	bool (*remove)(StatusDB* self, int char_id);
 
 	bool (*save)(StatusDB* self, struct scdata* sc);
-	bool (*load)(StatusDB* self, struct scdata* sc, int char_id);
+	bool (*load)(StatusDB* self, struct scdata* sc, int account_id, int char_id);
 };
 
 

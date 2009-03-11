@@ -29,12 +29,23 @@ typedef struct StatusDB_TXT
 
 
 
-static int scdata_db_final(DBKey k, void* d, va_list ap)
+static void* create_scdata(DBKey key, va_list args)
 {
-	struct scdata *data = (struct scdata*)d;
-	if (data->data)
-		aFree(data->data);
-	aFree(data);
+	struct scdata* sc = (struct scdata*)aMalloc(sizeof(struct scdata));
+	sc->account_id = va_arg(args, int);
+	sc->char_id = key.i;
+	sc->count = 0;
+	sc->data = NULL;
+	return sc;
+}
+
+
+static int scdata_db_final(DBKey key, void* data, va_list ap)
+{
+	struct scdata* sc = (struct scdata*)data;
+	if (sc->data)
+		aFree(sc->data);
+	aFree(sc);
 	return 0;
 }
 
@@ -144,7 +155,8 @@ static bool status_db_txt_init(StatusDB* self)
 		}
 
 		sc = (struct scdata*)idb_put(statuses, sc->char_id, sc);
-		if (sc) {
+		if( sc != NULL )
+		{
 			ShowError("Duplicate entry in %s for character %d\n", db->status_db, sc->char_id);
 			if (sc->data) aFree(sc->data);
 			aFree(sc);
@@ -178,7 +190,7 @@ static bool status_db_txt_sync(StatusDB* self)
 	return mmo_status_sync(db);
 }
 
-static bool status_db_txt_remove(StatusDB* self, const int char_id)
+static bool status_db_txt_remove(StatusDB* self, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBMap* statuses = db->statuses;
@@ -199,47 +211,52 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 	DBMap* statuses = db->statuses;
 	struct scdata* tmp;
 
-	// transfer data
-	tmp = aMalloc(sizeof(struct scdata));
-	tmp->account_id = sc->account_id;
-	tmp->char_id = sc->char_id;
-	tmp->count = sc->count;
-	tmp->data = sc->data;
-	sc->count = 0;
-	sc->data = NULL;
+	if( sc->count > 0 )
+	{	// retrieve previous data / allocate new data
+		tmp = (struct scdata*)idb_ensure(statuses, sc->char_id, create_scdata);
 
-	// store new entry
-	tmp = idb_put(statuses, tmp->char_id, tmp);
-	if( tmp != NULL )
-	{
-		//TODO: error message about inconsistency
-		aFree(tmp->data);
-		aFree(tmp);
+		// overwrite with new data
+		tmp->account_id = sc->account_id;
+		tmp->char_id = sc->char_id;
+		tmp->count = sc->count;
+		memcpy(tmp->data, sc->data, sc->count * sizeof(struct status_change_data));
 	}
+	else
+	{
+		tmp = (struct scdata*)idb_remove(statuses, sc->char_id);
+		if( tmp != NULL )
+		{
+			aFree(tmp->data);
+			aFree(tmp);
+		}
+	}
+
 
 	return true;
 }
 
-static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
+static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int account_id, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBMap* statuses = db->statuses;
+	struct scdata* tmp;
 
-	// retrieve data
-	struct scdata* tmp = idb_remove(statuses, char_id);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
+	tmp = (struct scdata*)idb_get(statuses, char_id);
+	if( tmp != NULL )
+	{
+		sc->account_id = tmp->account_id;
+		sc->char_id = tmp->char_id;
+		sc->count = tmp->count;
+		sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
+		memcpy(sc->data, tmp->data, sc->count * sizeof(struct status_change_data));
 	}
-
-	// store it
-	sc->account_id = tmp->account_id;
-	sc->char_id = tmp->char_id;
-	sc->count = tmp->count;
-	sc->data = tmp->data;
-
-	// destroy old entry
-	aFree(tmp);
+	else
+	{
+		sc->account_id = account_id;
+		sc->char_id = char_id;
+		sc->count = 0;
+		sc->data = NULL;
+	}
 
 	return true;
 }
