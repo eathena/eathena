@@ -1,4 +1,6 @@
 
+2008/03/16
+	* Rev. 13591 Merged a good deal of changes from trunk's DB folder. [L0ne_W0lf]
 2008/09/21
 	* Rev.13223 Merged item_db and item_trade from trunk. [L0ne_W0lf]
 	- Mercenary items not merged fully, or teleport scrolls.
