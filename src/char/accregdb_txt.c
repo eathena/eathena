@@ -58,6 +58,8 @@ static bool mmo_accreg_tostr(const struct regs* reg, char* str)
 	char* p = str;
 	int i;
 
+	p[0] = '\0';
+
 	for( i = 0; i < reg->reg_num; ++i )
 		p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
 
@@ -186,12 +188,7 @@ static bool accreg_db_txt_remove(AccRegDB* self, const int account_id)
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBMap* accregs = db->accregs;
 
-	struct regs* tmp = (struct regs*)idb_remove(accregs, account_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("accreg_db_txt_remove: no entry for account id %d\n", account_id);
-		return false;
-	}
+	idb_remove(accregs, account_id);
 
 	return true;
 }
@@ -201,15 +198,15 @@ static bool accreg_db_txt_save(AccRegDB* self, const struct regs* reg, int accou
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBMap* accregs = db->accregs;
 
-	// retrieve previous data / allocate new data
-	struct regs* tmp = idb_ensure(accregs, account_id, create_accregs);
-	if( tmp == NULL )
-	{// error condition - allocation problem?
-		return false;
+	if( reg->reg_num > 0 )
+	{
+		struct regs* tmp = (struct regs*)idb_ensure(accregs, account_id, create_accregs);
+		memcpy(tmp, reg, sizeof(*reg));
 	}
-	
-	// overwrite with new data
-	memcpy(tmp, reg, sizeof(struct regs));
+	else
+	{
+		idb_remove(accregs, account_id);
+	}
 
 	return true;
 }
@@ -218,17 +215,14 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBMap* accregs = db->accregs;
+	struct regs* tmp;
 
-	// retrieve data
-	struct regs* tmp = idb_get(accregs, account_id);
-	if( tmp == NULL )
-	{// entry not found
-		reg->reg_num = 0;
-		return false;
-	}
+	tmp = (struct regs*)idb_get(accregs, account_id);
 
-	// store it
-	memcpy(reg, tmp, sizeof(struct regs));
+	if( tmp != NULL )
+		memcpy(reg, tmp, sizeof(*reg));
+	else
+		memset(reg, 0x00, sizeof(*reg));
 
 	return true;
 }

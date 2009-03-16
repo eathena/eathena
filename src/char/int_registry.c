@@ -99,12 +99,12 @@ static void mapif_regs(int fd, unsigned char *src)
 // Send the requested regs
 static void mapif_regs_reply(int fd, int account_id, int char_id, int type, const struct regs* reg)
 {
-	WFIFOHEAD(fd, 13 + ACCOUNT_REG_NUM * 288);
+	WFIFOHEAD(fd, 13 + ACCOUNT_REG_NUM * sizeof(struct global_reg));
 	WFIFOW(fd,0) = 0x3804;
 	WFIFOL(fd,4) = account_id;
 	WFIFOL(fd,8) = char_id;
 	WFIFOB(fd,12) = type;
-	WFIFOW(fd,2) = 13 + inter_regs_tobuf(WFIFOP(fd,13), ACCOUNT_REG_NUM * 288, reg);
+	WFIFOW(fd,2) = 13 + inter_regs_tobuf(WFIFOP(fd,13), ACCOUNT_REG_NUM * sizeof(struct global_reg), reg);
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 

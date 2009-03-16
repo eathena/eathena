@@ -66,8 +66,8 @@ static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id
 static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int char_id)
 {
 	Sql* sql_handle = db->charregs;
-	SqlStmt* stmt = NULL;
-	int i;
+	StringBuf buf;
+	int i, j;
 	bool result = false;
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
@@ -75,6 +75,8 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 		Sql_ShowDebug(sql_handle);
 		return result;
 	}
+
+	StringBuf_Init(&buf);
 
 	// try
 	do
@@ -93,28 +95,39 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 		break;
 	}
 
-	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES (3,'%d',?,?)", db->charreg_db, char_id) )
-		SqlStmt_ShowDebug(stmt);
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`type`, `char_id`, `str`, `value`) VALUES ", db->charreg_db);
 
+	j = 0; // counter
 	for( i = 0; i < reg->reg_num; ++i )
 	{
 		const struct global_reg* r = &reg->reg[i];
+		char esc_str[2*31+1];
+		char esc_value[2*255+1];
+
 		if( r->str[0] == '\0' || r->value[0] == '\0' )
 			continue; // should not save these
 		
-		SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (void*)r->str, strnlen(r->str, sizeof(r->str)));
-		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)r->value, strnlen(r->value, sizeof(r->value)));
+		Sql_EscapeStringLen(sql_handle, esc_str, r->str, strnlen(r->str, sizeof(r->str)));
+		Sql_EscapeStringLen(sql_handle, esc_value, r->value, strnlen(r->value, sizeof(r->value)));
 
-		if( SQL_ERROR == SqlStmt_Execute(stmt) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
+		if( j != 0 )
+			StringBuf_AppendStr(&buf, ",");
+		StringBuf_Printf(&buf, "(3,%d,'%s','%s')", char_id, esc_str, esc_value);
+
+		j++;
 	}
 
-	if( i < reg->reg_num )
-		break; // failed
+	if( j == 0 )
+	{// nothing to save
+		result = true;
+		break;
+	}
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
 
 	// success
 	result = true;
@@ -123,7 +136,7 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 	while(0);
 	// finally
 
-	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
 	{

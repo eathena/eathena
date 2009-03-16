@@ -66,8 +66,8 @@ static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_i
 static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int account_id)
 {
 	Sql* sql_handle = db->accregs;
-	SqlStmt* stmt = NULL;
-	int i = 0;
+	StringBuf buf;
+	int i, j;
 	bool result = false;
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
@@ -75,6 +75,8 @@ static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int accou
 		Sql_ShowDebug(sql_handle);
 		return result;
 	}
+
+	StringBuf_Init(&buf);
 
 	// try
 	do
@@ -88,33 +90,44 @@ static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int accou
 	}
 
 	if( reg->reg_num <= 0 )
-	{// nothing more needed
+	{// nothing to save
 		result = true;
 		break;
 	}
 
-	stmt = SqlStmt_Malloc(sql_handle);
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES (2,'%d',?,?)", db->accreg_db, account_id) )
-		SqlStmt_ShowDebug(stmt);
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`type`, `account_id`, `str`, `value`) VALUES ", db->accreg_db);
 
+	j = 0; // counter
 	for( i = 0; i < reg->reg_num; ++i )
 	{
 		const struct global_reg* r = &reg->reg[i];
+		char esc_str[2*31+1];
+		char esc_value[2*255+1];
+
 		if( r->str[0] == '\0' || r->value[0] == '\0' )
 			continue; // should not save these
 
-		SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (void*)r->str, strnlen(r->str, sizeof(r->str)));
-		SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)r->value, strnlen(r->value, sizeof(r->value)));
+		Sql_EscapeStringLen(sql_handle, esc_str, r->str, strnlen(r->str, sizeof(r->str)));
+		Sql_EscapeStringLen(sql_handle, esc_value, r->value, strnlen(r->value, sizeof(r->value)));
 
-		if( SQL_ERROR == SqlStmt_Execute(stmt) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
+		if( j != 0 )
+			StringBuf_AppendStr(&buf, ",");
+		StringBuf_Printf(&buf, "(2,%d,'%s','%s')", account_id, esc_str, esc_value);
+
+		j++;
 	}
 
-	if( i < reg->reg_num )
-		break; // failed
+	if( j == 0 )
+	{// nothing to save
+		result = true;
+		break;
+	}
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
 
 	// success
 	result = true;
@@ -123,7 +136,7 @@ static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int accou
 	while(0);
 	// finally
 
-	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
 	{

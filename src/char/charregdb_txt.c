@@ -125,15 +125,15 @@ static bool charreg_db_txt_save(CharRegDB* self, const struct regs* reg, int cha
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 	DBMap* charregs = db->charregs;
 
-	// retrieve previous data / allocate new data
-	struct regs* tmp = idb_ensure(charregs, char_id, create_charregs);
-	if( tmp == NULL )
-	{// error condition - allocation problem?
-		return false;
+	if( reg->reg_num > 0 )
+	{
+		struct regs* tmp = (struct regs*)idb_ensure(charregs, char_id, create_charregs);
+		memcpy(tmp, reg, sizeof(*reg));
 	}
-	
-	// overwrite with new data
-	memcpy(tmp, reg, sizeof(struct regs));
+	else
+	{
+		idb_remove(charregs, char_id);
+	}
 
 	return true;
 }
@@ -142,17 +142,14 @@ static bool charreg_db_txt_load(CharRegDB* self, struct regs* reg, int char_id)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 	DBMap* charregs = db->charregs;
+	struct regs* tmp;
 
-	// retrieve data
-	struct regs* tmp = idb_get(charregs, char_id);
-	if( tmp == NULL )
-	{// entry not found
-		reg->reg_num = 0;
-		return false;
-	}
+	tmp = (struct regs*)idb_get(charregs, char_id);
 
-	// store it
-	memcpy(reg, tmp, sizeof(struct regs));
+	if( tmp != NULL )
+		memcpy(reg, tmp, sizeof(*reg));
+	else
+		memset(reg, 0x00, sizeof(*reg));
 
 	return true;
 }

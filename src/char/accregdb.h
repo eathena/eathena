@@ -16,9 +16,14 @@ struct AccRegDB
 
 	bool (*sync)(AccRegDB* self);
 
+	/// Erases all regs associated with the specified account_id.
 	bool (*remove)(AccRegDB* self, const int account_id);
 
+	/// Saves the provided regs into persistent storage, erasing previous data.
 	bool (*save)(AccRegDB* self, const struct regs* reg, int account_id);
+
+	/// Loads account regs from persistent storage.
+	/// Unused fields in the output array are zeroed.
 	bool (*load)(AccRegDB* self, struct regs* reg, int account_id);
 };
 

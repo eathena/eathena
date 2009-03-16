@@ -16,9 +16,14 @@ struct CharRegDB
 
 	bool (*sync)(CharRegDB* self);
 
+	/// Erases all regs associated with the specified char_id.
 	bool (*remove)(CharRegDB* self, const int char_id);
 
+	/// Saves the provided regs into persistent storage, erasing previous data.
 	bool (*save)(CharRegDB* self, const struct regs* reg, int char_id);
+
+	/// Loads character regs from persistent storage.
+	/// Unused fields in the output array are zeroed.
 	bool (*load)(CharRegDB* self, struct regs* reg, int char_id);
 };
 

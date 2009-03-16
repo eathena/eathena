@@ -286,13 +286,13 @@ int intif_saveregistry(struct map_session_data *sd, int type)
 		ShowError("intif_saveregistry: Invalid type %d\n", type);
 		return -1;
 	}
-	WFIFOHEAD(inter_fd, 288 * MAX_REG_NUM+13);
+	WFIFOHEAD(inter_fd, 13 + MAX_REG_NUM * sizeof(struct global_reg));
 	WFIFOW(inter_fd,0)=0x3004;
 	WFIFOL(inter_fd,4)=sd->status.account_id;
 	WFIFOL(inter_fd,8)=sd->status.char_id;
 	WFIFOB(inter_fd,12)=type;
 	for( p = 13, i = 0; i < count; i++ ) {
-		if (reg[i].str[0] && reg[i].value != 0) {
+		if (reg[i].str[0] != '\0' && reg[i].value[0] != '\0') {
 			p+= sprintf((char*)WFIFOP(inter_fd,p), "%s", reg[i].str)+1; //We add 1 to consider the '\0' in place.
 			p+= sprintf((char*)WFIFOP(inter_fd,p), "%s", reg[i].value)+1;
 		}
