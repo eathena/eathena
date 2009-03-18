@@ -1,5 +1,7 @@
 Date		Added
 ======
+2009/03/18
+	* Fixed moscovia mob names in the spawn file [Playtester]
 2008/09/18
 	* Rev. 13218 Merged updates to nameless Quest from trunk. [L0ne_W0lf]
 2008/08/10
