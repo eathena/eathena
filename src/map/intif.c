@@ -1766,7 +1766,7 @@ static void intif_parse_Auction_results(int fd)
 	struct map_session_data *sd = map_charid2sd(RFIFOL(fd,4));
 	short count = RFIFOW(fd,8);
 	short pages = RFIFOW(fd,10);
-	uint8* data = RFIFOP(fd,12);
+	const struct auction_data* data = (struct auction_data*)RFIFOP(fd,12);
 
 	if( sd == NULL )
 		return;
