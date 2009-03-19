@@ -427,7 +427,7 @@ void clif_Mail_getattachment(int fd, uint8 flag);
 
 // AUCTION SYSTEM
 void clif_Auction_openwindow(struct map_session_data *sd);
-void clif_Auction_results(struct map_session_data *sd, short count, short pages, uint8 *buf);
+void clif_Auction_results(struct map_session_data *sd, short count, short pages, const struct auction_data data[]);
 void clif_Auction_message(int fd, unsigned char flag);
 void clif_Auction_close(int fd, unsigned char flag);
 void clif_parse_Auction_cancelreg(int fd, struct map_session_data *sd);

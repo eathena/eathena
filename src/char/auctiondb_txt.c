@@ -158,7 +158,7 @@ static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)
 {
 }
 
-static bool auction_db_txt_remove(AuctionDB* self, const int mail_id)
+static bool auction_db_txt_remove(AuctionDB* self, const int auction_id)
 {
 }
 
@@ -170,9 +170,9 @@ static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const 
 {
 }
 
-/*
-static bool auction_db_txt_search(AuctionDB* self, ...)
+static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext)
 {
+/*
 	unsigned char buf[5 * sizeof(struct auction_data)];
 	DBIterator* iter;
 	DBKey key;
@@ -208,8 +208,8 @@ static bool auction_db_txt_search(AuctionDB* self, ...)
 		j++; // Found Results
 	}
 	iter->destroy(iter);
-}
 */
+}
 
 static int auction_db_txt_count(AuctionDB* self, const int char_id)
 {
@@ -249,6 +249,7 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &auction_db_txt_remove;
 	db->vtable.save      = &auction_db_txt_save;
 	db->vtable.load      = &auction_db_txt_load;
+	db->vtable.search    = &auction_db_txt_search;
 	db->vtable.count     = &auction_db_txt_count;
 	db->vtable.first     = &auction_db_txt_first;
 

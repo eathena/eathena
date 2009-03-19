@@ -17,13 +17,13 @@ struct AuctionDB
 	bool (*sync)(AuctionDB* self);
 
 	bool (*create)(AuctionDB* self, struct auction_data* ad);
-	bool (*remove)(AuctionDB* self, const int mail_id);
+	bool (*remove)(AuctionDB* self, const int auction_id);
 
 	bool (*save)(AuctionDB* self, const struct auction_data* ad);
 	bool (*load)(AuctionDB* self, struct auction_data* ad, const int auction_id);
 
 	/// List the auctions for the specified search results page.
-	//bool (*search)(AuctionDB* self, struct auction_data ad[5], int page, int type, int price, const char* searchtext);
+	bool (*search)(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext);
 
 	/// Count the number of auctions started by this character.
 	int (*count)(AuctionDB* self, const int char_id);

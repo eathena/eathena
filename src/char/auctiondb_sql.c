@@ -167,7 +167,7 @@ static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad)
 {
 }
 
-static bool auction_db_sql_remove(AuctionDB* self, const int mail_id)
+static bool auction_db_sql_remove(AuctionDB* self, const int auction_id)
 {
 /*
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `auction_id` = '%d'", auction_db, auction_id) )
@@ -180,6 +180,10 @@ static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad)
 }
 
 static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
+{
+}
+
+static bool auction_db_sql_search(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext)
 {
 }
 
@@ -205,6 +209,7 @@ AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &auction_db_sql_remove;
 	db->vtable.save      = &auction_db_sql_save;
 	db->vtable.load      = &auction_db_sql_load;
+	db->vtable.search    = &auction_db_sql_search;
 	db->vtable.count     = &auction_db_sql_count;
 	db->vtable.first     = &auction_db_sql_first;
 

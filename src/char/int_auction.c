@@ -48,7 +48,7 @@ static void auction_timer_reset(void)
 		return;
 
 	// start timer
-	new_tick = gettick() + auction.hours * 3600 * 1000;
+	new_tick = gettick() + (auction.timestamp - time(NULL)) * 1000;
 	auction_end_timer = add_timer(new_tick, auction_end, auction.auction_id, 0);
 }
 
@@ -68,7 +68,7 @@ static void auction_create(struct auction_data* auction)
 	// if new end time < old end time, switch the auction_end_timer
 	t = get_timer(auction_end_timer);
 	new_tick = gettick() + auction->hours * 3600 * 1000;
-	if( t == NULL || t->tick > new_tick )
+	if( t == NULL || DIFF_TICK(new_tick, t->tick) < 0 )
 		auction_timer_reset();
 }
 
@@ -82,7 +82,7 @@ void auction_delete(struct auction_data* auction)
 
 	// if this auction's id == auction_end_timer's auction id, find a new target
 	t = get_timer(auction_end_timer);
-	if( t == NULL || t->tick == auction_id )
+	if( t == NULL || t->id == auction_id )
 		auction_timer_reset();
 }
 
@@ -120,7 +120,7 @@ static void mapif_Auction_message(int char_id, unsigned char result)
 }
 
 
-static void mapif_Auction_sendlist(int fd, int char_id, short count, short pages, unsigned char *buf)
+static void mapif_Auction_sendlist(int fd, int char_id, short count, short pages, const struct auction_data* data)
 {
 	int len = (sizeof(struct auction_data) * count) + 12;
 
@@ -130,7 +130,7 @@ static void mapif_Auction_sendlist(int fd, int char_id, short count, short pages
 	WFIFOL(fd,4) = char_id;
 	WFIFOW(fd,8) = count;
 	WFIFOW(fd,10) = pages;
-	memcpy(WFIFOP(fd,12), buf, len - 12);
+	memcpy(WFIFOP(fd,12), data, count * sizeof(*data));
 	WFIFOSET(fd,len);
 }
 
@@ -142,11 +142,14 @@ static void mapif_parse_Auction_requestlist(int fd)
 	short page = max(1,RFIFOW(fd,14));
 	const char* searchtext = (char*)RFIFOP(fd,16);
 
-	//TODO: generate list of auctions on the specified 'page'
-	//      provide the number of items on this page and the total number of pages
-	//auctions->search(auctions, ...)
+	struct auction_data data[5];
+	int results;
+	int pages;
 
-	//mapif_Auction_sendlist(fd, char_id, j, pages, buf);
+	if( !auctions->search(auctions, data, &pages, &results, char_id, page, type, price, searchtext) )
+		return;
+
+	mapif_Auction_sendlist(fd, char_id, results, pages, data);
 }
 
 
@@ -197,7 +200,7 @@ static void mapif_parse_Auction_cancel(int fd)
 	int auction_id = RFIFOL(fd,6);
 
 	struct auction_data auction;
-	if( auctions->load(auctions, &auction, auction_id) )
+	if( !auctions->load(auctions, &auction, auction_id) )
 	{
 		mapif_Auction_cancel(fd, char_id, 1); // Bid Number is Incorrect
 		return;
@@ -241,7 +244,7 @@ static void mapif_parse_Auction_close(int fd)
 	int auction_id = RFIFOL(fd,6);
 
 	struct auction_data auction;
-	if( auctions->load(auctions, &auction, auction_id) )
+	if( !auctions->load(auctions, &auction, auction_id) )
 	{
 		mapif_Auction_close(fd, char_id, 2); // Bid Number is Incorrect
 		return;
@@ -356,6 +359,8 @@ void inter_auction_init(AuctionDB* adb, MailDB* mdb)
 {
 	auctions = adb;
 	mails = mdb;
+
+	auction_timer_reset();
 }
 
 void inter_auction_final(void)
