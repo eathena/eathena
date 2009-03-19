@@ -62,7 +62,7 @@ static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool 
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_INT,    (void*)&msg->dest_id, sizeof(msg->dest_id))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_STRING, (void*)&msg->title, strnlen(msg->title, MAIL_TITLE_LENGTH))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_STRING, (void*)&msg->body, strnlen(msg->body, MAIL_BODY_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_ULONG,  (void*)&msg->timestamp, sizeof(msg->timestamp)) //FIXME: type inconsistency
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_UINT,   (void*)&msg->timestamp, sizeof(msg->timestamp))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&msg->status, sizeof(msg->status)) //FIXME: type-size mismatch
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_INT,    (void*)&msg->zeny, sizeof(msg->zeny))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_SHORT,  (void*)&msg->item.nameid, sizeof(msg->item.nameid))
