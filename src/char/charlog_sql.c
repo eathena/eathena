@@ -51,7 +51,7 @@ void charlog_log(int char_id, int account_id, int slot, const char* name, const 
 	// write log entry
 	if( SQL_ERROR == Sql_Query(sql_handle,
 	    "INSERT INTO `%s` (`time`, `char_id`, `account_id`, `slot`, `name`, `message`) "
-		"VALUES(NOW(), '%d', '%d', '%d', '%s', '%s'",
+		"VALUES(NOW(), '%d', '%d', '%d', '%s', '%s')",
 		charlog_table, char_id, account_id, slot, esc_name, esc_message) )
 		Sql_ShowDebug(sql_handle);
 }
