@@ -270,7 +270,7 @@ static bool mail_db_sql_create(MailDB* self, struct mail_message* msg)
 		}
 
 		Sql_GetData(sql_handle, 0, &data, &len);
-		msg->id = ( data != NULL ) ? atoi(data) : 0;
+		mail_id = ( data != NULL ) ? atoi(data) : 0;
 		Sql_FreeResult(sql_handle);
 	}
 
