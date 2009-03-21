@@ -1,4 +1,10 @@
 
+2009/03/21
+	* Merged a few database fixes from trunk [Playtester]
+	- fixed potato causing stun
+	- removed combo bonuses that shouldn't exist
+	- fixed Anubis (attack power and drops)
+	- fixed Maya Purple losing her boss mode
 2009/03/17
 	* Rev. 13592 Removed garbage # from the medal of honor names. [L0ne_W0lf]
 2009/03/16

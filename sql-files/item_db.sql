@@ -51,7 +51,7 @@ REPLACE INTO `item_db` VALUES (512,'Apple','Apple',0,15,NULL,20,NULL,NULL,NULL,N
 REPLACE INTO `item_db` VALUES (513,'Banana','Banana',0,15,NULL,20,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(17,21),0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (514,'Grape','Grape',0,200,NULL,20,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal 0,rand(10,15); ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (515,'Carrot','Carrot',0,15,NULL,20,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(18,20),0; ',NULL,NULL);
-REPLACE INTO `item_db` VALUES (516,'Sweet_Potato','Potato',0,15,NULL,20,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(15,23),0; if(rand(1000)<15) sc_start SC_Stun,3000,0; ',NULL,NULL);
+REPLACE INTO `item_db` VALUES (516,'Sweet_Potato','Potato',0,15,NULL,20,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(15,23),0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (517,'Meat','Meat',0,50,NULL,150,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(70,100),0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (518,'Honey','Honey',0,500,NULL,100,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(70,100),rand(20,40); ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (519,'Milk','Milk',0,25,NULL,30,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,' itemheal rand(27,37),0; ',NULL,NULL);
@@ -834,7 +834,7 @@ REPLACE INTO `item_db` VALUES (1568,'Book_Of_Billows_','Book of Billows',4,35000
 REPLACE INTO `item_db` VALUES (1569,'Book_Of_Mother_Earth_','Book of Mother Earth',4,35000,NULL,750,90,NULL,1,3,0x00410100,7,2,2,3,27,1,15,' bonus bAtkEle,Ele_Earth; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (1570,'Book_Of_Blazing_Sun_','Book of the Blazing Sun',4,35000,NULL,750,90,NULL,1,3,0x00410100,7,2,2,3,27,1,15,' bonus bAtkEle,Ele_Fire; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (1571,'Book_Of_Gust_Of_Wind_','Book of Gust of Wind',4,35000,NULL,750,90,NULL,1,3,0x00410100,7,2,2,3,27,1,15,' bonus bAtkEle,Ele_Wind; ',NULL,NULL);
-REPLACE INTO `item_db` VALUES (1572,'Principles_Of_Magic','Principles of Magic',4,20,NULL,300,60,NULL,1,2,0x00410100,7,2,2,3,60,1,15,' bonus bMatkRate,20; bonus bInt,3; bonus bSPrecovRate,5; if (isequipped(2716) && isequipped(2717)) { bonus bMdef,8; bonus bMaxSPRate,10; bonus bInt,4; }; ',NULL,NULL);
+REPLACE INTO `item_db` VALUES (1572,'Principles_Of_Magic','Principles of Magic',4,20,NULL,300,60,NULL,1,2,0x00410100,7,2,2,3,60,1,15,' bonus bMatkRate,20; bonus bInt,3; bonus bSPrecovRate,5; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (1573,'Ancient_Magic','Ancient Magic',4,20,NULL,700,30,NULL,1,2,0x00410100,7,2,2,3,70,1,15,' bonus bMatkRate,15; if (isequipped(2334) || isequipped(2372)) { bonus bMdef,8; bonus bMaxSPRate,10; bonus bInt,4; }; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (1574,'Brave_Battle_Strategy_Book','Brave Battle Strategy Book',4,0,NULL,0,90,NULL,1,0,0x00410100,7,2,2,3,80,1,15,' bonus bStr,2; bonus bInt,1; bonus bMatkRate,15; bonus2 bAddRace,RC_DemiHuman,75; bonus bUnbreakableWeapon,0; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (1575,'Valorous_Battle_Strategy_Book','Valorous Battle Strategy Book',4,0,NULL,0,90,NULL,1,0,0x00410100,7,2,2,3,80,1,15,' bonus bStr,1; bonus bInt,2; bonus bMatkRate,15; bonus2 bAddRace,RC_DemiHuman,75; bonus2 bIgnoreMdefRate,RC_DemiHuman,25; bonus bUnbreakableWeapon,0; ',NULL,NULL);
@@ -1478,7 +1478,7 @@ REPLACE INTO `item_db` VALUES (2711,'Spiritual_Ring_C','Refined Spiritual Ring',
 REPLACE INTO `item_db` VALUES (2712,'Certificate_TW','Collector\'s Edition Book',5,20,NULL,300,NULL,0,NULL,1,0xFFFFFFFF,7,2,136,NULL,1,0,0,' bonus bAgi,3; bonus bVit,3; bonus bLuk,3; ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (2714,'Marvelous_Pandent','Marvelous Pendant',2,0,NULL,0,NULL,NULL,NULL,NULL,0xFFFFFFFF,7,2,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (2715,'Skul_Ring_','Skull Ring',5,10000,NULL,100,NULL,0,NULL,1,0xFFFFFFFF,7,2,136,NULL,0,0,0,' bonus2 bSubRace,RC_Undead,1; ',NULL,NULL);
-REPLACE INTO `item_db` VALUES (2716,'Librarian_Gloves','Librarian Glove',5,20,NULL,100,NULL,0,NULL,1,0x00812200,7,2,136,NULL,0,0,0,' bonus bMaxSP,20; if (getiteminfo(getequipid(EQI_HAND_R),11) == 15 && isequipped(2717)) { bonus bInt,5; bonus bMaxHP,700; bonus bAspdRate,5; } ',NULL,NULL);
+REPLACE INTO `item_db` VALUES (2716,'Librarian_Gloves','Librarian Glove',5,20,NULL,100,NULL,0,NULL,1,0x00812200,7,2,136,NULL,0,0,0,' bonus bMaxSP,20; if ((isequipped(1572) || isequipped(1573)) && isequipped(2717)) { bonus bInt,5; bonus bMaxHP,700; bonus bAspdRate,5; } ',NULL,NULL);
 REPLACE INTO `item_db` VALUES (2717,'Pocket_Watch','Pocket Watch',5,20,NULL,200,NULL,0,NULL,0,0x00010204,7,2,136,NULL,80,0,0,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (2718,'Lunatic_Brooch','Lunatic Brooch',5,20,NULL,200,NULL,0,NULL,1,0x00080808,7,2,136,NULL,65,0,0,NULL,NULL,NULL);
 REPLACE INTO `item_db` VALUES (2719,'Iron_Wrist','Iron Wrist',5,20,NULL,700,NULL,1,NULL,0,0x000444A2,7,2,136,NULL,50,0,0,' bonus2 bSkillAtk,"SM_BASH",6; bonus2 bSkillAtk,"MC_MAMMONITE",6; ',NULL,NULL);
