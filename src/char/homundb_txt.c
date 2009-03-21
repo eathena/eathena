@@ -234,17 +234,12 @@ static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
 	return true;
 }
 
-static bool homun_db_txt_remove(HomunDB* self, const int homun_id)
+static bool homun_db_txt_remove(HomunDB* self, int homun_id)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
 	DBMap* homuns = db->homuns;
 
-	struct s_homunculus* tmp = (struct s_homunculus*)idb_remove(homuns, homun_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("homun_db_txt_remove: no such homunculus with id %d\n", homun_id);
-		return false;
-	}
+	idb_remove(homuns, homun_id);
 
 	return true;
 }
@@ -268,7 +263,7 @@ static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd)
 	return true;
 }
 
-static bool homun_db_txt_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id)
+static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
 	DBMap* homuns = db->homuns;
@@ -299,7 +294,7 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 	db->vtable.create    = &homun_db_txt_create;
 	db->vtable.remove    = &homun_db_txt_remove;
 	db->vtable.save      = &homun_db_txt_save;
-	db->vtable.load_num  = &homun_db_txt_load_num;
+	db->vtable.load      = &homun_db_txt_load;
 
 	// initialize to default values
 	db->owner = owner;

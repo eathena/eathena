@@ -111,7 +111,7 @@ static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homu
 }
 
 
-static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd)
+static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd, bool is_new)
 {
 /*
 	bool flag = true;
@@ -197,27 +197,60 @@ static bool homun_db_sql_sync(HomunDB* self)
 
 static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)
 {
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	Sql* sql_handle = db->homuns;
+
 }
 
-static bool homun_db_sql_remove(HomunDB* self, const int homun_id)
+static bool homun_db_sql_remove(HomunDB* self, int homun_id)
 {
-/*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `homunculus` WHERE `homun_id` = '%u'", homun_id)
-	||	SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `skill_homunculus` WHERE `homun_id` = '%u'", homun_id)
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	Sql* sql_handle = db->homuns;
+	bool result = false;
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
+	// try
+	do
+	{
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `homun_id` = '%d'", db->homun_db, homun_id)
+	||	SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `homun_id` = '%d'", db->homun_skill_db, homun_id)
 	) {
 		Sql_ShowDebug(sql_handle);
-		return false;
+		break;
 	}
-	return true;
-*/
+
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
 }
 
 static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd)
 {
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	return mmo_homun_tosql(db, hd, false);
 }
 
-static bool homun_db_sql_load_num(HomunDB* self, struct s_homunculus* hd, int homun_id)
+static bool homun_db_sql_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
 {
+	HomunDB_SQL* db = (HomunDB_SQL*)self;
+	return mmo_homun_fromsql(db, hd, homun_id);
 }
 
 
@@ -233,7 +266,7 @@ HomunDB* homun_db_sql(CharServerDB_SQL* owner)
 	db->vtable.create    = &homun_db_sql_create;
 	db->vtable.remove    = &homun_db_sql_remove;
 	db->vtable.save      = &homun_db_sql_save;
-	db->vtable.load_num  = &homun_db_sql_load_num;
+	db->vtable.load      = &homun_db_sql_load;
 
 	// initialize to default values
 	db->owner = owner;

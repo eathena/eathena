@@ -112,7 +112,7 @@ static void mapif_parse_homunculus_create(int fd, int len, int account_id, struc
 static void mapif_parse_homunculus_load(int fd, int account_id, int homun_id)
 {
 	struct s_homunculus hd;
-	bool result = homuns->load_num(homuns, &hd, homun_id);
+	bool result = homuns->load(homuns, &hd, homun_id);
 	mapif_homunculus_loaded(fd, account_id, ( result ? &hd : NULL ));
 }
 

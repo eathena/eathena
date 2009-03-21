@@ -19,11 +19,11 @@ struct HomunDB
 
 	bool (*create)(HomunDB* self, struct s_homunculus* p);
 
-	bool (*remove)(HomunDB* self, const int homun_id);
+	bool (*remove)(HomunDB* self, int homun_id);
 
 	bool (*save)(HomunDB* self, const struct s_homunculus* p);
 
-	bool (*load_num)(HomunDB* self, struct s_homunculus* p, int homun_id);
+	bool (*load)(HomunDB* self, struct s_homunculus* p, int homun_id);
 };
 
 
