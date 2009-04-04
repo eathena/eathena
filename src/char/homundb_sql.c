@@ -8,6 +8,7 @@
 #include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
+#include "../common/utils.h"
 #include "charserverdb_sql.h"
 #include "homundb.h"
 #include <string.h>
@@ -30,149 +31,230 @@ typedef struct HomunDB_SQL
 
 static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homun_id)
 {
-/*
+	Sql* sql_handle = db->homuns;
+	SqlStmt* stmt;
+	StringBuf buf;
+	int id, lv;
+	int count;
 	int i;
-	char* data;
-	size_t len;
+	bool result = false;
 
 	memset(hd, 0, sizeof(*hd));
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `homun_id`,`char_id`,`class`,`name`,`level`,`exp`,`intimacy`,`hunger`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `hp`,`max_hp`,`sp`,`max_sp`,`skill_point`,`rename_flag`, `vaporize` FROM `homunculus` WHERE `homun_id`='%u'", homun_id) )
+	StringBuf_Init(&buf);
+	StringBuf_Printf(&buf, "SELECT `homun_id`,`char_id`,`class`,`name`,`level`,`exp`,`intimacy`,`hunger`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `hp`,`max_hp`,`sp`,`max_sp`,`skill_point`,`rename_flag`, `vaporize` FROM `%s` WHERE `homun_id`='%u'", db->homun_db, homun_id);
+
+	do
 	{
-		Sql_ShowDebug(sql_handle);
-		return false;
+
+	stmt = SqlStmt_Malloc(sql_handle);
+
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
 	}
 
-	if( !Sql_NumRows(sql_handle) )
-	{	//No homunculus found.
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{
-		Sql_ShowDebug(sql_handle);
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
+	if( SqlStmt_NumRows(stmt) == 0 )
+		break; // no homunculus found
 
-	hd->hom_id = homun_id;
-	Sql_GetData(sql_handle,  1, &data, NULL); hd->char_id = atoi(data);
-	Sql_GetData(sql_handle,  2, &data, NULL); hd->class_ = atoi(data);
-	Sql_GetData(sql_handle,  3, &data, &len); safestrncpy(hd->name, data, sizeof(hd->name));
-	Sql_GetData(sql_handle,  4, &data, NULL); hd->level = atoi(data);
-	Sql_GetData(sql_handle,  5, &data, NULL); hd->exp = atoi(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); hd->intimacy = (unsigned int)strtoul(data, NULL, 10);
-	Sql_GetData(sql_handle,  7, &data, NULL); hd->hunger = atoi(data);
-	Sql_GetData(sql_handle,  8, &data, NULL); hd->str = atoi(data);
-	Sql_GetData(sql_handle,  9, &data, NULL); hd->agi = atoi(data);
-	Sql_GetData(sql_handle, 10, &data, NULL); hd->vit = atoi(data);
-	Sql_GetData(sql_handle, 11, &data, NULL); hd->int_ = atoi(data);
-	Sql_GetData(sql_handle, 12, &data, NULL); hd->dex = atoi(data);
-	Sql_GetData(sql_handle, 13, &data, NULL); hd->luk = atoi(data);
-	Sql_GetData(sql_handle, 14, &data, NULL); hd->hp = atoi(data);
-	Sql_GetData(sql_handle, 15, &data, NULL); hd->max_hp = atoi(data);
-	Sql_GetData(sql_handle, 16, &data, NULL); hd->sp = atoi(data);
-	Sql_GetData(sql_handle, 17, &data, NULL); hd->max_sp = atoi(data);
-	Sql_GetData(sql_handle, 18, &data, NULL); hd->skillpts = atoi(data);
-	Sql_GetData(sql_handle, 19, &data, NULL); hd->rename_flag = atoi(data);
-	Sql_GetData(sql_handle, 20, &data, NULL); hd->vaporize = atoi(data);
-	Sql_FreeResult(sql_handle);
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT, (void*)&hd->hom_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_INT, (void*)&hd->char_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT, (void*)&hd->class_, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_STRING, (void*)hd->name, sizeof(hd->name), NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_SHORT, (void*)&hd->level, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_UINT, (void*)&hd->exp, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_UINT, (void*)&hd->intimacy, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_SHORT, (void*)&hd->hunger, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 8, SQLDT_INT, (void*)&hd->str, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 9, SQLDT_INT, (void*)&hd->agi, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 10, SQLDT_INT, (void*)&hd->vit, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 11, SQLDT_INT, (void*)&hd->int_, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 12, SQLDT_INT, (void*)&hd->dex, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 13, SQLDT_INT, (void*)&hd->luk, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 14, SQLDT_INT, (void*)&hd->hp, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 15, SQLDT_INT, (void*)&hd->max_hp, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 16, SQLDT_INT, (void*)&hd->sp, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 17, SQLDT_INT, (void*)&hd->max_sp, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 18, SQLDT_SHORT, (void*)&hd->skillpts, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 19, SQLDT_SHORT, (void*)&hd->rename_flag, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 20, SQLDT_SHORT, (void*)&hd->vaporize, 0, NULL, NULL);
+
+	if( SQL_SUCCESS != SqlStmt_NextRow(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
 
 	hd->intimacy = cap_value(hd->intimacy, 0, 100000);
 	hd->hunger = cap_value(hd->hunger, 0, 100);
 
+	StringBuf_Clear(&buf);
+
 	// Load Homunculus Skill
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `id`,`lv` FROM `skill_homunculus` WHERE `homun_id`=%d", homun_id) )
+	StringBuf_Printf(&buf, "SELECT `id`,`lv` FROM `%s` WHERE `homun_id`=%d", db->homun_skill_db, homun_id);
+
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &id, 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &lv, 0, NULL, NULL) )
 	{
-		Sql_ShowDebug(sql_handle);
-		return false;
+		SqlStmt_ShowDebug(stmt);
+		break;
 	}
-	while( SQL_SUCCESS == Sql_NextRow(sql_handle) )
+
+	if( SqlStmt_NumRows(stmt) == 0 )
+	{// no homun skills found
+		result = true;
+		break;
+	}
+
+	for( count = 0; count < MAX_HOMUNSKILL && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++count )
 	{
-		// id
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		i = atoi(data);
-		if( i < HM_SKILLBASE || i >= HM_SKILLBASE + MAX_HOMUNSKILL )
+		if( id < HM_SKILLBASE || id >= HM_SKILLBASE + MAX_HOMUNSKILL )
 			continue;// invalid skill id
-		i = i - HM_SKILLBASE;
-		hd->hskill[i].id = (unsigned short)atoi(data);
 
-		// lv
-		Sql_GetData(sql_handle, 1, &data, NULL);
-		hd->hskill[i].lv = (unsigned short)atoi(data);
+		i = id - HM_SKILLBASE;
+
+		hd->hskill[i].id = id;
+		hd->hskill[i].lv = lv;
 	}
-	Sql_FreeResult(sql_handle);
 
-	if( save_log )
-		ShowInfo("Homunculus loaded (%d - %s).\n", hd->hom_id, hd->name);
+	// success
+	result = true;
 
-	return true;
-*/
+	}
+	while(0);
+
+	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
+
+	return result;
 }
 
 
-static bool mmo_homun_tosql(HomunDB_SQL* db, const struct s_homunculus* hd, bool is_new)
+static bool mmo_homun_tosql(HomunDB_SQL* db, struct s_homunculus* hd, bool is_new)
 {
-/*
-	bool flag = true;
-	char esc_name[NAME_LENGTH*2+1];
+	Sql* sql_handle = db->homuns;
+	StringBuf buf;
+	SqlStmt* stmt = NULL;
+	int count;
+	int i;
+	bool result = false;
 
-	Sql_EscapeStringLen(sql_handle, esc_name, hd->name, strnlen(hd->name, NAME_LENGTH));
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
 
-	if( hd->hom_id == 0 )
-	{// new homunculus
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `homunculus` "
-			"(`char_id`, `class`,`name`,`level`,`exp`,`intimacy`,`hunger`, `str`, `agi`, `vit`, `int`, `dex`, `luk`, `hp`,`max_hp`,`sp`,`max_sp`,`skill_point`, `rename_flag`, `vaporize`) "
-			"VALUES ('%d', '%d', '%s', '%d', '%u', '%u', '%d', '%d', %d, '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			hd->char_id, hd->class_, esc_name, hd->level, hd->exp, hd->intimacy, hd->hunger, hd->str, hd->agi, hd->vit, hd->int_, hd->dex, hd->luk,
-			hd->hp, hd->max_hp, hd->sp, hd->max_sp, hd->skillpts, hd->rename_flag, hd->vaporize) )
-		{
-			Sql_ShowDebug(sql_handle);
-			flag = false;
-		}
-		else
-		{
-			hd->hom_id = (int)Sql_LastInsertId(sql_handle);
-		}
+	StringBuf_Init(&buf);
+
+	if( is_new )
+	{
+		StringBuf_Printf(&buf,
+			"INSERT INTO `%s` "
+			"(`char_id`,`class`,`name`,`level`,`exp`,`intimacy`,`hunger`,`str`,`agi`,`vit`,`int`,`dex`,`luk`,`hp`,`max_hp`,`sp`,`max_sp`,`skill_point`,`rename_flag`,`vaporize`,`homun_id`) "
+			"VALUES "
+			"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			, db->homun_db);
 	}
 	else
 	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `homunculus` SET `char_id`='%d', `class`='%d',`name`='%s',`level`='%d',`exp`='%u',`intimacy`='%u',`hunger`='%d', `str`='%d', `agi`='%d', `vit`='%d', `int`='%d', `dex`='%d', `luk`='%d', `hp`='%d',`max_hp`='%d',`sp`='%d',`max_sp`='%d',`skill_point`='%d', `rename_flag`='%d', `vaporize`='%d' WHERE `homun_id`='%d'",
-			hd->char_id, hd->class_, esc_name, hd->level, hd->exp, hd->intimacy, hd->hunger, hd->str, hd->agi, hd->vit, hd->int_, hd->dex, hd->luk,
-			hd->hp, hd->max_hp, hd->sp, hd->max_sp, hd->skillpts, hd->rename_flag, hd->vaporize, hd->hom_id) )
-		{
-			Sql_ShowDebug(sql_handle);
-			flag = false;
-		}
-		else
-		{
-			SqlStmt* stmt;
-			int i;
-
-			stmt = SqlStmt_Malloc(sql_handle);
-			if( SQL_ERROR == SqlStmt_Prepare(stmt, "REPLACE INTO `skill_homunculus` (`homun_id`, `id`, `lv`) VALUES (%d, ?, ?)", hd->hom_id) )
-				SqlStmt_ShowDebug(stmt);
-			for( i = 0; i < MAX_HOMUNSKILL; ++i )
-			{
-				if( hd->hskill[i].id > 0 && hd->hskill[i].lv != 0 )
-				{
-					SqlStmt_BindParam(stmt, 0, SQLDT_USHORT, &hd->hskill[i].id, 0);
-					SqlStmt_BindParam(stmt, 1, SQLDT_USHORT, &hd->hskill[i].lv, 0);
-					if( SQL_ERROR == SqlStmt_Execute(stmt) )
-					{
-						SqlStmt_ShowDebug(stmt);
-						SqlStmt_Free(stmt);
-						flag = false;
-						break;
-					}
-				}
-			}
-			SqlStmt_Free(stmt);
-		}
+		StringBuf_Printf(&buf,
+			"UPDATE `%s` SET `char_id`=?,`class`=?,`name`=?,`level`=?,`exp`=?,`intimacy`=?,`hunger`=?,`str`=?,`agi`=?,`vit`=?,`int`=?,`dex`=?,`luk`=?, `hp`=?,`max_hp`=?,`sp`=?,`max_sp`=?,`skill_point`=?,`rename_flag`=?,`vaporize`=? WHERE `homun_id`=?"
+			, db->homun_db);
 	}
 
-	return flag;
-*/
+	do
+	{
+
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_INT, (void*)&hd->char_id, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_SHORT, (void*)&hd->class_, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_STRING, (void*)hd->name, strnlen(hd->name, ARRAYLENGTH(hd->name)))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_SHORT, (void*)&hd->level, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_UINT, (void*)&hd->exp, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_UINT, (void*)&hd->intimacy, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_SHORT, (void*)&hd->hunger, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 7, SQLDT_INT, (void*)&hd->str, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 8, SQLDT_INT, (void*)&hd->agi, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 9, SQLDT_INT, (void*)&hd->vit, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_INT, (void*)&hd->int_, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_INT, (void*)&hd->dex, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_INT, (void*)&hd->luk, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_INT, (void*)&hd->hp, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_INT, (void*)&hd->max_hp, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 15, SQLDT_INT, (void*)&hd->sp, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 16, SQLDT_INT, (void*)&hd->max_sp, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 17, SQLDT_SHORT, (void*)&hd->skillpts, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 18, SQLDT_SHORT, (void*)&hd->rename_flag, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 19, SQLDT_SHORT, (void*)&hd->vaporize, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 20, (hd->hom_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&hd->hom_id, 0)
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
+
+	if( hd->hom_id == -1 ) // fill in output value
+		hd->hom_id = (int)SqlStmt_LastInsertId(stmt);
+
+	StringBuf_Clear(&buf);
+
+	// skills
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `homun_id`='%d'", db->homun_skill_db, hd->hom_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`homun_id`, `id`, `lv`) VALUES ", db->homun_skill_db);
+
+	count = 0;
+	for( i = 0; i < MAX_HOMUNSKILL; ++i )
+	{
+		if( hd->hskill[i].id <= 0 || hd->hskill[i].lv == 0 )
+			continue;
+
+		if( count > 0 )
+			StringBuf_AppendStr(&buf, ", ");
+
+		StringBuf_Printf(&buf, "('%d','%hu','%hu')", hd->hom_id, hd->hskill[i].id, hd->hskill[i].lv);
+
+		count++;
+	}
+
+	if( count == 0 )
+	{// nothing to save
+		result = true;
+		break;
+	}
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	// success
+	result = true;
+
+	}
+	while(0);
+
+	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
 }
 
 
@@ -198,8 +280,7 @@ static bool homun_db_sql_sync(HomunDB* self)
 static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
-	Sql* sql_handle = db->homuns;
-
+	return mmo_homun_tosql(db, hd, true);
 }
 
 static bool homun_db_sql_remove(HomunDB* self, int homun_id)
@@ -244,7 +325,7 @@ static bool homun_db_sql_remove(HomunDB* self, int homun_id)
 static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
-	return mmo_homun_tosql(db, hd, false);
+	return mmo_homun_tosql(db, (struct s_homunculus*)hd, false);
 }
 
 static bool homun_db_sql_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
