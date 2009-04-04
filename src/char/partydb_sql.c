@@ -11,6 +11,7 @@
 #include "int_party.h"
 #include "partydb.h"
 #include <stdlib.h>
+#include <string.h>
 
 
 //Party Flags on what to save/delete.
@@ -48,6 +49,8 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 	char* data;
 	int i;
 	int leader_id, leader_char;
+
+	memset(p, 0, sizeof(*p));
 
 	// retrieve entry for the specified party
 	if( SQL_ERROR == Sql_Query(sql_handle,

@@ -42,7 +42,7 @@ static bool mmo_party_fromstr(struct party* p, char* str)
 	int exp;
 	int item;
 	
-	memset(p, 0, sizeof(struct party));
+	memset(p, 0, sizeof(*p));
 
 	if( sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &party_id, name, &exp, &item) != 4 )
 		return false;
