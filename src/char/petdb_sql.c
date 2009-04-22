@@ -6,9 +6,11 @@
 #include "../common/mmo.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
+#include "../common/utils.h"
 #include "charserverdb_sql.h"
 #include "petdb.h"
 #include <stdlib.h>
+#include <string.h>
 
 
 /// internal structure
@@ -29,86 +31,131 @@ typedef struct PetDB_SQL
 
 static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id)
 {
-/*
-	char* data;
-	size_t len;
+	Sql* sql_handle = db->pets;
+	SqlStmt* stmt;
+	StringBuf buf;
+	bool result = false;
 
-	memset(p, 0, sizeof(struct s_pet));
+	memset(pd, 0, sizeof(*pd));
 
-	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
+	StringBuf_Init(&buf);
+	StringBuf_Printf(&buf, "SELECT `pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate` FROM `%s` WHERE `pet_id`='%d'", db->pet_db, pet_id);
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate` FROM `%s` WHERE `pet_id`='%d'", pet_db, pet_id) )
+	do
 	{
-		Sql_ShowDebug(sql_handle);
-		return 0;
+
+	stmt = SqlStmt_Malloc(sql_handle);
+
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
 	}
 
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
+	if( SqlStmt_NumRows(stmt) == 0 )
+		break; // no pet found
+
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT, (void*)&pd->pet_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT, (void*)&pd->class_, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_STRING, (void*)pd->name, sizeof(pd->name), NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_INT, (void*)&pd->account_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_INT, (void*)&pd->char_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_SHORT, (void*)&pd->level, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_SHORT, (void*)&pd->egg_id, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_SHORT, (void*)&pd->equip, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 8, SQLDT_SHORT, (void*)&pd->intimate, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 9, SQLDT_SHORT, (void*)&pd->hungry, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 10, SQLDT_CHAR, (void*)&pd->rename_flag, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 11, SQLDT_CHAR, (void*)&pd->incuvate, 0, NULL, NULL);
+
+	if( SQL_SUCCESS != SqlStmt_NextRow(stmt) )
 	{
-		p->pet_id = pet_id;
-		Sql_GetData(sql_handle,  1, &data, NULL); p->class_ = atoi(data);
-		Sql_GetData(sql_handle,  2, &data, &len); memcpy(p->name, data, min(len, NAME_LENGTH));
-		Sql_GetData(sql_handle,  3, &data, NULL); p->account_id = atoi(data);
-		Sql_GetData(sql_handle,  4, &data, NULL); p->char_id = atoi(data);
-		Sql_GetData(sql_handle,  5, &data, NULL); p->level = atoi(data);
-		Sql_GetData(sql_handle,  6, &data, NULL); p->egg_id = atoi(data);
-		Sql_GetData(sql_handle,  7, &data, NULL); p->equip = atoi(data);
-		Sql_GetData(sql_handle,  8, &data, NULL); p->intimate = atoi(data);
-		Sql_GetData(sql_handle,  9, &data, NULL); p->hungry = atoi(data);
-		Sql_GetData(sql_handle, 10, &data, NULL); p->rename_flag = atoi(data);
-		Sql_GetData(sql_handle, 11, &data, NULL); p->incuvate = atoi(data);
-
-		Sql_FreeResult(sql_handle);
-
-		p->hungry = cap_value(p->hungry, 0, 100);
-		p->intimate = cap_value(p->intimate, 0, 1000);
-
-		if( save_log )
-			ShowInfo("Pet loaded (%d - %s).\n", pet_id, p->name);
+		SqlStmt_ShowDebug(stmt);
+		break;
 	}
-	return 0;
-*/
+
+	pd->hungry = cap_value(pd->hungry, 0, 100);
+	pd->intimate = cap_value(pd->intimate, 0, 1000);
+
+	// success
+	result = true;
+
+	}
+	while(0);
+
+	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
+
+	return result;
 }
 
 
-static bool mmo_pet_tosql(PetDB_SQL* db, const struct s_pet* pd, bool is_new)
+static bool mmo_pet_tosql(PetDB_SQL* db, struct s_pet* pd, bool is_new)
 {
-/*
-	//`pet` (`pet_id`, `class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`)
-	char esc_name[NAME_LENGTH*2+1];// escaped pet name
+	Sql* sql_handle = db->pets;
+	StringBuf buf;
+	SqlStmt* stmt = NULL;
+	bool result = false;
 
-	Sql_EscapeStringLen(sql_handle, esc_name, p->name, strnlen(p->name, NAME_LENGTH));
-	p->hungry = cap_value(p->hungry, 0, 100);
-	p->intimate = cap_value(p->intimate, 0, 1000);
+	pd->hungry = cap_value(pd->hungry, 0, 100);
+	pd->intimate = cap_value(pd->intimate, 0, 1000);
 
-	if( pet_id == -1 )
-	{// New pet.
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` "
-			"(`class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`) "
-			"VALUES ('%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			pet_db, p->class_, esc_name, p->account_id, p->char_id, p->level, p->egg_id,
-			p->equip, p->intimate, p->hungry, p->rename_flag, p->incuvate) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return 0;
-		}
-		p->pet_id = (int)Sql_LastInsertId(sql_handle);
+	StringBuf_Init(&buf);
+
+	if( is_new )
+	{
+		StringBuf_Printf(&buf,
+			"INSERT INTO `%s` "
+			"(`class`,`name`,`account_id`,`char_id`,`level`,`egg_id`,`equip`,`intimate`,`hungry`,`rename_flag`,`incuvate`,`pet_id`) "
+			"VALUES "
+			"(?,?,?,?,?,?,?,?,?,?,?,?)"
+			, db->pet_db);
 	}
 	else
-	{// Update pet.
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d',`name`='%s',`account_id`='%d',`char_id`='%d',`level`='%d',`egg_id`='%d',`equip`='%d',`intimate`='%d',`hungry`='%d',`rename_flag`='%d',`incuvate`='%d' WHERE `pet_id`='%d'",
-			pet_db, p->class_, esc_name, p->account_id, p->char_id, p->level, p->egg_id,
-			p->equip, p->intimate, p->hungry, p->rename_flag, p->incuvate, p->pet_id) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return 0;
-		}
+	{
+		StringBuf_Printf(&buf,
+			"UPDATE `%s` SET `class`='%d',`name`='%s',`account_id`='%d',`char_id`='%d',`level`='%d',`egg_id`='%d',`equip`='%d',`intimate`='%d',`hungry`='%d',`rename_flag`='%d',`incuvate`='%d' WHERE `pet_id`='%d'"
+			, db->pet_db);
 	}
 
-	if (save_log)
-		ShowInfo("Pet saved %d - %s.\n", pet_id, p->name);
-	return 1;
-*/
+	do
+	{
+
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_SHORT, (void*)&pd->class_, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)pd->name, strnlen(pd->name, ARRAYLENGTH(pd->name)))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_INT, (void*)&pd->account_id, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_INT, (void*)&pd->char_id, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_SHORT, (void*)&pd->level, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_SHORT, (void*)&pd->egg_id, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_SHORT, (void*)&pd->equip, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 7, SQLDT_SHORT, (void*)&pd->intimate, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 8, SQLDT_SHORT, (void*)&pd->hungry, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 9, SQLDT_CHAR, (void*)&pd->rename_flag, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_CHAR, (void*)&pd->incuvate, 0)
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, (pd->pet_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&pd->pet_id, 0)
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
+
+	// fill in output value
+	if( pd->pet_id == -1 )
+		pd->pet_id = (int)SqlStmt_LastInsertId(stmt);
+
+	// success
+	result = true;
+
+	}
+	while(0);
+
+	SqlStmt_Free(stmt);
+	StringBuf_Destroy(&buf);
+
+	return result;
 }
 
 
@@ -134,42 +181,6 @@ static bool pet_db_sql_sync(PetDB* self)
 static bool pet_db_sql_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-	Sql* sql_handle = db->pets;
-
-	// decide on the pet id to assign
-	int pet_id;
-	if( pd->pet_id != -1 )
-	{// caller specifies it manually
-		pet_id = pd->pet_id;
-	}
-	else
-	{// ask the database
-		char* data;
-		size_t len;
-
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`pet_id`)+1 FROM `%s`", db->pet_db) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false;
-		}
-		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			Sql_FreeResult(sql_handle);
-			return false;
-		}
-
-		Sql_GetData(sql_handle, 0, &data, &len);
-		pet_id = ( data != NULL ) ? atoi(data) : 0;
-		Sql_FreeResult(sql_handle);
-	}
-
-	// zero value is prohibited
-	if( pet_id == 0 )
-		return false;
-
-	// insert the data into the database
-	pd->pet_id = pet_id;
 	return mmo_pet_tosql(db, pd, true);
 }
 
@@ -190,7 +201,7 @@ static bool pet_db_sql_remove(PetDB* self, const int pet_id)
 static bool pet_db_sql_save(PetDB* self, const struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
-	return mmo_pet_tosql(db, pd, false);
+	return mmo_pet_tosql(db, (struct s_pet*)pd, false);
 }
 
 static bool pet_db_sql_load_num(PetDB* self, struct s_pet* pd, int pet_id)
