@@ -142,9 +142,12 @@ static bool mmo_pet_tosql(PetDB_SQL* db, struct s_pet* pd, bool is_new)
 		break;
 	}
 
-	// fill in output value
-	if( pd->pet_id == -1 )
-		pd->pet_id = (int)SqlStmt_LastInsertId(stmt);
+	if( is_new )
+	{
+		// fill in output value
+		if( pd->pet_id == -1 )
+			pd->pet_id = (int)SqlStmt_LastInsertId(stmt);
+	}
 
 	// success
 	result = true;

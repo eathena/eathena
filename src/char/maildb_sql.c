@@ -28,16 +28,17 @@ typedef struct MailDB_SQL
 
 
 
-static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool is_new)
+static bool mmo_mail_tosql(MailDB_SQL* db, struct mail_message* msg, bool is_new)
 {
 	Sql* sql_handle = db->mails;
 
 	StringBuf buf;
 	SqlStmt* stmt;
+	int insert_id;
 	bool result = false;
 	int j;
 
-	stmt = SqlStmt_Malloc(sql_handle);
+	StringBuf_Init(&buf);
 
 	// try
 	do
@@ -45,40 +46,53 @@ static bool mmo_mail_tosql(MailDB_SQL* db, const struct mail_message* msg, bool 
 
 	if( is_new )
 	{// insert new mail entry
-		StringBuf_Init(&buf);
-		StringBuf_Printf(&buf, "INSERT INTO `%s` (`id`, `send_name`, `send_id`, `dest_name`, `dest_id`, `title`, `message`, `time`, `status`, `zeny`, `nameid`, `amount`, `refine`, `attribute`, `identify`", db->mail_db);
+		StringBuf_Printf(&buf, "INSERT INTO `%s` (`send_name`,`send_id`,`dest_name`,`dest_id`,`title`,`message`,`time`,`status`,`zeny`,`nameid`,`amount`,`refine`,`attribute`,`identify`", db->mail_db);
 		for( j = 0; j < MAX_SLOTS; ++j )
-			StringBuf_Printf(&buf, ", `card%d`", j);
-		StringBuf_Printf(&buf, ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?");
+			StringBuf_Printf(&buf, ",`card%d`", j);
+		StringBuf_Printf(&buf, ",`id`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?");
 		for( j = 0; j < MAX_SLOTS; ++j )
-			StringBuf_Printf(&buf, ", '%d'", msg->item.card[j]); //TODO: bind as params
-		StringBuf_AppendStr(&buf, ")");
-
-		if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_UINT,   (void*)&msg->id, sizeof(msg->id)) //FIXME: column is actually uBIGINT
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)&msg->send_name, strnlen(msg->send_name, NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_INT,    (void*)&msg->send_id, sizeof(msg->send_id))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)&msg->dest_name, strnlen(msg->dest_name, NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_INT,    (void*)&msg->dest_id, sizeof(msg->dest_id))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_STRING, (void*)&msg->title, strnlen(msg->title, MAIL_TITLE_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_STRING, (void*)&msg->body, strnlen(msg->body, MAIL_BODY_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_UINT,   (void*)&msg->timestamp, sizeof(msg->timestamp))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&msg->status, sizeof(msg->status)) //FIXME: type-size mismatch
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_INT,    (void*)&msg->zeny, sizeof(msg->zeny))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_SHORT,  (void*)&msg->item.nameid, sizeof(msg->item.nameid))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_SHORT,  (void*)&msg->item.amount, sizeof(msg->item.amount))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_CHAR,   (void*)&msg->item.refine, sizeof(msg->item.refine))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_CHAR,   (void*)&msg->item.attribute, sizeof(msg->item.attribute))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_CHAR,   (void*)&msg->item.identify, sizeof(msg->item.identify))
-		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
+			StringBuf_Printf(&buf, ",'%d'", msg->item.card[j]); //TODO: bind as params
+		StringBuf_AppendStr(&buf, ",?)");
 	}
 	else
 	{// update existing mail entry
-		//TODO ~_~
+		StringBuf_Printf(&buf, "UPDATE `%s` SET `send_name`=?, `send_id`=?, `dest_name`=?, `dest_id`=?, `title`=?, `message`=?, `time`=?, `status`=?, `zeny`=?, `nameid`=?, `amount`=?, `refine`=?, `attribute`=?, `identify`=?", db->mail_db);
+		for( j = 0; j < MAX_SLOTS; j++ )
+			StringBuf_Printf(&buf, ", `card%d` = '%d'", j, msg->item.card[j]);
+		StringBuf_Printf(&buf, " WHERE `id`=?", msg->id);
+	}
+
+	stmt = SqlStmt_Malloc(sql_handle);
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, SQLDT_STRING, (void*)&msg->send_name, strnlen(msg->send_name, NAME_LENGTH))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_INT,    (void*)&msg->send_id, sizeof(msg->send_id))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_STRING, (void*)&msg->dest_name, strnlen(msg->dest_name, NAME_LENGTH))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_INT,    (void*)&msg->dest_id, sizeof(msg->dest_id))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_STRING, (void*)&msg->title, strnlen(msg->title, MAIL_TITLE_LENGTH))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_STRING, (void*)&msg->body, strnlen(msg->body, MAIL_BODY_LENGTH))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT,   (void*)&msg->timestamp, sizeof(msg->timestamp))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_INT,    (void*)&msg->status, sizeof(msg->status)) //FIXME: type-size mismatch
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_INT,    (void*)&msg->zeny, sizeof(msg->zeny))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_SHORT,  (void*)&msg->item.nameid, sizeof(msg->item.nameid))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_SHORT,  (void*)&msg->item.amount, sizeof(msg->item.amount))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_CHAR,   (void*)&msg->item.refine, sizeof(msg->item.refine))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_CHAR,   (void*)&msg->item.attribute, sizeof(msg->item.attribute))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_CHAR,   (void*)&msg->item.identify, sizeof(msg->item.identify))
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, (msg->id != -1)?SQLDT_UINT:SQLDT_NULL, (void*)&msg->id, sizeof(msg->id)) //FIXME: column is actually uBIGINT
+	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
+
+	if( is_new )
+	{
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( msg->id == -1 )
+			msg->id = insert_id; // fill in output value
+		else
+		if( msg->id != insert_id )
+			break; // error, unexpected value
 	}
 
 	// if we got this far, everything was successful
@@ -300,7 +314,7 @@ static bool mail_db_sql_remove(MailDB* self, const int mail_id)
 static bool mail_db_sql_save(MailDB* self, const struct mail_message* msg)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
-	return mmo_mail_tosql(db, msg, false);
+	return mmo_mail_tosql(db, (struct mail_message*)msg, false);
 }
 
 static bool mail_db_sql_load(MailDB* self, struct mail_message* msg, const int mail_id)

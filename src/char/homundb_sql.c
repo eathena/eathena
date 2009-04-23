@@ -139,6 +139,7 @@ static bool mmo_homun_tosql(HomunDB_SQL* db, struct s_homunculus* hd, bool is_ne
 	Sql* sql_handle = db->homuns;
 	StringBuf buf;
 	SqlStmt* stmt = NULL;
+	int insert_id;
 	int count;
 	int i;
 	bool result = false;
@@ -199,8 +200,15 @@ static bool mmo_homun_tosql(HomunDB_SQL* db, struct s_homunculus* hd, bool is_ne
 		break;
 	}
 
-	if( hd->hom_id == -1 ) // fill in output value
-		hd->hom_id = (int)SqlStmt_LastInsertId(stmt);
+	if( is_new )
+	{
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( hd->hom_id == -1 )
+			hd->hom_id = insert_id; // fill in output value
+		else
+		if( hd->hom_id != insert_id )
+			break; // error, unexpected value
+	}
 
 	StringBuf_Clear(&buf);
 

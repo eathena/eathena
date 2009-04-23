@@ -271,7 +271,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 }
 
 
-static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool is_new)
+static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new)
 {
 	Sql* sql_handle = db->chars;
 
@@ -280,32 +280,51 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 	int diff = 0;
 	struct mmo_charstatus tmp;
 	struct mmo_charstatus* cp = &tmp;
-	char esc_name[NAME_LENGTH*2+1];
 	StringBuf buf;
+	bool result = false;
 
 	//TODO: add cache
 	//TODO: if "is_new", don't consider doing this step and just 'memset' it or something
 	mmo_char_fromsql(db, cp, p->char_id, true);
 
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
 	StringBuf_Init(&buf);
+
+	// try
+	do
+	{
 
 	if( is_new )
 	{// Insert the barebones to then update the rest.
-		Sql_EscapeStringLen(sql_handle, esc_name, p->name, strnlen(p->name, NAME_LENGTH));
-		if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`char_id`, `account_id`, `char_num`, `name`)  VALUES ('%d', '%d', '%d', '%s')",
-			db->char_db, p->char_id, p->account_id, p->slot, esc_name) )
+		SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
+		int insert_id;
+
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "REPLACE INTO `%s` (`char_id`, `account_id`, `char_num`, `name`)  VALUES (?,?,?,?)", db->char_db)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_INT, (void*)&p->account_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_UCHAR, (void*)&p->slot, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (void*)p->name, strnlen(p->name, ITEM_NAME_LENGTH))
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
-			Sql_ShowDebug(sql_handle);
+			SqlStmt_ShowDebug(stmt);
+			SqlStmt_Free(stmt);
+			break;
 		}
+
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( p->char_id == -1 )
+			p->char_id = insert_id; // fill in output value
+		else
+		if( p->char_id != insert_id )
+			break; // error, unexpected value
+
+		SqlStmt_Free(stmt);
 	}
-
-	//map inventory data
-	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
-		memitemdata_to_sql(db->chars, p->inventory, MAX_INVENTORY, p->char_id, db->inventory_db, "char_id");
-
-	//map cart data
-	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
-		memitemdata_to_sql(db->chars, p->cart, MAX_CART, p->char_id, db->cart_db, "char_id");
 
 	if (
 		(p->base_exp != cp->base_exp) || (p->base_level != cp->base_level) ||
@@ -371,6 +390,14 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 		}
 	}
 
+	//inventory data
+	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
+		memitemdata_to_sql(db->chars, p->inventory, MAX_INVENTORY, p->char_id, db->inventory_db, "char_id");
+
+	//cart data
+	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
+		memitemdata_to_sql(db->chars, p->cart, MAX_CART, p->char_id, db->cart_db, "char_id");
+
 	//memo points
 	if( memcmp(p->memo_point, cp->memo_point, sizeof(p->memo_point)) )
 	{
@@ -435,12 +462,23 @@ static bool mmo_char_tosql(CharDB_SQL* db, const struct mmo_charstatus* p, bool 
 		}
 	}
 
+
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
 	StringBuf_Destroy(&buf);
 
-	if( save_log )
-		ShowInfo("Saved char %d - %s.\n", p->char_id, p->name);
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
 
-	return true;
+	return result;
 }
 
 
@@ -466,46 +504,6 @@ static bool char_db_sql_sync(CharDB* self)
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
-	Sql* sql_handle = db->chars;
-
-	// decide on the char id to assign
-	int char_id;
-	if( cd->char_id != -1 )
-	{// caller specifies it manually
-		char_id = cd->char_id;
-	}
-	else
-	{// ask the database
-		char* data;
-		size_t len;
-
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`char_id`)+1 FROM `%s`", db->char_db) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false;
-		}
-		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			Sql_FreeResult(sql_handle);
-			return false;
-		}
-
-		Sql_GetData(sql_handle, 0, &data, &len);
-		char_id = ( data != NULL ) ? atoi(data) : 0;
-		Sql_FreeResult(sql_handle);
-
-		if( char_id < START_CHAR_NUM )
-			char_id = START_CHAR_NUM;
-
-	}
-
-	// zero value is prohibited
-	if( char_id == 0 )
-		return false;
-
-	// insert the data into the database
-	cd->char_id = char_id;
 	return mmo_char_tosql(db, cd, true);
 }
 
@@ -542,7 +540,7 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
-	return mmo_char_tosql(db, ch, false);
+	return mmo_char_tosql(db, (struct mmo_charstatus*)ch, false);
 }
 
 static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)

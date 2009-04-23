@@ -27,12 +27,13 @@ typedef struct AuctionDB_SQL
 
 
 
-static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, bool is_new)
+static bool mmo_auction_tosql(AuctionDB_SQL* db, struct auction_data* ad, bool is_new)
 {
 	Sql* sql_handle = db->auctions;
 	int j;
 	StringBuf buf;
 	SqlStmt* stmt;
+	int insert_id;
 	bool result = false;
 
 	StringBuf_Init(&buf);
@@ -55,6 +56,7 @@ static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, 
 		StringBuf_Printf(&buf, " WHERE `auction_id`=?", ad->auction_id);
 	}
 
+	// try
 	do
 	{
 
@@ -80,11 +82,22 @@ static bool mmo_auction_tosql(AuctionDB_SQL* db, const struct auction_data* ad, 
 		break;
 	}
 
+	if( is_new )
+	{
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( ad->auction_id == -1 )
+			ad->auction_id = insert_id; // fill in output value
+		else
+		if( ad->auction_id != insert_id )
+			break; // error, unexpected value
+	}
+
 	// success
 	result = true;
 
 	}
 	while(0);
+	// finally
 
 	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
@@ -181,7 +194,6 @@ static bool auction_db_sql_sync(AuctionDB* self)
 static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
-	Sql* sql_handle = db->auctions;
 	return mmo_auction_tosql(db, ad, true);
 }
 
@@ -202,7 +214,7 @@ static bool auction_db_sql_remove(AuctionDB* self, const int auction_id)
 static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
-	return mmo_auction_tosql(db, ad, false);
+	return mmo_auction_tosql(db, (struct auction_data*)ad, false);
 }
 
 static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
