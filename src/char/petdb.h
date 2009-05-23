@@ -23,7 +23,7 @@ struct PetDB
 	bool (*save)(PetDB* self, const struct s_pet* pd);
 
 	// retrieve data using pet id
-	bool (*load_num)(PetDB* self, struct s_pet* pd, int pet_id);
+	bool (*load)(PetDB* self, struct s_pet* pd, int pet_id);
 };
 
 

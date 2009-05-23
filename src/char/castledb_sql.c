@@ -150,7 +150,7 @@ static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
 	return mmo_castle_tosql(db, gc);
 }
 
-static bool castle_db_sql_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
+static bool castle_db_sql_load(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
 	return mmo_castle_fromsql(db, gc, castle_id);
@@ -227,7 +227,7 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	db->vtable.create    = &castle_db_sql_create;
 	db->vtable.remove    = &castle_db_sql_remove;
 	db->vtable.save      = &castle_db_sql_save;
-	db->vtable.load_num  = &castle_db_sql_load_num;
+	db->vtable.load      = &castle_db_sql_load;
 	db->vtable.iterator  = &castle_db_sql_iterator;
 
 	// initialize to default values

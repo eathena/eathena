@@ -532,7 +532,7 @@ static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
 {
 }
 
-static bool guild_db_sql_load_num(GuildDB* self, struct guild* g, int guild_id)
+static bool guild_db_sql_load(GuildDB* self, struct guild* g, int guild_id)
 {
 }
 
@@ -579,7 +579,7 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	db->vtable.create    = &guild_db_sql_create;
 	db->vtable.remove    = &guild_db_sql_remove;
 	db->vtable.save      = &guild_db_sql_save;
-	db->vtable.load_num  = &guild_db_sql_load_num;
+	db->vtable.load      = &guild_db_sql_load;
 	db->vtable.name2id   = &guild_db_sql_name2id;
 
 	// initialize to default values

@@ -281,6 +281,7 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 	struct mmo_charstatus tmp;
 	struct mmo_charstatus* cp = &tmp;
 	StringBuf buf;
+	SqlStmt* stmt = NULL;
 	bool result = false;
 
 	//TODO: add cache
@@ -301,9 +302,9 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 
 	if( is_new )
 	{// Insert the barebones to then update the rest.
-		SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
 		int insert_id;
 
+		SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "REPLACE INTO `%s` (`char_id`, `account_id`, `char_num`, `name`)  VALUES (?,?,?,?)", db->char_db)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_INT, (void*)&p->account_id, 0)
@@ -312,7 +313,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 		{
 			SqlStmt_ShowDebug(stmt);
-			SqlStmt_Free(stmt);
 			break;
 		}
 
@@ -322,8 +322,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 		else
 		if( p->char_id != insert_id )
 			break; // error, unexpected value
-
-		SqlStmt_Free(stmt);
 	}
 
 	if (
@@ -470,6 +468,7 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 	while(0);
 	// finally
 
+	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )

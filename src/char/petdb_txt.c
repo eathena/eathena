@@ -254,7 +254,7 @@ static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 	return true;
 }
 
-static bool pet_db_txt_load_num(PetDB* self, struct s_pet* pd, int pet_id)
+static bool pet_db_txt_load(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
 	DBMap* pets = db->pets;
@@ -285,7 +285,7 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	db->vtable.create    = &pet_db_txt_create;
 	db->vtable.remove    = &pet_db_txt_remove;
 	db->vtable.save      = &pet_db_txt_save;
-	db->vtable.load_num  = &pet_db_txt_load_num;
+	db->vtable.load      = &pet_db_txt_load;
 
 	// initialize to default values
 	db->owner = owner;

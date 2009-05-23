@@ -207,7 +207,7 @@ static bool pet_db_sql_save(PetDB* self, const struct s_pet* pd)
 	return mmo_pet_tosql(db, (struct s_pet*)pd, false);
 }
 
-static bool pet_db_sql_load_num(PetDB* self, struct s_pet* pd, int pet_id)
+static bool pet_db_sql_load(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
 	return mmo_pet_fromsql(db, pd, pet_id);
@@ -226,7 +226,7 @@ PetDB* pet_db_sql(CharServerDB_SQL* owner)
 	db->vtable.create    = &pet_db_sql_create;
 	db->vtable.remove    = &pet_db_sql_remove;
 	db->vtable.save      = &pet_db_sql_save;
-	db->vtable.load_num  = &pet_db_sql_load_num;
+	db->vtable.load      = &pet_db_sql_load;
 
 	// initialize to default values
 	db->owner = owner;

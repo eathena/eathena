@@ -493,7 +493,7 @@ void mapif_parse_GuildInfoRequest(int fd, int guild_id)
 {
 	struct guild g;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 	{
 		mapif_guild_noinfo(fd, guild_id);
 		return;
@@ -516,7 +516,7 @@ void mapif_parse_GuildAddMember(int fd, int guild_id, struct guild_member* m)
 	struct guild g;
 	int i;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 	{
 		mapif_guild_memberadded(fd, guild_id, m->account_id, m->char_id, 1);
 		return;
@@ -550,7 +550,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 	struct guild g;
 	int i, j;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 	{
 		//TODO
 		return 0;
@@ -614,7 +614,7 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 	struct guild g;
 	int i, sum, c;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return 0;
 	
 	ARR_FIND( 0, g.max_member, i, g.member[i].account_id == account_id && g.member[i].char_id == char_id );
@@ -672,7 +672,7 @@ void mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char
 	struct guild g;
 	short dw = *((short *)data);
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 
 	switch( type )
@@ -705,7 +705,7 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 	int i;
 	struct guild g;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 
 	// find the member
@@ -787,7 +787,7 @@ void mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_posit
 {
 	struct guild g;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 	if( idx < 0 || idx >= MAX_GUILDPOSITION )
 		return;
@@ -806,7 +806,7 @@ int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id
 	struct guild g;
 	int idx = skill_num - GD_SKILLBASE;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return 0;
 	if( idx < 0 || idx >= MAX_GUILDSKILL )
 		return 0;
@@ -834,8 +834,8 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 	bool b[2];
 	int j, i;
 
-	b[0] = guilds->load_num(guilds, &g[0], guild_id1);
-	b[1] = guilds->load_num(guilds, &g[1], guild_id2);
+	b[0] = guilds->load(guilds, &g[0], guild_id1);
+	b[1] = guilds->load(guilds, &g[1], guild_id2);
 
 	if( b[0] && !b[1] && (flag & GUILD_ALLIANCE_REMOVE) ) // Requested to remove an alliance with a not found guild.
 	{// Try to do a manual removal of said guild.
@@ -894,7 +894,7 @@ void mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char 
 {
 	struct guild g;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 
 	safestrncpy(g.mes1, mes1, sizeof(g.mes1));
@@ -912,7 +912,7 @@ void mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const cha
 {
 	struct guild g;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 
 	if (len > sizeof(g.emblem_data))
@@ -933,7 +933,7 @@ void mapif_parse_GuildCastleDataLoad(int fd, int castle_id, int index)
 {
 	struct guild_castle gc;
 
-	if( !castles->load_num(castles, &gc, castle_id) )
+	if( !castles->load(castles, &gc, castle_id) )
 	{
 		mapif_guild_castle_dataload(castle_id, 0, 0);
 		return;
@@ -968,7 +968,7 @@ void mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value
 {
 	struct guild_castle gc;
 
-	if( !castles->load_num(castles, &gc, castle_id) )
+	if( !castles->load(castles, &gc, castle_id) )
 	{
 		//FIXME: why's a positive reply being sent here?
 		mapif_guild_castle_datasave(castle_id, index, value);
@@ -988,7 +988,7 @@ void mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value
 		// value = conquering guild_id, or 0 for abandoning the castle
 		gid = ( value != 0 ) ? value : gc.guild_id;
 
-		if( !guilds->load_num(guilds, &g, gid) )
+		if( !guilds->load(guilds, &g, gid) )
 			safestrncpy(g.name, "??", sizeof(g.name));
 
 		interlog_log("guild %s (id=%d) %s castle id=%d\n", g.name, gid, (value) ? "occupy" : "abandon", castle_id);
@@ -1032,7 +1032,7 @@ void mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int l
 	struct guild_member m;
 	int pos;
 
-	if( !guilds->load_num(guilds, &g, guild_id) )
+	if( !guilds->load(guilds, &g, guild_id) )
 		return;
 	if( len > NAME_LENGTH )
 		return;

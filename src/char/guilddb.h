@@ -47,7 +47,7 @@ struct GuildDB
 
 	bool (*save)(GuildDB* self, const struct guild* p);
 
-	bool (*load_num)(GuildDB* self, struct guild* p, int guild_id);
+	bool (*load)(GuildDB* self, struct guild* p, int guild_id);
 
 	bool (*name2id)(GuildDB* self, const char* name, int* guild_id);
 };

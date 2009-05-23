@@ -129,7 +129,7 @@ int mapif_load_pet(int fd, int account_id, int char_id, int pet_id)
 {
 	struct s_pet pd;
 
-	if( !pets->load_num(pets, &pd, pet_id) )
+	if( !pets->load(pets, &pd, pet_id) )
 	{
 		mapif_pet_noinfo(fd, account_id);
 		return 0;

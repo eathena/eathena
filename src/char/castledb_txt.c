@@ -222,7 +222,7 @@ static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 	return true;
 }
 
-static bool castle_db_txt_load_num(CastleDB* self, struct guild_castle* gc, int castle_id)
+static bool castle_db_txt_load(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
 	DBMap* castles = db->castles;
@@ -295,7 +295,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->vtable.create    = &castle_db_txt_create;
 	db->vtable.remove    = &castle_db_txt_remove;
 	db->vtable.save      = &castle_db_txt_save;
-	db->vtable.load_num  = &castle_db_txt_load_num;
+	db->vtable.load      = &castle_db_txt_load;
 	db->vtable.iterator  = &castle_db_txt_iterator;
 
 	// initialize to default values

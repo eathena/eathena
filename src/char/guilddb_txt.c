@@ -428,7 +428,7 @@ static bool guild_db_txt_save(GuildDB* self, const struct guild* g)
 */
 }
 
-static bool guild_db_txt_load_num(GuildDB* self, struct guild* g, int guild_id)
+static bool guild_db_txt_load(GuildDB* self, struct guild* g, int guild_id)
 {
 /*
 	return (struct guild*)idb_get(guild_db, guild_id);
@@ -466,7 +466,7 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->vtable.create    = &guild_db_txt_create;
 	db->vtable.remove    = &guild_db_txt_remove;
 	db->vtable.save      = &guild_db_txt_save;
-	db->vtable.load_num  = &guild_db_txt_load_num;
+	db->vtable.load      = &guild_db_txt_load;
 	db->vtable.name2id   = &guild_db_txt_name2id;
 
 	// initialize to default values

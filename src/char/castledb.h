@@ -40,7 +40,7 @@ struct CastleDB
 
 	bool (*save)(CastleDB* self, const struct guild_castle* gc);
 
-	bool (*load_num)(CastleDB* self, struct guild_castle* gc, int castle_id);
+	bool (*load)(CastleDB* self, struct guild_castle* gc, int castle_id);
 
 	/// Returns a new forward iterator.
 	///
