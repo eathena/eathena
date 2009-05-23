@@ -14,18 +14,6 @@
 #include <string.h>
 
 
-//Party Flags on what to save/delete.
-//Create a new party entry (index holds leader's info) 
-#define PS_CREATE 0x01
-//Update basic party info.
-#define PS_BASIC 0x02
-//Update party's leader
-#define PS_LEADER 0x04
-//Specify new party member (index specifies which party member)
-#define PS_ADDMEMBER 0x08
-//Specify member that left (index specifies which party member)
-#define PS_DELMEMBER 0x10
-
 /// internal structure
 typedef struct PartyDB_SQL
 {
@@ -103,16 +91,14 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 }
 
 
-static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, int index)
+static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_flags flag, int index)
 {
 	Sql* sql_handle = db->parties;
-	char esc_name[NAME_LENGTH*2+1];// escaped party name
+	SqlStmt* stmt = NULL;
 	bool result = false;
 
 	if( p == NULL || p->party_id == 0 )
 		return result;
-
-	Sql_EscapeStringLen(sql_handle, esc_name, p->name, safestrnlen(p->name, NAME_LENGTH));
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
 	{
@@ -126,23 +112,36 @@ static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, in
 
 	if( flag & PS_CREATE )
 	{// Create party
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` "
-			"(`party_id`, `name`, `exp`, `item`, `leader_id`, `leader_char`) "
-			"VALUES ('%d', '%s', '%d', '%d', '%d', '%d')",
-			db->party_db, p->party_id, esc_name, p->exp, p->item, p->member[index].account_id, p->member[index].char_id) )
+		int insert_id;
+		unsigned char exp = p->exp;
+		unsigned char item = p->item;
+
+		stmt = SqlStmt_Malloc(sql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`party_id`, `name`, `exp`, `item`, `leader_id`, `leader_char`) VALUES (?,?,?,?)", db->party_db)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (p->party_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->party_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)p->name, strnlen(p->name, sizeof(p->name)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_UCHAR, (void*)&exp, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_UCHAR, (void*)&item, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_INT, (void*)&p->member[index].account_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_INT, (void*)&p->member[index].char_id, 0) )
 		{
-			Sql_ShowDebug(sql_handle);
+			SqlStmt_ShowDebug(stmt);
 			break;
 		}
-		if( p->party_id != (int)Sql_LastInsertId(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			break;
-		}
+
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( p->party_id == -1 )
+			p->party_id = insert_id; // fill in output value
+		else
+		if( p->party_id != insert_id )
+			break; // error, unexpected value
 	}
 
 	if( flag & PS_BASIC )
 	{// Update party info.
+		char esc_name[NAME_LENGTH*2+1];// escaped party name
+		Sql_EscapeStringLen(sql_handle, esc_name, p->name, safestrnlen(p->name, NAME_LENGTH));
+
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `name`='%s', `exp`='%d', `item`='%d' WHERE `party_id`='%d'",
 			db->party_db, esc_name, p->exp, p->item, p->party_id) )
 		{
@@ -187,6 +186,8 @@ static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, int flag, in
 	} while(0);
 	// finally
 
+	SqlStmt_Free(stmt);
+
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -219,42 +220,6 @@ static bool party_db_sql_sync(PartyDB* self)
 static bool party_db_sql_create(PartyDB* self, struct party_data* p)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-	Sql* sql_handle = db->parties;
-
-	// decide on the party id to assign
-	int party_id;
-	if( p->party.party_id != -1 )
-	{// caller specifies it manually
-		party_id = p->party.party_id;
-	}
-	else
-	{// ask the database
-		char* data;
-		size_t len;
-
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`party_id`)+1 FROM `%s`", db->party_db) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false;
-		}
-		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			Sql_FreeResult(sql_handle);
-			return false;
-		}
-
-		Sql_GetData(sql_handle, 0, &data, &len);
-		party_id = ( data != NULL ) ? atoi(data) : 0;
-		Sql_FreeResult(sql_handle);
-	}
-
-	// zero value is prohibited
-	if( party_id == 0 )
-		return false;
-
-	// insert the data into the database
-	p->party.party_id = party_id;
 	return mmo_party_tosql(db, &p->party, PS_CREATE|PS_ADDMEMBER, 0);
 }
 
@@ -274,13 +239,10 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id)
 	return true;
 }
 
-static bool party_db_sql_save(PartyDB* self, const struct party_data* p)
+static bool party_db_sql_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-	//TODO: figure out how to deal with the interface to mmo_party_tosql
-	// perhaps several calls?
-	// or even complete removal of the `party_id` column from `char`
-	//return mmo_party_tosql(db, ch);
+	return mmo_party_tosql(db, (struct party*)&p->party, flag, index);
 }
 
 static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)

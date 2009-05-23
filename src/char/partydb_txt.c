@@ -167,9 +167,6 @@ static bool party_db_txt_init(PartyDB* self)
 			continue;
 		}
 
-		//init state
-		int_party_calc_state(&p);
-
 		// record entry in db
 		tmp = (struct party_data*)aMalloc(sizeof(struct party_data));
 		memcpy(tmp, &p, sizeof(struct party_data));
@@ -258,7 +255,7 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id)
 	return true;
 }
 
-static bool party_db_txt_save(PartyDB* self, const struct party_data* p)
+static bool party_db_txt_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
@@ -303,11 +300,18 @@ static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 		if( !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
 			continue;
 
+		//m->account_id = cd.account_id;
+		//m->char_id = cd.char_id;
 		safestrncpy(m->name, cd.name, sizeof(m->name));
 		m->class_ = cd.class_;
 		m->map = cd.last_point.map;
 		m->lv = cd.base_level;
+		//m->leader = (?) ? 1 : 0);
+		m->online = 0; // default
 	}
+
+	//init state
+	int_party_calc_state(p);
 
 	return true;
 }

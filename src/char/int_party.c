@@ -350,7 +350,7 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 	memcpy(&p.party.member[i], member, sizeof(struct party_member));
 	p.party.member[i].leader = 0;
 	int_party_calc_state(&p);
-	parties->save(parties, &p); // PS_ADDMEMBER[i]
+	parties->save(parties, &p, PS_ADDMEMBER, i);
 
 	mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 0);
 	mapif_party_info(-1, &p.party);
@@ -377,7 +377,7 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 	p.party.item = item&0x3; //Filter out invalid values.
 	mapif_party_optionchanged(fd, &p.party, account_id, flag);
 
-	parties->save(parties, &p); // PS_BASIC
+	parties->save(parties, &p, PS_BASIC, -1);
 
 	return 0;
 }
@@ -434,7 +434,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 
 	if( !party_check_empty(&p) )
 	{
-		parties->save(parties, &p); // PS_DELMEMBER[i]
+		parties->save(parties, &p, PS_DELMEMBER, i);
 		mapif_party_info(-1, &p.party);
 	}
 	else
@@ -482,11 +482,6 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 		p.party.member[i].map = map;
 	}
 
-#ifdef TXT_ONLY
-	//FIXME: this is just here to update some non-persistent variables
-	parties->save(parties, &p);
-#endif
-
 	mapif_party_membermoved(&p.party, i);
 
 	return 0;
@@ -531,7 +526,7 @@ int mapif_parse_PartyLeaderChange(int fd,int party_id,int account_id,int char_id
 	if( i < MAX_PARTY )
 		p.party.member[i].leader = 1;
 
-	parties->save(parties, &p); // PS_LEADER[i]
+	parties->save(parties, &p, PS_LEADER, i);
 
 	return 1;
 }

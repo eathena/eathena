@@ -9,6 +9,16 @@
 typedef struct PartyDB PartyDB;
 
 
+//Party Flags on what to save/delete.
+enum party_save_flags
+{
+	PS_CREATE    = 0x01, //Create a new party entry (index holds leader's info)
+	PS_BASIC     = 0x02, //Update basic party info.
+	PS_LEADER    = 0x04, //Update party's leader
+	PS_ADDMEMBER = 0x08, //Add new party member (index specifies position)
+	PS_DELMEMBER = 0x10, //Remove party member (index specifies position)
+};
+
 struct party_data
 {
 	struct party party;
@@ -16,7 +26,6 @@ struct party_data
 	int family; //Is this party a family? if so, this holds the child id.
 	unsigned char size; //Total size of party.
 };
-
 
 struct PartyDB
 {
@@ -30,7 +39,7 @@ struct PartyDB
 
 	bool (*remove)(PartyDB* self, const int party_id);
 
-	bool (*save)(PartyDB* self, const struct party_data* p);
+	bool (*save)(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index);
 
 	// retrieve data using party id
 	bool (*load)(PartyDB* self, struct party_data* p, int party_id);
