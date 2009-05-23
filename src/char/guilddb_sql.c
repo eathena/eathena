@@ -10,6 +10,7 @@
 #include "../common/strlib.h"
 #include "charserverdb_sql.h"
 #include "guilddb.h"
+#include <stdlib.h>
 #include <string.h>
 
 static const char dataToHex[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
@@ -24,6 +25,7 @@ typedef struct GuildDB_SQL
 	Sql* guilds;       // SQL guild storage
 
 	// other settings
+	bool case_sensitive;
 	const char* guild_db;
 	const char* guild_alliance_db;
 	const char* guild_expulsion_db;
@@ -135,7 +137,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		m->modified = GS_MEMBER_UNMODIFIED;
 	}
 
-	//printf("- Read guild_position %d from sql \n",guild_id);
+	// load guild position info
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `position`,`name`,`mode`,`exp_mode` FROM `%s` WHERE `guild_id`='%d'", guild_position_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -157,7 +159,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		p->modified = GS_POSITION_UNMODIFIED;
 	}
 
-	//printf("- Read guild_alliance %d from sql \n",guild_id);
+	// load guild alliance info
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `opposition`,`alliance_id`,`name` FROM `%s` WHERE `guild_id`='%d'", guild_alliance_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -173,7 +175,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		Sql_GetData(sql_handle, 2, &data, &len); memcpy(a->name, data, min(len, NAME_LENGTH));
 	}
 
-	//printf("- Read guild_expulsion %d from sql \n",guild_id);
+	// load guild expulsion info
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `account_id`,`name`,`mes` FROM `%s` WHERE `guild_id`='%d'", guild_expulsion_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -189,19 +191,17 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		Sql_GetData(sql_handle, 2, &data, &len); memcpy(e->mes, data, min(len, sizeof(e->mes)));
 	}
 
-	//printf("- Read guild_skill %d from sql \n",guild_id);
+	// load guild skill info
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `id`,`lv` FROM `%s` WHERE `guild_id`='%d' ORDER BY `id`", guild_skill_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		aFree(g);
 		return NULL;
 	}
-
 	for(i = 0; i < MAX_GUILDSKILL; i++)
 	{	//Skill IDs must always be initialized. [Skotlex]
 		g->skill[i].id = i + GD_SKILLBASE;
 	}
-
 	while( SQL_SUCCESS == Sql_NextRow(sql_handle) )
 	{
 		int id;
@@ -210,6 +210,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 			continue;// invalid guild skill
 		Sql_GetData(sql_handle, 1, &data, NULL); g->skill[id].lv = atoi(data);
 	}
+
 	Sql_FreeResult(sql_handle);
 
 	idb_put(guild_db_, guild_id, g); //Add to cache
@@ -218,9 +219,10 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 }
 
 
-static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
+static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 {
 	//TODO: recognize GS_MEMBER_DELETED modified flag in guild member structure
+	//int flag = g->save_flag;
 /*
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `account_id` = '%d' and `char_id` = '%d'", guild_member_db, account_id, char_id) )
 		Sql_ShowDebug(sql_handle);
@@ -241,9 +243,6 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 	// GS_EXPULSION `guild_expulsion` (`guild_id`,`account_id`,`name`,`mes`)
 	// GS_SKILL `guild_skill` (`guild_id`,`id`,`lv`) 
 
-	// temporary storage for str convertion. They must be twice the size of the
-	// original string to ensure no overflows will occur. [Skotlex]
-	char t_info[256];
 	char esc_name[NAME_LENGTH*2+1];
 	char esc_master[NAME_LENGTH*2+1];
 	char new_guild = 0;
@@ -253,14 +252,11 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 	
 	Sql_EscapeStringLen(sql_handle, esc_name, g->name, strnlen(g->name, NAME_LENGTH));
 	Sql_EscapeStringLen(sql_handle, esc_master, g->master, strnlen(g->master, NAME_LENGTH));
-	*t_info = '\0';
 
 #ifndef TXT_SQL_CONVERT
 	// Insert a new guild the guild
 	if (flag&GS_BASIC && g->guild_id == -1)
 	{
-		strcat(t_info, " guild_create");
-
 		// Create a new guild
 		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` "
 			"(`name`,`master`,`guild_lv`,`max_member`,`average_lv`,`char_id`) "
@@ -281,7 +277,6 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 	// Insert a new guild the guild
 	if (flag&GS_BASIC)
 	{
-		strcat(t_info, " guild_create");
 		// Since the PK is guild id + master id, a replace will not be enough if we are overwriting data, we need to wipe the previous guild.
 		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` where `guild_id` = '%d'", guild_db, g->guild_id) )
 			Sql_ShowDebug(sql_handle);
@@ -301,17 +296,14 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 	if (((flag & GS_BASIC_MASK) && !new_guild) || ((flag & (GS_BASIC_MASK & ~GS_BASIC)) && new_guild))
 	{
 		StringBuf buf;
-		bool add_comma = false;
-
 		StringBuf_Init(&buf);
-		StringBuf_Printf(&buf, "UPDATE `%s` SET ", guild_db);
+		StringBuf_Printf(&buf, "UPDATE `%s` SET `guild_id`=`guild_id`", guild_db); // sentinel
 
 		if (flag & GS_EMBLEM)
 		{
 			char emblem_data[sizeof(g->emblem_data)*2+1];
 			char* pData = emblem_data;
 
-			strcat(t_info, " emblem");
 			// Convert emblem_data to hex
 			//TODO: why not use binary directly? [ultramage]
 			for(i=0; i<g->emblem_len; i++){
@@ -319,49 +311,28 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 				*pData++ = dataToHex[g->emblem_data[i] & 0x0F];
 			}
 			*pData = 0;
-			StringBuf_Printf(&buf, "`emblem_len`=%d, `emblem_id`=%d, `emblem_data`='%s'", g->emblem_len, g->emblem_id, emblem_data);
-			add_comma = true;
+			StringBuf_Printf(&buf, ", `emblem_len`=%d, `emblem_id`=%d, `emblem_data`='%s'", g->emblem_len, g->emblem_id, emblem_data);
 		}
 		if (flag & GS_BASIC) 
 		{
-			strcat(t_info, " basic");
-			if( add_comma )
-				StringBuf_AppendStr(&buf, ", ");
-			else
-				add_comma = true;
-			StringBuf_Printf(&buf, "`name`='%s', `master`='%s', `char_id`=%d", esc_name, esc_master, g->member[0].char_id);
+			StringBuf_Printf(&buf, ", `name`='%s', `master`='%s', `char_id`=%d", esc_name, esc_master, g->member[0].char_id);
 		}
 		if (flag & GS_CONNECT)
 		{
-			strcat(t_info, " connect");
-			if( add_comma )
-				StringBuf_AppendStr(&buf, ", ");
-			else
-				add_comma = true;
-			StringBuf_Printf(&buf, "`connect_member`=%d, `average_lv`=%d", g->connect_member, g->average_lv);
+			StringBuf_Printf(&buf, ", `connect_member`=%d, `average_lv`=%d", g->connect_member, g->average_lv);
 		}
 		if (flag & GS_MES)
 		{
 			char esc_mes1[sizeof(g->mes1)*2+1];
 			char esc_mes2[sizeof(g->mes2)*2+1];
 
-			strcat(t_info, " mes");
-			if( add_comma )
-				StringBuf_AppendStr(&buf, ", ");
-			else
-				add_comma = true;
 			Sql_EscapeStringLen(sql_handle, esc_mes1, g->mes1, strnlen(g->mes1, sizeof(g->mes1)));
 			Sql_EscapeStringLen(sql_handle, esc_mes2, g->mes2, strnlen(g->mes2, sizeof(g->mes2)));
-			StringBuf_Printf(&buf, "`mes1`='%s', `mes2`='%s'", esc_mes1, esc_mes2);
+			StringBuf_Printf(&buf, ", `mes1`='%s', `mes2`='%s'", esc_mes1, esc_mes2);
 		}
 		if (flag & GS_LEVEL)
 		{
-			strcat(t_info, " level");
-			if( add_comma )
-				StringBuf_AppendStr(&buf, ", ");
-			else
-				add_comma = true;
-			StringBuf_Printf(&buf, "`guild_lv`=%d, `skill_point`=%d, `exp`=%u, `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
+			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%u, `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
 		}
 		StringBuf_Printf(&buf, " WHERE `guild_id`=%d", g->guild_id);
 		if( SQL_ERROR == Sql_Query(sql_handle, "%s", StringBuf_Value(&buf)) )
@@ -373,7 +344,6 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 	{
 		struct guild_member *m;
 
-		strcat(t_info, " members");
 		// Update only needed players
 		for(i=0;i<g->max_member;i++){
 			m = &g->member[i];
@@ -401,9 +371,8 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 		}
 	}
 
-	if (flag&GS_POSITION){
-		strcat(t_info, " positions");
-		//printf("- Insert guild %d to guild_position\n",g->guild_id);
+	if (flag&GS_POSITION)
+	{
 		for(i=0;i<MAX_GUILDPOSITION;i++){
 			struct guild_position *p = &g->position[i];
 #ifndef TXT_SQL_CONVERT
@@ -447,9 +416,8 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 		}
 	}
 
-	if (flag&GS_EXPULSION){
-		strcat(t_info, " expulsions");
-		//printf("- Insert guild %d to guild_expulsion\n",g->guild_id);
+	if (flag&GS_EXPULSION)
+	{
 		for(i=0;i<MAX_GUILDEXPULSION;i++){
 			struct guild_expulsion *e=&g->expulsion[i];
 			if(e->account_id>0){
@@ -464,9 +432,8 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, int flag)
 		}
 	}
 
-	if (flag&GS_SKILL){
-		strcat(t_info, " skills");
-		//printf("- Insert guild %d to guild_skill\n",g->guild_id);
+	if (flag&GS_SKILL)
+	{
 		for(i=0;i<MAX_GUILDSKILL;i++){
 			if (g->skill[i].id>0 && g->skill[i].lv>0){
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`id`,`lv`) VALUES ('%d','%d','%d')",
@@ -500,9 +467,9 @@ static bool guild_db_sql_sync(GuildDB* self)
 
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
-/*
-	if (!inter_guild_tosql(g,GS_BASIC|GS_POSITION|GS_SKILL)) {
-*/
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	g->save_flag |= GS_BASIC | GS_POSITION | GS_SKILL;
+	return mmo_guild_tosql(db, g);
 }
 
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
@@ -530,40 +497,52 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
 {
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	return mmo_guild_tosql(db, (struct guild*)g);
 }
 
 static bool guild_db_sql_load(GuildDB* self, struct guild* g, int guild_id)
 {
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	return mmo_guild_fromsql(db, g, guild_id);
 }
 
 static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 {
-/*
-	int guild_id;
-	char esc_name[NAME_LENGTH*2+1];
-	
-	Sql_EscapeStringLen(sql_handle, esc_name, str, safestrnlen(str, NAME_LENGTH));
-	//Lookup guilds with the same name
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT guild_id FROM `%s` WHERE name='%s'", guild_db, esc_name) )
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	Sql* sql_handle = db->guilds;
+	char esc_name[2*NAME_LENGTH+1];
+	char* data;
+
+	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
+
+	// get the list of guild IDs for this guild name
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `guild_id` FROM `%s` WHERE `name`= %s '%s'",
+		db->guild_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
 	{
 		Sql_ShowDebug(sql_handle);
-		return -1;
+		return false;
 	}
 
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
-	{
-		char* data;
+	if( Sql_NumRows(sql_handle) > 1 )
+	{// serious problem - duplicit guild name
+		ShowError("guild_db_sql_load_str: multiple guilds found when retrieving data for guild '%s'!\n", name);
+		Sql_FreeResult(sql_handle);
+		return false;
+	}
 
-		Sql_GetData(sql_handle, 0, &data, NULL);
-		guild_id = atoi(data);
+	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
+	{// no such entry
+		Sql_FreeResult(sql_handle);
+		return false;
 	}
-	else
-	{
-		guild_id = 0;
-	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL);
+	if( guild_id != NULL )
+		*guild_id = atoi(data);
 	Sql_FreeResult(sql_handle);
-	return guild_id;
-*/
+
+	return true;
 }
 
 
@@ -587,6 +566,7 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	db->guilds = NULL;
 
 	// other settings
+	db->case_sensitive = false;
 	db->guild_db = db->owner->table_guilds;
 	db->guild_alliance_db = db->owner->table_guild_alliances;
 	db->guild_expulsion_db = db->owner->table_guild_expulsions;

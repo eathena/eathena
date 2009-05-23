@@ -3,6 +3,7 @@
 
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
+#include "../common/lock.h"
 #include "../common/malloc.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
@@ -23,6 +24,7 @@ typedef struct GuildDB_TXT
 	DBMap* guilds;       // in-memory guild storage
 	int next_guild_id;   // auto_increment
 
+	bool case_sensitive;
 	const char* guild_db; // guild data storage file
 
 } GuildDB_TXT;
@@ -304,32 +306,28 @@ static bool mmo_guild_tostr(const struct guild* g, char* str)
 
 static bool mmo_guild_sync(GuildDB_TXT* db)
 {
-/*
 	FILE *fp;
 	int lock;
-	DBIterator* iter;
+	struct DBIterator* iter;
 	struct guild* g;
 
-	// save guild data
-	fp = lock_fopen(guild_txt, &lock);
+	fp = lock_fopen(db->guild_db, &lock);
 	if( fp == NULL )
 	{
-		ShowError("int_guild: can't write [%s] !!! data is lost !!!\n", guild_txt);
-		return 1;
+		ShowError("mmo_guild_sync: can't write [%s] !!! data is lost !!!\n", db->guild_db);
+		return false;
 	}
 
-	iter = guild_db->iterator(guild_db);
+	iter = db->guilds->iterator(db->guilds);
 	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
 	{
-		char line[16384];
-		inter_guild_tostr(line, g);
-		fprintf(fp, "%s\n", line);
+		char buf[16384]; // ought to be big enough ^^
+		mmo_guild_tostr(g, buf);
+		fprintf(fp, "%s\n", buf);
 	}
 	iter->destroy(iter);
 
-//	fprintf(fp, "%d\t%%newid%%\n", guild_newid);
-	lock_fclose(fp, guild_txt, &lock);
-*/
+	lock_fclose(fp, db->guild_db, &lock);
 
 	return true;
 }
@@ -353,34 +351,35 @@ static bool guild_db_txt_init(GuildDB* self)
 		return 1;
 
 	// load data file
-/*
 	while( fgets(line, sizeof(line), fp) )
 	{
-		j = 0;
-		if (sscanf(line, "%d\t%%newid%%\n%n", &i, &j) == 1 && j > 0 && guild_newid <= i) {
-			guild_newid = i;
+
+		int guild_id, n;
+		struct guild g;
+		struct guild* tmp;
+
+		n = 0;
+		if( sscanf(line, "%d\t%%newid%%%n", &guild_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
+		{// auto-increment
+			if( guild_id > db->next_guild_id )
+				db->next_guild_id = guild_id;
 			continue;
 		}
 
-		g = (struct guild *) aCalloc(sizeof(struct guild), 1);
-		if(g == NULL){
-			ShowFatalError("int_guild: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-		if (inter_guild_fromstr(line, g) == 0 && g->guild_id > 0)
+		if( !mmo_guild_fromstr(&g, line) )
 		{
-			if (g->guild_id >= guild_newid)
-				guild_newid = g->guild_id + 1;
-			idb_put(guild_db, g->guild_id, g);
-			guild_check_empty(g);
-			guild_calcinfo(g);
-		} else {
-			ShowError("int_guild: broken data [%s] line %d\n", guild_txt, c);
-			aFree(g);
+			ShowError("guild_db_txt_init: skipping invalid data: %s", line);
+			continue;
 		}
-		c++;
+
+		// record entry in db
+		tmp = (struct guild*)aMalloc(sizeof(struct guild));
+		memcpy(tmp, &g, sizeof(struct guild));
+		idb_put(guilds, g.guild_id, tmp);
+
+		if( g.guild_id >= db->next_guild_id )
+			db->next_guild_id = g.guild_id + 1;
 	}
-*/
 
 	// close data file
 	fclose(fp);
@@ -412,45 +411,118 @@ static bool guild_db_txt_sync(GuildDB* self)
 
 static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 {
-/*
-*/
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+	struct guild* tmp;
+
+	// decide on the guild id to assign
+	int guild_id = ( g->guild_id != -1 ) ? g->guild_id : db->next_guild_id;
+
+	// check if the guild_id is free
+	tmp = idb_get(guilds, guild_id);
+	if( tmp != NULL )
+	{// error condition - entry already present
+		ShowError("guild_db_txt_create: cannot create guild %d:'%s', this id is already occupied by %d:'%s'!\n", guild_id, g->name, guild_id, tmp->name);
+		return false;
+	}
+
+	// copy the data and store it in the db
+	CREATE(tmp, struct guild, 1);
+	memcpy(tmp, g, sizeof(struct guild));
+	tmp->guild_id = guild_id;
+	idb_put(guilds, guild_id, tmp);
+
+	// increment the auto_increment value
+	if( guild_id >= db->next_guild_id )
+		db->next_guild_id = guild_id + 1;
+
+	// flush data
+	mmo_guild_sync(db);
+
+	// write output
+	g->guild_id = guild_id;
+
+	return true;
 }
 
 static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 {
-/*
-*/
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+
+	struct guild* tmp = (struct guild*)idb_remove(guilds, guild_id);
+	if( tmp == NULL )
+	{// error condition - entry not present
+		ShowError("guild_db_txt_remove: no such guild with id %d\n", guild_id);
+		return false;
+	}
+
+	return true;
 }
 
 static bool guild_db_txt_save(GuildDB* self, const struct guild* g)
 {
-/*
-*/
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+	int guild_id = g->guild_id;
+
+	// retrieve previous data
+	struct guild* tmp = idb_get(guilds, guild_id);
+	if( tmp == NULL )
+	{// error condition - entry not found
+		return false;
+	}
+	
+	// overwrite with new data
+	memcpy(tmp, g, sizeof(struct guild));
+
+	return true;
 }
 
 static bool guild_db_txt_load(GuildDB* self, struct guild* g, int guild_id)
 {
-/*
-	return (struct guild*)idb_get(guild_db, guild_id);
-*/
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+
+	// retrieve data
+	struct guild* tmp = idb_get(guilds, guild_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	memcpy(g, tmp, sizeof(struct guild));
+
+	return true;
 }
 
 static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 {
-/*
-	DBIterator* iter;
-	struct guild* g;
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
 
-	iter = guild_db->iterator(guild_db);
-	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
-	{
-		if (strcmpi(g->name, str) == 0)
+	// retrieve data
+	struct DBIterator* iter;
+	struct guild* tmp;
+	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
+
+	iter = guilds->iterator(guilds);
+	for( tmp = (struct guild*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct guild*)iter->next(iter,NULL) )
+		if( compare(name, tmp->name) == 0 )
 			break;
-	}
 	iter->destroy(iter);
 
-	return g;
-*/
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	// store it
+	if( guild_id != NULL )
+		*guild_id = tmp->guild_id;
+
+	return true;
 }
 
 
@@ -475,6 +547,7 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->next_guild_id = START_GUILD_NUM;
 
 	// other settings
+	db->case_sensitive = false;
 	db->guild_db = db->owner->file_guilds;
 
 	return &db->vtable;
