@@ -501,8 +501,7 @@ void mapif_parse_GuildInfoRequest(int fd, int guild_id)
 
 	if( guild_calcinfo(&g) )
 	{
-		g.save_flag |= GS_LEVEL;
-		guilds->save(guilds, &g);
+		guilds->save(guilds, &g, GS_LEVEL);
 		mapif_guild_info(-1, &g);
 	}
 	else
@@ -515,6 +514,7 @@ void mapif_parse_GuildAddMember(int fd, int guild_id, struct guild_member* m)
 {
 	struct guild g;
 	int i;
+	enum guild_save_flag save_flag = 0;
 
 	if( !guilds->load(guilds, &g, guild_id) )
 	{
@@ -532,16 +532,16 @@ void mapif_parse_GuildAddMember(int fd, int guild_id, struct guild_member* m)
 
 	memcpy(&g.member[i], m, sizeof(struct guild_member));
 	g.member[i].modified = GS_MEMBER_NEW | GS_MEMBER_MODIFIED;
-	g.save_flag |= GS_MEMBER;
+	save_flag |= GS_MEMBER;
 
 	mapif_guild_memberadded(fd, guild_id, m->account_id, m->char_id, 0);
 
 	if( guild_calcinfo(&g) )
-		g.save_flag |= GS_LEVEL;
+		save_flag |= GS_LEVEL;
 
 	mapif_guild_info(-1, &g);
 
-	guilds->save(guilds, &g);
+	guilds->save(guilds, &g, save_flag);
 }
 
 // Delete member from guild
@@ -549,6 +549,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 {
 	struct guild g;
 	int i, j;
+	enum guild_save_flag save_flag = 0;
 
 	if( !guilds->load(guilds, &g, guild_id) )
 	{
@@ -584,14 +585,15 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		g.expulsion[j].account_id = account_id;
 		safestrncpy(g.expulsion[j].name, g.member[i].name, NAME_LENGTH);
 		safestrncpy(g.expulsion[j].mes, mes, 40);
-		g.save_flag |= GS_EXPULSION;
+		save_flag |= GS_EXPULSION;
 	}
 
 	mapif_guild_leaved(guild_id, account_id, char_id, flag, g.member[i].name, mes);
 
+	g.member[i].modified = GS_MEMBER_DELETED;
+	guilds->save(guilds, &g, GS_MEMBER); // first step with data intact, delete from storage (SQL)
+
 	memset(&g.member[i], 0, sizeof(struct guild_member));
-	g.member[i].modified = 1;
-	g.save_flag |= GS_MEMBER;
 
 	if( guild_check_empty(&g) )
 	{
@@ -601,35 +603,44 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 
 	//TODO: check if this thing is working correctly
 	if( guild_calcinfo(&g) )
+	{
 		mapif_guild_info(-1, &g);// まだ人がいるのでデータ送信
+		save_flag |= GS_LEVEL|GS_CONNECT;
+	}
 
-	guilds->save(guilds, &g);
+	guilds->save(guilds, &g, flag); // second step with data erased, delete from memory (TXT)
 
 	return 0;
 }
 
 // オンライン/Lv更新
-int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id, int char_id, int online, int lv, int class_)
+void mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id, int char_id, int online, int lv, int class_)
 {
 	struct guild g;
 	int i, sum, c;
+	int prev_count, prev_alv;
+	enum guild_save_flags save_flag = 0;
 
 	if( !guilds->load(guilds, &g, guild_id) )
-		return 0;
+		return;
 	
 	ARR_FIND( 0, g.max_member, i, g.member[i].account_id == account_id && g.member[i].char_id == char_id );
 	if( i == g.max_member )
-		return 0; // player not in guild? (error)
+		return; // player not in guild? (error)
 
 	// update member data
 	g.member[i].online = online;
 	g.member[i].lv = lv;
 	g.member[i].class_ = class_;
 	g.member[i].modified = GS_MEMBER_MODIFIED;
-	g.save_flag |= GS_MEMBER;
+	save_flag |= GS_MEMBER;
 	mapif_guild_memberinfoshort(&g, i);
 
-	// recalculate temporary guild information
+	// store previous values (for comparison purposes)
+	prev_count = g.connect_member;
+	prev_alv = g.average_lv;
+
+	// recalculate guild information
 	g.average_lv = 0;
 	g.connect_member = 0;
 	c = 0; // member count
@@ -646,12 +657,15 @@ int mapif_parse_GuildChangeMemberInfoShort(int fd, int guild_id, int account_id,
 			g.connect_member++;
 	}
 
-	if( c ) // this check should always succeed...
+	if( c > 0 ) // this check should always succeed...
 		g.average_lv = sum / c;
 
 	//FIXME: how about sending a mapif_guild_info() update to the mapserver? [ultramage] 
 
-	return 0;
+	if( g.connect_member != prev_count || g.average_lv != prev_alv )
+		save_flag |= GS_CONNECT;
+
+	guilds->save(guilds, &g, save_flag);
 }
 
 // ギルド解散要求
@@ -688,8 +702,7 @@ void mapif_parse_GuildBasicInfoChange(int fd, int guild_id, int type, const char
 			g.guild_lv += dw;
 
 		mapif_guild_info(-1, &g);
-		g.save_flag |= GS_LEVEL;
-		guilds->save(guilds, &g);
+		guilds->save(guilds, &g, GS_LEVEL);
 		return;
 	default:
 		ShowError("int_guild: GuildBasicInfoChange: Unknown type %d\n", type);
@@ -704,6 +717,7 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 {
 	int i;
 	struct guild g;
+	enum guild_save_flag save_flag = 0;
 
 	if( !guilds->load(guilds, &g, guild_id) )
 		return;
@@ -744,7 +758,7 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 				mapif_guild_info(-1, &g);
 			else
 				mapif_guild_basicinfochanged(guild_id, GBI_EXP, &g.exp, 4);
-			g.save_flag |= GS_LEVEL;
+			save_flag |= GS_LEVEL;
 		}
 		break;
 	}
@@ -772,8 +786,9 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 	mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data, len);
 
 	g.member[i].modified = GS_MEMBER_MODIFIED;
-	g.save_flag |= GS_MEMBER;
-	guilds->save(guilds, &g);
+	save_flag |= GS_MEMBER;
+
+	guilds->save(guilds, &g, save_flag);
 }
 
 int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
@@ -793,11 +808,10 @@ void mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_posit
 		return;
 
 	memcpy(&g.position[idx], p, sizeof(struct guild_position));
+	g.position[idx].modified = GS_POSITION_MODIFIED;
 	mapif_guild_position(&g, idx);
 
-	g.position[idx].modified = GS_POSITION_MODIFIED;
-	g.save_flag |= GS_POSITION; // Change guild_position
-	guilds->save(guilds, &g);
+	guilds->save(guilds, &g, GS_POSITION);
 }
 
 // ギルドスキルアップ要求
@@ -819,9 +833,7 @@ int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id
 		mapif_guild_info(-1, &g);
 		mapif_guild_skillupack(guild_id, skill_num, account_id);
 
-		g.save_flag |= GS_LEVEL | GS_SKILL;
-
-		guilds->save(guilds, &g);
+		guilds->save(guilds, &g, GS_LEVEL|GS_SKILL);
 	}
 
 	return 0;
@@ -845,8 +857,7 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 
 		mapif_guild_alliance(guild_id1, guild_id2, account_id1, account_id2, flag, g[0].name, g[0].alliance[i].name);
 		g[0].alliance[i].guild_id = 0;
-		g[0].save_flag |= GS_ALLIANCE;
-		guilds->save(guilds, &g[0]);
+		guilds->save(guilds, &g[0], GS_ALLIANCE);
 	}
 
 	if( !b[0] || !b[1] )
@@ -879,12 +890,9 @@ int mapif_parse_GuildAlliance(int fd, int guild_id1, int guild_id2, int account_
 	// Send on all map the new alliance/opposition
 	mapif_guild_alliance(guild_id1, guild_id2, account_id1, account_id2, flag, g[0].name, g[1].name);
 
-	// Mark the two guild to be saved
-	g[0].save_flag |= GS_ALLIANCE;
-	g[1].save_flag |= GS_ALLIANCE;
-
-	guilds->save(guilds, &g[0]);
-	guilds->save(guilds, &g[1]);
+	// Save changes
+	guilds->save(guilds, &g[0], GS_ALLIANCE);
+	guilds->save(guilds, &g[1], GS_ALLIANCE);
 
 	return 0;
 }
@@ -899,9 +907,8 @@ void mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char 
 
 	safestrncpy(g.mes1, mes1, sizeof(g.mes1));
 	safestrncpy(g.mes2, mes2, sizeof(g.mes2));
-	g.save_flag |= GS_MES;
 
-	if( !guilds->save(guilds, &g) )
+	if( !guilds->save(guilds, &g, GS_MES) )
 		return;
 
 	mapif_guild_notice(&g);
@@ -921,9 +928,8 @@ void mapif_parse_GuildEmblem(int fd, int len, int guild_id, int dummy, const cha
 	memcpy(g.emblem_data, data, len);
 	g.emblem_len = len;
 	g.emblem_id++;
-	g.save_flag |= GS_EMBLEM;
 
-	if( !guilds->save(guilds, &g) )
+	if( !guilds->save(guilds, &g, GS_EMBLEM) )
 		return;
 
 	mapif_guild_emblem(&g);
@@ -1052,13 +1058,12 @@ void mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int l
 	g.member[0].position = 0; //Position 0: guild Master.
 	g.member[pos].modified = GS_MEMBER_MODIFIED;
 	g.member[0].modified = GS_MEMBER_MODIFIED;
-	g.save_flag |= GS_MEMBER;
+
+	// Write new leader name
+	safestrncpy(g.master, name, NAME_LENGTH);
 
 	// update base info
-	safestrncpy(g.master, name, NAME_LENGTH);
-	g.save_flag |= GS_BASIC;
-
-	guilds->save(guilds, &g);
+	guilds->save(guilds, &g, GS_BASIC|GS_MEMBER);
 
 	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n", g.master, guild_id, g.name);
 	mapif_guild_master_changed(&g, g.member[0].account_id, g.member[0].char_id);

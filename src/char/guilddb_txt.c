@@ -460,7 +460,7 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 	return true;
 }
 
-static bool guild_db_txt_save(GuildDB* self, const struct guild* g)
+static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;

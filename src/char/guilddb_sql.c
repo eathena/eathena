@@ -50,10 +50,6 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		return NULL;
 
 	
-//	g = (struct guild*)idb_get(guild_db_, guild_id);
-//	if( g )
-//		return g;
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
 		"FROM `%s` WHERE `guild_id`='%d'", guild_db, guild_id) )
 	{
@@ -212,44 +208,18 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	}
 
 	Sql_FreeResult(sql_handle);
-
-	idb_put(guild_db_, guild_id, g); //Add to cache
-	g->save_flag |= GS_REMOVE; //But set it to be removed, in case it is not needed for long.
 */
 }
 
 
-static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
+static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g, enum guild_save_flags flag)
 {
-	//TODO: recognize GS_MEMBER_DELETED modified flag in guild member structure
-	//int flag = g->save_flag;
 /*
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `account_id` = '%d' and `char_id` = '%d'", guild_member_db, account_id, char_id) )
-		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id` = '0' WHERE `char_id` = '%d'", char_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-*/
-/*
-	// Table guild (GS_BASIC_MASK)
-	// GS_EMBLEM `emblem_len`,`emblem_id`,`emblem_data`
-	// GS_CONNECT `connect_member`,`average_lv`
-	// GS_MES `mes1`,`mes2`
-	// GS_LEVEL `guild_lv`,`max_member`,`exp`,`next_exp`,`skill_point`
-	// GS_BASIC `name`,`master`,`char_id`
-
-	// GS_MEMBER `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`)
-	// GS_POSITION `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
-	// GS_ALLIANCE `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
-	// GS_EXPULSION `guild_expulsion` (`guild_id`,`account_id`,`name`,`mes`)
-	// GS_SKILL `guild_skill` (`guild_id`,`id`,`lv`) 
-
 	char esc_name[NAME_LENGTH*2+1];
 	char esc_master[NAME_LENGTH*2+1];
 	char new_guild = 0;
 	int i=0;
 
-	if (g->guild_id<=0 && g->guild_id != -1) return 0;
-	
 	Sql_EscapeStringLen(sql_handle, esc_name, g->name, strnlen(g->name, NAME_LENGTH));
 	Sql_EscapeStringLen(sql_handle, esc_master, g->master, strnlen(g->master, NAME_LENGTH));
 
@@ -294,13 +264,13 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 
 	// If we need an update on an existing guild or more update on the new guild
 	if (((flag & GS_BASIC_MASK) && !new_guild) || ((flag & (GS_BASIC_MASK & ~GS_BASIC)) && new_guild))
-	{
+	{// GS_BASIC_MASK `guild` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
 		StringBuf buf;
 		StringBuf_Init(&buf);
 		StringBuf_Printf(&buf, "UPDATE `%s` SET `guild_id`=`guild_id`", guild_db); // sentinel
 
 		if (flag & GS_EMBLEM)
-		{
+		{// GS_EMBLEM `emblem_len`,`emblem_id`,`emblem_data`
 			char emblem_data[sizeof(g->emblem_data)*2+1];
 			char* pData = emblem_data;
 
@@ -314,15 +284,15 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 			StringBuf_Printf(&buf, ", `emblem_len`=%d, `emblem_id`=%d, `emblem_data`='%s'", g->emblem_len, g->emblem_id, emblem_data);
 		}
 		if (flag & GS_BASIC) 
-		{
+		{// GS_BASIC `name`,`master`,`char_id`
 			StringBuf_Printf(&buf, ", `name`='%s', `master`='%s', `char_id`=%d", esc_name, esc_master, g->member[0].char_id);
 		}
 		if (flag & GS_CONNECT)
-		{
+		{// GS_CONNECT `connect_member`,`average_lv`
 			StringBuf_Printf(&buf, ", `connect_member`=%d, `average_lv`=%d", g->connect_member, g->average_lv);
 		}
 		if (flag & GS_MES)
-		{
+		{// GS_MES `mes1`,`mes2`
 			char esc_mes1[sizeof(g->mes1)*2+1];
 			char esc_mes2[sizeof(g->mes2)*2+1];
 
@@ -331,9 +301,10 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 			StringBuf_Printf(&buf, ", `mes1`='%s', `mes2`='%s'", esc_mes1, esc_mes2);
 		}
 		if (flag & GS_LEVEL)
-		{
+		{// GS_LEVEL `guild_lv`,`max_member`,`exp`,`next_exp`,`skill_point`
 			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%u, `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
 		}
+
 		StringBuf_Printf(&buf, " WHERE `guild_id`=%d", g->guild_id);
 		if( SQL_ERROR == Sql_Query(sql_handle, "%s", StringBuf_Value(&buf)) )
 			Sql_ShowDebug(sql_handle);
@@ -341,17 +312,28 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 	}
 
 	if (flag&GS_MEMBER)
-	{
+	{// GS_MEMBER `guild_member` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`)
 		struct guild_member *m;
 
 		// Update only needed players
 		for(i=0;i<g->max_member;i++){
 			m = &g->member[i];
-#ifndef TXT_SQL_CONVERT
+
 			if (!m->modified)
 				continue;
-#endif
-			if(m->account_id) {
+
+			if (!m->account_id)
+				continue;
+
+			if( m->modified & GS_MEMBER_DELETED )
+			{// hacked-in member deletion support
+				if( SQL_ERROR == Sql_Query(sql_handle, "DELETE from `%s` where `account_id` = '%d' and `char_id` = '%d'", guild_member_db, account_id, char_id) )
+					Sql_ShowDebug(sql_handle);
+				if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id` = '0' WHERE `char_id` = '%d'", char_db, char_id) )
+					Sql_ShowDebug(sql_handle);
+			}
+			else
+			{
 				//Since nothing references guild member table as foreign keys, it's safe to use REPLACE INTO
 				Sql_EscapeStringLen(sql_handle, esc_name, m->name, strnlen(m->name, NAME_LENGTH));
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
@@ -372,13 +354,13 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 	}
 
 	if (flag&GS_POSITION)
-	{
+	{// GS_POSITION `guild_position` (`guild_id`,`position`,`name`,`mode`,`exp_mode`)
 		for(i=0;i<MAX_GUILDPOSITION;i++){
 			struct guild_position *p = &g->position[i];
-#ifndef TXT_SQL_CONVERT
+
 			if (!p->modified)
 				continue;
-#endif
+
 			Sql_EscapeStringLen(sql_handle, esc_name, p->name, strnlen(p->name, NAME_LENGTH));
 			if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`position`,`name`,`mode`,`exp_mode`) VALUES ('%d','%d','%s','%d','%d')",
 				guild_position_db, g->guild_id, i, esc_name, p->mode, p->exp_mode) )
@@ -388,7 +370,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 	}
 
 	if (flag&GS_ALLIANCE)
-	{
+	{// GS_ALLIANCE `guild_alliance` (`guild_id`,`opposition`,`alliance_id`,`name`)
 		// Delete current alliances 
 		// NOTE: no need to do it on both sides since both guilds in memory had 
 		// their info changed, not to mention this would also mess up oppositions!
@@ -417,7 +399,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 	}
 
 	if (flag&GS_EXPULSION)
-	{
+	{// GS_EXPULSION `guild_expulsion` (`guild_id`,`account_id`,`name`,`mes`)
 		for(i=0;i<MAX_GUILDEXPULSION;i++){
 			struct guild_expulsion *e=&g->expulsion[i];
 			if(e->account_id>0){
@@ -433,7 +415,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, const struct guild* g)
 	}
 
 	if (flag&GS_SKILL)
-	{
+	{// GS_SKILL `guild_skill` (`guild_id`,`id`,`lv`) 
 		for(i=0;i<MAX_GUILDSKILL;i++){
 			if (g->skill[i].id>0 && g->skill[i].lv>0){
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`id`,`lv`) VALUES ('%d','%d','%d')",
@@ -468,8 +450,7 @@ static bool guild_db_sql_sync(GuildDB* self)
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
-	g->save_flag |= GS_BASIC | GS_POSITION | GS_SKILL;
-	return mmo_guild_tosql(db, g);
+	return mmo_guild_tosql(db, g, GS_BASIC|GS_POSITION|GS_SKILL);
 }
 
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
@@ -495,10 +476,10 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 */
 }
 
-static bool guild_db_sql_save(GuildDB* self, const struct guild* g)
+static bool guild_db_sql_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
-	return mmo_guild_tosql(db, (struct guild*)g);
+	return mmo_guild_tosql(db, (struct guild*)g, flag);
 }
 
 static bool guild_db_sql_load(GuildDB* self, struct guild* g, int guild_id)

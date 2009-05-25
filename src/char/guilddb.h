@@ -8,18 +8,22 @@
 
 
 // fine-grained guild updating
-#define GS_BASIC 0x0001
-#define GS_MEMBER 0x0002
-#define GS_POSITION 0x0004
-#define GS_ALLIANCE 0x0008
-#define GS_EXPULSION 0x0010
-#define GS_SKILL 0x0020
-#define GS_EMBLEM 0x0040
-#define GS_CONNECT 0x0080
-#define GS_LEVEL 0x0100
-#define GS_MES 0x0200
-#define GS_MASK 0x03FF
-#define GS_BASIC_MASK (GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES)
+enum guild_save_flags
+{
+	GS_BASIC      = 0x0001,
+	GS_MEMBER     = 0x0002,
+	GS_POSITION   = 0x0004,
+	GS_ALLIANCE   = 0x0008,
+	GS_EXPULSION  = 0x0010,
+	GS_SKILL      = 0x0020,
+	GS_EMBLEM     = 0x0040,
+	GS_CONNECT    = 0x0080,
+	GS_LEVEL      = 0x0100,
+	GS_MES        = 0x0200,
+
+	GS_BASIC_MASK = GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES,
+};
+
 // guild member-related flags
 #define GS_MEMBER_UNMODIFIED 0x00
 #define GS_MEMBER_MODIFIED 0x01
@@ -45,7 +49,7 @@ struct GuildDB
 
 	bool (*remove)(GuildDB* self, const int guild_id);
 
-	bool (*save)(GuildDB* self, const struct guild* p);
+	bool (*save)(GuildDB* self, const struct guild* p, enum guild_save_flags flag);
 
 	bool (*load)(GuildDB* self, struct guild* p, int guild_id);
 
