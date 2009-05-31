@@ -442,9 +442,6 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_member_db, guild_id) )
 		Sql_ShowDebug(sql_handle);
 
-//	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_castle_db, guild_id) )
-//		Sql_ShowDebug(sql_handle);
-
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_position_db, guild_id) )
 		Sql_ShowDebug(sql_handle);
 

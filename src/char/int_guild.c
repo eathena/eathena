@@ -69,6 +69,7 @@ static bool guild_break(int guild_id)
 {
 	inter_guild_storage_delete(guild_id);
 	guilds->remove(guilds, guild_id);
+	castles->remove_gid(castles, guild_id);
 
 	mapif_guild_broken(guild_id, 0);
 	interlog_log("guild (id=%d) broken\n", guild_id);

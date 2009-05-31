@@ -203,6 +203,24 @@ static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 */
 }
 
+static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)
+{
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+	DBIterator* iter;
+	struct castle_data* tmp;
+
+	iter = castles->iterator(castles);
+	while( (tmp = (struct castle_data*)iter->next(iter,NULL)) != NULL )
+	{
+		iter->remove(iter);
+		tmp = NULL; // invalidated
+	}
+	iter->destroy(iter);
+
+	return true;
+}
+
 static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -294,6 +312,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->vtable.sync      = &castle_db_txt_sync;
 	db->vtable.create    = &castle_db_txt_create;
 	db->vtable.remove    = &castle_db_txt_remove;
+	db->vtable.remove_gid= &castle_db_txt_remove_gid;
 	db->vtable.save      = &castle_db_txt_save;
 	db->vtable.load      = &castle_db_txt_load;
 	db->vtable.iterator  = &castle_db_txt_iterator;

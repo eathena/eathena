@@ -38,6 +38,8 @@ struct CastleDB
 
 	bool (*remove)(CastleDB* self, const int castle_id);
 
+	bool (*remove_gid)(CastleDB* self, const int guild_id);
+
 	bool (*save)(CastleDB* self, const struct guild_castle* gc);
 
 	bool (*load)(CastleDB* self, struct guild_castle* gc, int castle_id);

@@ -138,10 +138,30 @@ static bool castle_db_sql_sync(CastleDB* self)
 
 static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return mmo_castle_tosql(db, gc);
 }
 
 static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
 {
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	Sql* sql_handle = db->castles;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `castle_id` = '%d'", db->castle_db, castle_id) )
+		Sql_ShowDebug(sql_handle);
+
+	return true;
+}
+
+static bool castle_db_sql_remove_gid(CastleDB* self, const int guild_id)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	Sql* sql_handle = db->castles;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->castle_db, guild_id) )
+		Sql_ShowDebug(sql_handle);
+
+	return true;
 }
 
 static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
@@ -226,6 +246,7 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	db->vtable.sync      = &castle_db_sql_sync;
 	db->vtable.create    = &castle_db_sql_create;
 	db->vtable.remove    = &castle_db_sql_remove;
+	db->vtable.remove_gid= &castle_db_sql_remove_gid;
 	db->vtable.save      = &castle_db_sql_save;
 	db->vtable.load      = &castle_db_sql_load;
 	db->vtable.iterator  = &castle_db_sql_iterator;
