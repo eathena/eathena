@@ -449,6 +449,7 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;
+	struct DBIterator* iter;
 
 	struct guild* tmp = (struct guild*)idb_remove(guilds, guild_id);
 	if( tmp == NULL )
@@ -456,6 +457,17 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 		ShowError("guild_db_txt_remove: no such guild with id %d\n", guild_id);
 		return false;
 	}
+
+	// end all alliances / oppositions
+	iter = guilds->iterator(guilds);
+	while( (tmp = (struct guild*)iter->next(iter,NULL)) != NULL )
+	{
+		int i;
+		for( i = 0; i < MAX_GUILDALLIANCE; i++ )
+			if( tmp->alliance[i].guild_id == guild_id )
+				tmp->alliance[i].guild_id = 0;
+	}
+	iter->destroy(iter);
 
 	return true;
 }

@@ -67,26 +67,6 @@ int inter_guild_exp_readdb(void)
 
 static bool guild_break(int guild_id)
 {
-/*
-#ifdef TXT_ONLY
-	struct DBIterator* iter;
-	struct guild* tmp;
-
-	// end all alliances / oppositions
-	iter = guilds->iterator(iter);
-	while( (tmp = iter->next(iter,NULL)) != NULL )
-	{// ギルド解散処理用（同盟/敵対を解除）
-		for( i = 0; i < MAX_GUILDALLIANCE; i++ )
-			if( tmp->alliance[i].guild_id == guild_id )
-				tmp->alliance[i].guild_id = 0;
-	}
-	iter->destroy(iter);
-#else
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", guild_alliance_db, guild_id, guild_id) )
-		Sql_ShowDebug(sql_handle);
-#endif
-*/
-
 	inter_guild_storage_delete(guild_id);
 	guilds->remove(guilds, guild_id);
 
