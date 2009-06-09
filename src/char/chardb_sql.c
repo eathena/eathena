@@ -73,8 +73,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	
-	if (save_log) ShowInfo("Char load request (%d)\n", char_id);
-
 	stmt = SqlStmt_Malloc(sql_handle);
 	if( stmt == NULL )
 	{
@@ -263,9 +261,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	SqlStmt_Free(stmt);
 	StringBuf_Destroy(&buf);
-
-	if( save_log )
-		ShowInfo("Loaded char (%d - %s)\n", char_id, p->name);	//ok. all data load successfuly!
 
 	return true;
 }

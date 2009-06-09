@@ -40,7 +40,6 @@ extern char db_path[];
 extern int char_name_option;
 extern char char_name_letters[];
 extern int guild_exp_rate;
-extern int save_log;
 extern char server_name[20];
 extern char wisp_server_name[NAME_LENGTH];
 extern char unknown_char_name[NAME_LENGTH];

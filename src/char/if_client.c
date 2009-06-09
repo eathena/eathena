@@ -528,11 +528,6 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	CharDBIterator* it;
 	int i,j;
 
-#ifndef TXT_ONLY
-	if (save_log)
-		ShowInfo("Loading Char Data ("CL_BOLD"%d"CL_RESET")\n",sd->account_id);
-#endif
-
 	// load characters
 	memset(cd_arr, 0, sizeof(cd_arr));
 	sd->chars_num = 0;

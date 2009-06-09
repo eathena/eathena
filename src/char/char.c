@@ -119,12 +119,6 @@ int char_del_level = 0; //From which level u can delete character [Lupus]
 //FIXME: this setting needs re-work due to changes in code structure
 bool name_ignoring_case = false; // Allow or not identical name for characters but with a different case by [Yor]
 
-#ifdef TXT_SQL_CONVERT
-int save_log = 0; //Have the logs be off by default when converting
-#else
-int save_log = 1; // show loading/saving messages
-#endif
-
 
 //-----------------------------------------------------
 // Auth database
@@ -1037,9 +1031,6 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "online_check") == 0 )
 			char_config.online_check = (bool)config_switch(w2);
-		else
-		if( strcmpi(w1, "save_log") == 0 )
-			save_log = config_switch(w2);
 		else
 		if( strcmpi(w1, "start_point") == 0 )
 		{
