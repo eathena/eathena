@@ -196,12 +196,7 @@ static bool friend_db_txt_remove(FriendDB* self, const int char_id)
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
 	DBMap* friends = db->friends;
 
-	friendlist* tmp = (friendlist*)idb_remove(friends, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("friend_db_txt_remove: no data for char with id %d\n", char_id);
-		return false;
-	}
+	idb_remove(friends, char_id);
 
 	return true;
 }

@@ -28,7 +28,6 @@ static CastleDB* castles = NULL;
 #define GUILD_ALLIANCE_REMOVE 0x08
 
 static unsigned int guild_exp[100];
-void mapif_guild_info(int fd, struct guild *g);
 void mapif_guild_broken(int guild_id, int flag);
 
 
@@ -162,7 +161,7 @@ int guild_calcinfo(struct guild* g)
 	if(c)
 		g->average_lv /= c;
 
-	return ( g->max_member != before.max_member || g->guild_lv != before.guild_lv || g->skill_point != before.skill_point );
+	return ( g->max_member != before.max_member || g->guild_lv != before.guild_lv || g->skill_point != before.skill_point || g->average_lv != before.average_lv || g->connect_member != before.connect_member );
 }
 
 

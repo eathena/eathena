@@ -228,12 +228,7 @@ static bool guildstorage_db_txt_remove(GuildStorageDB* self, const int guild_id)
 	GuildStorageDB_TXT* db = (GuildStorageDB_TXT*)self;
 	DBMap* guildstorages = db->guildstorages;
 
-	struct guild_storage* tmp = (struct guild_storage*)idb_remove(guildstorages, guild_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("guildstorage_db_txt_remove: no entry for account id %d\n", guild_id);
-		return false;
-	}
+	idb_remove(guildstorages, guild_id);
 
 	return true;
 }
