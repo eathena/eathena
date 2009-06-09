@@ -42,6 +42,7 @@ struct PartyDB
 	bool (*save)(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index);
 
 	// retrieve data using party id
+	// does not calculate temporary/derived values
 	bool (*load)(PartyDB* self, struct party_data* p, int party_id);
 
 	// look up party id using party name

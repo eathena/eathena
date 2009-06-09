@@ -316,7 +316,10 @@ void mapif_parse_PartyInfo(int fd, int party_id)
 	struct party_data p;
 
 	if( parties->load(parties, &p, party_id) )
+	{
+		int_party_calc_state(&p);
 		mapif_party_info(fd, &p.party);
+	}
 	else
 		mapif_party_noinfo(fd, party_id);
 }
@@ -332,6 +335,8 @@ int mapif_parse_PartyAddMember(int fd, int party_id, struct party_member *member
 		mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 1);
 		return 0;
 	}
+
+	int_party_calc_state(&p);
 
 	if( p.size == MAX_PARTY )
 	{// Party full
@@ -367,6 +372,8 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 
 	if( !parties->load(parties, &p, party_id) )
 		return 0;
+
+	int_party_calc_state(&p);
 
 	p.party.exp = exp;
 	if( exp > 0 && !party_check_exp_share(&p) )
@@ -454,6 +461,8 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 
 	if( !parties->load(parties, &p, party_id) )
 		return 0;
+
+	int_party_calc_state(&p);
 
 	ARR_FIND( 0, MAX_PARTY, i, p.party.member[i].account_id == account_id && p.party.member[i].char_id == char_id );
 	if( i >= MAX_PARTY )

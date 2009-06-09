@@ -252,9 +252,6 @@ static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
 	if( !mmo_party_fromsql(db, &p->party, party_id) )
 		return false;
 
-	//init state
-	int_party_calc_state(p);
-
 	return true;
 }
 

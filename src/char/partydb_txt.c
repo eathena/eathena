@@ -310,9 +310,6 @@ static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 		m->online = 0; // default
 	}
 
-	//init state
-	int_party_calc_state(p);
-
 	return true;
 }
 
