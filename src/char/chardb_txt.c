@@ -254,15 +254,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		ShowError("               Character saved in log file."CL_RESET"\n");
 		return false;
 	}
-
-	if (strcmpi(wisp_server_name, cd->name) == 0) {
-		ShowWarning("mmo_auth_init: ******WARNING: character name has wisp server name.\n");
-		ShowWarning("               Character name '%s' = wisp server name '%s'.\n", cd->name, wisp_server_name);
-		ShowWarning("               Character readed. Suggestion: change the wisp server name.\n");
-		log_char("mmo_auth_init: ******WARNING: character name has wisp server name: Character name '%s' = wisp server name '%s'.\n",
-		          cd->name, wisp_server_name);
-	}
 #endif //TXT_SQL_CONVERT
+
 	if (str[next] == '\n' || str[next] == '\r')
 		return false;	// 新規データ
 
