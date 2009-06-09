@@ -460,7 +460,6 @@ static bool mmo_char_sync(CharDB_TXT* db)
 	if( fp == NULL )
 	{
 		ShowWarning("Server cannot save characters.\n");
-		log_char("WARNING: Server cannot save characters.\n");
 		return false;
 	}
 
@@ -505,8 +504,6 @@ static bool char_db_txt_init(CharDB* self)
 	if( fp == NULL )
 	{
 		ShowError("Characters file not found: %s.\n", db->char_db);
-		log_char("Characters file not found: %s.\n", db->char_db);
-		log_char("Id for the next created character: %d.\n", db->next_char_id);
 		return false;
 	}
 
@@ -535,11 +532,9 @@ static bool char_db_txt_init(CharDB* self)
 		// parse char data
 		if( !mmo_char_fromstr(self, line, ch, &reg) )
  		{
-			ShowError("mmo_char_init: in characters file, unable to read the line #%d.\n", line_count);
-			ShowError("               -> Character data saved in log file.\n");
-			log_char("%s", line);
+			ShowFatalError("char_db_txt_init: Unable to parse data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
 			aFree(ch);
-			continue;
+			exit(EXIT_FAILURE);
 		}
 
 		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
@@ -555,8 +550,6 @@ static bool char_db_txt_init(CharDB* self)
 	fclose(fp);
 
 	ShowStatus("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
-	log_char("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
-	log_char("Id for the next created character: %d.\n", db->next_char_id);
 
 	return true;
 }
