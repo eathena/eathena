@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="9.00"
 	Name="txt-converter-char"
 	ProjectGUID="{D356871D-58E1-450B-967A-EAE9646175AF}"
 	RootNamespace="txt-converter-char"
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;MINICORE;TXT_SQL_CONVERT"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;MINICORE;WITH_TXT;WITH_SQL"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -204,51 +204,231 @@
 			Name="char"
 			>
 			<File
-				RelativePath="..\src\char\char.c"
+				RelativePath="..\src\char\accregdb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\char.h"
+				RelativePath="..\src\char\accregdb_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_guild.c"
+				RelativePath="..\src\char\accregdb_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_guild.h"
+				RelativePath="..\src\char\auctiondb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_party.c"
+				RelativePath="..\src\char\auctiondb_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_party.h"
+				RelativePath="..\src\char\auctiondb_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_pet.c"
+				RelativePath="..\src\char\castledb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_pet.h"
+				RelativePath="..\src\char\castledb_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_storage.c"
+				RelativePath="..\src\char\castledb_txt.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\int_storage.h"
+				RelativePath="..\src\char\char_sql.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\inter.c"
+				RelativePath="..\src\char\chardb.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\inter.h"
+				RelativePath="..\src\char\chardb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\chardb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb_sql.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb_txt.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\frienddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\frienddb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\frienddb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guildstoragedb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guildstoragedb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guildstoragedb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\hotkeydb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\partydb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\questdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\questdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\questdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\rankdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\rankdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\rankdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\statusdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\storagedb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\storagedb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\storagedb_txt.c"
 				>
 			</File>
 		</Filter>
@@ -264,11 +444,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\db.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\db.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\ers.c"
 				>
 			</File>
 			<File
 				RelativePath="..\src\common\ers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lock.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lock.h"
 				>
 			</File>
 			<File
@@ -325,154 +521,6 @@
 			</File>
 			<File
 				RelativePath="..\src\common\utils.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="char_sql"
-			>
-			<File
-				RelativePath="..\src\char_sql\char.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\char.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_guild.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_guild.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_party.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_party.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_pet.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_pet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.c"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						ObjectFile="$(IntDir)\$(InputName)_sql.obj"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.h"
 				>
 			</File>
 		</Filter>

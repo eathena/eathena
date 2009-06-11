@@ -7,6 +7,23 @@
 #include "../common/mmo.h" // struct regs
 
 typedef struct CharRegDB CharRegDB;
+typedef struct CharRegDBIterator CharRegDBIterator;
+
+
+struct CharRegDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(CharRegDBIterator* self);
+
+	/// Fetches the next character regs and stores them in 'data'.
+	/// @param self Iterator
+	/// @param data a char's registry data
+	/// @param key a char's char_id
+	/// @return true if successful
+	bool (*next)(CharRegDBIterator* self, struct regs* data, int* key);
+};
 
 
 struct CharRegDB
@@ -25,6 +42,12 @@ struct CharRegDB
 	/// Loads character regs from persistent storage.
 	/// Unused fields in the output array are zeroed.
 	bool (*load)(CharRegDB* self, struct regs* reg, int char_id);
+
+	/// Returns an iterator over all character regs.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CharRegDBIterator* (*iterator)(CharRegDB* self);
 };
 
 

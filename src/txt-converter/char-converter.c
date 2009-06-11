@@ -9,19 +9,7 @@
 #include "../common/mapindex.h"
 #include "../common/utils.h"
 
-#include "../char/char.h"
-#include "../char/int_storage.h"
-#include "../char/int_pet.h"
-#include "../char/int_party.h"
-#include "../char/int_guild.h"
-#include "../char/inter.h"
-
-#include "../char_sql/char.h"
-#include "../char_sql/int_storage.h"
-#include "../char_sql/int_pet.h"
-#include "../char_sql/int_party.h"
-#include "../char_sql/int_guild.h"
-#include "../char_sql/inter.h"
+#include "../char/charserverdb.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -30,274 +18,316 @@
 #define CHAR_CONF_NAME "conf/char_athena.conf"
 #define SQL_CONF_NAME "conf/inter_athena.conf"
 #define INTER_CONF_NAME "conf/inter_athena.conf"
+
+CharServerDB* txtdb = NULL;
+CharServerDB* sqldb = NULL;
+
 //--------------------------------------------------------
 
-int convert_init(void)
+int convert_char(void)
 {
-	char line[65536];
-	int ret;
-	int tmp_int[2], lineno, count;
-	char input;
-	FILE *fp;
-
-	ShowWarning("Make sure you backup your databases before continuing!\n");
-	ShowMessage("\n");
-
-	ShowNotice("Do you wish to convert your Character Database to SQL? (y/n) : ");
-	input = getchar();
-	if(input == 'y' || input == 'Y')
+	if( !txtdb->init(txtdb) || !sqldb->init(sqldb) )
 	{
-		struct character_data char_dat;
-		struct accreg reg;
-
-		ShowStatus("Converting Character Database...\n");
-		if( (fp = fopen(char_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file [%s]!\n", char_txt);
-			return 0;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset(&char_dat, 0, sizeof(struct character_data));
-			ret=mmo_char_fromstr(line, &char_dat.status, char_dat.global, &char_dat.global_num);
-			if(ret > 0) {
-				count++;
-				parse_friend_txt(&char_dat.status); //Retrieve friends.
-				mmo_char_tosql(char_dat.status.char_id , &char_dat.status);
-
-				memset(&reg, 0, sizeof(reg));
-				reg.account_id = char_dat.status.account_id;
-				reg.char_id = char_dat.status.char_id;
-				reg.reg_num = char_dat.global_num;
-				memcpy(&reg.reg, &char_dat.global, reg.reg_num*sizeof(struct global_reg));
-				inter_accreg_tosql(reg.account_id, reg.char_id, &reg, 3); //Type 3: Character regs
-			} else {
-				ShowError("Error %d converting character line [%s] (at %s:%d).\n", ret, line, char_txt, lineno);
-			}
-		}
-		ShowStatus("Converted %d characters.\n", count);
-		fclose(fp);
-		ShowStatus("Converting Account variables Database...\n");
-		if( (fp = fopen(accreg_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file %s!", accreg_txt);
-			return 1;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset (&reg, 0, sizeof(struct accreg));
-			if(inter_accreg_fromstr(line, &reg) == 0 && reg.account_id > 0) {
-				count++;
-				inter_accreg_tosql(reg.account_id, 0, &reg, 2); //Type 2: Account regs
-			} else {
-				ShowError("accreg reading: broken data [%s] at %s:%d\n", line, accreg_txt, lineno);
-			}
-		}
-		ShowStatus("Converted %d account registries.\n", count);
-		fclose(fp);
-	}
-	
-	while(getchar() != '\n');
-	ShowMessage("\n");
-	ShowNotice("Do you wish to convert your Storage Database to SQL? (y/n) : ");
-	input = getchar();
-	if(input == 'y' || input == 'Y')
-	{
-		struct storage_data storage;
-		ShowMessage("\n");
-		ShowStatus("Converting Storage Database...\n");
-		if( (fp = fopen(storage_txt,"r")) == NULL )
-		{
-			ShowError("can't read : %s\n", storage_txt);
-			return 0;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			int account_id;
-
-			lineno++;
-			if( sscanf(line,"%d,%d",&tmp_int[0],&tmp_int[1]) != 2 )
-				continue;
-
-			memset(&storage, 0, sizeof(struct storage_data));
-			if( storage_fromstr(line,&account_id,&storage) )
-			{
-				count++;
-				storage_tosql(account_id,&storage); //to sql. (dump)
-			} else
-				ShowError("Error parsing storage line [%s] (at %s:%d)\n", line, storage_txt, lineno);
-		}
-		ShowStatus("Converted %d storages.\n", count);
-		fclose(fp);
+		ShowFatalError("Initialization failed, unable to start conversion.\n");
+		return 0;
 	}
 
-	//FIXME: CONVERT STATUS DATA HERE!!!
+	ShowStatus("Conversion started...\n");
+	//TODO: do some counting & statistics
 
-	while(getchar() != '\n');
-	ShowMessage("\n");
-	ShowNotice("Do you wish to convert your Pet Database to SQL? (y/n) : ");
-	input=getchar();
-	if(input == 'y' || input == 'Y')
-	{
-		struct s_pet p;
-		ShowMessage("\n");
-		ShowStatus("Converting Pet Database...\n");
-		if( (fp = fopen(pet_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file %s!", pet_txt);
-			return 1;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset (&p, 0, sizeof(struct s_pet));
-			if(inter_pet_fromstr(line, &p)==0 && p.pet_id>0) {
-				count++;
-				inter_pet_tosql(p.pet_id,&p);
-			} else {
-				ShowError("pet reading: broken data [%s] at %s:%d\n", line, pet_txt, lineno);
-			}
-		}
-		ShowStatus("Converted %d pets.\n", count);
-		fclose(fp);
+	{// convert chardb
+		CharDB* txt = txtdb->chardb(txtdb);
+		CharDB* sql = sqldb->chardb(sqldb);
+		CharDBIterator* iter = txt->iterator(txt);
+		struct mmo_charstatus data;
+
+		ShowStatus("Converting Character Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
 	}
 
-	//FIXME: CONVERT HOMUNCULUS DATA AND SKILLS HERE!!!
+	{// convert accregs
+		AccRegDB* txt = txtdb->accregdb(txtdb);
+		AccRegDB* sql = sqldb->accregdb(sqldb);
+		AccRegDBIterator* iter = txt->iterator(txt);
+		struct regs data;
+		int key;
 
-	while(getchar() != '\n');
-	ShowMessage("\n");
-	ShowNotice("Do you wish to convert your Party Database to SQL? (y/n) : ");
-	input=getchar();
-	if(input == 'y' || input == 'Y')
-	{
-		struct party p;
-		ShowMessage("\n");
-		ShowStatus("Converting Party Database...\n");
-		if( (fp = fopen(party_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file %s!", party_txt);
-			return 1;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset (&p, 0, sizeof(struct party));
-			if(inter_party_fromstr(line, &p) == 0 &&
-				p.party_id > 0 &&
-				inter_party_tosql(&p, PS_CREATE, 0))
-				count++;
-			else{
-				ShowError("party reading: broken data [%s] at %s:%d\n", line, pet_txt, lineno);
-			}
-		}
-		ShowStatus("Converted %d parties.\n", count);
-		fclose(fp);
+		ShowStatus("Converting Account variables Data...\n");
+
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
+				;
+
+		iter->destroy(iter);
 	}
 
-	while(getchar() != '\n');
-	ShowMessage("\n");
-	ShowNotice("Do you wish to convert your Guilds and Castles Database to SQL? (y/n) : ");
-	input=getchar();
-	if(input == 'y' || input == 'Y')
-	{
-		struct guild g;
-		struct guild_castle gc;
-		ShowMessage("\n");
-		ShowStatus("Converting Guild Database...\n");
-		if( (fp = fopen(guild_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file %s!", guild_txt);
-			return 1;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset (&g, 0, sizeof(struct guild));
-			if (inter_guild_fromstr(line, &g) == 0 &&
-				g.guild_id > 0 &&
-				inter_guild_tosql(&g,GS_MASK))
-				count++;
-			else
-				ShowError("guild reading: broken data [%s] at %s:%d\n", line, guild_txt, lineno);
-		}
-		ShowStatus("Converted %d guilds.\n", count);
-		fclose(fp);
-		ShowStatus("Converting Guild Castles Database...\n");
-		if( (fp = fopen(castle_txt, "r")) == NULL )
-		{
-			ShowError("Unable to open file %s!", castle_txt);
-			return 1;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset(&gc, 0, sizeof(struct guild_castle));
-			if (inter_guildcastle_fromstr(line, &gc) == 0) {
-				inter_guildcastle_tosql(&gc);
-				count++;
-			}
-			else
-				ShowError("guild castle reading: broken data [%s] at %s:%d\n", line, castle_txt, lineno);
-		}
-		ShowStatus("Converted %d guild castles.\n", count);
-		fclose(fp);
+	{// convert charregs
+		CharRegDB* txt = txtdb->charregdb(txtdb);
+		CharRegDB* sql = sqldb->charregdb(sqldb);
+		CharRegDBIterator* iter = txt->iterator(txt);
+		struct regs data;
+		int key;
+
+		ShowStatus("Converting Character variables Data...\n");
+
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
+				;
+
+		iter->destroy(iter);
+	}
+/*
+	{// convert storage
+		StorageDB* txt = txtdb->storagedb(txtdb);
+		StorageDB* sql = sqldb->storagedb(sqldb);
+		StorageDBIterator* iter = txt->iterator(txt);
+		struct storage_data data;
+
+		ShowStatus("Converting Storage Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
 	}
 
-	while(getchar() != '\n');
-	ShowMessage("\n");
-	ShowNotice("Do you wish to convert your Guild Storage Database to SQL? (y/n) : ");
-	input=getchar();
-	if(input == 'y' || input == 'Y')
-	{
-		struct guild_storage storage_;
-		ShowMessage("\n");
-		ShowStatus("Converting Guild Storage Database...\n");
-		if( (fp = fopen(guild_storage_txt, "r")) == NULL )
-		{
-			ShowError("can't read : %s\n", guild_storage_txt);
-			return 0;
-		}
-		lineno = count = 0;
-		while(fgets(line, sizeof(line), fp))
-		{
-			lineno++;
-			memset(&storage_, 0, sizeof(struct guild_storage));
-			if (sscanf(line,"%d",&storage_.guild_id) == 1 &&
-				storage_.guild_id > 0 &&
-				guild_storage_fromstr(line,&storage_) == 0
-			) {
-				count++;
-				guild_storage_tosql(storage_.guild_id, &storage_);
-			} else
-				ShowError("Error parsing guild storage line [%s] (at %s:%d)\n", line, guild_storage_txt, lineno);
-		}
-		ShowStatus("Converted %d guild storages.\n", count);
-		fclose(fp);
+	{// convert status data
+		StatusDB* txt = txtdb->statusdb(txtdb);
+		StatusDB* sql = sqldb->statusdb(sqldb);
+		StatusDBIterator* iter = txt->iterator(txt);
+		struct scdata data;
+
+		ShowStatus("Converting Status Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
 	}
+
+	{// convert pets
+		PetDB* txt = txtdb->petdb(txtdb);
+		PetDB* sql = sqldb->petdb(sqldb);
+		PetDBIterator* iter = txt->iterator(txt);
+		struct s_pet data;
+
+		ShowStatus("Converting Pet Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert homunculi
+		HomunDB* txt = txtdb->homundb(txtdb);
+		HomunDB* sql = sqldb->homundb(sqldb);
+		HomunDBIterator* iter = txt->iterator(txt);
+		struct s_homunculus data;
+
+		ShowStatus("Converting Homunculus Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert friends
+		FriendDB* txt = txtdb->frienddb(txtdb);
+		FriendDB* sql = sqldb->frienddb(sqldb);
+		FriendDBIterator* iter = txt->iterator(txt);
+		struct friendlist data;
+
+		ShowStatus("Converting Friend Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	//FIXME: partydb isn't able to save multiple members at once
+	{// convert parties
+		PartyDB* txt = txtdb->partydb(txtdb);
+		PartyDB* sql = sqldb->partydb(sqldb);
+		PartyDBIterator* iter = txt->iterator(txt);
+		struct party_data data;
+
+		ShowStatus("Converting Party Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	//FIXME: guilddb isn't able to save multiple members at once
+	{// convert guilds
+		GuildDB* txt = txtdb->guilddb(txtdb);
+		GuildDB* sql = sqldb->guilddb(sqldb);
+		GuildDBIterator* iter = txt->iterator(txt);
+		struct guild data;
+
+		ShowStatus("Converting Guild Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert castles
+		CastleDB* txt = txtdb->castledb(txtdb);
+		CastleDB* sql = sqldb->castledb(sqldb);
+		CastleDBIterator* iter = txt->iterator(txt);
+		struct guild_castle data;
+
+		ShowStatus("Converting Castle Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert guild storages
+		GuildStorageDB* txt = txtdb->guildstoragedb(txtdb);
+		GuildStorageDB* sql = sqldb->guildstoragedb(sqldb);
+		GuildStorageDBIterator* iter = txt->iterator(txt);
+		struct guild_storage data;
+
+		ShowStatus("Converting Guild Storage Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert hotkeys
+		HotkeyDB* txt = txtdb->hotkeydb(txtdb);
+		HotkeyDB* sql = sqldb->hotkeydb(sqldb);
+		HotkeyDBIterator* iter = txt->iterator(txt);
+		struct hotkeylist data;
+
+		ShowStatus("Converting Hotkey Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	//FIXME: maildb needs a 'saveall' operation to support conversion
+	{// convert mails
+		MailDB* txt = txtdb->auctiondb(txtdb);
+		MailDB* sql = sqldb->auctiondb(sqldb);
+		MailDBIterator* iter = txt->iterator(txt);
+		struct mail_data data;
+
+		ShowStatus("Converting Mail Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert auctions
+		AuctionDB* txt = txtdb->auctiondb(txtdb);
+		AuctionDB* sql = sqldb->auctiondb(sqldb);
+		AuctionDBIterator* iter = txt->iterator(txt);
+		struct auction_data data;
+
+		ShowStatus("Converting Auction Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert quests
+		QuestDB* txt = txtdb->questdb(txtdb);
+		QuestDB* sql = sqldb->questdb(sqldb);
+		QuestDBIterator* iter = txt->iterator(txt);
+		struct questlog data;
+
+		ShowStatus("Converting Quest Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+
+	{// convert rankings
+		RankDB* txt = txtdb->rankdb(txtdb);
+		RankDB* sql = sqldb->rankdb(sqldb);
+		RankDBIterator* iter = txt->iterator(txt);
+		struct questlog data;
+
+		ShowStatus("Converting Ranking Data...\n");
+
+		while( iter->next(iter, &data) )
+			if( !sql->create(sql, &data) )
+				;
+
+		iter->destroy(iter);
+	}
+*/
+
+	ShowStatus("Everything's been converted!\n");
 
 	return 0;
 }
 
 int do_init(int argc, char** argv)
 {
-	char_config_read( (argc > 1) ? argv[1] : CHAR_CONF_NAME);
+	int input;
+
+	txtdb = charserver_db_txt();
+	sqldb = charserver_db_sql();
+
+//	char_config_read( (argc > 1) ? argv[1] : CHAR_CONF_NAME);
 	mapindex_init();
-	sql_config_read( (argc > 2) ? argv[2] : SQL_CONF_NAME);
-	inter_init_txt( (argc > 3) ? argv[3] : INTER_CONF_NAME);
-	inter_init_sql( (argc > 3) ? argv[3] : INTER_CONF_NAME);
-	convert_init();
-	ShowStatus("Everything's been converted!\n");
-	mapindex_final();
+//	sql_config_read( (argc > 2) ? argv[2] : SQL_CONF_NAME);
+//	inter_init_txt( (argc > 3) ? argv[3] : INTER_CONF_NAME);
+//	inter_init_sql( (argc > 3) ? argv[3] : INTER_CONF_NAME);
+
+	ShowWarning("Make sure you backup your databases before continuing!\n");
+	ShowMessage("\n");
+	ShowNotice("Do you wish to convert your data to SQL? (y/n) : ");
+	input = getchar();
+
+	if(input == 'y' || input == 'Y')
+		convert_char();
+
 	return 0;
 }
 
-void do_final(void) {}
+void do_final(void)
+{
+	mapindex_final();
+	txtdb->destroy(txtdb);
+	sqldb->destroy(sqldb);
+}

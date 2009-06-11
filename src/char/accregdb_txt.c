@@ -29,6 +29,14 @@ typedef struct AccRegDB_TXT
 } AccRegDB_TXT;
 
 
+/// internal structure
+typedef struct AccRegDBIterator_TXT
+{
+	AccRegDBIterator vtable;      // public interface
+	DBIterator* iter;
+
+} AccRegDBIterator_TXT;
+
 
 static void* create_accregs(DBKey key, va_list args)
 {
@@ -228,6 +236,54 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 }
 
 
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void accreg_db_txt_iter_destroy(AccRegDBIterator* self)
+{
+	AccRegDBIterator_TXT* iter = (AccRegDBIterator_TXT*)self;
+	dbi_destroy(iter->iter);
+	aFree(iter);
+}
+
+
+/// Fetches the next account reg data.
+static bool accreg_db_txt_iter_next(AccRegDBIterator* self, struct regs* data, int* key)
+{
+	AccRegDBIterator_TXT* iter = (AccRegDBIterator_TXT*)self;
+	struct regs* tmp;
+	DBKey k;
+
+	while( true )
+	{
+		tmp = (struct regs*)iter->iter->next(iter->iter, &k);
+		if( tmp == NULL )
+			return false;// not found
+
+		if( key )
+			*key = k.i;
+		memcpy(data, tmp, sizeof(*data));
+		return true;
+	}
+}
+
+
+/// Returns an iterator over all the account regs.
+static AccRegDBIterator* accreg_db_txt_iterator(AccRegDB* self)
+{
+	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
+	DBMap* accregs = db->accregs;
+	AccRegDBIterator_TXT* iter = (AccRegDBIterator_TXT*)aCalloc(1, sizeof(AccRegDBIterator_TXT));
+
+	// set up the vtable
+	iter->vtable.destroy = &accreg_db_txt_iter_destroy;
+	iter->vtable.next    = &accreg_db_txt_iter_next;
+
+	// fill data
+	iter->iter = db_iterator(accregs);
+
+	return &iter->vtable;
+}
+
+
 /// public constructor
 AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 {
@@ -240,6 +296,7 @@ AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove  = &accreg_db_txt_remove;
 	db->vtable.save    = &accreg_db_txt_save;
 	db->vtable.load    = &accreg_db_txt_load;
+	db->vtable.iterator = &accreg_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;
