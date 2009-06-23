@@ -4,12 +4,11 @@
 #ifndef _STATUSDB_H_
 #define _STATUSDB_H_
 
-#include "../common/mmo.h" // struct scdata, NAME_LENGTH
+#include "../common/mmo.h" // struct status_change_data, NAME_LENGTH
 
 typedef struct StatusDB StatusDB;
+typedef struct StatusDBIterator StatusDBIterator;
 
-
-struct status_change_data;
 
 struct scdata
 {
@@ -17,6 +16,22 @@ struct scdata
 	int count;
 	struct status_change_data* data;
 };
+
+
+struct StatusDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(StatusDBIterator* self);
+
+	/// Fetches the next status data and stores it in 'data'.
+	/// @param self Iterator
+	/// @param data a character's status data
+	/// @return true if successful
+	bool (*next)(StatusDBIterator* self, struct scdata* data);
+};
+
 
 struct StatusDB
 {
@@ -29,6 +44,12 @@ struct StatusDB
 
 	bool (*save)(StatusDB* self, struct scdata* sc);
 	bool (*load)(StatusDB* self, struct scdata* sc, int account_id, int char_id);
+
+	/// Returns an iterator over all statuses.
+	///
+	/// @param self Database
+	/// @return Iterator
+	StatusDBIterator* (*iterator)(StatusDB* self);
 };
 
 

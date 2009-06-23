@@ -7,6 +7,22 @@
 #include "../common/mmo.h" // struct s_pet, NAME_LENGTH
 
 typedef struct PetDB PetDB;
+typedef struct PetDBIterator PetDBIterator;
+
+
+struct PetDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(PetDBIterator* self);
+
+	/// Fetches the next pet data and stores it in 'data'.
+	/// @param self Iterator
+	/// @param data a pet's data
+	/// @return true if successful
+	bool (*next)(PetDBIterator* self, struct s_pet* data);
+};
 
 
 struct PetDB
@@ -24,6 +40,12 @@ struct PetDB
 
 	// retrieve data using pet id
 	bool (*load)(PetDB* self, struct s_pet* pd, int pet_id);
+
+	/// Returns an iterator over all pets.
+	///
+	/// @param self Database
+	/// @return Iterator
+	PetDBIterator* (*iterator)(PetDB* self);
 };
 
 

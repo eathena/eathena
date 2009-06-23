@@ -81,17 +81,18 @@ int convert_char(void)
 
 		iter->destroy(iter);
 	}
-/*
+
 	{// convert storage
 		StorageDB* txt = txtdb->storagedb(txtdb);
 		StorageDB* sql = sqldb->storagedb(sqldb);
 		StorageDBIterator* iter = txt->iterator(txt);
 		struct storage_data data;
+		int key;
 
 		ShowStatus("Converting Storage Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
 				;
 
 		iter->destroy(iter);
@@ -106,7 +107,7 @@ int convert_char(void)
 		ShowStatus("Converting Status Data...\n");
 
 		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
+			if( !sql->save(sql, &data) )
 				;
 
 		iter->destroy(iter);
@@ -146,12 +147,13 @@ int convert_char(void)
 		FriendDB* txt = txtdb->frienddb(txtdb);
 		FriendDB* sql = sqldb->frienddb(sqldb);
 		FriendDBIterator* iter = txt->iterator(txt);
-		struct friendlist data;
+		friendlist data;
+		int key;
 
 		ShowStatus("Converting Friend Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
 				;
 
 		iter->destroy(iter);
@@ -209,11 +211,12 @@ int convert_char(void)
 		GuildStorageDB* sql = sqldb->guildstoragedb(sqldb);
 		GuildStorageDBIterator* iter = txt->iterator(txt);
 		struct guild_storage data;
+		int key;
 
 		ShowStatus("Converting Guild Storage Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
 				;
 
 		iter->destroy(iter);
@@ -223,17 +226,18 @@ int convert_char(void)
 		HotkeyDB* txt = txtdb->hotkeydb(txtdb);
 		HotkeyDB* sql = sqldb->hotkeydb(sqldb);
 		HotkeyDBIterator* iter = txt->iterator(txt);
-		struct hotkeylist data;
+		hotkeylist data;
+		int key;
 
 		ShowStatus("Converting Hotkey Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
+		while( iter->next(iter, &data, &key) )
+			if( !sql->save(sql, &data, key) )
 				;
 
 		iter->destroy(iter);
 	}
-
+/*
 	//FIXME: maildb needs a 'saveall' operation to support conversion
 	{// convert mails
 		MailDB* txt = txtdb->auctiondb(txtdb);

@@ -7,6 +7,7 @@
 #include "../common/mmo.h" // struct party
 
 typedef struct PartyDB PartyDB;
+typedef struct PartyDBIterator PartyDBIterator;
 
 
 //Party Flags on what to save/delete.
@@ -19,6 +20,7 @@ enum party_save_flags
 	PS_DELMEMBER = 0x10, //Remove party member (index specifies position)
 };
 
+
 struct party_data
 {
 	struct party party;
@@ -26,6 +28,22 @@ struct party_data
 	int family; //Is this party a family? if so, this holds the child id.
 	unsigned char size; //Total size of party.
 };
+
+
+struct PartyDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(PartyDBIterator* self);
+
+	/// Fetches the next party data and stores it in 'data'.
+	/// @param self Iterator
+	/// @param data a party's data
+	/// @return true if successful
+	bool (*next)(PartyDBIterator* self, struct party_data* data);
+};
+
 
 struct PartyDB
 {
@@ -47,6 +65,12 @@ struct PartyDB
 
 	// look up party id using party name
 	bool (*name2id)(PartyDB* self, int* party_id, const char* name);
+
+	/// Returns an iterator over all parties.
+	///
+	/// @param self Database
+	/// @return Iterator
+	PartyDBIterator* (*iterator)(PartyDB* self);
 };
 
 

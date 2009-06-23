@@ -17,7 +17,7 @@ struct AccRegDBIterator
 	/// @param self Iterator
 	void (*destroy)(AccRegDBIterator* self);
 
-	/// Fetches the next account regs and stores them in 'data'.
+	/// Fetches the next account reg data and stores it in 'data'.
 	/// @param self Iterator
 	/// @param data an account's registry data
 	/// @param key an account's account_id

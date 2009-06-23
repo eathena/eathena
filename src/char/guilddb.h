@@ -6,6 +6,9 @@
 
 #include "../common/mmo.h" // struct guild
 
+typedef struct GuildDB GuildDB;
+typedef struct GuildDBIterator GuildDBIterator;
+
 
 // fine-grained guild updating
 enum guild_save_flags
@@ -24,6 +27,7 @@ enum guild_save_flags
 	GS_BASIC_MASK = GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES,
 };
 
+
 // guild member-related flags
 #define GS_MEMBER_UNMODIFIED 0x00
 #define GS_MEMBER_MODIFIED 0x01
@@ -34,7 +38,19 @@ enum guild_save_flags
 #define GS_POSITION_MODIFIED 0x01
 
 
-typedef struct GuildDB GuildDB;
+struct GuildDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(GuildDBIterator* self);
+
+	/// Fetches the next guild data and stores it in 'data'.
+	/// @param self Iterator
+	/// @param data a guild's data
+	/// @return true if successful
+	bool (*next)(GuildDBIterator* self, struct guild* data);
+};
 
 
 struct GuildDB
@@ -54,6 +70,12 @@ struct GuildDB
 	bool (*load)(GuildDB* self, struct guild* p, int guild_id);
 
 	bool (*name2id)(GuildDB* self, const char* name, int* guild_id);
+
+	/// Returns an iterator over all guilds.
+	///
+	/// @param self Database
+	/// @return Iterator
+	GuildDBIterator* (*iterator)(GuildDB* self);
 };
 
 

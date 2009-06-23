@@ -7,6 +7,23 @@
 #include "../common/mmo.h" // struct storage_data
 
 typedef struct StorageDB StorageDB;
+typedef struct StorageDBIterator StorageDBIterator;
+
+
+struct StorageDBIterator
+{
+	/// Destroys this iterator, releasing all allocated memory (including itself).
+	///
+	/// @param self Iterator
+	void (*destroy)(StorageDBIterator* self);
+
+	/// Fetches the next storage data and stores it in 'data'.
+	/// @param self Iterator
+	/// @param data an account's storage data
+	/// @param key an account's account_id
+	/// @return true if successful
+	bool (*next)(StorageDBIterator* self, struct storage_data* data, int* key);
+};
 
 
 struct StorageDB
@@ -20,6 +37,12 @@ struct StorageDB
 
 	bool (*save)(StorageDB* self, const struct storage_data* s, int account_id);
 	bool (*load)(StorageDB* self, struct storage_data* s, int account_id);
+
+	/// Returns an iterator over all storages.
+	///
+	/// @param self Database
+	/// @return Iterator
+	StorageDBIterator* (*iterator)(StorageDB* self);
 };
 
 

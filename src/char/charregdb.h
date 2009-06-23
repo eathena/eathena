@@ -17,7 +17,7 @@ struct CharRegDBIterator
 	/// @param self Iterator
 	void (*destroy)(CharRegDBIterator* self);
 
-	/// Fetches the next character regs and stores them in 'data'.
+	/// Fetches the next character reg data and stores it in 'data'.
 	/// @param self Iterator
 	/// @param data a char's registry data
 	/// @param key a char's char_id
