@@ -26,16 +26,6 @@ typedef struct CastleDB_SQL
 
 } CastleDB_SQL;
 
-/// internal structure
-typedef struct CastleDBIterator_SQL
-{
-	CastleDBIterator vtable;    // public interface
-
-	CastleDB_SQL* db;
-	int last_castle_id;
-} CastleDBIterator_SQL;
-
-
 
 static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id)
 {
@@ -177,64 +167,6 @@ static bool castle_db_sql_load(CastleDB* self, struct guild_castle* gc, int cast
 }
 
 
-/// Destroys this iterator, releasing all allocated memory (including itself).
-static void castle_db_sql_iter_destroy(CastleDBIterator* self)
-{
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
-	aFree(iter);
-}
-
-/// Fetches the next account in the database.
-static bool castle_db_sql_iter_next(CastleDBIterator* self, struct guild_castle* gc)
-{
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)self;
-	CastleDB_SQL* db = (CastleDB_SQL*)iter->db;
-	Sql* sql_handle = db->castles;
-	int castle_id;
-	char* data;
-
-	// get next castle ID
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `castle_id` FROM `%s` WHERE `castle_id` > '%d' ORDER BY `castle_id` ASC LIMIT 1",
-		db->castle_db, iter->last_castle_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	if( SQL_SUCCESS == Sql_NextRow(sql_handle) &&
-		SQL_SUCCESS == Sql_GetData(sql_handle, 0, &data, NULL) &&
-		data != NULL )
-	{// get castle data
-		castle_id = atoi(data);
-		if( mmo_castle_fromsql(db, gc, castle_id) )
-		{
-			iter->last_castle_id = castle_id;
-			Sql_FreeResult(sql_handle);
-			return true;
-		}
-	}
-	Sql_FreeResult(sql_handle);
-	return false;
-}
-
-/// Returns a new forward iterator.
-static CastleDBIterator* castle_db_sql_iterator(CastleDB* self)
-{
-	CastleDB_SQL* db = (CastleDB_SQL*)self;
-	CastleDBIterator_SQL* iter = (CastleDBIterator_SQL*)aCalloc(1, sizeof(CastleDBIterator_SQL));
-
-	// set up the vtable
-	iter->vtable.destroy = &castle_db_sql_iter_destroy;
-	iter->vtable.next    = &castle_db_sql_iter_next;
-
-	// fill data
-	iter->db = db;
-	iter->last_castle_id = -1;
-
-	return &iter->vtable;
-}
-
-
 /// public constructor
 CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 {
@@ -249,7 +181,6 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove_gid= &castle_db_sql_remove_gid;
 	db->vtable.save      = &castle_db_sql_save;
 	db->vtable.load      = &castle_db_sql_load;
-	db->vtable.iterator  = &castle_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

@@ -27,15 +27,6 @@ typedef struct CharRegDB_TXT
 } CharRegDB_TXT;
 
 
-/// internal structure
-typedef struct CharRegDBIterator_TXT
-{
-	CharRegDBIterator vtable;      // public interface
-	DBIterator* iter;
-
-} CharRegDBIterator_TXT;
-
-
 static void* create_charregs(DBKey key, va_list args)
 {
 	return (struct regs*)aMalloc(sizeof(struct regs));
@@ -163,54 +154,6 @@ static bool charreg_db_txt_load(CharRegDB* self, struct regs* reg, int char_id)
 }
 
 
-/// Destroys this iterator, releasing all allocated memory (including itself).
-static void charreg_db_txt_iter_destroy(CharRegDBIterator* self)
-{
-	CharRegDBIterator_TXT* iter = (CharRegDBIterator_TXT*)self;
-	dbi_destroy(iter->iter);
-	aFree(iter);
-}
-
-
-/// Fetches the next character reg data.
-static bool charreg_db_txt_iter_next(CharRegDBIterator* self, struct regs* data, int* key)
-{
-	CharRegDBIterator_TXT* iter = (CharRegDBIterator_TXT*)self;
-	struct regs* tmp;
-	DBKey k;
-
-	while( true )
-	{
-		tmp = (struct regs*)iter->iter->next(iter->iter, &k);
-		if( tmp == NULL )
-			return false;// not found
-
-		if( key )
-			*key = k.i;
-		memcpy(data, tmp, sizeof(*data));
-		return true;
-	}
-}
-
-
-/// Returns an iterator over all the character regs.
-static CharRegDBIterator* charreg_db_txt_iterator(CharRegDB* self)
-{
-	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
-	DBMap* charregs = db->charregs;
-	CharRegDBIterator_TXT* iter = (CharRegDBIterator_TXT*)aCalloc(1, sizeof(CharRegDBIterator_TXT));
-
-	// set up the vtable
-	iter->vtable.destroy = &charreg_db_txt_iter_destroy;
-	iter->vtable.next    = &charreg_db_txt_iter_next;
-
-	// fill data
-	iter->iter = db_iterator(charregs);
-
-	return &iter->vtable;
-}
-
-
 /// public constructor
 CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 {
@@ -223,7 +166,6 @@ CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove  = &charreg_db_txt_remove;
 	db->vtable.save    = &charreg_db_txt_save;
 	db->vtable.load    = &charreg_db_txt_load;
-	db->vtable.iterator = &charreg_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

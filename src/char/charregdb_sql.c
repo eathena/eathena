@@ -18,10 +18,6 @@
 #include <string.h>
 
 
-/// Maximum number of char ids cached in the iterator.
-#define CHARREGDBITERATOR_MAXCACHE 16000
-
-
 /// internal structure
 typedef struct CharRegDB_SQL
 {
@@ -34,20 +30,6 @@ typedef struct CharRegDB_SQL
 	const char* charreg_db;
 
 } CharRegDB_SQL;
-
-
-/// internal structure
-typedef struct CharRegDBIterator_SQL
-{
-	CharRegDBIterator vtable;    // public interface
-
-	CharRegDB_SQL* db;
-	int* ids_arr;
-	int ids_num;
-	int pos;
-	bool has_more;
-
-} CharRegDBIterator_SQL;
 
 
 static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id)
@@ -212,142 +194,6 @@ static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
 }
 
 
-/// Private. Fills the cache of the iterator with ids.
-static void charreg_db_sql_iter_P_fillcache(CharRegDBIterator_SQL* iter)
-{
-	CharRegDB_SQL* db = iter->db;
-	Sql* sql_handle = db->charregs;
-	int res;
-	int last_id = 0;
-	bool has_last_id = false;
-
-	if( iter->ids_num > 0 )
-	{
-		last_id = iter->ids_arr[iter->ids_num-1];
-		has_last_id = true;
-	}
-
-	if( has_last_id )
-		res = Sql_Query(sql_handle, "SELECT DISTINCT `char_id` FROM `%s` WHERE `char_id`>%d ORDER BY `char_id` ASC LIMIT %d", db->charreg_db, last_id, CHARREGDBITERATOR_MAXCACHE+1);
-	else
-		res = Sql_Query(sql_handle, "SELECT DISTINCT `char_id` FROM `%s` ORDER BY `char_id` ASC LIMIT %d", db->charreg_db, CHARREGDBITERATOR_MAXCACHE+1);
-	if( res == SQL_ERROR )
-	{
-		Sql_ShowDebug(sql_handle);
-		iter->ids_num = 0;
-		iter->pos = -1;
-		iter->has_more = false;
-	}
-	else if( Sql_NumRows(sql_handle) == 0 )
-	{
-		iter->ids_num = 0;
-		iter->pos = -1;
-		iter->has_more = false;
-	}
-	else
-	{
-		int i;
-
-		if( Sql_NumRows(sql_handle) > CHARREGDBITERATOR_MAXCACHE )
-		{
-			iter->has_more = true;
-			iter->ids_num = CHARREGDBITERATOR_MAXCACHE;
-		}
-		else
-		{
-			iter->has_more = false;
-			iter->ids_num = (int)Sql_NumRows(sql_handle);
-		}
-		if( has_last_id )
-		{
-			++iter->ids_num;
-			RECREATE(iter->ids_arr, int, iter->ids_num);
-			iter->ids_arr[0] = last_id;
-			iter->pos = 0;
-			i = 1;
-		}
-		else
-		{
-			RECREATE(iter->ids_arr, int, iter->ids_num);
-			iter->pos = -1;
-			i = 0;
-		}
-
-		while( i < iter->ids_num )
-		{
-			char* data;
-			int res = Sql_NextRow(sql_handle);
-			if( res == SQL_SUCCESS )
-				res = Sql_GetData(sql_handle, 0, &data, NULL);
-			if( res == SQL_ERROR )
-				Sql_ShowDebug(sql_handle);
-			if( res != SQL_SUCCESS )
-				break;
-
-			if( data == NULL )
-				continue;
-
-			iter->ids_arr[i] = atoi(data);
-			++i;
-		}
-		iter->ids_num = i;
-	}
-	Sql_FreeResult(sql_handle);
-}
-
-
-/// Destroys this iterator, releasing all allocated memory (including itself).
-static void charreg_db_sql_iter_destroy(CharRegDBIterator* self)
-{
-	CharRegDBIterator_SQL* iter = (CharRegDBIterator_SQL*)self;
-	if( iter->ids_arr )
-		aFree(iter->ids_arr);
-	aFree(iter);
-}
-
-
-/// Fetches the next accreg.
-static bool charreg_db_sql_iter_next(CharRegDBIterator* self, struct regs* data, int* key)
-{
-	CharRegDBIterator_SQL* iter = (CharRegDBIterator_SQL*)self;
-	CharRegDB_SQL* db = (CharRegDB_SQL*)iter->db;
-	Sql* sql_handle = db->charregs;
-
-	while( iter->pos+1 >= iter->ids_num )
-	{
-		if( !iter->has_more )
-			return false;
-		charreg_db_sql_iter_P_fillcache(iter);
-	}
-
-	++iter->pos;
-	if( key )
-		*key = iter->ids_arr[iter->pos];
-	return mmo_charreg_fromsql(db, data, iter->ids_arr[iter->pos]);
-}
-
-
-/// Returns an iterator over all character regs.
-static CharRegDBIterator* charreg_db_sql_iterator(CharRegDB* self)
-{
-	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
-	CharRegDBIterator_SQL* iter = (CharRegDBIterator_SQL*)aCalloc(1, sizeof(CharRegDBIterator_SQL));
-
-	// set up the vtable
-	iter->vtable.destroy = &charreg_db_sql_iter_destroy;
-	iter->vtable.next    = &charreg_db_sql_iter_next;
-
-	// fill data
-	iter->db = db;
-	iter->ids_arr = NULL;
-	iter->ids_num = 0;
-	iter->pos = -1;
-	iter->has_more = true;// auto load on next
-
-	return &iter->vtable;
-}
-
-
 /// public constructor
 CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 {
@@ -360,7 +206,6 @@ CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove  = &charreg_db_sql_remove;
 	db->vtable.save    = &charreg_db_sql_save;
 	db->vtable.load    = &charreg_db_sql_load;
- 	db->vtable.iterator = &charreg_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

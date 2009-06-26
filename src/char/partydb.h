@@ -7,7 +7,6 @@
 #include "../common/mmo.h" // struct party
 
 typedef struct PartyDB PartyDB;
-typedef struct PartyDBIterator PartyDBIterator;
 
 
 //Party Flags on what to save/delete.
@@ -27,21 +26,6 @@ struct party_data
 	unsigned int min_lv, max_lv;
 	int family; //Is this party a family? if so, this holds the child id.
 	unsigned char size; //Total size of party.
-};
-
-
-struct PartyDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(PartyDBIterator* self);
-
-	/// Fetches the next party data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a party's data
-	/// @return true if successful
-	bool (*next)(PartyDBIterator* self, struct party_data* data);
 };
 
 

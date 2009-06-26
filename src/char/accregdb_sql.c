@@ -18,10 +18,6 @@
 #include <string.h>
 
 
-/// Maximum number of account ids cached in the iterator.
-#define ACCREGDBITERATOR_MAXCACHE 16000
-
-
 /// internal structure
 typedef struct AccRegDB_SQL
 {
@@ -34,20 +30,6 @@ typedef struct AccRegDB_SQL
 	const char* accreg_db;
 
 } AccRegDB_SQL;
-
-
-/// internal structure
-typedef struct AccRegDBIterator_SQL
-{
-	AccRegDBIterator vtable;    // public interface
-
-	AccRegDB_SQL* db;
-	int* ids_arr;
-	int ids_num;
-	int pos;
-	bool has_more;
-
-} AccRegDBIterator_SQL;
 
 
 static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_id)
@@ -211,142 +193,6 @@ static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
 }
 
 
-/// Private. Fills the cache of the iterator with ids.
-static void accreg_db_sql_iter_P_fillcache(AccRegDBIterator_SQL* iter)
-{
-	AccRegDB_SQL* db = iter->db;
-	Sql* sql_handle = db->accregs;
-	int res;
-	int last_id = 0;
-	bool has_last_id = false;
-
-	if( iter->ids_num > 0 )
-	{
-		last_id = iter->ids_arr[iter->ids_num-1];
-		has_last_id = true;
-	}
-
-	if( has_last_id )
-		res = Sql_Query(sql_handle, "SELECT DISTINCT `account_id` FROM `%s` WHERE `account_id`>%d ORDER BY `account_id` ASC LIMIT %d", db->accreg_db, last_id, ACCREGDBITERATOR_MAXCACHE+1);
-	else
-		res = Sql_Query(sql_handle, "SELECT DISTINCT `account_id` FROM `%s` ORDER BY `account_id` ASC LIMIT %d", db->accreg_db, ACCREGDBITERATOR_MAXCACHE+1);
-	if( res == SQL_ERROR )
-	{
-		Sql_ShowDebug(sql_handle);
-		iter->ids_num = 0;
-		iter->pos = -1;
-		iter->has_more = false;
-	}
-	else if( Sql_NumRows(sql_handle) == 0 )
-	{
-		iter->ids_num = 0;
-		iter->pos = -1;
-		iter->has_more = false;
-	}
-	else
-	{
-		int i;
-
-		if( Sql_NumRows(sql_handle) > ACCREGDBITERATOR_MAXCACHE )
-		{
-			iter->has_more = true;
-			iter->ids_num = ACCREGDBITERATOR_MAXCACHE;
-		}
-		else
-		{
-			iter->has_more = false;
-			iter->ids_num = (int)Sql_NumRows(sql_handle);
-		}
-		if( has_last_id )
-		{
-			++iter->ids_num;
-			RECREATE(iter->ids_arr, int, iter->ids_num);
-			iter->ids_arr[0] = last_id;
-			iter->pos = 0;
-			i = 1;
-		}
-		else
-		{
-			RECREATE(iter->ids_arr, int, iter->ids_num);
-			iter->pos = -1;
-			i = 0;
-		}
-
-		while( i < iter->ids_num )
-		{
-			char* data;
-			int res = Sql_NextRow(sql_handle);
-			if( res == SQL_SUCCESS )
-				res = Sql_GetData(sql_handle, 0, &data, NULL);
-			if( res == SQL_ERROR )
-				Sql_ShowDebug(sql_handle);
-			if( res != SQL_SUCCESS )
-				break;
-
-			if( data == NULL )
-				continue;
-
-			iter->ids_arr[i] = atoi(data);
-			++i;
-		}
-		iter->ids_num = i;
-	}
-	Sql_FreeResult(sql_handle);
-}
-
-
-/// Destroys this iterator, releasing all allocated memory (including itself).
-static void accreg_db_sql_iter_destroy(AccRegDBIterator* self)
-{
-	AccRegDBIterator_SQL* iter = (AccRegDBIterator_SQL*)self;
-	if( iter->ids_arr )
-		aFree(iter->ids_arr);
-	aFree(iter);
-}
-
-
-/// Fetches the next accreg.
-static bool accreg_db_sql_iter_next(AccRegDBIterator* self, struct regs* data, int* key)
-{
-	AccRegDBIterator_SQL* iter = (AccRegDBIterator_SQL*)self;
-	AccRegDB_SQL* db = (AccRegDB_SQL*)iter->db;
-	Sql* sql_handle = db->accregs;
-
-	while( iter->pos+1 >= iter->ids_num )
-	{
-		if( !iter->has_more )
-			return false;
-		accreg_db_sql_iter_P_fillcache(iter);
-	}
-
-	++iter->pos;
-	if( key )
-		*key = iter->ids_arr[iter->pos];
-	return mmo_accreg_fromsql(db, data, iter->ids_arr[iter->pos]);
-}
-
-
-/// Returns an iterator over all account regs.
-static AccRegDBIterator* accreg_db_sql_iterator(AccRegDB* self)
-{
-	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
-	AccRegDBIterator_SQL* iter = (AccRegDBIterator_SQL*)aCalloc(1, sizeof(AccRegDBIterator_SQL));
-
-	// set up the vtable
-	iter->vtable.destroy = &accreg_db_sql_iter_destroy;
-	iter->vtable.next    = &accreg_db_sql_iter_next;
-
-	// fill data
-	iter->db = db;
-	iter->ids_arr = NULL;
-	iter->ids_num = 0;
-	iter->pos = -1;
-	iter->has_more = true;// auto load on next
-
-	return &iter->vtable;
-}
-
-
 /// public constructor
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 {
@@ -359,7 +205,6 @@ AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove  = &accreg_db_sql_remove;
 	db->vtable.save    = &accreg_db_sql_save;
 	db->vtable.load    = &accreg_db_sql_load;
-	db->vtable.iterator = &accreg_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

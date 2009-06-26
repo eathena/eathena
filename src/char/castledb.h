@@ -7,23 +7,6 @@
 #include "../common/mmo.h" // struct guild_castle
 
 typedef struct CastleDB CastleDB;
-typedef struct CastleDBIterator CastleDBIterator;
-
-
-struct CastleDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(CastleDBIterator* self);
-
-	/// Fetches the next castle in the database.
-	/// Fills gc with the castle data.
-	/// @param self Iterator
-	/// @param gc Castle data
-	/// @return true if successful
-	bool (*next)(CastleDBIterator* self, struct guild_castle* gc);
-};
 
 
 struct CastleDB

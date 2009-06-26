@@ -7,23 +7,6 @@
 #include "../common/mmo.h" // struct guild_storage
 
 typedef struct GuildStorageDB GuildStorageDB;
-typedef struct GuildStorageDBIterator GuildStorageDBIterator;
-
-
-struct GuildStorageDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(GuildStorageDBIterator* self);
-
-	/// Fetches the next guild data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a guild's storage data
-	/// @param key a guild's guild_id
-	/// @return true if successful
-	bool (*next)(GuildStorageDBIterator* self, struct guild_storage* data, int* key);
-};
 
 
 struct GuildStorageDB

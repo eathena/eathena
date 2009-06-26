@@ -7,23 +7,6 @@
 #include "../common/mmo.h" // struct regs
 
 typedef struct AccRegDB AccRegDB;
-typedef struct AccRegDBIterator AccRegDBIterator;
-
-
-struct AccRegDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(AccRegDBIterator* self);
-
-	/// Fetches the next account reg data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data an account's registry data
-	/// @param key an account's account_id
-	/// @return true if successful
-	bool (*next)(AccRegDBIterator* self, struct regs* data, int* key);
-};
 
 
 struct AccRegDB

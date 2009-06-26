@@ -7,7 +7,6 @@
 #include "../common/mmo.h" // struct status_change_data, NAME_LENGTH
 
 typedef struct StatusDB StatusDB;
-typedef struct StatusDBIterator StatusDBIterator;
 
 
 struct scdata
@@ -15,21 +14,6 @@ struct scdata
 	int account_id, char_id;
 	int count;
 	struct status_change_data* data;
-};
-
-
-struct StatusDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(StatusDBIterator* self);
-
-	/// Fetches the next status data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a character's status data
-	/// @return true if successful
-	bool (*next)(StatusDBIterator* self, struct scdata* data);
 };
 
 

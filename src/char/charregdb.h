@@ -7,23 +7,6 @@
 #include "../common/mmo.h" // struct regs
 
 typedef struct CharRegDB CharRegDB;
-typedef struct CharRegDBIterator CharRegDBIterator;
-
-
-struct CharRegDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(CharRegDBIterator* self);
-
-	/// Fetches the next character reg data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a char's registry data
-	/// @param key a char's char_id
-	/// @return true if successful
-	bool (*next)(CharRegDBIterator* self, struct regs* data, int* key);
-};
 
 
 struct CharRegDB

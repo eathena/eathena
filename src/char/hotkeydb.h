@@ -7,24 +7,7 @@
 #include "../common/mmo.h" // struct hotkey, MAX_HOTKEYS
 
 typedef struct HotkeyDB HotkeyDB;
-typedef struct HotkeyDBIterator HotkeyDBIterator;
 typedef struct hotkey hotkeylist[MAX_HOTKEYS];
-
-
-struct HotkeyDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(HotkeyDBIterator* self);
-
-	/// Fetches the next hotkey list and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a character's hotkey list
-	/// @param key a characters's char_id
-	/// @return true if successful
-	bool (*next)(HotkeyDBIterator* self, hotkeylist* data, int* key);
-};
 
 
 struct HotkeyDB

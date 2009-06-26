@@ -7,7 +7,6 @@
 #include "../common/mmo.h" // struct guild
 
 typedef struct GuildDB GuildDB;
-typedef struct GuildDBIterator GuildDBIterator;
 
 
 // fine-grained guild updating
@@ -36,21 +35,6 @@ enum guild_save_flags
 // guild position-related flags
 #define GS_POSITION_UNMODIFIED 0x00
 #define GS_POSITION_MODIFIED 0x01
-
-
-struct GuildDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(GuildDBIterator* self);
-
-	/// Fetches the next guild data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a guild's data
-	/// @return true if successful
-	bool (*next)(GuildDBIterator* self, struct guild* data);
-};
 
 
 struct GuildDB

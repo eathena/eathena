@@ -7,24 +7,7 @@
 #include "../common/mmo.h" // struct s_friend, MAX_FRIENDS
 
 typedef struct FriendDB FriendDB;
-typedef struct FriendDBIterator FriendDBIterator;
 typedef struct s_friend friendlist[MAX_FRIENDS];
-
-
-struct FriendDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(FriendDBIterator* self);
-
-	/// Fetches the next friend data and stores it in 'data'.
-	/// @param self Iterator
-	/// @param data a characters's friend list
-	/// @param key a characters's char_id
-	/// @return true if successful
-	bool (*next)(FriendDBIterator* self, friendlist* data, int* key);
-};
 
 
 struct FriendDB
