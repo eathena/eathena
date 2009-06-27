@@ -90,4 +90,9 @@ struct CharServerDB_SQL
 
 
 
+// generic sql db iterator constructor
+extern CSDBIterator* csdb_sql_iterator(Sql* sql_handle, const char* sql_table, const char* sql_column);
+
+
+
 #endif /* _CHARSERVERDB_SQL_H_ */

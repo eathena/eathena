@@ -238,6 +238,14 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 }
 
 
+/// Returns an iterator over all hotkey lists.
+static CSDBIterator* hotkey_db_txt_iterator(HotkeyDB* self)
+{
+	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->hotkeys));
+}
+
+
 /// public constructor
 HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 {
@@ -250,6 +258,7 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &hotkey_db_txt_remove;
 	db->vtable.save      = &hotkey_db_txt_save;
 	db->vtable.load      = &hotkey_db_txt_load;
+	db->vtable.iterator  = &hotkey_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

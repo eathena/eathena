@@ -271,6 +271,14 @@ static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* co
 }
 
 
+/// Returns an iterator over all quest entries.
+static CSDBIterator* quest_db_txt_iterator(QuestDB* self)
+{
+	QuestDB_TXT* db = (QuestDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->quests));
+}
+
+
 /// public constructor
 QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 {
@@ -283,6 +291,7 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	db->vtable.add       = &quest_db_txt_add;
 	db->vtable.del       = &quest_db_txt_del;
 	db->vtable.load      = &quest_db_txt_load;
+	db->vtable.iterator  = &quest_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

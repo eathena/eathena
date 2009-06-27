@@ -158,6 +158,14 @@ static bool hotkey_db_sql_load(HotkeyDB* self, hotkeylist* list, const int char_
 }
 
 
+/// Returns an iterator over all hotkey lists.
+static CSDBIterator* hotkey_db_sql_iterator(HotkeyDB* self)
+{
+	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
+	return csdb_sql_iterator(db->hotkeys, db->hotkey_db, "account_id");
+}
+
+
 /// public constructor
 HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 {
@@ -170,6 +178,7 @@ HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &hotkey_db_sql_remove;
 	db->vtable.save      = &hotkey_db_sql_save;
 	db->vtable.load      = &hotkey_db_sql_load;
+	db->vtable.iterator  = &hotkey_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

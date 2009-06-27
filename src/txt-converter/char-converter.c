@@ -53,15 +53,17 @@ int convert_char(void)
 	{// convert accregs
 		AccRegDB* txt = txtdb->accregdb(txtdb);
 		AccRegDB* sql = sqldb->accregdb(sqldb);
-		AccRegDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct regs data;
 		int key;
 
 		ShowStatus("Converting Account variables Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -69,15 +71,17 @@ int convert_char(void)
 	{// convert charregs
 		CharRegDB* txt = txtdb->charregdb(txtdb);
 		CharRegDB* sql = sqldb->charregdb(sqldb);
-		CharRegDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct regs data;
 		int key;
 
 		ShowStatus("Converting Character variables Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -85,15 +89,17 @@ int convert_char(void)
 	{// convert storage
 		StorageDB* txt = txtdb->storagedb(txtdb);
 		StorageDB* sql = sqldb->storagedb(sqldb);
-		StorageDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct storage_data data;
 		int key;
 
 		ShowStatus("Converting Storage Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -101,14 +107,17 @@ int convert_char(void)
 	{// convert status data
 		StatusDB* txt = txtdb->statusdb(txtdb);
 		StatusDB* sql = sqldb->statusdb(sqldb);
-		StatusDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct scdata data;
+		int key;
 
 		ShowStatus("Converting Status Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->save(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -116,14 +125,17 @@ int convert_char(void)
 	{// convert pets
 		PetDB* txt = txtdb->petdb(txtdb);
 		PetDB* sql = sqldb->petdb(sqldb);
-		PetDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct s_pet data;
+		int key;
 
 		ShowStatus("Converting Pet Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -131,14 +143,17 @@ int convert_char(void)
 	{// convert homunculi
 		HomunDB* txt = txtdb->homundb(txtdb);
 		HomunDB* sql = sqldb->homundb(sqldb);
-		HomunDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct s_homunculus data;
+		int key;
 
 		ShowStatus("Converting Homunculus Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -146,15 +161,17 @@ int convert_char(void)
 	{// convert friends
 		FriendDB* txt = txtdb->frienddb(txtdb);
 		FriendDB* sql = sqldb->frienddb(sqldb);
-		FriendDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		friendlist data;
 		int key;
 
 		ShowStatus("Converting Friend Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -163,14 +180,17 @@ int convert_char(void)
 	{// convert parties
 		PartyDB* txt = txtdb->partydb(txtdb);
 		PartyDB* sql = sqldb->partydb(sqldb);
-		PartyDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct party_data data;
+		int key;
 
 		ShowStatus("Converting Party Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -179,14 +199,17 @@ int convert_char(void)
 	{// convert guilds
 		GuildDB* txt = txtdb->guilddb(txtdb);
 		GuildDB* sql = sqldb->guilddb(sqldb);
-		GuildDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct guild data;
+		int key;
 
 		ShowStatus("Converting Guild Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -194,14 +217,17 @@ int convert_char(void)
 	{// convert castles
 		CastleDB* txt = txtdb->castledb(txtdb);
 		CastleDB* sql = sqldb->castledb(sqldb);
-		CastleDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct guild_castle data;
+		int key;
 
 		ShowStatus("Converting Castle Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -209,15 +235,17 @@ int convert_char(void)
 	{// convert guild storages
 		GuildStorageDB* txt = txtdb->guildstoragedb(txtdb);
 		GuildStorageDB* sql = sqldb->guildstoragedb(sqldb);
-		GuildStorageDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct guild_storage data;
 		int key;
 
 		ShowStatus("Converting Guild Storage Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -225,31 +253,35 @@ int convert_char(void)
 	{// convert hotkeys
 		HotkeyDB* txt = txtdb->hotkeydb(txtdb);
 		HotkeyDB* sql = sqldb->hotkeydb(sqldb);
-		HotkeyDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		hotkeylist data;
 		int key;
 
 		ShowStatus("Converting Hotkey Data...\n");
 
-		while( iter->next(iter, &data, &key) )
-			if( !sql->save(sql, &data, key) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
-/*
-	//FIXME: maildb needs a 'saveall' operation to support conversion
+
 	{// convert mails
-		MailDB* txt = txtdb->auctiondb(txtdb);
-		MailDB* sql = sqldb->auctiondb(sqldb);
-		MailDBIterator* iter = txt->iterator(txt);
-		struct mail_data data;
+		MailDB* txt = txtdb->maildb(txtdb);
+		MailDB* sql = sqldb->maildb(sqldb);
+		CSDBIterator* iter = txt->iterator(txt);
+		struct mail_message data;
+		int key;
 
 		ShowStatus("Converting Mail Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -257,44 +289,53 @@ int convert_char(void)
 	{// convert auctions
 		AuctionDB* txt = txtdb->auctiondb(txtdb);
 		AuctionDB* sql = sqldb->auctiondb(sqldb);
-		AuctionDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct auction_data data;
+		int key;
 
 		ShowStatus("Converting Auction Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
-
+/*
 	{// convert quests
 		QuestDB* txt = txtdb->questdb(txtdb);
 		QuestDB* sql = sqldb->questdb(sqldb);
-		QuestDBIterator* iter = txt->iterator(txt);
-		struct questlog data;
+		CSDBIterator* iter = txt->iterator(txt);
+		questlog data;
+		int key;
 
 		ShowStatus("Converting Quest Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
-
+*//*
 	{// convert rankings
 		RankDB* txt = txtdb->rankdb(txtdb);
 		RankDB* sql = sqldb->rankdb(sqldb);
-		RankDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct questlog data;
+		int key;
 
 		ShowStatus("Converting Ranking Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}

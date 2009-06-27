@@ -194,6 +194,14 @@ static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
 }
 
 
+/// Returns an iterator over all character regs.
+static CSDBIterator* charreg_db_sql_iterator(CharRegDB* self)
+{
+	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
+	return csdb_sql_iterator(db->charregs, db->charreg_db, "char_id");
+}
+
+
 /// public constructor
 CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 {

@@ -538,6 +538,14 @@ static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 }
 
 
+/// Returns an iterator over all guilds.
+static CSDBIterator* guild_db_txt_iterator(GuildDB* self)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->guilds));
+}
+
+
 /// public constructor
 GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 {
@@ -552,6 +560,7 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->vtable.save      = &guild_db_txt_save;
 	db->vtable.load      = &guild_db_txt_load;
 	db->vtable.name2id   = &guild_db_txt_name2id;
+	db->vtable.iterator  = &guild_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

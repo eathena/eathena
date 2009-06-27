@@ -15,6 +15,7 @@
 
 #define START_CASTLE_NUM 1
 
+
 /// internal structure
 typedef struct CastleDB_TXT
 {
@@ -247,6 +248,14 @@ static bool castle_db_txt_load(CastleDB* self, struct guild_castle* gc, int cast
 	memcpy(gc, tmp, sizeof(struct guild_castle));
 
 	return true;
+}
+
+
+/// Returns an iterator over all castles.
+static CSDBIterator* castle_db_txt_iterator(CastleDB* self)
+{
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->castles));
 }
 
 

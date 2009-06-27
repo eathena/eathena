@@ -385,6 +385,14 @@ static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 }
 
 
+/// Returns an iterator over all auctions.
+static CSDBIterator* auction_db_txt_iterator(AuctionDB* self)
+{
+	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->auctions));
+}
+
+
 /// public constructor
 AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 {
@@ -401,6 +409,7 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	db->vtable.search    = &auction_db_txt_search;
 	db->vtable.count     = &auction_db_txt_count;
 	db->vtable.first     = &auction_db_txt_first;
+	db->vtable.iterator  = &auction_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

@@ -9,6 +9,7 @@
 
 
 #include "../common/mmo.h" // struct fame_list
+#include "csdbiterator.h"
 
 
 
@@ -60,6 +61,12 @@ struct RankDB
 	/// @param char_id Character id
 	/// @param points Number of points
 	void (*set_points)(RankDB* self, int rank_id, int char_id, int points);
+
+	/// Returns an iterator over all rankings.
+	///
+	/// @param self Database
+	/// @return Iterator
+//	CSDBIterator* (*iterator)(RankDB* self);
 };
 
 #endif /* _RANKDB_H_ */

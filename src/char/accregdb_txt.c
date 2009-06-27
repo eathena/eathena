@@ -227,6 +227,14 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 }
 
 
+/// Returns an iterator over all account regs.
+static CSDBIterator* accreg_db_txt_iterator(AccRegDB* self)
+{
+	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->accregs));
+}
+
+
 /// public constructor
 AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 {

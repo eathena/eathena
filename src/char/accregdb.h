@@ -5,6 +5,7 @@
 #define _ACCREGDB_H_
 
 #include "../common/mmo.h" // struct regs
+#include "csdbiterator.h"
 
 typedef struct AccRegDB AccRegDB;
 
@@ -30,7 +31,7 @@ struct AccRegDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	AccRegDBIterator* (*iterator)(AccRegDB* self);
+	CSDBIterator* (*iterator)(AccRegDB* self);
 };
 
 

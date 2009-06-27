@@ -193,6 +193,14 @@ static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
 }
 
 
+/// Returns an iterator over all account regs.
+static CSDBIterator* accreg_db_sql_iterator(AccRegDB* self)
+{
+	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
+	return csdb_sql_iterator(db->accregs, db->accreg_db, "account_id");
+}
+
+
 /// public constructor
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 {

@@ -342,6 +342,14 @@ static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name)
 }
 
 
+/// Returns an iterator over all parties.
+static CSDBIterator* party_db_txt_iterator(PartyDB* self)
+{
+	PartyDB_TXT* db = (PartyDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->parties));
+}
+
+
 /// public constructor
 PartyDB* party_db_txt(CharServerDB_TXT* owner)
 {
@@ -356,6 +364,7 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	db->vtable.save      = &party_db_txt_save;
 	db->vtable.load      = &party_db_txt_load;
 	db->vtable.name2id   = &party_db_txt_name2id;
+	db->vtable.iterator  = &party_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

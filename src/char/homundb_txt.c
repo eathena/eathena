@@ -282,6 +282,14 @@ static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_
 }
 
 
+/// Returns an iterator over all homunculi.
+static CSDBIterator* homun_db_txt_iterator(HomunDB* self)
+{
+	HomunDB_TXT* db = (HomunDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->homuns));
+}
+
+
 /// public constructor
 HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 {
@@ -295,6 +303,7 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &homun_db_txt_remove;
 	db->vtable.save      = &homun_db_txt_save;
 	db->vtable.load      = &homun_db_txt_load;
+	db->vtable.iterator  = &homun_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

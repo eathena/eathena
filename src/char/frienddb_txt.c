@@ -239,6 +239,14 @@ static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_
 }
 
 
+/// Returns an iterator over all friend lists.
+static CSDBIterator* friend_db_txt_iterator(FriendDB* self)
+{
+	FriendDB_TXT* db = (FriendDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->friends));
+}
+
+
 /// public constructor
 FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 {
@@ -251,6 +259,7 @@ FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &friend_db_txt_remove;
 	db->vtable.save      = &friend_db_txt_save;
 	db->vtable.load      = &friend_db_txt_load;
+	db->vtable.iterator  = &friend_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

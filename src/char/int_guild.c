@@ -373,17 +373,18 @@ void mapif_guild_castle_datasave(int castle_id, int index, int value)
 /// sends all castle data information
 void mapif_guild_castle_alldataload(int fd)
 {
-	CastleDBIterator* iter;
-	struct guild_castle gc;
+	CSDBIterator* iter;
+	int castle_id;
 	int len = 4;
 
 	WFIFOHEAD(fd, 4 + MAX_GUILDCASTLE*sizeof(struct guild_castle));
 	WFIFOW(fd,0) = 0x3842;
 
 	iter = castles->iterator(castles);
-	while( iter->next(iter, &gc) )
+	while( iter->next(iter, &castle_id) )
 	{
-		memcpy(WFIFOP(fd,len), &gc, sizeof(struct guild_castle));
+		struct guild_castle* gc = (struct guild_castle*)WFIFOP(fd,len);
+		castles->load(castles, gc, castle_id);
 		len += sizeof(struct guild_castle);
 	}
 	iter->destroy(iter);

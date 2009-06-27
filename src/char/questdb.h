@@ -5,6 +5,7 @@
 #define _QUESTDB_H_
 
 #include "../common/mmo.h" // struct quest, MAX_QUEST
+#include "csdbiterator.h"
 
 typedef struct QuestDB QuestDB;
 typedef struct quest questlog[MAX_QUEST];
@@ -22,6 +23,12 @@ struct QuestDB
 	bool (*add)(QuestDB* self, const struct quest* qd, const int char_id);
 	bool (*del)(QuestDB* self, const int char_id, const int quest_id);
 	bool (*load)(QuestDB* self, questlog* log, int char_id, int* const count);
+
+	/// Returns an iterator over all quest entries.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CSDBIterator* (*iterator)(QuestDB* self);
 };
 
 

@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+
 /// internal structure
 typedef struct CastleDB_SQL
 {
@@ -164,6 +165,14 @@ static bool castle_db_sql_load(CastleDB* self, struct guild_castle* gc, int cast
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
 	return mmo_castle_fromsql(db, gc, castle_id);
+}
+
+
+/// Returns an iterator over all castles.
+static CSDBIterator* castle_db_sql_iterator(CastleDB* self)
+{
+	CastleDB_SQL* db = (CastleDB_SQL*)self;
+	return csdb_sql_iterator(db->castles, db->castle_db, "castle_id");
 }
 
 

@@ -5,6 +5,7 @@
 #define _CASTLEDB_H_
 
 #include "../common/mmo.h" // struct guild_castle
+#include "csdbiterator.h"
 
 typedef struct CastleDB CastleDB;
 
@@ -27,11 +28,11 @@ struct CastleDB
 
 	bool (*load)(CastleDB* self, struct guild_castle* gc, int castle_id);
 
-	/// Returns a new forward iterator.
+	/// Returns an iterator over all castles.
 	///
 	/// @param self Database
 	/// @return Iterator
-	CastleDBIterator* (*iterator)(CastleDB* self);
+	CSDBIterator* (*iterator)(CastleDB* self);
 };
 
 

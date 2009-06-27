@@ -169,6 +169,7 @@ RankDB* rank_db_sql(CharServerDB_SQL* owner)
 	db->vtable.get_top_rankers = rank_db_sql_get_top_rankers;
 	db->vtable.get_points      = rank_db_sql_get_points;
 	db->vtable.set_points      = rank_db_sql_set_points;
+//	db->vtable.iterator        = rank_db_sql_iterator;
 
 	db->owner = owner;
 	db->table_ranks = owner->table_ranks;

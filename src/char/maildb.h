@@ -5,6 +5,7 @@
 #define _MAILDB_H_
 
 #include "../common/mmo.h"  // struct mail_data, struct mail_message
+#include "csdbiterator.h"
 
 typedef struct MailDB MailDB;
 
@@ -22,6 +23,12 @@ struct MailDB
 	bool (*save)(MailDB* self, const struct mail_message* msg);
 	bool (*load)(MailDB* self, struct mail_message* msg, const int mail_id);
 	bool (*loadall)(MailDB* self, struct mail_data* md, const int char_id);
+
+	/// Returns an iterator over all mails.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CSDBIterator* (*iterator)(MailDB* self);
 };
 
 

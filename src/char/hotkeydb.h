@@ -5,6 +5,7 @@
 #define _HOTKEYDB_H_
 
 #include "../common/mmo.h" // struct hotkey, MAX_HOTKEYS
+#include "csdbiterator.h"
 
 typedef struct HotkeyDB HotkeyDB;
 typedef struct hotkey hotkeylist[MAX_HOTKEYS];
@@ -26,7 +27,7 @@ struct HotkeyDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	HotkeyDBIterator* (*iterator)(HotkeyDB* self);
+	CSDBIterator* (*iterator)(HotkeyDB* self);
 };
 
 

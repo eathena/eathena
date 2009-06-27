@@ -273,6 +273,14 @@ static bool pet_db_txt_load(PetDB* self, struct s_pet* pd, int pet_id)
 }
 
 
+/// Returns an iterator over all pets.
+static CSDBIterator* pet_db_txt_iterator(PetDB* self)
+{
+	PetDB_TXT* db = (PetDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->pets));
+}
+
+
 /// public constructor
 PetDB* pet_db_txt(CharServerDB_TXT* owner)
 {
@@ -286,6 +294,7 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &pet_db_txt_remove;
 	db->vtable.save      = &pet_db_txt_save;
 	db->vtable.load      = &pet_db_txt_load;
+	db->vtable.iterator  = &pet_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

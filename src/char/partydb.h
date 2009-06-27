@@ -5,6 +5,7 @@
 #define _PARTYDB_H_
 
 #include "../common/mmo.h" // struct party
+#include "csdbiterator.h"
 
 typedef struct PartyDB PartyDB;
 
@@ -54,7 +55,7 @@ struct PartyDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	PartyDBIterator* (*iterator)(PartyDB* self);
+	CSDBIterator* (*iterator)(PartyDB* self);
 };
 
 

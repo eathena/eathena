@@ -5,6 +5,7 @@
 #define _CHARREGDB_H_
 
 #include "../common/mmo.h" // struct regs
+#include "csdbiterator.h"
 
 typedef struct CharRegDB CharRegDB;
 
@@ -30,7 +31,7 @@ struct CharRegDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	CharRegDBIterator* (*iterator)(CharRegDB* self);
+	CSDBIterator* (*iterator)(CharRegDB* self);
 };
 
 

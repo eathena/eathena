@@ -193,6 +193,14 @@ static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_
 }
 
 
+/// Returns an iterator over all friend lists.
+static CSDBIterator* friend_db_sql_iterator(FriendDB* self)
+{
+	FriendDB_SQL* db = (FriendDB_SQL*)self;
+	return csdb_sql_iterator(db->friends, db->friend_db, "char_id");
+}
+
+
 /// public constructor
 FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 {
@@ -205,6 +213,7 @@ FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &friend_db_sql_remove;
 	db->vtable.save      = &friend_db_sql_save;
 	db->vtable.load      = &friend_db_sql_load;
+	db->vtable.iterator  = &friend_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

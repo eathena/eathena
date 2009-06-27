@@ -88,4 +88,9 @@ struct CharServerDB_TXT
 
 
 
+// generic txt db iterator constructor
+extern CSDBIterator* csdb_txt_iterator(DBIterator* db_iterator);
+
+
+
 #endif /* _CHARSERVERDB_TXT_H_ */

@@ -178,6 +178,14 @@ static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 }
 
 
+/// Returns an iterator over all status entries.
+static CSDBIterator* status_db_sql_iterator(StatusDB* self)
+{
+	StatusDB_SQL* db = (StatusDB_SQL*)self;
+	return csdb_sql_iterator(db->statuses, db->status_db, "char_id");
+}
+
+
 /// public constructor
 StatusDB* status_db_sql(CharServerDB_SQL* owner)
 {
@@ -190,6 +198,7 @@ StatusDB* status_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &status_db_sql_remove;
 	db->vtable.save      = &status_db_sql_save;
 	db->vtable.load      = &status_db_sql_load;
+	db->vtable.iterator  = &status_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

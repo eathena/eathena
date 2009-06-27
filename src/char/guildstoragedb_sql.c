@@ -131,6 +131,14 @@ static bool guildstorage_db_sql_load(GuildStorageDB* self, struct guild_storage*
 }
 
 
+/// Returns an iterator over all guild storages.
+static CSDBIterator* guildstorage_db_sql_iterator(GuildStorageDB* self)
+{
+	GuildStorageDB_SQL* db = (GuildStorageDB_SQL*)self;
+	return csdb_sql_iterator(db->guildstorages, db->guildstorage_db, "guild_id");
+}
+
+
 /// public constructor
 GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner)
 {
@@ -143,6 +151,7 @@ GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &guildstorage_db_sql_remove;
 	db->vtable.save      = &guildstorage_db_sql_save;
 	db->vtable.load      = &guildstorage_db_sql_load;
+	db->vtable.iterator  = &guildstorage_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

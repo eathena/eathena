@@ -273,6 +273,14 @@ static bool guildstorage_db_txt_load(GuildStorageDB* self, struct guild_storage*
 }
 
 
+/// Returns an iterator over all guild storages.
+static CSDBIterator* guildstorage_db_txt_iterator(GuildStorageDB* self)
+{
+	GuildStorageDB_TXT* db = (GuildStorageDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->guildstorages));
+}
+
+
 /// public constructor
 GuildStorageDB* guildstorage_db_txt(CharServerDB_TXT* owner)
 {
@@ -285,6 +293,7 @@ GuildStorageDB* guildstorage_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &guildstorage_db_txt_remove;
 	db->vtable.save      = &guildstorage_db_txt_save;
 	db->vtable.load      = &guildstorage_db_txt_load;
+	db->vtable.iterator  = &guildstorage_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

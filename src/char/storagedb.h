@@ -5,6 +5,7 @@
 #define _STORAGEDB_H_
 
 #include "../common/mmo.h" // struct storage_data
+#include "csdbiterator.h"
 
 typedef struct StorageDB StorageDB;
 
@@ -25,7 +26,7 @@ struct StorageDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	StorageDBIterator* (*iterator)(StorageDB* self);
+	CSDBIterator* (*iterator)(StorageDB* self);
 };
 
 

@@ -5,6 +5,7 @@
 #define _HOMUNDB_H_
 
 #include "../common/mmo.h" // struct s_homunculus
+#include "csdbiterator.h"
 
 typedef struct HomunDB HomunDB;
 
@@ -29,7 +30,7 @@ struct HomunDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	HomunDBIterator* (*iterator)(HomunDB* self);
+	CSDBIterator* (*iterator)(HomunDB* self);
 };
 
 

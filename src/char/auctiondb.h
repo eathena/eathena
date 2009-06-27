@@ -5,6 +5,7 @@
 #define _AUCTIONDB_H_
 
 #include "../common/mmo.h" // struct auction_data
+#include "csdbiterator.h"
 
 typedef struct AuctionDB AuctionDB;
 
@@ -30,6 +31,12 @@ struct AuctionDB
 
 	/// Find the auction with the earliest expiration time.
 	bool (*first)(AuctionDB* self, struct auction_data* ad);
+
+	/// Returns an iterator over all auctions.
+	///
+	/// @param self Database
+	/// @return Iterator
+	CSDBIterator* (*iterator)(AuctionDB* self);
 };
 
 

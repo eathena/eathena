@@ -5,6 +5,7 @@
 #define _FRIENDDB_H_
 
 #include "../common/mmo.h" // struct s_friend, MAX_FRIENDS
+#include "csdbiterator.h"
 
 typedef struct FriendDB FriendDB;
 typedef struct s_friend friendlist[MAX_FRIENDS];
@@ -26,7 +27,7 @@ struct FriendDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	FriendDBIterator* (*iterator)(FriendDB* self);
+	CSDBIterator* (*iterator)(FriendDB* self);
 };
 
 

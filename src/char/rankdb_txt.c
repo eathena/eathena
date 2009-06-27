@@ -286,6 +286,7 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 	db->vtable.get_top_rankers = rank_db_txt_get_top_rankers;
 	db->vtable.get_points      = rank_db_txt_get_points;
 	db->vtable.set_points      = rank_db_txt_set_points;
+//	db->vtable.iterator        = rank_db_txt_iterator;
 
 	db->owner = owner;
 	db->file_ranks = owner->file_ranks;

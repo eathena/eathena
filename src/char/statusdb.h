@@ -5,6 +5,7 @@
 #define _STATUSDB_H_
 
 #include "../common/mmo.h" // struct status_change_data, NAME_LENGTH
+#include "csdbiterator.h"
 
 typedef struct StatusDB StatusDB;
 
@@ -29,11 +30,11 @@ struct StatusDB
 	bool (*save)(StatusDB* self, struct scdata* sc);
 	bool (*load)(StatusDB* self, struct scdata* sc, int char_id);
 
-	/// Returns an iterator over all statuses.
+	/// Returns an iterator over all status entries.
 	///
 	/// @param self Database
 	/// @return Iterator
-	StatusDBIterator* (*iterator)(StatusDB* self);
+	CSDBIterator* (*iterator)(StatusDB* self);
 };
 
 

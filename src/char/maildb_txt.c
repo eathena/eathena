@@ -332,6 +332,14 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 }
 
 
+/// Returns an iterator over all mails.
+static CSDBIterator* mail_db_txt_iterator(MailDB* self)
+{
+	MailDB_TXT* db = (MailDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->mails));
+}
+
+
 /// public constructor
 MailDB* mail_db_txt(CharServerDB_TXT* owner)
 {
@@ -346,6 +354,7 @@ MailDB* mail_db_txt(CharServerDB_TXT* owner)
 	db->vtable.save      = &mail_db_txt_save;
 	db->vtable.load      = &mail_db_txt_load;
 	db->vtable.loadall   = &mail_db_txt_loadall;
+	db->vtable.iterator  = &mail_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

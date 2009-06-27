@@ -214,6 +214,14 @@ static bool pet_db_sql_load(PetDB* self, struct s_pet* pd, int pet_id)
 }
 
 
+/// Returns an iterator over all pets.
+static CSDBIterator* pet_db_sql_iterator(PetDB* self)
+{
+	PetDB_SQL* db = (PetDB_SQL*)self;
+	return csdb_sql_iterator(db->pets, db->pet_db, "pet_id");
+}
+
+
 /// public constructor
 PetDB* pet_db_sql(CharServerDB_SQL* owner)
 {
@@ -227,6 +235,7 @@ PetDB* pet_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &pet_db_sql_remove;
 	db->vtable.save      = &pet_db_sql_save;
 	db->vtable.load      = &pet_db_sql_load;
+	db->vtable.iterator  = &pet_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

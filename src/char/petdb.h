@@ -5,6 +5,7 @@
 #define _PETDB_H_
 
 #include "../common/mmo.h" // struct s_pet, NAME_LENGTH
+#include "csdbiterator.h"
 
 typedef struct PetDB PetDB;
 
@@ -29,7 +30,7 @@ struct PetDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	PetDBIterator* (*iterator)(PetDB* self);
+	CSDBIterator* (*iterator)(PetDB* self);
 };
 
 

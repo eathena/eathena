@@ -129,6 +129,14 @@ static bool storage_db_sql_load(StorageDB* self, struct storage_data* s, int acc
 }
 
 
+/// Returns an iterator over all storages.
+static CSDBIterator* storage_db_sql_iterator(StorageDB* self)
+{
+	StorageDB_SQL* db = (StorageDB_SQL*)self;
+	return csdb_sql_iterator(db->storages, db->storage_db, "account_id");
+}
+
+
 /// public constructor
 StorageDB* storage_db_sql(CharServerDB_SQL* owner)
 {
@@ -141,6 +149,7 @@ StorageDB* storage_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &storage_db_sql_remove;
 	db->vtable.save      = &storage_db_sql_save;
 	db->vtable.load      = &storage_db_sql_load;
+	db->vtable.iterator  = &storage_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

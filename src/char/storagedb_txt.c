@@ -298,6 +298,14 @@ static bool storage_db_txt_load(StorageDB* self, struct storage_data* s, int acc
 }
 
 
+/// Returns an iterator over all storages.
+static CSDBIterator* storage_db_txt_iterator(StorageDB* self)
+{
+	StorageDB_TXT* db = (StorageDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->storages));
+}
+
+
 /// public constructor
 StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 {
@@ -310,6 +318,7 @@ StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &storage_db_txt_remove;
 	db->vtable.save      = &storage_db_txt_save;
 	db->vtable.load      = &storage_db_txt_load;
+	db->vtable.iterator  = &storage_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

@@ -5,6 +5,7 @@
 #define _GUILDSTORAGEDB_H_
 
 #include "../common/mmo.h" // struct guild_storage
+#include "csdbiterator.h"
 
 typedef struct GuildStorageDB GuildStorageDB;
 
@@ -25,7 +26,7 @@ struct GuildStorageDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	GuildStorageDBIterator* (*iterator)(GuildStorageDB* self);
+	CSDBIterator* (*iterator)(GuildStorageDB* self);
 };
 
 
