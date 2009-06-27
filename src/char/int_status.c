@@ -32,8 +32,10 @@ static void mapif_parse_StatusLoad(int fd)
 	int cid = RFIFOL(fd,6);
 	struct scdata sc;
 
-	if( !statuses->load(statuses, &sc, aid, cid) )
+	if( !statuses->load(statuses, &sc, cid) )
 		return; // no data
+
+	sc.account_id = aid; // here for compatibility reasons
 
 	mapif_status_load(fd, &sc);
 

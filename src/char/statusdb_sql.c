@@ -26,20 +26,20 @@ typedef struct StatusDB_SQL
 
 
 
-static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int account_id, int char_id)
+static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 {
 	Sql* sql_handle = db->statuses;
 	char* data;
 	int i;
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `account_id` = '%d' AND `char_id`='%d'",
-		db->status_db, account_id, char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `char_id`='%d'",
+		db->status_db, char_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
 	}
 
-	sc->account_id = account_id;
+	//sc->account_id = account_id;
 	sc->char_id = char_id;
 	sc->count = (int)Sql_NumRows(sql_handle);
 	sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
@@ -171,10 +171,10 @@ static bool status_db_sql_save(StatusDB* self, struct scdata* sc)
 	return mmo_status_tosql(db, sc);
 }
 
-static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int account_id, int char_id)
+static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
-	return mmo_status_fromsql(db, sc, account_id, char_id);
+	return mmo_status_fromsql(db, sc, char_id);
 }
 
 

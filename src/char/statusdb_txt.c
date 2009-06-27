@@ -213,7 +213,7 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 
 	if( sc->count > 0 )
 	{	// retrieve previous data / allocate new data
-		tmp = (struct scdata*)idb_ensure(statuses, sc->char_id, create_scdata);
+		tmp = (struct scdata*)idb_ensure(statuses, sc->char_id, create_scdata, sc->account_id);
 
 		// overwrite with new data
 		tmp->account_id = sc->account_id;
@@ -235,7 +235,7 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 	return true;
 }
 
-static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int account_id, int char_id)
+static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBMap* statuses = db->statuses;
@@ -244,7 +244,7 @@ static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int account_id
 	tmp = (struct scdata*)idb_get(statuses, char_id);
 	if( tmp != NULL )
 	{
-		sc->account_id = tmp->account_id;
+		//sc->account_id = tmp->account_id;
 		sc->char_id = tmp->char_id;
 		sc->count = tmp->count;
 		sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
@@ -252,7 +252,7 @@ static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int account_id
 	}
 	else
 	{
-		sc->account_id = account_id;
+		//sc->account_id = account_id;
 		sc->char_id = char_id;
 		sc->count = 0;
 		sc->data = NULL;
