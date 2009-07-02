@@ -210,7 +210,7 @@ struct map_session_data {
 	struct { //skillatk raises bonus dmg% of skills, skillheal increases heal%, skillblown increases bonus blewcount for some skills.
 		unsigned short id;
 		short val;
-	} skillatk[MAX_PC_BONUS], skillheal[5], skillblown[MAX_PC_BONUS], skillcast[MAX_PC_BONUS];
+	} skillatk[MAX_PC_BONUS], skillheal[5], skillheal2[5], skillblown[MAX_PC_BONUS], skillcast[MAX_PC_BONUS];
 	struct {
 		short value;
 		int rate;
@@ -252,6 +252,7 @@ struct map_session_data {
 	
 	short splash_range, splash_add_range;
 	short add_steal_rate;
+	short add_heal_rate, add_heal2_rate;
 	short sp_gain_value, hp_gain_value;
 	short sp_vanish_rate;
 	short sp_vanish_per;	
@@ -597,6 +598,7 @@ int pc_useitem(struct map_session_data*,int);
 
 int pc_skillatk_bonus(struct map_session_data *sd, int skill_num);
 int pc_skillheal_bonus(struct map_session_data *sd, int skill_num);
+int pc_skillheal2_bonus(struct map_session_data *sd, int skill_num);
 
 void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp);
 int pc_dead(struct map_session_data *sd,struct block_list *src);

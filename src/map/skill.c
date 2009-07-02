@@ -1130,7 +1130,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
  - flag is a BCT_ flag to indicate which type of adjustment should be used
    (BCT_ENEMY/BCT_PARTY/BCT_SELF) are the valid values.
 --------------------------------------------------------------------------*/
-int skill_break_equip (struct block_list *bl, unsigned short where, int rate, int flag) 
+int skill_break_equip (struct block_list *bl, unsigned short where, int rate, int flag)
 {
 	const int where_list[4]     = {EQP_WEAPON, EQP_ARMOR, EQP_SHIELD, EQP_HELM};
 	const enum sc_type scatk[4] = {SC_STRIPWEAPON, SC_STRIPARMOR, SC_STRIPSHIELD, SC_STRIPHELM};
@@ -1201,6 +1201,12 @@ int skill_break_equip (struct block_list *bl, unsigned short where, int rate, in
 						(where&EQP_WEAPON && sd->inventory_data[j]->type == IT_WEAPON) ||
 						(where&EQP_SHIELD && sd->inventory_data[j]->type == IT_ARMOR));
 					break;
+				case EQI_SHOES:
+					flag = (where&EQP_SHOES);
+					break;
+				case EQI_GARMENT:
+					flag = (where&EQP_GARMENT);
+					break;
 				default:
 					continue;
 			}
@@ -1232,7 +1238,7 @@ int skill_strip_equip(struct block_list *bl, unsigned short where, int rate, int
 
 	for (i = 0; i < ARRAYLENGTH(pos); i++) {
 		if (where&pos[i] && sc->data[sc_def[i]])
-			where&=~pos[i]; 
+			where&=~pos[i];
 	}
 	if (!where) return 0;
 
@@ -4180,6 +4186,11 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				if(dstsd)
 					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10) / 100;
 			}
+			if( dstsd && (i = pc_skillheal2_bonus(dstsd, skillid)) )
+			{
+				hp += hp * i / 100;
+				sp += sp * i / 100;
+			}
 			if (tsc && tsc->data[SC_CRITICALWOUND])
 			{
 				hp -= hp * tsc->data[SC_CRITICALWOUND]->val2 / 100;
@@ -4804,9 +4815,9 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 
 			if (dstsd) {
 				if (hp)
-					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10)/100;
+					hp = hp * (100 + pc_checkskill(dstsd,SM_RECOVERY)*10 + pc_skillheal2_bonus(dstsd, skillid))/100;
 				if (sp)
-					sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10)/100;
+					sp = sp * (100 + pc_checkskill(dstsd,MG_SRECOVERY)*10 + pc_skillheal2_bonus(dstsd, skillid))/100;
 			}
 			if (tsc && tsc->data[SC_CRITICALWOUND])
 			{

@@ -1922,6 +1922,14 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(sd->state.lr_flag != 2)
 			sd->unbreakable_equip |= EQP_SHIELD;
 		break;
+	case SP_UNBREAKABLE_GARMENT:
+		if(sd->state.lr_flag != 2)
+			sd->unbreakable_equip |= EQP_GARMENT;
+		break;
+	case SP_UNBREAKABLE_SHOES:
+		if(sd->state.lr_flag != 2)
+			sd->unbreakable_equip |= EQP_SHOES;
+		break;
 	case SP_CLASSCHANGE: // [Valaris]
 		if(sd->state.lr_flag !=2)
 			sd->classchange=val;
@@ -1998,6 +2006,14 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 	case SP_HP_GAIN_VALUE:
 		if(!sd->state.lr_flag)
 			sd->hp_gain_value += val;
+		break;
+	case SP_ADD_HEAL_RATE:
+		if(sd->state.lr_flag != 2)
+			sd->add_heal_rate += val;
+		break;
+	case SP_ADD_HEAL2_RATE:
+		if(sd->state.lr_flag != 2)
+			sd->add_heal2_rate += val;
 		break;
 	default:
 		ShowWarning("pc_bonus: unknown type %d %d !\n",type,val);
@@ -4871,13 +4887,22 @@ int pc_skillatk_bonus(struct map_session_data *sd, int skill_num)
 
 int pc_skillheal_bonus(struct map_session_data *sd, int skill_num)
 {
-	int i;
-	for (i = 0; i < ARRAYLENGTH(sd->skillheal) && sd->skillheal[i].id; i++)
-	{
-		if (sd->skillheal[i].id == skill_num)
-			return sd->skillheal[i].val;
-	}
-	return 0;
+	int i, bonus = sd->add_heal_rate;
+
+	ARR_FIND(0, ARRAYLENGTH(sd->skillheal), i, sd->skillheal[i].id == skill_num);
+	if( i < ARRAYLENGTH(sd->skillheal) ) bonus += sd->skillheal[i].val;
+
+	return bonus;
+}
+
+int pc_skillheal2_bonus(struct map_session_data *sd, int skill_num)
+{
+	int i, bonus = sd->add_heal2_rate;
+
+	ARR_FIND(0, ARRAYLENGTH(sd->skillheal2), i, sd->skillheal2[i].id == skill_num);
+	if( i < ARRAYLENGTH(sd->skillheal2) ) bonus += sd->skillheal2[i].val;
+
+	return bonus;
 }
 
 void pc_respawn(struct map_session_data* sd, uint8 clrtype)
