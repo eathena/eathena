@@ -2334,6 +2334,22 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 			sd->skillheal[i].val = val;
 		}
 		break;
+	case SP_SKILL_HEAL2:
+		if(sd->state.lr_flag == 2)
+			break;
+		ARR_FIND(0, ARRAYLENGTH(sd->skillheal2), i, sd->skillheal2[i].id == 0 || sd->skillheal2[i].id == type2);
+		if (i == ARRAYLENGTH(sd->skillheal2))
+		{ // Better mention this so the array length can be updated. [Skotlex]
+			ShowDebug("run_script: bonus2 bSkillHeal2 reached it's limit (%d skills per character), bonus skill %d (+%d%%) lost.\n", ARRAYLENGTH(sd->skillheal2), type2, val);
+			break;
+		}
+		if (sd->skillheal2[i].id == type2)
+			sd->skillheal2[i].val += val;
+		else {
+			sd->skillheal2[i].id = type2;
+			sd->skillheal2[i].val = val;
+		}
+		break;
 	case SP_ADD_SKILL_BLOW:
 		if(sd->state.lr_flag == 2)
 			break;
@@ -2459,6 +2475,10 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 	case SP_IGNORE_MDEF_RATE:
 		if(sd->state.lr_flag != 2)
 			sd->ignore_mdef[type2] += val;
+		break;
+	case SP_IGNORE_DEF_RATE:
+		if(sd->state.lr_flag != 2)
+			sd->ignore_def[type2] += val;
 		break;
 
 	default:
