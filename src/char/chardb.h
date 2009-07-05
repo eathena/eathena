@@ -5,26 +5,9 @@
 #define _CHARDB_H_
 
 #include "../common/mmo.h" // struct mmo_charstatus, NAME_LENGTH
+#include "csdbiterator.h"
 
 typedef struct CharDB CharDB;
-typedef struct CharDBIterator CharDBIterator;
-
-
-
-struct CharDBIterator
-{
-	/// Destroys this iterator, releasing all allocated memory (including itself).
-	///
-	/// @param self Iterator
-	void (*destroy)(CharDBIterator* self);
-
-	/// Fetches the next character.
-	/// Fills ch with the character data.
-	/// @param self Iterator
-	/// @param ch Character data
-	/// @return true if successful
-	bool (*next)(CharDBIterator* self, struct mmo_charstatus* ch);
-};
 
 
 struct CharDB
@@ -62,13 +45,13 @@ struct CharDB
 	///
 	/// @param self Database
 	/// @return Iterator
-	CharDBIterator* (*iterator)(CharDB* self);
+	CSDBIterator* (*iterator)(CharDB* self);
 
 	/// Returns an iterator over all the characters of the account.
 	///
 	/// @param self Database
 	/// @return Iterator
-	CharDBIterator* (*characters)(CharDB* self, int account_id);
+	CSDBIterator* (*characters)(CharDB* self, int account_id);
 };
 
 

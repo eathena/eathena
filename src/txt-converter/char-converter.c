@@ -16,7 +16,6 @@
 #include <string.h>
 
 #define CHAR_CONF_NAME "conf/char_athena.conf"
-#define SQL_CONF_NAME "conf/inter_athena.conf"
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 
 CharServerDB* txtdb = NULL;
@@ -38,14 +37,17 @@ int convert_char(void)
 	{// convert chardb
 		CharDB* txt = txtdb->chardb(txtdb);
 		CharDB* sql = sqldb->chardb(sqldb);
-		CharDBIterator* iter = txt->iterator(txt);
+		CSDBIterator* iter = txt->iterator(txt);
 		struct mmo_charstatus data;
+		int key;
 
 		ShowStatus("Converting Character Data...\n");
 
-		while( iter->next(iter, &data) )
-			if( !sql->create(sql, &data) )
-				;
+		while( iter->next(iter, &key) )
+		{
+			txt->load_num(txt, &data, key);
+			sql->create(sql, &data, key);
+		}
 
 		iter->destroy(iter);
 	}
@@ -346,6 +348,40 @@ int convert_char(void)
 	return 0;
 }
 
+void config_read(const char* cfgName)
+{
+	char line[1024], w1[1024], w2[1024];
+	FILE* fp = fopen(cfgName, "r");
+
+	if (fp == NULL) {
+		ShowError("Configuration file not found: %s.\n", cfgName);
+		return;
+	}
+
+	ShowInfo("Reading configuration file %s...\n", cfgName);
+	while(fgets(line, sizeof(line), fp))
+	{
+		if (line[0] == '/' && line[1] == '/')
+			continue;
+
+		if (sscanf(line, "%[^:]: %[^\r\n]", w1, w2) != 2)
+			continue;
+
+		if (strcmpi(w1, "import") == 0)
+			config_read(w2);
+		else
+		{
+			txtdb->set_property(txtdb, w1, w2);
+			sqldb->set_property(sqldb, w1, w2);
+		}
+	}
+
+	fclose(fp);
+	
+	ShowInfo("Done reading %s.\n", cfgName);
+}
+
+
 int do_init(int argc, char** argv)
 {
 	int input;
@@ -353,11 +389,9 @@ int do_init(int argc, char** argv)
 	txtdb = charserver_db_txt();
 	sqldb = charserver_db_sql();
 
-//	char_config_read( (argc > 1) ? argv[1] : CHAR_CONF_NAME);
+	config_read( (argc > 1) ? argv[1] : CHAR_CONF_NAME);
+	config_read( (argc > 2) ? argv[2] : INTER_CONF_NAME);
 	mapindex_init();
-//	sql_config_read( (argc > 2) ? argv[2] : SQL_CONF_NAME);
-//	inter_init_txt( (argc > 3) ? argv[3] : INTER_CONF_NAME);
-//	inter_init_sql( (argc > 3) ? argv[3] : INTER_CONF_NAME);
 
 	ShowWarning("Make sure you backup your databases before continuing!\n");
 	ShowMessage("\n");

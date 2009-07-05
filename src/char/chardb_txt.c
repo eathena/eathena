@@ -39,17 +39,6 @@ typedef struct CharDB_TXT
 
 } CharDB_TXT;
 
-/// internal structure
-typedef struct CharDBIterator_TXT
-{
-	CharDBIterator vtable;      // public interface
-
-	DBIterator* iter;
-	int account_id;
-	bool has_account_id;
-} CharDBIterator_TXT;
-
-
 
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
@@ -782,16 +771,37 @@ static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* cha
 	return true;
 }
 
+
+/// Returns an iterator over all the characters.
+static CSDBIterator* char_db_txt_iterator(CharDB* self)
+{
+	CharDB_TXT* db = (CharDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(db->chars));
+}
+
+
+/// internal structure
+typedef struct CharDBIterator_TXT
+{
+	CSDBIterator vtable;      // public interface
+
+	DBIterator* iter;
+	int account_id;
+
+} CharDBIterator_TXT;
+
+
 /// Destroys this iterator, releasing all allocated memory (including itself).
-static void char_db_txt_iter_destroy(CharDBIterator* self)
+static void char_db_txt_iter_destroy(CSDBIterator* self)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
 	dbi_destroy(iter->iter);
 	aFree(iter);
 }
 
+
 /// Fetches the next character.
-static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* ch)
+static bool char_db_txt_iter_next(CSDBIterator* self, int* key)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
 	struct mmo_charstatus* tmp;
@@ -802,34 +812,18 @@ static bool char_db_txt_iter_next(CharDBIterator* self, struct mmo_charstatus* c
 		if( tmp == NULL )
 			return false;// not found
 
-		if( iter->has_account_id && iter->account_id != tmp->account_id )
+		if( iter->account_id != tmp->account_id )
 			continue;// wrong account, try next
 
-		memcpy(ch, tmp, sizeof(struct mmo_charstatus));
+		if( key )
+			*key = tmp->char_id;
 		return true;
 	}
 }
 
-/// Returns an iterator over all the characters.
-static CharDBIterator* char_db_txt_iterator(CharDB* self)
-{
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)aCalloc(1, sizeof(CharDBIterator_TXT));
-
-	// set up the vtable
-	iter->vtable.destroy = &char_db_txt_iter_destroy;
-	iter->vtable.next    = &char_db_txt_iter_next;
-
-	// fill data
-	iter->iter = db_iterator(chars);
-	iter->has_account_id = false;
-
-	return &iter->vtable;
-}
 
 /// Returns an iterator over all the characters of the account.
-static CharDBIterator* char_db_txt_characters(CharDB* self, int account_id)
+static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
@@ -842,7 +836,6 @@ static CharDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 	// fill data
 	iter->iter = db_iterator(chars);
 	iter->account_id = account_id;
-	iter->has_account_id = true;
 
 	return &iter->vtable;
 }

@@ -157,7 +157,8 @@ int parse_fromlogin(int fd)
 			if( acc > 0 )
 			{
 				struct mmo_charstatus cd;
-				CharDBIterator* it;
+				CSDBIterator* it;
+				int char_id;
 				int j;
 
 				struct auth_node* node = (struct auth_node*)idb_get(auth_db, acc);
@@ -166,8 +167,9 @@ int parse_fromlogin(int fd)
 
 				// process every char on this account
 				it = chars->characters(chars, acc);
-				while( it->next(it, &cd) )
+				while( it->next(it, &char_id) )
 				{
+					chars->load_num(chars, &cd, char_id);
 					cd.sex = sex;
 
 					if (cd.class_ == JOB_BARD || cd.class_ == JOB_DANCER ||
@@ -311,12 +313,12 @@ int parse_fromlogin(int fd)
 
 			// Deletion of all characters of the account
 			{// discard all chars with 'account_id == RFIFOL(fd,2)'
-				struct mmo_charstatus cd;
-				CharDBIterator* it;
+				int char_id;
+				CSDBIterator* it;
 
 				it = chars->characters(chars, RFIFOL(fd,2));
-				while( it->next(it, &cd) )
-					char_delete(cd.char_id);
+				while( it->next(it, &char_id) )
+					char_delete(char_id);
 				it->destroy(it);
 			}
 

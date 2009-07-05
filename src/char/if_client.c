@@ -406,17 +406,19 @@ int parse_client(int fd)
 			if( sd->chars_num > MAX_CHARS )
 			{// fill free slot with extra character
 				struct mmo_charstatus cd;
-				CharDBIterator* it;
+				int char_id;
+				CSDBIterator* it;
 
 				it = chars->characters(chars, sd->account_id);
-				while( it->next(it, &cd) )
+				while( it->next(it, &char_id) )
 				{
 					int j;
-					ARR_FIND(0, MAX_CHARS, j, sd->slots[j] == cd.char_id);
+					ARR_FIND(0, MAX_CHARS, j, sd->slots[j] == char_id);
 					if( j < MAX_CHARS )
 						continue;// already displayed
 
 					// send character
+					chars->load_num(chars, &cd, char_id);
 					cd.slot = i; // XXX if different, update slot in the database?
 					WFIFOHEAD(fd,2+108);
 					WFIFOW(fd,0) = 0x6f;
@@ -525,15 +527,17 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	CharDB* chars = charserver->chardb(charserver);
 	struct mmo_charstatus cd_arr[MAX_CHARS];
 	struct mmo_charstatus cd;
-	CharDBIterator* it;
+	CSDBIterator* it;
+	int char_id;
 	int i,j;
 
 	// load characters
 	memset(cd_arr, 0, sizeof(cd_arr));
 	sd->chars_num = 0;
 	it = chars->characters(chars, sd->account_id);
-	while( it->next(it, &cd) )
+	while( it->next(it, &char_id) )
 	{
+		chars->load_num(chars, &cd, char_id);
 		++sd->chars_num;
 		if( cd.slot < MAX_CHARS )
 		{// use slot position
