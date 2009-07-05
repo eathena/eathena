@@ -480,7 +480,7 @@ CharServerDB* charserver_db_txt(void)
 	safestrncpy(db->file_guilds, "save/guild.txt", sizeof(db->file_guilds));
 	safestrncpy(db->file_guild_storages, "save/g_storage.txt", sizeof(db->file_guild_storages));
 	safestrncpy(db->file_homuns, "save/homun.txt", sizeof(db->file_homuns));
-	safestrncpy(db->file_hotkeys, "save/hotkeys.txt", sizeof(db->file_hotkeys));
+	safestrncpy(db->file_hotkeys, "save/hotkey.txt", sizeof(db->file_hotkeys));
 	safestrncpy(db->file_mails, "save/mail.txt", sizeof(db->file_mails));
 	safestrncpy(db->file_parties, "save/party.txt", sizeof(db->file_parties));
 	safestrncpy(db->file_pets, "save/pet.txt", sizeof(db->file_pets));

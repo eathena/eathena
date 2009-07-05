@@ -190,6 +190,7 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove_gid= &castle_db_sql_remove_gid;
 	db->vtable.save      = &castle_db_sql_save;
 	db->vtable.load      = &castle_db_sql_load;
+	db->vtable.iterator  = &castle_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

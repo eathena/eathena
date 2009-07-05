@@ -174,6 +174,7 @@ CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove  = &charreg_db_txt_remove;
 	db->vtable.save    = &charreg_db_txt_save;
 	db->vtable.load    = &charreg_db_txt_load;
+	db->vtable.iterator = &charreg_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

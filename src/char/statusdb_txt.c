@@ -219,6 +219,7 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 		tmp->account_id = sc->account_id;
 		tmp->char_id = sc->char_id;
 		tmp->count = sc->count;
+		tmp->data = aMalloc(sc->count * sizeof(struct status_change_data));
 		memcpy(tmp->data, sc->data, sc->count * sizeof(struct status_change_data));
 	}
 	else

@@ -288,6 +288,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\csdbiterator.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\csdbiterator_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\csdbiterator_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\frienddb.h"
 				>
 			</File>

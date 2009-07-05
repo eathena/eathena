@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/malloc.h"
 #include "../common/mmo.h"
 #include "../common/core.h"
 #include "../common/strlib.h"
@@ -25,6 +26,9 @@ CharServerDB* sqldb = NULL;
 
 int convert_char(void)
 {
+	CharServerDB* srcdb = txtdb;
+	CharServerDB* dstdb = sqldb;
+
 	if( !txtdb->init(txtdb) || !sqldb->init(sqldb) )
 	{
 		ShowFatalError("Initialization failed, unable to start conversion.\n");
@@ -35,8 +39,8 @@ int convert_char(void)
 	//TODO: do some counting & statistics
 
 	{// convert chardb
-		CharDB* txt = txtdb->chardb(txtdb);
-		CharDB* sql = sqldb->chardb(sqldb);
+		CharDB* txt = srcdb->chardb(srcdb);
+		CharDB* sql = dstdb->chardb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct mmo_charstatus data;
 		int key;
@@ -53,8 +57,8 @@ int convert_char(void)
 	}
 
 	{// convert accregs
-		AccRegDB* txt = txtdb->accregdb(txtdb);
-		AccRegDB* sql = sqldb->accregdb(sqldb);
+		AccRegDB* txt = srcdb->accregdb(srcdb);
+		AccRegDB* sql = dstdb->accregdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct regs data;
 		int key;
@@ -71,8 +75,8 @@ int convert_char(void)
 	}
 
 	{// convert charregs
-		CharRegDB* txt = txtdb->charregdb(txtdb);
-		CharRegDB* sql = sqldb->charregdb(sqldb);
+		CharRegDB* txt = srcdb->charregdb(srcdb);
+		CharRegDB* sql = dstdb->charregdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct regs data;
 		int key;
@@ -89,8 +93,8 @@ int convert_char(void)
 	}
 
 	{// convert storage
-		StorageDB* txt = txtdb->storagedb(txtdb);
-		StorageDB* sql = sqldb->storagedb(sqldb);
+		StorageDB* txt = srcdb->storagedb(srcdb);
+		StorageDB* sql = dstdb->storagedb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct storage_data data;
 		int key;
@@ -107,8 +111,8 @@ int convert_char(void)
 	}
 
 	{// convert status data
-		StatusDB* txt = txtdb->statusdb(txtdb);
-		StatusDB* sql = sqldb->statusdb(sqldb);
+		StatusDB* txt = srcdb->statusdb(srcdb);
+		StatusDB* sql = dstdb->statusdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct scdata data;
 		int key;
@@ -118,15 +122,18 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
+			data.account_id = key;
 			sql->save(sql, &data, key);
+			if( data.data != NULL )
+				aFree(data.data);
 		}
 
 		iter->destroy(iter);
 	}
 
 	{// convert pets
-		PetDB* txt = txtdb->petdb(txtdb);
-		PetDB* sql = sqldb->petdb(sqldb);
+		PetDB* txt = srcdb->petdb(srcdb);
+		PetDB* sql = dstdb->petdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct s_pet data;
 		int key;
@@ -143,8 +150,8 @@ int convert_char(void)
 	}
 
 	{// convert homunculi
-		HomunDB* txt = txtdb->homundb(txtdb);
-		HomunDB* sql = sqldb->homundb(sqldb);
+		HomunDB* txt = srcdb->homundb(srcdb);
+		HomunDB* sql = dstdb->homundb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct s_homunculus data;
 		int key;
@@ -161,8 +168,8 @@ int convert_char(void)
 	}
 
 	{// convert friends
-		FriendDB* txt = txtdb->frienddb(txtdb);
-		FriendDB* sql = sqldb->frienddb(sqldb);
+		FriendDB* txt = srcdb->frienddb(srcdb);
+		FriendDB* sql = dstdb->frienddb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		friendlist data;
 		int key;
@@ -180,8 +187,8 @@ int convert_char(void)
 
 	//FIXME: partydb isn't able to save multiple members at once
 	{// convert parties
-		PartyDB* txt = txtdb->partydb(txtdb);
-		PartyDB* sql = sqldb->partydb(sqldb);
+		PartyDB* txt = srcdb->partydb(srcdb);
+		PartyDB* sql = dstdb->partydb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct party_data data;
 		int key;
@@ -199,8 +206,8 @@ int convert_char(void)
 
 	//FIXME: guilddb isn't able to save multiple members at once
 	{// convert guilds
-		GuildDB* txt = txtdb->guilddb(txtdb);
-		GuildDB* sql = sqldb->guilddb(sqldb);
+		GuildDB* txt = srcdb->guilddb(srcdb);
+		GuildDB* sql = dstdb->guilddb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct guild data;
 		int key;
@@ -217,8 +224,8 @@ int convert_char(void)
 	}
 
 	{// convert castles
-		CastleDB* txt = txtdb->castledb(txtdb);
-		CastleDB* sql = sqldb->castledb(sqldb);
+		CastleDB* txt = srcdb->castledb(srcdb);
+		CastleDB* sql = dstdb->castledb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct guild_castle data;
 		int key;
@@ -235,8 +242,8 @@ int convert_char(void)
 	}
 
 	{// convert guild storages
-		GuildStorageDB* txt = txtdb->guildstoragedb(txtdb);
-		GuildStorageDB* sql = sqldb->guildstoragedb(sqldb);
+		GuildStorageDB* txt = srcdb->guildstoragedb(srcdb);
+		GuildStorageDB* sql = dstdb->guildstoragedb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct guild_storage data;
 		int key;
@@ -253,8 +260,8 @@ int convert_char(void)
 	}
 
 	{// convert hotkeys
-		HotkeyDB* txt = txtdb->hotkeydb(txtdb);
-		HotkeyDB* sql = sqldb->hotkeydb(sqldb);
+		HotkeyDB* txt = srcdb->hotkeydb(srcdb);
+		HotkeyDB* sql = dstdb->hotkeydb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		hotkeylist data;
 		int key;
@@ -271,8 +278,8 @@ int convert_char(void)
 	}
 
 	{// convert mails
-		MailDB* txt = txtdb->maildb(txtdb);
-		MailDB* sql = sqldb->maildb(sqldb);
+		MailDB* txt = srcdb->maildb(srcdb);
+		MailDB* sql = dstdb->maildb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct mail_message data;
 		int key;
@@ -289,8 +296,8 @@ int convert_char(void)
 	}
 
 	{// convert auctions
-		AuctionDB* txt = txtdb->auctiondb(txtdb);
-		AuctionDB* sql = sqldb->auctiondb(sqldb);
+		AuctionDB* txt = srcdb->auctiondb(srcdb);
+		AuctionDB* sql = dstdb->auctiondb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct auction_data data;
 		int key;
@@ -307,8 +314,8 @@ int convert_char(void)
 	}
 /*
 	{// convert quests
-		QuestDB* txt = txtdb->questdb(txtdb);
-		QuestDB* sql = sqldb->questdb(sqldb);
+		QuestDB* txt = srcdb->questdb(srcdb);
+		QuestDB* sql = dstdb->questdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		questlog data;
 		int key;
@@ -325,8 +332,8 @@ int convert_char(void)
 	}
 *//*
 	{// convert rankings
-		RankDB* txt = txtdb->rankdb(txtdb);
-		RankDB* sql = sqldb->rankdb(sqldb);
+		RankDB* txt = srcdb->rankdb(srcdb);
+		RankDB* sql = dstdb->rankdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct questlog data;
 		int key;

@@ -213,6 +213,7 @@ AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove  = &accreg_db_sql_remove;
 	db->vtable.save    = &accreg_db_sql_save;
 	db->vtable.load    = &accreg_db_sql_load;
+	db->vtable.iterator = &accreg_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

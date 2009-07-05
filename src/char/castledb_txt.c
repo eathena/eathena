@@ -273,6 +273,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove_gid= &castle_db_txt_remove_gid;
 	db->vtable.save      = &castle_db_txt_save;
 	db->vtable.load      = &castle_db_txt_load;
+	db->vtable.iterator  = &castle_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;

@@ -117,14 +117,15 @@ static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_fl
 		unsigned char item = p->item;
 
 		stmt = SqlStmt_Malloc(sql_handle);
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`party_id`, `name`, `exp`, `item`, `leader_id`, `leader_char`) VALUES (?,?,?,?)", db->party_db)
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`party_id`, `name`, `exp`, `item`, `leader_id`, `leader_char`) VALUES (?,?,?,?,?,?)", db->party_db)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (p->party_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->party_id, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)p->name, strnlen(p->name, sizeof(p->name)))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_UCHAR, (void*)&exp, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_UCHAR, (void*)&item, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_INT, (void*)&p->member[index].account_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_INT, (void*)&p->member[index].char_id, 0) )
-		{
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_INT, (void*)&p->member[index].char_id, 0)
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+		) {
 			SqlStmt_ShowDebug(stmt);
 			break;
 		}

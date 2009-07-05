@@ -247,6 +247,7 @@ AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove  = &accreg_db_txt_remove;
 	db->vtable.save    = &accreg_db_txt_save;
 	db->vtable.load    = &accreg_db_txt_load;
+	db->vtable.iterator = &accreg_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;
