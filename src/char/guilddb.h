@@ -23,6 +23,7 @@ enum guild_save_flags
 	GS_CONNECT    = 0x0080,
 	GS_LEVEL      = 0x0100,
 	GS_MES        = 0x0200,
+	GS_CREATE     = 0x0400,
 
 	GS_BASIC_MASK = GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES,
 };

@@ -122,7 +122,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			data.account_id = key;
+			data.account_id = -1;
 			sql->save(sql, &data, key);
 			if( data.data != NULL )
 				aFree(data.data);
@@ -204,19 +204,23 @@ int convert_char(void)
 		iter->destroy(iter);
 	}
 
-	//FIXME: guilddb isn't able to save multiple members at once
 	{// convert guilds
 		GuildDB* txt = srcdb->guilddb(srcdb);
 		GuildDB* sql = dstdb->guilddb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		struct guild data;
 		int key;
+		int i;
 
 		ShowStatus("Converting Guild Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
+			for( i = 0; i < data.max_member; ++i )
+				data.member[i].modified = GS_MEMBER_MODIFIED;
+			for( i = 0; i < MAX_GUILDPOSITION; ++i )
+				data.position[i].modified = GS_POSITION_MODIFIED;
 			sql->create(sql, &data, key);
 		}
 
@@ -235,7 +239,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->save(sql, &data, key);
 		}
 
 		iter->destroy(iter);
@@ -289,7 +293,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			sql->create(sql, &data, key);
 		}
 
 		iter->destroy(iter);

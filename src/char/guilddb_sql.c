@@ -192,55 +192,46 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_flags flag)
 {
 	Sql* sql_handle = db->guilds;
+	SqlStmt* stmt = NULL;
+	int i = 0;
 
-	char esc_name[NAME_LENGTH*2+1];
-	char esc_master[NAME_LENGTH*2+1];
-	bool new_guild = false;
-	int i=0;
-
-	Sql_EscapeStringLen(sql_handle, esc_name, g->name, strnlen(g->name, NAME_LENGTH));
-	Sql_EscapeStringLen(sql_handle, esc_master, g->master, strnlen(g->master, NAME_LENGTH));
-
-#ifndef TXT_SQL_CONVERT
-	// Insert a new guild the guild
-	if (flag&GS_BASIC && g->guild_id == -1)
-	{
-		// Create a new guild
-		if( SQL_ERROR == Sql_Query(sql_handle, "INSERT INTO `%s` "
-			"(`name`,`master`,`guild_lv`,`max_member`,`average_lv`,`char_id`) "
-			"VALUES ('%s', '%s', '%d', '%d', '%d', '%d')",
-			db->guild_db, esc_name, esc_master, g->guild_lv, g->max_member, g->average_lv, g->member[0].char_id) )
-		{
-			Sql_ShowDebug(sql_handle);
+	if( flag & GS_CREATE )
+	{// Create a new guild
+		int insert_id;
+		stmt = SqlStmt_Malloc(sql_handle);
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,HEX(?))", db->guild_db)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (g->guild_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&g->guild_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)g->name, strnlen(g->name, sizeof(g->name)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_INT, (void*)&g->member[0].char_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (void*)g->master, strnlen(g->master, sizeof(g->master)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_SHORT, (void*)&g->guild_lv, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_SHORT, (void*)&g->connect_member, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_SHORT, (void*)&g->max_member, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 7, SQLDT_SHORT, (void*)&g->average_lv, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 8, SQLDT_UINT, (void*)&g->exp, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 9, SQLDT_UINT, (void*)&g->next_exp, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_INT, (void*)&g->skill_point, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)g->mes1, strnlen(g->mes1, sizeof(g->mes1)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_STRING, (void*)g->mes2, strnlen(g->mes2, sizeof(g->mes2)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_INT, (void*)&g->emblem_len, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_INT, (void*)&g->emblem_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 15, SQLDT_BLOB, (void*)&g->emblem_data, g->emblem_len)
+		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
+		) {
+			SqlStmt_ShowDebug(stmt);
 			return false; //Failed to create guild!
 		}
+
+		insert_id = (int)SqlStmt_LastInsertId(stmt);
+		if( g->guild_id == -1 )
+			g->guild_id = insert_id; // fill in output value
 		else
-		{
-			g->guild_id = (int)Sql_LastInsertId(sql_handle);
-			new_guild = true;
-		}
+		if( g->guild_id != insert_id )
+			return false; // error, unexpected value
 	}
-#else
-	// Insert a new guild the guild
-	if (flag&GS_BASIC)
-	{
-		// Since the PK is guild id + master id, a replace will not be enough if we are overwriting data, we need to wipe the previous guild.
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` where `guild_id` = '%d'", db->guild_db, g->guild_id) )
-			Sql_ShowDebug(sql_handle);
-		// Create a new guild
-		if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` "
-			"(`guild_id`,`name`,`master`,`guild_lv`,`max_member`,`average_lv`,`char_id`) "
-			"VALUES ('%d', '%s', '%s', '%d', '%d', '%d', '%d')",
-			db->guild_db, g->guild_id, esc_name, esc_master, g->guild_lv, g->max_member, g->average_lv, g->member[0].char_id) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false; //Failed to create guild.
-		}
-	}
-#endif //TXT_SQL_CONVERT
 
 	// If we need an update on an existing guild or more update on the new guild
-	if (((flag & GS_BASIC_MASK) && !new_guild) || ((flag & (GS_BASIC_MASK & ~GS_BASIC)) && new_guild))
+	if( flag & GS_BASIC_MASK )
 	{// GS_BASIC_MASK `guild` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
 		StringBuf buf;
 		StringBuf_Init(&buf);
@@ -254,6 +245,10 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		}
 		if (flag & GS_BASIC) 
 		{// GS_BASIC `name`,`master`,`char_id`
+			char esc_name[sizeof(g->name)*2+1];
+			char esc_master[sizeof(g->master)*2+1];
+			Sql_EscapeStringLen(sql_handle, esc_name, g->name, strnlen(g->name, NAME_LENGTH));
+			Sql_EscapeStringLen(sql_handle, esc_master, g->master, strnlen(g->master, NAME_LENGTH));
 			StringBuf_Printf(&buf, ", `name`='%s', `master`='%s', `char_id`=%d", esc_name, esc_master, g->member[0].char_id);
 		}
 		if (flag & GS_CONNECT)
@@ -305,6 +300,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 			else
 			{
 				//Since nothing references guild member table as foreign keys, it's safe to use REPLACE INTO
+				char esc_name[sizeof(m->name)*2+1];
 				Sql_EscapeStringLen(sql_handle, esc_name, m->name, strnlen(m->name, NAME_LENGTH));
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
 					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%u','%d','%d','%d','%s')",
@@ -328,6 +324,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		for(i=0;i<MAX_GUILDPOSITION;i++)
 		{
 			struct guild_position *p = &g->position[i];
+			char esc_name[sizeof(p->name)*2+1];
 
 			if (!p->modified)
 				continue;
@@ -359,6 +356,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 				struct guild_alliance *a=&g->alliance[i];
 				if(a->guild_id>0)
 				{
+					char esc_name[sizeof(a->name)*2+1];
 					Sql_EscapeStringLen(sql_handle, esc_name, a->name, strnlen(a->name, NAME_LENGTH));
 					if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`opposition`,`alliance_id`,`name`) "
 						"VALUES ('%d','%d','%d','%s')",
@@ -376,6 +374,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 			struct guild_expulsion *e=&g->expulsion[i];
 			if(e->account_id>0)
 			{
+				char esc_name[sizeof(e->name)*2+1];
 				char esc_mes[sizeof(e->mes)*2+1];
 
 				Sql_EscapeStringLen(sql_handle, esc_name, e->name, strnlen(e->name, NAME_LENGTH));
@@ -426,7 +425,7 @@ static bool guild_db_sql_sync(GuildDB* self)
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
-	return mmo_guild_tosql(db, g, GS_BASIC|GS_POSITION|GS_SKILL);
+	return mmo_guild_tosql(db, g, GS_CREATE|GS_MEMBER|GS_POSITION|GS_ALLIANCE|GS_EXPULSION|GS_SKILL);
 }
 
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)

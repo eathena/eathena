@@ -334,7 +334,7 @@ static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int ch
 static CSDBIterator* mail_db_sql_iterator(MailDB* self)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
-	return csdb_sql_iterator(db->mails, db->mail_db, "mail_id");
+	return csdb_sql_iterator(db->mails, db->mail_db, "id");
 }
 
 

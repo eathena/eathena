@@ -185,14 +185,42 @@ static bool castle_db_txt_sync(CastleDB* self)
 
 static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc)
 {
-/*
-*/
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+	struct guild_castle* tmp;
+
+	int castle_id = gc->castle_id;
+
+	if( castle_id == -1 )
+		return false; // new id generation not supported
+
+	// check if the id is free
+	tmp = idb_get(castles, castle_id);
+	if( tmp != NULL )
+	{// error condition - entry already present
+		ShowError("castle_db_txt_create: cannot create castle %d, this id is already occupied!\n", castle_id);
+		return false;
+	}
+
+	// copy the data and store it in the db
+	CREATE(tmp, struct guild_castle, 1);
+	memcpy(tmp, gc, sizeof(struct guild_castle));
+	idb_put(castles, castle_id, tmp);
+
+	// flush data
+	mmo_castle_sync(db);
+
+	return true;
 }
 
 static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 {
-/*
-*/
+	CastleDB_TXT* db = (CastleDB_TXT*)self;
+	DBMap* castles = db->castles;
+
+	idb_remove(castles, castle_id);
+
+	return true;
 }
 
 static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)

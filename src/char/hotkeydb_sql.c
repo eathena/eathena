@@ -162,7 +162,7 @@ static bool hotkey_db_sql_load(HotkeyDB* self, hotkeylist* list, const int char_
 static CSDBIterator* hotkey_db_sql_iterator(HotkeyDB* self)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
-	return csdb_sql_iterator(db->hotkeys, db->hotkey_db, "account_id");
+	return csdb_sql_iterator(db->hotkeys, db->hotkey_db, "char_id");
 }
 
 
