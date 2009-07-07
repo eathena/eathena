@@ -78,7 +78,7 @@ static bool mmo_mail_tosql(MailDB_SQL* db, struct mail_message* msg, bool is_new
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_CHAR,   (void*)&msg->item.refine, sizeof(msg->item.refine))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_CHAR,   (void*)&msg->item.attribute, sizeof(msg->item.attribute))
 	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_CHAR,   (void*)&msg->item.identify, sizeof(msg->item.identify))
-	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, (msg->id != -1)?SQLDT_UINT:SQLDT_NULL, (void*)&msg->id, sizeof(msg->id)) //FIXME: column is actually uBIGINT
+	||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, (msg->id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&msg->id, sizeof(msg->id)) //FIXME: column is actually uBIGINT
 	||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
 	{
 		SqlStmt_ShowDebug(stmt);

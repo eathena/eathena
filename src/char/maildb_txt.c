@@ -12,8 +12,12 @@
 #include "charserverdb_txt.h"
 #include "maildb.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
+
+/// global defines
+#define MAIL_TXT_DB_VERSION 20090707
 #define START_MAIL_NUM 1
 
 
@@ -24,7 +28,7 @@ typedef struct MailDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* mails;              // in-memory mail storage
-	unsigned int next_mail_id; // auto_increment
+	int next_mail_id;          // auto_increment
 
 	const char* mail_db;       // mail data storage file
 
@@ -32,29 +36,50 @@ typedef struct MailDB_TXT
 
 
 
-static bool mmo_mail_fromstr(struct mail_message* msg, const char* str)
+static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int version)
 {
-	char esc_title[MAIL_TITLE_LENGTH*2+1];
-	char esc_body[MAIL_BODY_LENGTH*2+1];
-	int len, n;
-	int i;
+	char* fields[32];
+	int count;
 
-	if( sscanf(str, "%u,%d,%[^\t]\t%d,%[^\t]\t%[^\t]\t%[^\t]\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u%n",
-	    &msg->id, &msg->send_id, msg->send_name, &msg->dest_id, msg->dest_name,
-		esc_title, esc_body, &msg->status, (unsigned long*)&msg->timestamp, &msg->zeny,
-		&msg->item.id, &msg->item.nameid, &msg->item.amount, &msg->item.equip, &msg->item.identify, &msg->item.refine, &msg->item.attribute, &len) != 17 )
-		return false;
+	// zero out the destination first
+	memset(msg, 0x00, sizeof(*msg));
 
-	for( i = 0; i < MAX_SLOTS; i++ )
+	// extract tab-separated columns from str
+	count = sv_split(str, strlen(str), 0, '\t', fields, ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
+
+	if( version == 20090707 && count >= 16 )
 	{
-		if( sscanf(str + len, ",%d%n", &msg->item.card[i], &n) != 1 )
-			return false;
+		char esc_title[2*sizeof(msg->title)+1];
+		char esc_body[2*sizeof(msg->body)+1];
+		int i;
 
-		len += n;
+		msg->id = (int)strtol(fields[1], NULL, 10);
+		msg->send_id = (int)strtol(fields[2], NULL, 10);
+		safestrncpy(msg->send_name, fields[3], sizeof(msg->send_name));
+		msg->dest_id = (int)strtol(fields[4], NULL, 10);
+		safestrncpy(msg->dest_name, fields[5], sizeof(msg->dest_name));
+		safestrncpy(esc_title, fields[6], sizeof(msg->title));
+		safestrncpy(esc_body, fields[7], sizeof(msg->body));
+		msg->status = (enum mail_status)strtoul(fields[8], NULL, 10);
+		msg->timestamp = (time_t)strtol(fields[9], NULL, 10);
+		msg->zeny = (int)strtol(fields[10], NULL, 10);
+		msg->item.nameid = (short)strtol(fields[11], NULL, 10);
+		msg->item.amount = (short)strtol(fields[12], NULL, 10);
+		msg->item.equip = (unsigned short)strtoul(fields[13], NULL, 10);
+		msg->item.identify = (char)strtol(fields[14], NULL, 10);
+		msg->item.refine = (char)strtol(fields[15], NULL, 10);
+		msg->item.attribute = (char)strtol(fields[16], NULL, 10);
+
+		for( i = 0; i < count - 16 && i < MAX_SLOTS; ++i )
+			msg->item.card[i] = (short)strtol(fields[17+i], NULL, 10);
+
+		sv_unescape_c(msg->title, esc_title, strlen(esc_title));
+		sv_unescape_c(msg->body, esc_body, strlen(esc_body));
 	}
-
-	sv_unescape_c(msg->title, esc_title, strlen(esc_title));
-	sv_unescape_c(msg->body, esc_body, strlen(esc_body));
+	else
+	{// unmatched row
+		return false;
+	}
 
 	return true;
 }
@@ -70,13 +95,13 @@ static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
 	sv_escape_c(esc_title, msg->title, strlen(msg->title), NULL);
 	sv_escape_c(esc_body, msg->body, strlen(msg->body), NULL);
 
-	len = sprintf(str, "%u,%d,%s\t%d,%s\t%s\t%s\t%u,%lu,%d," "%d,%d,%d,%u,%u,%u,%u",
+	len = sprintf(str, "%d\t%d\t%s\t%d\t%s\t%s\t%s\t%u\t%lu\t%d\t%d\t%d\t%u\t%u\t%u\t%u",
 	              msg->id, msg->send_id, msg->send_name, msg->dest_id, msg->dest_name,
 	              esc_title, esc_body, msg->status, (unsigned long)msg->timestamp, msg->zeny,
-	              msg->item.id, msg->item.nameid, msg->item.amount, msg->item.equip, msg->item.identify, msg->item.refine, msg->item.attribute);
+	              msg->item.nameid, msg->item.amount, msg->item.equip, msg->item.identify, msg->item.refine, msg->item.attribute);
 
 	for( i = 0; i < MAX_SLOTS; i++ )
-		len += sprintf(str+len, ",%d", msg->item.card[i]);
+		len += sprintf(str+len, "\t%d", msg->item.card[i]);
 
 	strcat(str+len, "\t");
 
@@ -97,6 +122,8 @@ static bool mmo_mail_sync(MailDB_TXT* db)
 		ShowError("mmo_mail_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
 		return false;
 	}
+
+	fprintf(fp, "%d\n", MAIL_TXT_DB_VERSION); // savefile version
 
 	iter = db->mails->iterator(db->mails);
 	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
@@ -122,6 +149,7 @@ static bool mail_db_txt_init(MailDB* self)
 
 	char line[8192];
 	FILE *fp;
+	unsigned int version = 0;
 
 	// create mail database
 	db->mails = idb_alloc(DB_OPT_RELEASE_DATA);
@@ -139,9 +167,15 @@ static bool mail_db_txt_init(MailDB* self)
 	while( fgets(line, sizeof(line), fp) )
 	{
 		int mail_id, n;
+		unsigned int v;
 		struct mail_message* msg;
 
-		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
+
 		if( sscanf(line, "%d\t%%newid%%%n", &mail_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
 		{// auto-increment
 			if( mail_id > db->next_mail_id )
@@ -150,7 +184,7 @@ static bool mail_db_txt_init(MailDB* self)
 		}
 
 		msg = (struct mail_message*)aMalloc(sizeof(struct mail_message));
-		if( !mmo_mail_fromstr(msg, line) )
+		if( !mmo_mail_fromstr(msg, line, version) )
 		{
 			ShowError("mail_db_txt_init: skipping invalid data: %s", line);
 			aFree(msg);
