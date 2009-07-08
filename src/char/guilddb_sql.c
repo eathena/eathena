@@ -48,7 +48,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	memset(g, 0, sizeof(struct guild));
 
 	// retrieve base guild data
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,UNHEX(`emblem_data`) "
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`master`,`guild_lv`,`max_member`,`exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,UNHEX(`emblem_data`) "
 		"FROM `%s` WHERE `guild_id`='%d'", db->guild_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -62,17 +62,14 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	Sql_GetData(sql_handle,  0, &data, NULL); safestrncpy(g->name, data, sizeof(g->name));
 	Sql_GetData(sql_handle,  1, &data, NULL); safestrncpy(g->master, data, sizeof(g->master));
 	Sql_GetData(sql_handle,  2, &data, NULL); g->guild_lv = atoi(data);
-	Sql_GetData(sql_handle,  3, &data, NULL); g->connect_member = atoi(data);
-	Sql_GetData(sql_handle,  4, &data, NULL); g->max_member = atoi(data);
-	Sql_GetData(sql_handle,  5, &data, NULL); g->average_lv = atoi(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); g->exp = (unsigned int)strtoul(data, NULL, 10);
-	Sql_GetData(sql_handle,  7, &data, NULL); g->next_exp = (unsigned int)strtoul(data, NULL, 10);
-	Sql_GetData(sql_handle,  8, &data, NULL); g->skill_point = atoi(data);
-	Sql_GetData(sql_handle,  9, &data, NULL); safestrncpy(g->mes1, data, sizeof(g->mes1));
-	Sql_GetData(sql_handle, 10, &data, NULL); safestrncpy(g->mes2, data, sizeof(g->mes2));
-	Sql_GetData(sql_handle, 11, &data, NULL); g->emblem_len = atoi(data);
-	Sql_GetData(sql_handle, 12, &data, NULL); g->emblem_id = atoi(data);
-	Sql_GetData(sql_handle, 13, &data, &len); memcpy(g->emblem_data, data, min(len, sizeof(g->emblem_data)));
+	Sql_GetData(sql_handle,  3, &data, NULL); g->max_member = atoi(data);
+	Sql_GetData(sql_handle,  4, &data, NULL); g->exp = (unsigned int)strtoul(data, NULL, 10);
+	Sql_GetData(sql_handle,  5, &data, NULL); g->skill_point = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); safestrncpy(g->mes1, data, sizeof(g->mes1));
+	Sql_GetData(sql_handle,  7, &data, NULL); safestrncpy(g->mes2, data, sizeof(g->mes2));
+	Sql_GetData(sql_handle,  8, &data, NULL); g->emblem_len = atoi(data);
+	Sql_GetData(sql_handle,  9, &data, NULL); g->emblem_id = atoi(data);
+	Sql_GetData(sql_handle, 10, &data, &len); memcpy(g->emblem_data, data, min(len, sizeof(g->emblem_data)));
 
 	// check if real emblem data length matches declared length and fits into the buffer
 	if( len != g->emblem_len || len > sizeof(g->emblem_data) )
@@ -199,23 +196,20 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 	{// Create a new guild
 		int insert_id;
 		stmt = SqlStmt_Malloc(sql_handle);
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,HEX(?))", db->guild_db)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (g->guild_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&g->guild_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_STRING, (void*)g->name, strnlen(g->name, sizeof(g->name)))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_INT, (void*)&g->member[0].char_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (void*)g->master, strnlen(g->master, sizeof(g->master)))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 4, SQLDT_SHORT, (void*)&g->guild_lv, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 5, SQLDT_SHORT, (void*)&g->connect_member, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 6, SQLDT_SHORT, (void*)&g->max_member, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 7, SQLDT_SHORT, (void*)&g->average_lv, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 8, SQLDT_UINT, (void*)&g->exp, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 9, SQLDT_UINT, (void*)&g->next_exp, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_INT, (void*)&g->skill_point, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_STRING, (void*)g->mes1, strnlen(g->mes1, sizeof(g->mes1)))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_STRING, (void*)g->mes2, strnlen(g->mes2, sizeof(g->mes2)))
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 13, SQLDT_INT, (void*)&g->emblem_len, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 14, SQLDT_INT, (void*)&g->emblem_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 15, SQLDT_BLOB, (void*)&g->emblem_data, g->emblem_len)
+		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT INTO `%s` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`max_member`,`exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,HEX(?))", db->guild_db)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  0, (g->guild_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&g->guild_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  1, SQLDT_STRING, (void*)g->name, strnlen(g->name, sizeof(g->name)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  2, SQLDT_INT, (void*)&g->member[0].char_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)g->master, strnlen(g->master, sizeof(g->master)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_SHORT, (void*)&g->guild_lv, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_SHORT, (void*)&g->max_member, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT, (void*)&g->exp, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_INT, (void*)&g->skill_point, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_STRING, (void*)g->mes1, strnlen(g->mes1, sizeof(g->mes1)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_STRING, (void*)g->mes2, strnlen(g->mes2, sizeof(g->mes2)))
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 10, SQLDT_INT, (void*)&g->emblem_len, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 11, SQLDT_INT, (void*)&g->emblem_id, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 12, SQLDT_BLOB, (void*)&g->emblem_data, g->emblem_len)
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
 		) {
 			SqlStmt_ShowDebug(stmt);
@@ -232,7 +226,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 
 	// If we need an update on an existing guild or more update on the new guild
 	if( flag & GS_BASIC_MASK )
-	{// GS_BASIC_MASK `guild` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
+	{// GS_BASIC_MASK `guild` (`guild_id`,`name`,`char_id`,`master`,`guild_lv`,`max_member`,`exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data`)
 		StringBuf buf;
 		StringBuf_Init(&buf);
 		StringBuf_Printf(&buf, "UPDATE `%s` SET `guild_id`=`guild_id`", db->guild_db); // sentinel
@@ -251,10 +245,6 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 			Sql_EscapeStringLen(sql_handle, esc_master, g->master, strnlen(g->master, NAME_LENGTH));
 			StringBuf_Printf(&buf, ", `name`='%s', `master`='%s', `char_id`=%d", esc_name, esc_master, g->member[0].char_id);
 		}
-		if (flag & GS_CONNECT)
-		{// GS_CONNECT `connect_member`,`average_lv`
-			StringBuf_Printf(&buf, ", `connect_member`=%d, `average_lv`=%d", g->connect_member, g->average_lv);
-		}
 		if (flag & GS_MES)
 		{// GS_MES `mes1`,`mes2`
 			char esc_mes1[sizeof(g->mes1)*2+1];
@@ -265,8 +255,8 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 			StringBuf_Printf(&buf, ", `mes1`='%s', `mes2`='%s'", esc_mes1, esc_mes2);
 		}
 		if (flag & GS_LEVEL)
-		{// GS_LEVEL `guild_lv`,`max_member`,`exp`,`next_exp`,`skill_point`
-			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%u, `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
+		{// GS_LEVEL `guild_lv`,`max_member`,`exp`,`skill_point`
+			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->max_member);
 		}
 
 		StringBuf_Printf(&buf, " WHERE `guild_id`=%d", g->guild_id);

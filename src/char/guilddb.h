@@ -20,12 +20,11 @@ enum guild_save_flags
 	GS_EXPULSION  = 0x0010,
 	GS_SKILL      = 0x0020,
 	GS_EMBLEM     = 0x0040,
-	GS_CONNECT    = 0x0080,
-	GS_LEVEL      = 0x0100,
-	GS_MES        = 0x0200,
-	GS_CREATE     = 0x0400,
+	GS_LEVEL      = 0x0080,
+	GS_MES        = 0x0100,
+	GS_CREATE     = 0x0200,
 
-	GS_BASIC_MASK = GS_BASIC | GS_EMBLEM | GS_CONNECT | GS_LEVEL | GS_MES,
+	GS_BASIC_MASK = GS_BASIC | GS_EMBLEM | GS_LEVEL | GS_MES,
 };
 
 
