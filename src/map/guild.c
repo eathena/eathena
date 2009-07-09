@@ -64,6 +64,7 @@ struct{
 // timer for auto saving guild data during WoE
 #define GUILD_SAVE_INTERVAL 300000
 int guild_save_timer = INVALID_TIMER;
+int guild_save_timer2 = INVALID_TIMER;
 
 int guild_payexp_timer(int tid, unsigned int tick, int id, intptr data);
 int guild_save_sub(int tid, unsigned int tick, int id, intptr data);
@@ -370,13 +371,13 @@ int guild_send_xy_timer_sub(DBKey key,void *data,va_list ap)
 	nullpo_retr(0, g);
 
 	for(i=0;i<g->max_member;i++){
-		struct map_session_data *sd;
-		if((sd=g->member[i].sd)!=NULL){
-			if(sd->guild_x!=sd->bl.x || sd->guild_y!=sd->bl.y){
-				clif_guild_xy(sd);
-				sd->guild_x=sd->bl.x;
-				sd->guild_y=sd->bl.y;
-			}
+		//struct map_session_data* sd = g->member[i].sd;
+		struct map_session_data* sd = map_charid2sd(g->member[i].char_id); // temporary crashfix
+		if( sd != NULL && (sd->guild_x != sd->bl.x || sd->guild_y != sd->bl.y) && !sd->state.bg_id )
+		{
+			clif_guild_xy(sd);
+			sd->guild_x = sd->bl.x;
+			sd->guild_y = sd->bl.y;
 		}
 	}
 	return 0;
@@ -639,7 +640,7 @@ int guild_invite(struct map_session_data *sd,struct map_session_data *tsd)
 
 	if(tsd->status.guild_id>0 ||
 		tsd->guild_invite>0 ||
-		(agit_flag && map[tsd->bl.m].flag.gvg_castle))
+		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle))
 	{	//Can't invite people inside castles. [Skotlex]
 		clif_guild_inviteack(sd,0);
 		return 0;
@@ -675,7 +676,12 @@ int guild_reply_invite(struct map_session_data* sd, int guild_id, int flag)
 	//NOTE: this can be NULL because the person might have logged off in the meantime
 	tsd = map_id2sd(sd->guild_invite_account);
 
-	if( flag == 0 )
+	if ( sd->status.guild_id > 0 ) // [Paradox924X]
+	{ // Already in another guild.
+		if ( tsd ) clif_guild_inviteack(tsd,0);
+		return 0;
+	}
+	else if( flag == 0 )
 	{// rejected
 		sd->guild_invite = 0;
 		sd->guild_invite_account = 0;
@@ -797,7 +803,7 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
 
 	if(sd->status.account_id!=account_id ||
 		sd->status.char_id!=char_id || sd->status.guild_id!=guild_id ||
-		(agit_flag && map[sd->bl.m].flag.gvg_castle))
+		((agit_flag || agit2_flag) && map[sd->bl.m].flag.gvg_castle))
 		return 0;
 
 	intif_guild_leave(sd->status.guild_id, sd->status.account_id, sd->status.char_id,0,mes);
@@ -827,7 +833,7 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
   	//Can't leave inside guild castles.
 	if ((tsd = map_id2sd(account_id)) &&
 		tsd->status.char_id == char_id &&
-		(agit_flag && map[tsd->bl.m].flag.gvg_castle))
+		((agit_flag || agit2_flag) && map[tsd->bl.m].flag.gvg_castle))
 		return 0;
 
 	// find the member and perform expulsion
@@ -988,7 +994,7 @@ int guild_send_message(struct map_session_data *sd,const char *mes,int len)
 	guild_recv_message(sd->status.guild_id,sd->status.account_id,mes,len);
 
 	// Chat logging type 'G' / Guild Chat
-	if( log_config.chat&1 || (log_config.chat&16 && !(agit_flag && log_config.chat&64)) )
+	if( log_config.chat&1 || (log_config.chat&16 && !((agit_flag || agit2_flag) && log_config.chat&64)) )
 		log_chat("G", sd->status.guild_id, sd->status.char_id, sd->status.account_id, mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, mes);
 
 	return 0;
@@ -1223,6 +1229,7 @@ int guild_skillup(TBL_PC* sd, int skill_num)
 {
 	struct guild* g;
 	int idx = skill_num - GD_SKILLBASE;
+	int max = guild_skill_get_max(skill_num);
 
 	nullpo_retr(0, sd);
 
@@ -1233,8 +1240,8 @@ int guild_skillup(TBL_PC* sd, int skill_num)
 
 	if( g->skill_point > 0 &&
 			g->skill[idx].id != 0 &&
-			g->skill[idx].lv < guild_skill_get_max(skill_num) )
-		intif_guild_skillup(g->guild_id, skill_num, sd->status.account_id);
+			g->skill[idx].lv < max )
+		intif_guild_skillup(g->guild_id, skill_num, sd->status.account_id, max);
 
 	return 0;
 }
@@ -1300,7 +1307,7 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 	struct guild *g[2];
 	int i;
 
-	if(agit_flag)	{	// Disable alliance creation during woe [Valaris]
+	if(agit_flag || agit2_flag)	{	// Disable alliance creation during woe [Valaris]
 		clif_displaymessage(sd->fd,"Alliances cannot be made during Guild Wars!");
 		return 0;
 	}	// end addition [Valaris]
@@ -1413,7 +1420,7 @@ int guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 {
 	nullpo_retr(0, sd);
 
-	if(agit_flag)	{	// Disable alliance breaking during woe [Valaris]
+	if(agit_flag || agit2_flag)	{	// Disable alliance breaking during woe [Valaris]
 		clif_displaymessage(sd->fd,"Alliances cannot be broken during Guild Wars!");
 		return 0;
 	}	// end addition [Valaris]
@@ -1633,7 +1640,7 @@ int guild_gm_change(int guild_id, struct map_session_data *sd)
 		return 0;
 
 	//Notify servers that master has changed.
-	intif_guild_change_gm(guild_id, sd->status.name, strlen(sd->status.name));
+	intif_guild_change_gm(guild_id, sd->status.name, strlen(sd->status.name)+1);
 	return 1;
 }
 
@@ -1724,7 +1731,7 @@ int guild_addcastleinfoevent(int castle_id,int index,const char *name)
 		return 0;
 
 	ev = (struct eventlist *)aMalloc(sizeof(struct eventlist));
-	memcpy(ev->name,name,sizeof(ev->name));
+	strncpy(ev->name,name,ARRAYLENGTH(ev->name));
 	//The next event becomes whatever was currently stored.
 	ev->next = (struct eventlist *)idb_put(guild_castleinfoevent_db,code,ev);
 	return 0;
@@ -1853,8 +1860,10 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 	for( i = n-1; i >= 0 && !(gc[i].guild_id); --i );
 	ev = i; // offset of castle or -1
 
-	if( ev < 0 ) //No castles owned, invoke OnAgitInit as it is.
+	if( ev < 0 ) { //No castles owned, invoke OnAgitInit as it is.
 		npc_event_doall("OnAgitInit");
+		npc_event_doall("OnAgitInit2");
+	}
 	else // load received castles into memory, one by one
 	for( i = 0; i < n; i++, gc++ )
 	{
@@ -1865,14 +1874,16 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 		}
 
 		// update mapserver castle data with new info
-		memcpy(&c->guild_id, &gc->guild_id, sizeof(struct guild_castle) - ((int)&c->guild_id - (int)c));
+		memcpy(&c->guild_id, &gc->guild_id, sizeof(struct guild_castle) - ((uintptr)&c->guild_id - (uintptr)c));
 
 		if( c->guild_id )
 		{
 			if( i != ev )
 				guild_request_info(c->guild_id);
-			else // last owned one
+			else { // last owned one
 				guild_npc_request_info(c->guild_id, "::OnAgitInit");
+				guild_npc_request_info(c->guild_id, "::OnAgitInit2");
+			}
 		}
 	}
 
@@ -1894,6 +1905,24 @@ int guild_agit_end(void)
 	ShowStatus("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
 	// Stop auto saving
 	delete_timer (guild_save_timer, guild_save_sub);
+	return 0;
+}
+
+int guild_agit2_start(void)
+{	// Run All NPC_Event[OnAgitStart2]
+	int c = npc_event_doall("OnAgitStart2");
+	ShowStatus("NPC_Event:[OnAgitStart2] Run (%d) Events by @AgitStart2.\n",c);
+	// Start auto saving
+	guild_save_timer2 = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0, GUILD_SAVE_INTERVAL);
+	return 0;
+}
+
+int guild_agit2_end(void)
+{	// Run All NPC_Event[OnAgitEnd2]
+	int c = npc_event_doall("OnAgitEnd2");
+	ShowStatus("NPC_Event:[OnAgitEnd2] Run (%d) Events by @AgitEnd2.\n",c);
+	// Stop auto saving
+	delete_timer (guild_save_timer2, guild_save_sub);
 	return 0;
 }
 

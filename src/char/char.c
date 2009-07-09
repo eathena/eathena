@@ -22,6 +22,7 @@
 #include "inter.h"
 #include "int_guild.h"
 #include "int_homun.h"
+#include "int_mercenary.h"
 #include "int_party.h"
 #include "int_pet.h"
 #include "int_rank.h"
@@ -192,7 +193,7 @@ void set_char_online(int map_id, int char_id, int account_id)
 	
 	//Check to see for online conflicts
 	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
-	if (char_config.online_check && character->char_id != -1 && character->server > -1 && character->server != map_id)
+	if( character->char_id != -1 && character->server > -1 && character->server != map_id )
 	{
 		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
 			character->account_id, character->char_id, character->server, map_id, account_id, char_id);
@@ -328,16 +329,8 @@ int count_users(void)
 void char_auth_ok(int fd, struct char_session_data *sd)
 {
 	struct online_char_data* character;
-	if (max_connect_user && count_users() >= max_connect_user && sd->gmlevel < gm_allow_level)
-	{
-		// refuse connection (over populated)
-		WFIFOW(fd,0) = 0x6c;
-		WFIFOW(fd,2) = 0;
-		WFIFOSET(fd,3);
-		return;
-	}
 
-	if( char_config.online_check && (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
+	if( (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
 	{	// check if character is not online already. [Skotlex]
 		if (character->server > -1)
 		{	//Character already online. KICK KICK KICK
@@ -360,8 +353,7 @@ void char_auth_ok(int fd, struct char_session_data *sd)
 	}
 
 	if (login_fd > 0) {
-		// request to login-server to obtain e-mail/time limit
-		//FIXME: isn't this part of the auth_ok packet? [ultramage]
+		// request account data
 		WFIFOHEAD(login_fd,6);
 		WFIFOW(login_fd,0) = 0x2716;
 		WFIFOL(login_fd,2) = sd->account_id;
@@ -374,8 +366,7 @@ void char_auth_ok(int fd, struct char_session_data *sd)
 	// set char online on charserver
 	set_char_charselect(sd->account_id);
 
-	// send characters to player
-	mmo_char_send006b(fd, sd);
+	// continues when account data is received...
 }
 
 
@@ -662,6 +653,9 @@ int char_delete(int char_id)
 	if( cd.hom_id )
 		inter_homun_delete(cd.hom_id);
 
+	// remove mercenary data
+	inter_mercenary_delete(cd.char_id);
+
 	// leave party
 	if( cd.party_id )
 		inter_party_leave(cd.party_id, cd.account_id, cd.char_id);
@@ -907,7 +901,6 @@ void char_set_defaults(void)
 	char_config.char_new_display = 0;
 	char_config.char_new = true;
 	char_config.char_rename = true;
-	char_config.online_check = true;
 }
 
 int char_config_read(const char* cfgName)
@@ -1028,9 +1021,6 @@ int char_config_read(const char* cfgName)
 			if(gm_allow_level < 0)
 				gm_allow_level = 99;
 		}
-		else
-		if( strcmpi(w1, "online_check") == 0 )
-			char_config.online_check = (bool)config_switch(w2);
 		else
 		if( strcmpi(w1, "start_point") == 0 )
 		{

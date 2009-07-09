@@ -40,6 +40,7 @@ struct npc_data {
 
 	void* chatdb; // pointer to a npc_parse struct (see npc_chat.c)
 	enum npc_subtype subtype;
+	int src_id;
 	union {
 		struct {
 			struct script_code *script;
@@ -50,7 +51,6 @@ struct npc_data {
 			struct npc_timerevent_list *timer_event;
 			int label_list_num;
 			struct npc_label_list *label_list;
-			int src_id;
 		} scr;
 		struct {
 			struct npc_item_list* shop_item;
@@ -145,8 +145,11 @@ int npc_reload(void);
 void npc_read_event_script(void);
 int npc_script_event(struct map_session_data* sd, enum npce_event type);
 
+const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath);
+
 int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int points);
 
 extern struct npc_data* fake_nd;
+extern DBMap* npcname_db;
 
 #endif /* _NPC_H_ */

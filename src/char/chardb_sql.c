@@ -97,8 +97,8 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 17, SQLDT_INT,    &p->hp, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 18, SQLDT_INT,    &p->max_sp, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 19, SQLDT_INT,    &p->sp, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 20, SQLDT_USHORT, &p->status_point, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 21, SQLDT_USHORT, &p->skill_point, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 20, SQLDT_UINT,   &p->status_point, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 21, SQLDT_UINT,   &p->skill_point, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 22, SQLDT_UINT,   &p->option, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 23, SQLDT_UCHAR,  &p->karma, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 24, SQLDT_SHORT,  &p->manner, 0, NULL, NULL)
@@ -179,7 +179,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	//read inventory
 	//`inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	StringBuf_Init(&buf);
-	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`");
 	for( i = 0; i < MAX_SLOTS; ++i )
 		StringBuf_Printf(&buf, ", `card%d`", i);
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `char_id`=? LIMIT %d", db->inventory_db, MAX_INVENTORY);
@@ -193,10 +193,11 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &tmp_item.equip, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &tmp_item.identify, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &tmp_item.refine, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &tmp_item.attribute, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &tmp_item.attribute, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,   &tmp_item.expire_time, 0, NULL, NULL) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < MAX_SLOTS; ++i )
-		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 7+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
+		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 8+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
 			SqlStmt_ShowDebug(stmt);
 
 	for( i = 0; i < MAX_INVENTORY && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
@@ -205,7 +206,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	//read cart
 	//`cart_inventory` (`id`,`char_id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `card0`, `card1`, `card2`, `card3`)
 	StringBuf_Clear(&buf);
-	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`");
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ", `card%d`", j);
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `char_id`=? LIMIT %d", db->cart_db, MAX_CART);
@@ -219,14 +220,18 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &tmp_item.equip, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &tmp_item.identify, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &tmp_item.refine, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &tmp_item.attribute, 0, NULL, NULL) )
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &tmp_item.attribute, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,   &tmp_item.expire_time, 0, NULL, NULL) )
 		SqlStmt_ShowDebug(stmt);
 	for( i = 0; i < MAX_SLOTS; ++i )
-		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 7+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
+		if( SQL_ERROR == SqlStmt_BindColumn(stmt, 8+i, SQLDT_SHORT, &tmp_item.card[i], 0, NULL, NULL) )
 			SqlStmt_ShowDebug(stmt);
 
 	for( i = 0; i < MAX_CART && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
 		memcpy(&p->cart[i], &tmp_item, sizeof(tmp_item));
+
+	/* Mercenary Owner DataBase */
+//	mercenary_owner_fromsql(char_id, p);
 
 	//read skill
 	//`skill` (`char_id`, `id`, `lv`)
@@ -327,7 +332,7 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 	{	//Save status
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `base_level`='%d', `job_level`='%d',"
 			"`base_exp`='%u', `job_exp`='%u', `zeny`='%d',"
-			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%d',`skill_point`='%d',"
+			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%u',`skill_point`='%u',"
 			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
 			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',"
 			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
@@ -409,6 +414,13 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 				Sql_ShowDebug(sql_handle);
 		}
 	}
+
+	/* Mercenary Owner */
+//	if( (p->mer_id != cp->mer_id) ||
+//		(p->arch_calls != cp->arch_calls) || (p->arch_faith != cp->arch_faith) ||
+//		(p->spear_calls != cp->spear_calls) || (p->spear_faith != cp->spear_faith) ||
+//		(p->sword_calls != cp->sword_calls) || (p->sword_faith != cp->sword_faith) )
+//		mercenary_owner_tosql(char_id, p);
 
 /*
 	//FIXME: is this neccessary? [ultramage]

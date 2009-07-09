@@ -243,7 +243,7 @@ int parse_frommap(int fd)
 				int aid = RFIFOL(fd,6+i*8);
 				int cid = RFIFOL(fd,6+i*8+4);
 				character = (struct online_char_data*)idb_ensure(online_char_db, aid, create_online_char_data);
-				if (char_config.online_check && character->server > -1 && character->server != id)
+				if( character->server > -1 && character->server != id )
 				{
 					ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
 						character->account_id, character->char_id, character->server, id, aid, cid);

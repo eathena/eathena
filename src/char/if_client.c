@@ -121,14 +121,15 @@ int parse_client(int fd)
 			else
 			{// authentication not found (coming from login server)
 				if (login_fd > 0) { // don't send request if no login-server
-					WFIFOHEAD(login_fd,19);
+					WFIFOHEAD(login_fd,23);
 					WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
 					WFIFOL(login_fd,2) = sd->account_id;
 					WFIFOL(login_fd,6) = sd->login_id1;
 					WFIFOL(login_fd,10) = sd->login_id2;
 					WFIFOB(login_fd,14) = sd->sex;
 					WFIFOL(login_fd,15) = htonl(ipl);
-					WFIFOSET(login_fd,19);
+					WFIFOL(login_fd,19) = fd;
+					WFIFOSET(login_fd,23);
 				} else { // if no login-server, we must refuse connection
 					WFIFOHEAD(fd,3);
 					WFIFOW(fd,0) = 0x6c;

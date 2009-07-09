@@ -99,8 +99,6 @@ lhz_in03	mapflag	nomemo
 hu_in01	mapflag	nomemo
 auction_01	mapflag	nomemo
 auction_02	mapflag	nomemo
-p_track01	mapflag	nomemo
-p_track02	mapflag	nomemo
 ra_in01	mapflag	nomemo
 ra_temin	mapflag	nomemo
 ra_temsky	mapflag	nomemo
@@ -144,16 +142,19 @@ mjolnir_11	mapflag	nomemo
 moc_fild01	mapflag	nomemo
 moc_fild02	mapflag	nomemo
 moc_fild03	mapflag	nomemo
-moc_fild04	mapflag	nomemo
-moc_fild05	mapflag	nomemo
-moc_fild08	mapflag	nomemo
+//moc_fild04	mapflag	nomemo
+//moc_fild05	mapflag	nomemo
+//moc_fild08	mapflag	nomemo
 moc_fild09	mapflag	nomemo
-moc_fild13	mapflag	nomemo
-moc_fild14	mapflag	nomemo
+//moc_fild13	mapflag	nomemo
+//moc_fild14	mapflag	nomemo
 moc_fild15	mapflag	nomemo
 moc_fild16	mapflag	nomemo
 moc_fild17	mapflag	nomemo
 moc_fild18	mapflag	nomemo
+moc_fild20	mapflag	nomemo
+moc_fild21	mapflag	nomemo
+moc_fild22	mapflag	nomemo
 nif_fild01	mapflag	nomemo
 nif_fild02	mapflag	nomemo
 pay_fild02	mapflag	nomemo
@@ -610,13 +611,6 @@ turbo_e_16	mapflag	nomemo
 //Monster Races ================
 p_track01	mapflag	nomemo
 p_track02	mapflag	nomemo
-
-//Battle Fields ==============
-bat_room	mapflag	nomemo
-bat_a01	mapflag	nomemo
-bat_a02	mapflag	nomemo
-bat_b01	mapflag	nomemo
-bat_b02	mapflag	nomemo
 
 //Vision of Okolnir ==========
 que_qsch01	mapflag	nomemo

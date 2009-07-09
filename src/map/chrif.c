@@ -19,6 +19,7 @@
 #include "pet.h"
 #include "skill.h"
 #include "status.h"
+#include "homunculus.h"
 #include "mercenary.h"
 #include "chrif.h"
 #include "quest.h"
@@ -279,11 +280,12 @@ int chrif_save(struct map_session_data *sd, int flag)
 	WFIFOSET(char_fd, WFIFOW(char_fd,2));
 
 
-	if(sd->status.pet_id > 0 && sd->pd)
+	if( sd->status.pet_id > 0 && sd->pd )
 		intif_save_petdata(sd->status.account_id,&sd->pd->pet);
-
-	if (sd->hd && merc_is_hom_active(sd->hd))
+	if( sd->hd && merc_is_hom_active(sd->hd) )
 		merc_save(sd->hd);
+	if( sd->md && mercenary_get_lifetime(sd->md) > 0 )
+		mercenary_save(sd->md);
 
 	return 0;
 }
@@ -309,9 +311,10 @@ int chrif_sendmap(int fd)
 {
 	int i;
 	ShowStatus("Sending maps to char server...\n");
-	WFIFOHEAD(fd, 4 + map_num * 4);
+	// Sending normal maps, not instances
+	WFIFOHEAD(fd, 4 + map_instance_start * 4);
 	WFIFOW(fd,0) = 0x2afa;
-	for(i = 0; i < map_num; i++)
+	for(i = 0; i < map_instance_start; i++)
 		WFIFOW(fd,4+i*4) = map[i].index;
 	WFIFOW(fd,2) = 4 + i * 4;
 	WFIFOSET(fd,WFIFOW(fd,2));
@@ -834,10 +837,7 @@ int chrif_changedsex(int fd)
 			// remove specifical skills of Bard classes 
 			for(i = 315; i <= 322; i++) {
 				if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
-					if (sd->status.skill_point > USHRT_MAX - sd->status.skill[i].lv)
-						sd->status.skill_point = USHRT_MAX;
-					else
-						sd->status.skill_point += sd->status.skill[i].lv;
+					sd->status.skill_point += sd->status.skill[i].lv;
 					sd->status.skill[i].id = 0;
 					sd->status.skill[i].lv = 0;
 				}
@@ -845,10 +845,7 @@ int chrif_changedsex(int fd)
 			// remove specifical skills of Dancer classes 
 			for(i = 323; i <= 330; i++) {
 				if (sd->status.skill[i].id > 0 && !sd->status.skill[i].flag) {
-					if (sd->status.skill_point > USHRT_MAX - sd->status.skill[i].lv)
-						sd->status.skill_point = USHRT_MAX;
-					else
-						sd->status.skill_point += sd->status.skill[i].lv;
+					sd->status.skill_point += sd->status.skill[i].lv;
 					sd->status.skill[i].id = 0;
 					sd->status.skill[i].lv = 0;
 				}
@@ -887,23 +884,32 @@ int chrif_divorce(int partner_id1, int partner_id2)
 
 /*==========================================
  * Divorce players
+ * only used if 'partner_id' is offline
  *------------------------------------------*/
 int chrif_divorceack(int char_id, int partner_id)
 {
 	struct map_session_data* sd;
 	int i;
 
-	if (!char_id || !partner_id || (sd = map_charid2sd(partner_id)) == NULL || sd->status.partner_id != char_id)
+	if( !char_id || !partner_id )
 		return 0;
 
-	// Update Partner info
-	sd->status.partner_id = 0;
+	if( (sd = map_charid2sd(char_id)) != NULL && sd->status.partner_id == partner_id )
+	{
+		sd->status.partner_id = 0;
+		for(i = 0; i < MAX_INVENTORY; i++)
+			if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
+				pc_delitem(sd, i, 1, 0);
+	}
 
-	// Remove Wedding Rings from inventory
-	for(i = 0; i < MAX_INVENTORY; i++)
-		if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
-			pc_delitem(sd, i, 1, 0);
-
+	if( (sd = map_charid2sd(partner_id)) != NULL && sd->status.partner_id == char_id )
+	{
+		sd->status.partner_id = 0;
+		for(i = 0; i < MAX_INVENTORY; i++)
+			if (sd->status.inventory[i].nameid == WEDDING_RING_M || sd->status.inventory[i].nameid == WEDDING_RING_F)
+				pc_delitem(sd, i, 1, 0);
+	}
+	
 	return 0;
 }
 /*==========================================
@@ -1013,10 +1019,16 @@ int chrif_accountban(int fd)
 int chrif_disconnectplayer(int fd)
 {
 	struct map_session_data* sd;
+	int account_id = RFIFOL(fd, 2);
 
-	sd = map_id2sd(RFIFOL(fd, 2));
-	if(sd == NULL)
+	sd = map_id2sd(account_id);
+	if( sd == NULL )
+	{
+		struct auth_node* auth = chrif_search(account_id);
+		if( auth != NULL && chrif_auth_delete(account_id, auth->char_id, ST_LOGIN) )
+			return 0;
 		return -1;
+	}
 
 	if (!sd->fd)
 	{	//No connection
@@ -1071,7 +1083,7 @@ int chrif_save_scdata(struct map_session_data *sd)
 		data.val2 = sc->data[i]->val2;
 		data.val3 = sc->data[i]->val3;
 		data.val4 = sc->data[i]->val4;
-		memcpy(WFIFOP(char_fd, 14+count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
+		memcpy(WFIFOP(char_fd,14 +count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
 		count++;
 	}
 	WFIFOW(char_fd,12) = count;

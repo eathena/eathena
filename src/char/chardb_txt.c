@@ -198,8 +198,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	cd->int_ = tmp_int[16];
 	cd->dex = tmp_int[17];
 	cd->luk = tmp_int[18];
-	cd->status_point = min(tmp_int[19], USHRT_MAX);
-	cd->skill_point = min(tmp_int[20], USHRT_MAX);
+	cd->status_point = tmp_int[19];
+	cd->skill_point = tmp_int[20];
 	cd->option = tmp_int[21];
 	cd->karma = tmp_int[22];
 	cd->manner = tmp_int[23];
@@ -351,7 +351,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 	// base character data
 	str_p += sprintf(str_p,
 		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
-		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d" //Up to Skill Point
+		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%u,%u" //Up to Skill Point
 		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
 		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
 		"\t%d,%d,%d\t%d,%d,%d" //last point + save point

@@ -21,8 +21,6 @@
 #include <string.h>
 #include <sys/stat.h> // for stat/lstat/fstat
 
-#define MAX_SERVERS 30
-extern struct mmo_char_server server[MAX_SERVERS];
 extern AccountDB* accounts;
 
 int charif_sendallwos(int sfd, unsigned char *buf, unsigned int len);
@@ -84,9 +82,7 @@ bool ladmin_auth(struct login_session_data* sd, const char* ip)
 //---------------------------------------
 int parse_admin(int fd)
 {
-	unsigned int i, j;
 	char* account_name;
-	struct mmo_account acc;
 
 	uint32 ipl = session[fd]->client_addr;
 	char ip[16];

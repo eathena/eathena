@@ -185,7 +185,6 @@ int convert_char(void)
 		iter->destroy(iter);
 	}
 
-	//FIXME: partydb isn't able to save multiple members at once
 	{// convert parties
 		PartyDB* txt = srcdb->partydb(srcdb);
 		PartyDB* sql = dstdb->partydb(dstdb);

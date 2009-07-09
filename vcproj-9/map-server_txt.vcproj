@@ -218,11 +218,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.c"
+				RelativePath="..\src\map\battleground.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.h"
+				RelativePath="..\src\map\battleground.h"
 				>
 			</File>
 			<File
@@ -263,6 +263,14 @@
 			</File>
 			<File
 				RelativePath="..\src\map\guild.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.h"
 				>
 			</File>
 			<File
@@ -491,6 +499,14 @@
 			</File>
 			<File
 				RelativePath="..\src\common\malloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.h"
 				>
 			</File>
 			<File

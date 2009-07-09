@@ -31,7 +31,7 @@ bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int
 	// it significantly reduces cpu load on the database server.
 
 	StringBuf_Init(&buf);
-	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`");
+	StringBuf_AppendStr(&buf, "SELECT `id`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`");
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ", `card%d`", j);
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `%s`='%d'", tablename, selectoption, id);
@@ -46,15 +46,16 @@ bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int
 		return 1;
 	}
 
-	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &item.id,        0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,  &item.nameid,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,  &item.amount,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &item.equip,     0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &item.identify,  0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &item.refine,    0, NULL, NULL);
-	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &item.attribute, 0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &item.id,          0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,  &item.nameid,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,  &item.amount,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 3, SQLDT_USHORT, &item.equip,       0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 4, SQLDT_CHAR,   &item.identify,    0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 5, SQLDT_CHAR,   &item.refine,      0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 6, SQLDT_CHAR,   &item.attribute,   0, NULL, NULL);
+	SqlStmt_BindColumn(stmt, 7, SQLDT_UINT,   &item.expire_time, 0, NULL, NULL);
 	for( j = 0; j < MAX_SLOTS; ++j )
-		SqlStmt_BindColumn(stmt, 7+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
+		SqlStmt_BindColumn(stmt, 8+j, SQLDT_SHORT, &item.card[j], 0, NULL, NULL);
 
 	// bit array indicating which inventory items have already been matched
 	flag = (bool*) aCallocA(max, sizeof(bool));
@@ -80,14 +81,15 @@ bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int
 				    items[i].equip == item.equip &&
 				    items[i].identify == item.identify &&
 				    items[i].refine == item.refine &&
-				    items[i].attribute == item.attribute )
+				    items[i].attribute == item.attribute &&
+				    items[i].expire_time == item.expire_time )
 				;	//Do nothing.
 				else
 				{
 					// update all fields.
 					StringBuf_Clear(&buf);
-					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d'",
-						tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute);
+					StringBuf_Printf(&buf, "UPDATE `%s` SET `amount`='%d', `equip`='%d', `identify`='%d', `refine`='%d',`attribute`='%d', `expire_time`='%u'",
+						tablename, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time);
 					for( j = 0; j < MAX_SLOTS; ++j )
 						StringBuf_Printf(&buf, ", `card%d`=%d", j, items[i].card[j]);
 					StringBuf_Printf(&buf, " WHERE `id`='%d' LIMIT 1", item.id);
@@ -109,7 +111,7 @@ bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int
 	SqlStmt_Free(stmt);
 
 	StringBuf_Clear(&buf);
-	StringBuf_Printf(&buf, "INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`", tablename, selectoption);
+	StringBuf_Printf(&buf, "INSERT INTO `%s`(`%s`, `nameid`, `amount`, `equip`, `identify`, `refine`, `attribute`, `expire_time`", tablename, selectoption);
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ", `card%d`", j);
 	StringBuf_AppendStr(&buf, ") VALUES ");
@@ -127,8 +129,8 @@ bool memitemdata_to_sql(Sql* sql_handle, const struct item items[], int max, int
 		else
 			found = true;
 
-		StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d'",
-			id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute);
+		StringBuf_Printf(&buf, "('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%u'",
+			id, items[i].nameid, items[i].amount, items[i].equip, items[i].identify, items[i].refine, items[i].attribute, items[i].expire_time);
 		for( j = 0; j < MAX_SLOTS; ++j )
 			StringBuf_Printf(&buf, ", '%d'", items[i].card[j]);
 		StringBuf_AppendStr(&buf, ")");

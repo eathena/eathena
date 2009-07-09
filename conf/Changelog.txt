@@ -1,11 +1,56 @@
 Date	Added
 
+2009/??/??
+	* Moved settings char_txt and friends_txt from char_athena.conf to inter_athena.conf.
+	* Removed settings autosave_time and save_log from char_athena.conf.
+	* Renamed fame_list_* settings to rankdb.*_top_rankers in char_athena.conf.
+	* Prefixed all table/savefile settings with txt/sql.
+	* Added new inter settings, parrty.break_without_leader and party.auto_reassign_leader.
 2008/11/03
 	* Modified char_athena.conf: [FlavioJS]
 	- Added 'rankdb.enable'
 	- Renamed 'fame_list_blacksmith' to 'rankdb.blacksmith_top_rankers'
 	- Renamed 'fame_list_alchemist' to 'rankdb.alchemist_top_rankers'
 	- Renamed 'fame_list_taekwon' to 'rankdb.taekwon_top_rankers'
+2008/08/19
+	* Added global sql settings 'sql.*' to inter_athena.conf.
+	* Commented 'ipban.sql.*' and 'account.sql.*' so they default to the global settings.
+	* Removed deprecated settings 'case_sensitive' and 'add_to_unlimited_account' from in login_athena.conf.
+	* Made inter_athena.conf be imported from login_athena.conf. [FlavioJS]
+
+
+
+2009/04/10
+	* Rev. 13668 Inverted the way monster_ai 0x200 works, default is 0 again. [ultramage]
+	* Rev. 13667 Default value for monster_ai is now 0x200. [L0ne_W0lf]
+2009/04/02
+	* Uncommented pvp_room in maps_athena.conf [Playtester]
+2009/04/01
+	* Removed online_check config options. [FlavioJS]
+	* Clarified char_maintenance config option.
+2009/03/31
+	* Added missing pet_equip_min_friendly config option [ultramage]
+2009/03/23
+	* Added setting display_status_timers to client.conf for new status change packet. [Sara]
+2009/01/26
+	* Rev. 13494 Changed guild_skill_relog_delay to yes. Relogging no longer resets delay on guild skills. [L0ne_W0lf]
+2009/01/12
+	* Second agitend corrected to agitend2 [SketchyPhoenix]
+2009/01/05
+	* Added @charcommands to return a list of available # commands [SketchyPhoenix]
+2008/12/26
+	* Rev. 13444 Marked new Morroc fields as nomemo. [L0ne_W0lf]
+	* Rev. 13415 Commented out maps no longer accessable with 12.1. [L0ne_W0lf]
+2008/12/17
+	* Rev. 13405 Added additional maps to maps_athena.conf. [L0ne_W0lf]
+2008/11/04
+	* Updated: added info about latest packet_ver flag in client.conf (bugreport:2415) [akrus]
+2008/10/06
+	* Rev. 13264 Changed exp_calc_type to 1, as type 0 seems to be based off old rumour, and to compliment the update to mob_revive. [L0ne_W0lf]
+2008/10/02
+	* Rev. 13253 Modified homunculus auto-vapor setting to yes. (bugreport:2298) [L0ne_W0lf]
+2008/09/11
+	* Rev. 13204 Updated some messages in msg_athena.conf. [L0ne_W0lf]
 2008/08/19
 	* Added global sql settings 'sql.*' to inter_athena.conf.
 	* Commented 'ipban.sql.*' and 'account.sql.*' so they default to the global settings.

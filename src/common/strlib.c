@@ -301,14 +301,25 @@ int config_switch(const char* str)
 	return (int)strtol(str, NULL, 0);
 }
 
-/// always nul-terminates the string
+/// strncpy that always nul-terminates the string
 char* safestrncpy(char* dst, const char* src, size_t n)
 {
-	char* ret;
-	ret = strncpy(dst, src, n);
-	if( ret != NULL )
-		ret[n - 1] = '\0';
-	return ret;
+	if( n > 0 )
+	{
+		char* d = dst;
+		const char* s = src;
+		d[--n] = '\0';/* nul-terminate string */
+		for( ; n > 0; --n )
+		{
+			if( (*d++ = *s++) == '\0' )
+			{/* nul-pad remaining bytes */
+				while( --n > 0 )
+					*d++ = '\0';
+				break;
+			}
+		}
+	}
+	return dst;
 }
 
 /// doesn't crash on null pointer
@@ -692,11 +703,22 @@ size_t sv_escape_c(char* out_dest, const char* src, size_t len, const char* esca
 			break;
 		default:
 			if( strchr(escapes,src[i]) )
-			{// escapes to octal
+			{// escape
 				out_dest[j++] = '\\';
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0700)>>6));
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0070)>>3));
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0007)   ));
+				switch( src[i] )
+				{
+				case '\a': out_dest[j++] = 'a'; break;
+				case '\b': out_dest[j++] = 'b'; break;
+				case '\t': out_dest[j++] = 't'; break;
+				case '\v': out_dest[j++] = 'v'; break;
+				case '\f': out_dest[j++] = 'f'; break;
+				case '\?': out_dest[j++] = '?'; break;
+				default:// to octal
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0700)>>6));
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0070)>>3));
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0007)   ));
+					break;
+				}
 			}
 			else
 				out_dest[j++] = src[i];
@@ -861,6 +883,8 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	int columns;
 	char path[1024], line[1024];
 
+	snprintf(path, sizeof(path), "%s/%s", directory, filename);
+
 	if( maxcols > ARRAYLENGTH(fields)-1 )
 	{
 		ShowError("sv_readdb: Insufficient column storage in parser for file \"%s\" (want %d, have only %d). Increase the capacity in the source code please.\n", path, maxcols, ARRAYLENGTH(fields)-1);
@@ -868,7 +892,6 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	}
 
 	// open file
-	snprintf(path, sizeof(path), "%s/%s", directory, filename);
 	fp = fopen(path, "r");
 	if( fp == NULL )
 	{
@@ -964,9 +987,12 @@ int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list ap)
 
 	for(;;)
 	{
+		va_list apcopy;
 		/* Try to print in the allocated space. */
 		size = self->max_ - (self->ptr_ - self->buf_);
-		n = vsnprintf(self->ptr_, size, fmt, ap);
+		va_copy(apcopy, ap);
+		n = vsnprintf(self->ptr_, size, fmt, apcopy);
+		va_end(apcopy);
 		/* If that worked, return the length. */
 		if( n > -1 && n < size )
 		{

@@ -116,6 +116,8 @@ static bool mmo_mail_fromsql(MailDB_SQL* db, struct mail_message* msg, int mail_
 	char* data;
 	int j;
 
+	memset(msg, 0, sizeof(*msg));
+
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `id`,`send_name`,`send_id`,`dest_name`,`dest_id`,`title`,`message`,`time`,`status`,`zeny`,`amount`,`nameid`,`refine`,`attribute`,`identify`");
 	for( j = 0; j < MAX_SLOTS; ++j )
@@ -166,7 +168,8 @@ static bool mmo_mails_fromsql(MailDB_SQL* db, struct mail_data* md, const int ch
 	StringBuf buf;
 	int i, j;
 
-	memset(md, 0, sizeof(struct mail_data));
+	memset(md, 0, sizeof(*md));
+
 	StringBuf_Init(&buf);
 	StringBuf_AppendStr(&buf, "SELECT `id`,`send_name`,`send_id`,`dest_name`,`dest_id`,`title`,`message`,`time`,`status`,`zeny`,`amount`,`nameid`,`refine`,`attribute`,`identify`");
 	for( i = 0; i < MAX_SLOTS; ++i )

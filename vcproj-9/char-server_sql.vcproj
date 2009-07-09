@@ -412,6 +412,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\int_mercenary.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\int_mercenary.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\int_message.c"
 				>
 			</File>

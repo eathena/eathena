@@ -38,6 +38,8 @@ static bool mmo_storage_fromstr(struct storage_data* s, const char* str)
 	int tmp_int[7+MAX_SLOTS+1];
 	int len,i,j;
 
+	memset(s, 0, sizeof(*s)); //clean up memory
+
 	// parse amount (currently ignored)
 	if( sscanf(str, "%d\t%n", &amount, &len) != 1 )
 		return false;

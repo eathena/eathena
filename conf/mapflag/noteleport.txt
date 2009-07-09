@@ -208,7 +208,6 @@ force_4-1	mapflag	noteleport
 force_5-1	mapflag	noteleport
 force_1-2	mapflag	noteleport
 force_1-3	mapflag	noteleport
-prt_are_in	mapflag	noteleport
 sec_in01	mapflag	noteleport
 sec_in02	mapflag	noteleport
 
@@ -310,13 +309,6 @@ turbo_e_16	mapflag	noteleport
 //Monster Races ================
 p_track01	mapflag	noteleport
 p_track02	mapflag	noteleport
-
-//Battle Fields ==================
-bat_room	mapflag	noteleport
-bat_a01	mapflag	noteleport
-bat_a02	mapflag	noteleport
-bat_b01	mapflag	noteleport
-bat_b02	mapflag	noteleport
 
 //Vision of Okolnir ==============
 que_qsch01	mapflag	noteleport

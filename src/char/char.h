@@ -12,6 +12,8 @@ struct char_session_data {
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;
+	uint32 version;
+	uint8 clienttype;
 	int chars_num;// total number of characters in the account
 	int slots[MAX_CHARS];// client view of the characters/slots (array of char_id's, 0=free)
 };

@@ -18,6 +18,7 @@
 #include "int_guild.h"
 #include "int_homun.h"
 #include "int_mail.h"
+#include "int_mercenary.h"
 #include "int_message.h"
 #include "int_party.h"
 #include "int_pet.h"
@@ -41,7 +42,7 @@ int inter_recv_packet_length[] = {
 	-1,-1, 7,-1, -1,13,36, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3000-  unsorted (messages, charreg)
 	 0, 0, 0, 0,  0, 0, 0, 0, 10,-1, 0, 0,  0, 0,  0, 0,	// 3010-  Guild storage
 	-1, 6,-1,14, 14,19, 6,-1, 14,14, 0, 0,  0, 0,  0, 0,	// 3020-  Party
-	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 14,19,186,-1,	// 3030-  Guild
+	-1, 6,-1,-1, 55,19, 6,-1, 14,-1,-1,-1, 18,19,186,-1,	// 3030-  Guild
 	 5, 9, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3040-  Guild (continued)
 	-1,-1,10,10,  0,-1, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3050-  Auction System
 	 6,-1,10, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3060-  Quest system
@@ -50,6 +51,7 @@ int inter_recv_packet_length[] = {
 	-1,10,-1, 6,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 3090-  Homunculus
 	10,-1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30A0-  Status
 	10, 2, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30B0-  Rank
+	-1,10, 6,-1,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30C0-  Mercenary
 };
 
 /*==========================================
@@ -112,6 +114,7 @@ void inter_init(CharServerDB* db)
 	inter_storage_init(db->storagedb(db), db->guildstoragedb(db));
 	inter_pet_init(db->petdb(db));
 	inter_homun_init(db->homundb(db));
+	inter_mercenary_init(db->mercdb(db));
 	inter_mail_init(db->maildb(db), db->chardb(db));
 	inter_quest_init(db->questdb(db));
 	inter_auction_init(db->auctiondb(db), db->maildb(db));
@@ -129,6 +132,7 @@ void inter_final(void)
 	inter_storage_final();
 	inter_pet_final();
 	inter_homun_final();
+	inter_mercenary_final();
 	inter_mail_final();
 	inter_quest_final();
 	inter_auction_final();
@@ -265,6 +269,7 @@ int inter_parse_frommap(int fd)
 		  || inter_auction_parse_frommap(fd)
 		  || inter_pet_parse_frommap(fd)
 		  || inter_homun_parse_frommap(fd)
+		  || inter_mercenary_parse_frommap(fd)
 		  || inter_status_parse_frommap(fd)
 		  || inter_rank_parse_frommap(fd)
 		  || inter_registry_parse_frommap(fd)

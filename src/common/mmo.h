@@ -18,7 +18,7 @@
 //The number is the max number of hotkeys to save (27 = 9 skills x 3 bars)
 #define MAX_HOTKEYS 27
 
-#define MAX_MAP_PER_SERVER 1024
+#define MAX_MAP_PER_SERVER 1500 // Increased to allow creation of Instance Maps
 #define MAX_INVENTORY 100
 //Max number of characters per account. Note that changing this setting alone is not enough if the client is not hexed to support more characters as well.
 #define MAX_CHARS 9
@@ -107,8 +107,7 @@
 //Mercenary System
 #define MC_SKILLBASE 8201
 #define MAX_MERCSKILL 37
-#define MAX_MERCENARY_CLASS 30
-#define MAX_MERCENARY_SKILL 4
+#define MAX_MERCENARY_CLASS 36
 
 enum item_types {
 	IT_HEALING = 0,
@@ -156,6 +155,7 @@ struct item {
 	char refine;
 	char attribute;
 	short card[MAX_SLOTS];
+	unsigned int expire_time;
 };
 
 struct point {
@@ -240,7 +240,7 @@ struct s_mercenary {
 	short class_;
 	int hp, sp;
 	unsigned int kill_count;
-	unsigned int remain_life_time;
+	unsigned int life_time;
 };
 
 struct s_friend {
@@ -269,7 +269,7 @@ struct mmo_charstatus {
 	int zeny;
 
 	short class_;
-	unsigned short status_point,skill_point;
+	unsigned int status_point,skill_point;
 	int hp,max_hp,sp,max_sp;
 	unsigned int option;
 	short manner;
@@ -279,9 +279,9 @@ struct mmo_charstatus {
 	int fame;
 
 	// Mercenary Guilds Rank
-	int arch_loyalty, arch_count;
-	int spear_loyalty, spear_count;
-	int sword_loyalty, sword_count;
+	int arch_faith, arch_calls;
+	int spear_faith, spear_calls;
+	int sword_faith, sword_calls;
 
 	short weapon; // enum weapon_type
 	short shield; // view-id
@@ -448,8 +448,8 @@ struct guild_castle {
 	int createTime;
 	int visibleC;
 	struct {
-		int id; // object id
 		bool visible;
+		int id; // object id
 	} guardian[MAX_GUARDIANS];
 	int* temp_guardians; // ids of temporary guardians (mobs)
 	int temp_guardians_max;
@@ -591,6 +591,12 @@ enum {
 	//JOB_DEATHKNIGHT = 4051,
 	//JOB_COLLECTOR = 4052,
 	JOB_MAX,
+};
+
+enum {
+	SEX_FEMALE = 0,
+	SEX_MALE,
+	SEX_SERVER
 };
 
 // sanity checks...

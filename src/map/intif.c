@@ -18,7 +18,8 @@
 #include "guild.h"
 #include "pet.h"
 #include "atcommand.h"
-#include "mercenary.h" //albator
+#include "mercenary.h"
+#include "homunculus.h"
 #include "mail.h"
 #include "quest.h"
 
@@ -38,7 +39,7 @@ static const int packet_len_table[]={
 	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
 	-1,-1, 7, 7,  7,11, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus]
 	-1,11,11, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3860  Quests [Kevin]
-	 0, 0, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,
+	-1, 3, 3, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3870  Mercenaries [Zephyrus]
 	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
 	-1,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3890  Homunculus [albator]
 };
@@ -452,17 +453,25 @@ int intif_party_leave(int party_id,int account_id, int char_id)
 // パーティ移動要求
 int intif_party_changemap(struct map_session_data *sd,int online)
 {
+	int m, mapindex;
+	
 	if (CheckForCharServer())
 		return 0;
 	if(!sd)
 		return 0;
+
+	if( (m=map_mapindex2mapid(sd->mapindex)) >= 0 && map[m].instance_id )
+		mapindex = map[map[m].instance_map[0]].index;
+	else
+		mapindex = sd->mapindex;
+	
 
 	WFIFOHEAD(inter_fd,19);
 	WFIFOW(inter_fd,0)=0x3025;
 	WFIFOL(inter_fd,2)=sd->status.party_id;
 	WFIFOL(inter_fd,6)=sd->status.account_id;
 	WFIFOL(inter_fd,10)=sd->status.char_id;
-	WFIFOW(inter_fd,14)=sd->mapindex;
+	WFIFOW(inter_fd,14)=mapindex;
 	WFIFOB(inter_fd,16)=online;
 	WFIFOW(inter_fd,17)=sd->status.base_level;
 	WFIFOSET(inter_fd,19);
@@ -673,16 +682,17 @@ int intif_guild_position(int guild_id,int idx,struct guild_position *p)
 	return 0;
 }
 // ギルドスキルアップ要求
-int intif_guild_skillup(int guild_id, int skill_num, int account_id)
+int intif_guild_skillup(int guild_id, int skill_num, int account_id, int max)
 {
 	if( CheckForCharServer() )
 		return 0;
-	WFIFOHEAD(inter_fd, 14);
+	WFIFOHEAD(inter_fd, 18);
 	WFIFOW(inter_fd, 0)  = 0x303c;
 	WFIFOL(inter_fd, 2)  = guild_id;
 	WFIFOL(inter_fd, 6)  = skill_num;
 	WFIFOL(inter_fd, 10) = account_id;
-	WFIFOSET(inter_fd, 14);
+	WFIFOL(inter_fd, 14) = max;
+	WFIFOSET(inter_fd, 18);
 	return 0;
 }
 // ギルド同盟/敵対要求
@@ -1506,13 +1516,13 @@ int intif_parse_Mail_inboxreceived(int fd)
 	else
 	{
 		char output[128];
-		sprintf(output, "You have %d new emails (%d unread)", sd->mail.inbox.unchecked, sd->mail.inbox.unread + sd->mail.inbox.unchecked);
+		sprintf(output, msg_txt(510), sd->mail.inbox.unchecked, sd->mail.inbox.unread + sd->mail.inbox.unchecked);
 		clif_disp_onlyself(sd, output, strlen(output));
 	}
 	return 0;
 }
 /*------------------------------------------
- * Mail Readed
+ * Mail Read
  *------------------------------------------*/
 int intif_Mail_read(int mail_id)
 {
@@ -1931,6 +1941,94 @@ static void intif_parse_Auction_message(int fd)
 }
 
 
+/*==========================================
+ * Mercenary's System
+ *------------------------------------------*/
+int intif_mercenary_create(struct s_mercenary *merc)
+{
+	int size = sizeof(struct s_mercenary) + 4;
+
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,size);
+	WFIFOW(inter_fd,0) = 0x30C0;
+	WFIFOW(inter_fd,2) = size;
+	memcpy(WFIFOP(inter_fd,4), merc, sizeof(struct s_mercenary));
+	WFIFOSET(inter_fd,size);
+	return 0;
+}
+
+int intif_parse_mercenary_received(int fd)
+{
+	int len = RFIFOW(fd,2) - 5;
+	if( sizeof(struct s_mercenary) != len )
+	{
+		if( battle_config.etc_log )
+			ShowError("intif: create mercenary data size error %d != %d\n", sizeof(struct s_homunculus), len);
+		return 0;
+	}
+
+	merc_data_received((struct s_mercenary*)RFIFOP(fd,5), RFIFOB(fd,4));
+	return 0;
+}
+
+int intif_mercenary_request(int merc_id, int char_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,10);
+	WFIFOW(inter_fd,0) = 0x30C1;
+	WFIFOL(inter_fd,2) = merc_id;
+	WFIFOL(inter_fd,6) = char_id;
+	WFIFOSET(inter_fd,10);
+	return 0;
+}
+
+int intif_mercenary_delete(int merc_id)
+{
+	if (CheckForCharServer())
+		return 0;
+
+	WFIFOHEAD(inter_fd,6);
+	WFIFOW(inter_fd,0) = 0x30C2;
+	WFIFOL(inter_fd,2) = merc_id;
+	WFIFOSET(inter_fd,6);
+	return 0;
+}
+
+int intif_parse_mercenary_deleted(int fd)
+{
+	if( RFIFOB(fd,2) != 1 )
+		ShowError("Mercenary data delete failure\n");
+
+	return 0;
+}
+
+int intif_mercenary_save(struct s_mercenary *merc)
+{
+	int size = sizeof(struct s_mercenary) + 4;
+
+	if( CheckForCharServer() )
+		return 0;
+
+	WFIFOHEAD(inter_fd,size);
+	WFIFOW(inter_fd,0) = 0x30C3;
+	WFIFOW(inter_fd,2) = size;
+	memcpy(WFIFOP(inter_fd,4), merc, sizeof(struct s_mercenary));
+	WFIFOSET(inter_fd,size);
+	return 0;
+}
+
+int intif_parse_mercenary_saved(int fd)
+{
+	if( RFIFOB(fd,2) != 1 )
+		ShowError("Mercenary data save failure\n");
+
+	return 0;
+}
+
 //-----------------------------------------------------------------
 // inter serverからの通信
 // エラーがあれば0(false)を返すこと
@@ -2017,6 +2115,10 @@ int intif_parse(int fd)
 	case 0x3853:	intif_parse_Auction_close(fd); break;
 	case 0x3854:	intif_parse_Auction_message(fd); break;
 	case 0x3855:	intif_parse_Auction_bid(fd); break;
+	// Mercenary System
+	case 0x3870:	intif_parse_mercenary_received(fd); break;
+	case 0x3871:	intif_parse_mercenary_deleted(fd); break;
+	case 0x3872:	intif_parse_mercenary_saved(fd); break;
 
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;

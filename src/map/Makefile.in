@@ -3,30 +3,30 @@ COMMON_OBJ = ../common/obj_all/core.o ../common/obj_all/socket.o ../common/obj_a
 	../common/obj_all/db.o ../common/obj_all/plugins.o ../common/obj_all/lock.o \
 	../common/obj_all/nullpo.o ../common/obj_all/malloc.o ../common/obj_all/showmsg.o \
 	../common/obj_all/utils.o ../common/obj_all/strlib.o ../common/obj_all/grfio.o \
-	../common/obj_all/mapindex.o ../common/obj_all/ers.o
+	../common/obj_all/mapindex.o ../common/obj_all/ers.o ../common/obj_all/md5calc.o
 COMMON_H = ../common/core.h ../common/socket.h ../common/timer.h \
 	../common/db.h ../common/plugins.h ../common/lock.h \
 	../common/nullpo.h ../common/malloc.h ../common/showmsg.h \
 	../common/utils.h ../common/strlib.h ../common/grfio.h \
-	../common/mapindex.h ../common/ers.h
+	../common/mapindex.h ../common/ers.h ../common/md5calc.h
 
 COMMON_SQL_OBJ = ../common/obj_sql/sql.o
 COMMON_SQL_H = ../common/sql.h
 
 MAP_OBJ = map.o chrif.o clif.o pc.o status.o npc.o \
 	npc_chat.o chat.o path.o itemdb.o mob.o script.o \
-	storage.o skill.o atcommand.o charcommand.o battle.o \
+	storage.o skill.o atcommand.o battle.o battleground.o \
 	intif.o trade.o party.o vending.o guild.o pet.o \
-	log.o mail.o date.o unit.o mercenary.o quest.o
+	log.o mail.o date.o unit.o homunculus.o mercenary.o quest.o
 MAP_TXT_OBJ = $(MAP_OBJ:%=obj_txt/%) \
 	obj_txt/mapreg_txt.o
 MAP_SQL_OBJ = $(MAP_OBJ:%=obj_sql/%) \
 	obj_sql/mapreg_sql.o
 MAP_H = map.h chrif.h clif.h pc.h status.h npc.h \
 	chat.h itemdb.h mob.h script.h path.h \
-	storage.h skill.h atcommand.h charcommand.h battle.h \
+	storage.h skill.h atcommand.h battle.h battleground.h \
 	intif.h trade.h party.h vending.h guild.h pet.h \
-	log.h mail.h date.h unit.h mercenary.h quest.h mapreg.h
+	log.h mail.h date.h unit.h homunculus.h mercenary.h quest.h mapreg.h
 
 HAVE_MYSQL=@HAVE_MYSQL@
 ifeq ($(HAVE_MYSQL),yes)

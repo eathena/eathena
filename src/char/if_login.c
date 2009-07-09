@@ -11,6 +11,7 @@
 #include "int_guild.h"
 #include "int_storage.h" // inter_storage_delete()
 #include "inter.h"
+#include "if_client.h"
 #include "if_login.h"
 #include "if_map.h"
 #include "charserverdb.h"
@@ -30,6 +31,9 @@ extern int disconnect_player(int account_id);
 extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 extern void set_char_offline(int char_id, int account_id);
+extern int count_users(void);
+extern int max_connect_user;
+extern int gm_allow_level;
 
 
 int parse_fromlogin(int fd)
@@ -88,50 +92,66 @@ int parse_fromlogin(int fd)
 
 		// acknowledgement of account authentication request
 		case 0x2713:
-			if (RFIFOREST(fd) < 60)
+			if (RFIFOREST(fd) < 25)
 				return 0;
 		{
 			int account_id = RFIFOL(fd,2);
-			int login_id1 = RFIFOL(fd,6);
-			int login_id2 = RFIFOL(fd,10);
-			bool result = RFIFOB(fd,14);
-			const char* email = (const char*)RFIFOP(fd,15);
-			time_t expiration_time = (time_t)RFIFOL(fd,55);
-			int gmlevel = RFIFOB(fd,59);
+			uint32 login_id1 = RFIFOL(fd,6);
+			uint32 login_id2 = RFIFOL(fd,10);
+			uint8 sex = RFIFOB(fd,14);
+			uint8 result = RFIFOB(fd,15);
+			int request_id = RFIFOL(fd,16);
+			uint32 version = RFIFOL(fd,20);
+			uint8 clienttype = RFIFOB(fd,24);
+			RFIFOSKIP(fd,25);
 
-			// find the session with this account id
-			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) &&
-				sd->account_id == account_id && sd->login_id1 == login_id1 && sd->login_id2 == login_id2 );
-			if( i < fd_max )
+			if( session_isActive(request_id) && (sd=(struct char_session_data*)session[request_id]->session_data) &&
+				!sd->auth && sd->account_id == account_id && sd->login_id1 == login_id1 && sd->login_id2 == login_id2 && sd->sex == sex )
 			{
-				if( result ) { // failure
-					WFIFOHEAD(i,3);
-					WFIFOW(i,0) = 0x6c;
-					WFIFOB(i,2) = 0x42;
-					WFIFOSET(i,3);
-				} else { // success
-					memcpy(sd->email, email, 40);
-					sd->expiration_time = expiration_time;
-					sd->gmlevel = gmlevel;
-					char_auth_ok(i, sd);
+				int client_fd = request_id;
+				sd->version = version;
+				sd->clienttype = clienttype;
+				switch( result )
+				{
+				case 0:// ok
+					char_auth_ok(client_fd, sd);
+					break;
+				case 1:// auth failed
+					WFIFOHEAD(client_fd,3);
+					WFIFOW(client_fd,0) = 0x6c;
+					WFIFOB(client_fd,2) = 0;// rejected from server
+					WFIFOSET(client_fd,3);
+					break;
 				}
 			}
 		}
-			RFIFOSKIP(fd,60);
 		break;
 
-		// acknowledgement of e-mail/limited time request
-		case 0x2717:
+		case 0x2717: // account data
 			if (RFIFOREST(fd) < 51)
 				return 0;
 
-			// find the session with this account id
-			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->account_id == RFIFOL(fd,2) );
+			// find the authenticated session with this account id
+			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
 			if( i < fd_max )
 			{
 				memcpy(sd->email, RFIFOP(fd,6), 40);
 				sd->expiration_time = (time_t)RFIFOL(fd,46);
 				sd->gmlevel = RFIFOB(fd,50);
+
+				// continued from char_auth_ok...
+				if( max_connect_user && count_users() >= max_connect_user && sd->gmlevel < gm_allow_level )
+				{
+					// refuse connection (over populated)
+					WFIFOW(i,0) = 0x6c;
+					WFIFOW(i,2) = 0;
+					WFIFOSET(i,3);
+				}
+				else
+				{
+					// send characters to player
+					mmo_char_send006b(i, sd);
+				}
 			}
 			RFIFOSKIP(fd,51);
 		break;
@@ -385,10 +405,11 @@ int parse_fromlogin(int fd)
 						WFIFOSET(i,3);
 						set_eof(i);
 					}
-					else //Shouldn't happen, but just in case.
-						set_char_offline(-1, aid);
+					else // still moving to the map-server
+ 						set_char_offline(-1, aid);
 				}
 			}
+			idb_remove(auth_db, aid);// reject auth attempts from map-server
 		}
 		break;
 		

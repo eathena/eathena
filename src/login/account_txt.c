@@ -127,12 +127,14 @@ static bool account_db_txt_init(AccountDB* self)
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
 
+		n = 0;
 		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// format version definition
 			version = v;
 			continue;
 		}
 
+		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &account_id, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// auto-increment
 			if( account_id > db->next_account_id )
@@ -172,7 +174,7 @@ static bool account_db_txt_init(AccountDB* self)
 		memcpy(tmp, &acc, sizeof(struct mmo_account));
 		idb_put(accounts, acc.account_id, tmp);
 
-		if( acc.account_id >= db->next_account_id )
+		if( db->next_account_id < acc.account_id)
 			db->next_account_id = acc.account_id + 1;
 	}
 
@@ -181,7 +183,7 @@ static bool account_db_txt_init(AccountDB* self)
 
 	// initialize data saving timer
 	add_timer_func_list(mmo_auth_sync_timer, "mmo_auth_sync_timer");
-	db->save_timer = add_timer_interval(gettick() + AUTH_SAVING_INTERVAL, mmo_auth_sync_timer, 0, (int)db, AUTH_SAVING_INTERVAL);
+	db->save_timer = add_timer_interval(gettick() + AUTH_SAVING_INTERVAL, mmo_auth_sync_timer, 0, (intptr)db, AUTH_SAVING_INTERVAL);
 
 	return true;
 }

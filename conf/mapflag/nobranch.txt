@@ -87,8 +87,6 @@ lhz_cube	mapflag	nobranch
 hu_in01	mapflag	nobranch
 auction_01	mapflag	nobranch
 auction_02	mapflag	nobranch
-p_track01	mapflag	nobranch
-p_track02	mapflag	nobranch
 ra_in01	mapflag	nobranch
 ra_temin	mapflag	nobranch
 ra_temple	mapflag	nobranch
@@ -264,13 +262,6 @@ turbo_e_16	mapflag	nobranch
 //Monster Races ================
 p_track01	mapflag	nobranch
 p_track02	mapflag	nobranch
-
-//Battle Fields ================
-bat_room	mapflag	nobranch
-bat_a01	mapflag	nobranch
-bat_a02	mapflag	nobranch
-bat_b01	mapflag	nobranch
-bat_b02	mapflag	nobranch
 
 //Vision of Okolnir ============
 que_qsch01	mapflag	nobranch

@@ -33,17 +33,20 @@ struct item_data;
 #define AREA_SIZE battle_config.area_size
 #define DAMAGELOG_SIZE 30
 #define LOOTITEM_SIZE 10
-#define MAX_MOBSKILL 40
+#define MAX_MOBSKILL 50
 #define MAX_MOB_LIST_PER_MAP 128
 #define MAX_EVENTQUEUE 2
 #define MAX_EVENTTIMER 32
 #define NATURAL_HEAL_INTERVAL 500
-#define MAX_FLOORITEM 500000
+#define MIN_FLOORITEM 2
+#define MAX_FLOORITEM START_ACCOUNT_NUM
 #define MAX_LEVEL 99
 #define MAX_DROP_PER_MAP 48
 #define MAX_IGNORE_LIST 20 // official is 14
 #define MAX_VENDING 12
 #define MOBID_EMPERIUM 1288
+#define MAX_MAP_PER_INSTANCE 10
+#define MAX_INSTANCE 500
 
 //The following system marks a different job ID system used by the map server,
 //which makes a lot more sense than the normal one. [Skotlex]
@@ -156,13 +159,13 @@ enum {
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
 //Specifies maps where players may hit each other
-#define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
+#define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || ((agit_flag || agit2_flag) && map[m].flag.gvg_castle) || map[m].flag.battleground)
 //Specifies maps that have special GvG/WoE restrictions
-#define map_flag_gvg(m) (map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
+#define map_flag_gvg(m) (map[m].flag.gvg || ((agit_flag || agit2_flag) && map[m].flag.gvg_castle))
 //Specifies if the map is tagged as GvG/WoE (regardless of agit_flag status)
 #define map_flag_gvg2(m) (map[m].flag.gvg || map[m].flag.gvg_castle)
 // No Kill Steal Protection
-#define map_flag_ks(m) (map[m].flag.town || map[m].flag.pvp || map[m].flag.gvg)
+#define map_flag_ks(m) (map[m].flag.town || map[m].flag.pvp || map[m].flag.gvg || map[m].flag.battleground)
 
 //This stackable implementation does not means a BL can be more than one type at a time, but it's 
 //meant to make it easier to check for multiple types at a time on invocations such as map_foreach* calls [Skotlex]
@@ -172,17 +175,17 @@ enum bl_type {
 	BL_MOB   = 0x002,
 	BL_PET   = 0x004,
 	BL_HOM   = 0x008,
-	BL_ITEM  = 0x010,
-	BL_SKILL = 0x020,
-	BL_NPC   = 0x040,
-	BL_CHAT  = 0x080,
-	BL_MER   = 0x100,
+	BL_MER   = 0x010,
+	BL_ITEM  = 0x020,
+	BL_SKILL = 0x040,
+	BL_NPC   = 0x080,
+	BL_CHAT  = 0x100,
 
 	BL_ALL   = 0xFFF,
 };
 
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
-#define BL_CHAR (BL_PC|BL_MOB|BL_HOM)
+#define BL_CHAR (BL_PC|BL_MOB|BL_HOM|BL_MER)
 
 enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP };
 
@@ -199,6 +202,7 @@ enum {
 	RC_DRAGON,
 	RC_BOSS,
 	RC_NONBOSS,
+	RC_NONDEMIHUMAN,
 	RC_MAX
 };
 
@@ -220,7 +224,10 @@ enum auto_trigger_flag {
 	ATF_SELF=0x01,
 	ATF_TARGET=0x02,
 	ATF_SHORT=0x04,
-	ATF_LONG=0x08
+	ATF_LONG=0x08,
+	ATF_WEAPON=0x10,
+	ATF_MAGIC=0x20,
+	ATF_MISC=0x40,
 };
 
 struct block_list {
@@ -235,11 +242,11 @@ struct block_list {
 // Expanded to specify all mob-related spawn data by [Skotlex]
 struct spawn_data {
 	short class_; //Class, used because a mob can change it's class
+	unsigned boss : 1;
 	unsigned short m,x,y;	//Spawn information (map, point, spawn-area around point)
 	signed short xs,ys;
 	unsigned short num; //Number of mobs using this structure
 	unsigned short active; //Number of mobs that are already spawned (for mob_remove_damaged: no)
-	unsigned int level; //Custom level.
 	unsigned int delay1,delay2; //Min delay before respawning after spawn/death
 	struct {
 		unsigned size :2; //Holds if mob has to be tiny/large
@@ -274,6 +281,9 @@ enum _sp {
 
 	SP_BASEJOB=119,	// 100+19 - celest
 	SP_BASECLASS=120,	//Hmm.. why 100+19? I just use the next one... [Skotlex]
+
+	// Mercenaries
+	SP_MERCFLEE=165, SP_MERCKILLS=189, SP_MERCFAITH=190,
 	
 	// original 1000-
 	SP_ATTACKRANGE=1000,	SP_ATKELE,SP_DEFELE,	// 1000-1002
@@ -290,7 +300,7 @@ enum _sp {
 	SP_MAGIC_ADDELE,SP_MAGIC_ADDRACE,SP_MAGIC_ADDSIZE, // 1035-1037
 	SP_PERFECT_HIT_RATE,SP_PERFECT_HIT_ADD_RATE,SP_CRITICAL_RATE,SP_GET_ZENY_NUM,SP_ADD_GET_ZENY_NUM, // 1038-1042
 	SP_ADD_DAMAGE_CLASS,SP_ADD_MAGIC_DAMAGE_CLASS,SP_ADD_DEF_CLASS,SP_ADD_MDEF_CLASS, // 1043-1046
-	SP_ADD_MONSTER_DROP_ITEM,SP_DEF_RATIO_ATK_ELE,SP_DEF_RATIO_ATK_RACE,SP_FREE3, // 1047-1050
+	SP_ADD_MONSTER_DROP_ITEM,SP_DEF_RATIO_ATK_ELE,SP_DEF_RATIO_ATK_RACE,SP_UNBREAKABLE_GARMENT, // 1047-1050
 	SP_HIT_RATE,SP_FLEE_RATE,SP_FLEE2_RATE,SP_DEF_RATE,SP_DEF2_RATE,SP_MDEF_RATE,SP_MDEF2_RATE, // 1051-1057
 	SP_SPLASH_RANGE,SP_SPLASH_ADD_RANGE,SP_AUTOSPELL,SP_HP_DRAIN_RATE,SP_SP_DRAIN_RATE, // 1058-1062
 	SP_SHORT_WEAPON_DAMAGE_RETURN,SP_LONG_WEAPON_DAMAGE_RETURN,SP_WEAPON_COMA_ELE,SP_WEAPON_COMA_RACE, // 1063-1066
@@ -300,24 +310,21 @@ enum _sp {
 	SP_HP_DRAIN_VALUE,SP_SP_DRAIN_VALUE, // 1079-1080
 	SP_WEAPON_ATK,SP_WEAPON_ATK_RATE, // 1081-1082
 	SP_DELAYRATE,SP_HP_DRAIN_RATE_RACE,SP_SP_DRAIN_RATE_RACE, // 1083-1085
-	SP_IGNORE_MDEF_RATE, //1086
-	
+	SP_IGNORE_MDEF_RATE,SP_IGNORE_DEF_RATE,SP_SKILL_HEAL2,SP_ADDEFF_ONSKILL, //1086-1089
+	SP_ADD_HEAL_RATE,SP_ADD_HEAL2_RATE, //1090-1091
+
 	SP_RESTART_FULL_RECOVER=2000,SP_NO_CASTCANCEL,SP_NO_SIZEFIX,SP_NO_MAGIC_DAMAGE,SP_NO_WEAPON_DAMAGE,SP_NO_GEMSTONE, // 2000-2005
 	SP_NO_CASTCANCEL2,SP_NO_MISC_DAMAGE,SP_UNBREAKABLE_WEAPON,SP_UNBREAKABLE_ARMOR, SP_UNBREAKABLE_HELM, // 2006-2010
 	SP_UNBREAKABLE_SHIELD, SP_LONG_ATK_RATE, // 2011-2012
 
 	SP_CRIT_ATK_RATE, SP_CRITICAL_ADDRACE, SP_NO_REGEN, SP_ADDEFF_WHENHIT, SP_AUTOSPELL_WHENHIT, // 2013-2017
-	SP_SKILL_ATK, SP_UNSTRIPABLE, SP_FREE, // 2018-2020
+	SP_SKILL_ATK, SP_UNSTRIPABLE, SP_AUTOSPELL_ONSKILL, // 2018-2020
 	SP_SP_GAIN_VALUE, SP_HP_REGEN_RATE, SP_HP_LOSS_RATE, SP_ADDRACE2, SP_HP_GAIN_VALUE, // 2021-2025
 	SP_SUBSIZE, SP_HP_DRAIN_VALUE_RACE, SP_ADD_ITEM_HEAL_RATE, SP_SP_DRAIN_VALUE_RACE, SP_EXP_ADDRACE,	// 2026-2030
-	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_FREE2,	// 2031-2033
+	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_UNBREAKABLE_SHOES,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
 	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
-	//Before adding new bonuses, reuse the currently free slots:
-	//2020 (SP_FREE) (previously SP_ADD_DAMAGE_BY_CLASS)
-	//2033 (SP_FREE2) (previously SP_ADDEFF_WHENHIT_SHORT)
-	//1050 (SP_FREE3) (previously SP_ADD_SPEED)
 };
 
 enum _look {
@@ -403,6 +410,7 @@ struct map_data {
 	int m;
 	short xs,ys; // map dimensions (in cells)
 	short bxs,bys; // map dimensions (in blocks)
+	short bgscore_lion, bgscore_eagle; // Battleground ScoreBoard
 	int npc_num;
 	int users;
 	int iwall_num; // Total of invisible walls in this map
@@ -426,6 +434,7 @@ struct map_data {
 		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
 		unsigned gvg_dungeon : 1; // Celest
 		unsigned gvg_noparty : 1;
+		unsigned battleground : 2; // [BattleGround System]
 		unsigned nozenypenalty : 1;
 		unsigned notrade : 1;
 		unsigned noskill : 1;
@@ -469,6 +478,8 @@ struct map_data {
 	int jexp;	// map experience multiplicator
 	int bexp;	// map experience multiplicator
 	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
+	int instance_id;
+	int instance_map[1000];
 };
 
 /// Stores information about a remote map (for multi-mapserver setups).
@@ -481,6 +492,22 @@ struct map_data_other_server {
 	uint16 port;
 };
 
+// Instancing
+struct map_instance {
+	char name[61];
+	unsigned int name_id;
+//	int m;
+	unsigned int instance_id;
+	int party_id;
+	int map[MAX_MAP_PER_INSTANCE];
+	int num_map;
+	struct linkdb_node *ivar, *svar;
+	time_t progress_timeout, idle_timeout;
+	time_t progress_timeoutval, idle_timeoutval;
+	int progress_timer, idle_timer;
+	int users;
+};
+
 int map_getcell(int,int,int,cell_chk);
 int map_getcellp(struct map_data*,int,int,cell_chk);
 void map_setcell(int m, int x, int y, cell_t cell, bool flag);
@@ -488,11 +515,13 @@ void map_setgatcell(int m, int x, int y, int gat);
 
 extern struct map_data map[];
 extern int map_num;
+extern int map_instance_start;
 
 extern int autosave_interval;
 extern int minsave_interval;
 extern int save_settings;
 extern int agit_flag;
+extern int agit2_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 extern int enable_spy; //Determines if @spy commands are active.
 extern char db_path[256];
@@ -527,10 +556,7 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type, .
 int map_count_oncell(int m,int x,int y,int type);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,int skill_id,struct skill_unit *);
 // ˆêŽž“IobjectŠÖ˜A
-int map_addobject(struct block_list *);
-int map_delobject(int);
-int map_delobjectnofree(int id);
-void map_foreachobject(int (*)(struct block_list*,va_list),int,...);
+int map_get_new_object_id(void);
 int map_search_freecell(struct block_list *src, int m, short *x, short *y, int rx, int ry, int flag);
 //
 int map_quit(struct map_session_data *);
@@ -566,7 +592,8 @@ void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
 void map_foreachpc(int (*func)(struct map_session_data* sd, va_list args), ...);
 void map_foreachmob(int (*func)(struct mob_data* md, va_list args), ...);
-void map_foreachnpc(int (*func)(struct npc_data* bl, va_list args), ...);
+void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...);
+void map_foreachregen(int (*func)(struct block_list* bl, va_list args), ...);
 void map_foreachiddb(int (*func)(struct block_list* bl, va_list args), ...);
 struct map_session_data * map_nick2sd(const char*);
 struct mob_data * map_getmob_boss(int m);
@@ -611,12 +638,26 @@ void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
 void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
 
+// Instancing
+int map_instance_map(const char *name, int instance_id);
+void map_instance_del(int m);
+int map_instance_create(int party_id, int name_id, const char *name);
+void map_instance_init(int instance_id);
+int map_instance_mapid2imapid(int m, int instance_id);
+int map_instance_map2imap(int m, struct map_session_data *sd, int type);
+void map_instance_destroy(int instance_id);
+void map_instance_check_idle(int instance_id);
+void map_instance_check_kick(struct map_session_data *sd);
+char *map_instance_npcname(char *name, int instance_id);
+void map_instance_set_timeout(int instance_id, unsigned int progress_timeout, unsigned int idle_timeout);
+
+extern struct map_instance instance[MAX_INSTANCE];
+
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
 extern char *MAP_CONF_NAME;
 extern char *BATTLE_CONF_FILENAME;
 extern char *ATCOMMAND_CONF_FILENAME;
-extern char *CHARCOMMAND_CONF_FILENAME;
 extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
 extern char *GRF_PATH_FILENAME;

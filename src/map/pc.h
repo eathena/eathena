@@ -56,14 +56,24 @@ struct s_addeffect {
 	unsigned char flag;
 };
 
+struct s_addeffectonskill {
+	enum sc_type id;
+	short rate, skill;
+	unsigned char target;
+};
+
 struct s_add_drop { 
 	short id, group;
 	int race, rate;
 };
 
-struct s_autoscript {
-	unsigned short rate, flag;
-	struct script_code *script;
+struct s_autobonus {
+	short rate,atk_type;
+	unsigned int duration;
+	struct script_code *bonus_script;
+	struct script_code *other_script;
+	int active;
+	unsigned short pos;
 };
 
 struct map_session_data {
@@ -83,13 +93,14 @@ struct map_session_data {
 		unsigned lr_flag : 2;
 		unsigned connect_new : 1;
 		unsigned arrow_atk : 1;
-		unsigned skill_flag : 1;
+		unsigned combo : 2; // 1:Asura, 2:Kick [Inkfish]
 		unsigned gangsterparadise : 1;
 		unsigned rest : 1;
 		unsigned storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned snovice_call_flag : 2; //Summon Angel (stage 1~3)
 		unsigned snovice_dead_flag : 1; //Explosion spirits on death: 0 off, 1 used.
 		unsigned abra_flag : 1; // Abracadabra bugfix by Aru
+		unsigned autocast : 1; // Autospell flag [Inkfish]
 		unsigned autotrade : 1;	//By Fantik
 		unsigned reg_dirty : 3; //By Skotlex (marks whether registry variables have been saved or not yet)
 		unsigned showdelay :1;
@@ -114,7 +125,12 @@ struct map_session_data {
 		unsigned short autolootid; // [Zephyrus]
 		unsigned noks : 3; // [Zeph Kill Steal Protection]
 		bool changemap;
+		short pmap; // Previous map on Map Change
 		struct guild *gmaster_flag;
+		unsigned int bg_id;
+		unsigned skillonskill : 1;
+		unsigned short user_font;
+		unsigned short autobonus;
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;
@@ -166,13 +182,15 @@ struct map_session_data {
 	short skillitem,skillitemlv;
 	short skillid_old,skilllv_old;
 	short skillid_dance,skilllv_dance;
-	char blockskill[MAX_SKILL];	// [celest]
+	short cook_mastery; // range: [0,1999] [Inkfish]
+	unsigned char blockskill[MAX_SKILL];
 	int cloneskill_id;
 	int menuskill_id, menuskill_val;
 
 	int invincible_timer;
 	unsigned int canlog_tick;
 	unsigned int canuseitem_tick;	// [Skotlex]
+	unsigned int canequip_tick;	// [Inkfish]
 	unsigned int cantalk_tick;
 	unsigned int cansendmail_tick; // [Mail System Flood Protection]
 	unsigned int ks_floodprotect_tick; // [Kill Steal Protection]
@@ -202,16 +220,19 @@ struct map_session_data {
 	int critaddrace[RC_MAX];
 	int expaddrace[RC_MAX];
 	int ignore_mdef[RC_MAX];
+	int ignore_def[RC_MAX];
 	int itemgrouphealrate[MAX_ITEMGROUP];
 	short sp_gain_race[RC_MAX];
 	// zeroed arrays end here.
 	// zeroed structures start here
-	struct s_autospell autospell[15], autospell2[15];
+	struct s_autospell autospell[15], autospell2[15], autospell3[15];
 	struct s_addeffect addeff[MAX_PC_BONUS], addeff2[MAX_PC_BONUS];
+	struct s_addeffectonskill addeff3[MAX_PC_BONUS];
+
 	struct { //skillatk raises bonus dmg% of skills, skillheal increases heal%, skillblown increases bonus blewcount for some skills.
 		unsigned short id;
 		short val;
-	} skillatk[MAX_PC_BONUS], skillheal[5], skillblown[MAX_PC_BONUS], skillcast[MAX_PC_BONUS];
+	} skillatk[MAX_PC_BONUS], skillheal[5], skillheal2[5], skillblown[MAX_PC_BONUS], skillcast[MAX_PC_BONUS];
 	struct {
 		short value;
 		int rate;
@@ -227,7 +248,7 @@ struct map_session_data {
 	} itemhealrate[MAX_PC_BONUS];
 	// zeroed structures end here
 	// manually zeroed structures start here.
-	struct s_autoscript autoscript[10], autoscript2[10]; //Auto script on attack, when attacked
+	struct s_autobonus autobonus[MAX_PC_BONUS], autobonus2[MAX_PC_BONUS], autobonus3[MAX_PC_BONUS]; //Auto script on attack, when attacked, on skill usage
 	// manually zeroed structures end here.
 	// zeroed vars start here.
 	int arrow_atk,arrow_ele,arrow_cri,arrow_hit;
@@ -253,6 +274,7 @@ struct map_session_data {
 	
 	short splash_range, splash_add_range;
 	short add_steal_rate;
+	short add_heal_rate, add_heal2_rate;
 	short sp_gain_value, hp_gain_value;
 	short sp_vanish_rate;
 	short sp_vanish_per;	
@@ -340,6 +362,7 @@ struct map_session_data {
 	char away_message[128]; // [LuzZza]
 
 	int cashPoints, kafraPoints;
+	int rental_timer;
 
 	// Auction System [Zephyrus]
 	struct {
@@ -553,8 +576,10 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 
 int pc_updateweightstatus(struct map_session_data *sd);
 
-int pc_autoscript_add(struct s_autoscript *scripts, int max, short rate, short flag, struct script_code *script);
-void pc_autoscript_clear(struct s_autoscript *scripts, int max);
+int pc_addautobonus(struct s_autobonus *bonus,char max,struct script_code *script,short rate,unsigned int dur,short atk_type,struct script_code *other_script,unsigned short pos,bool onskill);
+int pc_exeautobonus(struct map_session_data* sd,struct s_autobonus *bonus);
+int pc_endautobonus(int tid, unsigned int tick, int id, intptr data);
+int pc_delautobonus(struct map_session_data* sd,struct s_autobonus *bonus,char max,bool restore);
 
 int pc_bonus(struct map_session_data*,int,int);
 int pc_bonus2(struct map_session_data *sd,int,int,int);
@@ -600,6 +625,7 @@ int pc_useitem(struct map_session_data*,int);
 
 int pc_skillatk_bonus(struct map_session_data *sd, int skill_num);
 int pc_skillheal_bonus(struct map_session_data *sd, int skill_num);
+int pc_skillheal2_bonus(struct map_session_data *sd, int skill_num);
 
 void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp);
 int pc_dead(struct map_session_data *sd,struct block_list *src);
@@ -711,6 +737,11 @@ extern int day_timer_tid;
 extern int night_timer_tid;
 int map_day_timer(int tid, unsigned int tick, int id, intptr data); // by [yor]
 int map_night_timer(int tid, unsigned int tick, int id, intptr data); // by [yor]
+
+// Rental System
+void pc_inventory_rentals(struct map_session_data *sd);
+int pc_inventory_rental_clear(struct map_session_data *sd);
+void pc_inventory_rental_add(struct map_session_data *sd, int seconds);
 
 //Duel functions // [LuzZza]
 int duel_create(struct map_session_data* sd, const unsigned int maxpl);

@@ -162,7 +162,7 @@ int Sql_GetColumnNames(Sql* self, const char* table, char* out_buf, size_t buf_l
 /// Changes the encoding of the connection.
 int Sql_SetEncoding(Sql* self, const char* encoding)
 {
-	if( self && mysql_set_character_set(&self->handle, encoding) )
+	if( self && mysql_set_character_set(&self->handle, encoding) == 0 )
 		return SQL_SUCCESS;
 	return SQL_ERROR;
 }
@@ -212,7 +212,7 @@ static int Sql_P_Keepalive(Sql* self)
 	// establish keepalive
 	ping_interval = timeout - 30; // 30-second reserve
 	//add_timer_func_list(Sql_P_KeepaliveTimer, "Sql_P_KeepaliveTimer");
-	return add_timer_interval(gettick() + ping_interval*1000, Sql_P_KeepaliveTimer, 0, (int)self, ping_interval*1000);
+	return add_timer_interval(gettick() + ping_interval*1000, Sql_P_KeepaliveTimer, 0, (intptr)self, ping_interval*1000);
 }
 
 

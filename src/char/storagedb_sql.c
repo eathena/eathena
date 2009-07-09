@@ -36,8 +36,7 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct storage_data* s, int a
 	int i;
 	int j;
 
-	memset(s, 0, sizeof(struct storage_data)); //clean up memory
-	s->storage_amount = 0;
+	memset(s, 0, sizeof(*s)); //clean up memory
 
 	// storage {`account_id`,`id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`card0`,`card1`,`card2`,`card3`}
 	StringBuf_Init(&buf);

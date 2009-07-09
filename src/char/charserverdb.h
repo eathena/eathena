@@ -21,6 +21,7 @@
 #include "homundb.h"
 #include "hotkeydb.h"
 #include "maildb.h"
+#include "mercdb.h"
 #include "partydb.h"
 #include "petdb.h"
 #include "questdb.h"
@@ -36,6 +37,7 @@
 // auctions : auctions
 // pets : pets
 // homunculus : homunculus
+// mercenaries : mercenaries
 // groups : families, friends, parties, guilds
 
 
@@ -182,6 +184,12 @@ struct CharServerDB
 	/// @param self Database engine
 	/// @return Interface for mails
 	MailDB* (*maildb)(CharServerDB* self);
+
+	/// Returns the database interface that handles mercenaries.
+	///
+	/// @param self Database engine
+	/// @return Interface for mercenaries
+	MercDB* (*mercdb)(CharServerDB* self);
 
 	/// Returns the database interface that handles parties.
 	///

@@ -31,13 +31,14 @@
 #include "party.h"
 #include "unit.h"
 #include "battle.h"
+#include "battleground.h"
 #include "script.h"
 #include "mapreg.h"
 #include "guild.h"
 #include "pet.h"
+#include "homunculus.h"
 #include "mercenary.h"
 #include "atcommand.h"
-#include "charcommand.h"
 #include "log.h"
 #include "mail.h"
 #include <stdio.h>
@@ -97,10 +98,9 @@ static DBMap* bossid_db=NULL; // int id -> struct mob_data* (MVP db)
 static DBMap* map_db=NULL; // unsigned int mapindex -> struct map_data*
 static DBMap* nick_db=NULL; // int char_id -> struct charid2nick* (requested names of offline characters)
 static DBMap* charid_db=NULL; // int char_id -> struct map_session_data*
+static DBMap* regen_db=NULL; // int id -> struct block_list* (status_natural_heal processing)
 
 static int map_users=0;
-static struct block_list *objects[MAX_FLOORITEM];
-static int first_free_object_id=0,last_object_id=0;
 
 #define block_free_max 1048576
 struct block_list *block_free[block_free_max];
@@ -112,6 +112,8 @@ static int bl_list_count = 0;
 
 struct map_data map[MAX_MAP_PER_SERVER];
 int map_num = 0;
+int map_instance_start = 0; // To keep the last index + 1 of normal map inserted in the map[ARRAY]
+struct map_instance instance[MAX_INSTANCE];
 
 int map_port=0;
 
@@ -119,6 +121,7 @@ int autosave_interval = DEFAULT_AUTOSAVE_INTERVAL;
 int minsave_interval = 100;
 int save_settings = 0xFFFF;
 int agit_flag = 0;
+int agit2_flag = 0;
 int night_flag = 0; // 0=day, 1=night [Yor]
 
 struct charid_request {
@@ -132,16 +135,16 @@ struct charid2nick {
 
 // This is the main header found at the very beginning of the map cache
 struct map_cache_main_header {
-	unsigned long file_size;
-	unsigned short map_count;
+	uint32 file_size;
+	uint16 map_count;
 };
 
 // This is the header appended before every compressed map cells info in the map cache
 struct map_cache_map_info {
 	char name[MAP_NAME_LENGTH];
-	short xs;
-	short ys;
-	long len;
+	int16 xs;
+	int16 ys;
+	int32 len;
 };
 
 char map_cache_file[256]="db/map_cache.dat";
@@ -406,8 +409,6 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				status_change_end(bl, SC_CLOSECONFINE2, -1);
 //			if (sc->data[SC_BLADESTOP]) //Won't stop when you are knocked away, go figure...
 //				status_change_end(bl, SC_BLADESTOP, -1);
-			if (sc->data[SC_BASILICA])
-				status_change_end(bl, SC_BASILICA, -1);
 			if (sc->data[SC_TATAMIGAESHI])
 				status_change_end(bl, SC_TATAMIGAESHI, -1);
 			if (sc->data[SC_MAGICROD])
@@ -435,9 +436,9 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 				if (sc->data[SC_CLOAKING])
 					skill_check_cloaking(bl, sc->data[SC_CLOAKING]);
 				if (sc->data[SC_DANCING])
-					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_DANCING]->val2, bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_DANCING]->val2), bl->m, x1-x0, y1-y0);
 				if (sc->data[SC_WARM])
-					skill_unit_move_unit_group((struct skill_unit_group *)sc->data[SC_WARM]->val4, bl->m, x1-x0, y1-y0);
+					skill_unit_move_unit_group(skill_id2group(sc->data[SC_WARM]->val4), bl->m, x1-x0, y1-y0);
 			}
 		}
 	} else
@@ -475,7 +476,7 @@ int map_count_oncell(int m, int x, int y, int type)
 	return count;
 }
 /*
- * ´ª´ÅEæ™ŒıÃÙ¯™ÀÃ∏™ƒ™±™ø´π´≠´ÅEÊ´À´√´»™Ú⁄˜™π
+ * ´ª´ÅEæ™ŒıÃÙ¯™ÀÃ∏™ƒ™±™ø´π´≠´ÅEÊ´À´√´»™Ú⁄˜™?
  */
 struct skill_unit* map_find_skill_unit_oncell(struct block_list* target,int x,int y,int skill_id,struct skill_unit* out_unit)
 {
@@ -509,13 +510,11 @@ struct skill_unit* map_find_skill_unit_oncell(struct block_list* target,int x,in
  *------------------------------------------*/
 int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int type, ...)
 {
-	va_list ap;
 	int bx,by,m;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
 	int blockcount=bl_list_count,i;
 	int x0,x1,y0,y1;
-	va_start(ap,type);
 
 	m = center->m;
 	x0 = max(center->x-range, 0);
@@ -560,11 +559,15 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_lis
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// óL?Ç©Ç«Ç§Ç©É`ÉFÉbÉN
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
 }
@@ -574,7 +577,6 @@ int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_lis
  *------------------------------------------*/
 int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block_list* center, int range, int type,...)
 {
-	va_list ap;
 	int bx,by,m;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
@@ -584,8 +586,6 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 	m = center->m;
 	if (m < 0)
 		return 0;
-
-	va_start(ap,type);
 
 	x0 = max(center->x-range, 0);
 	y0 = max(center->y-range, 0);
@@ -631,11 +631,15 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// óL?Ç©Ç«Ç§Ç©É`ÉFÉbÉN
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
 }
@@ -647,7 +651,6 @@ int map_foreachinshootrange(int (*func)(struct block_list*,va_list),struct block
  *------------------------------------------*/
 int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, int y0, int x1, int y1, int type, ...)
 {
-	va_list ap;
 	int bx,by;
 	int returnCount =0;	//total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
@@ -655,7 +658,6 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, in
 
 	if (m < 0)
 		return 0;
-	va_start(ap,type);
 	if (x1 < x0)
 	{	//Swap range
 		bx = x0;
@@ -694,17 +696,21 @@ int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, in
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// óL?Ç©Ç«Ç§Ç©É`ÉFÉbÉN
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
 }
 
 /*==========================================
- * ãÈå`(x0,y0)-(x1,y1)Ç™(dx,dy)à⁄ìÆÇµÇΩébÃ
+ * ãÈå`(x0,y0)-(x1,y1)Ç™(dx,dy)à⁄ìÆÇµÇΩéb?
  * óÃàÊäOÇ…Ç»ÇÈóÃàÊ(ãÈå`Ç©Léöå`)?ÇÃobjÇ…
  * ?ÇµÇƒfuncÇåƒÇ‘
  *
@@ -715,13 +721,11 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 	int bx,by,m;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
-	va_list ap;
 	int blockcount=bl_list_count,i;
 	int x0, x1, y0, y1;
 
 	if (!range) return 0;
 	if (!dx && !dy) return 0; //No movement.
-	va_start(ap,type);
 	m = center->m;
 
 	x0 = center->x-range;
@@ -828,11 +832,15 @@ int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;
 }
@@ -846,12 +854,9 @@ int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int
 	int bx,by;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
-	va_list ap;
 	int blockcount=bl_list_count,i;
 
 	if (x < 0 || y < 0 || x >= map[m].xs || y >= map[m].ys) return 0;
-
-	va_start(ap,type);
 
 	by=y/BLOCK_SIZE;
 	bx=x/BLOCK_SIZE;
@@ -873,11 +878,15 @@ int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// óL?Ç©Ç«Ç§Ç©É`ÉFÉbÉN
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;
 }
@@ -922,7 +931,6 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 // kRO.
 
 	//Generic map_foreach* variables.
-	va_list ap;
 	int i, blockcount = bl_list_count;
 	struct block_list *bl;
 	int bx, by;
@@ -936,8 +944,6 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 	
 	if (m < 0)
 		return 0;
-		
-	va_start(ap,type);
 
 	len_limit = magnitude2 = MAGNITUDE2(x0,y0, x1,y1);
 	if (magnitude2 < 1) //Same begin and ending point, can't trace path.
@@ -1066,11 +1072,15 @@ int map_foreachinpath(int (*func)(struct block_list*,va_list),int m,int x0,int y
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	//This check is done in case some object gets killed due to further skill processing.
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;	//[Skotlex]
 
@@ -1082,10 +1092,7 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type,..
 	int b, bsize;
 	int returnCount =0;  //total sum of returned values of func() [Skotlex]
 	struct block_list *bl;
-	va_list ap;
 	int blockcount=bl_list_count,i;
-
-	va_start(ap,type);
 
 	bsize = map[m].bxs * map[m].bys;
 
@@ -1108,157 +1115,80 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type,..
 
 	for(i=blockcount;i<bl_list_count;i++)
 		if(bl_list[i]->prev)	// óL?Ç©Ç«Ç§Ç©É`ÉFÉbÉN
-			returnCount += func(bl_list[i],ap);
+		{
+			va_list ap;
+			va_start(ap, type);
+			returnCount += func(bl_list[i], ap);
+			va_end(ap);
+		}
 
 	map_freeblock_unlock();	// âï˙Çãñâ¬Ç∑ÇÈ
 
-	va_end(ap);
 	bl_list_count = blockcount;
 	return returnCount;
 }
 
-/*==========================================
- * è∞ÉAÉCÉeÉÄÇ‚ÉGÉtÉFÉNÉgópÇÃàÍéObjäÑÇË?Çƒ
- * object[]Ç÷ÇÃï€ë∂Ç∆id_dbìo?Ç‹Ç≈
- *
- * bl->idÇ‡Ç±ÇÃíÜÇ≈ê›íËÇµÇƒñ‚ëËñ≥Ç¢?
- *------------------------------------------*/
-int map_addobject(struct block_list *bl)
+
+/// Generates a new flooritem object id from the interval [MIN_FLOORITEM, MAX_FLOORITEM).
+/// Used for floor items, skill units and chatroom objects.
+/// @return The new object id
+int map_get_new_object_id(void)
 {
+	static int last_object_id = MIN_FLOORITEM - 1;
 	int i;
-	if( bl == NULL ){
-		ShowWarning("map_addobject nullpo?\n");
+
+	// find a free id
+	i = last_object_id + 1;
+	while( i != last_object_id )
+	{
+		if( i == MAX_FLOORITEM )
+			i = MIN_FLOORITEM;
+
+		if( idb_get(id_db, i) == NULL )
+			break;
+
+		++i;
+	}
+
+	if( i == last_object_id )
+	{
+		ShowError("map_addobject: no free object id!\n");
 		return 0;
 	}
-	if(first_free_object_id<2 || first_free_object_id>=MAX_FLOORITEM)
-		first_free_object_id=2;
-	for(i=first_free_object_id;i<MAX_FLOORITEM && objects[i];i++);
-	if(i>=MAX_FLOORITEM){
-		ShowWarning("no free object id\n");
-		return 0;
-	}
-	first_free_object_id=i;
-	if(last_object_id<i)
-		last_object_id=i;
-	objects[i]=bl;
-	idb_put(id_db,i,bl);
+
+	// update cursor
+	last_object_id = i;
+
 	return i;
-}
-
-/*==========================================
- * àÍéObjectÇÃâï˙
- *	map_delobjectÇÃfreeÇµÇ»Ç¢Éo?ÉWÉáÉì
- *------------------------------------------*/
-int map_delobjectnofree(int id)
-{
-	if( id < 0 || id >= MAX_FLOORITEM )
-	{
-		ShowError("map_delobjectnofree: invalid object id '%d'!\n", id);
-		return 0;
-	}
-
-	if(objects[id]==NULL)
-		return 0;
-
-	map_delblock(objects[id]);
-	idb_remove(id_db,id);
-	objects[id]=NULL;
-
-	if(first_free_object_id>id)
-		first_free_object_id=id;
-
-	while(last_object_id>2 && objects[last_object_id]==NULL)
-		last_object_id--;
-
-	return 0;
-}
-
-/*==========================================
- * àÍéObjectÇÃâï˙
- * block_listÇ©ÇÁÇÃçÌèúÅAid_dbÇ©ÇÁÇÃçÌèú
- * object dataÇÃfreeÅAobject[]Ç÷ÇÃNULLë„ì¸
- *
- * addÇ∆ÇÃ??ê´Ç™ñ≥Ç¢ÇÃÇ™?Ç…Ç»ÇÈ
- *------------------------------------------*/
-int map_delobject(int id)
-{
-	struct block_list* bl;
-
-	if( id < 0 || id >= MAX_FLOORITEM )
-	{
-		ShowError("map_delobject: invalid object id '%d'!\n", id);
-		return 0;
-	}
-
-	if(objects[id]==NULL)
-		return 0;
-
-	bl = objects[id];
-	map_delobjectnofree(id);
-	map_freeblock(bl);
-
-	return 0;
-}
-
-/*==========================================
- * ëSàÍéObjëäéËÇ…funcÇåƒÇ‘
- *
- *------------------------------------------*/
-void map_foreachobject(int (*func)(struct block_list*,va_list),int type,...)
-{
-	int i;
-	int blockcount=bl_list_count;
-	va_list ap;
-
-	va_start(ap,type);
-
-	for(i=2;i<=last_object_id;i++){
-		if(objects[i]){
-			if(!(objects[i]->type==type)) // Fixed [Lance]
-				continue;
-			if(bl_list_count>=BL_LIST_MAX) {
-				ShowWarning("map_foreachobject: too many blocks !\n");
-				break;
-			}
-			bl_list[bl_list_count++]=objects[i];
-		}
-	}
-
-	map_freeblock_lock();
-
-	for(i=blockcount;i<bl_list_count;i++)
-		if( bl_list[i]->prev || bl_list[i]->next )
-			func(bl_list[i],ap);
-
-	map_freeblock_unlock();
-
-	va_end(ap);
-	bl_list_count = blockcount;
 }
 
 /*==========================================
  * è∞ÉAÉCÉeÉÄÇè¡Ç∑
  *
- * data==0ÇÃébÕtimerÇ≈è¡Ç¶ÇΩéÍ * data!=0ÇÃébÕèEÇ§ìôÇ≈è¡Ç¶ÇΩéb∆ÇµÇƒìÆçÏ
+ * data==0ÇÃébÕtimerÇ≈è¡Ç¶ÇΩéÍ * data!=0ÇÃébÕèEÇ§ìôÇ≈è¡Ç¶ÇΩéb∆ÇµÇƒìÆç?
  *
  * å„é“ÇÕÅAmap_clearflooritem(id)Ç÷
  * map.h?Ç≈#defineÇµÇƒÇ†ÇÈ
  *------------------------------------------*/
 int map_clearflooritem_timer(int tid, unsigned int tick, int id, intptr data)
 {
-	struct flooritem_data *fitem=NULL;
-
-	fitem = (struct flooritem_data *)objects[id];
-	if(fitem==NULL || fitem->bl.type!=BL_ITEM || (!data && fitem->cleartimer != tid)){
+	struct flooritem_data* fitem = (struct flooritem_data*)idb_get(id_db, id);
+	if( fitem==NULL || fitem->bl.type!=BL_ITEM || (!data && fitem->cleartimer != tid) )
+	{
 		ShowError("map_clearflooritem_timer : error\n");
 		return 1;
 	}
+
 	if(data)
 		delete_timer(fitem->cleartimer,map_clearflooritem_timer);
-	else if(fitem->item_data.card[0] == CARD0_PET)
+	else
+	if(fitem->item_data.card[0] == CARD0_PET) // pet egg
 		intif_delete_petdata( MakeDWord(fitem->item_data.card[1],fitem->item_data.card[2]) );
+
 	clif_clearflooritem(fitem,0);
-	map_delobject(fitem->bl.id);
+	map_deliddb(&fitem->bl);
+	map_delblock(&fitem->bl);
+	map_freeblock(&fitem->bl);
 
 	return 0;
 }
@@ -1401,7 +1331,7 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,int fir
 	fitem->bl.m=m;
 	fitem->bl.x=x;
 	fitem->bl.y=y;
-	fitem->bl.id = map_addobject(&fitem->bl);
+	fitem->bl.id = map_get_new_object_id();
 	if(fitem->bl.id==0){
 		aFree(fitem);
 		return 0;
@@ -1420,6 +1350,7 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,int fir
 	fitem->suby=((r>>2)&3)*3+3;
 	fitem->cleartimer=add_timer(gettick()+battle_config.flooritem_lifetime,map_clearflooritem_timer,fitem->bl.id,0);
 
+	map_addiddb(&fitem->bl);
 	map_addblock(&fitem->bl);
 	clif_dropflooritem(fitem);
 
@@ -1528,12 +1459,15 @@ void map_addiddb(struct block_list *bl)
 	}
 	else if( bl->type == BL_MOB )
 	{
-		struct mob_data* md = BL_CAST(BL_MOB, bl);
+		TBL_MOB* md = (TBL_MOB*)bl;
 		idb_put(mobid_db,bl->id,bl);
 
-		if( md && (md->db->status.mode&MD_BOSS) && md->db->mexp > 0 )
+		if( md->boss )
 			idb_put(bossid_db, bl->id, bl);
 	}
+
+	if( bl->type & BL_REGEN )
+		idb_put(regen_db, bl->id, bl);
 
 	idb_put(id_db,bl->id,bl);
 }
@@ -1556,6 +1490,10 @@ void map_deliddb(struct block_list *bl)
 		idb_remove(mobid_db,bl->id);
 		idb_remove(bossid_db,bl->id);
 	}
+
+	if( bl->type & BL_REGEN )
+		idb_remove(regen_db,bl->id);
+
 	idb_remove(id_db,bl->id);
 }
 
@@ -1577,12 +1515,15 @@ int map_quit(struct map_session_data *sd)
 	if (sd->npc_timer_id != -1) //Cancel the event timer.
 		npc_timerevent_quit(sd);
 
+	if( sd->state.bg_id )
+		bg_team_leave(sd,1);
 	npc_script_event(sd, NPCE_LOGOUT);
 
 	//Unit_free handles clearing the player related data, 
 	//map_quit handles extra specific data which is related to quitting normally
 	//(changing map-servers invokes unit_free but bypasses map_quit)
-	if(sd->sc.count) {
+	if( sd->sc.count )
+	{
 		//Status that are not saved...
 		if(sd->sc.data[SC_BOSSMAPINFO])
 			status_change_end(&sd->bl,SC_BOSSMAPINFO,-1);
@@ -1618,6 +1559,11 @@ int map_quit(struct map_session_data *sd)
 			//TO-DO Probably there are way more NPC_type negative status that are removed
 			if(sd->sc.data[SC_CHANGEUNDEAD])
 				status_change_end(&sd->bl,SC_CHANGEUNDEAD,-1);
+			// Both these statuses are removed on logout. [L0ne_W0lf]
+			if(sd->sc.data[SC_SLOWCAST])
+				status_change_end(&sd->bl,SC_SLOWCAST,-1);
+			if(sd->sc.data[SC_CRITICALWOUND])
+				status_change_end(&sd->bl,SC_CRITICALWOUND,-1);
 		}
 		if (battle_config.debuff_on_logout&2)
 		{
@@ -1627,6 +1573,8 @@ int map_quit(struct map_session_data *sd)
 				status_change_end(&sd->bl,SC_MAXOVERTHRUST,-1);
 			if(sd->sc.data[SC_STEELBODY])
 				status_change_end(&sd->bl,SC_STEELBODY,-1);
+			if(sd->sc.data[SC_PRESERVE])
+				status_change_end(&sd->bl,SC_PRESERVE,-1);
 		}
 	}
 	
@@ -1635,6 +1583,25 @@ int map_quit(struct map_session_data *sd)
 	if( sd->state.storage_flag == 1 ) sd->state.storage_flag = 0; // No need to Double Save Storage on Quit.
 
 	unit_remove_map_pc(sd,3);
+	
+	if( map[sd->bl.m].instance_id )
+	{ // Avoid map conflicts and warnings on next login
+		int m;
+		struct point *pt;
+		if( map[sd->bl.m].save.map )
+			pt = &map[sd->bl.m].save;
+		else
+			pt = &sd->status.save_point;
+
+		if( (m=map_mapindex2mapid(pt->map)) >= 0 )
+		{
+			sd->bl.m = m;
+			sd->bl.x = pt->x;
+			sd->bl.y = pt->y;
+			sd->mapindex = pt->map;
+		}
+	}	
+
 	pc_makesavestatus(sd);
 	pc_clean_skilltree(sd);
 	chrif_save(sd,1);
@@ -1744,13 +1711,7 @@ struct map_session_data * map_nick2sd(const char *nick)
  *------------------------------------------*/
 struct block_list * map_id2bl(int id)
 {
-	struct block_list *bl;
-	if(id >= 0 && id < ARRAYLENGTH(objects))
-		bl = objects[id];
-	else
-		bl = (struct block_list*)idb_get(id_db,id);
-
-	return bl;
+	return (struct block_list*)idb_get(id_db,id);
 }
 
 /*==========================================
@@ -1765,11 +1726,11 @@ struct mob_data * map_getmob_boss(int m)
 	iter = db_iterator(bossid_db);
 	for( md = (struct mob_data*)dbi_first(iter); dbi_exists(iter); md = (struct mob_data*)dbi_next(iter) )
 	{
-		if( md->bl.m != m || !md->spawn )
-			continue;
-
-		found = true;
-		break;
+		if( md->bl.m == m )
+		{
+			found = true;		
+			break;
+		}
 	}
 	dbi_destroy(iter);
 
@@ -1848,6 +1809,28 @@ void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...)
 			if( ret == -1 )
 				break;// stop iterating
 		}
+	}
+	dbi_destroy(iter);
+}
+
+/// Applies func to everything in the db.
+/// Stops iteratin gif func returns -1.
+void map_foreachregen(int (*func)(struct block_list* bl, va_list args), ...)
+{
+	DBIterator* iter;
+	struct block_list* bl;
+
+	iter = db_iterator(regen_db);
+	for( bl = (struct block_list*)dbi_first(iter); dbi_exists(iter); bl = (struct block_list*)dbi_next(iter) )
+	{
+		va_list args;
+		int ret;
+
+		va_start(args, func);
+		ret = func(bl, args);
+		va_end(args);
+		if( ret == -1 )
+			break;// stop iterating
 	}
 	dbi_destroy(iter);
 }
@@ -2086,15 +2069,21 @@ int map_removemobs_sub(struct block_list *bl, va_list ap)
 	struct mob_data *md = (struct mob_data *)bl;
 	nullpo_retr(0, md);
 
-	//When not to remove:
-	//Mob doesn't respawn and is not a slave
+	//When not to remove mob:
+	// doesn't respawn and is not a slave
 	if( !md->spawn && !md->master_id )
 		return 0;
-	//Mob respawn data is not in cache
+	// respawn data is not in cache
 	if( md->spawn && !md->spawn->state.dynamic )
 		return 0;
-	//Mob is damaged and mob_remove_damaged is off
+	// hasn't spawned yet
+	if( md->spawn_timer != INVALID_TIMER )
+		return 0;
+	// is damaged and mob_remove_damaged is off
 	if( !battle_config.mob_remove_damaged && md->status.hp < md->status.max_hp )
+		return 0;
+	// is a mvp
+	if( md->db->mexp > 0 )
 		return 0;
 	
 	unit_free(&md->bl,0);
@@ -2131,7 +2120,7 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, intptr data)
 
 void map_removemobs(int m)
 {
-	if (map[m].mob_delete_timer != -1)
+	if (map[m].mob_delete_timer != -1) // should never happen
 		return; //Mobs are already scheduled for removal
 
 	map[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
@@ -2648,9 +2637,12 @@ int map_readfromcache(struct map_data *m, FILE *fp)
 		unsigned char *buf, *buf2;
 		unsigned long size, xy;
 
+		if( info.xs <= 0 || info.ys <= 0 )
+			return 0;// invalid
+
 		m->xs = info.xs;
 		m->ys = info.ys;
-		size = info.xs*info.ys;
+		size = (unsigned long)info.xs*(unsigned long)info.ys;
 
 		buf = (unsigned char*)aMalloc(info.len); // temp buffer to read the zipped map
 		buf2 = (unsigned char*)aMalloc(size); // temp buffer to unpack the data
@@ -2667,17 +2659,20 @@ int map_readfromcache(struct map_data *m, FILE *fp)
 		return 1;
 	}
 
-	return 0;
+	return 0;// not found
 }
 
 int map_addmap(char* mapname)
 {
-	if (strcmpi(mapname,"clear")==0) {
-		map_num=0;
+	if( strcmpi(mapname,"clear")==0 )
+	{
+		map_num = 0;
+		map_instance_start = 0;
 		return 0;
 	}
 
-	if (map_num >= MAX_MAP_PER_SERVER - 1) {
+	if( map_num >= MAX_MAP_PER_SERVER - 1 )
+	{
 		ShowError("Could not add map '"CL_WHITE"%s"CL_RESET"', the limit of maps has been reached.\n",mapname);
 		return 1;
 	}
@@ -2868,11 +2863,546 @@ int map_readallmaps (void)
 
 	// finished map loading
 	ShowInfo("Successfully loaded '"CL_WHITE"%d"CL_RESET"' maps."CL_CLL"\n",map_num);
+	map_instance_start = map_num; // Next Map Index will be instances
 
 	if (maps_removed)
 		ShowNotice("Maps removed: '"CL_WHITE"%d"CL_RESET"'\n",maps_removed);
 
 	return 0;
+}
+
+/*======================================
+ * Instancing [by Sirius White]
+ *--------------------------------------*/
+
+/*--------------------------------------
+ * map_instance_map2imap
+ * m : source map of this instance
+ * sd : source party/guild of this instance
+ * type : result (0 = map id | 1 = instance id)
+ *--------------------------------------*/
+int map_instance_map2imap(int m, struct map_session_data *sd, int type)
+{
+	int i;
+	struct party_data *p;
+	if( !sd->status.party_id || (p = party_search(sd->status.party_id)) == NULL || !p->instance_id )
+		return -1;
+	
+	for( i = 0; i < instance[p->instance_id].num_map; i++ )
+	{
+		if( instance[p->instance_id].map[i] && map[instance[p->instance_id].map[i]].instance_map[0] == m )
+		{
+			if( type == 0 )
+				return instance[p->instance_id].map[i];
+			else
+				return p->instance_id;
+		}
+	}
+	return -1;
+}
+
+/*--------------------------------------
+ * map_instance_mapid2imapid
+ * m : source map
+ * instance_id : where to search
+ * result : mapid of map "m" in this instance
+ *--------------------------------------*/
+int map_instance_mapid2imapid(int m, int instance_id)
+{
+	int i, max;
+	if( map[m].instance_map[0] == 0 )
+		return m; // not instances found for this map
+	else if( map[m].instance_id )
+	{ // This map is a instance
+		ShowError("map_instance_mapid2imapid: already instanced (%d / %d)\n", m, instance_id);
+		return -1;
+	}
+
+	if( instance_id <= 0 )
+		return -1;
+
+	max = instance[instance_id].num_map;
+
+	for( i = 0; i < max; i++ )
+		if( map[instance[instance_id].map[i]].instance_map[0] == m )
+			return instance[instance_id].map[i];
+
+	return -1;
+}
+
+/*--------------------------------------
+ * map_instance_create
+ * type : 0 = Party | 1 = Guild
+ * group_id : party_id / guild_id
+ * name_id : ...
+ * name : instance name
+ * Return value could be
+ * -4 = already exists | -3 = no free instances | -2 = missing parameter | -1 = invalid type
+ * On success return instance_id
+ *--------------------------------------*/
+int map_instance_create(int party_id, int name_id, const char *name)
+{
+	int i;
+	struct party_data *p = NULL;
+
+	if( !party_id || !name_id || !name )
+	{
+		ShowError("map_instance_create: missing parameter.\n");
+		return -2;
+	}
+
+	p = party_search(party_id);
+	if( !p || p->instance_id )
+		return -4; // Party already instancing
+
+	// Searching a Free Instance
+	// 0 is ignored as this mean "no instance" on maps
+	ARR_FIND(1, MAX_INSTANCE, i, instance[i].party_id == 0);
+	if( i == MAX_INSTANCE )
+	{
+		ShowError("map_instance_create: no free instances, consider increasing MAX_INSTANCE.\n");
+		return -3;
+	}
+
+	instance[i].instance_id = i;
+	instance[i].name_id = name_id;
+	instance[i].idle_timer = INVALID_TIMER;
+	instance[i].idle_timeout = instance[i].idle_timeoutval = 0;
+	instance[i].progress_timer = INVALID_TIMER;
+	instance[i].progress_timeout = instance[i].progress_timeoutval = 0;
+	instance[i].users = 0;
+	instance[i].party_id = party_id;
+	instance[i].ivar = NULL;
+	instance[i].svar = NULL;
+
+	memcpy( instance[i].name, name, sizeof(instance[i].name) );
+	memset( instance[i].map, 0x00, sizeof(instance[i].map) );
+	p->instance_id = i;
+
+	clif_instance(i, 1, 0); // Start instancing window
+	ShowInfo("[Instance] Created: %s.\n", name);
+	return i;
+}
+
+/*--------------------------------------
+ * map_instance_npcname
+ * Conver "name" to "name_MEM000" format
+ *--------------------------------------*/
+char *map_instance_npcname(char *name, int instance_id)
+{
+	static char npc_name[NAME_LENGTH+1];
+	uint32 crc = crc32(name, strlen(name));
+	
+	snprintf(npc_name, sizeof(npc_name), "MEM_%.8x_%u", crc, instance_id);
+	return &npc_name[0];
+}
+
+/*--------------------------------------
+ * map_instance_map
+ * Add a map to the instance using src map "name"
+ *--------------------------------------*/
+int map_instance_map(const char *name, int instance_id)
+{
+	int m = map_mapname2mapid(name), i, ii = -1, im = -1;
+	size_t num_cell, size;
+
+	if( m < 0 )
+		return -1; // source map not found
+		
+	if( !instance[instance_id].name_id )
+	{
+		ShowError("map_instance_map: trying to attach '%s' map to non-existing instance %d.\n", name, instance_id);
+		return -1;
+	}
+	if( instance[instance_id].num_map >= MAX_MAP_PER_INSTANCE )
+	{
+		ShowError("map_instance_map: trying to add '%s' map to instance %d (%s) failed. Please increase MAX_MAP_PER_INSTANCE.\n", name, instance_id, instance[instance_id].name);
+		return -2;
+	}
+	if( map[m].instance_id != 0 )
+	{ // Source map is a Instance.
+		ShowError("map_instance_map: trying to instance already instanced map %s.\n", name);
+		return -4;
+	}
+
+	ARR_FIND(map_instance_start, map_num, i, !map[i].name[0]); // Searching for a Free Map
+	if( i < map_num ) im = i; // Unused map found (old instance)
+	else if( map_num - 1 >= MAX_MAP_PER_SERVER )
+	{ // No more free maps
+		ShowError("map_instance_map: no more free space to create maps on this server.\n");
+		return -5;
+	}
+	else im = map_num++; // Using next map index
+
+	// Grab instance map id
+	ARR_FIND(0, ARRAYLENGTH(map[m].instance_map), i, !map[m].instance_map[i]);
+	if( i >= ARRAYLENGTH(map[m].instance_map) )
+	{
+		ShowError("map_instance_map: limit of instances per map reach.\n");
+		return -2;
+	}
+
+	ii = i;
+
+	// Copy source map
+	memcpy( &map[im], &map[m], sizeof(struct map_data));
+		
+	// Add map index
+	snprintf(map[im].name, MAP_NAME_LENGTH, "%.3d%s", ii, name);
+	map[im].index = mapindex_addmap(-1, map[im].name);
+	if( !map[im].index )
+	{
+		map[im].name[0] = '\0';
+		ShowError("map_instance_map: no more free map indexes.\n");
+		return -3; // No free map index
+	}	
+
+	// Reallocate cells
+	num_cell = map[im].xs * map[im].ys;
+	CREATE( map[im].cell, struct mapcell, num_cell);
+	memcpy( map[im].cell, map[m].cell, num_cell * sizeof(struct mapcell));
+
+	size = map[im].bxs * map[im].bys * sizeof(struct block_list*);
+	map[im].block = (struct block_list**)aCalloc(size, 1);
+	map[im].block_mob = (struct block_list**)aCalloc(size, 1);
+
+	memset(map[im].npc, 0x00, sizeof(map[i].npc));
+	map[im].npc_num = 0;
+
+	memset(map[im].moblist, 0x00, sizeof(map[im].moblist));
+	map[im].mob_delete_timer = INVALID_TIMER;
+
+	map[im].m = im;
+	map[im].instance_id = instance_id;
+	map[m].instance_map[ii] = im; // add the mapid of this instance to the source map
+	map[im].instance_map[0] = m; // uses index [0] to store source map for this instance
+
+	instance[instance_id].map[instance[instance_id].num_map++] = im; // Attach to actual instance
+	uidb_put(map_db, (unsigned int)map[im].index, &map[im]); // Put to map list
+
+	return im;
+}
+
+/*--------------------------------------
+ * map_instance_map_npcsub
+ * Used on Init instance. Duplicates each script on source map
+ *--------------------------------------*/
+int map_instance_map_npcsub(struct block_list* bl, va_list args)
+{
+	char *inst_name;
+	static char w1[50], w2[50], w3[50], w4[50];
+	const char* stat_buf = "- call from instancing subsystem -\n";
+	struct npc_data* nd = (struct npc_data*)bl;
+	int m = va_arg(args, int);
+	
+	inst_name = map_instance_npcname(nd->exname, map[m].instance_id);
+	if( inst_name == NULL )
+		return 1;
+
+	if( nd->subtype == WARP )
+	{ // Adjust destination, if instanced
+		struct npc_data *wnd;
+		int dm = map_mapindex2mapid(nd->u.warp.mapindex), im;
+
+		if( dm < 0 ) return 1;
+
+		im = map_instance_mapid2imapid(dm, map[m].instance_id);
+		if( im == -1 )
+		{
+			ShowError("map_instance_map_npcsub: warp (%s) leading to instanced map (%s), but instance map is not attached to current instance.\n", map[dm].name, nd->exname);
+			return 1;
+		}
+
+		CREATE(wnd, struct npc_data, 1);
+		wnd->bl.id = npc_get_new_npc_id();
+		map_addnpc(m, wnd);
+		wnd->bl.prev = wnd->bl.next = NULL;
+		wnd->bl.m = m;
+		wnd->bl.x = nd->bl.x;
+		wnd->bl.y = nd->bl.y;
+		safestrncpy(wnd->name, "", ARRAYLENGTH(wnd->name));
+		safestrncpy(wnd->exname, inst_name, ARRAYLENGTH(wnd->exname));
+		wnd->class_ = WARP_CLASS;
+		wnd->speed = 200;
+		wnd->u.warp.mapindex = map_id2index(im);
+		wnd->u.warp.x = nd->u.warp.x;
+		wnd->u.warp.y = nd->u.warp.y;
+		wnd->u.warp.xs = nd->u.warp.xs;
+		wnd->u.warp.ys = nd->u.warp.ys;
+		wnd->bl.type = BL_NPC;
+		wnd->subtype = WARP;
+		npc_setcells(wnd);
+		map_addblock(&wnd->bl);
+		status_set_viewdata(&wnd->bl, wnd->class_);
+		status_change_init(&wnd->bl);
+		unit_dataset(&wnd->bl);
+		clif_spawn(&wnd->bl);
+		strdb_put(npcname_db, wnd->exname, wnd);
+
+		return 1;
+	}
+
+	snprintf(w1, sizeof(w1), "%s,%d,%d,%d", map[m].name, nd->bl.x, nd->bl.y, nd->ud.dir);
+	snprintf(w2, sizeof(w2), "duplicate(%s)", nd->exname);
+	snprintf(w3, sizeof(w3), "%s::%s", nd->name, inst_name);
+	if( nd->u.scr.xs >= 0 && nd->u.scr.ys >= 0 )
+		snprintf(w4, sizeof(w4), "%d,%d,%d", nd->class_, nd->u.scr.xs, nd->u.scr.ys);
+	else
+		snprintf(w4, sizeof(w4), "%d", nd->class_);
+	
+	npc_parse_duplicate(w1, w2, w3, w4, stat_buf, stat_buf, "INSTANCING");
+	return 1;
+}
+
+/*--------------------------------------
+ * map_instance_init
+ * Init all map on the instance. Npcs are created here
+ *--------------------------------------*/
+void map_instance_init(int instance_id)
+{
+	int i;
+	if( !instance_id )
+		return;
+
+	for( i = 0; i < instance[instance_id].num_map; i++ )
+		map_foreachinmap(map_instance_map_npcsub, map[instance[instance_id].map[i]].instance_map[0], BL_NPC, instance[instance_id].map[i]);
+
+	ShowInfo("[Instance] Initialized %s.\n", instance[instance_id].name);
+}
+
+/*--------------------------------------
+ * map_instance_del_load
+ * Used on instance deleting process.
+ * Warps all players on each instance map to its save points.
+ *--------------------------------------*/
+int map_instance_del_load(struct map_session_data* sd, va_list args)
+{
+	int m = va_arg(args,int);
+	if( !sd || sd->bl.m != m )
+		return 0;
+
+	pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, 0);
+	return 1;
+}
+
+/*--------------------------------------
+ * map_instance_del
+ * Removes a simple instance map
+ *--------------------------------------*/
+void map_instance_del(int m)
+{
+	int sm, i;
+	if( m <= 0 || !map[m].instance_id )
+	{
+		ShowError("Tried to remove non-existing instance map (%d)\n", m);
+		return;
+	}
+
+	sm = map[m].instance_map[0];
+	map_foreachpc(map_instance_del_load, m);
+	map_foreachinmap(cleanup_sub, m, BL_ALL);
+
+	if( map[m].mob_delete_timer != INVALID_TIMER )
+		delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
+
+	mapindex_removemap( map[m].index );
+
+	// Free memory
+	aFree(map[m].cell);
+	aFree(map[m].block);
+	aFree(map[m].block_mob);
+
+	// Remove from instance
+	for( i = 0; i < instance[map[m].instance_id].num_map; i++ )
+	{
+		if( instance[map[m].instance_id].map[i] == m )
+		{
+			instance[map[m].instance_id].num_map--;
+			for( ; i < instance[map[m].instance_id].num_map; i++ )
+				instance[map[m].instance_id].map[i] = instance[map[m].instance_id].map[i+1];
+			i = -1;
+			break;
+		}
+	}
+	if( i == instance[map[m].instance_id].num_map )
+		ShowError("map_instance_del: failed to remove %s from instance list (%s): %d\n", map[m].name, instance[map[m].instance_id].name, m);
+
+	uidb_remove(map_db, map[m].index); // Remove from mapindex db
+
+	map[m].m = map[m].index = 0;
+	map[m].name[0] = '\0';
+
+	ARR_FIND(0, ARRAYLENGTH(map[sm].instance_map), i, map[sm].instance_map[i] == m);
+	if( i < ARRAYLENGTH(map[sm].instance_map) )
+	{
+		memmove(&map[sm].instance_map[i], &map[sm].instance_map[i+1], sizeof(map[sm].instance_map) - (i+1)*sizeof(map[sm].instance_map[0]));
+		map[sm].instance_map[ARRAYLENGTH(map[sm].instance_map) - 1] = 0; // Because i am not sure if the final value is set to 0 by "memmove"
+	}
+	else
+		ShowError("Failed to remove instance from instance db.\n");
+
+	memset(&map[m], 0x00, sizeof(map[0]));
+}
+
+/*--------------------------------------
+ * map_instance_destroy_freesvar
+ * Used for instance variables. Clean each variable from memory.
+ *--------------------------------------*/
+void map_instance_destroy_freesvar(void *key, void *data, va_list args)
+{
+	if( data ) aFree(data);
+}
+
+/*--------------------------------------
+ * map_instance_destroy_timer
+ * Timer to destroy instance by process or idle
+ *--------------------------------------*/
+int map_instance_destroy_timer(int tid, unsigned int tick, int id, intptr data)
+{
+	map_instance_destroy(id);
+	return 0;
+}
+
+/*--------------------------------------
+ * map_instance_destroy
+ * Removes a instance, all its maps and npcs.
+ *--------------------------------------*/
+void map_instance_destroy(int instance_id)
+{
+	int last = 0, type;
+	time_t now = time(NULL);
+
+	if( !instance_id || !instance[instance_id].name_id )
+		return;
+
+	if( instance[instance_id].progress_timeout && instance[instance_id].progress_timeout <= now )
+		type = 1;
+	else if( instance[instance_id].idle_timeout && instance[instance_id].idle_timeout <= now )
+		type = 2;
+	else
+		type = 3;
+
+	clif_instance(instance_id, 5, type); // Report users this instance has been destroyed
+
+	while( instance[instance_id].num_map && last != instance[instance_id].map[0] )
+	{
+		last = instance[instance_id].map[0];
+		map_instance_del( instance[instance_id].map[0] );
+	}
+
+	if( instance[instance_id].ivar )
+		linkdb_final( &instance[instance_id].ivar );
+		
+	if( instance[instance_id].svar )
+	{
+		linkdb_foreach( &instance[instance_id].svar, map_instance_destroy_freesvar );
+		linkdb_final( &instance[instance_id].svar );
+	}
+
+	if( instance[instance_id].progress_timer != INVALID_TIMER )
+		delete_timer( instance[instance_id].progress_timer, map_instance_destroy_timer);
+	if( instance[instance_id].idle_timer != INVALID_TIMER )
+		delete_timer( instance[instance_id].idle_timer, map_instance_destroy_timer);
+
+	instance[instance_id].ivar = NULL;
+	instance[instance_id].svar = NULL;
+
+	ShowInfo("[Instance] Destroyed %s.\n", instance[instance_id].name);
+	memset( &instance[instance_id], 0x00, sizeof(instance[0]) );
+}
+
+/*--------------------------------------
+ * map_instance_check_idle
+ * Checks if there are users in the instance or not to start idle timer
+ *--------------------------------------*/
+void map_instance_check_idle(int instance_id)
+{
+	bool idle = true;
+	time_t now = time(NULL);
+
+	if( !instance_id || instance[instance_id].idle_timeoutval == 0 )
+		return;
+
+	if( instance[instance_id].users )
+		idle = false;
+
+	if( instance[instance_id].idle_timer != INVALID_TIMER && !idle )
+	{
+		delete_timer(instance[instance_id].idle_timer, map_instance_destroy_timer);
+		instance[instance_id].idle_timer = INVALID_TIMER;
+		instance[instance_id].idle_timeout = 0;
+		clif_instance(instance_id, 3, 0); // Notify instance users normal instance expiration
+	}
+	else if( instance[instance_id].idle_timer == INVALID_TIMER && idle )
+	{
+		instance[instance_id].idle_timeout = now + instance[instance_id].idle_timeoutval;
+		instance[instance_id].idle_timer = add_timer( gettick() + (unsigned int)instance[instance_id].idle_timeoutval * 1000, map_instance_destroy_timer, instance_id, 0);
+		clif_instance(instance_id, 4, 0); // Notify instance users it will be destroyed of no user join it again in "X" time
+	}
+}
+
+/*--------------------------------------
+ * map_instance_set_timeout
+ * Set instance Timers
+ *--------------------------------------*/
+void map_instance_set_timeout(int instance_id, unsigned int progress_timeout, unsigned int idle_timeout)
+{
+	time_t now = time(0);
+
+	if( !instance_id )
+		return;
+		
+	if( instance[instance_id].progress_timer != INVALID_TIMER )
+		delete_timer( instance[instance_id].progress_timer, map_instance_destroy_timer);
+	if( instance[instance_id].idle_timer != INVALID_TIMER )
+		delete_timer( instance[instance_id].idle_timer, map_instance_destroy_timer);
+
+	if( progress_timeout )
+	{
+		instance[instance_id].progress_timeoutval = progress_timeout;
+		instance[instance_id].progress_timeout = now + progress_timeout;
+		instance[instance_id].progress_timer = add_timer( gettick() + progress_timeout * 1000, map_instance_destroy_timer, instance_id, 0);
+	}
+	else
+	{
+		instance[instance_id].progress_timeoutval = 0;
+		instance[instance_id].progress_timeout = 0;
+		instance[instance_id].progress_timer = INVALID_TIMER;
+	}
+		
+	if( idle_timeout )
+	{
+		instance[instance_id].idle_timeoutval = idle_timeout;
+		instance[instance_id].idle_timer = INVALID_TIMER;
+		map_instance_check_idle(instance_id);
+	}
+	else
+	{
+		instance[instance_id].idle_timeoutval = 0;
+		instance[instance_id].idle_timeout = 0;
+		instance[instance_id].idle_timer = INVALID_TIMER;
+	}
+
+	if( instance[instance_id].idle_timer == INVALID_TIMER && instance[instance_id].progress_timer != INVALID_TIMER )
+		clif_instance(instance_id, 3, 0);
+}
+
+/*--------------------------------------
+ * map_instance_check_mapkick
+ * Checks if sd in on a instance and should be kicked from it
+ *--------------------------------------*/
+void map_instance_check_kick(struct map_session_data *sd)
+{
+	int m = sd->bl.m;
+
+	clif_instance_leave(sd->fd);
+	if( map[m].instance_id )
+	{ // User was on the instance map
+		if( map[m].save.map )
+			pc_setpos(sd, map[m].save.map, map[m].save.x, map[m].save.y, 3);
+		else
+			pc_setpos(sd, sd->status.save_point.map, sd->status.save_point.x, sd->status.save_point.y, 3);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -2921,7 +3451,7 @@ int parse_console(char* buf)
 	ShowInfo("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
 
 	if( n == 5 && strcmpi("admin",type) == 0 ){
-		if( !is_atcommand_sub(sd.fd,&sd,command,99) )
+		if( !is_atcommand(sd.fd,&sd,command,0) )
 			ShowInfo("Console: not atcommand\n");
 	} else if( n == 2 && strcmpi("server",type) == 0 ){
 		if( strcmpi("shutdown",command) == 0 ||
@@ -3268,7 +3798,7 @@ int cleanup_sub(struct block_list *bl, va_list ap)
 
 static int cleanup_db_sub(DBKey key,void *data,va_list va)
 {
-	return cleanup_sub((struct block_list*)data, NULL);
+	return cleanup_sub((struct block_list*)data, va);
 }
 
 /*==========================================
@@ -3291,7 +3821,10 @@ void do_final(void)
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
 		map_quit(sd);
 	mapit_free(iter);
-		
+	
+	for( i = 0; i < MAX_INSTANCE; i++ )
+		if( instance[i].party_id ) map_instance_destroy(i);
+
 	id_db->foreach(id_db,cleanup_db_sub);
 	chrif_char_reset_offline();
 	chrif_flush_fifo();
@@ -3312,6 +3845,7 @@ void do_final(void)
 	do_final_skill();
 	do_final_status();
 	do_final_unit();
+	do_final_battleground();
 	
 	map_db->destroy(map_db, map_db_final);
 	
@@ -3336,6 +3870,7 @@ void do_final(void)
 	nick_db->destroy(nick_db, nick_db_final);
 	charid_db->destroy(charid_db, NULL);
 	iwall_db->destroy(iwall_db, NULL);
+	regen_db->destroy(regen_db, NULL);
 
 #ifndef TXT_ONLY
     map_sql_close();
@@ -3454,8 +3989,6 @@ int do_init(int argc, char *argv[])
 			BATTLE_CONF_FILENAME = argv[i+1];
 		else if (strcmp(argv[i],"--atcommand_config") == 0 || strcmp(argv[i],"--atcommand-config") == 0)
 			ATCOMMAND_CONF_FILENAME = argv[i+1];
-		else if (strcmp(argv[i],"--charcommand_config") == 0 || strcmp(argv[i],"--charcommand-config") == 0)
-			CHARCOMMAND_CONF_FILENAME = argv[i+1];
 		else if (strcmp(argv[i],"--script_config") == 0 || strcmp(argv[i],"--script-config") == 0)
 			SCRIPT_CONF_NAME = argv[i+1];
 		else if (strcmp(argv[i],"--msg_config") == 0 || strcmp(argv[i],"--msg-config") == 0)
@@ -3497,7 +4030,6 @@ int do_init(int argc, char *argv[])
 	battle_config_read(BATTLE_CONF_FILENAME);
 	msg_config_read(MSG_CONF_NAME);
 	atcommand_config_read(ATCOMMAND_CONF_FILENAME);
-	charcommand_config_read(CHARCOMMAND_CONF_FILENAME);
 	script_config_read(SCRIPT_CONF_NAME);
 	inter_config_read(INTER_CONF_NAME);
 	log_config_read(LOG_CONF_NAME);
@@ -3509,12 +4041,15 @@ int do_init(int argc, char *argv[])
 	map_db = uidb_alloc(DB_OPT_BASE);
 	nick_db = idb_alloc(DB_OPT_BASE);
 	charid_db = idb_alloc(DB_OPT_BASE);
+	regen_db = idb_alloc(DB_OPT_BASE); // efficient status_natural_heal processing
 
 	iwall_db = strdb_alloc(DB_OPT_RELEASE_DATA,2*NAME_LENGTH+2+1); // [Zephyrus] Invisible Walls
 
 #ifndef TXT_ONLY
 	map_sql_init();
 #endif /* not TXT_ONLY */
+
+	memset(instance, 0x00, sizeof(instance));
 
 	mapindex_init();
 	if(enable_grf)
@@ -3525,6 +4060,7 @@ int do_init(int argc, char *argv[])
 	add_timer_func_list(map_freeblock_timer, "map_freeblock_timer");
 	add_timer_func_list(map_clearflooritem_timer, "map_clearflooritem_timer");
 	add_timer_func_list(map_removemobs_timer, "map_removemobs_timer");
+	add_timer_func_list(map_instance_destroy_timer, "map_instance_destroy_timer");
 	add_timer_interval(gettick()+1000, map_freeblock_timer, 0, 0, 60*1000);
 
 	do_init_atcommand();
@@ -3541,9 +4077,11 @@ int do_init(int argc, char *argv[])
 	do_init_guild();
 	do_init_storage();
 	do_init_pet();
-	do_init_merc();	//[orn]
+	do_init_merc();
+	do_init_mercenary();
 	do_init_npc();
 	do_init_unit();
+	do_init_battleground();
 #ifndef TXT_ONLY /* mail system [Valaris] */
 	if (log_config.sql_logs)
 		log_sql_init();
