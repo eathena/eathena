@@ -135,11 +135,3 @@ CREATE TABLE `charlog` (
   `name` varchar(23) NOT NULL default '',
   `message` varchar(255) NOT NULL default '',
 ) ENGINE=MyISAM; 
-
-#Database: log
-#Table: interlog
-CREATE TABLE IF NOT EXISTS `interlog` (
-  `time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `log` varchar(255) NOT NULL default ''
-) ENGINE=MyISAM; 
-

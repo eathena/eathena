@@ -11,6 +11,7 @@ void inter_final(void);
 int inter_parse_frommap(int fd);
 void inter_mapif_init(int fd);
 int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
+void log_inter(const char* msg, ...);
 
 // shared inter-server config settings
 extern unsigned int party_share_level;

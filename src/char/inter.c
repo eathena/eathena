@@ -12,7 +12,6 @@
 #include "char.h"
 #include "chardb.h"
 #include "inter.h"
-#include "interlog.h"
 #include "int_auction.h"
 #include "int_rank.h"
 #include "int_guild.h"
@@ -31,6 +30,8 @@
 #include <stdlib.h>
 
 
+static char inter_log_filename[1024] = "log/inter.log";
+static bool log_inter_enabled = true; // interserver logging
 char main_chat_nick[16] = "Main";
 unsigned int party_share_level = 10;
 bool party_break_without_leader = false;
@@ -90,9 +91,13 @@ static int inter_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "party.auto_reassign_leader") == 0 )
 			party_auto_reassign_leader = config_switch(w2);
-
-		else if( interlog_config_read(w1,w2) )
-			continue;
+		else
+		if( strcmpi(w1, "log_inter") == 0 )
+			log_inter_enabled = config_switch(w2);
+		else
+		if( strcmpi(w1, "inter_log_filename") == 0 )
+			safestrncpy(inter_log_filename, w2, sizeof(inter_log_filename));
+		else
 		if (strcmpi(w1, "import") == 0)
 			inter_config_read(w2);
 	}
@@ -101,6 +106,39 @@ static int inter_config_read(const char* cfgName)
 	ShowInfo ("done reading %s.\n", cfgName);
 
 	return 0;
+}
+
+/// Records an event in the interserver log
+void log_inter(const char* fmt, ...)
+{
+	char timestamp[24+1];
+	time_t now;
+	FILE* log_fp;
+	va_list ap;
+
+	if( !log_inter_enabled )
+		return;
+
+	// open log file
+	log_fp = fopen(inter_log_filename, "a");
+	if( log_fp == NULL )
+		return; // failed
+
+	// write timestamp to log file
+	time(&now);
+	strftime(timestamp, 24, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	fprintf(log_fp, "%s\t", timestamp);
+
+	// write formatted message to log file
+	va_start(ap, fmt);
+	vfprintf(log_fp, fmt, ap);
+	va_end(ap);
+
+	// write newline
+	fprintf(log_fp, "\n");
+
+	// close log file
+	fclose(log_fp);
 }
 
 // initialize

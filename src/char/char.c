@@ -795,23 +795,36 @@ static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
 }
 
 
-/// server event logging
+/// Records an event in the charserver log
 void log_char(const char* fmt, ...)
 {
+	char timestamp[24+1];
+	time_t now;
 	FILE* log_fp;
 	va_list ap;
 
 	if( !log_char_enabled )
 		return;
 
+	// open log file
 	log_fp = fopen(char_log_filename, "a");
 	if( log_fp == NULL )
 		return;
 
+	// write timestamp to log file
+	time(&now);
+	strftime(timestamp, 24, "%Y-%m-%d %H:%M:%S", localtime(&now));
+	fprintf(log_fp, "%s\t", timestamp);
+
+	// write formatted message to log file
 	va_start(ap, fmt);
 	vfprintf(log_fp, fmt, ap);
 	va_end(ap);
 
+	// write newline
+	fprintf(log_fp, "\n");
+
+	// close log file
 	fclose(log_fp);
 }
 
