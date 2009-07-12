@@ -1070,7 +1070,10 @@ int char_config_read(const char* cfgName)
 		}
 		else
 		if( strcmpi(w1,"log_char") == 0 )
-			log_char_enabled = atoi(w2);
+			log_char_enabled = config_switch(w2);
+		else
+		if( strcmpi(w1, "char_log_filename") == 0 )
+			strcpy(char_log_filename, w2);
 		else
 		if( strcmpi(w1, "unknown_char_name") == 0 )
 		{
@@ -1099,8 +1102,6 @@ int char_config_read(const char* cfgName)
 			guild_exp_rate = atoi(w2);
 		else if( rank_config_read(w1,w2) )
 			continue;
-		else if( charlog_config_read(w1,w2) ) // FIXME: some shared settings are in here
-			continue;
 		else if (strcmpi(w1, "import") == 0)
 			char_config_read(w2);
 		else if(!strcmpi(w1, "charserver.engine"))
@@ -1115,6 +1116,7 @@ int char_config_read(const char* cfgName)
 					engine->set_property(engine, w1, w2);
 			}
 			// try others
+			charlog_config_read(w1,w2);
 		}
 	}
 	fclose(fp);
@@ -1199,7 +1201,6 @@ void do_final(void)
 	mapindex_final();
 
 	log_char("----End of char-server (normal shutdown).\n");
-	charlog_final();
 
 	for( i = 0; charserver_engines[i].constructor; ++i )
 	{// destroy all charserver engines
@@ -1211,6 +1212,8 @@ void do_final(void)
 		}
 	}
 	charserver = NULL; // destroyed in charserver_engines
+
+	charlog_final();
 
 	ShowInfo("ok! all done...\n");
 }
@@ -1232,6 +1235,8 @@ int do_init(int argc, char **argv)
 	for( i = 0; charserver_engines[i].constructor; ++i )
 		charserver_engines[i].engine = charserver_engines[i].constructor();
 
+	charlog_create();
+
 	char_set_defaults();
 	char_config_read((argc < 2) ? CHAR_CONF_NAME : argv[1]);
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
@@ -1245,10 +1250,11 @@ int do_init(int argc, char **argv)
 
 	ShowInfo("Initializing char server.\n");
 	log_char("The char-server is starting...\n");
-	charlog_init();
 
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
+
+	charlog_init();
 
 	if( !init_charserver_engine() )
 		;// TODO stop server
