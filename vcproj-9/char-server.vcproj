@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="char-server_sql"
+	Name="char-server"
 	ProjectGUID="{D356871D-58E1-450B-967A-E4E9646175AF}"
-	RootNamespace="char-server_sql"
+	RootNamespace="char-server"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="131072"
 	>
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_SQL"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;WITH_SQL"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -137,7 +137,7 @@
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="..\3rdparty\mysql\include"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_USE_32BIT_TIME_T;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_TXT;WITH_SQL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
@@ -201,139 +201,7 @@
 	</References>
 	<Files>
 		<Filter
-			Name="common"
-			>
-			<File
-				RelativePath="..\src\common\cbasetypes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\core.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\core.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mmo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugin.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\socket.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\socket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\version.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="char_sql"
+			Name="char"
 			>
 			<File
 				RelativePath="..\src\char\char.c"
@@ -348,11 +216,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\charlog.h"
+				RelativePath="..\src\char\charlog.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\charlog_sql.c"
+				RelativePath="..\src\char\charlog.h"
 				>
 			</File>
 			<File
@@ -491,12 +359,136 @@
 				RelativePath="..\src\char\inter.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="common"
+			>
 			<File
-				RelativePath="..\src\char\interlog.h"
+				RelativePath="..\src\common\cbasetypes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\interlog_sql.c"
+				RelativePath="..\src\common\core.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\core.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\db.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\db.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\ers.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\ers.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lock.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\lock.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\malloc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\malloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\mapindex.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\mapindex.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\mmo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\nullpo.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\nullpo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\plugin.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\plugins.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\plugins.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\showmsg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\showmsg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\socket.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\socket.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\sql.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\strlib.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\strlib.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\timer.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\timer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\utils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\utils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\version.h"
 				>
 			</File>
 		</Filter>
@@ -512,11 +504,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\accregdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\auctiondb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\auctiondb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\auctiondb_txt.c"
 				>
 			</File>
 			<File
@@ -528,6 +528,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\castledb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\chardb.h"
 				>
 			</File>
@@ -536,11 +540,31 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\chardb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charlogdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charlogdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charlogdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\charregdb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\charregdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charregdb_txt.c"
 				>
 			</File>
 			<File
@@ -556,11 +580,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\charserverdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\charserverdb_txt.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\csdbiterator.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\csdbiterator_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\csdbiterator_txt.c"
 				>
 			</File>
 			<File
@@ -572,11 +608,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\frienddb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\guilddb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\guilddb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\guilddb_txt.c"
 				>
 			</File>
 			<File
@@ -588,11 +632,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\guildstoragedb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\homundb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\homundb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\homundb_txt.c"
 				>
 			</File>
 			<File
@@ -604,11 +656,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\hotkeydb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\maildb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\maildb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\maildb_txt.c"
 				>
 			</File>
 			<File
@@ -620,11 +680,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\partydb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\petdb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\petdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\petdb_txt.c"
 				>
 			</File>
 			<File
@@ -636,11 +704,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\questdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\rankdb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\rankdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\rankdb_txt.c"
 				>
 			</File>
 			<File
@@ -652,11 +728,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\statusdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\storagedb.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\char\storagedb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\storagedb_txt.c"
 				>
 			</File>
 		</Filter>
