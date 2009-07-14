@@ -22,6 +22,7 @@ extern GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner);
 extern HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 extern HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner);
 extern MailDB* mail_db_sql(CharServerDB_SQL* owner);
+extern MercDB* merc_db_sql(CharServerDB_SQL* owner);
 extern PartyDB* party_db_sql(CharServerDB_SQL* owner);
 extern PetDB* pet_db_sql(CharServerDB_SQL* owner);
 extern QuestDB* quest_db_sql(CharServerDB_SQL* owner);
@@ -74,6 +75,7 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		db->guilddb->init(db->guilddb) &&
 		db->guildstoragedb->init(db->guildstoragedb) &&
 		db->homundb->init(db->homundb) &&
+		db->mercdb->init(db->mercdb) &&
 		db->hotkeydb->init(db->hotkeydb) &&
 		db->partydb->init(db->partydb) &&
 		db->petdb->init(db->petdb) &&
@@ -108,6 +110,8 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->guildstoragedb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
+	db->mercdb->destroy(db->mercdb);
+	db->mercdb = NULL;
 	db->hotkeydb->destroy(db->hotkeydb);
 	db->hotkeydb = NULL;
 	db->partydb->destroy(db->partydb);
@@ -249,6 +253,12 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "memo_db") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_memos);
 		else
+		if( strcmpi(key, "table_mercenaries") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_mercenaries);
+		else
+		if( strcmpi(key, "table_mercenary_owners") == 0 )
+			safesnprintf(buf, buflen, "%s", db->table_mercenary_owners);
+		else
 		if( strcmpi(key, "party_db") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_parties);
 		else
@@ -371,6 +381,12 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "memo_db") == 0 )
 			safestrncpy(db->table_memos, value, sizeof(db->table_memos));
 		else
+		if( strcmpi(key, "table_mercenaries") == 0 )
+			safestrncpy(db->table_mercenaries, value, sizeof(db->table_mercenaries));
+		else
+		if( strcmpi(key, "table_mercenary_owners") == 0 )
+			safestrncpy(db->table_mercenary_owners, value, sizeof(db->table_mercenary_owners));
+		else
 		if( strcmpi(key, "party_db") == 0 )
 			safestrncpy(db->table_parties, value, sizeof(db->table_parties));
 		else
@@ -420,6 +436,7 @@ static GuildStorageDB* charserver_db_sql_guildstoragedb(CharServerDB* self) { re
 static HomunDB*        charserver_db_sql_homundb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->homundb;        }
 static HotkeyDB*       charserver_db_sql_hotkeydb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->hotkeydb;       }
 static MailDB*         charserver_db_sql_maildb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->maildb;         }
+static MercDB*         charserver_db_sql_mercdb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->mercdb;         }
 static PartyDB*        charserver_db_sql_partydb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->partydb;        }
 static PetDB*          charserver_db_sql_petdb         (CharServerDB* self) { return ((CharServerDB_SQL*)self)->petdb;          }
 static QuestDB*        charserver_db_sql_questdb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->questdb;        }
@@ -446,6 +463,7 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.guilddb      = charserver_db_sql_guilddb;
 	db->vtable.guildstoragedb = charserver_db_sql_guildstoragedb;
 	db->vtable.homundb      = charserver_db_sql_homundb;
+	db->vtable.mercdb       = charserver_db_sql_mercdb;
 	db->vtable.hotkeydb     = charserver_db_sql_hotkeydb;
 	db->vtable.partydb      = charserver_db_sql_partydb;
 	db->vtable.petdb        = charserver_db_sql_petdb;
@@ -465,6 +483,7 @@ CharServerDB* charserver_db_sql(void)
 	db->guilddb = guild_db_sql(db);
 	db->guildstoragedb = guildstorage_db_sql(db);
 	db->homundb = homun_db_sql(db);
+	db->mercdb = merc_db_sql(db);
 	db->hotkeydb = hotkey_db_sql(db);
 	db->partydb = party_db_sql(db);
 	db->petdb = pet_db_sql(db);
@@ -507,6 +526,8 @@ CharServerDB* charserver_db_sql(void)
 	safestrncpy(db->table_hotkeys, "hotkey", sizeof(db->table_hotkeys));
 	safestrncpy(db->table_inventories, "inventory", sizeof(db->table_inventories));
 	safestrncpy(db->table_mails, "mail", sizeof(db->table_mails));
+	safestrncpy(db->table_mercenaries, "mercenary", sizeof(db->table_mercenaries));
+	safestrncpy(db->table_mercenary_owners, "mercenary_owner", sizeof(db->table_mercenary_owners));
 	safestrncpy(db->table_memos, "memo", sizeof(db->table_memos));
 	safestrncpy(db->table_parties, "party", sizeof(db->table_parties));
 	safestrncpy(db->table_pets, "pet", sizeof(db->table_pets));

@@ -35,6 +35,7 @@ struct CharServerDB_SQL
 	GuildDB* guilddb;
 	GuildStorageDB* guildstoragedb;
 	HomunDB* homundb;
+	MercDB* mercdb;
 	HotkeyDB* hotkeydb;
 	PartyDB* partydb;
 	PetDB* petdb;
@@ -77,6 +78,8 @@ struct CharServerDB_SQL
 	char table_inventories[256];
 	char table_mails[256];
 	char table_memos[256];
+	char table_mercenaries[256];
+	char table_mercenary_owners[256];
 	char table_parties[256];
 	char table_pets[256];
 	char table_quests[256];

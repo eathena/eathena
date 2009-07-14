@@ -48,6 +48,7 @@ struct CharServerDB_TXT
 	GuildDB* guilddb;
 	GuildStorageDB* guildstoragedb;
 	HomunDB* homundb;
+	MercDB* mercdb;
 	HotkeyDB* hotkeydb;
 	PartyDB* partydb;
 	PetDB* petdb;
@@ -78,6 +79,7 @@ struct CharServerDB_TXT
 	char file_homuns[256];
 	char file_hotkeys[256];
 	char file_mails[256];
+	char file_mercenaries[256];
 	char file_parties[256];
 	char file_pets[256];
 	char file_quests[256];

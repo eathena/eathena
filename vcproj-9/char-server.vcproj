@@ -672,6 +672,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\mercdb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\mercdb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\mercdb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\partydb.h"
 				>
 			</File>

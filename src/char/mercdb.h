@@ -18,13 +18,13 @@ struct MercDB
 
 	bool (*sync)(MercDB* self);
 
-	bool (*create)(MercDB* self, struct s_mercenary* p);
+	bool (*create)(MercDB* self, struct s_mercenary* md);
 
 	bool (*remove)(MercDB* self, int merc_id);
 
-	bool (*save)(MercDB* self, const struct s_mercenary* p);
+	bool (*save)(MercDB* self, const struct s_mercenary* md);
 
-	bool (*load)(MercDB* self, struct s_mercenary* p, int merc_id);
+	bool (*load)(MercDB* self, struct s_mercenary* md, int merc_id);
 
 	/// Returns an iterator over all mercenaries.
 	///
