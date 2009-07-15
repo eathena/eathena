@@ -86,16 +86,16 @@ bool mapif_homunculus_rename(char *name)
 	int i;
 
 	// Check Authorised letters/symbols in the name of the homun
-	if( char_name_option == 1 )
+	if( char_config.char_name_option == 1 )
 	{// only letters/symbols in char_name_letters are authorised
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) == NULL )
+			if( strchr(char_config.char_name_letters, name[i]) == NULL )
 				return false;
 	} else
-	if( char_name_option == 2 )
+	if( char_config.char_name_option == 2 )
 	{// letters/symbols in char_name_letters are forbidden
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) != NULL )
+			if( strchr(char_config.char_name_letters, name[i]) != NULL )
 				return false;
 	}
 

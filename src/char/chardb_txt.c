@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define START_CHAR_NUM 1
+
 // temporary stuff
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
@@ -48,6 +50,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
 	unsigned int tmp_uint[2]; //To read exp....
+	char tmp_name[NAME_LENGTH];
+	int tmp_charid;
 	int next, len, i, j;
 
 	// initilialise character
@@ -227,23 +231,17 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	cd->last_point.map = tmp_int[45];
 	cd->save_point.map = tmp_int[46];
 
-#ifndef TXT_SQL_CONVERT
-	// Some checks
-	if( chars->id2name(chars, cd->char_id, NULL) )
+	// uniqueness checks
+	if( chars->id2name(chars, cd->char_id, tmp_name) )
 	{
-		ShowError(CL_RED"mmmo_auth_init: a character has an identical id to another.\n");
-		ShowError("               character id #%d -> new character not read.\n", cd->char_id);
-		ShowError("               Character saved in log file."CL_RESET"\n");
+		ShowError(CL_RED"mmo_char_fromstr: Collision on id %d between character '%s' and existing character '%s'!\n", cd->char_id, cd->name, tmp_name);
 		return false;
 	}
-	if( chars->name2id(chars, cd->name, NULL, NULL) )
+	if( chars->name2id(chars, cd->name, &tmp_charid, NULL) )
 	{
-		ShowError(CL_RED"mmmo_auth_init: a character name already exists.\n");
-		ShowError("               character name '%s' -> new character not read.\n", cd->name);
-		ShowError("               Character saved in log file."CL_RESET"\n");
+		ShowError(CL_RED"mmo_char_fromstr: Collision on name '%s' between character %d and existing character %d!\n", cd->name, cd->char_id, tmp_charid);
 		return false;
 	}
-#endif //TXT_SQL_CONVERT
 
 	if (str[next] == '\n' || str[next] == '\r')
 		return false;	// 新規データ
@@ -521,7 +519,7 @@ static bool char_db_txt_init(CharDB* self)
 		// parse char data
 		if( !mmo_char_fromstr(self, line, ch, &reg) )
  		{
-			ShowFatalError("char_db_txt_init: Unable to parse data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
+			ShowFatalError("char_db_txt_init: There was a problem processing data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
 			aFree(ch);
 			exit(EXIT_FAILURE);
 		}

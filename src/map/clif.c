@@ -12264,7 +12264,7 @@ void clif_parse_Auction_register(int fd, struct map_session_data *sd)
 			auction.price = auction.buynow - 1;
 	}
 
-	auction.auction_id = 0;
+	auction.auction_id = -1; // value ignored
 	auction.seller_id = sd->status.char_id;
 	safestrncpy(auction.seller_name, sd->status.name, NAME_LENGTH);
 	auction.buyer_id = 0;

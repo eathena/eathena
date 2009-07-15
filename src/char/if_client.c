@@ -21,14 +21,12 @@ extern int login_fd;
 extern DBMap* auth_db;
 extern DBMap* online_char_db;
 #include "char.h"
-extern void set_char_offline(int char_id, int account_id);
 extern int email_creation;
 extern int search_mapserver(unsigned short map, uint32 ip, uint16 port);
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int lan_subnetcheck(uint32 ip);
 extern void set_char_online(int map_id, int char_id, int account_id);
-extern int make_new_char(struct char_session_data* sd, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style);
-
+extern void set_char_offline(int char_id, int account_id);
 int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
@@ -282,13 +280,13 @@ int parse_client(int fd)
 			safestrncpy(name, (const char*)RFIFOP(fd,2), NAME_LENGTH);
 			RFIFOSKIP(fd,37);
 
-			if( !char_config.char_new || sd->slots[i] != 0 )
-				result = -2;// can't create or slot is occupied, reject
+			if( !char_config.char_new )
+				result = -2;// char creation disabled
 			else
 				result = char_create(sd->account_id, name, str, agi, vit, int_, dex, luk, slot, haircolor, hairstyle, &char_id);
 
 			//'Charname already exists' (-1), 'Char creation denied' (-2) and 'You are underaged' (-3)
-			if( result < 0 || chars->load_num(chars, &cd, char_id) )
+			if( result < 0 || !chars->load_num(chars, &cd, char_id) )
 			{
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x6e;
@@ -515,7 +513,6 @@ int parse_client(int fd)
 		}
 	}
 
-	RFIFOFLUSH(fd);
 	return 0;
 }
 

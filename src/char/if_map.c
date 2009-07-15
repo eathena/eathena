@@ -181,7 +181,7 @@ int parse_frommap(int fd)
 			WFIFOHEAD(fd, 3 + NAME_LENGTH);
 			WFIFOW(fd,0) = 0x2afb;
 			WFIFOB(fd,2) = 0;
-			memcpy(WFIFOP(fd,3), wisp_server_name, NAME_LENGTH);
+			memcpy(WFIFOP(fd,3), char_config.wisp_server_name, NAME_LENGTH);
 			WFIFOSET(fd,3+NAME_LENGTH);
 
 			{
@@ -418,7 +418,7 @@ int parse_frommap(int fd)
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
 			if( !chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6)) )
-				safestrncpy((char*)WFIFOP(fd,6), unknown_char_name, NAME_LENGTH);
+				safestrncpy((char*)WFIFOP(fd,6), char_config.unknown_char_name, NAME_LENGTH);
 			WFIFOSET(fd,30);
 
 			RFIFOSKIP(fd,6);

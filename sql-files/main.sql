@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS `char` (
   KEY `guild_id` (`guild_id`),
   KEY `name` (`name`),
   KEY `online` (`online`)
-) ENGINE=MyISAM AUTO_INCREMENT=150000; 
+) ENGINE=MyISAM; 
 
 --
 -- Table structure for table `friends`

@@ -32,8 +32,6 @@ extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reaso
 extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
 extern void set_char_offline(int char_id, int account_id);
 extern int count_users(void);
-extern int max_connect_user;
-extern int gm_allow_level;
 
 
 int parse_fromlogin(int fd)
@@ -140,7 +138,7 @@ int parse_fromlogin(int fd)
 				sd->gmlevel = RFIFOB(fd,50);
 
 				// continued from char_auth_ok...
-				if( max_connect_user && count_users() >= max_connect_user && sd->gmlevel < gm_allow_level )
+				if( char_config.max_connect_user != 0 && count_users() >= char_config.max_connect_user && sd->gmlevel < char_config.gm_allow_level )
 				{
 					// refuse connection (over populated)
 					WFIFOW(i,0) = 0x6c;
@@ -449,7 +447,6 @@ int parse_fromlogin(int fd)
 		}
 	}
 
-	RFIFOFLUSH(fd);
 	return 0;
 }
 
@@ -510,7 +507,7 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 	WFIFOL(login_fd,50) = 0;
 	WFIFOL(login_fd,54) = htonl(char_ip);
 	WFIFOL(login_fd,58) = htons(char_config.char_port);
-	memcpy(WFIFOP(login_fd,60), server_name, 20);
+	memcpy(WFIFOP(login_fd,60), char_config.server_name, 20);
 	WFIFOW(login_fd,80) = 0;
 	WFIFOW(login_fd,82) = char_config.char_maintenance;
 	WFIFOW(login_fd,84) = char_config.char_new_display;

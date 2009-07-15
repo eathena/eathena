@@ -10,7 +10,6 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
-#include "chardb.h"
 #include "inter.h"
 #include "int_auction.h"
 #include "int_rank.h"
@@ -231,15 +230,15 @@ int mapif_parse_NameChangeRequest(int fd)
 	name = (char*)RFIFOP(fd,11);
 
 	// Check Authorised letters/symbols in the name
-	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
+	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-		if (strchr(char_name_letters, name[i]) == NULL) {
+		if (strchr(char_config.char_name_letters, name[i]) == NULL) {
 			mapif_namechange_ack(fd, account_id, char_id, type, 0, name);
 			return 0;
 		}
-	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
+	} else if (char_config.char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-		if (strchr(char_name_letters, name[i]) != NULL) {
+		if (strchr(char_config.char_name_letters, name[i]) != NULL) {
 			mapif_namechange_ack(fd, account_id, char_id, type, 0, name);
 			return 0;
 		}

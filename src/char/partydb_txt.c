@@ -9,7 +9,6 @@
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
 #include "chardb.h"
-#include "int_party.h"
 #include "partydb.h"
 #include "charserverdb.h"
 #include <stdio.h>

@@ -261,42 +261,6 @@ static bool mail_db_sql_sync(MailDB* self)
 static bool mail_db_sql_create(MailDB* self, struct mail_message* msg)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
-	Sql* sql_handle = db->mails;
-
-	// decide on the mail id to assign
-	int mail_id;
-	if( msg->id != -1 )
-	{// caller specifies it manually
-		mail_id = msg->id;
-	}
-	else
-	{// ask the database
-		char* data;
-		size_t len;
-
-		if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT MAX(`id`)+1 FROM `%s`", db->mail_db) )
-		{
-			Sql_ShowDebug(sql_handle);
-			return false;
-		}
-		if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-		{
-			Sql_ShowDebug(sql_handle);
-			Sql_FreeResult(sql_handle);
-			return false;
-		}
-
-		Sql_GetData(sql_handle, 0, &data, &len);
-		mail_id = ( data != NULL ) ? atoi(data) : 0;
-		Sql_FreeResult(sql_handle);
-	}
-
-	// zero value is prohibited
-	if( mail_id == 0 )
-		return false;
-
-	// insert the data into the database
-	msg->id = mail_id;
 	return mmo_mail_tosql(db, msg, true);
 }
 

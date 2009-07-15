@@ -87,22 +87,9 @@ struct s_subnet {
 } subnet[16];
 int subnet_count = 0;
 
-int console = 0;
-
-char db_path[1024] = "db";
-
-int max_connect_user = 0;
-int gm_allow_level = 99;
-
 // char config
-static char char_log_filename[1024] = "log/char.log";
 static bool log_char_enabled = false; // charserver logging
-int char_name_option = 0; // Option to know which letters/symbols are authorised in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters) by [Yor]
-char char_name_letters[1024] = ""; // list of letters/symbols authorised (or not) in a character name. by [Yor]
 int guild_exp_rate = 100;
-char server_name[20];
-char wisp_server_name[NAME_LENGTH] = "Server";
-char unknown_char_name[NAME_LENGTH] = "Unknown"; // Name to use when the requested name cannot be determined
 int start_zeny = 500;
 int start_weapon = 1201;
 int start_armor = 2301;
@@ -114,7 +101,6 @@ struct point start_point = { 0, 53, 111 }; // Initial position (it's possible to
 int email_creation = 0; // disabled by default
 //SQL
 int char_per_account = 0; //Maximum charas per account (default unlimited) [Sirius]
-int char_del_level = 0; //From which level u can delete character [Lupus]
 
 
 //FIXME: this setting needs re-work due to changes in code structure
@@ -475,18 +461,18 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 		return -2; // control chars in name
 
 	// check for reserved names
-	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, wisp_server_name) == 0 )
+	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, char_config.wisp_server_name) == 0 )
 		return -1; // nick reserved for internal server messages
 
 	// Check Authorised letters/symbols in the name of the character
-	if( char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
+	if( char_config.char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) == NULL )
+			if( strchr(char_config.char_name_letters, name[i]) == NULL )
 				return -2;
 	} else
-	if( char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
+	if( char_config.char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
-			if( strchr(char_name_letters, name[i]) != NULL )
+			if( strchr(char_config.char_name_letters, name[i]) != NULL )
 				return -2;
 	} // else, all letters/symbols are authorised (except control char removed before)
 
@@ -495,9 +481,9 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 		return -1; // name already exists
 
 	//check other inputs
-	if((slot >= MAX_CHARS) // slots
-	|| (hair_style >= 24) // hair style
-	|| (hair_color >= 9) // hair color
+	if((slot < 0 || slot >= MAX_CHARS) // slots
+	|| (hair_style < 0 || hair_style >= 24) // hair style
+	|| (hair_color < 0 || hair_color >= 9) // hair color
 	|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
 	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
 	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
@@ -630,8 +616,8 @@ int char_delete(int char_id)
 	}
 
 	//check for config char del condition [Lupus]
-	if( ( char_del_level > 0 && cd.base_level >= (unsigned int)(char_del_level) )
-	 || ( char_del_level < 0 && cd.base_level <= (unsigned int)(-char_del_level) )
+	if( ( char_config.char_del_level > 0 && cd.base_level >= (unsigned int)(char_config.char_del_level) )
+	 || ( char_config.char_del_level < 0 && cd.base_level <= (unsigned int)(-char_config.char_del_level) )
 	) {
 		ShowInfo("char_delete: Deletion of char %d:'%s' aborted due to min/max level restrictions (has %d).\n", cd.char_id, cd.name, cd.base_level);
 		return -1;
@@ -807,7 +793,7 @@ void log_char(const char* fmt, ...)
 		return;
 
 	// open log file
-	log_fp = fopen(char_log_filename, "a");
+	log_fp = fopen(char_config.char_log_filename, "a");
 	if( log_fp == NULL )
 		return;
 
@@ -910,10 +896,22 @@ void char_set_defaults(void)
 	char_config.char_port = 6121;
 	safestrncpy(char_config.userid, "s1", sizeof(char_config.userid));
 	safestrncpy(char_config.passwd, "p1", sizeof(char_config.passwd));
+	safestrncpy(char_config.db_path, "db", sizeof(char_config.db_path));
+	safestrncpy(char_config.server_name, "", sizeof(char_config.server_name));
 	char_config.char_maintenance = 0;
 	char_config.char_new_display = 0;
 	char_config.char_new = true;
 	char_config.char_rename = true;
+	char_config.char_name_option = 0;
+	safestrncpy(char_config.char_name_letters, "", sizeof(char_config.char_name_letters));
+	safestrncpy(char_config.wisp_server_name, "Server", sizeof(char_config.wisp_server_name));
+	safestrncpy(char_config.unknown_char_name, "Unknown", sizeof(char_config.unknown_char_name));
+	char_config.max_connect_user = 0;
+	char_config.gm_allow_level = 99;
+	char_config.console = false;
+	safestrncpy(char_config.char_log_filename, "log/char.log", sizeof(char_config.char_log_filename));
+	char_config.log_char_enabled = true;
+	char_config.char_del_level = 0;
 }
 
 int char_config_read(const char* cfgName)
@@ -956,20 +954,14 @@ int char_config_read(const char* cfgName)
 		if( strcmpi(w1, "passwd") == 0 )
 			safestrncpy(char_config.passwd, w2, sizeof(char_config.passwd));
 		else
-		if (strcmpi(w1, "server_name") == 0)
+		if( strcmpi(w1, "server_name") == 0 )
 		{
-			strncpy(server_name, w2, 20);
-			server_name[sizeof(server_name) - 1] = '\0';
+			safestrncpy(char_config.server_name, w2, sizeof(char_config.server_name));
 			ShowStatus("%s server has been initialized\n", w2);
 		}
 		else
 		if( strcmpi(w1, "wisp_server_name") == 0 )
-		{
-			if (strlen(w2) >= 4) {
-				memcpy(wisp_server_name, w2, sizeof(wisp_server_name));
-				wisp_server_name[sizeof(wisp_server_name) - 1] = '\0';
-			}
-		}
+			safestrncpy(char_config.wisp_server_name, w2, sizeof(char_config.wisp_server_name));
 		else
 		if( strcmpi(w1, "login_ip") == 0 )
 		{
@@ -1023,16 +1015,16 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "max_connect_user") == 0 )
 		{
-			max_connect_user = atoi(w2);
-			if (max_connect_user < 0)
-				max_connect_user = 0; // unlimited online players
+			char_config.max_connect_user = atoi(w2);
+			if (char_config.max_connect_user < 0)
+				char_config.max_connect_user = 0; // unlimited online players
 		}
 		else
 		if( strcmpi(w1, "gm_allow_level") == 0 )
 		{
-			gm_allow_level = atoi(w2);
-			if(gm_allow_level < 0)
-				gm_allow_level = 99;
+			char_config.gm_allow_level = atoi(w2);
+			if(char_config.gm_allow_level < 0)
+				char_config.gm_allow_level = 99;
 		}
 		else
 		if( strcmpi(w1, "start_point") == 0 )
@@ -1073,38 +1065,47 @@ int char_config_read(const char* cfgName)
 			log_char_enabled = config_switch(w2);
 		else
 		if( strcmpi(w1, "char_log_filename") == 0 )
-			strcpy(char_log_filename, w2);
+			safestrncpy(char_config.char_log_filename, w2, sizeof(char_config.char_log_filename));
 		else
 		if( strcmpi(w1, "unknown_char_name") == 0 )
-		{
-			strcpy(unknown_char_name, w2);
-			unknown_char_name[NAME_LENGTH-1] = '\0';
-		}
-		else if (strcmpi(w1, "name_ignoring_case") == 0)
+			safestrncpy(char_config.unknown_char_name, w2, sizeof(char_config.unknown_char_name));
+		else
+		if( strcmpi(w1, "name_ignoring_case") == 0 )
 			name_ignoring_case = (bool)config_switch(w2);
-		else if (strcmpi(w1, "char_name_option") == 0)
-			char_name_option = atoi(w2);
-		else if (strcmpi(w1, "char_name_letters") == 0)
-			strcpy(char_name_letters, w2);
-		else if (strcmpi(w1, "char_rename") == 0)
+		else
+		if( strcmpi(w1, "char_name_option") == 0 )
+			char_config.char_name_option = atoi(w2);
+		else
+		if( strcmpi(w1, "char_name_letters") == 0 )
+			safestrncpy(char_config.char_name_letters, w2, sizeof(char_config.char_name_letters));
+		else
+		if( strcmpi(w1, "char_rename") == 0 )
 			char_config.char_rename = (bool)config_switch(w2);
-		else if(strcmpi(w1,"db_path")==0)
-			strcpy(db_path,w2);
+		else
+		if( strcmpi(w1, "db_path") == 0 )
+			safestrncpy(char_config.db_path, w2, sizeof(char_config.db_path));
 #ifndef TXT_ONLY
-		else if (strcmpi(w1, "chars_per_account") == 0) //maxchars per account [Sirius]
+		else
+		if( strcmpi(w1, "chars_per_account") == 0 ) //maxchars per account [Sirius]
 			char_per_account = atoi(w2);
-		else if (strcmpi(w1, "char_del_level") == 0) //disable/enable char deletion by its level condition [Lupus]
-			char_del_level = atoi(w2);
 #endif
-		else if (strcmpi(w1, "console") == 0)
-			console = config_switch(w2);
-		else if (strcmpi(w1, "guild_exp_rate") == 0)
+		else
+		if( strcmpi(w1, "char_del_level") == 0 )
+			char_config.char_del_level = atoi(w2);
+		else
+		if( strcmpi(w1, "console") == 0 )
+			char_config.console = config_switch(w2);
+		else
+		if( strcmpi(w1, "guild_exp_rate") == 0 )
 			guild_exp_rate = atoi(w2);
-		else if( rank_config_read(w1,w2) )
+		else
+		if( rank_config_read(w1,w2) )
 			continue;
-		else if (strcmpi(w1, "import") == 0)
+		else
+		if( strcmpi(w1, "import") == 0 )
 			char_config_read(w2);
-		else if(!strcmpi(w1, "charserver.engine"))
+		else
+		if( strcmpi(w1, "charserver.engine") == 0 )
 			safestrncpy(charserver_engine, w2, sizeof(charserver_engine));
 		else
 		{// try the charserver engines
@@ -1307,7 +1308,7 @@ int do_init(int argc, char **argv)
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
 	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
 
-	if( console )
+	if( char_config.console )
 	{
 		//##TODO invoke a CONSOLE_START plugin event
 	}

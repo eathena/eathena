@@ -8,7 +8,6 @@
 #include "../common/strlib.h"
 #include "charserverdb_sql.h"
 #include "inter.h" // char_db[]
-#include "int_party.h"
 #include "partydb.h"
 #include <stdlib.h>
 #include <string.h>

@@ -90,7 +90,6 @@
 //Limits to avoid ID collision with other game objects
 #define START_ACCOUNT_NUM 2000000
 #define END_ACCOUNT_NUM 100000000
-#define START_CHAR_NUM 150000
 
 //Base Homun skill.
 #define HM_SKILLBASE 8001
@@ -337,7 +336,7 @@ struct mail_data {
 };
 
 struct auction_data {
-	unsigned int auction_id;
+	int auction_id;
 	int seller_id;
 	char seller_name[NAME_LENGTH];
 	int buyer_id;

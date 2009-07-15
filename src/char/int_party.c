@@ -266,15 +266,15 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 
 	// Check Authorised letters/symbols in the name of the party
 	//TODO: perhaps add a separate config setting for this?
-	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
+	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) == NULL) {
+			if (strchr(char_config.char_name_letters, name[i]) == NULL) {
 				mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
 				return 0;
 			}
-	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
+	} else if (char_config.char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) != NULL) {
+			if (strchr(char_config.char_name_letters, name[i]) != NULL) {
 				mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
 				return 0;
 			}

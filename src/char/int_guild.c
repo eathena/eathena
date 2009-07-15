@@ -41,7 +41,7 @@ int inter_guild_exp_readdb(void)
 	for( i = 0; i < 100; i++ )
 		guild_exp[i] = 0;
 
-	sprintf(path, "%s/%s", db_path, "exp_guild.txt");
+	sprintf(path, "%s/%s", char_config.db_path, "exp_guild.txt");
 
 	fp = fopen(path, "r");
 	if( fp == NULL )
@@ -397,15 +397,15 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	}
 
 	// Check Authorised letters/symbols in the name of the character
-	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
+	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) == NULL) {
+			if (strchr(char_config.char_name_letters, name[i]) == NULL) {
 				mapif_guild_created(fd,account_id,0);
 				return 0;
 			}
-	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
+	} else if (char_config.char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
-			if (strchr(char_name_letters, name[i]) != NULL) {
+			if (strchr(char_config.char_name_letters, name[i]) != NULL) {
 				mapif_guild_created(fd,account_id,0);
 				return 0;
 			}

@@ -38,20 +38,11 @@ int char_child(int parent_id, int child_id);
 int char_family(int cid1, int cid2, int cid3);
 
 // char config
-extern char db_path[];
-extern int char_name_option;
-extern char char_name_letters[];
 extern int guild_exp_rate;
-extern char server_name[20];
-extern char wisp_server_name[NAME_LENGTH];
-extern char unknown_char_name[NAME_LENGTH];
-extern int char_per_account;
-extern int char_del_level;
 extern int start_zeny;
 extern int start_weapon;
 extern int start_armor;
 extern struct point start_point;
-extern int autosave_interval;
 
 // auth system
 #define AUTH_TIMEOUT 30000
@@ -86,11 +77,22 @@ struct Char_Config {
 	char userid[24];      // server-to-server userid
 	char passwd[24];      // server-to-server password
 
+	char db_path[1024];   // path to /db directory
+	char server_name[20]; // server's display name
 	int char_maintenance; // defines appearance in server select: 0 =  (%d)#, 1 =  (On the maintenance)#, 2 =  (%d People) - over the age 18#, 3 =  (%d players) - Pay to Play#, 4 =  (%d players) - Free Play Server#
 	int char_new_display; // shows 'new' in server select if set
 	bool char_new;        // new character creation enabled/disabled
 	bool char_rename;     // when enabled, uses extended char data packet w/ char rename bit (kRO sakexe compatibility setting)
-	bool online_check;    // when enabled, access to an already online account is rejected and the mapserver is asked to disconnect the corresponding character
+	int char_name_option; // letters/symbols authorized in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters)
+	char char_name_letters[1024]; // list of letters/symbols authorised (or not) in a character name
+	char wisp_server_name[NAME_LENGTH]; // name reserved for sending whispers from server to players
+	char unknown_char_name[NAME_LENGTH]; // name to use when the requested name cannot be determined
+	int max_connect_user; // maximum number of online users (0: unlimited)
+	int gm_allow_level;   // minimum GM level that is allowed to bypass the server's max user limit
+	bool console;         // console command parser enabled/disabled
+	char char_log_filename[1024]; // path to charserver logfile
+	bool log_char_enabled; // whether to log the charserver or not
+	int char_del_level;   // char deletion prevention using base level (-n: can't delete <= n, +n: can't delete >= n)
 };
 
 extern struct Char_Config char_config;
