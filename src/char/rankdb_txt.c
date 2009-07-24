@@ -228,7 +228,7 @@ static void rank_db_txt_destroy(RankDB* self)
 
 /// Saves any pending data.
 /// @protected
-static bool rank_db_txt_save(RankDB* self, bool force)
+static bool rank_db_txt_save(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	FILE* fp;
@@ -236,7 +236,7 @@ static bool rank_db_txt_save(RankDB* self, bool force)
 	int ranks[] = {RANK_BLACKSMITH, RANK_ALCHEMIST, RANK_TAEKWON};
 	int i;
 
-	if( !db->dirty && !force )
+	if( !db->dirty )
 		return true;// nothing to do
 
 	fp = lock_fopen(db->file_ranks, &lock);

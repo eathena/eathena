@@ -33,8 +33,6 @@ static int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 	WFIFOHEAD(fd, sizeof(struct guild_storage)+12);
 	WFIFOW(fd,0) = 0x3818;
 
-	//FIXME: If guild doesn't exist, this 'failed' before, now it sends empty data. Check if it breaks anything.
-	
 	//NOTE: writes directly to socket buffer
 	if( guildstorages->load(guildstorages, (struct guild_storage*)WFIFOP(fd,12), guild_id) )
 	{
@@ -89,8 +87,6 @@ static void mapif_parse_SaveGuildStorage(int fd)
 		mapif_save_guild_storage_ack(fd, account_id, guild_id, 1);
 		return;
 	}
-
-	//FIXME: If guild doesn't exist, this 'failed' before, now it saves the data. Check if it breaks anything.
 
 	if( guildstorages->save(guildstorages, gs, guild_id) )
 		mapif_save_guild_storage_ack(fd,account_id,guild_id,0);

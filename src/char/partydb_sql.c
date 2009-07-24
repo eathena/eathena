@@ -227,16 +227,39 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	Sql* sql_handle = db->parties;
+	bool result = false;
 
-	//TODO: no transactions and doesn't return proper value
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
 
-	// Break the party
-	if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", db->char_db, party_id) )
+	// try
+	do
+	{
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "UPDATE `%s` SET `party_id`='0' WHERE `party_id`='%d'", db->char_db, party_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `party_id`='%d'", db->party_db, party_id)
+	) {
 		Sql_ShowDebug(sql_handle);
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `party_id`='%d'", db->party_db, party_id) )
-		Sql_ShowDebug(sql_handle);
+		break;
+	}
 	
-	return true;
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
 }
 
 static bool party_db_sql_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)

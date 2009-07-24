@@ -36,12 +36,11 @@ static void* create_charregs(DBKey key, va_list args)
 bool mmo_charreg_fromstr(struct regs* reg, const char* str)
 {
 	//FIXME: no escaping - will break if str/value contains commas or spaces
-	//FIXME: doesn't obey size limits
 	int i;
 	int len;
 
-	for( i = 0; *str && *str != '\t' && *str != '\n' && *str != '\r'; ++i )
-	{// global_reg実装以前のathena.txt互換のため一応'\n'チェック
+	for( i = 0; i < GLOBAL_REG_NUM && *str && *str != '\t' && *str != '\n' && *str != '\r'; ++i )
+	{
 		if( sscanf(str, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &len) != 2 )
 		{ 
 			// because some scripts are not correct, the str can be "". So, we must check that.

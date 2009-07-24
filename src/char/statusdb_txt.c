@@ -32,7 +32,7 @@ typedef struct StatusDB_TXT
 static void* create_scdata(DBKey key, va_list args)
 {
 	struct scdata* sc = (struct scdata*)aMalloc(sizeof(struct scdata));
-	sc->account_id = va_arg(args, int);
+	sc->account_id = 0;
 	sc->char_id = key.i;
 	sc->count = 0;
 	sc->data = NULL;
@@ -213,7 +213,7 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 
 	if( sc->count > 0 )
 	{	// retrieve previous data / allocate new data
-		tmp = (struct scdata*)idb_ensure(statuses, sc->char_id, create_scdata, sc->account_id);
+		tmp = (struct scdata*)idb_ensure(statuses, sc->char_id, create_scdata);
 
 		// overwrite with new data
 		tmp->account_id = sc->account_id;

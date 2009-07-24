@@ -35,8 +35,6 @@ static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int ca
 
 	if( gc == NULL )
 		return false;
-	if( castle_id == -1 ) //TODO: is this needed?
-		return false;
 
 	memset(gc,0,sizeof(struct guild_castle));
 

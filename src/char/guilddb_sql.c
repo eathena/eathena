@@ -191,6 +191,17 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 	Sql* sql_handle = db->guilds;
 	SqlStmt* stmt = NULL;
 	int i = 0;
+	bool result = false;
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
+	// try
+	do
+	{
 
 	if( flag & GS_CREATE )
 	{// Create a new guild
@@ -213,7 +224,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		||  SQL_SUCCESS != SqlStmt_Execute(stmt)
 		) {
 			SqlStmt_ShowDebug(stmt);
-			return false; //Failed to create guild!
+			break; //Failed to create guild!
 		}
 
 		insert_id = (int)SqlStmt_LastInsertId(stmt);
@@ -221,7 +232,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 			g->guild_id = insert_id; // fill in output value
 		else
 		if( g->guild_id != insert_id )
-			return false; // error, unexpected value
+			break; // error, unexpected value
 	}
 
 	// If we need an update on an existing guild or more update on the new guild
@@ -389,7 +400,22 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		}
 	}
 
-	return true;
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	SqlStmt_Free(stmt);
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
 }
 
 
@@ -422,29 +448,43 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
 	Sql* sql_handle = db->guilds;
+	bool result = false;
 
-	//TODO: no transactions and doesn't return proper value
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_db, guild_id) )
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
 		Sql_ShowDebug(sql_handle);
+		return result;
+	}
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_member_db, guild_id) )
+	// try
+	do
+	{
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_db, guild_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_member_db, guild_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_position_db, guild_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_skill_db, guild_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_expulsion_db, guild_id)
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", db->guild_alliance_db, guild_id, guild_id)
+	) {
 		Sql_ShowDebug(sql_handle);
+		break;
+	}
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_position_db, guild_id) )
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
 		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_skill_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d'", db->guild_expulsion_db, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	// delete alliances
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `guild_id` = '%d' OR `alliance_id` = '%d'", db->guild_alliance_db, guild_id, guild_id) )
-		Sql_ShowDebug(sql_handle);
-
-	return true;
+	return result;
 }
 
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)

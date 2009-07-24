@@ -37,9 +37,9 @@ static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
 	memset(hd, 0, sizeof(struct s_homunculus));
 
 	if( sscanf(str,
-		"%d,%d\t%23[^\t]\t%d,%d,%d,%d,%d,"
-		"%u,%d,%d,%d,"
-		"%u,%d,%d,"
+		"%d,%hd\t%23[^\t]\t%d,%d,%d,%d,%d,"
+		"%u,%hd,%hd,%hd,"
+		"%u,%hd,%hd,"
 		"%d,%d,%d,%d,%d,%d\t%n",
 		&hd->hom_id, &hd->class_, hd->name,
 		&hd->char_id, &hd->hp, &hd->max_hp, &hd->sp, &hd->max_sp,

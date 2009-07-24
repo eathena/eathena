@@ -47,6 +47,7 @@ bool charlog_db_sql_init(CharLogDB* self)
 	{
 		Sql_ShowDebug(db->sql_handle);
 		Sql_Free(db->sql_handle);
+		db->sql_handle = NULL;
 		return false;
 	}
 

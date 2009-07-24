@@ -265,7 +265,6 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 #endif
 
 	// Check Authorised letters/symbols in the name of the party
-	//TODO: perhaps add a separate config setting for this?
 	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_config.char_name_letters, name[i]) == NULL) {
@@ -433,8 +432,6 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 
 		if( i < MAX_PARTY )
 			p.party.member[i].leader = 1;
-
-		//TODO: notify the mapserver (somehow)
 	}
 
 	int_party_calc_state(&p);

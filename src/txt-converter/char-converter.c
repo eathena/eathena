@@ -50,7 +50,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load_num(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -123,7 +123,7 @@ int convert_char(void)
 		{
 			txt->load(txt, &data, key);
 			data.account_id = -1;
-			sql->save(sql, &data, key);
+			sql->save(sql, &data);
 			if( data.data != NULL )
 				aFree(data.data);
 		}
@@ -143,7 +143,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -161,7 +161,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -197,7 +197,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -220,7 +220,7 @@ int convert_char(void)
 				data.member[i].modified = GS_MEMBER_MODIFIED;
 			for( i = 0; i < MAX_GUILDPOSITION; ++i )
 				data.position[i].modified = GS_POSITION_MODIFIED;
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -238,7 +238,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			sql->save(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -292,7 +292,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->create(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
@@ -310,7 +310,7 @@ int convert_char(void)
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			sql->save(sql, &data);
 		}
 
 		iter->destroy(iter);

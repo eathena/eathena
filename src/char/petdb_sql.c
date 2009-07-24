@@ -22,7 +22,6 @@ typedef struct PetDB_SQL
 	Sql* pets;       // SQL pet storage
 
 	// other settings
-	bool case_sensitive;
 	const char* pet_db;
 
 } PetDB_SQL;
@@ -242,7 +241,6 @@ PetDB* pet_db_sql(CharServerDB_SQL* owner)
 	db->pets = NULL;
 
 	// other settings
-	db->case_sensitive = false;
 	db->pet_db = db->owner->table_pets;
 
 	return &db->vtable;
