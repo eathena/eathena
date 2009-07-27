@@ -19,9 +19,9 @@
 
 //temporary imports
 extern CharServerDB* charserver;
+int login_fd = -1;
 
 #include "char.h"
-extern int login_fd;
 extern uint32 login_ip;
 extern uint32 char_ip;
 extern DBMap* auth_db;
@@ -450,56 +450,54 @@ int parse_fromlogin(int fd)
 	return 0;
 }
 
-
-/// load this char's account id into the 'online accounts' packet
-static int send_accounts_tologin_sub(DBKey key, void* data, va_list ap)
-{
-	struct online_char_data* character = (struct online_char_data*)data;
-	int* i = va_arg(ap, int*);
-
-	if(character->server > -1)
-	{
-		WFIFOL(login_fd,8+(*i)*4) = character->account_id;
-		(*i)++;
-		return 1;
-	}
-	return 0;
-}
-
-int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
-{
-	if (login_fd > 0 && session[login_fd])
-	{
-		// send account list to login server
-		int users = online_char_db->size(online_char_db);
-		int i = 0;
-
-		WFIFOHEAD(login_fd,8+users*4);
-		WFIFOW(login_fd,0) = 0x272d;
-		online_char_db->foreach(online_char_db, send_accounts_tologin_sub, &i, users);
-		WFIFOW(login_fd,2) = 8+ i*4;
-		WFIFOL(login_fd,4) = i;
-		WFIFOSET(login_fd,WFIFOW(login_fd,2));
-	}
-	return 0;
-}
-
 int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 {
-	if (login_fd > 0 && session[login_fd] != NULL)
-		return 0;
+	if( session_isValid(login_fd) )
+		return 0; // already connected
 
 	ShowInfo("Attempt to connect to login-server...\n");
 	login_fd = make_connection(login_ip, char_config.login_port);
 	if (login_fd == -1)
-	{	//Try again later. [Skotlex]
-		login_fd = 0;
-		return 0;
-	}
+		return 0; // try again later
+
 	session[login_fd]->func_parse = parse_fromlogin;
 	session[login_fd]->flag.server = 1;
 	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 	
+	loginif_charserver_login();
+	return 1;
+}
+
+int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
+{
+	loginif_online_accounts_list();
+	return 0;
+}
+
+int ping_login_server(int tid, unsigned int tick, int id, intptr data)
+{
+	loginif_ping();
+	return 0;
+}
+
+bool loginif_is_connected(void)
+{
+	return( session_isActive(login_fd) );
+}
+
+void loginif_disconnect(void)
+{
+	do_close(login_fd);
+}
+
+
+/// Request charserver login to login server.
+/// Will receive answer 0x2711 (0: success, 3: rejected).
+void loginif_charserver_login(void)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
 	WFIFOHEAD(login_fd,86);
 	WFIFOW(login_fd,0) = 0x2710;
 	memcpy(WFIFOP(login_fd,2), char_config.userid, 24);
@@ -512,18 +510,240 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 	WFIFOW(login_fd,82) = char_config.char_maintenance;
 	WFIFOW(login_fd,84) = char_config.char_new_display;
 	WFIFOSET(login_fd,86);
-	
-	return 1;
 }
 
-// sends a ping packet to login server (will receive pong 0x2718)
-int ping_login_server(int tid, unsigned int tick, int id, intptr data)
+
+/// Ask login-server to authenticate this account.
+void loginif_auth_request(int account_id, int login_id1, int login_id2, int sex, int ip, int fd)
 {
-	if (login_fd > 0 && session[login_fd] != NULL)
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,23);
+	WFIFOW(login_fd,0) = 0x2712; 
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOL(login_fd,6) = login_id1;
+	WFIFOL(login_fd,10) = login_id2;
+	WFIFOB(login_fd,14) = sex;
+	WFIFOL(login_fd,15) = ip;
+	WFIFOL(login_fd,19) = fd;
+	WFIFOSET(login_fd,23);
+}
+
+
+/// Send number of online users to login server.
+/// Does not include people connected to the charserver.
+void loginif_user_count(int users)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x2714;
+	WFIFOL(login_fd,2) = users;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Request account data (email, expiration time, gm level).
+/// Will receive answer 0x2717.
+void loginif_request_account_data(int account_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x2716;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Sends a ping packet to login server.
+/// Will receive pong 0x2718.
+void loginif_ping(void)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,2);
+	WFIFOW(login_fd,0) = 0x2719;
+	WFIFOSET(login_fd,2);
+}
+
+
+/// Forward email change request to login server.
+void loginif_change_email(int account_id, const char* old_email, const char* new_email)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,86);
+	WFIFOW(login_fd,0) = 0x2722;
+	WFIFOL(login_fd,2) = account_id;
+	safestrncpy((char*)WFIFOP(login_fd,6), old_email, 40);
+	safestrncpy((char*)WFIFOP(login_fd,46), new_email, 40);
+	WFIFOSET(login_fd,86);
+}
+
+
+/// Change an account's status code.
+void loginif_account_status(int account_id, int status)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,10);
+	WFIFOW(login_fd,0) = 0x2724;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOL(login_fd,6) = status;
+	WFIFOSET(login_fd,10);
+}
+
+
+/// Ban an account for the specified duration.
+void loginif_account_ban(int account_id, short year, short month, short day, short hour, short minute, short second)
+{
+	if( !session_isActive(login_fd) )
+		return;
+	
+	WFIFOHEAD(login_fd,18);
+	WFIFOW(login_fd, 0) = 0x2725;
+	WFIFOL(login_fd, 2) = account_id;
+	WFIFOW(login_fd, 6) = year;
+	WFIFOW(login_fd, 8) = month;
+	WFIFOW(login_fd,10) = day;
+	WFIFOW(login_fd,12) = hour;
+	WFIFOW(login_fd,14) = minute;
+	WFIFOW(login_fd,16) = second;
+	WFIFOSET(login_fd,18);
+}
+
+
+/// Change an account's gender.
+void loginif_account_changesex(int account_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x2727;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Send account registry save request to login server.
+void loginif_save_accreg2(unsigned char* buf, int len)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,len+4);
+	WFIFOW(login_fd,0) = 0x2728;
+	WFIFOW(login_fd,2) = len+4;
+	memcpy(WFIFOP(login_fd,4), buf, len);
+	WFIFOSET(login_fd,len+4);
+}
+
+
+/// Unban a banned account.
+void loginif_account_unban(int account_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x272a;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Mark account as online on login server.
+void loginif_char_online(int account_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x272b;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Mark account as offline on login server.
+void loginif_char_offline(int account_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,6);
+	WFIFOW(login_fd,0) = 0x272c;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOSET(login_fd,6);
+}
+
+
+/// Send online accounts list to login server.
+void loginif_online_accounts_list(void)
+{
+	unsigned int users;
+	DBIterator* iter;
+	DBKey key;
+	int i;
+
+	if( !session_isActive(login_fd) )
+		return;
+
+	users = online_char_db->size(online_char_db);
+
+	WFIFOHEAD(login_fd,8+users*4);
+	WFIFOW(login_fd,0) = 0x272d;
+
+	iter = online_char_db->iterator(online_char_db);
+	i = 0;
+	while( iter->next(iter, &key) )
 	{
-		WFIFOHEAD(login_fd,2);
-		WFIFOW(login_fd,0) = 0x2719;
-		WFIFOSET(login_fd,2);
+		int account_id = key.i;
+		struct online_char_data* character = idb_get(online_char_db, account_id);
+		if( character->server > -1 )
+		{
+			WFIFOL(login_fd,8+i*4) = account_id;
+			i++;
+		}
 	}
-	return 0;
+	iter->destroy(iter);
+
+	WFIFOW(login_fd,2) = 8+ i*4;
+	WFIFOL(login_fd,4) = i;
+	WFIFOSET(login_fd,WFIFOW(login_fd,2));
+}
+
+
+/// Request account registry from login server.
+/// Will receive answer 0x2729.
+void loginif_request_accreg2(int account_id, int char_id)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,10);
+	WFIFOW(login_fd,0) = 0x272e;
+	WFIFOL(login_fd,2) = account_id;
+	WFIFOL(login_fd,6) = char_id;
+	WFIFOSET(login_fd,10);
+}
+
+
+/// Tell login server to mark all users on this charserver as offline.
+void loginif_all_offline(void)
+{
+	if( !session_isActive(login_fd) )
+		return;
+
+	WFIFOHEAD(login_fd,2);
+	WFIFOW(login_fd,0) = 0x2737;
+	WFIFOSET(login_fd,2);
 }

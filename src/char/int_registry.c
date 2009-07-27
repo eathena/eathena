@@ -9,6 +9,7 @@
 #include "int_registry.h"
 #include "accregdb.h"
 #include "charregdb.h"
+#include "if_login.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -16,10 +17,6 @@
 // accreg and charreg database
 static AccRegDB* accregs = NULL;
 static CharRegDB* charregs = NULL;
-
-
-// temporary imports
-extern int login_fd;
 
 
 /// Serializes regs into the provided buffer.
@@ -60,34 +57,6 @@ int inter_regs_frombuf(const uint8* buf, size_t size, struct regs* reg)
 	return 0;
 }
 
-
-//Request account registry from login server
-int request_accreg2(int account_id, int char_id)
-{
-	if (login_fd > 0) {
-		WFIFOHEAD(login_fd,10);
-		WFIFOW(login_fd,0) = 0x272e;
-		WFIFOL(login_fd,2) = account_id;
-		WFIFOL(login_fd,6) = char_id;
-		WFIFOSET(login_fd,10);
-		return 1;
-	}
-	return 0;
-}
-
-//Send packet forward to login-server for account saving
-int save_accreg2(unsigned char* buf, int len)
-{
-	if (login_fd > 0) {
-		WFIFOHEAD(login_fd,len+4);
-		memcpy(WFIFOP(login_fd,4), buf, len);
-		WFIFOW(login_fd,0) = 0x2728;
-		WFIFOW(login_fd,2) = len+4;
-		WFIFOSET(login_fd,len+4);
-		return 1;
-	}
-	return 0;
-}
 
 // registry transfer to map-server
 static void mapif_regs(int fd, unsigned char *src)
@@ -142,7 +111,8 @@ int mapif_parse_Registry(int fd)
 	break;
 
 	case 1: //Account2 registry
-		return save_accreg2(RFIFOP(fd,4), length-4); // must be sent over to login server.
+		loginif_save_accreg2(RFIFOP(fd,4), length-4); // must be sent over to login server.
+		return 0;
 	break;
 
 	default: //Error?
@@ -175,7 +145,7 @@ int mapif_parse_RegistryRequest(int fd)
 
 	if( accreg2 )
 	{// Ask Login Server for Account2 values.
-		request_accreg2(account_id, char_id);
+		loginif_request_accreg2(account_id, char_id);
 	}
 
 	return 1;

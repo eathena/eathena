@@ -72,7 +72,7 @@ CharServerDB* charserver = NULL;
 struct Char_Config char_config;
 
 
-int login_fd=-1, char_fd=-1;
+int char_fd=-1;
 uint32 login_ip = 0;
 uint32 char_ip = 0;
 uint32 bind_ip = INADDR_ANY;
@@ -163,14 +163,7 @@ void set_char_charselect(int account_id)
 		character->waiting_disconnect = -1;
 	}
 
-	if (login_fd > 0 && !session[login_fd]->flag.eof)
-	{
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x272b;
-		WFIFOL(login_fd,2) = account_id;
-		WFIFOSET(login_fd,6);
-	}
-
+	loginif_char_online(account_id);
 }
 
 void set_char_online(int map_id, int char_id, int account_id)
@@ -199,14 +192,7 @@ void set_char_online(int map_id, int char_id, int account_id)
 		character->waiting_disconnect = -1;
 	}
 
-	//Notify login server
-	if (login_fd > 0 && !session[login_fd]->flag.eof)
-	{	
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x272b;
-		WFIFOL(login_fd,2) = account_id;
-		WFIFOSET(login_fd,6);
-	}
+	loginif_char_online(account_id);
 }
 
 void set_char_offline(int char_id, int account_id)
@@ -231,13 +217,8 @@ void set_char_offline(int char_id, int account_id)
 	}
 
 	//Remove char if 1- Set all offline, or 2- character is no longer connected to char-server.
-	if (login_fd > 0 && !session[login_fd]->flag.eof && (char_id == -1 || character == NULL || character->fd != -1))
-	{
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x272c;
-		WFIFOL(login_fd,2) = account_id;
-		WFIFOSET(login_fd,6);
-	}
+	if (char_id == -1 || character == NULL || character->fd != -1)
+		loginif_char_offline(account_id);
 }
 
 int char_db_setoffline(DBKey key, void* data, va_list ap)
@@ -283,31 +264,21 @@ void set_all_offline(int id)
 		ShowNotice("Sending users of map-server %d offline.\n",id);
 	online_char_db->foreach(online_char_db,char_db_kickoffline,id);
 
-	if (id >= 0 || login_fd <= 0 || session[login_fd]->flag.eof)
-		return;
 	//Tell login-server to also mark all our characters as offline.
-	WFIFOHEAD(login_fd,2);
-	WFIFOW(login_fd,0) = 0x2737;
-	WFIFOSET(login_fd,2);
+	loginif_all_offline();
 }
 
 
-//---------------------------------------------------------------------
-// This function return the number of online players in all map-servers
-//---------------------------------------------------------------------
+/// Returns the number of online players in all map-servers.
 int count_users(void)
 {
 	int i, users;
-
-	if( login_fd <= 0 || session[login_fd] == NULL )
-		return 0;
-
+	  	
 	users = 0;
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		if (server[i].fd > 0) {
+	for( i = 0; i < MAX_MAP_SERVERS; i++ )
+		if( server[i].fd > 0 )
 			users += server[i].users;
-		}
-	}
+
 	return users;
 }
 
@@ -338,13 +309,7 @@ void char_auth_ok(int fd, struct char_session_data *sd)
 		character->fd = fd;
 	}
 
-	if (login_fd > 0) {
-		// request account data
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x2716;
-		WFIFOL(login_fd,2) = sd->account_id;
-		WFIFOSET(login_fd,6);
-	}
+	loginif_request_account_data(sd->account_id);
 
 	// mark session as 'authed'
 	sd->auth = true;
@@ -383,14 +348,8 @@ int broadcast_user_count(int tid, unsigned int tick, int id, intptr data)
 		return 0;
 	prev_users = users;
 
-	if( login_fd > 0 && session[login_fd] )
-	{
-		// send number of user to login server
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x2714;
-		WFIFOL(login_fd,2) = users;
-		WFIFOSET(login_fd,6);
-	}
+	// send number of players to login server
+	loginif_user_count(users);
 
 	// send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;
@@ -1194,8 +1153,8 @@ void do_final(void)
 
 	flush_fifos();
 
-	if (login_fd > 0)
-		do_close(login_fd);
+	if( loginif_is_connected() )
+		loginif_disconnect();
 	if (char_fd > 0)
 		do_close(char_fd);
 

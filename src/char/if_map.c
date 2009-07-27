@@ -14,6 +14,7 @@
 #include "int_status.h"
 #include "int_storage.h"
 #include "inter.h"
+#include "if_login.h"
 #include "if_map.h"
 #include <string.h>
 
@@ -24,7 +25,6 @@ extern void set_char_online(int map_id, int char_id, int account_id);
 extern void set_char_offline(int char_id, int account_id);
 extern void set_char_charselect(int account_id);
 #include "char.h"
-extern int login_fd;
 extern DBMap* online_char_db; // int account_id -> struct online_char_data*
 extern DBMap* auth_db; // int account_id -> struct auth_node*
 extern int char_db_setoffline(DBKey key, void* data, va_list ap);
@@ -427,12 +427,7 @@ int parse_frommap(int fd)
 		case 0x2b0c: // Map server send information to change an email of an account -> login-server
 			if (RFIFOREST(fd) < 86)
 				return 0;
-			if (login_fd > 0) { // don't send request if no login-server
-				WFIFOHEAD(login_fd,86);
-				memcpy(WFIFOP(login_fd,0), RFIFOP(fd,0),86); // 0x2722 <account_id>.L <actual_e-mail>.40B <new_e-mail>.40B
-				WFIFOW(login_fd,0) = 0x2722;
-				WFIFOSET(login_fd,86);
-			}
+			loginif_change_email(RFIFOL(fd,2), (const char*)RFIFOP(fd,6), (const char*)RFIFOP(fd,46));
 			RFIFOSKIP(fd, 86);
 		break;
 
@@ -462,7 +457,7 @@ int parse_frommap(int fd)
 				int account_id = cd.account_id;
 				safestrncpy(name, cd.name, NAME_LENGTH);
 
-				if( login_fd <= 0 )
+				if( !loginif_is_connected() )
 					result = 3; // 3-login-server offline
 				//FIXME: need to move this check to login server [ultramage]
 //				else
@@ -470,44 +465,11 @@ int parse_frommap(int fd)
 //					result = 2; // 2-gm level too low
 				else
 				switch( type ) {
-				case 1: // block
-						WFIFOHEAD(login_fd,10);
-						WFIFOW(login_fd,0) = 0x2724;
-						WFIFOL(login_fd,2) = account_id;
-						WFIFOL(login_fd,6) = 5; // new account status
-						WFIFOSET(login_fd,10);
-				break;
-				case 2: // ban
-						WFIFOHEAD(login_fd,18);
-						WFIFOW(login_fd, 0) = 0x2725;
-						WFIFOL(login_fd, 2) = account_id;
-						WFIFOW(login_fd, 6) = year;
-						WFIFOW(login_fd, 8) = month;
-						WFIFOW(login_fd,10) = day;
-						WFIFOW(login_fd,12) = hour;
-						WFIFOW(login_fd,14) = minute;
-						WFIFOW(login_fd,16) = second;
-						WFIFOSET(login_fd,18);
-				break;
-				case 3: // unblock
-						WFIFOHEAD(login_fd,10);
-						WFIFOW(login_fd,0) = 0x2724;
-						WFIFOL(login_fd,2) = account_id;
-						WFIFOL(login_fd,6) = 0; // new account status
-						WFIFOSET(login_fd,10);
-				break;
-				case 4: // unban
-						WFIFOHEAD(login_fd,6);
-						WFIFOW(login_fd,0) = 0x272a;
-						WFIFOL(login_fd,2) = account_id;
-						WFIFOSET(login_fd,6);
-				break;
-				case 5: // changesex
-						WFIFOHEAD(login_fd,6);
-						WFIFOW(login_fd,0) = 0x2727;
-						WFIFOL(login_fd,2) = account_id;
-						WFIFOSET(login_fd,6);
-				break;
+				case 1: loginif_account_status(account_id, 5); break; // block
+				case 2: loginif_account_ban(account_id, year, month, day, hour, minute, second); break; // ban
+				case 3: loginif_account_status(account_id, 0); break; // unblock
+				case 4: loginif_account_unban(account_id); break; // unban
+				case 5: loginif_account_changesex(account_id); break; // changesex
 				}
 			}
 

@@ -12,12 +12,12 @@
 #include "chardb.h"
 #include "charlog.h"
 #include "inter.h"
+#include "if_login.h"
 #include "if_map.h"
 
 //temporary imports
 extern CharServerDB* charserver;
 
-extern int login_fd;
 extern DBMap* auth_db;
 extern DBMap* online_char_db;
 #include "char.h"
@@ -43,7 +43,7 @@ int parse_client(int fd)
 	sd = (struct char_session_data*)session[fd]->session_data;
 
 	// disconnect any player if no login-server.
-	if(login_fd < 0)
+	if( !loginif_is_connected() )
 		set_eof(fd);
 
 	if(session[fd]->flag.eof)
@@ -118,17 +118,10 @@ int parse_client(int fd)
 			}
 			else
 			{// authentication not found (coming from login server)
-				if (login_fd > 0) { // don't send request if no login-server
-					WFIFOHEAD(login_fd,23);
-					WFIFOW(login_fd,0) = 0x2712; // ask login-server to authentify an account
-					WFIFOL(login_fd,2) = sd->account_id;
-					WFIFOL(login_fd,6) = sd->login_id1;
-					WFIFOL(login_fd,10) = sd->login_id2;
-					WFIFOB(login_fd,14) = sd->sex;
-					WFIFOL(login_fd,15) = htonl(ipl);
-					WFIFOL(login_fd,19) = fd;
-					WFIFOSET(login_fd,23);
-				} else { // if no login-server, we must refuse connection
+				if( loginif_is_connected() )
+					loginif_auth_request(sd->account_id, sd->login_id1, sd->login_id2, sd->sex, htonl(ipl), fd);
+				else
+				{// if no login-server, we must refuse connection
 					WFIFOHEAD(fd,3);
 					WFIFOW(fd,0) = 0x6c;
 					WFIFOB(fd,2) = 0;
@@ -151,7 +144,7 @@ int parse_client(int fd)
 
 #ifdef TXT_ONLY
 			// if we activated email creation and email is default email
-			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0) { // to modify an e-mail, login-server must be online
+			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0) {
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x70;
 				WFIFOB(fd,2) = 0; // 00 = Incorrect Email address
@@ -333,7 +326,7 @@ int parse_client(int fd)
 
 			// BEGIN HACK: "change email using the char deletion 'confirm email' menu"
 			// if we activated email creation and email is default email
-			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && login_fd > 0)
+			if (email_creation != 0 && strcmp(sd->email, "a@a.com") == 0 && loginif_is_connected())
 			{ // to modify an e-mail, login-server must be online
 				// if sended email is incorrect e-mail
 				if (strcmp(email, "a@a.com") == 0) {
@@ -349,12 +342,9 @@ int parse_client(int fd)
 				{
 					// we save new e-mail
 					memcpy(sd->email, email, 40);
+
 					// we send new e-mail to login-server ('online' login-server is checked before)
-					WFIFOHEAD(login_fd,46);
-					WFIFOW(login_fd,0) = 0x2715;
-					WFIFOL(login_fd,2) = sd->account_id;
-					memcpy(WFIFOP(login_fd, 6), email, 40);
-					WFIFOSET(login_fd,46);
+					loginif_change_email(sd->account_id, "a@a.com", sd->email);
 
 					// change value to put new packet (char selection)
 					RFIFOSKIP(fd,-3); //FIXME: Will this work? Messing with the received buffer is ugly anyway... 
