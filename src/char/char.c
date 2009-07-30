@@ -439,19 +439,6 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	if( chars->name2id(chars, name, NULL, NULL) )
 		return -1; // name already exists
 
-	//check other inputs
-	if((slot < 0 || slot >= MAX_CHARS) // slots
-	|| (hair_style < 0 || hair_style >= 24) // hair style
-	|| (hair_color < 0 || hair_color >= 9) // hair color
-	|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
-	|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
-	|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
-		return -2; // invalid input
-
-	// check char slot
-	if( chars->slot2id(chars, account_id, slot, &i) )
-		return -2; // slot already in use
-
 	// insert new char to database
 	memset(&cd, 0, sizeof(cd));
 

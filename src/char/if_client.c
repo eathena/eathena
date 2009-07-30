@@ -273,8 +273,14 @@ int parse_client(int fd)
 			safestrncpy(name, (const char*)RFIFOP(fd,2), NAME_LENGTH);
 			RFIFOSKIP(fd,37);
 
-			if( !char_config.char_new )
-				result = -2;// char creation disabled
+			if( !char_config.char_new
+			|| (slot < 0 || slot >= MAX_CHARS || sd->slots[slot] != 0) // invalid slot or in use
+			|| (hairstyle < 0 || hairstyle >= 24) // hair style
+			|| (haircolor < 0 || haircolor >= 9) // hair color
+			|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
+			|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
+			|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
+				result = -2;// reject
 			else
 				result = char_create(sd->account_id, name, str, agi, vit, int_, dex, luk, slot, haircolor, hairstyle, &char_id);
 
