@@ -359,6 +359,14 @@
 				RelativePath="..\src\char\inter.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\char\online.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\online.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="common"
@@ -681,6 +689,18 @@
 			</File>
 			<File
 				RelativePath="..\src\char\mercdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\onlinedb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\onlinedb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\onlinedb_txt.c"
 				>
 			</File>
 			<File

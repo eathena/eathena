@@ -14,19 +14,17 @@
 #include "inter.h"
 #include "if_login.h"
 #include "if_map.h"
+#include "online.h"
 
 //temporary imports
 extern CharServerDB* charserver;
 
 extern DBMap* auth_db;
-extern DBMap* online_char_db;
 #include "char.h"
 extern int email_creation;
 extern int search_mapserver(unsigned short map, uint32 ip, uint16 port);
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int lan_subnetcheck(uint32 ip);
-extern void set_char_online(int map_id, int char_id, int account_id);
-extern void set_char_offline(int char_id, int account_id);
 int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
@@ -50,7 +48,7 @@ int parse_client(int fd)
 	{
 		if( sd != NULL && sd->auth )
 		{
-			struct online_char_data* data = (struct online_char_data*)idb_get(online_char_db, sd->account_id);
+			struct online_char_data* data = onlinedb_get(sd->account_id);
 			if( data != NULL && data->fd == fd)
 				data->fd = -1;
 			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]

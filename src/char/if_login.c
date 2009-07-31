@@ -15,6 +15,7 @@
 #include "if_login.h"
 #include "if_map.h"
 #include "charserverdb.h"
+#include "online.h"
 #include <stdio.h>
 
 //temporary imports
@@ -25,12 +26,9 @@ int login_fd = -1;
 extern uint32 login_ip;
 extern uint32 char_ip;
 extern DBMap* auth_db;
-extern DBMap* online_char_db;
 extern void char_auth_ok(int fd, struct char_session_data *sd);
 extern int disconnect_player(int account_id);
 extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
-extern int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
-extern void set_char_offline(int char_id, int account_id);
 extern int count_users(void);
 
 
@@ -380,15 +378,14 @@ int parse_fromlogin(int fd)
 				return 0;
 		{
 			int aid = RFIFOL(fd,2);
-			struct online_char_data* character = (struct online_char_data*)idb_get(online_char_db, aid);
+			struct online_char_data* character = onlinedb_get(aid);
 			RFIFOSKIP(fd,6);
 			if( character != NULL )
 			{// account is already marked as online!
 				if( character->server > -1 )
 				{	//Kick it from the map server it is on.
 					mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
-					if (character->waiting_disconnect == -1)
-						character->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, chardb_waiting_disconnect, character->account_id, 0);
+					set_char_waitdisconnect(character->account_id, AUTH_TIMEOUT);
 				}
 				else
 				{// Manual kick from char server.
@@ -697,17 +694,17 @@ void loginif_online_accounts_list(void)
 	if( !session_isActive(login_fd) )
 		return;
 
-	users = online_char_db->size(online_char_db);
+	users = onlinedb_size();
 
 	WFIFOHEAD(login_fd,8+users*4);
 	WFIFOW(login_fd,0) = 0x272d;
 
-	iter = online_char_db->iterator(online_char_db);
+	iter = onlinedb_iterator();
 	i = 0;
 	while( iter->next(iter, &key) )
 	{
 		int account_id = key.i;
-		struct online_char_data* character = idb_get(online_char_db, account_id);
+		struct online_char_data* character = onlinedb_get(account_id);
 		if( character->server > -1 )
 		{
 			WFIFOL(login_fd,8+i*4) = account_id;

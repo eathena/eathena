@@ -30,7 +30,7 @@
 #include "int_status.h"
 #include "int_storage.h"
 #include "charserverdb.h"
-
+#include "online.h"
 #include <string.h>
 
 // CharServerDB engines available
@@ -112,168 +112,12 @@ bool name_ignoring_case = false; // Allow or not identical name for characters b
 //-----------------------------------------------------
 DBMap* auth_db = NULL; // int account_id -> struct auth_node*
 
-//-----------------------------------------------------
-// Online User Database
-//-----------------------------------------------------
-DBMap* online_char_db = NULL; // int account_id -> struct online_char_data*
-
-
-int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data);
-
-void* create_online_char_data(DBKey key, va_list args)
-{
-	struct online_char_data* character;
-	CREATE(character, struct online_char_data, 1);
-	character->account_id = key.i;
-	character->char_id = -1;
-  	character->server = -1;
-	character->fd = -1;
-	character->waiting_disconnect = -1;
-	return character;
-}
-
-// Searches if the given character is online, and returns the fd of the
-// map-server it is connected to.
-int search_character_online(int aid, int cid)
-{
-	//Look for online character.
-	struct online_char_data* character;
-	character = idb_get(online_char_db, aid);
-	if(character &&
-		character->char_id == cid &&
-		character->server > -1) 
-		return server[character->server].fd;
-	return -1;
-}
-
-void set_char_charselect(int account_id)
-{
-	struct online_char_data* character;
-
-	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
-
-	if( character->server > -1 )
-		server[character->server].users--;
-
-	character->char_id = -1;
-	character->server = -1;
-
-	if(character->waiting_disconnect != -1) {
-		delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
-		character->waiting_disconnect = -1;
-	}
-
-	loginif_char_online(account_id);
-}
-
-void set_char_online(int map_id, int char_id, int account_id)
-{
-	struct online_char_data* character;
-	
-	//Check to see for online conflicts
-	character = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
-	if( character->char_id != -1 && character->server > -1 && character->server != map_id )
-	{
-		ShowNotice("set_char_online: Character %d:%d marked in map server %d, but map server %d claims to have (%d:%d) online!\n",
-			character->account_id, character->char_id, character->server, map_id, account_id, char_id);
-		mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
-	}
-
-	//Update state data
-	character->char_id = char_id;
-	character->server = map_id;
-
-	if( character->server > -1 )
-		server[character->server].users++;
-
-	//Get rid of disconnect timer
-	if(character->waiting_disconnect != -1) {
-		delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
-		character->waiting_disconnect = -1;
-	}
-
-	loginif_char_online(account_id);
-}
-
-void set_char_offline(int char_id, int account_id)
-{
-	struct online_char_data* character;
-
-	if ((character = (struct online_char_data*)idb_get(online_char_db, account_id)) != NULL)
-	{	//We don't free yet to avoid aCalloc/aFree spamming during char change. [Skotlex]
-		if( character->server > -1 )
-			server[character->server].users--;
-		
-		if(character->waiting_disconnect != -1){
-			delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
-			character->waiting_disconnect = -1;
-		}
-
-		if(character->char_id == char_id)
-		{
-			character->char_id = -1;
-			character->server = -1;
-		}
-	}
-
-	//Remove char if 1- Set all offline, or 2- character is no longer connected to char-server.
-	if (char_id == -1 || character == NULL || character->fd != -1)
-		loginif_char_offline(account_id);
-}
-
-int char_db_setoffline(DBKey key, void* data, va_list ap)
-{
-	struct online_char_data* character = (struct online_char_data*)data;
-	int server = va_arg(ap, int);
-	if (server == -1) {
-		character->char_id = -1;
-		character->server = -1;
-		if(character->waiting_disconnect != -1){
-			delete_timer(character->waiting_disconnect, chardb_waiting_disconnect);
-			character->waiting_disconnect = -1;
-		}
-	} else if (character->server == server)
-		character->server = -2; //In some map server that we aren't connected to.
-	return 0;
-}
-
-static int char_db_kickoffline(DBKey key, void* data, va_list ap)
-{
-	struct online_char_data* character = (struct online_char_data*)data;
-	int server_id = va_arg(ap, int);
-
-	if (server_id > -1 && character->server != server_id)
-		return 0;
-
-	//Kick out any connected characters, and set them offline as appropiate.
-	if (character->server > -1)
-		mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 1);
-	else if (character->waiting_disconnect == -1)
-		set_char_offline(character->char_id, character->account_id);
-	else
-		return 0; // fail
-
-	return 1;
-}
-
-void set_all_offline(int id)
-{
-	if (id < 0)
-		ShowNotice("Sending all users offline.\n");
-	else
-		ShowNotice("Sending users of map-server %d offline.\n",id);
-	online_char_db->foreach(online_char_db,char_db_kickoffline,id);
-
-	//Tell login-server to also mark all our characters as offline.
-	loginif_all_offline();
-}
-
 
 /// Returns the number of online players in all map-servers.
 int count_users(void)
 {
 	int i, users;
-	  	
+
 	users = 0;
 	for( i = 0; i < MAX_MAP_SERVERS; i++ )
 		if( server[i].fd > 0 )
@@ -286,14 +130,13 @@ int count_users(void)
 void char_auth_ok(int fd, struct char_session_data *sd)
 {
 	struct online_char_data* character;
-
-	if( (character = (struct online_char_data*)idb_get(online_char_db, sd->account_id)) != NULL )
+	character = onlinedb_get(sd->account_id);
+	if( character != NULL )
 	{	// check if character is not online already. [Skotlex]
 		if (character->server > -1)
 		{	//Character already online. KICK KICK KICK
 			mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
-			if (character->waiting_disconnect == -1)
-				character->waiting_disconnect = add_timer(gettick()+20000, chardb_waiting_disconnect, character->account_id, 0);
+			set_char_waitdisconnect(sd->account_id, 20000);
 			WFIFOW(fd,0) = 0x81;
 			WFIFOB(fd,2) = 8;
 			WFIFOSET(fd,3);
@@ -356,12 +199,7 @@ int broadcast_user_count(int tid, unsigned int tick, int id, intptr data)
 	WBUFL(buf,2) = users;
 	mapif_sendall(buf,6);
 
-	/* TODO: move to plugin
-#ifdef TXT_ONLY
-	// refresh online files (txt and html)
-	create_online_files();
-#endif
-	*/
+	onlinedb_sync(); // refresh online files (txt and html)
 
 	return 0;
 }
@@ -688,41 +526,6 @@ int char_family(int cid1, int cid2, int cid3)
 	if( cd2.partner_id == cid3 && cd2.child == cid1 )
 		return cid1; //cid2/cid3 parents. cid1 child.
 
-	return 0;
-}
-
-
-//------------------------------------------------
-//Invoked 15 seconds after mapif_disconnectplayer in case the map server doesn't
-//replies/disconnect the player we tried to kick. [Skotlex]
-//------------------------------------------------
-int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr data)
-{
-	struct online_char_data* character;
-	if ((character = (struct online_char_data*)idb_get(online_char_db, id)) != NULL && character->waiting_disconnect == tid)
-	{	//Mark it offline due to timeout.
-		character->waiting_disconnect = -1;
-		set_char_offline(character->char_id, character->account_id);
-	}
-	return 0;
-}
-
-static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
-{
-	struct online_char_data *character= (struct online_char_data*)data;
-	if (character->fd != -1)
-		return 0; //Still connected
-	if (character->server == -2) //Unknown server.. set them offline
-		set_char_offline(character->char_id, character->account_id);
-	if (character->server < 0)
-		//Free data from players that have not been online for a while.
-		db_remove(online_char_db, key);
-	return 0;
-}
-
-static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
-{
-	online_char_db->foreach(online_char_db, online_data_cleanup_sub);
 	return 0;
 }
 
@@ -1063,6 +866,7 @@ int char_config_read(const char* cfgName)
 					engine->set_property(engine, w1, w2);
 			}
 			// try others
+			onlinedb_config_read(w1,w2);
 			charlog_config_read(w1,w2);
 		}
 	}
@@ -1123,19 +927,12 @@ void do_final(void)
 
 	ShowInfo("Doing final stage...\n");
 
-	set_all_offline(-1);
-
-#ifdef TXT_ONLY
-	// write online players files with no player
-	online_char_db->clear(online_char_db, NULL); //clean the db...
-	/* TODO: move to plugin
-	create_online_files();
-	*/
-#endif
+	set_all_offline();
+	onlinedb_sync(); // write online players files with no player
 
 	inter_final();
 
-	online_char_db->destroy(online_char_db, NULL); //dispose the db...
+	onlinedb_final();
 	auth_db->destroy(auth_db, NULL);
 
 	flush_fifos();
@@ -1182,6 +979,7 @@ int do_init(int argc, char **argv)
 	for( i = 0; charserver_engines[i].constructor; ++i )
 		charserver_engines[i].engine = charserver_engines[i].constructor();
 
+	onlinedb_create();
 	charlog_create();
 
 	char_set_defaults();
@@ -1199,7 +997,6 @@ int do_init(int argc, char **argv)
 	log_char("The char-server is starting...\n");
 
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	charlog_init();
 
@@ -1207,6 +1004,7 @@ int do_init(int argc, char **argv)
 		;// TODO stop server
 
 	inter_init(charserver);
+	onlinedb_init();
 
 	set_defaultparse(parse_client);
 
@@ -1246,13 +1044,6 @@ int do_init(int argc, char **argv)
 	// send a list of all online account IDs to login server
 	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
 	add_timer_interval(gettick() + 1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour
-
-	// ???
-	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
-
-	// ???
-	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
-	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
 
 	if( char_config.console )
 	{

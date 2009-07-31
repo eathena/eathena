@@ -10,8 +10,10 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "char.h"
+#include "if_map.h" // server[]
 #include "int_message.h"
 #include "charserverdb.h"
+#include "online.h"
 #include <string.h>
 
 // temporary stuff
@@ -147,6 +149,7 @@ int mapif_parse_WisRequest(int fd)
 	struct WisData* wd;
 	char name[NAME_LENGTH];
 	int fd2;
+	struct online_char_data* character;
 	int aid, cid;
 
 	if( RFIFOW(fd,2)-52 >= sizeof(wd->msg) )
@@ -176,7 +179,8 @@ int mapif_parse_WisRequest(int fd)
 	}
 
 	//Look for online character.
-	fd2 = search_character_online(aid, cid);
+	character = onlinedb_get(aid);
+	fd2 = ( character && character->char_id == cid && character->server > -1 ) ? server[character->server].fd : -1;
 	if( fd2 < 0 ) 
 	{//Character not online.
 		mapif_wis_end(fd, (char*)RFIFOP(fd,4), 1);

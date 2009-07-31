@@ -16,20 +16,14 @@
 #include "inter.h"
 #include "if_login.h"
 #include "if_map.h"
+#include "online.h"
 #include <string.h>
 
 //temporary imports
 extern CharServerDB* charserver;
 
-extern void set_char_online(int map_id, int char_id, int account_id);
-extern void set_char_offline(int char_id, int account_id);
-extern void set_char_charselect(int account_id);
 #include "char.h"
-extern DBMap* online_char_db; // int account_id -> struct online_char_data*
 extern DBMap* auth_db; // int account_id -> struct auth_node*
-extern int char_db_setoffline(DBKey key, void* data, va_list ap);
-extern void* create_online_char_data(DBKey key, va_list args);
-extern void set_all_offline(int id);
 
 
 struct mmo_map_server server[MAX_MAP_SERVERS];
@@ -144,12 +138,11 @@ int parse_frommap(int fd)
 			}
 			memset(&server[id], 0, sizeof(struct mmo_map_server));
 			server[id].fd = -1;
-			online_char_db->foreach(online_char_db,char_db_setoffline,id); //Tag relevant chars as 'in disconnected' server.
+			onlinedb_mapserver_unknown(id); //Tag relevant chars as 'in disconnected' server.
 		}
 		do_close(fd);
-		/* TODO: move to plugin
-		create_online_files();
-		*/
+
+		onlinedb_sync(); // update online list
 		return 0;
 	}
 
@@ -236,13 +229,13 @@ int parse_frommap(int fd)
 
 			//TODO: When data mismatches memory, update guild/party online/offline states.
 			server[id].users = RFIFOW(fd,4);
-			online_char_db->foreach(online_char_db,char_db_setoffline,id); //Set all chars from this server as 'unknown'
+			onlinedb_mapserver_unknown(id); //Set all chars from this server as 'unknown'
 			for(i = 0; i < server[id].users; i++)
 			{
 				struct online_char_data* character;
 				int aid = RFIFOL(fd,6+i*8);
 				int cid = RFIFOL(fd,6+i*8+4);
-				character = (struct online_char_data*)idb_ensure(online_char_db, aid, create_online_char_data);
+				character = onlinedb_ensure(aid);
 				if( character->server > -1 && character->server != id )
 				{
 					ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
@@ -280,7 +273,7 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,size);
 
 			//Check account only if this ain't final save. Final-save goes through because of the char-map reconnect
-			if( finalsave || ((character = (struct online_char_data*)idb_get(online_char_db, aid)) != NULL && character->char_id == cid) )
+			if( finalsave || ((character = onlinedb_get(aid)) != NULL && character->char_id == cid) )
 			{
 				//TODO: perhaps check if account id matches
 
@@ -391,7 +384,7 @@ int parse_frommap(int fd)
 				node->ip = ntohl(client_ip);
 				idb_put(auth_db, account_id, node);
 
-				data = (struct online_char_data*)idb_ensure(online_char_db, account_id, create_online_char_data);
+				data = onlinedb_ensure(account_id);
 				data->char_id = cd.char_id;
 				data->server = map_id; //Update server where char is.
 
@@ -505,7 +498,7 @@ int parse_frommap(int fd)
 		break;
 
 		case 0x2b18: // Reset all chars to offline [Wizputer]
-			set_all_offline(id);
+			onlinedb_mapserver_offline(id);
 			RFIFOSKIP(fd,2);
 		break;
 		

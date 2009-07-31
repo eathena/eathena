@@ -28,7 +28,6 @@ int mapif_send(int fd,unsigned char *buf, unsigned int len);
 int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
 int mapif_sendall(unsigned char *buf, unsigned int len);
 
-int search_character_online(int aid, int cid);
 void char_divorce(int partner_id1, int partner_id2);
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);
 int char_delete(int char_id);
@@ -56,15 +55,6 @@ struct auth_node {
 	int sex;
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;
-};
-
-// online user tracking system
-struct online_char_data {
-	int account_id;
-	int char_id;
-	int fd;
-	int waiting_disconnect;
-	short server; // -2: unknown server, -1: not connected, 0+: id of server
 };
 
 struct Char_Config {
