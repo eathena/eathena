@@ -65,8 +65,8 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 
 	// load members
 	if( SQL_ERROR == Sql_Query(sql_handle,
-		"SELECT `account_id`,`char_id`,`name`,`base_level`,`last_map`,`online`,`class` FROM `%s` WHERE `party_id`='%d'",
-		db->char_db, party_id)
+	    "SELECT `account_id`,`char_id` FROM `%s` WHERE `party_id`='%d'",
+	    db->char_db, party_id)
 	) {
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -77,13 +77,9 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 		struct party_member* m = &p->member[i];
 		Sql_GetData(sql_handle, 0, &data, NULL); m->account_id = atoi(data);
 		Sql_GetData(sql_handle, 1, &data, NULL); m->char_id = atoi(data);
-		Sql_GetData(sql_handle, 2, &data, NULL); safestrncpy(m->name, data, sizeof(m->name));
-		Sql_GetData(sql_handle, 3, &data, NULL); m->lv = atoi(data);
-		Sql_GetData(sql_handle, 4, &data, NULL); m->map = mapindex_name2id(data);
-		Sql_GetData(sql_handle, 5, &data, NULL); m->online = (atoi(data) ? 1 : 0);
-		Sql_GetData(sql_handle, 6, &data, NULL); m->class_ = atoi(data);
-		m->leader = (m->account_id == leader_id && m->char_id == leader_char ? 1 : 0);
+		m->leader = (m->account_id == leader_id && m->char_id == leader_char) ? 1 : 0;
 	}
+
 	Sql_FreeResult(sql_handle);
 
 	return true;

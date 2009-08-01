@@ -8,7 +8,6 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
-#include "chardb.h"
 #include "partydb.h"
 #include "charserverdb.h"
 #include <stdio.h>
@@ -277,9 +276,6 @@ static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
-	CharDB* chars = db->owner->chardb;
-	struct mmo_charstatus cd;
-	int i;
 
 	// retrieve data
 	struct party_data* tmp = idb_get(parties, party_id);
@@ -290,24 +286,6 @@ static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 
 	// store it
 	memcpy(p, tmp, sizeof(struct party_data));
-
-	//Lookup players for rest of data.
-	for( i = 0; i < MAX_PARTY; i++ )
-	{
-		struct party_member* m = &p->party.member[i];
-
-		if( !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
-			continue;
-
-		//m->account_id = cd.account_id;
-		//m->char_id = cd.char_id;
-		safestrncpy(m->name, cd.name, sizeof(m->name));
-		m->class_ = cd.class_;
-		m->map = cd.last_point.map;
-		m->lv = cd.base_level;
-		//m->leader = (?) ? 1 : 0);
-		m->online = 0; // default
-	}
 
 	return true;
 }
