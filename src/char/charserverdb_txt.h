@@ -18,6 +18,9 @@
 
 /// global defines
 #define CHARSERVERDB_TXT_VERSION 20090210 // update this whenever the database format changes
+#define CHARSERVERDB_AUTOSAVE_CHANGE_DELAY 1000
+#define CHARSERVERDB_AUTOSAVE_RETRY_DELAY 5000
+#define CHARSERVERDB_AUTOSAVE_MAX_DELAY 10000
 
 
 
@@ -62,8 +65,8 @@ struct CharServerDB_TXT
 	CharRegDB* charregdb;
 
 	bool initialized;
-	int save_delay;
-	int save_timer;
+	unsigned int dirty_tick;//< when it first became dirty
+	int save_timer;//< triggers save attempts
 
 	// settings
 	int autosave_change_delay;

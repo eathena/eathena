@@ -39,7 +39,7 @@ static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intp
 
 
 /// Schedules a save operation with the specified delay.
-/// If already scheduled, adds more delay to it.
+/// If already scheduled, it uses the farthest save time.
 /// @private
 static void charserver_db_txt_scheduleSave(CharServerDB_TXT* db, int delay)
 {
@@ -54,18 +54,17 @@ static void charserver_db_txt_scheduleSave(CharServerDB_TXT* db, int delay)
 	{
 		if( delay > db->autosave_max_delay )
 			delay = db->autosave_max_delay;
-		db->save_delay = delay;
-		db->save_timer = add_timer(gettick() + delay, charserver_db_txt_save_timer, 0, (intptr)db);
+		db->dirty_tick = gettick();
+		db->save_timer = add_timer(db->dirty_tick + delay, charserver_db_txt_save_timer, 0, (intptr)db);
 	}
 	else
 	{
-		if( delay + db->save_delay > db->autosave_max_delay )
-			delay = db->autosave_max_delay - db->save_delay;
-		if( delay )
-		{
-			db->save_delay += delay;
-			addtick_timer(db->save_timer, delay);
-		}
+		unsigned int maxtick = db->dirty_tick + db->autosave_max_delay;
+		unsigned int newtick = gettick() + delay;
+		if( DIFF_TICK(newtick, maxtick) > 0 )
+			newtick = maxtick;
+		if( DIFF_TICK(newtick, get_timer(db->save_timer)->tick) > 0 )
+			settick_timer(db->save_timer, newtick);
 	}
 }
 
@@ -82,7 +81,26 @@ static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intp
 	if( db && db->save_timer == tid )
 	{
 		db->save_timer = INVALID_TIMER;
-		if( !db->vtable.save(&db->vtable, false) );
+		if( !(
+			db->chardb->sync(db->chardb) &&
+			db->frienddb->sync(db->frienddb) &&
+			db->hotkeydb->sync(db->hotkeydb) &&
+			db->partydb->sync(db->partydb) &&
+			db->guilddb->sync(db->guilddb) &&
+			db->castledb->sync(db->castledb) &&
+			db->guildstoragedb->sync(db->guildstoragedb) &&
+			db->petdb->sync(db->petdb) &&
+			db->homundb->sync(db->homundb) &&
+			db->mercdb->sync(db->mercdb) &&
+			db->accregdb->sync(db->accregdb) &&
+			db->charregdb->sync(db->charregdb) &&
+			db->statusdb->sync(db->statusdb) &&
+			db->storagedb->sync(db->storagedb) &&
+			db->maildb->sync(db->maildb) &&
+			db->questdb->sync(db->questdb) &&
+			db->rankdb->sync(db->rankdb) &&
+			db->auctiondb->sync(db->auctiondb) )
+		)
 			charserver_db_txt_scheduleSave(db, db->autosave_retry_delay);
 	}
 	return 0;
@@ -131,11 +149,12 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	if( db->save_timer != INVALID_TIMER )
-	{// try to save pending data
+	// save pending data
+	if( !self->save(self, false) )
+	{
+		ShowError("charserver_db_txt_destroy: failed to save pending data, data is lost\n");
 		delete_timer(db->save_timer, charserver_db_txt_save_timer);
 		db->save_timer = INVALID_TIMER;
-		self->save(self, false);
 	}
 
 	db->castledb->destroy(db->castledb);
@@ -186,28 +205,8 @@ static bool charserver_db_txt_save(CharServerDB* self, bool force)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	if( db->chardb->sync(db->chardb) &&
-		db->frienddb->sync(db->frienddb) &&
-		db->hotkeydb->sync(db->hotkeydb) &&
-		db->partydb->sync(db->partydb) &&
-		db->guilddb->sync(db->guilddb) &&
-		db->castledb->sync(db->castledb) &&
-		db->guildstoragedb->sync(db->guildstoragedb) &&
-		db->petdb->sync(db->petdb) &&
-		db->homundb->sync(db->homundb) &&
-		db->mercdb->sync(db->mercdb) &&
-		db->accregdb->sync(db->accregdb) &&
-		db->charregdb->sync(db->charregdb) &&
-		db->statusdb->sync(db->statusdb) &&
-		db->storagedb->sync(db->storagedb) &&
-		db->maildb->sync(db->maildb) &&
-		db->questdb->sync(db->questdb) &&
-		db->rankdb->sync(db->rankdb) &&
-		db->auctiondb->sync(db->auctiondb)
-	)
-		return true;
-
-	return false;
+	charserver_db_txt_save_timer(db->save_timer, gettick(), 0, (intptr)self);
+	return (db->save_timer == INVALID_TIMER);
 }
 
 
@@ -479,13 +478,13 @@ CharServerDB* charserver_db_txt(void)
 
 	// initialize to default values
 	db->initialized = false;
-	db->save_delay = 0;
+	db->dirty_tick = gettick();
 	db->save_timer = INVALID_TIMER;
 
 	// other settings
-	db->autosave_change_delay = 1000;
-	db->autosave_retry_delay = 5000;
-	db->autosave_max_delay = 10000;
+	db->autosave_change_delay = CHARSERVERDB_AUTOSAVE_CHANGE_DELAY;
+	db->autosave_retry_delay = CHARSERVERDB_AUTOSAVE_RETRY_DELAY;
+	db->autosave_max_delay = CHARSERVERDB_AUTOSAVE_MAX_DELAY;
 	safestrncpy(db->file_accregs, "save/accreg.txt", sizeof(db->file_accregs));
 	safestrncpy(db->file_auctions, "save/auction.txt", sizeof(db->file_auctions));
 	safestrncpy(db->file_castles, "save/castle.txt", sizeof(db->file_castles));
