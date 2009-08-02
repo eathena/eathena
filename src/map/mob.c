@@ -32,6 +32,7 @@
 #include "script.h"
 #include "atcommand.h"
 #include "date.h"
+#include "quest.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1992,6 +1993,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			}
 			pc_setglobalreg(sd,"TK_MISSION_COUNT", sd->mission_count);
 		}
+		//Move to status.c, and send a delete quest packet and then an add quest packet can refresh the kill counts. Just a trick. :P[Inkfish]
+		if( sd->avail_quests )
+			quest_update_objective(sd, md->class_);
 	}
 
 	// filter out entries not eligible for exp distribution
@@ -3004,7 +3008,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			}
 			md->skillidx = i;
 			map_freeblock_lock();
-			if (!unit_skilluse_pos2(&md->bl, x, y, ms[i].skill_id, ms[i].skill_lv, ms[i].casttime, ms[i].cancel))
+			if( !battle_check_range(&md->bl,bl,skill_get_range2(&md->bl, ms[i].skill_id,ms[i].skill_lv)) ||
+				!unit_skilluse_pos2(&md->bl, x, y,ms[i].skill_id, ms[i].skill_lv,ms[i].casttime, ms[i].cancel) )
 			{
 				map_freeblock_unlock();
 				continue;
@@ -3040,7 +3045,8 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 			if (!bl) continue;
 			md->skillidx = i;
 			map_freeblock_lock();
-			if (!unit_skilluse_id2(&md->bl, bl->id, ms[i].skill_id, ms[i].skill_lv, ms[i].casttime, ms[i].cancel))
+			if( !battle_check_range(&md->bl,bl,skill_get_range2(&md->bl, ms[i].skill_id,ms[i].skill_lv)) ||
+				!unit_skilluse_id2(&md->bl, bl->id,ms[i].skill_id, ms[i].skill_lv,ms[i].casttime, ms[i].cancel) )
 			{
 				map_freeblock_unlock();
 				continue;

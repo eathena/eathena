@@ -390,6 +390,7 @@ int char_delete(int char_id)
 	CharDB* chars = charserver->chardb(charserver);
 	FriendDB* friends = charserver->frienddb(charserver);
 	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
+	QuestDB* quests = charserver->questdb(charserver);
 	struct mmo_charstatus cd;
 	int i;
 
@@ -438,7 +439,7 @@ int char_delete(int char_id)
 	if( cd.partner_id )
 		char_divorce(cd.char_id, cd.partner_id);
 
-	// De-addopt
+	// De-adopt
 	if( cd.father || cd.mother )
 	{// Char is Baby
 		unsigned char buf[64];
@@ -479,6 +480,9 @@ int char_delete(int char_id)
 
 	// delete hotkeys list
 	hotkeys->remove(hotkeys, cd.char_id);
+
+	// delete quest list
+	quests->remove(quests, cd.char_id);
 
 	// delete the character and all associated data
 	chars->remove(chars, cd.char_id);

@@ -32,6 +32,7 @@
 #include "unit.h"
 #include "battle.h"
 #include "battleground.h"
+#include "quest.h"
 #include "script.h"
 #include "mapreg.h"
 #include "guild.h"
@@ -1515,8 +1516,6 @@ int map_quit(struct map_session_data *sd)
 	if (sd->npc_timer_id != -1) //Cancel the event timer.
 		npc_timerevent_quit(sd);
 
-	if( sd->state.bg_id )
-		bg_team_leave(sd,1);
 	npc_script_event(sd, NPCE_LOGOUT);
 
 	//Unit_free handles clearing the player related data, 
@@ -1575,6 +1574,8 @@ int map_quit(struct map_session_data *sd)
 				status_change_end(&sd->bl,SC_STEELBODY,-1);
 			if(sd->sc.data[SC_PRESERVE])
 				status_change_end(&sd->bl,SC_PRESERVE,-1);
+			if(sd->sc.data[SC_KAAHI])
+				status_change_end(&sd->bl,SC_KAAHI,-1);
 		}
 	}
 	
@@ -3270,6 +3271,7 @@ int map_instance_destroy_timer(int tid, unsigned int tick, int id, intptr data)
 void map_instance_destroy(int instance_id)
 {
 	int last = 0, type;
+	struct party_data *p;
 	time_t now = time(NULL);
 
 	if( !instance_id || !instance[instance_id].name_id )
@@ -3306,6 +3308,9 @@ void map_instance_destroy(int instance_id)
 
 	instance[instance_id].ivar = NULL;
 	instance[instance_id].svar = NULL;
+
+	if( instance[instance_id].party_id && (p = party_search(instance[instance_id].party_id)) != NULL )
+		p->instance_id = 0;
 
 	ShowInfo("[Instance] Destroyed %s.\n", instance[instance_id].name);
 	memset( &instance[instance_id], 0x00, sizeof(instance[0]) );
@@ -4079,6 +4084,7 @@ int do_init(int argc, char *argv[])
 	do_init_pet();
 	do_init_merc();
 	do_init_mercenary();
+	do_init_quest();
 	do_init_npc();
 	do_init_unit();
 	do_init_battleground();

@@ -7856,6 +7856,9 @@ int pc_readdb(void)
 			p=strchr(p,',');
 			if(p) *p++=0;
 		}
+		if( j < 2 )
+			continue;
+
 		lv=atoi(split[0]);
 		n=atoi(split[1]);
 

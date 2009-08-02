@@ -83,7 +83,6 @@ struct CharServerDB_SQL
 	char table_parties[256];
 	char table_pets[256];
 	char table_quests[256];
-	char table_quest_objectives[256];
 	char table_ranks[256];
 	char table_registry[256];
 	char table_skills[256];

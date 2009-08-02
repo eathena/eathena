@@ -1,6 +1,7 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/db.h" // ARR_FIND()
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -22,14 +23,17 @@
 static QuestDB* quests = NULL;
 
 
-//Send questlog to map server
-static void mapif_send_quests(int fd, int char_id)
+// Send questlog to map server
+static void mapif_parse_quests_load(int fd)
 {
-
+	int char_id = RFIFOL(fd,2);
 	questlog tmp_questlog;
-	int num_quests, i;
+	int num_quests, num_complete;
+	int complete[MAX_QUEST_DB]; // indexes of completed quests
+	int i;
 
 	memset(tmp_questlog, 0, sizeof(tmp_questlog));
+	memset(complete, 0, sizeof(complete));
 
 	if( !quests->load(quests, &tmp_questlog, char_id, &num_quests) )
 		return;
@@ -39,84 +43,90 @@ static void mapif_send_quests(int fd, int char_id)
 	WFIFOW(fd,2) = num_quests*sizeof(struct quest)+8;
 	WFIFOL(fd,4) = char_id;
 
+	//Active and inactive quests
+	num_complete = 0;
 	for( i = 0; i < num_quests; i++ )
-		memcpy(WFIFOP(fd,i*sizeof(struct quest)+8), &tmp_questlog[i], sizeof(struct quest));
-
-	WFIFOSET(fd,num_quests*sizeof(struct quest)+8);
-}
-
-
-static void mapif_quest_added(int fd, int char_id, int quest_id, bool success)
-{
-	WFIFOHEAD(fd,11);
-	WFIFOW(fd,0) = 0x3861;
-	WFIFOL(fd,2) = char_id;
-	WFIFOL(fd,6) = quest_id;
-	WFIFOB(fd,10) = success ? 1 : 0;
-	WFIFOSET(fd,11);
-}
-
-static void mapif_quest_deleted(int fd, int char_id, int quest_id, bool success)
-{
-	WFIFOHEAD(fd,11);
-	WFIFOW(fd,0) = 0x3862;
-	WFIFOL(fd,2) = char_id;
-	WFIFOL(fd,6) = quest_id;
-	WFIFOB(fd,10) = success ? 1 : 0;
-	WFIFOSET(fd,11);
-}
-
-
-//Map server requesting a character's quest log
-static void mapif_parse_loadquestrequest(int fd)
-{
-	int char_id = RFIFOL(fd,2);
-	mapif_send_quests(fd, char_id);
-}
-
-//Add a quest to a questlog
-static void mapif_parse_quest_add(int fd)
-{
-	int len = RFIFOW(fd,2);
-	int char_id = RFIFOL(fd,4);
-	const struct quest* qd = (struct quest*)RFIFOP(fd,8);
-	bool success;
-
-	if( len - 8 != sizeof(struct quest) )
 	{
-		//TODO: error message
-		return;
+		if( tmp_questlog[i].state == Q_COMPLETE )
+		{
+			complete[num_complete++] = i;
+			continue;
+		}
+		memcpy(WFIFOP(fd,(i-num_complete)*sizeof(struct quest)+8), &tmp_questlog[i], sizeof(struct quest));
 	}
 
-	success = quests->add(quests, qd, char_id);
-	mapif_quest_added(fd, char_id, qd->quest_id, success);
+	// Completed quests
+	for( i = num_quests - num_complete; i < num_quests; i++ )
+		memcpy(WFIFOP(fd,i*sizeof(struct quest)+8), &tmp_questlog[complete[i-num_quests+num_complete]], sizeof(struct quest));
+
+	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
-//Delete a quest
-void mapif_parse_quest_delete(int fd)
-{
-	int char_id = RFIFOL(fd,2);
-	int quest_id = RFIFOL(fd,6);
-	bool success;
 
-	success = quests->del(quests, char_id, quest_id);
-	mapif_quest_deleted(fd, char_id, quest_id, success);
+//Save quests
+static void mapif_parse_quests_save(int fd)
+{
+	int char_id = RFIFOL(fd,4);
+	struct quest qd1[MAX_QUEST_DB]; // new quest log, to be saved
+	struct quest qd2[MAX_QUEST_DB]; // previous quest log
+	int num1 = (RFIFOW(fd,2)-8)/sizeof(struct quest);
+	int num2;
+	int buf[MAX_QUEST_DB];
+	int count = 0;
+	int i, j;
+
+	memset(qd1, 0, sizeof(qd1));
+	memset(qd2, 0, sizeof(qd2));
+
+	memcpy(&qd1, RFIFOP(fd,8), num1 * sizeof(struct quest));
+	quests->load(quests, &qd2, char_id, &num2);
+
+	for( i = 0; i < num1; i++ )
+	{
+		ARR_FIND( 0, num2, j, qd1[i].quest_id == qd2[j].quest_id );
+		if( j < num2 ) // Update existed quests
+		{	// Only states and counts are changable.
+			if( qd1[i].state != qd2[j].state || qd1[i].count[0] != qd2[j].count[0] || qd1[i].count[1] != qd2[j].count[1] || qd1[i].count[2] != qd2[j].count[2] )
+				quests->update(quests, &qd1[i], char_id);
+
+			if( j < (--num2) )
+			{
+				memmove(&qd2[j],&qd2[j+1],sizeof(struct quest)*(num2-j));
+				memset(&qd2[num2], 0, sizeof(struct quest));
+			}
+		}
+		else // Add new quests
+		{
+			quests->add(quests, &qd1[i], char_id);
+
+			WBUFL(buf,count*4) = qd1[i].quest_id;
+			count++;
+		}
+	}
+
+	for( i = 0; i < num2; i++ ) // Quests not in qd1 but in qd2 are to be erased.
+		quests->del(quests, char_id, qd2[i].quest_id);
+
+	// send back list of newly added quest ids
+	WFIFOHEAD(fd,8+4*count);
+	WFIFOW(fd,0) = 0x3861;
+	WFIFOW(fd,2) = 8+4*count;
+	WFIFOL(fd,4) = char_id;
+	memcpy(WFIFOP(fd,8), buf, count*4);
+	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
 
 int inter_quest_parse_frommap(int fd)
 {
-
 	switch(RFIFOW(fd,0))
 	{
-		case 0x3060: mapif_parse_loadquestrequest(fd); break;
-		case 0x3061: mapif_parse_quest_add(fd); break;
-		case 0x3062: mapif_parse_quest_delete(fd); break;
+		case 0x3060: mapif_parse_quests_load(fd); break;
+		case 0x3061: mapif_parse_quests_save(fd); break;
 		default:
 			return 0;
 	}
 	return 1;
-
 }
 
 void inter_quest_init(QuestDB* db)

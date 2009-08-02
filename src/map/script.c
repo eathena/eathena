@@ -4140,8 +4140,8 @@ BUILDIN_FUNC(areapercentheal)
 	y0=script_getnum(st,4);
 	x1=script_getnum(st,5);
 	y1=script_getnum(st,6);
-	hp=script_getnum(st,8);
-	sp=script_getnum(st,9);
+	hp=script_getnum(st,7);
+	sp=script_getnum(st,8);
 
 	if( (m=map_mapname2mapid(mapname))< 0)
 		return 0;
@@ -13422,81 +13422,47 @@ BUILDIN_FUNC(readbook)
 Questlog script commands
 *******************/
 
-BUILDIN_FUNC(getquest)
+BUILDIN_FUNC(setquest)
 {
-
 	TBL_PC * sd = script_rid2sd(st);
-	struct quest qd;
-	int i, count = 0;
-	char * temp;
 
-	memset(&qd, 0, sizeof(struct quest));
-
-	qd.quest_id = script_getnum(st, 2);
-	qd.time = script_getnum(st, 3);
-	qd.state = Q_ACTIVE;
-	
-	for(i=0; i<(script_lastdata(st)-3) && (i/2) < MAX_QUEST_OBJECTIVES; i+=2)
-	{
-		temp = (char*)script_getstr(st, i+4);
-		memcpy(&qd.objectives[i/2].name, temp, NAME_LENGTH);
-		temp = NULL;
-		qd.objectives[i/2].count = script_getnum(st, i+5);
-		count++;
-	}
-
-	qd.num_objectives = count;
-
-	quest_add(sd, &qd);
-
-	return 0;
-
-}
-
-BUILDIN_FUNC(deletequest)
-{
-
-	TBL_PC * sd = script_rid2sd(st);
-	int qid = script_getnum(st, 2);
-
-	quest_delete(sd, qid);
-	return 0;
-
-}
-
-BUILDIN_FUNC(setquestobjective)
-{
-
-	TBL_PC * sd = script_rid2sd(st);
-	int qid = script_getnum(st, 2);
-	int num = script_getnum(st, 3);
-	const char * str = script_getstr(st, 4);
-	int count = script_getnum(st, 5);
-
-	quest_update_objective(sd, qid, num, str, count);
-
+	quest_add(sd, script_getnum(st, 2));
 	return 0;
 }
 
-BUILDIN_FUNC(hasquest)
+BUILDIN_FUNC(erasequest)
 {
-
 	TBL_PC * sd = script_rid2sd(st);
-	int qid = script_getnum(st, 2);
 
-	script_pushint(st, quest_has_quest(sd, qid)?1:0);
-
+	quest_delete(sd, script_getnum(st, 2));
 	return 0;
 }
 
-BUILDIN_FUNC(setqueststatus)
+BUILDIN_FUNC(completequest)
 {
-
 	TBL_PC * sd = script_rid2sd(st);
-	int qid = script_getnum(st, 2);
-	bool active = script_getnum(st, 3)?true:false;
 
-	quest_update_status(sd, qid, active);
+	quest_update_status(sd, script_getnum(st, 2), Q_COMPLETE);
+	return 0;
+}
+
+BUILDIN_FUNC(changequest)
+{
+	TBL_PC * sd = script_rid2sd(st);
+
+	quest_change(sd, script_getnum(st, 2),script_getnum(st, 3));
+	return 0;
+}
+
+BUILDIN_FUNC(checkquest)
+{
+	TBL_PC * sd = script_rid2sd(st);
+	quest_check_type type = HAVEQUEST;
+
+	if( script_hasdata(st, 3) )
+		type = (quest_check_type)script_getnum(st, 3);
+
+	script_pushint(st, quest_check(sd, script_getnum(st, 2), type));
 
 	return 0;
 }
@@ -14468,11 +14434,6 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(openauction,""),
 	BUILDIN_DEF(checkcell,"siii"),
 	BUILDIN_DEF(setcell,"siiiiii"),
-	BUILDIN_DEF(getquest, "ii*"),
-	BUILDIN_DEF(deletequest, "i"),
-	BUILDIN_DEF(setquestobjective, "iisi"),
-	BUILDIN_DEF(setqueststatus, "ii"),
-	BUILDIN_DEF(hasquest, "i"),
 	BUILDIN_DEF(setwall,"siiiiis"),
 	BUILDIN_DEF(delwall,"s"),
 	BUILDIN_DEF(mercenary_create,"ii"),
@@ -14515,5 +14476,11 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(instance_id,"?"),
 	BUILDIN_DEF(instance_warpall,"sii"),
 	BUILDIN_DEF(instance_set_timeout,"ii?"),
+	//Quest Log System [Inkfish]
+	BUILDIN_DEF(setquest, "i"),
+	BUILDIN_DEF(erasequest, "i"),
+	BUILDIN_DEF(completequest, "i"),
+	BUILDIN_DEF(checkquest, "i*"),
+	BUILDIN_DEF(changequest, "ii"),
 	{NULL,NULL,NULL},
 };

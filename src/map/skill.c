@@ -218,7 +218,7 @@ int skill_get_casttype (int id)
 int skill_get_range2 (struct block_list *bl, int id, int lv)
 {
 	int range;
-	if( bl->type == BL_MOB && !(battle_config.mob_ai&0x400) )
+	if( bl->type == BL_MOB && battle_config.mob_ai&0x400 )
 		return 9; //Mobs have a range of 9 regardless of skill used.
 
 	range = skill_get_range(id, lv);
@@ -1010,13 +1010,10 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 			if (rand()%1000 > rate)
 				continue;
 
-			if( !battle_check_range(src, bl, skill_get_range2(src, skill,skilllv) + (skill == RG_CLOSECONFINE?0:1)) )
-				continue; //Autocasts should always fail if the target is outside the skill range or an obstacle is in between.[Inkfish]
+			tbl = (sd->autospell[i].id < 0) ? src : bl;
 
-			if (sd->autospell[i].id < 0)
-				tbl = src;
-			else
-				tbl = bl;
+			if( !battle_check_range(src, tbl, skill_get_range2(src, skill,skilllv) + (skill == RG_CLOSECONFINE?0:1)) )
+				continue; //Autocasts should always fail if the target is outside the skill range or an obstacle is in between.[Inkfish]
 
 			sd->state.autocast = 1;
 			skill_consume_requirement(sd,skill,skilllv,1);
@@ -1112,13 +1109,10 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, int s
 			continue; // No target
 		if( rand()%1000 > sd->autospell3[i].rate )
 			continue;
-		if( !battle_check_range(&sd->bl, bl, skill_get_range2(&sd->bl, skill,skilllv) + (skill == RG_CLOSECONFINE?0:1)) )
-			continue;
+		tbl = (sd->autospell3[i].id < 0) ? &sd->bl : bl;
 
-		if( sd->autospell3[i].id < 0 )
-			tbl = &sd->bl;
-		else
-			tbl = bl;
+		if( !battle_check_range(&sd->bl, tbl, skill_get_range2(&sd->bl, skill,skilllv) + (skill == RG_CLOSECONFINE?0:1)) )
+			continue;
 
 		sd->state.autocast = 1;
 		skill_consume_requirement(sd,skill,skilllv,1);
@@ -1206,12 +1200,6 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 	}
 
 	switch(skillid){
-	case 0: //Normal Attack
-		if(tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == -1)
-			tsc->data[SC_KAAHI]->val4 = add_timer(
-				tick+skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1),
-				kaahi_heal_timer, bl->id, SC_KAAHI); //Activate heal.
-		break;
 	case MO_EXTREMITYFIST:
 		sc_start(src,status_skill2sc(skillid),100,skilllv,skill_get_time2(skillid,skilllv));
 		break;
@@ -1284,12 +1272,11 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 				continue;
 			if (rand()%1000 > rate)
 				continue;
-			if( !battle_check_range(src, bl, skill_get_range2(src, skillid,skilllv) + (skillid == RG_CLOSECONFINE?0:1)) )
+
+			tbl = (dstsd->autospell2[i].id < 0) ? bl : src;
+
+			if( !battle_check_range(src, tbl, skill_get_range2(src, skillid,skilllv) + (skillid == RG_CLOSECONFINE?0:1)) )
 				continue;
-			if (dstsd->autospell2[i].id < 0)
-				tbl = bl;
-			else
-				tbl = src;
 
 			dstsd->state.autocast = 1;
 			skill_consume_requirement(dstsd,skillid,skilllv,1);
@@ -3796,7 +3783,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			return 1;
 		}
 		//TODO: How much does base level affects? Dummy value of 1% per level difference used. [Skotlex]
-		clif_skill_nodamage(src,bl,skillid,skilllv,
+		clif_skill_nodamage(src,bl,skillid == SM_SELFPROVOKE ? SM_PROVOKE : skillid,skilllv,
 			(i = sc_start(bl,type, skillid == SM_SELFPROVOKE ? 100:( 50 + 3*skilllv + status_get_lv(src) - status_get_lv(bl)), skilllv, skill_get_time(skillid,skilllv))));
 		if( !i )
 		{
@@ -4507,9 +4494,21 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			location = EQP_WEAPON|EQP_SHIELD|EQP_ARMOR|EQP_HELM;
 			break;
 		}
+
+		//Special message when trying to use strip on FCP [Jobbie]
+		if( sd && skillid == ST_FULLSTRIP && tsc && tsc->data[SC_CP_WEAPON] && tsc->data[SC_CP_HELM] && tsc->data[SC_CP_ARMOR] && tsc->data[SC_CP_SHIELD] )
+		{
+			clif_gospel_info(sd, 0x28);
+			break;
+		}
+
 		//Attempts to strip at rate i and duration d
-		if (!clif_skill_nodamage(src,bl,skillid,skilllv,skill_strip_equip(bl, location, i, skilllv, d)) && sd)
-			clif_skill_fail(sd,skillid,0,0); //Nothing stripped.
+		if( (i = skill_strip_equip(bl, location, i, skilllv, d)) || skillid != ST_FULLSTRIP )
+			clif_skill_nodamage(src,bl,skillid,skilllv,i); 
+
+		//Nothing stripped.
+		if( sd && !i )
+			clif_skill_fail(sd,skillid,0,0);
 	}
 		break;
 
@@ -5332,7 +5331,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 					break;
 				case 5:	// 2000HP heal, random teleported
 					status_heal(bl, 2000, 0, 0);
-					unit_warp(bl, -1,-1,-1, 3);
+					if( !map_flag_vs(bl->m) )
+						unit_warp(bl, -1,-1,-1, 3);
 					break;
 				case 6:	// random 2 other effects
 					if (count == -1)
@@ -7189,7 +7189,6 @@ static int skill_unit_onplace (struct skill_unit *src, struct block_list *bl, un
 		}
 		break;
 	case UNT_SAFETYWALL:
-		//TODO: Find a more reliable way to handle the link to sg, this could cause dangling pointers. [Skotlex]
 		if (!sce)
 			sc_start4(bl,type,100,sg->skill_lv,sg->group_id,sg->group_id,0,sg->limit);
 		break;

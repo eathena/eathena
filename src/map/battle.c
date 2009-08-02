@@ -3004,7 +3004,10 @@ enum damage_lv battle_weapon_attack(struct block_list* src, struct block_list* t
 			return (damage_lv)skill_attack(BF_MAGIC,src,src,target,NPC_MAGICALATTACK,sc->data[SC_MAGICALATTACK]->val1,tick,0);
 	}
 
-	wd = battle_calc_weapon_attack(src, target, 0, 0, flag);
+	if(tsc && tsc->data[SC_KAAHI] && tsc->data[SC_KAAHI]->val4 == -1)
+		tsc->data[SC_KAAHI]->val4 = add_timer(tick + skill_get_time2(SL_KAAHI,tsc->data[SC_KAAHI]->val1), kaahi_heal_timer, target->id, SC_KAAHI); //Activate heal.
+
+	wd = battle_calc_attack(BF_WEAPON, src, target, 0, 0, flag);	
 
 	if (sd && sd->state.arrow_atk) //Consume arrow.
 		battle_consume_ammo(sd, 0, 0);
@@ -3430,6 +3433,15 @@ bool battle_check_range(struct block_list *src, struct block_list *bl, int range
 	if( src->m != bl->m )
 		return false;
 
+#ifndef CIRCULAR_AREA
+	if( src->type == BL_PC )
+	{ // Range for players' attacks and skills should always have a circular check. [Inkfish]
+		int dx = src->x - bl->x, dy = src->y - bl->y;
+		if( !check_distance(dx*dx + dy*dy, 0, range*range+(dx&&dy?1:0)) )
+			return false;
+	}
+	else
+#endif
 	if( !check_distance_bl(src, bl, range) )
 		return false;
 
@@ -3472,7 +3484,7 @@ static const struct _battle_data {
 	{ "summon_flora_setting",               &battle_config.summon_flora,                    1|2,    0,      1|2,            },
 	{ "clear_skills_on_death",              &battle_config.clear_unit_ondeath,              BL_NUL, BL_NUL, BL_ALL,         },
 	{ "clear_skills_on_warp",               &battle_config.clear_unit_onwarp,               BL_ALL, BL_NUL, BL_ALL,         },
-	{ "random_monster_checklv",             &battle_config.random_monster_checklv,          1,      0,      1,              },
+	{ "random_monster_checklv",             &battle_config.random_monster_checklv,          0,      0,      1,              },
 	{ "attribute_recover",                  &battle_config.attr_recover,                    1,      0,      1,              },
 	{ "flooritem_lifetime",                 &battle_config.flooritem_lifetime,              60000,  1000,   INT_MAX,        },
 	{ "item_auto_get",                      &battle_config.item_auto_get,                   0,      0,      1,              },
@@ -3644,7 +3656,8 @@ static const struct _battle_data {
 	{ "vending_over_max",                   &battle_config.vending_over_max,                1,      0,      1,              },
 	{ "show_steal_in_same_party",           &battle_config.show_steal_in_same_party,        0,      0,      1,              },
 	{ "party_hp_mode",                      &battle_config.party_hp_mode,                   0,      0,      1,              },
-	{ "show_party_share_picker",            &battle_config.party_show_share_picker,         0,      0,      1,              },
+	{ "show_party_share_picker",            &battle_config.party_show_share_picker,         1,      0,      1,              },
+	{ "show_picker.item_type",              &battle_config.show_picker_item_type,           112,    0,      INT_MAX,        },
 	{ "party_update_interval",              &battle_config.party_update_interval,           1000,   100,    INT_MAX,        },
 	{ "party_item_share_type",              &battle_config.party_share_type,                0,      0,      1|2|3,          },
 	{ "attack_attr_none",                   &battle_config.attack_attr_none,                ~BL_PC, BL_NUL, BL_ALL,         },

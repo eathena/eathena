@@ -268,9 +268,6 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "quest_db") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_quests);
 		else
-		if( strcmpi(key, "quest_obj_db") == 0 )
-			safesnprintf(buf, buflen, "%s", db->table_quest_objectives);
-		else
 		if( strcmpi(key, "table_ranks") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_ranks);
 		else
@@ -395,9 +392,6 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 		else
 		if( strcmpi(key, "quest_db") == 0 )
 			safestrncpy(db->table_quests, value, sizeof(db->table_quests));
-		else
-		if( strcmpi(key, "quest_obj_db") == 0 )
-			safestrncpy(db->table_quest_objectives, value, sizeof(db->table_quest_objectives));
 		else
 		if( strcmpi(key, "table_ranks") == 0 )
 			safestrncpy(db->table_ranks, value, sizeof(db->table_ranks));
@@ -532,7 +526,6 @@ CharServerDB* charserver_db_sql(void)
 	safestrncpy(db->table_parties, "party", sizeof(db->table_parties));
 	safestrncpy(db->table_pets, "pet", sizeof(db->table_pets));
 	safestrncpy(db->table_quests, "quest", sizeof(db->table_quests));
-	safestrncpy(db->table_quest_objectives, "quest_objective", sizeof(db->table_quest_objectives));
 	safestrncpy(db->table_ranks, "ranks", sizeof(db->table_ranks));
 	safestrncpy(db->table_registry, "global_reg_value", sizeof(db->table_registry));
 	safestrncpy(db->table_skills, "skill", sizeof(db->table_skills));

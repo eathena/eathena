@@ -15,14 +15,15 @@
 /// internal structure
 typedef struct QuestDB_SQL
 {
-	QuestDB vtable;    // public interface
+	// public interface
+	QuestDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* quests;       // SQL quest storage
+	Sql* quests;
 
-	// other settings
+	// settings
 	const char* quest_db;
-	const char* objective_db;
 
 } QuestDB_SQL;
 
@@ -32,69 +33,57 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 {
 	Sql* sql_handle = db->quests;
 	struct quest tmp_quest;
-	struct quest_objective tmp_objective;
 	SqlStmt* stmt;
 	int i;
 	bool result = false;
 
 	memset(&tmp_quest, 0, sizeof(tmp_quest));
-	memset(&tmp_objective, 0, sizeof(tmp_objective));
 	*count = 0;
 
 	stmt = SqlStmt_Malloc(sql_handle);
 
-	//TODO: transaction
-
 	do
 	{
 
-	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST)
+	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST_DB)
 	||	SQL_SUCCESS != SqlStmt_Execute(stmt)
 	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &tmp_quest.quest_id, 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &tmp_quest.state, 0, NULL, NULL) )
-	{
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &tmp_quest.state, 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 2, SQLDT_UINT,&tmp_quest.time, 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 3, SQLDT_INT, &tmp_quest.mob[0], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 4, SQLDT_INT, &tmp_quest.count[0], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 5, SQLDT_INT, &tmp_quest.mob[1], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 6, SQLDT_INT, &tmp_quest.count[1], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 7, SQLDT_INT, &tmp_quest.mob[2], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 8, SQLDT_INT, &tmp_quest.count[2], 0, NULL, NULL)
+	) {
 		SqlStmt_ShowDebug(stmt);
 		break;
 	}
 
-	for( i = 0; i < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
+	for( i = 0; i < MAX_QUEST_DB && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
 	{
 		(*log)[i].quest_id = tmp_quest.quest_id;
 		(*log)[i].state = tmp_quest.state;
+		(*log)[i].time = tmp_quest.time;
+		(*log)[i].mob[0] = tmp_quest.mob[0];
+		(*log)[i].count[0] = tmp_quest.count[0];
+		(*log)[i].mob[1] = tmp_quest.mob[1];
+		(*log)[i].count[1] = tmp_quest.count[1];
+		(*log)[i].mob[2] = tmp_quest.mob[2];
+		(*log)[i].count[2] = tmp_quest.count[2];
+		(*log)[i].num_objectives = (tmp_quest.mob[0]) ? 0 : (tmp_quest.mob[1]) ? 1 : (tmp_quest.mob[2]) ? 2 : 3;
 	}
 
 	*count = i;
-
-	for( i = 0; i < *count; ++i )
-	{
-		int j, num;
-
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `num`, `name`, `count` FROM `%s` WHERE `char_id`=%d AND `quest_id`=%d LIMIT %d", db->objective_db, char_id, (*log)[i].quest_id, MAX_QUEST_OBJECTIVES)
-		||	SQL_SUCCESS != SqlStmt_Execute(stmt)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &num, 0, NULL, NULL)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_STRING, &tmp_objective.name, NAME_LENGTH, NULL, NULL)
-		||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 2, SQLDT_INT,    &tmp_objective.count, 0, NULL, NULL) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
-
-		for( j = 0; j < MAX_QUEST && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++j )
-		{
-			safestrncpy((*log)[i].objectives[num].name, tmp_objective.name, NAME_LENGTH);
-			(*log)[i].objectives[num].count = tmp_objective.count;
-		}
-
-		(*log)[i].num_objectives = j;
-	}
-
-	SqlStmt_Free(stmt);
 
 	// if we got here, everything succeeded
 	result = true;
 
 	}
 	while(0);
+
+	SqlStmt_Free(stmt);
 
 	return result;
 }
@@ -107,6 +96,7 @@ static bool quest_db_sql_init(QuestDB* self)
 	return true;
 }
 
+
 static void quest_db_sql_destroy(QuestDB* self)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -114,94 +104,83 @@ static void quest_db_sql_destroy(QuestDB* self)
 	aFree(db);
 }
 
+
 static bool quest_db_sql_sync(QuestDB* self)
 {
 	return true;
 }
 
+
 static bool quest_db_sql_remove(QuestDB* self, const int char_id)
 {
+	QuestDB_SQL* db = (QuestDB_SQL*)self;
+	Sql* sql_handle = db->quests;
 
+	if( SQL_SUCCESS != Sql_Query(sql_handle,
+		"DELETE FROM `%s` WHERE `char_id` = '%d'",
+		db->quest_db, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
 }
+
 
 static bool quest_db_sql_add(QuestDB* self, const struct quest* qd, const int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
 	Sql* sql_handle = db->quests;
-	bool result = false;
-	int i;
-
-	//TODO: transaction
-
-	do
-	{
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle,
-	    "INSERT INTO `%s`(`quest_id`, `char_id`, `state`) VALUES ('%d', '%d', '%d')",
-	    db->quest_db, qd->quest_id, char_id, qd->state) )
+	    "INSERT INTO `%s`(`quest_id`, `char_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3`) "
+		"VALUES ('%d', '%d', '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+	    db->quest_db, qd->quest_id, char_id, qd->state, qd->time, qd->mob[0], qd->count[0], qd->mob[1], qd->count[1], qd->mob[2], qd->count[2]) )
 	{
 		Sql_ShowDebug(sql_handle);
-		break;
+		return false;
 	}
 
-	for( i = 0; i < qd->num_objectives; i++ )
-	{
-		if( SQL_SUCCESS != Sql_Query(sql_handle,
-		    "INSERT INTO `%s`(`quest_id`, `char_id`, `num`, `name`, `count`) VALUES ('%d', '%d', '%d', '%s', '%d')",
-			db->objective_db, qd->quest_id, char_id, i, qd->objectives[i].name, qd->objectives[i].count) )
-		{
-			Sql_ShowDebug(sql_handle);
-			break;
-		}
-	}
-
-	if( i < qd->num_objectives )
-		break;
-
-	// if we got here, everything succeeded
-	result = true;
-
-	}
-	while(0);
-
-	return result;
+	return true;
 }
+
+
+static bool quest_db_sql_update(QuestDB* self, const struct quest* qd, const int char_id)
+{
+	QuestDB_SQL* db = (QuestDB_SQL*)self;
+	Sql* sql_handle = db->quests;
+
+	//TODO: support for writing to all columns
+	if( SQL_SUCCESS != Sql_Query(sql_handle,
+	    "UPDATE `%s` SET `state`='%d', `count1`='%d', `count2`='%d', `count3`='%d' WHERE `quest_id` = '%d' AND `char_id` = '%d'",
+	    db->quest_db, qd->state, qd->count[0], qd->count[1], qd->count[2], qd->quest_id, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	return true;
+}
+
 
 static bool quest_db_sql_del(QuestDB* self, const int char_id, const int quest_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
 	Sql* sql_handle = db->quests;
-	bool result = false;
 
-	//TODO: transaction
-
-	do
-	{
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle,
 		"DELETE FROM `%s` WHERE `quest_id` = '%d' AND `char_id` = '%d'",
 		db->quest_db, quest_id, char_id) )
 	{
 		Sql_ShowDebug(sql_handle);
-		break;
+		return false;
 	}
 
-	if( SQL_SUCCESS != Sql_Query(sql_handle,
-	    "DELETE FROM `%s` WHERE `quest_id` = '%d' AND `char_id` = '%d'",
-		db->objective_db, quest_id, char_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		break;
-	}
-
-	// if we got here, everything succeeded
-	result = true;
-
-	}
-	while(0);
-
-	return result;
+	return true;
 }
+
 
 static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* const count)
 {
@@ -229,6 +208,7 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	db->vtable.sync      = &quest_db_sql_sync;
 	db->vtable.add       = &quest_db_sql_add;
 	db->vtable.del       = &quest_db_sql_del;
+	db->vtable.update    = &quest_db_sql_update;
 	db->vtable.load      = &quest_db_sql_load;
 	db->vtable.iterator  = &quest_db_sql_iterator;
 
@@ -238,7 +218,6 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 
 	// other settings
 	db->quest_db = db->owner->table_quests;
-	db->objective_db = db->owner->table_quest_objectives;
 
 	return &db->vtable;
 }
