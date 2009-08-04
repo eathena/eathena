@@ -9,6 +9,6 @@
 void inter_mercenary_init(MercDB* db);
 void inter_mercenary_final(void);
 int inter_mercenary_parse_frommap(int fd);
-void inter_mercenary_delete(int char_id);
+void inter_mercenary_delete(int mer_id);
 
 #endif /* _INT_MERCENARY_H_ */

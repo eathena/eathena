@@ -35,6 +35,7 @@ typedef struct CharDB_SQL
 	// other settings
 	bool case_sensitive;
 	const char* char_db;
+	const char* mercenary_owner_db;
 	const char* memo_db;
 	const char* inventory_db;
 	const char* cart_db;
@@ -161,6 +162,25 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		return true;
 	}
 
+	//read mercenary owner data
+	//`mercenary_owner` (`char_id`,`merc_id`,`arch_calls`,`arch_faith`,`spear_calls`,`spear_faith`,`sword_calls`,`sword_faith`)
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith` FROM `%s` WHERE `char_id` = '%d'", db->mercenary_owner_db, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+	if( SQL_SUCCESS == Sql_NextRow(sql_handle) )
+	{
+		char* data;
+		Sql_GetData(sql_handle,  0, &data, NULL); p->mer_id = atoi(data);
+		Sql_GetData(sql_handle,  1, &data, NULL); p->arch_calls = atoi(data);
+		Sql_GetData(sql_handle,  2, &data, NULL); p->arch_faith = atoi(data);
+		Sql_GetData(sql_handle,  3, &data, NULL); p->spear_calls = atoi(data);
+		Sql_GetData(sql_handle,  4, &data, NULL); p->spear_faith = atoi(data);
+		Sql_GetData(sql_handle,  5, &data, NULL); p->sword_calls = atoi(data);
+		Sql_GetData(sql_handle,  6, &data, NULL); p->sword_faith = atoi(data);
+	}
+
 	//read memo data
 	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`=? ORDER by `memo_id` LIMIT %d", db->memo_db, MAX_MEMOPOINTS)
@@ -229,9 +249,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	for( i = 0; i < MAX_CART && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
 		memcpy(&p->cart[i], &tmp_item, sizeof(tmp_item));
-
-	/* Mercenary Owner DataBase */
-//	mercenary_owner_fromsql(char_id, p);
 
 	//read skill
 	//`skill` (`char_id`, `id`, `lv`)
@@ -377,6 +394,19 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 		}
 	}
 
+	//mercenary owner data
+	if( (p->mer_id != cp->mer_id) ||
+		(p->arch_calls != cp->arch_calls) || (p->arch_faith != cp->arch_faith) ||
+		(p->spear_calls != cp->spear_calls) || (p->spear_faith != cp->spear_faith) ||
+		(p->sword_calls != cp->sword_calls) || (p->sword_faith != cp->sword_faith) )
+	{
+		if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`char_id`, `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+			db->mercenary_owner_db, p->char_id, p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith) )
+		{
+			Sql_ShowDebug(sql_handle);
+		}
+	}
+
 	//inventory data
 	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
 		memitemdata_to_sql(db->chars, p->inventory, MAX_INVENTORY, p->char_id, db->inventory_db, "char_id");
@@ -414,13 +444,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 				Sql_ShowDebug(sql_handle);
 		}
 	}
-
-	/* Mercenary Owner */
-//	if( (p->mer_id != cp->mer_id) ||
-//		(p->arch_calls != cp->arch_calls) || (p->arch_faith != cp->arch_faith) ||
-//		(p->spear_calls != cp->spear_calls) || (p->spear_faith != cp->spear_faith) ||
-//		(p->sword_calls != cp->sword_calls) || (p->sword_faith != cp->sword_faith) )
-//		mercenary_owner_tosql(char_id, p);
 
 /*
 	//FIXME: is this neccessary? [ultramage]
@@ -505,6 +528,9 @@ static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 static bool char_db_sql_remove(CharDB* self, const int char_id)
 {
 	/*
+	// delete mercenary owner data
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) )
+		Sql_ShowDebug(sql_handle);
 
 	// delete memo areas
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->memo_db, char_id) )
@@ -525,7 +551,6 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 	// delete character
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
 		Sql_ShowDebug(sql_handle);
-
 	*/
 
 	// not implemented yet
@@ -795,6 +820,7 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	// other settings
 	db->case_sensitive = false;
 	db->char_db = db->owner->table_chars;
+	db->mercenary_owner_db = db->owner->table_mercenary_owners;
 	db->memo_db = db->owner->table_memos;
 	db->inventory_db = db->owner->table_inventories;
 	db->cart_db = db->owner->table_carts;

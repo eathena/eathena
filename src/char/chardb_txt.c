@@ -57,6 +57,32 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	// initilialise character
 	memset(cd, '\0', sizeof(struct mmo_charstatus));
 	
+// Char structure of version r13990 (mercenary owner data)
+	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
+		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d\t%n",
+		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
+		&tmp_int[3], &tmp_int[4], &tmp_int[5],
+		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
+		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
+		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
+		&tmp_int[19], &tmp_int[20],
+		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
+		&tmp_int[24], &tmp_int[25], &tmp_int[26], &tmp_int[44],
+		&tmp_int[27], &tmp_int[28], &tmp_int[29],
+		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
+		&tmp_int[45], &tmp_int[35], &tmp_int[36],
+		&tmp_int[46], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
+		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43],
+		&tmp_int[47], &tmp_int[48], &tmp_int[49], &tmp_int[50], &tmp_int[51], &tmp_int[52], &tmp_int[53], &next) != 55)
+	{
+	tmp_int[47] = 0; // mer_id
+	tmp_int[48] = 0; // arch_calls
+	tmp_int[49] = 0; // arch_faith
+	tmp_int[50] = 0; // spear_calls
+	tmp_int[51] = 0; // spear_faith
+	tmp_int[52] = 0; // sword_calls
+	tmp_int[53] = 0; // sword_faith
 // Char structure of version 1500 (homun + mapindex maps)
 	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
@@ -181,6 +207,7 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		tmp_int[45] = mapindex_name2id(tmp_str[1]);
 		tmp_int[46] = mapindex_name2id(tmp_str[2]);
 	}	// Char structure of version 1500 (homun + mapindex maps)
+	}	// Char structure of version r13990 (mercenary owner data)
 
 	safestrncpy(cd->name, tmp_str[0], sizeof(cd->name));
 	cd->char_id = tmp_int[0];
@@ -230,6 +257,13 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	cd->hom_id = tmp_int[44];
 	cd->last_point.map = tmp_int[45];
 	cd->save_point.map = tmp_int[46];
+	cd->mer_id = tmp_int[47];
+	cd->arch_calls = tmp_int[48];
+	cd->arch_faith = tmp_int[49];
+	cd->spear_calls = tmp_int[50];
+	cd->spear_faith = tmp_int[51];
+	cd->sword_calls = tmp_int[52];
+	cd->sword_faith = tmp_int[53];
 
 	// uniqueness checks
 	if( chars->id2name(chars, cd->char_id, tmp_name) )
@@ -353,7 +387,8 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
 		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
 		"\t%d,%d,%d\t%d,%d,%d" //last point + save point
-		",%d,%d,%d,%d,%d\t",	//Family info
+		",%d,%d,%d,%d,%d" //Family info
+		"\t%d,%d,%d,%d,%d,%d,%d", // mercenary owner data
 		p->char_id, p->account_id, p->slot, p->name, //
 		p->class_, p->base_level, p->job_level,
 		p->base_exp, p->job_exp, p->zeny,
@@ -366,7 +401,8 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
 		p->last_point.map, p->last_point.x, p->last_point.y, //
 		p->save_point.map, p->save_point.x, p->save_point.y,
-		p->partner_id,p->father,p->mother,p->child,p->fame);
+		p->partner_id,p->father,p->mother,p->child,p->fame,
+		p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith);
 
 	// memo points
 	for( i = 0; i < MAX_MEMOPOINTS; i++ )

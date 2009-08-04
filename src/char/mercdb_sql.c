@@ -33,19 +33,11 @@ typedef struct MercDB_SQL
 static bool mmo_merc_fromsql(MercDB_SQL* db, struct s_mercenary* md, int merc_id)
 {
 	Sql* sql_handle = db->mercs;
-	SqlStmt* stmt;
-	StringBuf buf;
-	bool result = false;
-
-	memset(md, 0, sizeof(*md));
-/*
 	char* data;
 
-	memset(merc, 0, sizeof(struct s_mercenary));
-	merc->mercenary_id = merc_id;
-	merc->char_id = char_id;
+	memset(md, 0, sizeof(*md));
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `class`, `hp`, `sp`, `kill_counter`, `life_time` FROM `mercenary` WHERE `mer_id` = '%d' AND `char_id` = '%d'", merc_id, char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `mer_id`, `char_id`, `class`, `hp`, `sp`, `kill_counter`, `life_time` FROM `mercenary` WHERE `mer_id` = '%d'", merc_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -57,60 +49,49 @@ static bool mmo_merc_fromsql(MercDB_SQL* db, struct s_mercenary* md, int merc_id
 		return false;
 	}
 
-	Sql_GetData(sql_handle,  0, &data, NULL); merc->class_ = atoi(data);
-	Sql_GetData(sql_handle,  1, &data, NULL); merc->hp = atoi(data);
-	Sql_GetData(sql_handle,  2, &data, NULL); merc->sp = atoi(data);
-	Sql_GetData(sql_handle,  3, &data, NULL); merc->kill_count = atoi(data);
-	Sql_GetData(sql_handle,  4, &data, NULL); merc->life_time = atoi(data);
+	Sql_GetData(sql_handle,  0, &data, NULL); md->mercenary_id = atoi(data);
+	Sql_GetData(sql_handle,  1, &data, NULL); md->char_id = atoi(data);
+	Sql_GetData(sql_handle,  2, &data, NULL); md->class_ = atoi(data);
+	Sql_GetData(sql_handle,  3, &data, NULL); md->hp = atoi(data);
+	Sql_GetData(sql_handle,  4, &data, NULL); md->sp = atoi(data);
+	Sql_GetData(sql_handle,  5, &data, NULL); md->kill_count = atoi(data);
+	Sql_GetData(sql_handle,  6, &data, NULL); md->life_time = atoi(data);
 	Sql_FreeResult(sql_handle);
-	if( save_log )
-		ShowInfo("Mercenary loaded (%d - %d).\n", merc->mercenary_id, merc->char_id);
 	
 	return true;
-
-
-	SqlStmt_Free(stmt);
-	StringBuf_Destroy(&buf);
-*/
-	return result;
 }
 
 
 static bool mmo_merc_tosql(MercDB_SQL* db, struct s_mercenary* md, bool is_new)
 {
 	Sql* sql_handle = db->mercs;
-	StringBuf buf;
-	SqlStmt* stmt = NULL;
-	bool result = false;
-/*
-	bool flag = true;
 
-	if( merc->mercenary_id == 0 )
+/*
+	if( is_new )
 	{ // Create new DB entry
 		if( SQL_ERROR == Sql_Query(sql_handle,
 			"INSERT INTO `mercenary` (`char_id`,`class`,`hp`,`sp`,`kill_counter`,`life_time`) VALUES ('%d','%d','%d','%d','%u','%u')",
 			merc->char_id, merc->class_, merc->hp, merc->sp, merc->kill_count, merc->life_time) )
 		{
 			Sql_ShowDebug(sql_handle);
-			flag = false;
+			return false;
 		}
 		else
 			merc->mercenary_id = (int)Sql_LastInsertId(sql_handle);
 	}
-	else if( SQL_ERROR == Sql_Query(sql_handle,
-		"UPDATE `mercenary` SET `char_id` = '%d', `class` = '%d', `hp` = '%d', `sp` = '%d', `kill_counter` = '%u', `life_time` = '%u' WHERE `mer_id` = '%d'",
-		merc->char_id, merc->class_, merc->hp, merc->sp, merc->kill_count, merc->life_time, merc->mercenary_id) )
-	{ // Update DB entry
-		Sql_ShowDebug(sql_handle);
-		flag = false;
+	else
+	{
+		if( SQL_ERROR == Sql_Query(sql_handle,
+			"UPDATE `mercenary` SET `char_id` = '%d', `class` = '%d', `hp` = '%d', `sp` = '%d', `kill_counter` = '%u', `life_time` = '%u' WHERE `mer_id` = '%d'",
+			merc->char_id, merc->class_, merc->hp, merc->sp, merc->kill_count, merc->life_time, merc->mercenary_id) )
+		{ // Update DB entry
+			Sql_ShowDebug(sql_handle);
+			return false;
+		}
 	}
-
-	return flag;
-
-	SqlStmt_Free(stmt);
-	StringBuf_Destroy(&buf);
 */
-	return result;
+
+	return true;
 }
 
 

@@ -20,58 +20,6 @@
 // mercenary database
 static MercDB* mercs = NULL;
 
-/*
-bool mercenary_owner_fromsql(int char_id, struct mmo_charstatus *status)
-{
-	char* data;
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith` FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-
-	Sql_GetData(sql_handle,  0, &data, NULL); status->mer_id = atoi(data);
-	Sql_GetData(sql_handle,  1, &data, NULL); status->arch_calls = atoi(data);
-	Sql_GetData(sql_handle,  2, &data, NULL); status->arch_faith = atoi(data);
-	Sql_GetData(sql_handle,  3, &data, NULL); status->spear_calls = atoi(data);
-	Sql_GetData(sql_handle,  4, &data, NULL); status->spear_faith = atoi(data);
-	Sql_GetData(sql_handle,  5, &data, NULL); status->sword_calls = atoi(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); status->sword_faith = atoi(data);
-	Sql_FreeResult(sql_handle);
-
-	return true;
-}
-
-bool mercenary_owner_tosql(int char_id, struct mmo_charstatus *status)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `mercenary_owner` (`char_id`, `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-		char_id, status->mer_id, status->arch_calls, status->arch_faith, status->spear_calls, status->spear_faith, status->sword_calls, status->sword_faith) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	return true;
-}
-
-bool mercenary_owner_delete(int char_id)
-{
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) )
-		Sql_ShowDebug(sql_handle);
-
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `mercenary` WHERE `char_id` = '%d'", char_id) )
-		Sql_ShowDebug(sql_handle);
-
-	return true;
-}
-*/
 
 static void mapif_mercenary_send(int fd, struct s_mercenary *merc, unsigned char flag)
 {
@@ -87,14 +35,16 @@ static void mapif_mercenary_send(int fd, struct s_mercenary *merc, unsigned char
 
 static void mapif_parse_mercenary_create(int fd, struct s_mercenary* merc)
 {
-	bool result = mercs->save(mercs, merc);
+	bool result;
+	merc->mercenary_id = -1; // autogenerate
+	result = mercs->create(mercs, merc);
 	mapif_mercenary_send(fd, merc, result);
 }
 
-static void mapif_parse_mercenary_load(int fd, int merc_id, int char_id)
+static void mapif_parse_mercenary_load(int fd, int merc_id)
 {
 	struct s_mercenary merc;
-	bool result = mercs->load(mercs, &merc, merc_id); // FIXME: char_id not used
+	bool result = mercs->load(mercs, &merc, merc_id);
 	mapif_mercenary_send(fd, &merc, result);
 }
 
@@ -136,10 +86,10 @@ int inter_mercenary_parse_frommap(int fd)
 
 	switch( cmd )
 	{
-		case 0x3070: mapif_parse_mercenary_create(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
-		case 0x3071: mapif_parse_mercenary_load(fd, (int)RFIFOL(fd,2), (int)RFIFOL(fd,6)); break;
-		case 0x3072: mapif_parse_mercenary_delete(fd, (int)RFIFOL(fd,2)); break;
-		case 0x3073: mapif_parse_mercenary_save(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
+		case 0x30C0: mapif_parse_mercenary_create(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
+		case 0x30C1: mapif_parse_mercenary_load(fd, (int)RFIFOL(fd,2)); break;
+		case 0x30C2: mapif_parse_mercenary_delete(fd, (int)RFIFOL(fd,2)); break;
+		case 0x30C3: mapif_parse_mercenary_save(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
 		default:
 			return 0;
 	}
@@ -156,6 +106,7 @@ void inter_mercenary_final()
 	mercs = NULL;
 }
 
-void inter_mercenary_delete(int char_id)
+void inter_mercenary_delete(int mer_id)
 {
+	mercs->remove(mercs, mer_id);
 }

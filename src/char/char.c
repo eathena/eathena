@@ -425,7 +425,8 @@ int char_delete(int char_id)
 		inter_homun_delete(cd.hom_id);
 
 	// remove mercenary data
-	inter_mercenary_delete(cd.char_id);
+	if( cd.mer_id )
+		inter_mercenary_delete(cd.mer_id);
 
 	// leave party
 	if( cd.party_id )
