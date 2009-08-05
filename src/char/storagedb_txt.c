@@ -23,6 +23,7 @@ typedef struct StorageDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* storages;       // in-memory storage storage
+	bool dirty;
 
 	const char* storage_db;// storage data storage file
 
@@ -153,6 +154,7 @@ static bool mmo_storagedb_sync(StorageDB_TXT* db)
 
 	lock_fclose(fp, db->storage_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -172,8 +174,10 @@ static bool storage_db_txt_init(StorageDB* self)
 	FILE *fp;
 
 	// create pet database
-	db->storages = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->storages == NULL )
+		db->storages = idb_alloc(DB_OPT_RELEASE_DATA);
 	storages = db->storages;
+	db_clear(storages);
 
 	// open data file
 	fp = fopen(db->storage_db, "r");
@@ -228,12 +232,12 @@ static void storage_db_txt_destroy(StorageDB* self)
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
 	DBMap* storages = db->storages;
 
-	// write data
-	mmo_storagedb_sync(db);
-
 	// delete storage database
-	storages->destroy(storages, NULL);
-	db->storages = NULL;
+	if( storages != NULL )
+	{
+		db_destroy(storages);
+		db->storages = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -250,13 +254,10 @@ static bool storage_db_txt_remove(StorageDB* self, const int account_id)
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
 	DBMap* storages = db->storages;
 
-	struct storage_data* tmp = (struct storage_data*)idb_remove(storages, account_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("storage_db_txt_remove: no entry for account id %d\n", account_id);
-		return false;
-	}
+	idb_remove(storages, account_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -278,6 +279,8 @@ static bool storage_db_txt_save(StorageDB* self, const struct storage_data* s, i
 		idb_remove(storages, account_id);
 	}
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -325,6 +328,7 @@ StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->storages = NULL;
+	db->dirty = false;
 
 	// other settings
 	db->storage_db = db->owner->file_storages;

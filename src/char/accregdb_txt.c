@@ -23,6 +23,7 @@ typedef struct AccRegDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* accregs;         // in-memory accreg storage
+	bool dirty;
 	
 	const char* accreg_db;  // accreg data storage file
 
@@ -98,6 +99,7 @@ static bool mmo_accreg_sync(AccRegDB_TXT* db)
 
 	lock_fclose(fp, db->accreg_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -111,8 +113,10 @@ static bool accreg_db_txt_init(AccRegDB* self)
 	FILE* fp;
 
 	// create accreg database
-	db->accregs = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->accregs == NULL )
+		db->accregs = idb_alloc(DB_OPT_RELEASE_DATA);
 	accregs = db->accregs;
+	db_clear(accregs);
 
 	// open data file
 	fp = fopen(db->accreg_db, "r");
@@ -157,6 +161,7 @@ static bool accreg_db_txt_init(AccRegDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -165,12 +170,12 @@ static void accreg_db_txt_destroy(AccRegDB* self)
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBMap* accregs = db->accregs;
 
-	// write data
-	mmo_accreg_sync(db);
-
 	// delete accreg database
-	accregs->destroy(accregs, NULL);
-	db->accregs = NULL;
+	if( accregs != NULL )
+	{
+		db_destroy(accregs);
+		db->accregs = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -189,6 +194,8 @@ static bool accreg_db_txt_remove(AccRegDB* self, const int account_id)
 
 	idb_remove(accregs, account_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -207,6 +214,8 @@ static bool accreg_db_txt_save(AccRegDB* self, const struct regs* reg, int accou
 		idb_remove(accregs, account_id);
 	}
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -252,6 +261,7 @@ AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->accregs = NULL;
+	db->dirty = false;
 
 	// other settings
 	db->accreg_db = db->owner->file_accregs;

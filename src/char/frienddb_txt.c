@@ -23,6 +23,7 @@ typedef struct FriendDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* friends;       // in-memory friend storage
+	bool dirty;
 
 	const char* friend_db; // friend data storage file
 
@@ -108,6 +109,7 @@ static bool mmo_frienddb_sync(FriendDB_TXT* db)
 
 	lock_fclose(fp, db->friend_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -115,14 +117,11 @@ static bool mmo_frienddb_sync(FriendDB_TXT* db)
 static bool friend_db_txt_init(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
-	DBMap* friends;
-
+	DBMap* friends = db->friends;
 	char line[8192];
 	FILE *fp;
 
-	// create friend database
-	db->friends = idb_alloc(DB_OPT_RELEASE_DATA);
-	friends = db->friends;
+	db_clear(friends);
 
 	// open data file
 	fp = fopen(db->friend_db, "r");
@@ -166,6 +165,7 @@ static bool friend_db_txt_init(FriendDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -174,11 +174,8 @@ static void friend_db_txt_destroy(FriendDB* self)
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
 	DBMap* friends = db->friends;
 
-	// write data
-	mmo_frienddb_sync(db);
-
 	// delete friend database
-	friends->destroy(friends, NULL);
+	db_destroy(friends);
 	db->friends = NULL;
 
 	// delete entire structure
@@ -198,6 +195,8 @@ static bool friend_db_txt_remove(FriendDB* self, const int char_id)
 
 	idb_remove(friends, char_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -216,6 +215,8 @@ static bool friend_db_txt_save(FriendDB* self, const friendlist* list, const int
 	// overwrite with new data
 	memcpy(tmp, list, sizeof(friendlist));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -263,7 +264,8 @@ FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 
 	// initialize to default values
 	db->owner = owner;
-	db->friends = NULL;
+	db->friends = idb_alloc(DB_OPT_RELEASE_DATA);
+	db->dirty = false;
 
 	// other settings
 	db->friend_db = db->owner->file_friends;

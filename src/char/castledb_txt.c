@@ -24,6 +24,7 @@ typedef struct CastleDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* castles;       // in-memory castle storage
 	int next_castle_id;   // auto_increment
+	bool dirty;
 
 	const char* castle_db; // castle data storage file
 
@@ -99,6 +100,7 @@ static bool mmo_castle_sync(CastleDB_TXT* db)
 
 	lock_fclose(fp, db->castle_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -113,8 +115,10 @@ static bool castle_db_txt_init(CastleDB* self)
 	int count = 0;
 
 	// create castle database
-	db->castles = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->castles == NULL )
+		db->castles = idb_alloc(DB_OPT_RELEASE_DATA);
 	castles = db->castles;
+	db_clear(castles);
 
 	// open data file
 	fp = fopen(db->castle_db, "r");
@@ -158,6 +162,7 @@ static bool castle_db_txt_init(CastleDB* self)
 		ShowStatus(" %s - making done\n", db->castle_db);
 	}
 
+	db->dirty = false;
 	return true;
 }
 
@@ -166,12 +171,12 @@ static void castle_db_txt_destroy(CastleDB* self)
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
 	DBMap* castles = db->castles;
 
-	// write data
-	mmo_castle_sync(db);
-
 	// delete castle database
-	castles->destroy(castles, NULL);
-	db->castles = NULL;
+	if( castles != NULL )
+	{
+		db_destroy(castles);
+		db->castles = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -207,9 +212,8 @@ static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc)
 	memcpy(tmp, gc, sizeof(struct guild_castle));
 	idb_put(castles, castle_id, tmp);
 
-	// flush data
-	mmo_castle_sync(db);
-
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -220,6 +224,8 @@ static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 
 	idb_remove(castles, castle_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -238,6 +244,8 @@ static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)
 	}
 	iter->destroy(iter);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -257,6 +265,8 @@ static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 	// overwrite with new data
 	memcpy(tmp, gc, sizeof(struct guild_castle));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -307,6 +317,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->castles = NULL;
 	db->next_castle_id = START_CASTLE_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->castle_db = db->owner->file_castles;

@@ -23,6 +23,7 @@ typedef struct CharRegDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* charregs;         // in-memory charreg storage
+	bool dirty;
 
 } CharRegDB_TXT;
 
@@ -84,8 +85,11 @@ static bool charreg_db_txt_init(CharRegDB* self)
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 
 	// create charreg database
-	db->charregs = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->charregs == NULL )
+		db->charregs = idb_alloc(DB_OPT_RELEASE_DATA);
+	db_clear(db->charregs);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -95,8 +99,11 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 	DBMap* charregs = db->charregs;
 
 	// delete charreg database
-	charregs->destroy(charregs, NULL);
-	db->charregs = NULL;
+	if( charregs != NULL )
+	{
+		db_destroy(charregs);
+		db->charregs = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -104,7 +111,9 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 
 static bool charreg_db_txt_sync(CharRegDB* self)
 {
+	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 	// not applicable
+	db->dirty = false;
 	return true;
 }
 
@@ -115,6 +124,8 @@ static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)
 
 	idb_remove(charregs, char_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -133,6 +144,8 @@ static bool charreg_db_txt_save(CharRegDB* self, const struct regs* reg, int cha
 		idb_remove(charregs, char_id);
 	}
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -178,6 +191,7 @@ CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->charregs = NULL;
+	db->dirty = false;
 
 	return &db->vtable;
 }

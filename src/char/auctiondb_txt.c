@@ -29,6 +29,7 @@ typedef struct AuctionDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* auctions;         // in-memory auction storage
 	int next_auction_id;     // auto_increment
+	bool dirty;
 
 	const char* auction_db;  // auction data storage file
 
@@ -123,6 +124,7 @@ static bool mmo_auctiondb_sync(AuctionDB_TXT* db)
 
 	lock_fclose(fp, db->auction_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -136,8 +138,10 @@ static bool auction_db_txt_init(AuctionDB* self)
 	unsigned int version = 0;
 
 	// create auction database
-	db->auctions = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->auctions == NULL )
+		db->auctions = idb_alloc(DB_OPT_RELEASE_DATA);
 	auctions = db->auctions;
+	db_clear(auctions);
 
 	// open data file
 	fp = fopen(db->auction_db, "r");
@@ -186,6 +190,7 @@ static bool auction_db_txt_init(AuctionDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -194,12 +199,12 @@ static void auction_db_txt_destroy(AuctionDB* self)
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
 	DBMap* auctions = db->auctions;
 
-	// write data
-	mmo_auctiondb_sync(db);
-
 	// delete auction database
-	auctions->destroy(auctions, NULL);
-	db->auctions = NULL;
+	if( auctions != NULL )
+	{
+		db_destroy(auctions);
+		db->auctions = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -238,12 +243,11 @@ static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)
 	if( auction_id >= db->next_auction_id )
 		db->next_auction_id = auction_id + 1;
 
-	// flush data
-	mmo_auctiondb_sync(db);
-
 	// write output
 	ad->auction_id = auction_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -254,6 +258,8 @@ static bool auction_db_txt_remove(AuctionDB* self, const int auction_id)
 
 	idb_remove(auctions, auction_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -273,6 +279,8 @@ static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad)
 	// overwrite with new data
 	memcpy(tmp, ad, sizeof(*ad));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -415,6 +423,7 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->auctions = NULL;
 	db->next_auction_id = START_AUCTION_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->auction_db = db->owner->file_auctions;

@@ -23,6 +23,7 @@ typedef struct GuildDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* guilds;       // in-memory guild storage
 	int next_guild_id;   // auto_increment
+	bool dirty;
 
 	bool case_sensitive;
 	const char* guild_db; // guild data storage file
@@ -329,6 +330,7 @@ static bool mmo_guild_sync(GuildDB_TXT* db)
 
 	lock_fclose(fp, db->guild_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -342,8 +344,10 @@ static bool guild_db_txt_init(GuildDB* self)
 	FILE* fp;
 
 	// create guild database
-	db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->guilds == NULL )
+		db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
 	guilds = db->guilds;
+	db_clear(guilds);
 
 	// open data file
 	fp = fopen(db->guild_db, "r");
@@ -384,6 +388,7 @@ static bool guild_db_txt_init(GuildDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -392,12 +397,12 @@ static void guild_db_txt_destroy(GuildDB* self)
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;
 
-	// write data
-	mmo_guild_sync(db);
-
 	// delete guild database
-	guilds->destroy(guilds, NULL);
-	db->guilds = NULL;
+	if( guilds != NULL )
+	{
+		db_destroy(guilds);
+		db->guilds = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -436,12 +441,11 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 	if( guild_id >= db->next_guild_id )
 		db->next_guild_id = guild_id + 1;
 
-	// flush data
-	mmo_guild_sync(db);
-
 	// write output
 	g->guild_id = guild_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -450,13 +454,9 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;
 	struct DBIterator* iter;
+	struct guild* tmp;
 
-	struct guild* tmp = (struct guild*)idb_remove(guilds, guild_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("guild_db_txt_remove: no such guild with id %d\n", guild_id);
-		return false;
-	}
+	idb_remove(guilds, guild_id);
 
 	// end all alliances / oppositions
 	iter = guilds->iterator(guilds);
@@ -469,6 +469,8 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 	}
 	iter->destroy(iter);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -488,6 +490,8 @@ static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_s
 	// overwrite with new data
 	memcpy(tmp, g, sizeof(struct guild));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -566,6 +570,7 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->guilds = NULL;
 	db->next_guild_id = START_GUILD_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->case_sensitive = false;

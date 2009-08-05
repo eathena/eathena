@@ -25,6 +25,7 @@ typedef struct MercDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* mercs;         // in-memory mercenary storage
 	int next_merc_id;     // auto_increment
+	bool dirty;
 
 	const char* merc_db;  // mercenary data storage file
 
@@ -44,6 +45,9 @@ static bool mmo_merc_tostr(const struct s_mercenary* md, char* str)
 
 static bool mmo_merc_sync(MercDB_TXT* db)
 {
+	// TODO
+	db->dirty = false;
+	return true;
 }
 
 
@@ -56,8 +60,10 @@ static bool merc_db_txt_init(MercDB* self)
 	FILE *fp;
 
 	// create mercenary database
-	db->mercs = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->mercs == NULL )
+		db->mercs = idb_alloc(DB_OPT_RELEASE_DATA);
 	mercs = db->mercs;
+	db_clear(mercs);
 
 	// open data file
 	fp = fopen(db->merc_db, "r");
@@ -100,6 +106,7 @@ static bool merc_db_txt_init(MercDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -108,12 +115,12 @@ static void merc_db_txt_destroy(MercDB* self)
 	MercDB_TXT* db = (MercDB_TXT*)self;
 	DBMap* mercs = db->mercs;
 
-	// write data
-	mmo_merc_sync(db);
-
 	// delete mercenary database
-	mercs->destroy(mercs, NULL);
-	db->mercs = NULL;
+	if( mercs != NULL )
+	{
+		db_destroy(mercs);
+		db->mercs = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -152,12 +159,11 @@ static bool merc_db_txt_create(MercDB* self, struct s_mercenary* md)
 	if( merc_id >= db->next_merc_id )
 		db->next_merc_id = merc_id + 1;
 
-	// flush data
-	mmo_merc_sync(db);
-
 	// write output
 	md->mercenary_id = merc_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -166,13 +172,10 @@ static bool merc_db_txt_remove(MercDB* self, const int merc_id)
 	MercDB_TXT* db = (MercDB_TXT*)self;
 	DBMap* mercs = db->mercs;
 
-	struct s_mercenary* tmp = (struct s_mercenary*)idb_remove(mercs, merc_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("merc_db_txt_remove: no such mercenary with id %d\n", merc_id);
-		return false;
-	}
+	idb_remove(mercs, merc_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -192,6 +195,8 @@ static bool merc_db_txt_save(MercDB* self, const struct s_mercenary* md)
 	// overwrite with new data
 	memcpy(tmp, md, sizeof(struct s_mercenary));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -241,6 +246,7 @@ MercDB* merc_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->mercs = NULL;
 	db->next_merc_id = START_MERCENARY_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->merc_db = db->owner->file_mercenaries;

@@ -37,11 +37,11 @@ struct CharServerDB_TXT
 	/// @protected
 	struct
 	{
-		/// Requests a save.
+		/// Requests a sync.
 		/// Called when data is changed in one of the database interfaces.
 		///
 		/// @param self Database engine
-		void (*request_save)(CharServerDB_TXT* self);
+		void (*request_sync)(CharServerDB_TXT* self);
 	} p;
 
 	// TODO DB interfaces
@@ -66,7 +66,7 @@ struct CharServerDB_TXT
 
 	bool initialized;
 	unsigned int dirty_tick;//< when it first became dirty
-	int save_timer;//< triggers save attempts
+	int sync_timer;//< triggers sync attempts
 
 	// settings
 	int autosave_change_delay;

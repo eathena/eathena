@@ -35,6 +35,7 @@ typedef struct CharDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* chars;        // in-memory character storage
 	int next_char_id;    // auto_increment
+	bool dirty;
 
 	const char* char_db; // character data storage file
 	bool case_sensitive; // how to look up usernames
@@ -502,6 +503,7 @@ static bool mmo_char_sync(CharDB_TXT* db)
 
 	lock_fclose(fp, db->char_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -519,8 +521,10 @@ static bool char_db_txt_init(CharDB* self)
 	FILE* fp;
 
 	// create chars database
-	db->chars = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->chars == NULL )
+		db->chars = idb_alloc(DB_OPT_RELEASE_DATA);
 	chars = db->chars;
+	db_clear(chars);
 
 	// open data file
 	fp = fopen(db->char_db, "r");
@@ -574,6 +578,7 @@ static bool char_db_txt_init(CharDB* self)
 
 	ShowStatus("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -582,12 +587,12 @@ static void char_db_txt_destroy(CharDB* self)
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
 
-	// write data
-	mmo_char_sync(db);
-
 	// delete chars database
-	chars->destroy(chars, NULL);
-	db->chars = NULL;
+	if( chars != NULL )
+	{
+		db_destroy(chars);
+		db->chars = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -626,12 +631,11 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 	if( char_id >= db->next_char_id )
 		db->next_char_id = char_id + 1;
 
-	// flush data
-	mmo_char_sync(db);
-
 	// write output
 	cd->char_id = char_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -640,13 +644,10 @@ static bool char_db_txt_remove(CharDB* self, const int char_id)
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
 
-	struct mmo_charstatus* tmp = (struct mmo_charstatus*)idb_remove(chars, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("char_db_txt_remove: no such character with id %d\n", char_id);
-		return false;
-	}
+	idb_remove(chars, char_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -666,6 +667,8 @@ static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 	// overwrite with new data
 	memcpy(tmp, ch, sizeof(struct mmo_charstatus));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -900,6 +903,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->chars = NULL;
 	db->next_char_id = START_CHAR_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->char_db = db->owner->file_chars;

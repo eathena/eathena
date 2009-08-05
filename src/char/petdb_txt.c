@@ -25,6 +25,7 @@ typedef struct PetDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* pets;         // in-memory pet storage
 	int next_pet_id;     // auto_increment
+	bool dirty;
 
 	const char* pet_db;  // pet data storage file
 
@@ -102,6 +103,7 @@ static bool mmo_pet_sync(PetDB_TXT* db)
 
 	lock_fclose(fp, db->pet_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -115,8 +117,10 @@ static bool pet_db_txt_init(PetDB* self)
 	FILE *fp;
 
 	// create pet database
-	db->pets = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->pets == NULL )
+		db->pets = idb_alloc(DB_OPT_RELEASE_DATA);
 	pets = db->pets;
+	db_clear(pets);
 
 	// open data file
 	fp = fopen(db->pet_db, "r");
@@ -159,6 +163,7 @@ static bool pet_db_txt_init(PetDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -167,12 +172,12 @@ static void pet_db_txt_destroy(PetDB* self)
 	PetDB_TXT* db = (PetDB_TXT*)self;
 	DBMap* pets = db->pets;
 
-	// write data
-	mmo_pet_sync(db);
-
 	// delete pet database
-	pets->destroy(pets, NULL);
-	db->pets = NULL;
+	if( pets != NULL )
+	{
+		db_destroy(pets);
+		db->pets = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -211,12 +216,11 @@ static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
 	if( pet_id >= db->next_pet_id )
 		db->next_pet_id = pet_id + 1;
 
-	// flush data
-	mmo_pet_sync(db);
-
 	// write output
 	pd->pet_id = pet_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -225,13 +229,10 @@ static bool pet_db_txt_remove(PetDB* self, const int pet_id)
 	PetDB_TXT* db = (PetDB_TXT*)self;
 	DBMap* pets = db->pets;
 
-	struct s_pet* tmp = (struct s_pet*)idb_remove(pets, pet_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("pet_db_txt_remove: no such pet with id %d\n", pet_id);
-		return false;
-	}
+	idb_remove(pets, pet_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -251,6 +252,8 @@ static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 	// overwrite with new data
 	memcpy(tmp, pd, sizeof(struct s_pet));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -300,6 +303,7 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->pets = NULL;
 	db->next_pet_id = START_PET_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->pet_db = db->owner->file_pets;

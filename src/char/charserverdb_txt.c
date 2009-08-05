@@ -34,28 +34,28 @@ extern StorageDB* storage_db_txt(CharServerDB_TXT* owner);
 
 
 // forward declarations
-static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intptr data);
+static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intptr data);
 
 
 
-/// Schedules a save operation with the specified delay.
-/// If already scheduled, it uses the farthest save time.
+/// Schedules a sync operation with the specified delay.
+/// If already scheduled, it uses the farthest sync time.
 /// @private
-static void charserver_db_txt_scheduleSave(CharServerDB_TXT* db, int delay)
+static void charserver_db_txt_scheduleSync(CharServerDB_TXT* db, int delay)
 {
 	static bool registered = false;
 	if( !registered )
 	{
-		add_timer_func_list(charserver_db_txt_save_timer, "charserver_db_txt_save_timer");
+		add_timer_func_list(charserver_db_txt_sync_timer, "charserver_db_txt_sync_timer");
 		registered = true;
 	}
 
-	if( db->save_timer == INVALID_TIMER )
+	if( db->sync_timer == INVALID_TIMER )
 	{
 		if( delay > db->autosave_max_delay )
 			delay = db->autosave_max_delay;
 		db->dirty_tick = gettick();
-		db->save_timer = add_timer(db->dirty_tick + delay, charserver_db_txt_save_timer, 0, (intptr)db);
+		db->sync_timer = add_timer(db->dirty_tick + delay, charserver_db_txt_sync_timer, 0, (intptr)db);
 	}
 	else
 	{
@@ -63,24 +63,24 @@ static void charserver_db_txt_scheduleSave(CharServerDB_TXT* db, int delay)
 		unsigned int newtick = gettick() + delay;
 		if( DIFF_TICK(newtick, maxtick) > 0 )
 			newtick = maxtick;
-		if( DIFF_TICK(newtick, get_timer(db->save_timer)->tick) > 0 )
-			settick_timer(db->save_timer, newtick);
+		if( DIFF_TICK(newtick, get_timer(db->sync_timer)->tick) > 0 )
+			settick_timer(db->sync_timer, newtick);
 	}
 }
 
 
 
 /// Timer function.
-/// Triggers a save.
-/// Reschedules the save if the operation failed.
+/// Triggers a sync.
+/// Reschedules the sync if the operation failed.
 /// @private
-static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intptr data)
+static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)data;
 
-	if( db && db->save_timer == tid )
+	if( db && db->sync_timer == tid )
 	{
-		db->save_timer = INVALID_TIMER;
+		db->sync_timer = INVALID_TIMER;
 		if( !(
 			db->chardb->sync(db->chardb) &&
 			db->frienddb->sync(db->frienddb) &&
@@ -101,7 +101,7 @@ static int charserver_db_txt_save_timer(int tid, unsigned int tick, int id, intp
 			db->rankdb->sync(db->rankdb) &&
 			db->auctiondb->sync(db->auctiondb) )
 		)
-			charserver_db_txt_scheduleSave(db, db->autosave_retry_delay);
+			charserver_db_txt_scheduleSync(db, db->autosave_retry_delay);
 	}
 	return 0;
 }
@@ -149,12 +149,12 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	// save pending data
-	if( !self->save(self, false) )
+	// write cached data
+	if( !self->sync(self, true) )
 	{
-		ShowError("charserver_db_txt_destroy: failed to save pending data, data is lost\n");
-		delete_timer(db->save_timer, charserver_db_txt_save_timer);
-		db->save_timer = INVALID_TIMER;
+		ShowError("charserver_db_txt_destroy: failed to write cached data, possible data loss\n");
+		delete_timer(db->sync_timer, charserver_db_txt_sync_timer);
+		db->sync_timer = INVALID_TIMER;
 	}
 
 	db->castledb->destroy(db->castledb);
@@ -199,14 +199,19 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 
 
 
-/// Saves pending data to permanent storage.
-/// If force is true, saves all cached data even if unchanged.
-static bool charserver_db_txt_save(CharServerDB* self, bool force)
+/// Writes pending data to permanent storage.
+/// If force is true, writes all cached data even if unchanged.
+static bool charserver_db_txt_sync(CharServerDB* self, bool force)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
-	charserver_db_txt_save_timer(db->save_timer, gettick(), 0, (intptr)self);
-	return (db->save_timer == INVALID_TIMER);
+	if( db->sync_timer != INVALID_TIMER )
+	{
+		delete_timer(db->sync_timer, charserver_db_txt_sync_timer);
+		db->sync_timer = INVALID_TIMER;
+	}
+	charserver_db_txt_sync_timer(INVALID_TIMER, gettick(), 0, (intptr)self);
+	return (db->sync_timer == INVALID_TIMER);
 }
 
 
@@ -415,12 +420,12 @@ static StorageDB*      charserver_db_txt_storagedb     (CharServerDB* self) { re
 
 
 
-/// Requests a save.
+/// Requests a sync.
 /// Called when data is changed in one of the database interfaces.
 /// @protected
-void charserver_db_txt_request_save(CharServerDB_TXT* db)
+void charserver_db_txt_request_sync(CharServerDB_TXT* db)
 {
-	charserver_db_txt_scheduleSave(db, db->autosave_change_delay);
+	charserver_db_txt_scheduleSync(db, db->autosave_change_delay);
 }
 
 
@@ -433,7 +438,7 @@ CharServerDB* charserver_db_txt(void)
 	CREATE(db, CharServerDB_TXT, 1);
 	db->vtable.init         = charserver_db_txt_init;
 	db->vtable.destroy      = charserver_db_txt_destroy;
-	db->vtable.save         = charserver_db_txt_save;
+	db->vtable.sync         = charserver_db_txt_sync;
 	db->vtable.get_property = charserver_db_txt_get_property;
 	db->vtable.set_property = charserver_db_txt_set_property;
 	db->vtable.castledb     = charserver_db_txt_castledb;
@@ -454,7 +459,7 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.storagedb    = charserver_db_txt_storagedb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
 	db->vtable.charregdb    = charserver_db_txt_charregdb;
-	db->p.request_save      = charserver_db_txt_request_save;
+	db->p.request_sync      = charserver_db_txt_request_sync;
 	// TODO DB interfaces
 
 	db->castledb = castle_db_txt(db);
@@ -479,7 +484,7 @@ CharServerDB* charserver_db_txt(void)
 	// initialize to default values
 	db->initialized = false;
 	db->dirty_tick = gettick();
-	db->save_timer = INVALID_TIMER;
+	db->sync_timer = INVALID_TIMER;
 
 	// other settings
 	db->autosave_change_delay = CHARSERVERDB_AUTOSAVE_CHANGE_DELAY;

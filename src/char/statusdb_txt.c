@@ -22,6 +22,7 @@ typedef struct StatusDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* statuses;      // in-memory status storage
+	bool dirty;
 
 	const char* status_db;// status data storage file
 
@@ -119,6 +120,7 @@ static bool mmo_status_sync(StatusDB_TXT* db)
 
 	lock_fclose(fp, db->status_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -132,8 +134,10 @@ static bool status_db_txt_init(StatusDB* self)
 	FILE *fp;
 
 	// create pet database
-	db->statuses = idb_alloc(DB_OPT_BASE);
+	if( db->statuses == NULL )
+		db->statuses = idb_alloc(DB_OPT_BASE);
 	statuses = db->statuses;
+	statuses->clear(statuses, scdata_db_final);
 
 	// open data file
 	fp = fopen(db->status_db, "r");
@@ -173,12 +177,12 @@ static void status_db_txt_destroy(StatusDB* self)
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBMap* statuses = db->statuses;
 
-	// write data
-	mmo_status_sync(db);
-
 	// delete status database
-	statuses->destroy(statuses, scdata_db_final);
-	db->statuses = NULL;
+	if( statuses != NULL )
+	{
+		statuses->destroy(statuses, scdata_db_final);
+		db->statuses = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -202,6 +206,8 @@ static bool status_db_txt_remove(StatusDB* self, int char_id)
 		aFree(tmp);
 	}
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -232,7 +238,8 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 		}
 	}
 
-
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -288,6 +295,7 @@ StatusDB* status_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->statuses = NULL;
+	db->dirty = false;
 
 	// other settings
 	db->status_db = db->owner->file_statuses;

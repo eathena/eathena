@@ -29,6 +29,7 @@ typedef struct QuestDB_TXT
 	// state
 	CharServerDB_TXT* owner;
 	DBMap* quests;
+	bool dirty;
 
 	// settings
 	const char* quest_db;
@@ -150,8 +151,10 @@ static bool quest_db_txt_init(QuestDB* self)
 	unsigned int version = 0;
 
 	// create quest database
-	db->quests = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->quests == NULL )
+		db->quests = idb_alloc(DB_OPT_RELEASE_DATA);
 	quests = db->quests;
+	db_clear(quests);
 
 	// open data file
 	fp = fopen(db->quest_db, "r");
@@ -212,12 +215,12 @@ static void quest_db_txt_destroy(QuestDB* self)
 	QuestDB_TXT* db = (QuestDB_TXT*)self;
 	DBMap* quests = db->quests;
 
-	// write data
-	mmo_questdb_sync(db);
-
 	// delete quest database
-	quests->destroy(quests, NULL);
-	db->quests = NULL;
+	if( quests != NULL )
+	{
+		db_destroy(quests);
+		db->quests = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -238,6 +241,8 @@ static bool quest_db_txt_remove(QuestDB* self, const int char_id)
 
 	idb_remove(quests, char_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -269,6 +274,8 @@ static bool quest_db_txt_add(QuestDB* self, const struct quest* qd, const int ch
 	// write new questlog entry
 	memcpy(&(*log)[i], qd, sizeof(struct quest));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -294,6 +301,8 @@ static bool quest_db_txt_update(QuestDB* self, const struct quest* qd, const int
 	// update questlog entry
 	memcpy(&(*log)[i], qd, sizeof(struct quest));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -319,6 +328,8 @@ static bool quest_db_txt_del(QuestDB* self, const int char_id, const int quest_i
 	// erase questlog entry
 	memset(&(*log)[i], 0, sizeof((*log)[i]));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -378,6 +389,7 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->quests = NULL;
+	db->dirty = false;
 
 	// other settings
 	db->quest_db = db->owner->file_quests;

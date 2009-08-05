@@ -23,6 +23,7 @@ typedef struct HomunDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* homuns;       // in-memory homun storage
 	int next_homun_id;   // auto_increment
+	bool dirty;
 
 	const char* homun_db; // homun data storage file
 
@@ -127,6 +128,7 @@ static bool mmo_homun_sync(HomunDB_TXT* db)
 
 	lock_fclose(fp, db->homun_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -140,8 +142,10 @@ static bool homun_db_txt_init(HomunDB* self)
 	FILE* fp;
 
 	// create chars database
-	db->homuns = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->homuns == NULL )
+		db->homuns = idb_alloc(DB_OPT_RELEASE_DATA);
 	homuns = db->homuns;
+	db_clear(homuns);
 
 	// open data file
 	fp = fopen(db->homun_db, "r");
@@ -173,6 +177,7 @@ static bool homun_db_txt_init(HomunDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -181,12 +186,12 @@ static void homun_db_txt_destroy(HomunDB* self)
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
 	DBMap* homuns = db->homuns;
 
-	// write data
-	mmo_homun_sync(db);
-
 	// delete homun database
-	homuns->destroy(homuns, NULL);
-	db->homuns = NULL;
+	if( homuns != NULL )
+	{
+		db_destroy(homuns);
+		db->homuns = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -225,12 +230,11 @@ static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
 	if( homun_id >= db->next_homun_id )
 		db->next_homun_id = homun_id + 1;
 
-	// flush data
-	mmo_homun_sync(db);
-
 	// write output
 	hd->hom_id = homun_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -241,6 +245,8 @@ static bool homun_db_txt_remove(HomunDB* self, int homun_id)
 
 	idb_remove(homuns, homun_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -260,6 +266,8 @@ static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd)
 	// overwrite with new data
 	memcpy(tmp, hd, sizeof(struct s_homunculus));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -309,6 +317,7 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->homuns = NULL;
 	db->next_homun_id = START_HOMUN_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->homun_db = db->owner->file_homuns;

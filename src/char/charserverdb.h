@@ -90,13 +90,13 @@ struct CharServerDB
 	/// @param self Database engine
 	void (*destroy)(CharServerDB* self);
 
-	/// Saves pending data to permanent storage.
-	/// If force is true, saves all cached data even if unchanged.
+	/// Writes pending data to permanent storage.
+	/// If force is true, writes all cached data even if unchanged.
 	///
 	/// @param self Database engine
-	/// @param force Force save
+	/// @param force Force write
 	/// @return true if successfull
-	bool (*save)(CharServerDB* self, bool force);
+	bool (*sync)(CharServerDB* self, bool force);
 
 	/// Gets a property from this database engine.
 	/// These read-only properties must be implemented:

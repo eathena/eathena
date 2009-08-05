@@ -23,6 +23,7 @@ typedef struct GuildStorageDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* guildstorages;       // in-memory guild storage storage
+	bool dirty;
 
 	const char* guildstorage_db;// guild storage data storage file
 
@@ -147,6 +148,7 @@ static bool mmo_guildstoragedb_sync(GuildStorageDB_TXT* db)
 
 	lock_fclose(fp, db->guildstorage_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -160,8 +162,10 @@ static bool guildstorage_db_txt_init(GuildStorageDB* self)
 	FILE *fp;
 
 	// create pet database
-	db->guildstorages = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->guildstorages == NULL )
+		db->guildstorages = idb_alloc(DB_OPT_RELEASE_DATA);
 	guildstorages = db->guildstorages;
+	db_clear(guildstorages);
 
 	// open data file
 	fp = fopen(db->guildstorage_db, "r");
@@ -198,6 +202,7 @@ static bool guildstorage_db_txt_init(GuildStorageDB* self)
 
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -206,12 +211,12 @@ static void guildstorage_db_txt_destroy(GuildStorageDB* self)
 	GuildStorageDB_TXT* db = (GuildStorageDB_TXT*)self;
 	DBMap* guildstorages = db->guildstorages;
 
-	// write data
-	mmo_guildstoragedb_sync(db);
-
 	// delete storage database
-	guildstorages->destroy(guildstorages, NULL);
-	db->guildstorages = NULL;
+	if( guildstorages != NULL )
+	{
+		db_destroy(guildstorages);
+		db->guildstorages = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -230,6 +235,8 @@ static bool guildstorage_db_txt_remove(GuildStorageDB* self, const int guild_id)
 
 	idb_remove(guildstorages, guild_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -251,6 +258,8 @@ static bool guildstorage_db_txt_save(GuildStorageDB* self, const struct guild_st
 		idb_remove(guildstorages, guild_id);
 	}
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -298,6 +307,7 @@ GuildStorageDB* guildstorage_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->guildstorages = NULL;
+	db->dirty = false;
 
 	// other settings
 	db->guildstorage_db = db->owner->file_guild_storages;

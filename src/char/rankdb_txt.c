@@ -126,7 +126,7 @@ static void rank_db_txt_set_points(RankDB* self, int rank_id, int char_id, int p
 	{
 		idb_put(ranking, char_id, (void*)(intptr)points);
 		db->dirty = true;
-		// TODO tell CharServerDB_TXT that something changed [FlavioJS]
+		db->owner->p.request_sync(db->owner);
 	}
 	else
 		ShowError("rank_db_txt_set_points: Unsupported rank_id. (rank_id=%d char_id=%d points=%d)\n", rank_id, char_id, points);
@@ -145,6 +145,12 @@ static bool rank_db_txt_init(RankDB* self)
 	int n = 0;
 	int version = 0;
 
+	if( db->rank_blacksmith == NULL )
+		db->rank_blacksmith = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	if( db->rank_alchemist == NULL )
+		db->rank_alchemist = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	if( db->rank_taekwon == NULL )
+		db->rank_taekwon = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
 	db_clear(db->rank_blacksmith);
 	db_clear(db->rank_alchemist);
 	db_clear(db->rank_taekwon);
@@ -217,9 +223,21 @@ static void rank_db_txt_destroy(RankDB* self)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 
-	db_destroy(db->rank_blacksmith);
-	db_destroy(db->rank_alchemist);
-	db_destroy(db->rank_taekwon);
+	if( db->rank_blacksmith != NULL )
+	{
+		db_destroy(db->rank_blacksmith);
+		db->rank_blacksmith = NULL;
+	}
+	if( db->rank_alchemist != NULL )
+	{
+		db_destroy(db->rank_alchemist);
+		db->rank_alchemist = NULL;
+	}
+	if( db->rank_taekwon != NULL )
+	{
+		db_destroy(db->rank_taekwon);
+		db->rank_taekwon = NULL;
+	}
 	db->owner = NULL;
 	aFree(db);
 }
@@ -290,9 +308,9 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 
 	db->owner = owner;
 	db->file_ranks = owner->file_ranks;
-	db->rank_blacksmith = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
-	db->rank_alchemist = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
-	db->rank_taekwon = idb_alloc(DB_OPT_ALLOW_NULL_DATA);
+	db->rank_blacksmith = NULL;
+	db->rank_alchemist = NULL;
+	db->rank_taekwon = NULL;
 	db->dirty = false;
 	return &db->vtable;
 }

@@ -23,6 +23,7 @@ typedef struct HotkeyDB_TXT
 
 	CharServerDB_TXT* owner;
 	DBMap* hotkeys;       // in-memory hotkey storage
+	bool dirty;
 
 	const char* hotkey_db; // hotkey data storage file
 
@@ -102,6 +103,7 @@ static bool mmo_hotkeydb_sync(HotkeyDB_TXT* db)
 
 	lock_fclose(fp, db->hotkey_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -115,8 +117,10 @@ static bool hotkey_db_txt_init(HotkeyDB* self)
 	FILE *fp;
 
 	// create hotkey database
-	db->hotkeys = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->hotkeys == NULL )
+		db->hotkeys = idb_alloc(DB_OPT_RELEASE_DATA);
 	hotkeys = db->hotkeys;
+	db_clear(hotkeys);
 
 	// open data file
 	fp = fopen(db->hotkey_db, "r");
@@ -160,6 +164,7 @@ static bool hotkey_db_txt_init(HotkeyDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -168,12 +173,12 @@ static void hotkey_db_txt_destroy(HotkeyDB* self)
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
 	DBMap* hotkeys = db->hotkeys;
 
-	// write data
-	mmo_hotkeydb_sync(db);
-
 	// delete hotkey database
-	hotkeys->destroy(hotkeys, NULL);
-	db->hotkeys = NULL;
+	if( hotkeys != NULL )
+	{
+		db_destroy(hotkeys);
+		db->hotkeys = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -190,13 +195,10 @@ static bool hotkey_db_txt_remove(HotkeyDB* self, const int char_id)
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
 	DBMap* hotkeys = db->hotkeys;
 
-	hotkeylist* tmp = (hotkeylist*)idb_remove(hotkeys, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("hotkey_db_txt_remove: no data for char with id %d\n", char_id);
-		return false;
-	}
+	idb_remove(hotkeys, char_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -215,6 +217,8 @@ static bool hotkey_db_txt_save(HotkeyDB* self, const hotkeylist* list, const int
 	// overwrite with new data
 	memcpy(tmp, list, sizeof(hotkeylist));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -263,6 +267,7 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 	// initialize to default values
 	db->owner = owner;
 	db->hotkeys = NULL;
+	db->dirty = true;
 
 	// other settings
 	db->hotkey_db = db->owner->file_hotkeys;

@@ -29,6 +29,7 @@ typedef struct MailDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* mails;              // in-memory mail storage
 	int next_mail_id;          // auto_increment
+	bool dirty;
 
 	const char* mail_db;       // mail data storage file
 
@@ -138,6 +139,7 @@ static bool mmo_mail_sync(MailDB_TXT* db)
 
 	lock_fclose(fp, db->mail_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -152,8 +154,10 @@ static bool mail_db_txt_init(MailDB* self)
 	unsigned int version = 0;
 
 	// create mail database
-	db->mails = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->mails == NULL )
+		db->mails = idb_alloc(DB_OPT_RELEASE_DATA);
 	mails = db->mails;
+	db_clear(mails);
 
 	// open data file
 	fp = fopen(db->mail_db, "r");
@@ -201,6 +205,7 @@ static bool mail_db_txt_init(MailDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -209,12 +214,12 @@ static void mail_db_txt_destroy(MailDB* self)
 	MailDB_TXT* db = (MailDB_TXT*)self;
 	DBMap* mails = db->mails;
 
-	// write data
-	mmo_mail_sync(db);
-
 	// delete mail database
-	mails->destroy(mails, NULL);
-	db->mails = NULL;
+	if( mails != NULL )
+	{
+		db_destroy(mails);
+		db->mails = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -253,12 +258,11 @@ static bool mail_db_txt_create(MailDB* self, struct mail_message* msg)
 	if( mail_id >= db->next_mail_id )
 		db->next_mail_id = mail_id + 1;
 
-	// flush data
-	mmo_mail_sync(db);
-
 	// write output
 	msg->id = mail_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -267,13 +271,10 @@ static bool mail_db_txt_remove(MailDB* self, const int mail_id)
 	MailDB_TXT* db = (MailDB_TXT*)self;
 	DBMap* mails = db->mails;
 
-	struct mail_message* tmp = (struct mail_message*)idb_remove(mails, mail_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("mail_db_txt_remove: no such mail with id %d\n", mail_id);
-		return false;
-	}
+	idb_remove(mails, mail_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -293,6 +294,8 @@ static bool mail_db_txt_save(MailDB* self, const struct mail_message* msg)
 	// overwrite with new data
 	memcpy(tmp, msg, sizeof(struct mail_message));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -394,6 +397,7 @@ MailDB* mail_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->mails = NULL;
 	db->next_mail_id = START_MAIL_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->mail_db = db->owner->file_mails;

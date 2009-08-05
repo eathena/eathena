@@ -142,9 +142,9 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 
 
 
-/// Saves pending data to permanent storage.
-/// If force is true, saves all cached data even if unchanged.
-static bool charserver_db_sql_save(CharServerDB* self, bool force)
+/// Writes pending data to permanent storage.
+/// If force is true, writes all cached data even if unchanged.
+static bool charserver_db_sql_sync(CharServerDB* self, bool force)
 {
 	return true; //not needed for this engine
 }
@@ -448,7 +448,7 @@ CharServerDB* charserver_db_sql(void)
 	CREATE(db, CharServerDB_SQL, 1);
 	db->vtable.init         = charserver_db_sql_init;
 	db->vtable.destroy      = charserver_db_sql_destroy;
-	db->vtable.save         = charserver_db_sql_save;
+	db->vtable.sync         = charserver_db_sql_sync;
 	db->vtable.get_property = charserver_db_sql_get_property;
 	db->vtable.set_property = charserver_db_sql_set_property;
 	db->vtable.castledb     = charserver_db_sql_castledb;

@@ -24,6 +24,7 @@ typedef struct PartyDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* parties;      // in-memory party storage
 	int next_party_id;   // auto_increment
+	bool dirty;
 
 	bool case_sensitive;
 	const char* party_db; // party data storage file
@@ -120,6 +121,7 @@ static bool mmo_party_sync(PartyDB_TXT* db)
 
 	lock_fclose(fp, db->party_db, &lock);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -133,8 +135,10 @@ static bool party_db_txt_init(PartyDB* self)
 	FILE *fp;
 
 	// create party database
-	db->parties = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->parties == NULL )
+		db->parties = idb_alloc(DB_OPT_RELEASE_DATA);
 	parties = db->parties;
+	db_clear(parties);
 
 	// open data file
 	fp = fopen(db->party_db, "r");
@@ -177,6 +181,7 @@ static bool party_db_txt_init(PartyDB* self)
 	// close data file
 	fclose(fp);
 
+	db->dirty = false;
 	return true;
 }
 
@@ -185,12 +190,12 @@ static void party_db_txt_destroy(PartyDB* self)
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
 
-	// write data
-	mmo_party_sync(db);
-
 	// delete party database
-	parties->destroy(parties, NULL);
-	db->parties = NULL;
+	if( parties != NULL )
+	{
+		db_destroy(parties);
+		db->parties = NULL;
+	}
 
 	// delete entire structure
 	aFree(db);
@@ -229,12 +234,11 @@ static bool party_db_txt_create(PartyDB* self, struct party_data* p)
 	if( party_id >= db->next_party_id )
 		db->next_party_id = party_id + 1;
 
-	// flush data
-	mmo_party_sync(db);
-
 	// write output
 	p->party.party_id = party_id;
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -243,13 +247,10 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id)
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties = db->parties;
 
-	struct party_data* tmp = (struct party_data*)idb_remove(parties, party_id);
-	if( tmp == NULL )
-	{// error condition - entry not present
-		ShowError("party_db_txt_remove: no such party with id %d\n", party_id);
-		return false;
-	}
+	idb_remove(parties, party_id);
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -269,6 +270,8 @@ static bool party_db_txt_save(PartyDB* self, const struct party_data* p, enum pa
 	// overwrite with new data
 	memcpy(tmp, p, sizeof(struct party_data));
 
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -347,6 +350,7 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->parties = NULL;
 	db->next_party_id = START_PARTY_NUM;
+	db->dirty = false;
 
 	// other settings
 	db->case_sensitive = false;
