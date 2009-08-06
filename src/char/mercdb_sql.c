@@ -66,30 +66,28 @@ static bool mmo_merc_tosql(MercDB_SQL* db, struct s_mercenary* md, bool is_new)
 {
 	Sql* sql_handle = db->mercs;
 
-/*
 	if( is_new )
 	{ // Create new DB entry
 		if( SQL_ERROR == Sql_Query(sql_handle,
 			"INSERT INTO `mercenary` (`char_id`,`class`,`hp`,`sp`,`kill_counter`,`life_time`) VALUES ('%d','%d','%d','%d','%u','%u')",
-			merc->char_id, merc->class_, merc->hp, merc->sp, merc->kill_count, merc->life_time) )
+			md->char_id, md->class_, md->hp, md->sp, md->kill_count, md->life_time) )
 		{
 			Sql_ShowDebug(sql_handle);
 			return false;
 		}
 		else
-			merc->mercenary_id = (int)Sql_LastInsertId(sql_handle);
+			md->mercenary_id = (int)Sql_LastInsertId(sql_handle);
 	}
 	else
 	{
 		if( SQL_ERROR == Sql_Query(sql_handle,
 			"UPDATE `mercenary` SET `char_id` = '%d', `class` = '%d', `hp` = '%d', `sp` = '%d', `kill_counter` = '%u', `life_time` = '%u' WHERE `mer_id` = '%d'",
-			merc->char_id, merc->class_, merc->hp, merc->sp, merc->kill_count, merc->life_time, merc->mercenary_id) )
+			md->char_id, md->class_, md->hp, md->sp, md->kill_count, md->life_time, md->mercenary_id) )
 		{ // Update DB entry
 			Sql_ShowDebug(sql_handle);
 			return false;
 		}
 	}
-*/
 
 	return true;
 }

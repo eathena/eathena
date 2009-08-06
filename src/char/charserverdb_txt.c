@@ -150,7 +150,7 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
 
 	// write cached data
-	if( !self->sync(self, true) )
+	if( db->initialized && !self->sync(self, true) )
 	{
 		ShowError("charserver_db_txt_destroy: failed to write cached data, possible data loss\n");
 		delete_timer(db->sync_timer, charserver_db_txt_sync_timer);
@@ -368,7 +368,7 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 			safestrncpy(db->file_mails, value, sizeof(db->file_mails));
 		else
 		if( strcmpi(key, "file_mercenaries") == 0 )
-			safestrncpy(db->file_mails, value, sizeof(db->file_mails));
+			safestrncpy(db->file_mercenaries, value, sizeof(db->file_mercenaries));
 		else
 		if( strcmpi(key, "party_txt") == 0 )
 			safestrncpy(db->file_parties, value, sizeof(db->file_parties));

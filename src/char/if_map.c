@@ -227,23 +227,16 @@ int parse_frommap(int fd)
 			if (RFIFOREST(fd) < 6 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 
-			//TODO: When data mismatches memory, update guild/party online/offline states.
-			server[id].users = RFIFOW(fd,4);
+			//TODO: update guild/party online/offline states.
+
 			onlinedb_mapserver_unknown(id); //Set all chars from this server as 'unknown'
-			for(i = 0; i < server[id].users; i++)
+
+			for(i = 0; i < RFIFOW(fd,4); i++)
 			{
-				struct online_char_data* character;
 				int aid = RFIFOL(fd,6+i*8);
 				int cid = RFIFOL(fd,6+i*8+4);
-				character = onlinedb_ensure(aid);
-				if( character->server > -1 && character->server != id )
-				{
-					ShowNotice("Set map user: Character (%d:%d) marked on map server %d, but map server %d claims to have (%d:%d) online!\n",
-						character->account_id, character->char_id, character->server, id, aid, cid);
-					mapif_disconnectplayer(server[character->server].fd, character->account_id, character->char_id, 2);
-				}
-				character->char_id = cid;
-				character->server = id;
+
+				set_char_online(id, cid, aid);
 			}
 			//If any chars remain in -2, they will be cleaned in the cleanup timer.
 			RFIFOSKIP(fd,6+i*8);

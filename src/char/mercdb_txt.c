@@ -14,6 +14,9 @@
 #include <stdio.h>
 #include <string.h>
 
+
+/// global defines
+#define MERC_TXT_DB_VERSION 20090805
 #define START_MERCENARY_NUM 1
 
 
@@ -33,19 +36,64 @@ typedef struct MercDB_TXT
 
 
 
-static bool mmo_merc_fromstr(struct s_mercenary* md, char* str)
+static bool mmo_merc_fromstr(struct s_mercenary* md, char* str, unsigned int version)
 {
+	// zero out the destination first
+	memset(md, 0x00, sizeof(*md));
+
+	if( version == 20090805 )
+	{
+		if( sscanf(str, "%d\t%d,%hd,%d,%d,%u,%u", &md->mercenary_id, &md->char_id, &md->class_, &md->hp, &md->sp, &md->kill_count, &md->life_time) != 7 )
+			return false;
+	}
+	else
+	{// unmatched row	
+		return false;
+	}
+
+	return true;
 }
 
 
 static bool mmo_merc_tostr(const struct s_mercenary* md, char* str)
 {
+	char* p = str;
+
+	p += sprintf(p, "%d\t%d,%hd,%d,%d,%u,%u", md->mercenary_id, md->char_id, md->class_, md->hp, md->sp, md->kill_count, md->life_time);
+
+	return true;
 }
 
 
 static bool mmo_merc_sync(MercDB_TXT* db)
 {
-	// TODO
+	DBIterator* iter;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(db->merc_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_merc_sync: can't write [%s] !!! data is lost !!!\n", db->merc_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", MERC_TXT_DB_VERSION); // savefile version
+
+	iter = db->mercs->iterator(db->mercs);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_mercenary* md = (struct s_mercenary*) data;
+		char line[8192];
+
+		mmo_merc_tostr(md, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->merc_db, &lock);
+
 	db->dirty = false;
 	return true;
 }
@@ -55,9 +103,9 @@ static bool merc_db_txt_init(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
 	DBMap* mercs;
-
 	char line[8192];
 	FILE *fp;
+	unsigned int version = 0;
 
 	// create mercenary database
 	if( db->mercs == NULL )
@@ -77,8 +125,16 @@ static bool merc_db_txt_init(MercDB* self)
 	while( fgets(line, sizeof(line), fp) )
 	{
 		int merc_id, n;
+		unsigned int v;
 		struct s_mercenary p;
 		struct s_mercenary* tmp;
+
+		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
 
 		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &merc_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
@@ -88,7 +144,7 @@ static bool merc_db_txt_init(MercDB* self)
 			continue;
 		}
 
-		if( !mmo_merc_fromstr(&p, line) )
+		if( !mmo_merc_fromstr(&p, line, version) )
 		{
 			ShowError("merc_db_txt_init: skipping invalid data: %s", line);
 			continue;

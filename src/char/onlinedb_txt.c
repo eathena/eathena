@@ -50,7 +50,12 @@ static void create_online_files(OnlineDB_TXT* db);
 static bool online_db_txt_init(OnlineDB* self)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
-	db->onlinedb = idb_alloc(DB_OPT_BASE);
+
+	if( db->onlinedb == NULL )
+		db->onlinedb = idb_alloc(DB_OPT_BASE);
+	else
+		db_clear(db->onlinedb);
+
 	return true;
 }
 
@@ -58,7 +63,15 @@ static bool online_db_txt_init(OnlineDB* self)
 static void online_db_txt_destroy(OnlineDB* self)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
-	db->onlinedb->destroy(db->onlinedb, NULL);
+	
+	// delete online players database
+	if( db->onlinedb != NULL )
+	{
+		db_destroy(db->onlinedb);
+		db->onlinedb = NULL;
+	}
+
+	// delete entire structure
 	aFree(db);
 }
 

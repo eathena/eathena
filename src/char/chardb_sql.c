@@ -131,12 +131,19 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		SqlStmt_Free(stmt);
 		return false;
 	}
-	if( SQL_ERROR == SqlStmt_NextRow(stmt) )
+
+	switch( SqlStmt_NextRow(stmt) )
 	{
+	case SQL_ERROR:
+		SqlStmt_ShowDebug(stmt);
+		SqlStmt_Free(stmt);
+		return false;
+	case SQL_NO_DATA:
 		ShowError("Requested non-existant character id: %d!\n", char_id);
 		SqlStmt_Free(stmt);
-		return false;	
+		return false;
 	}
+
 	p->last_point.map = mapindex_name2id(last_map);
 	p->save_point.map = mapindex_name2id(save_map);
 	switch( p->class_ )
@@ -445,12 +452,10 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 		}
 	}
 
-/*
 	//FIXME: is this neccessary? [ultramage]
 	for(i=0;i<MAX_SKILL;i++)
 		if ((p->skill[i].lv != 0) && (p->skill[i].id == 0))
 			p->skill[i].id = i; // Fix skill tree
-*/
 
 	//skills
 	if( memcmp(p->skill, cp->skill, sizeof(p->skill)) )
@@ -527,34 +532,45 @@ static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 
 static bool char_db_sql_remove(CharDB* self, const int char_id)
 {
-	/*
-	// delete mercenary owner data
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) )
-		Sql_ShowDebug(sql_handle);
+	CharDB_SQL* db = (CharDB_SQL*)self;
+	Sql* sql_handle = db->chars;
+	bool result = false;
 
-	// delete memo areas
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->memo_db, char_id) )
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
 		Sql_ShowDebug(sql_handle);
+		return result;
+	}
 
-	// delete inventory
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->inventory_db, char_id) )
+	// try
+	do
+	{
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) // mercenary owner data
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->memo_db, char_id) // memo points
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->inventory_db, char_id) // inventory
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->cart_db, char_id) // cart inventory
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->skill_db, char_id) // skills
+	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->char_db, char_id) // character
+	) {
 		Sql_ShowDebug(sql_handle);
+		break;
+	}
 
-	// delete cart inventory
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->cart_db, char_id) )
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
 		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
 
-	// delete skills
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->skill_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-
-	// delete character
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", char_db, char_id) )
-		Sql_ShowDebug(sql_handle);
-	*/
-
-	// not implemented yet
-	return false;
+	return result;
 }
 
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)

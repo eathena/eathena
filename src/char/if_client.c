@@ -211,8 +211,8 @@ int parse_client(int fd)
 			if ((map_fd = server[i].fd) < 1 || session[map_fd] == NULL)
 			{
 				ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
-				server[i].fd = -1;
 				memset(&server[i], 0, sizeof(struct mmo_map_server));
+				server[i].fd = -1;
 				//Send server closed.
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x81;

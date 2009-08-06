@@ -12,11 +12,11 @@ static struct {
 	CharLogDB* engine;
 } charlog_engines[] = {
 // standard engines
-#ifdef WITH_TXT
-	{charlog_db_txt, NULL},
-#endif
 #ifdef WITH_SQL
 	{charlog_db_sql, NULL},
+#endif
+#ifdef WITH_TXT
+	{charlog_db_txt, NULL},
 #endif
 	// end of structure
 	{NULL, NULL}

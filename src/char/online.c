@@ -21,11 +21,11 @@ static struct {
 	OnlineDB* engine;
 } onlinedb_engines[] = {
 // standard engines
-#ifdef WITH_TXT
-	{online_db_txt, NULL},
-#endif
 #ifdef WITH_SQL
 	{online_db_sql, NULL},
+#endif
+#ifdef WITH_TXT
+	{online_db_txt, NULL},
 #endif
 	// end of structure
 	{NULL, NULL}
@@ -88,9 +88,20 @@ void onlinedb_init(void)
 
 void onlinedb_final(void)
 {
+	int i;
+
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	online_char_db = NULL;
-	onlinedb->destroy(onlinedb);
+
+	for( i = 0; onlinedb_engines[i].constructor; ++i )
+	{// destroy all onlinedb engines
+		OnlineDB* engine = onlinedb_engines[i].engine;
+		if( engine )
+		{
+			engine->destroy(engine);
+			onlinedb_engines[i].engine = NULL;
+		}
+	}
 	onlinedb = NULL;
 }
 
@@ -198,7 +209,7 @@ void set_char_offline(int char_id, int account_id)
 	onlinedb->set_offline(onlinedb, account_id, char_id);
 
 	//Remove char if 1- Set all offline, or 2- character is no longer connected to char-server.
-	if( char_id == -1 || character == NULL || character->fd != -1 )
+	if( char_id == -1 || character == NULL || character->fd == -1 )
 		loginif_char_offline(account_id);
 }
 

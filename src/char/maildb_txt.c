@@ -59,8 +59,8 @@ static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int v
 		safestrncpy(msg->send_name, fields[3], sizeof(msg->send_name));
 		msg->dest_id = (int)strtol(fields[4], NULL, 10);
 		safestrncpy(msg->dest_name, fields[5], sizeof(msg->dest_name));
-		safestrncpy(esc_title, fields[6], sizeof(msg->title));
-		safestrncpy(esc_body, fields[7], sizeof(msg->body));
+		safestrncpy(esc_title, fields[6], sizeof(esc_title));
+		safestrncpy(esc_body, fields[7], sizeof(esc_body));
 		msg->status = (enum mail_status)strtoul(fields[8], NULL, 10);
 		msg->timestamp = (time_t)strtol(fields[9], NULL, 10);
 		msg->zeny = (int)strtol(fields[10], NULL, 10);

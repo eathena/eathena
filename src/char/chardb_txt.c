@@ -61,7 +61,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 // Char structure of version r13990 (mercenary owner data)
 	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
 		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d\t%n",
+		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d"
+		"\t%d,%d,%d,%d,%d,%d,%d%n",
 		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
 		&tmp_int[3], &tmp_int[4], &tmp_int[5],
 		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
@@ -75,7 +76,7 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		&tmp_int[45], &tmp_int[35], &tmp_int[36],
 		&tmp_int[46], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
 		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43],
-		&tmp_int[47], &tmp_int[48], &tmp_int[49], &tmp_int[50], &tmp_int[51], &tmp_int[52], &tmp_int[53], &next) != 55)
+		&tmp_int[47], &tmp_int[48], &tmp_int[49], &tmp_int[50], &tmp_int[51], &tmp_int[52], &tmp_int[53], &next) != 55 || str[next] != '\t')
 	{
 	tmp_int[47] = 0; // mer_id
 	tmp_int[48] = 0; // arch_calls
@@ -404,6 +405,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		p->save_point.map, p->save_point.x, p->save_point.y,
 		p->partner_id,p->father,p->mother,p->child,p->fame,
 		p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith);
+	*(str_p++) = '\t';
 
 	// memo points
 	for( i = 0; i < MAX_MEMOPOINTS; i++ )

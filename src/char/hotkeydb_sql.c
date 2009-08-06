@@ -31,7 +31,7 @@ typedef struct HotkeyDB_SQL
 static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_id)
 {
 	Sql* sql_handle = db->hotkeys;
-	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
+	SqlStmt* stmt = NULL;
 	struct hotkey tmp_hotkey;
 	int hotkey_num;
 	bool result = false;
@@ -42,6 +42,7 @@ static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_
 	{
 
 	//`hotkey` (`char_id`, `hotkey`, `type`, `itemskill_id`, `skill_lvl`)
+	stmt = SqlStmt_Malloc(sql_handle);
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `hotkey`, `type`, `itemskill_id`, `skill_lvl` FROM `%s` WHERE `char_id`=%d", db->hotkey_db, char_id)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &hotkey_num,      0, NULL, NULL)
@@ -65,6 +66,8 @@ static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_
 
 	}
 	while(0);
+
+	SqlStmt_Free(stmt);
 
 	return result;
 }

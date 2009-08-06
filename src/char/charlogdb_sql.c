@@ -37,7 +37,7 @@ struct CharLogDB_SQL
 };
 
 
-bool charlog_db_sql_init(CharLogDB* self)
+static bool charlog_db_sql_init(CharLogDB* self)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
 
@@ -48,6 +48,7 @@ bool charlog_db_sql_init(CharLogDB* self)
 		Sql_ShowDebug(db->sql_handle);
 		Sql_Free(db->sql_handle);
 		db->sql_handle = NULL;
+		db->initialized = false;
 		return false;
 	}
 
@@ -57,19 +58,15 @@ bool charlog_db_sql_init(CharLogDB* self)
 }
 
 
-bool charlog_db_sql_destroy(CharLogDB* self)
+static void charlog_db_sql_destroy(CharLogDB* self)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
-
 	Sql_Free(db->sql_handle);
-	db->sql_handle = NULL;
-	db->initialized = false;
-
-	return true;
+	aFree(db);
 }
 
 
-bool charlog_db_sql_get_property(CharLogDB* self, const char* key, char* buf, size_t buflen)
+static bool charlog_db_sql_get_property(CharLogDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
 
@@ -85,7 +82,7 @@ bool charlog_db_sql_get_property(CharLogDB* self, const char* key, char* buf, si
 }
 
 
-bool charlog_db_sql_set_property(CharLogDB* self, const char* key, const char* value)
+static bool charlog_db_sql_set_property(CharLogDB* self, const char* key, const char* value)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
 
@@ -113,7 +110,7 @@ bool charlog_db_sql_set_property(CharLogDB* self, const char* key, const char* v
 }
 
 
-bool charlog_db_sql_log(CharLogDB* self, int char_id, int account_id, int slot, const char* name, const char* msg, va_list ap)
+static bool charlog_db_sql_log(CharLogDB* self, int char_id, int account_id, int slot, const char* name, const char* msg, va_list ap)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
 

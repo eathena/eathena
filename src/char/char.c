@@ -38,13 +38,6 @@ static struct{
 	CharServerDB* (*constructor)(void);
 	CharServerDB* engine;
 } charserver_engines[] = {
-// standard engines
-#ifdef WITH_TXT
-	{charserver_db_txt, NULL},
-#endif
-#ifdef WITH_SQL
-	{charserver_db_sql, NULL},
-#endif
 // extra engines
 #ifdef CHARSERVERDB_ENGINE_0
 	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_0), NULL},
@@ -60,6 +53,13 @@ static struct{
 #endif
 #ifdef CHARSERVERDB_ENGINE_4
 	{CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_4), NULL},
+#endif
+// standard engines
+#ifdef WITH_SQL
+	{charserver_db_sql, NULL},
+#endif
+#ifdef WITH_TXT
+	{charserver_db_txt, NULL},
 #endif
 	// end of structure
 	{NULL, NULL}
@@ -1003,13 +1003,12 @@ int do_init(int argc, char **argv)
 
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
-	charlog_init();
-
 	if( !init_charserver_engine() )
 		;// TODO stop server
 
 	inter_init(charserver);
 	onlinedb_init();
+	charlog_init();
 
 	set_defaultparse(parse_client);
 

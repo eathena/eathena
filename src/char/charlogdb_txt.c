@@ -32,23 +32,18 @@ struct CharLogDB_TXT
 };
 
 
-bool charlog_db_txt_init(CharLogDB* self)
+static bool charlog_db_txt_init(CharLogDB* self)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
-
 	db->initialized = true;
-
 	return true;
 }
 
 
-bool charlog_db_txt_destroy(CharLogDB* self)
+static void charlog_db_txt_destroy(CharLogDB* self)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
-
-	db->initialized = false;
-
-	return true;
+	aFree(db);
 }
 
 

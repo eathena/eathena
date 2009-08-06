@@ -31,7 +31,7 @@ typedef struct FriendDB_SQL
 static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id)
 {
 	Sql* sql_handle = db->friends;
-	SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
+	SqlStmt* stmt = NULL;
 	struct s_friend tmp_friend;
 	bool result = false;
 	int i;
@@ -42,6 +42,7 @@ static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_
 	{
 
 	//`friends` (`char_id`, `friend_account`, `friend_id`)
+	stmt = SqlStmt_Malloc(sql_handle);
 	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT c.`account_id`, c.`char_id`, c.`name` FROM `%s` c LEFT JOIN `%s` f ON f.`friend_account` = c.`account_id` AND f.`friend_id` = c.`char_id` WHERE f.`char_id`=%d LIMIT %d", db->char_db, db->friend_db, char_id, MAX_FRIENDS)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_INT,    &tmp_friend.account_id, 0, NULL, NULL)
@@ -59,6 +60,8 @@ static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_
 
 	}
 	while(0);
+
+	SqlStmt_Free(stmt);
 
 	return result;
 }
