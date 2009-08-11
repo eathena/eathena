@@ -20,6 +20,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+/// global defines
+#define CHARDB_TXT_DB_VERSION 20090810
 #define START_CHAR_NUM 1
 
 // temporary stuff
@@ -46,226 +48,337 @@ typedef struct CharDB_TXT
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct regs* reg)
+static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct regs* reg, unsigned int version)
 {
+	int fields[32][2];
+	int count;
+	const char *key, *base, *memo, *inventory, *cart, *skills, *regs;
+	const char* p;
+	int n;
+
 	char tmp_str[3][128]; //To avoid deleting chars with too long names.
 	int tmp_int[256];
-	unsigned int tmp_uint[2]; //To read exp....
 	char tmp_name[NAME_LENGTH];
 	int tmp_charid;
-	int next, len, i, j;
+	int i, j;
 
 	// initilialise character
-	memset(cd, '\0', sizeof(struct mmo_charstatus));
-	
-// Char structure of version r13990 (mercenary owner data)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d"
-		"\t%d,%d,%d,%d,%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26], &tmp_int[44],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		&tmp_int[45], &tmp_int[35], &tmp_int[36],
-		&tmp_int[46], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43],
-		&tmp_int[47], &tmp_int[48], &tmp_int[49], &tmp_int[50], &tmp_int[51], &tmp_int[52], &tmp_int[53], &next) != 55 || str[next] != '\t')
+	memset(cd, '\0', sizeof(*cd));
+
+	// extract tab-separated column blocks from str
+	// block layout: <char id> <base data> <memo points> <inventory> <cart> <skills> <char regs>
+	count = sv_parse(str, strlen(str), 0, '\t', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+
+	// establish structure
+	if( version == 20090810 && count == 7 )
 	{
-	tmp_int[47] = 0; // mer_id
-	tmp_int[48] = 0; // arch_calls
-	tmp_int[49] = 0; // arch_faith
-	tmp_int[50] = 0; // spear_calls
-	tmp_int[51] = 0; // spear_faith
-	tmp_int[52] = 0; // sword_calls
-	tmp_int[53] = 0; // sword_faith
-// Char structure of version 1500 (homun + mapindex maps)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d,%d,%d,%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26], &tmp_int[44],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		&tmp_int[45], &tmp_int[35], &tmp_int[36],
-		&tmp_int[46], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) != 48)
+		key = &str[fields[1][0]];
+		base = &str[fields[2][0]];
+		memo = &str[fields[3][0]];
+		inventory = &str[fields[4][0]];
+		cart = &str[fields[5][0]];
+		skills = &str[fields[6][0]];
+		regs = &str[fields[7][0]];
+	}
+	else
+	if( version == 0 && count == 20 )
 	{
-	tmp_int[44] = 0; //Hom ID.
-// Char structure of version 1488 (fame field addition)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0],
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		tmp_str[1], &tmp_int[35], &tmp_int[36],
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &tmp_int[43], &next) != 47)
-	{
-	tmp_int[43] = 0; //Fame
-// Char structure of version 1363 (family data addition)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d,%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], 
-		&tmp_int[40], &tmp_int[41], &tmp_int[42], &next) != 46)
-	{
-	tmp_int[40] = 0; // father
-	tmp_int[41] = 0; // mother
-	tmp_int[42] = 0; // child
-// Char structure version 1008 (marriage partner addition)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%127[^,],%d,%d\t%127[^,],%d,%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &tmp_int[39], &next) != 43)
-	{
-	tmp_int[39] = 0; // partner id
-// Char structure version 384 (pet addition)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], &tmp_int[26],
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &next) != 42)
-	{
-	tmp_int[26] = 0; // pet id
-// Char structure of a version 1 (original data structure)
-	if (sscanf(str, "%d\t%d,%d\t%127[^\t]\t%d,%d,%d\t%u,%u,%d\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%d,%d"
-		"\t%d,%d,%d\t%d,%d\t%d,%d,%d\t%d,%d,%d,%d,%d"
-		"\t%127[^,],%d,%d\t%127[^,],%d,%d%n",
-		&tmp_int[0], &tmp_int[1], &tmp_int[2], tmp_str[0], //
-		&tmp_int[3], &tmp_int[4], &tmp_int[5],
-		&tmp_uint[0], &tmp_uint[1], &tmp_int[8],
-		&tmp_int[9], &tmp_int[10], &tmp_int[11], &tmp_int[12],
-		&tmp_int[13], &tmp_int[14], &tmp_int[15], &tmp_int[16], &tmp_int[17], &tmp_int[18],
-		&tmp_int[19], &tmp_int[20],
-		&tmp_int[21], &tmp_int[22], &tmp_int[23], //
-		&tmp_int[24], &tmp_int[25], //
-		&tmp_int[27], &tmp_int[28], &tmp_int[29],
-		&tmp_int[30], &tmp_int[31], &tmp_int[32], &tmp_int[33], &tmp_int[34],
-		tmp_str[1], &tmp_int[35], &tmp_int[36], //
-		tmp_str[2], &tmp_int[37], &tmp_int[38], &next) != 41)
-	{
-		ShowError("Char-loading: Unrecognized character data version, info lost!\n");
-		ShowDebug("Character info: %s\n", str);
+		key = &str[fields[1][0]];
+		base = &str[fields[2][0]];
+		memo = &str[fields[15][0]];
+		inventory = &str[fields[16][0]];
+		cart = &str[fields[17][0]];
+		skills = &str[fields[18][0]];
+		regs = &str[fields[19][0]];
+	}
+	else
+	{// unmatched row
 		return false;
 	}
-	}	// Char structure version 384 (pet addition)
-	}	// Char structure version 1008 (marriage partner addition)
-	}	// Char structure of version 1363 (family data addition)
-	}	// Char structure of version 1488 (fame field addition)
-	//Convert save data from string to integer for older formats
-		tmp_int[45] = mapindex_name2id(tmp_str[1]);
-		tmp_int[46] = mapindex_name2id(tmp_str[2]);
-	}	// Char structure of version 1500 (homun + mapindex maps)
-	}	// Char structure of version r13990 (mercenary owner data)
 
-	safestrncpy(cd->name, tmp_str[0], sizeof(cd->name));
-	cd->char_id = tmp_int[0];
-	cd->account_id = tmp_int[1];
-	cd->slot = tmp_int[2];
-	cd->class_ = tmp_int[3];
-	cd->base_level = tmp_int[4];
-	cd->job_level = tmp_int[5];
-	cd->base_exp = tmp_uint[0];
-	cd->job_exp = tmp_uint[1];
-	cd->zeny = tmp_int[8];
-	cd->hp = tmp_int[9];
-	cd->max_hp = tmp_int[10];
-	cd->sp = tmp_int[11];
-	cd->max_sp = tmp_int[12];
-	cd->str = tmp_int[13];
-	cd->agi = tmp_int[14];
-	cd->vit = tmp_int[15];
-	cd->int_ = tmp_int[16];
-	cd->dex = tmp_int[17];
-	cd->luk = tmp_int[18];
-	cd->status_point = tmp_int[19];
-	cd->skill_point = tmp_int[20];
-	cd->option = tmp_int[21];
-	cd->karma = tmp_int[22];
-	cd->manner = tmp_int[23];
-	cd->party_id = tmp_int[24];
-	cd->guild_id = tmp_int[25];
-	cd->pet_id = tmp_int[26];
-	cd->hair = tmp_int[27];
-	cd->hair_color = tmp_int[28];
-	cd->clothes_color = tmp_int[29];
-	cd->weapon = tmp_int[30];
-	cd->shield = tmp_int[31];
-	cd->head_top = tmp_int[32];
-	cd->head_mid = tmp_int[33];
-	cd->head_bottom = tmp_int[34];
-	cd->last_point.x = tmp_int[35];
-	cd->last_point.y = tmp_int[36];
-	cd->save_point.x = tmp_int[37];
-	cd->save_point.y = tmp_int[38];
-	cd->partner_id = tmp_int[39];
-	cd->father = tmp_int[40];
-	cd->mother = tmp_int[41];
-	cd->child = tmp_int[42];
-	cd->fame = tmp_int[43];
-	cd->hom_id = tmp_int[44];
-	cd->last_point.map = tmp_int[45];
-	cd->save_point.map = tmp_int[46];
-	cd->mer_id = tmp_int[47];
-	cd->arch_calls = tmp_int[48];
-	cd->arch_faith = tmp_int[49];
-	cd->spear_calls = tmp_int[50];
-	cd->spear_faith = tmp_int[51];
-	cd->sword_calls = tmp_int[52];
-	cd->sword_faith = tmp_int[53];
+	// key (char id)
+	p = key;
+	if( sscanf(p, "%d%n", &cd->char_id, &n) != 1 || p[n] != '\t' )
+		return false;
+
+	// base data
+	p = base;
+	if( version == 20090810 )
+	{// added mercenary owner block; using map names instead of indexes; using only commas as delimiters
+		char tmp_map[MAP_NAME_LENGTH];
+		int col[54+1][2];
+		int cols = sv_parse(base, (ptrdiff_t)(memo - base), 0, ',', (int*)col, 2*ARRAYLENGTH(col), (e_svopt)(SV_ESCAPE_C));
+		
+		if( cols != 54 )
+			return false;
+
+		cd->account_id     = (int)          strtol (&p[col[ 1][0]], NULL, 10);
+		cd->slot           = (unsigned char)strtoul(&p[col[ 2][0]], NULL, 10);
+		sv_unescape_c(cd->name, &p[col[3][0]], col[3][1]-col[3][0]);
+		cd->class_         = (short)        strtol (&p[col[ 4][0]], NULL, 10);
+		cd->base_level     = (unsigned int) strtoul(&p[col[ 5][0]], NULL, 10);
+		cd->job_level      = (unsigned int) strtoul(&p[col[ 6][0]], NULL, 10);
+		cd->base_exp       = (unsigned int) strtoul(&p[col[ 7][0]], NULL, 10);
+		cd->job_exp        = (unsigned int) strtoul(&p[col[ 8][0]], NULL, 10);
+		cd->zeny           = (int)          strtoul(&p[col[ 9][0]], NULL, 10);
+		cd->hp             = (int)          strtoul(&p[col[10][0]], NULL, 10);
+		cd->max_hp         = (int)          strtoul(&p[col[11][0]], NULL, 10);
+		cd->sp             = (int)          strtoul(&p[col[12][0]], NULL, 10);
+		cd->max_sp         = (int)          strtoul(&p[col[13][0]], NULL, 10);
+		cd->str            = (short)        strtol (&p[col[14][0]], NULL, 10);
+		cd->agi            = (short)        strtol (&p[col[15][0]], NULL, 10);
+		cd->vit            = (short)        strtol (&p[col[16][0]], NULL, 10);
+		cd->int_           = (short)        strtol (&p[col[17][0]], NULL, 10);
+		cd->dex            = (short)        strtol (&p[col[18][0]], NULL, 10);
+		cd->luk            = (short)        strtol (&p[col[19][0]], NULL, 10);
+		cd->status_point   = (unsigned int) strtoul(&p[col[20][0]], NULL, 10);
+		cd->skill_point    = (unsigned int) strtoul(&p[col[21][0]], NULL, 10);
+		cd->option         = (unsigned int) strtoul(&p[col[22][0]], NULL, 10);
+		cd->karma          = (unsigned char)strtoul(&p[col[23][0]], NULL, 10);
+		cd->manner         = (short)        strtol (&p[col[24][0]], NULL, 10);
+		cd->party_id       = (int)          strtol (&p[col[25][0]], NULL, 10);
+		cd->guild_id       = (int)          strtol (&p[col[26][0]], NULL, 10);
+		cd->pet_id         = (int)          strtol (&p[col[27][0]], NULL, 10);
+		cd->hom_id         = (int)          strtol (&p[col[28][0]], NULL, 10);
+		cd->mer_id         = (int)          strtol (&p[col[29][0]], NULL, 10);
+		cd->hair           = (short)        strtol (&p[col[30][0]], NULL, 10);
+		cd->hair_color     = (short)        strtol (&p[col[31][0]], NULL, 10);
+		cd->clothes_color  = (short)        strtol (&p[col[32][0]], NULL, 10);
+		cd->weapon         = (short)        strtol (&p[col[33][0]], NULL, 10);
+		cd->shield         = (short)        strtol (&p[col[34][0]], NULL, 10);
+		cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
+		cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
+		cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
+		safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
+		cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
+		cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
+		safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
+		cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
+		cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
+		cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
+		cd->father         = (int)          strtol (&p[col[45][0]], NULL, 10);
+		cd->mother         = (int)          strtol (&p[col[46][0]], NULL, 10);
+		cd->child          = (int)          strtol (&p[col[47][0]], NULL, 10);
+		cd->fame           = (int)          strtol (&p[col[48][0]], NULL, 10);
+		cd->arch_calls     = (int)          strtol (&p[col[49][0]], NULL, 10);
+		cd->arch_faith     = (int)          strtol (&p[col[50][0]], NULL, 10);
+		cd->spear_calls    = (int)          strtol (&p[col[51][0]], NULL, 10);
+		cd->spear_faith    = (int)          strtol (&p[col[52][0]], NULL, 10);
+		cd->sword_calls    = (int)          strtol (&p[col[53][0]], NULL, 10);
+		cd->sword_faith    = (int)          strtol (&p[col[54][0]], NULL, 10);
+	}
+	else
+	if( version == 0 )
+	{
+		if( sscanf(p, "%d,%d\t%23[^\t]\t%hd,%u,%u\t%u,%u,%d\t%d,%d,%d,%d\t%hd,%hd,%hd,%hd,%hd,%hd\t%u,%u\t%u,%d,%hd%n",
+			&cd->account_id, &tmp_int[0], cd->name,
+			&cd->class_, &cd->base_level, &cd->job_level,
+			&cd->base_exp, &cd->job_exp, &cd->zeny,
+			&cd->hp, &cd->max_hp, &cd->sp, &cd->max_sp,
+			&cd->str, &cd->agi, &cd->vit, &cd->int_, &cd->dex, &cd->luk,
+			&cd->status_point, &cd->skill_point,
+			&cd->option, &tmp_int[1], &cd->manner,
+			&n) != 24 || p[n] != '\t' )
+			return false;
+
+		cd->slot = tmp_int[0];
+		cd->karma = tmp_int[1];
+
+		p += n;
+		if( sscanf(p, "\t%d,%d,%d,%d%n",
+			&cd->party_id, &cd->guild_id, &cd->pet_id, &cd->hom_id,
+			&n) != 4 || p[n] != '\t' )
+		{
+			cd->hom_id = 0;
+			if( sscanf(p, "\t%d,%d,%d%n",
+				&cd->party_id, &cd->guild_id, &cd->pet_id,
+				&n) != 3 || p[n] != '\t' )
+			{
+				cd->pet_id = 0;
+				if( sscanf(p, "\t%d,%d%n",
+					&cd->party_id, &cd->guild_id,
+					&n) != 2 || p[n] != '\t' )
+				{
+					return false;
+				}
+			}
+		}
+	
+		p += n;
+		if( sscanf(p, "\t%hd,%hd,%hd\t%hd,%hd,%hd,%hd,%hd%n",
+			&cd->hair, &cd->hair_color, &cd->clothes_color,
+			&cd->weapon, &cd->shield, &cd->head_top, &cd->head_mid, &cd->head_bottom,
+			&n) != 8 || p[n] != '\t' )
+ 			return false;
+
+		p += n;
+		if( sscanf(p, "\t%hu,%hd,%hd\t%hu,%hd,%hd%n",
+			&cd->last_point.map, &cd->last_point.x, &cd->last_point.y,
+			&cd->save_point.map, &cd->save_point.x, &cd->save_point.y,
+			&n) == 6 && p[n] == ',' )
+			;
+		else
+		if( sscanf(p, "\t%127[^,],%hd,%hd\t%127[^,],%hd,%hd%n",
+			tmp_str[0], &cd->last_point.x, &cd->last_point.y,
+			tmp_str[1], &cd->save_point.x, &cd->save_point.y,
+			&n) == 6 && (p[n] == ',' || p[n] == '\t') )
+		{// Convert saved map from string to in-memory index
+			cd->last_point.map = mapindex_name2id(tmp_str[0]);
+			cd->save_point.map = mapindex_name2id(tmp_str[1]);
+ 		}
+		else
+			return false;
+
+		p += n;
+		if( sscanf(p, ",%d,%d,%d,%d,%d%n",
+			&cd->partner_id, &cd->father, &cd->mother, &cd->child, &cd->fame,
+			&n) != 5 || p[n] != '\t' )
+		{
+			cd->fame = 0;
+			if( sscanf(p, ",%d,%d,%d,%d%n",
+				&cd->partner_id, &cd->father, &cd->mother, &cd->child,
+				&n) != 4 || p[n] != '\t' )
+			{
+				cd->father = 0;
+				cd->mother = 0;
+				cd->child = 0;
+				if( sscanf(p, ",%d%n",
+					&cd->partner_id,
+					&n) != 1 || p[n] != '\t' )
+				{
+					cd->partner_id = 0;
+					if( sscanf(p, "%n", &n) != 0 || p[n] != '\t' )
+					{
+						return false;
+					}
+				}
+			}
+		}
+	}
+	else
+	{// unmatched row
+		return false;
+	}
+
+	// memo data
+	p = memo;
+	for( i = 0; *p != '\0' && *p != '\t'; ++i )
+	{
+		int tmp_int[3];
+		char tmp_str[256];
+
+		if( sscanf(p, "%d,%d,%d%n", &tmp_int[0], &tmp_int[1], &tmp_int[2], &n) == 3 )
+			;
+		else
+		if( sscanf(p, "%[^,],%d,%d%n", tmp_str, &tmp_int[1], &tmp_int[2], &n) == 3 )
+			tmp_int[0] = mapindex_name2id(tmp_str);
+		else
+			return false;
+
+		if( p[n] != ' ' )
+			return false;
+
+		p += n + 1;
+
+		if( i == MAX_MEMOPOINTS )
+			continue; // TODO: warning?
+
+		cd->memo_point[i].map = tmp_int[0];
+		cd->memo_point[i].x = tmp_int[1];
+		cd->memo_point[i].y = tmp_int[2];
+	}
+
+	// inventory items
+	p = inventory;
+	for( i = 0; *p != '\0' && *p != '\t'; ++i )
+	{
+		int tmp_int[7];
+		char tmp_str[256];
+
+		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
+		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+		    &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &n) != 8 )
+			return false;
+
+		if( p[n] != ' ' )
+ 			return false;
+
+		p += n + 1;
+
+		if( i == MAX_INVENTORY )
+			continue; // TODO: warning?
+
+		cd->inventory[i].id = tmp_int[0];
+		cd->inventory[i].nameid = tmp_int[1];
+		cd->inventory[i].amount = tmp_int[2];
+		cd->inventory[i].equip = tmp_int[3];
+		cd->inventory[i].identify = tmp_int[4];
+		cd->inventory[i].refine = tmp_int[5];
+		cd->inventory[i].attribute = tmp_int[6];
+
+		//FIXME: scanning from a buffer into the same buffer has undefined behavior
+		for( j = 0; j < MAX_SLOTS && tmp_str[0] != '\0' && sscanf(tmp_str, ",%d%[0-9,-]", &tmp_int[0], tmp_str) > 0; j++ )
+			cd->inventory[i].card[j] = tmp_int[0];
+	}
+
+	// cart items
+	p = cart;
+	for( i = 0; *p != '\0' && *p != '\t'; ++i )
+	{
+		int tmp_int[7];
+		char tmp_str[256];
+
+		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
+		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
+		    &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &n) != 8 )
+			return false;
+
+		if( p[n] != ' ' )
+			return false;
+
+		p += n + 1;
+
+		if( i == MAX_CART )
+			continue; // TODO: warning?
+
+		cd->cart[i].id = tmp_int[0];
+		cd->cart[i].nameid = tmp_int[1];
+		cd->cart[i].amount = tmp_int[2];
+		cd->cart[i].equip = tmp_int[3];
+		cd->cart[i].identify = tmp_int[4];
+		cd->cart[i].refine = tmp_int[5];
+		cd->cart[i].attribute = tmp_int[6];
+		
+		//FIXME: scanning from a buffer into the same buffer has undefined behavior
+		for( j = 0; j < MAX_SLOTS && tmp_str[0] != '\0' && sscanf(tmp_str, ",%d%[0-9,-]", &tmp_int[0], tmp_str) > 0; j++ )
+			cd->cart[i].card[j] = tmp_int[0];
+	}
+
+	// skills
+	p = skills;
+	for( i = 0; *p != '\0' && *p != '\t'; ++i )
+	{
+		int tmp_int[2];
+
+		if( sscanf(p, "%d,%d%n", &tmp_int[0], &tmp_int[1], &n) != 2 )
+			return false;
+
+		if( p[n] != ' ' )
+			return false;
+
+		p += n + 1;
+
+		if( i == MAX_SKILL )
+			continue; // TODO: warning?
+
+		cd->skill[tmp_int[0]].id = tmp_int[0];
+		cd->skill[tmp_int[0]].lv = tmp_int[1];
+	}
+
+	// character regs
+	p = regs;
+	if( !mmo_charreg_fromstr(reg, p) )
+		return false;
 
 	// uniqueness checks
 	if( chars->id2name(chars, cd->char_id, tmp_name) )
@@ -279,97 +392,6 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		return false;
 	}
 
-	if (str[next] == '\n' || str[next] == '\r')
-		return false;	// 新規データ
-
-	next++;
-
-	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		//mapindex memo format
-		if (sscanf(str+next, "%d,%d,%d%n", &tmp_int[2], &tmp_int[0], &tmp_int[1], &len) != 3)
-		{	//Old string-based memo format.
-			if (sscanf(str+next, "%[^,],%d,%d%n", tmp_str[0], &tmp_int[0], &tmp_int[1], &len) != 3)
-				return false;
-			tmp_int[2] = mapindex_name2id(tmp_str[0]);
-		}
-		if (i < MAX_MEMOPOINTS)
-	  	{	//Avoid overflowing (but we must also read through all saved memos)
-			cd->memo_point[i].x = tmp_int[0];
-			cd->memo_point[i].y = tmp_int[1];
-			cd->memo_point[i].map = tmp_int[2];
-		}
-		next += len;
-		if (str[next] == ' ')
-			next++;
-	}
-
-	next++;
-
-	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
-		{
-			cd->inventory[i].id = tmp_int[0];
-			cd->inventory[i].nameid = tmp_int[1];
-			cd->inventory[i].amount = tmp_int[2];
-			cd->inventory[i].equip = tmp_int[3];
-			cd->inventory[i].identify = tmp_int[4];
-			cd->inventory[i].refine = tmp_int[5];
-			cd->inventory[i].attribute = tmp_int[6];
-
-			for(j = 0; j < MAX_SLOTS && tmp_str[0] && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
-				cd->inventory[i].card[j] = tmp_int[0];
-
-			next += len;
-			if (str[next] == ' ')
-				next++;
-		} else // invalid structure
-			return false;
-	}
-	next++;
-
-	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if(sscanf(str + next, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		      &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		      &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str[0], &len) == 8)
-		{
-			cd->cart[i].id = tmp_int[0];
-			cd->cart[i].nameid = tmp_int[1];
-			cd->cart[i].amount = tmp_int[2];
-			cd->cart[i].equip = tmp_int[3];
-			cd->cart[i].identify = tmp_int[4];
-			cd->cart[i].refine = tmp_int[5];
-			cd->cart[i].attribute = tmp_int[6];
-			
-			for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str[0], ",%d%[0-9,-]",&tmp_int[0], tmp_str[0]) > 0; j++)
-				cd->cart[i].card[j] = tmp_int[0];
-			
-			next += len;
-			if (str[next] == ' ')
-				next++;
-		} else // invalid structure
-			return false;
-	}
-
-	next++;
-
-	for(i = 0; str[next] && str[next] != '\t'; i++) {
-		if (sscanf(str + next, "%d,%d%n", &tmp_int[0], &tmp_int[1], &len) != 2)
-			return false;
-		cd->skill[tmp_int[0]].id = tmp_int[0];
-		cd->skill[tmp_int[0]].lv = tmp_int[1];
-		next += len;
-		if (str[next] == ' ')
-			next++;
-	}
-
-	next++;
-
-	// parse character regs
-	if( !mmo_charreg_fromstr(reg, str + next) )
-		return false;
-
 	return true;
 }
 
@@ -380,31 +402,71 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
 {
 	int i,j;
+	char esc_name[4*NAME_LENGTH+1];
 	char *str_p = str;
 
+	sv_escape_c(esc_name, p->name, strlen(p->name), ",");
+
+	// key (char id)
+	str_p += sprintf(str_p, "%d", p->char_id);
+	*(str_p++) = '\t';
+
 	// base character data
-	str_p += sprintf(str_p,
-		"%d\t%d,%d\t%s\t%d,%d,%d\t%u,%u,%d" //Up to Zeny field
-		"\t%d,%d,%d,%d\t%d,%d,%d,%d,%d,%d\t%u,%u" //Up to Skill Point
-		"\t%d,%d,%d\t%d,%d,%d,%d" //Up to hom id
-		"\t%d,%d,%d\t%d,%d,%d,%d,%d" //Up to head bottom
-		"\t%d,%d,%d\t%d,%d,%d" //last point + save point
-		",%d,%d,%d,%d,%d" //Family info
-		"\t%d,%d,%d,%d,%d,%d,%d", // mercenary owner data
-		p->char_id, p->account_id, p->slot, p->name, //
-		p->class_, p->base_level, p->job_level,
-		p->base_exp, p->job_exp, p->zeny,
-		p->hp, p->max_hp, p->sp, p->max_sp,
-		p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-		p->status_point, p->skill_point,
-		p->option, p->karma, p->manner,	//
-		p->party_id, p->guild_id, p->pet_id, p->hom_id,
-		p->hair, p->hair_color, p->clothes_color,
-		p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-		p->last_point.map, p->last_point.x, p->last_point.y, //
-		p->save_point.map, p->save_point.x, p->save_point.y,
-		p->partner_id,p->father,p->mother,p->child,p->fame,
-		p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith);
+	                  str_p += sprintf(str_p, "%d", p->account_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->slot);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%s", esc_name);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->class_);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_level);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_level);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_exp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_exp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->zeny);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_hp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_sp);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->str);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->agi);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->vit);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->int_);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->dex);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->luk);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->status_point);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->skill_point);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->option);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->karma);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->manner);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->party_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->guild_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->pet_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hom_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mer_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair_color);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->clothes_color);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->weapon);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->shield);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_top);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_mid);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_bottom);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->last_point.map));
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.x);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.y);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->save_point.map));
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.x);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.y);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->partner_id);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->father);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mother);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->child);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->fame);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_calls);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_faith);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_calls);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_faith);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_calls);
+	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_faith);
+
 	*(str_p++) = '\t';
 
 	// memo points
@@ -413,7 +475,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		if( p->memo_point[i].map == 0 )
 			continue;
 
-		str_p += sprintf(str_p, "%d,%d,%d ", p->memo_point[i].map, p->memo_point[i].x, p->memo_point[i].y);
+		str_p += sprintf(str_p, "%s,%d,%d ", mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
 	}
 	*(str_p++) = '\t';
 
@@ -465,7 +527,6 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 		mmo_charreg_tostr(reg, str_p);
 		str_p += strlen(str_p);
 	}
-	*(str_p++) = '\t';
 
 	*str_p = '\0';
 	return 0;
@@ -488,6 +549,8 @@ static bool mmo_char_sync(CharDB_TXT* db)
 		ShowWarning("Server cannot save characters.\n");
 		return false;
 	}
+
+	fprintf(fp, "%d\n", CHARDB_TXT_DB_VERSION); // savefile version
 
 	iter = db->chars->iterator(db->chars);
 	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
@@ -521,6 +584,7 @@ static bool char_db_txt_init(CharDB* self)
 	char line[65536];
 	int line_count = 0;
 	FILE* fp;
+	unsigned int version = 0;
 
 	// create chars database
 	if( db->chars == NULL )
@@ -540,12 +604,20 @@ static bool char_db_txt_init(CharDB* self)
 	while( fgets(line, sizeof(line), fp) != NULL )
 	{
 		int char_id, n;
+		unsigned int v;
 		struct mmo_charstatus* ch;
 		struct regs reg;
 		line_count++;
 
 		if( line[0] == '/' && line[1] == '/' )
 			continue;
+
+		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
 
 		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &char_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
@@ -559,7 +631,7 @@ static bool char_db_txt_init(CharDB* self)
 		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 
 		// parse char data
-		if( !mmo_char_fromstr(self, line, ch, &reg) )
+		if( !mmo_char_fromstr(self, line, ch, &reg, version) )
  		{
 			ShowFatalError("char_db_txt_init: There was a problem processing data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
 			aFree(ch);
