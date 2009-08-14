@@ -6,7 +6,6 @@
 
 #include "../common/cbasetypes.h"
 //#include "../common/mmo.h"
-struct storage_data;
 struct guild_storage;
 //#include "map.h"
 struct block_list;
@@ -201,7 +200,7 @@ void clif_tradecompleted(struct map_session_data* sd, int fail);
 
 // storage
 #include "storage.h"
-void clif_storagelist(struct map_session_data* sd, struct storage_data* stor);
+void clif_storagelist(struct map_session_data* sd, struct item* stor);
 void clif_updatestorageamount(struct map_session_data* sd, int amount);
 void clif_storageitemadded(struct map_session_data* sd, struct item* i, int index, int amount);
 void clif_storageitemremoved(struct map_session_data* sd, int index, int amount);

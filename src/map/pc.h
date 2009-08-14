@@ -361,6 +361,8 @@ struct map_session_data {
 
 	char away_message[128]; // [LuzZza]
 
+	int storage_amount; // number to display in storage window
+
 	int cashPoints, kafraPoints;
 	int rental_timer;
 

@@ -95,16 +95,16 @@ int convert_char(void)
 	{// convert storage
 		StorageDB* txt = srcdb->storagedb(srcdb);
 		StorageDB* sql = dstdb->storagedb(dstdb);
-		CSDBIterator* iter = txt->iterator(txt);
-		struct storage_data data;
+		CSDBIterator* iter = txt->iterator(txt, STORAGE_KAFRA);
+		struct item data[MAX_STORAGE];
 		int key;
 
 		ShowStatus("Converting Storage Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
-			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			txt->load(txt, data, MAX_STORAGE, STORAGE_KAFRA, key);
+			sql->save(sql, data, MAX_STORAGE, STORAGE_KAFRA, key);
 		}
 
 		iter->destroy(iter);
@@ -245,18 +245,18 @@ int convert_char(void)
 	}
 
 	{// convert guild storages
-		GuildStorageDB* txt = srcdb->guildstoragedb(srcdb);
-		GuildStorageDB* sql = dstdb->guildstoragedb(dstdb);
-		CSDBIterator* iter = txt->iterator(txt);
-		struct guild_storage data;
+		StorageDB* txt = srcdb->storagedb(srcdb);
+		StorageDB* sql = dstdb->storagedb(dstdb);
+		CSDBIterator* iter = txt->iterator(txt, STORAGE_GUILD);
+		struct item data[MAX_GUILD_STORAGE];
 		int key;
 
 		ShowStatus("Converting Guild Storage Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
-			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			txt->load(txt, data, MAX_GUILD_STORAGE, STORAGE_GUILD, key);
+			sql->save(sql, data, MAX_GUILD_STORAGE, STORAGE_GUILD, key);
 		}
 
 		iter->destroy(iter);

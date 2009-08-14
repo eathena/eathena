@@ -1007,6 +1007,7 @@ int intif_parse_LoadGuildStorage(int fd)
 	struct guild_storage *gstor;
 	struct map_session_data *sd;
 	int guild_id;
+	int i;
 	
 	guild_id = RFIFOL(fd,8);
 	if(guild_id <= 0)
@@ -1039,6 +1040,12 @@ int intif_parse_LoadGuildStorage(int fd)
 	memcpy(gstor,RFIFOP(fd,12),sizeof(struct guild_storage));
 	gstor->storage_status = 1;
 	sd->state.storage_flag = 2;
+
+	gstor->storage_amount = 0;
+	for( i = 0; i < MAX_GUILD_STORAGE; ++i )
+		if( gstor->storage_[i].id > 0 )
+			gstor->storage_amount++;
+
 	clif_guildstoragelist(sd,gstor);
 	clif_updateguildstorageamount(sd,gstor->storage_amount);
 	return 0;

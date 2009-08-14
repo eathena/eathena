@@ -175,11 +175,6 @@ struct status_change_data {
 	int val1, val2, val3, val4, tick; //Remaining duration.
 };
 
-struct storage_data {
-	int storage_amount;
-	struct item items[MAX_STORAGE];
-};
-
 struct guild_storage {
 	int dirty;
 	int guild_id;
@@ -287,8 +282,7 @@ struct mmo_charstatus {
 	uint16 mapport;
 
 	struct point last_point,save_point,memo_point[MAX_MEMOPOINTS];
-	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
-	struct storage_data storage;
+	struct item inventory[MAX_INVENTORY],cart[MAX_CART],storage[MAX_STORAGE];
 	struct s_skill skill[MAX_SKILL];
 
 	struct s_friend friends[MAX_FRIENDS]; //New friend system [Skotlex]

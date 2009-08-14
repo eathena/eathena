@@ -1968,7 +1968,7 @@ void clif_equiplist(struct map_session_data *sd)
 	}
 }
 
-void clif_storagelist(struct map_session_data* sd, struct storage_data* stor)
+void clif_storagelist(struct map_session_data* sd, struct item* stor)
 {
 	struct item_data *id;
 	int i,n,ne,fd=sd->fd;
@@ -1983,20 +1983,20 @@ void clif_storagelist(struct map_session_data* sd, struct storage_data* stor)
 	buf = WFIFOP(fd,0);
 	
 	for(i=0,n=0,ne=0;i<MAX_STORAGE;i++){
-		if(stor->items[i].nameid<=0)
+		if(stor[i].nameid<=0)
 			continue;
-		id = itemdb_search(stor->items[i].nameid);
+		id = itemdb_search(stor[i].nameid);
 		if(!itemdb_isstackable2(id))
 		{ //Equippable
 			WBUFW(bufe,ne*20+4)=i+1;
-			clif_item_sub(bufe, ne*20+6, &stor->items[i], id, id->equip);
-			clif_addcards(WBUFP(bufe, ne*20+16), &stor->items[i]);
+			clif_item_sub(bufe, ne*20+6, &stor[i], id, id->equip);
+			clif_addcards(WBUFP(bufe, ne*20+16), &stor[i]);
 			ne++;
 		} else { //Stackable
 			WBUFW(buf,n*s+4)=i+1;
-			clif_item_sub(buf, n*s+6, &stor->items[i], id,-1);
+			clif_item_sub(buf, n*s+6, &stor[i], id,-1);
 #if PACKETVER >= 5
-			clif_addcards(WBUFP(buf,n*s+14), &stor->items[i]);
+			clif_addcards(WBUFP(buf,n*s+14), &stor[i]);
 #endif
 			n++;
 		}

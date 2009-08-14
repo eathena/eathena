@@ -212,10 +212,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\char\char_sql.c"
-				>
-			</File>
-			<File
 				RelativePath="..\src\char\charlog.c"
 				>
 			</File>
@@ -629,18 +625,6 @@
 			</File>
 			<File
 				RelativePath="..\src\char\guilddb_txt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guildstoragedb.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guildstoragedb_sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char\guildstoragedb_txt.c"
 				>
 			</File>
 			<File

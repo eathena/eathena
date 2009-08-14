@@ -33,7 +33,6 @@ struct CharServerDB_SQL
 	CharDB* chardb;
 	FriendDB* frienddb;
 	GuildDB* guilddb;
-	GuildStorageDB* guildstoragedb;
 	HomunDB* homundb;
 	MercDB* mercdb;
 	HotkeyDB* hotkeydb;

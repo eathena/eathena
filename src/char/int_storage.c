@@ -14,7 +14,6 @@
 #include "int_pet.h"
 #include "int_guild.h"
 #include "storagedb.h"
-#include "guildstoragedb.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -22,7 +21,6 @@
 
 
 static StorageDB* storages = NULL;
-static GuildStorageDB* guildstorages = NULL;
 
 
 //---------------------------------------------------------
@@ -30,11 +28,20 @@ static GuildStorageDB* guildstorages = NULL;
 
 static int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 {
+	struct guild_storage* gs;
+
 	WFIFOHEAD(fd, sizeof(struct guild_storage)+12);
 	WFIFOW(fd,0) = 0x3818;
 
-	//NOTE: writes directly to socket buffer
-	if( guildstorages->load(guildstorages, (struct guild_storage*)WFIFOP(fd,12), guild_id) )
+	//NOTE: writing directly to socket buffer
+	gs = (struct guild_storage*)WFIFOP(fd,12);
+	//FIXME: these vars need to be made persistent!
+	gs->guild_id = guild_id;
+	gs->dirty = 0;
+	gs->storage_status = 0;
+	gs->storage_amount = 0;
+
+	if( storages->load(storages, gs->storage_, ARRAYLENGTH(gs->storage_), STORAGE_GUILD, guild_id) )
 	{
 		WFIFOW(fd,2) = 12 + sizeof(struct guild_storage);
 		WFIFOL(fd,4) = account_id;
@@ -88,7 +95,7 @@ static void mapif_parse_SaveGuildStorage(int fd)
 		return;
 	}
 
-	if( guildstorages->save(guildstorages, gs, guild_id) )
+	if( storages->save(storages, gs->storage_, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
 		mapif_save_guild_storage_ack(fd,account_id,guild_id,0);
 	else
 		mapif_save_guild_storage_ack(fd,account_id,guild_id,1);
@@ -111,31 +118,29 @@ int inter_storage_parse_frommap(int fd)
 	return 1;
 }
 
-void inter_storage_init(StorageDB* sdb, GuildStorageDB* gsdb)
+void inter_storage_init(StorageDB* db)
 {
-	storages = sdb;
-	guildstorages = gsdb;
+	storages = db;
 }
 
 void inter_storage_final(void)
 {
 	storages = NULL;
-	guildstorages = NULL;
 }
 
 bool inter_storage_delete(int account_id)
 {
-	struct storage_data s;
+	struct item s[MAX_STORAGE];
 	int i;
 
-	if( !storages->load(storages, &s, account_id) )
+	if( !storages->load(storages, s, MAX_STORAGE, STORAGE_KAFRA, account_id) )
 		return false;
 
-	for( i = 0; i < s.storage_amount; i++ )
-		if( s.items[i].card[0] == (short)0xff00 )
-			inter_pet_delete( MakeDWord(s.items[i].card[1],s.items[i].card[2]) );
+	for( i = 0; i < MAX_STORAGE; i++ )
+		if( s[i].card[0] == (short)0xff00 )
+			inter_pet_delete( MakeDWord(s[i].card[1],s[i].card[2]) );
 
-	storages->remove(storages, account_id);
+	storages->remove(storages, STORAGE_KAFRA, account_id);
 
 	return true;
 }
@@ -145,14 +150,14 @@ int inter_guild_storage_delete(int guild_id)
 	struct guild_storage gs;
 	int i;
 
-	if( !guildstorages->load(guildstorages, &gs, guild_id) )
+	if( !storages->load(storages, gs.storage_, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
 		return false;
 
-	for( i = 0; i < gs.storage_amount; i++ )
+	for( i = 0; i < MAX_GUILD_STORAGE; i++ )
 		if( gs.storage_[i].card[0] == (short)0xff00 )
 			inter_pet_delete( MakeDWord(gs.storage_[i].card[1],gs.storage_[i].card[2]) );
 
-	guildstorages->remove(guildstorages, guild_id);
+	storages->remove(storages, STORAGE_GUILD, guild_id);
 
 	return true;
 }

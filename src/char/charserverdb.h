@@ -17,7 +17,6 @@
 #include "charregdb.h"
 #include "frienddb.h"
 #include "guilddb.h"
-#include "guildstoragedb.h"
 #include "homundb.h"
 #include "hotkeydb.h"
 #include "maildb.h"
@@ -160,12 +159,6 @@ struct CharServerDB
 	/// @param self Database engine
 	/// @return Interface for guilds
 	GuildDB* (*guilddb)(CharServerDB* self);
-
-	/// Returns the database interface that handles guild storages.
-	///
-	/// @param self Database engine
-	/// @return Interface for guild storages
-	GuildStorageDB* (*guildstoragedb)(CharServerDB* self);
 
 	/// Returns the database interface that handles homuns.
 	///

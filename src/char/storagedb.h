@@ -4,10 +4,20 @@
 #ifndef _STORAGEDB_H_
 #define _STORAGEDB_H_
 
-#include "../common/mmo.h" // struct storage_data
+#include "../common/mmo.h" // struct item
 #include "csdbiterator.h"
 
 typedef struct StorageDB StorageDB;
+
+
+// different storage types supported
+enum storage_type
+{
+	STORAGE_INVENTORY,
+	STORAGE_CART,
+	STORAGE_KAFRA,
+	STORAGE_GUILD,
+};
 
 
 struct StorageDB
@@ -17,16 +27,17 @@ struct StorageDB
 
 	bool (*sync)(StorageDB* self);
 
-	bool (*remove)(StorageDB* self, const int account_id);
+	bool (*remove)(StorageDB* self, enum storage_type type, const int id);
 
-	bool (*save)(StorageDB* self, const struct storage_data* s, int account_id);
-	bool (*load)(StorageDB* self, struct storage_data* s, int account_id);
+	bool (*save)(StorageDB* self, const struct item* s, size_t size, enum storage_type type, int id);
+	bool (*load)(StorageDB* self, struct item* s, size_t size, enum storage_type type, int id);
 
-	/// Returns an iterator over all storages.
+	/// Returns an iterator over all item arrays.
 	///
 	/// @param self Database
+	/// @param type Type of storage
 	/// @return Iterator
-	CSDBIterator* (*iterator)(StorageDB* self);
+	CSDBIterator* (*iterator)(StorageDB* self, enum storage_type type);
 };
 
 

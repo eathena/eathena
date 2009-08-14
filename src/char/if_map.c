@@ -272,7 +272,9 @@ int parse_frommap(int fd)
 
 				if( chars->save(chars, &cd) )
 				{
-					storages->save(storages, &cd.storage, cd.account_id);
+					storages->save(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd.char_id);
+					storages->save(storages, cd.cart, MAX_CART, STORAGE_CART, cd.char_id);
+					storages->save(storages, cd.storage, MAX_STORAGE, STORAGE_KAFRA, cd.account_id);
 					friends->save(friends, &cd.friends, cd.char_id);
 					hotkeys->save(hotkeys, &cd.hotkeys, cd.char_id);
 				}
@@ -541,7 +543,9 @@ int parse_frommap(int fd)
 				cd.sex = sex; //FIXME: is this ok?
 
 				// load auxiliary data
-				storages->load(storages, &cd.storage, account_id);
+				storages->load(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
+				storages->load(storages, cd.cart, MAX_CART, STORAGE_CART, char_id);
+				storages->load(storages, cd.storage, MAX_STORAGE, STORAGE_KAFRA, account_id);
 				friends->load(friends, &cd.friends, char_id);
 				hotkeys->load(hotkeys, &cd.hotkeys, char_id);			
 

@@ -18,7 +18,6 @@ extern CharDB* char_db_sql(CharServerDB_SQL* owner);
 extern CharRegDB* charreg_db_sql(CharServerDB_SQL* owner);
 extern FriendDB* friend_db_sql(CharServerDB_SQL* owner);
 extern GuildDB* guild_db_sql(CharServerDB_SQL* owner);
-extern GuildStorageDB* guildstorage_db_sql(CharServerDB_SQL* owner);
 extern HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 extern HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner);
 extern MailDB* mail_db_sql(CharServerDB_SQL* owner);
@@ -73,7 +72,6 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		db->chardb->init(db->chardb) &&
 		db->frienddb->init(db->frienddb) &&
 		db->guilddb->init(db->guilddb) &&
-		db->guildstoragedb->init(db->guildstoragedb) &&
 		db->homundb->init(db->homundb) &&
 		db->mercdb->init(db->mercdb) &&
 		db->hotkeydb->init(db->hotkeydb) &&
@@ -106,8 +104,6 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->frienddb = NULL;
 	db->guilddb->destroy(db->guilddb);
 	db->guilddb = NULL;
-	db->guildstoragedb->destroy(db->guildstoragedb);
-	db->guildstoragedb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
 	db->mercdb->destroy(db->mercdb);
@@ -426,7 +422,6 @@ static CharDB*         charserver_db_sql_chardb        (CharServerDB* self) { re
 static CharRegDB*      charserver_db_sql_charregdb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->charregdb;      }
 static FriendDB*       charserver_db_sql_frienddb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->frienddb;       }
 static GuildDB*        charserver_db_sql_guilddb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->guilddb;        }
-static GuildStorageDB* charserver_db_sql_guildstoragedb(CharServerDB* self) { return ((CharServerDB_SQL*)self)->guildstoragedb; }
 static HomunDB*        charserver_db_sql_homundb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->homundb;        }
 static HotkeyDB*       charserver_db_sql_hotkeydb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->hotkeydb;       }
 static MailDB*         charserver_db_sql_maildb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->maildb;         }
@@ -455,7 +450,6 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.chardb       = charserver_db_sql_chardb;
 	db->vtable.frienddb     = charserver_db_sql_frienddb;
 	db->vtable.guilddb      = charserver_db_sql_guilddb;
-	db->vtable.guildstoragedb = charserver_db_sql_guildstoragedb;
 	db->vtable.homundb      = charserver_db_sql_homundb;
 	db->vtable.mercdb       = charserver_db_sql_mercdb;
 	db->vtable.hotkeydb     = charserver_db_sql_hotkeydb;
@@ -475,7 +469,6 @@ CharServerDB* charserver_db_sql(void)
 	db->chardb = char_db_sql(db);
 	db->frienddb = friend_db_sql(db);
 	db->guilddb = guild_db_sql(db);
-	db->guildstoragedb = guildstorage_db_sql(db);
 	db->homundb = homun_db_sql(db);
 	db->mercdb = merc_db_sql(db);
 	db->hotkeydb = hotkey_db_sql(db);

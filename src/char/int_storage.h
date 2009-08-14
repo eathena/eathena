@@ -5,9 +5,8 @@
 #define _INT_STORAGE_H_
 
 #include "storagedb.h"
-#include "guildstoragedb.h"
 
-void inter_storage_init(StorageDB* sdb, GuildStorageDB* gsdb);
+void inter_storage_init(StorageDB* db);
 void inter_storage_final(void);
 int inter_storage_parse_frommap(int fd);
 

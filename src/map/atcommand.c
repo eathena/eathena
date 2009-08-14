@@ -8228,7 +8228,7 @@ int atcommand_itemlist(const int fd, struct map_session_data* sd, const char* co
 	if( strcmp(command+1, "storagelist") == 0 )
 	{
 		location = "storage";
-		items = sd->status.storage.items;
+		items = sd->status.storage;
 		size = MAX_STORAGE;
 	}
 	else

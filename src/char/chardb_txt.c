@@ -25,6 +25,8 @@
 #define START_CHAR_NUM 1
 
 // temporary stuff
+extern bool mmo_storage_fromstr(struct item* s, size_t size, const char* str);
+extern bool mmo_storage_tostr(const struct item* s, size_t size, char* str);
 extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
 extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
 
@@ -48,7 +50,7 @@ typedef struct CharDB_TXT
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct regs* reg, unsigned int version)
+static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct item* out_inventory, struct item* out_cart, struct regs* out_regs, unsigned int version)
 {
 	int fields[32][2];
 	int count;
@@ -60,7 +62,7 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	int tmp_int[256];
 	char tmp_name[NAME_LENGTH];
 	int tmp_charid;
-	int i, j;
+	int i;
 
 	// initilialise character
 	memset(cd, '\0', sizeof(*cd));
@@ -290,69 +292,15 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 
 	// inventory items
 	p = inventory;
-	for( i = 0; *p != '\0' && *p != '\t'; ++i )
-	{
-		int tmp_int[7];
-		char tmp_str[256];
-
-		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		    &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &n) != 8 )
-			return false;
-
-		if( p[n] != ' ' )
- 			return false;
-
-		p += n + 1;
-
-		if( i == MAX_INVENTORY )
-			continue; // TODO: warning?
-
-		cd->inventory[i].id = tmp_int[0];
-		cd->inventory[i].nameid = tmp_int[1];
-		cd->inventory[i].amount = tmp_int[2];
-		cd->inventory[i].equip = tmp_int[3];
-		cd->inventory[i].identify = tmp_int[4];
-		cd->inventory[i].refine = tmp_int[5];
-		cd->inventory[i].attribute = tmp_int[6];
-
-		//FIXME: scanning from a buffer into the same buffer has undefined behavior
-		for( j = 0; j < MAX_SLOTS && tmp_str[0] != '\0' && sscanf(tmp_str, ",%d%[0-9,-]", &tmp_int[0], tmp_str) > 0; j++ )
-			cd->inventory[i].card[j] = tmp_int[0];
-	}
+	((char*)cart)[-1] = '\0';
+	if( !mmo_storage_fromstr(out_inventory, MAX_INVENTORY, p) )
+		return false;
 
 	// cart items
 	p = cart;
-	for( i = 0; *p != '\0' && *p != '\t'; ++i )
-	{
-		int tmp_int[7];
-		char tmp_str[256];
-
-		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%[0-9,-]%n",
-		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
-		    &tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &n) != 8 )
-			return false;
-
-		if( p[n] != ' ' )
-			return false;
-
-		p += n + 1;
-
-		if( i == MAX_CART )
-			continue; // TODO: warning?
-
-		cd->cart[i].id = tmp_int[0];
-		cd->cart[i].nameid = tmp_int[1];
-		cd->cart[i].amount = tmp_int[2];
-		cd->cart[i].equip = tmp_int[3];
-		cd->cart[i].identify = tmp_int[4];
-		cd->cart[i].refine = tmp_int[5];
-		cd->cart[i].attribute = tmp_int[6];
-		
-		//FIXME: scanning from a buffer into the same buffer has undefined behavior
-		for( j = 0; j < MAX_SLOTS && tmp_str[0] != '\0' && sscanf(tmp_str, ",%d%[0-9,-]", &tmp_int[0], tmp_str) > 0; j++ )
-			cd->cart[i].card[j] = tmp_int[0];
-	}
+	((char*)skills)[-1] = '\0';
+	if( !mmo_storage_fromstr(out_cart, MAX_CART, p) )
+		return false;
 
 	// skills
 	p = skills;
@@ -377,7 +325,7 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 
 	// character regs
 	p = regs;
-	if( !mmo_charreg_fromstr(reg, p) )
+	if( !mmo_charreg_fromstr(out_regs, p) )
 		return false;
 
 	// uniqueness checks
@@ -399,9 +347,9 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 //-------------------------------------------------
 // Function to create the character line (for save)
 //-------------------------------------------------
-static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs* reg)
+static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct item* inventory, const struct item* cart, const struct regs* reg)
 {
-	int i,j;
+	int i;
 	char esc_name[4*NAME_LENGTH+1];
 	char *str_p = str;
 
@@ -480,36 +428,18 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 	*(str_p++) = '\t';
 
 	// inventory
-	for( i = 0; i < MAX_INVENTORY; i++ )
+	if( inventory != NULL )
 	{
-		if( p->inventory[i].nameid == 0 )
-			continue;
-
-		str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-			p->inventory[i].id,p->inventory[i].nameid,p->inventory[i].amount,p->inventory[i].equip,
-			p->inventory[i].identify,p->inventory[i].refine,p->inventory[i].attribute);
-
-		for( j = 0; j < MAX_SLOTS; j++ )
-			str_p += sprintf(str_p,",%d",p->inventory[i].card[j]);
-
-		str_p += sprintf(str_p," ");
+		mmo_storage_tostr(inventory, MAX_INVENTORY, str_p);
+		str_p += strlen(str_p);
 	}
 	*(str_p++) = '\t';
 
 	// cart
-	for( i = 0; i < MAX_CART; i++ )
+	if( cart != NULL )
 	{
-		if( p->cart[i].nameid == 0 )
-			continue;
-
-		str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-			p->cart[i].id,p->cart[i].nameid,p->cart[i].amount,p->cart[i].equip,
-			p->cart[i].identify,p->cart[i].refine,p->cart[i].attribute);
-
-		for( j = 0; j < MAX_SLOTS; j++ )
-			str_p += sprintf(str_p,",%d",p->cart[i].card[j]);
-
-		str_p += sprintf(str_p," ");
+		mmo_storage_tostr(cart, MAX_CART, str_p);
+		str_p += strlen(str_p);
 	}
 	*(str_p++) = '\t';
 
@@ -536,6 +466,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct regs
 /// Dumps the entire char db (+ associated data) to disk
 static bool mmo_char_sync(CharDB_TXT* db)
 {
+	StorageDB* storages = db->owner->storagedb;
 	CharRegDB* charregs = db->owner->charregdb;
 	int lock;
 	FILE *fp;
@@ -557,10 +488,14 @@ static bool mmo_char_sync(CharDB_TXT* db)
 	{
 		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
 		char line[65536]; // ought to be big enough
+		struct item inventory[MAX_INVENTORY];
+		struct item cart[MAX_CART];
 		struct regs reg;
 
+		storages->load(storages, inventory, MAX_INVENTORY, STORAGE_INVENTORY, ch->char_id);
+		storages->load(storages, cart, MAX_CART, STORAGE_CART, ch->char_id);
 		charregs->load(charregs, &reg, ch->char_id);
-		mmo_char_tostr(line, ch, &reg);
+		mmo_char_tostr(line, ch, inventory, cart, &reg);
 		fprintf(fp, "%s\n", line);
 	}
 	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
@@ -576,8 +511,7 @@ static bool mmo_char_sync(CharDB_TXT* db)
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	FriendDB* friends = db->owner->frienddb;
-	HotkeyDB* hotkeys = db->owner->hotkeydb;
+	StorageDB* storages = db->owner->storagedb;
 	CharRegDB* charregs = db->owner->charregdb;
 	DBMap* chars;
 
@@ -606,6 +540,8 @@ static bool char_db_txt_init(CharDB* self)
 		int char_id, n;
 		unsigned int v;
 		struct mmo_charstatus* ch;
+		struct item inventory[MAX_INVENTORY];
+		struct item cart[MAX_CART];
 		struct regs reg;
 		line_count++;
 
@@ -631,13 +567,15 @@ static bool char_db_txt_init(CharDB* self)
 		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 
 		// parse char data
-		if( !mmo_char_fromstr(self, line, ch, &reg, version) )
+		if( !mmo_char_fromstr(self, line, ch, inventory, cart, &reg, version) )
  		{
 			ShowFatalError("char_db_txt_init: There was a problem processing data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
 			aFree(ch);
 			exit(EXIT_FAILURE);
 		}
 
+		storages->save(storages, inventory, MAX_INVENTORY, STORAGE_INVENTORY, ch->char_id);
+		storages->save(storages, cart, MAX_CART, STORAGE_CART, ch->char_id);
 		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
 
 		// record entry in db

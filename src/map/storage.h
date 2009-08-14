@@ -5,7 +5,6 @@
 #define _STORAGE_H_
 
 //#include "../common/mmo.h"
-struct storage_data;
 struct guild_storage;
 struct item;
 //#include "map.h"

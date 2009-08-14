@@ -838,6 +838,11 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 	pc_setinventorydata(sd);
 	pc_checkitem(sd);
 
+	sd->storage_amount = 0;
+	for( i = 0; i < MAX_STORAGE; ++i )
+		if( sd->status.storage[i].id > 0 )
+			sd->storage_amount++;
+
 	status_change_init(&sd->bl);
 	if ((battle_config.atc_gmonly == 0 || pc_isGM(sd)) && (pc_isGM(sd) >= get_atcommand_level(atcommand_hide)))
 		sd->status.option &= (OPTION_MASK | OPTION_INVISIBLE);

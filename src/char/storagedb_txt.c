@@ -19,34 +19,61 @@
 /// internal structure
 typedef struct StorageDB_TXT
 {
-	StorageDB vtable;      // public interface
+	// public interface
+	StorageDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* storages;       // in-memory storage storage
+	DBMap* inventories;
+	DBMap* carts;
+	DBMap* storages;
+	DBMap* guildstorages;
 	bool dirty;
 
-	const char* storage_db;// storage data storage file
+	// settings
+	const char* storage_db;
+	const char* guildstorage_db;
 
 } StorageDB_TXT;
 
 
-
-static bool mmo_storage_fromstr(struct storage_data* s, const char* str)
+static DBMap* type2db(StorageDB_TXT* db, enum storage_type type)
 {
-	int amount;
+	switch( type )
+	{
+	case STORAGE_INVENTORY: return db->inventories;
+	case STORAGE_CART     : return db->carts;
+	case STORAGE_KAFRA    : return db->storages;
+	case STORAGE_GUILD    : return db->guildstorages;
+	default:
+		return NULL;
+	}
+}
+
+
+static const char* type2file(StorageDB_TXT* db, enum storage_type type)
+{
+	switch( type )
+	{
+	case STORAGE_KAFRA    : return db->storage_db;
+	case STORAGE_GUILD    : return db->guildstorage_db;
+	default:
+		return NULL;
+	}
+}
+
+
+bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
+{
 	int count;
-	int fields[1+MAX_STORAGE][2];
+	int fields[1+MAX_STORAGE][2]; //FIXME: this should be 'size' dependent
 	int tmp_int[7+MAX_SLOTS+1];
 	int len,i,j;
 
-	memset(s, 0, sizeof(*s)); //clean up memory
-
-	// parse amount (currently ignored)
-	if( sscanf(str, "%d\t%n", &amount, &len) != 1 )
-		return false;
+	memset(s, 0, size * sizeof(*s)); //clean up memory
 
 	// extract space-separated item blocks from str
-	count = sv_parse(str, strlen(str), len, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
+	count = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
 
 	// parse individual item blocks
 	for( i = 0; i < count; ++i )
@@ -74,47 +101,43 @@ static bool mmo_storage_fromstr(struct storage_data* s, const char* str)
 			j++;
 		}
 
-		if( i == MAX_STORAGE )
+		if( i == size )
 			continue; // discard items over max
 
-		s->items[i].id = tmp_int[0];
-		s->items[i].nameid = tmp_int[1];
-		s->items[i].amount = tmp_int[2];
-		s->items[i].equip = tmp_int[3];
-		s->items[i].identify = tmp_int[4];
-		s->items[i].refine = tmp_int[5];
-		s->items[i].attribute = tmp_int[6];
+		s[i].id = tmp_int[0];
+		s[i].nameid = tmp_int[1];
+		s[i].amount = tmp_int[2];
+		s[i].equip = tmp_int[3];
+		s[i].identify = tmp_int[4];
+		s[i].refine = tmp_int[5];
+		s[i].attribute = tmp_int[6];
 		for( j = 0; j < MAX_SLOTS; ++j )
-			s->items[i].card[j] = tmp_int[7+j];
+			s[i].card[j] = tmp_int[7+j];
 	}
-
-	s->storage_amount = amount;
 
 	return true;
 }
 
 
-static bool mmo_storage_tostr(const struct storage_data* s, char* str)
+bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 {
-	int i,j;
+	size_t i,j;
 	char* p = str;
 
-	p += sprintf(p, "%d\t", s->storage_amount);
+	for( i = 0; i < size; i++ )
+	{
+		if( s[i].nameid == 0 || s[i].amount == 0 )
+			continue;
 
-	for( i = 0; i < MAX_STORAGE; i++ )
-		if( s->items[i].nameid > 0 && s->items[i].amount > 0 )
-		{
-			p += sprintf(p, "%d,%d,%d,%d,%d,%d,%d",
-				s->items[i].id, s->items[i].nameid, s->items[i].amount, s->items[i].equip,
-				s->items[i].identify, s->items[i].refine, s->items[i].attribute);
+		p += sprintf(p, "%d,%d,%d,%d,%d,%d,%d",
+			s[i].id, s[i].nameid, s[i].amount, s[i].equip,
+			s[i].identify, s[i].refine, s[i].attribute);
 
-			for( j = 0; j < MAX_SLOTS; j++ )
-				p += sprintf(p, ",%d", s->items[i].card[j]);
+		for( j = 0; j < MAX_SLOTS; j++ )
+			p += sprintf(p, ",%d", s[i].card[j]);
 
-			p += sprintf(p, " ");
-		}
-
-	*(p++) = '\t';
+		p += sprintf(p, " ");
+	}
 
 	*p = '\0';
 
@@ -122,104 +145,55 @@ static bool mmo_storage_tostr(const struct storage_data* s, char* str)
 }
 
 
-static bool mmo_storagedb_sync(StorageDB_TXT* db)
+/// Loads data from the data file associated with the storage type.
+/// Assumes that the file format is:
+/// <id>,<count> \tab {<id>,<nameid>,<amount>,<equip>,<identify>,<refine>,<attribute> \space}*
+/// @see mmo_storage_tostr
+/// @param size Maximum number of entries to load
+static bool mmo_storagedb_load(StorageDB_TXT* db, enum storage_type type, size_t size)
 {
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	fp = lock_fopen(db->storage_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_storagedb_sync: can't write [%s] !!! data is lost !!!\n", db->storage_db);
-		return false;
-	}
-
-	iter = db->storages->iterator(db->storages);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int account_id = key.i;
-		struct storage_data* s = (struct storage_data*) data;
-		char line[65536];
-
-		if( s->storage_amount == 0 )
-			continue;
-
-		mmo_storage_tostr(s, line);
-		fprintf(fp, "%d,%s\n", account_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->storage_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
-static void* create_storage(DBKey key, va_list args)
-{
-	return (struct storage_data *) aCalloc(1, sizeof(struct storage_data));
-}
-
-
-static bool storage_db_txt_init(StorageDB* self)
-{
-	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	DBMap* storages;
-
+	DBMap* storages = type2db(db, type);
+	const char* file = type2file(db, type);
 	char line[65536];
-	FILE *fp;
-
-	// create pet database
-	if( db->storages == NULL )
-		db->storages = idb_alloc(DB_OPT_RELEASE_DATA);
-	storages = db->storages;
-	db_clear(storages);
+	FILE* fp;
 
 	// open data file
-	fp = fopen(db->storage_db, "r");
+	fp = fopen(file, "r");
 	if( fp == NULL )
 	{
-		ShowError("storage_db_txt_init: Cannot open file %s!\n", db->storage_db);
+		ShowError("mmo_storagedb_load: Cannot open file %s!\n", file);
 		return false;
 	}
 
 	while( fgets(line, sizeof(line), fp) )
 	{
-		int account_id;
+		int id;
 		int n;
 
-		struct storage_data* s = (struct storage_data*)aCalloc(1, sizeof(struct storage_data));
+		struct item* s = (struct item*)aCalloc(size, sizeof(struct item));
 		if( s == NULL )
 		{
-			ShowFatalError("storage_db_txt_init: out of memory!\n");
+			ShowFatalError("mmo_storagedb_load: out of memory!\n");
 			exit(EXIT_FAILURE);
 		}
 
-		// load account id
-		if( sscanf(line, "%d,%n", &account_id, &n) != 1 )
+		// load id
+		if( sscanf(line, "%d,%*d\t%n", &id, &n) != 1 )
 		{
 			aFree(s);
 			continue;
 		}
 
-		// load storage for this account
-		if( !mmo_storage_fromstr(s, line + n) )
+		// load storage for this id
+		if( !mmo_storage_fromstr(s, size, line + n) )
 		{
-			ShowError("storage_db_txt_init: Broken line data: %s\n", line);
+			ShowError("mmo_storagedb_load: File %s, broken line data: %s\n", file, line);
 			aFree(s);
 			continue;
 		}
 
-		s = (struct storage_data*)idb_put(storages, account_id, s);
-		if( s != NULL )
-		{
-			ShowError("Duplicate entry in %s for account %d\n", db->storage_db, account_id);
-			aFree(s);
-		}
+		db->vtable.save(&db->vtable, s, size, type, id);
+		aFree(s);
 	}
 
 	fclose(fp);
@@ -227,56 +201,166 @@ static bool storage_db_txt_init(StorageDB* self)
 	return true;
 }
 
+
+static bool mmo_storagedb_sync(StorageDB_TXT* db, enum storage_type type)
+{
+	DBMap* storages = type2db(db, type);
+	const char* file = type2file(db, type);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(file, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_storagedb_sync: can't write [%s] !!! data is lost !!!\n", file);
+		return false;
+	}
+
+	iter = db_iterator(storages);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int id = key.i;
+		struct item* s = (struct item*) data;
+		char line[65536];
+		size_t size;
+
+		ARR_FIND(0, SIZE_MAX, size, s[size].amount == 0); // determine size
+		mmo_storage_tostr(s, size, line);
+		fprintf(fp, "%d,%d\t%s\n", id, 0, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, file, &lock);
+
+	db->dirty = false;
+	return true;
+}
+
+
+static bool storage_db_txt_init(StorageDB* self)
+{
+	StorageDB_TXT* db = (StorageDB_TXT*)self;
+
+	// create storage databases
+	if( db->inventories == NULL )
+		db->inventories = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->carts == NULL )
+		db->carts = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->storages == NULL )
+		db->storages = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->guildstorages == NULL )
+		db->guildstorages = idb_alloc(DB_OPT_RELEASE_DATA);
+	db_clear(db->inventories);
+	db_clear(db->carts);
+	db_clear(db->storages);
+	db_clear(db->guildstorages);
+
+	if( !mmo_storagedb_load(db, STORAGE_KAFRA, MAX_STORAGE)
+	||  !mmo_storagedb_load(db, STORAGE_GUILD, MAX_GUILD_STORAGE)
+	)
+		return false;
+
+	return true;
+}
+
+
 static void storage_db_txt_destroy(StorageDB* self)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	DBMap* storages = db->storages;
 
-	// delete storage database
-	if( storages != NULL )
+	// delete storage databases
+	if( db->inventories != NULL )
 	{
-		db_destroy(storages);
+		db_destroy(db->inventories);
+		db->inventories = NULL;
+	}
+	if( db->carts != NULL )
+	{
+		db_destroy(db->carts);
+		db->carts = NULL;
+	}
+	if( db->storages != NULL )
+	{
+		db_destroy(db->storages);
 		db->storages = NULL;
+	}
+	if( db->guildstorages != NULL )
+	{
+		db_destroy(db->guildstorages);
+		db->guildstorages = NULL;
 	}
 
 	// delete entire structure
 	aFree(db);
 }
 
+
 static bool storage_db_txt_sync(StorageDB* self)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	return mmo_storagedb_sync(db);
+	bool result = true;
+
+	if( mmo_storagedb_sync(db, STORAGE_KAFRA) == false )
+		result = false;
+	if( mmo_storagedb_sync(db, STORAGE_GUILD) == false )
+		result = false;
+
+	return result;
 }
 
-static bool storage_db_txt_remove(StorageDB* self, const int account_id)
+
+static bool storage_db_txt_remove(StorageDB* self, enum storage_type type, const int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	DBMap* storages = db->storages;
+	DBMap* storages = type2db(db,type);
 
-	idb_remove(storages, account_id);
+	idb_remove(storages, id);
 
 	db->dirty = true;
 	db->owner->p.request_sync(db->owner);
 	return true;
 }
+
 
 /// Writes provided data into storage cache.
 /// If data contains 0 items, any existing entry in cache is destroyed instead.
-static bool storage_db_txt_save(StorageDB* self, const struct storage_data* s, int account_id)
+static bool storage_db_txt_save(StorageDB* self, const struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	DBMap* storages = db->storages;
-	struct storage_data* tmp;
+	DBMap* storages = type2db(db,type);
+	struct item* tmp;
+	size_t i, k;
 
-	if( s->storage_amount > 0 )
+	if( s == NULL )
+		size = 0;
+
+	// remove old storage
+	idb_remove(storages, id);
+
+	// fill storage (compact array + append zero terminator)
+	tmp = (struct item*)aMalloc((size+1)*sizeof(*s));
+	k = 0;
+	for( i = 0; i < size; ++i )
 	{
-		tmp = (struct storage_data*)idb_ensure(storages, account_id, create_storage);
-		memcpy(tmp, s, sizeof(*s));
+		if( s[i].amount <= 0 )
+			continue;
+		memcpy(&tmp[k], &s[i], sizeof(*s));
+		++k;
+	}
+
+	if( k > 0 )
+	{// has items
+		if( k != size )
+			tmp = (struct item*)aRealloc(tmp, (k+1)*sizeof(*s));
+		memset(tmp+k, 0x00, sizeof(*s));
+		idb_put(storages, id, tmp);
 	}
 	else
-	{
-		idb_remove(storages, account_id);
+	{// no data to store
+		aFree(tmp);
 	}
 
 	db->dirty = true;
@@ -284,30 +368,34 @@ static bool storage_db_txt_save(StorageDB* self, const struct storage_data* s, i
 	return true;
 }
 
+
 /// Loads storage data into the provided data structure.
 /// If data doesn't exist, the destination is zeroed instead.
-static bool storage_db_txt_load(StorageDB* self, struct storage_data* s, int account_id)
+static bool storage_db_txt_load(StorageDB* self, struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	DBMap* storages = db->storages;
-	struct storage_data* tmp;
+	DBMap* storages = type2db(db,type);
+	struct item* tmp;
+	size_t i = 0;
 	
-	tmp = (struct storage_data*)idb_get(storages, account_id);
+	tmp = (struct item*)idb_get(storages, id);
 
 	if( tmp != NULL )
-		memcpy(s, tmp, sizeof(*s));
-	else
-		memset(s, 0x00, sizeof(*s));
+		ARR_FIND(0, size, i, tmp[i].amount == 0);
+	if( i > 0 )
+		memcpy(s, tmp, i*sizeof(*s));
+	if( i != size )
+		memset(s+i, 0x00, (size-i)*sizeof(*s));
 
 	return true;
 }
 
 
 /// Returns an iterator over all storages.
-static CSDBIterator* storage_db_txt_iterator(StorageDB* self)
+static CSDBIterator* storage_db_txt_iterator(StorageDB* self, enum storage_type type)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->storages));
+	return csdb_txt_iterator(db_iterator(type2db(db,type)));
 }
 
 
@@ -327,11 +415,15 @@ StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 
 	// initialize to default values
 	db->owner = owner;
+	db->inventories = NULL;
+	db->carts = NULL;
 	db->storages = NULL;
+	db->guildstorages = NULL;
 	db->dirty = false;
 
 	// other settings
 	db->storage_db = db->owner->file_storages;
+	db->guildstorage_db = db->owner->file_guild_storages;
 
 	return &db->vtable;
 }

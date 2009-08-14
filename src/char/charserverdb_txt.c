@@ -20,7 +20,6 @@ extern CharDB* char_db_txt(CharServerDB_TXT* owner);
 extern CharRegDB* charreg_db_txt(CharServerDB_TXT* owner);
 extern FriendDB* friend_db_txt(CharServerDB_TXT* owner);
 extern GuildDB* guild_db_txt(CharServerDB_TXT* owner);
-extern GuildStorageDB* guildstorage_db_txt(CharServerDB_TXT* owner);
 extern HomunDB* homun_db_txt(CharServerDB_TXT* owner);
 extern HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner);
 extern MailDB* mail_db_txt(CharServerDB_TXT* owner);
@@ -88,7 +87,6 @@ static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intp
 			db->partydb->sync(db->partydb) &&
 			db->guilddb->sync(db->guilddb) &&
 			db->castledb->sync(db->castledb) &&
-			db->guildstoragedb->sync(db->guildstoragedb) &&
 			db->petdb->sync(db->petdb) &&
 			db->homundb->sync(db->homundb) &&
 			db->mercdb->sync(db->mercdb) &&
@@ -116,15 +114,15 @@ static bool charserver_db_txt_init(CharServerDB* self)
 	if( db->initialized )
 		return true;
 
-	// dependencies: charregdb < chardb
+	// dependencies: charregdb < chardb, storagedb < chardb
 	if(
 		db->accregdb->init(db->accregdb) &&
 		db->charregdb->init(db->charregdb) &&
 		db->castledb->init(db->castledb) &&
+		db->storagedb->init(db->storagedb) &&
 		db->chardb->init(db->chardb) &&
 		db->frienddb->init(db->frienddb) &&
 		db->guilddb->init(db->guilddb) &&
-		db->guildstoragedb->init(db->guildstoragedb) &&
 		db->homundb->init(db->homundb) &&
 		db->mercdb->init(db->mercdb) &&
 		db->hotkeydb->init(db->hotkeydb) &&
@@ -134,8 +132,7 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->auctiondb->init(db->auctiondb) &&
 		db->rankdb->init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
-		db->statusdb->init(db->statusdb) &&
-		db->storagedb->init(db->storagedb)
+		db->statusdb->init(db->statusdb)
 	)
 		db->initialized = true;
 
@@ -165,8 +162,6 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->frienddb = NULL;
 	db->guilddb->destroy(db->guilddb);
 	db->guilddb = NULL;
-	db->guildstoragedb->destroy(db->guildstoragedb);
-	db->guildstoragedb = NULL;
 	db->homundb->destroy(db->homundb);
 	db->homundb = NULL;
 	db->mercdb->destroy(db->mercdb);
@@ -406,7 +401,6 @@ static CharDB*         charserver_db_txt_chardb        (CharServerDB* self) { re
 static CharRegDB*      charserver_db_txt_charregdb     (CharServerDB* self) { return ((CharServerDB_TXT*)self)->charregdb;      }
 static FriendDB*       charserver_db_txt_frienddb      (CharServerDB* self) { return ((CharServerDB_TXT*)self)->frienddb;       }
 static GuildDB*        charserver_db_txt_guilddb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->guilddb;        }
-static GuildStorageDB* charserver_db_txt_guildstoragedb(CharServerDB* self) { return ((CharServerDB_TXT*)self)->guildstoragedb; }
 static HomunDB*        charserver_db_txt_homundb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->homundb;        }
 static HotkeyDB*       charserver_db_txt_hotkeydb      (CharServerDB* self) { return ((CharServerDB_TXT*)self)->hotkeydb;       }
 static MailDB*         charserver_db_txt_maildb        (CharServerDB* self) { return ((CharServerDB_TXT*)self)->maildb;         }
@@ -445,7 +439,6 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.chardb       = charserver_db_txt_chardb;
 	db->vtable.frienddb     = charserver_db_txt_frienddb;
 	db->vtable.guilddb      = charserver_db_txt_guilddb;
-	db->vtable.guildstoragedb = charserver_db_txt_guildstoragedb;
 	db->vtable.homundb      = charserver_db_txt_homundb;
 	db->vtable.mercdb       = charserver_db_txt_mercdb;
 	db->vtable.hotkeydb     = charserver_db_txt_hotkeydb;
@@ -466,7 +459,6 @@ CharServerDB* charserver_db_txt(void)
 	db->chardb = char_db_txt(db);
 	db->frienddb = friend_db_txt(db);
 	db->guilddb = guild_db_txt(db);
-	db->guildstoragedb = guildstorage_db_txt(db);
 	db->homundb = homun_db_txt(db);
 	db->mercdb = merc_db_txt(db);
 	db->hotkeydb = hotkey_db_txt(db);
