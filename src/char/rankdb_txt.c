@@ -36,7 +36,7 @@ struct RankDB_TXT
 
 /// Returns the DBMap of the target rank_id or NULL if not supported.
 /// @private
-static DBMap* get_ranking(RankDB_TXT* db, int rank_id)
+static DBMap* get_ranking(RankDB_TXT* db, enum rank_type rank_id)
 {
 	switch( rank_id )
 	{
@@ -50,7 +50,7 @@ static DBMap* get_ranking(RankDB_TXT* db, int rank_id)
 
 
 /// Gets the top rankers in rank rank_id.
-static int rank_db_txt_get_top_rankers(RankDB* self, int rank_id, struct fame_list* list, int count)
+static int rank_db_txt_get_top_rankers(RankDB* self, enum rank_type rank_id, struct fame_list* list, int count)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	CharDB* chardb = db->owner->chardb;
@@ -104,7 +104,7 @@ static int rank_db_txt_get_top_rankers(RankDB* self, int rank_id, struct fame_li
 
 /// Returns the number of points character char_id has in rank rank_id.
 /// Returns 0 if not found.
-static int rank_db_txt_get_points(RankDB* self, int rank_id, int char_id)
+static int rank_db_txt_get_points(RankDB* self, enum rank_type rank_id, int char_id)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	DBMap* ranking = get_ranking(db, rank_id);
@@ -117,7 +117,7 @@ static int rank_db_txt_get_points(RankDB* self, int rank_id, int char_id)
 
 
 /// Sets the number of points character char_id has in rank rank_id.
-static void rank_db_txt_set_points(RankDB* self, int rank_id, int char_id, int points)
+static void rank_db_txt_set_points(RankDB* self, enum rank_type rank_id, int char_id, int points)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	DBMap* ranking = get_ranking(db, rank_id);
@@ -192,13 +192,9 @@ static bool rank_db_txt_init(RankDB* self)
 
 		if( sscanf(line, "%d %d %d", &rank_id, &char_id, &points) == 3 )
 		{
-			DBMap* ranking;
-			switch( rank_id )
+			DBMap* ranking = get_ranking(db, (enum rank_type)rank_id);
+			if( ranking == NULL )
 			{
-			case RANK_BLACKSMITH: ranking = db->rank_blacksmith; break;
-			case RANK_ALCHEMIST: ranking = db->rank_alchemist; break;
-			case RANK_TAEKWON: ranking = db->rank_taekwon; break;
-			default:
 				ShowWarning("rank_db_txt_init: Unsupported rank_id in line %d of file '%s', discarding rank entry. (rank_id=%d char_id=%d points=%d)", linenum, db->file_ranks, rank_id, char_id, points);
 				continue;
 			}
@@ -251,7 +247,7 @@ static bool rank_db_txt_save(RankDB* self)
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	FILE* fp;
 	int lock;
-	int ranks[] = {RANK_BLACKSMITH, RANK_ALCHEMIST, RANK_TAEKWON};
+	enum rank_type ranks[] = {RANK_BLACKSMITH, RANK_ALCHEMIST, RANK_TAEKWON};
 	int i;
 
 	if( !db->dirty )
@@ -276,7 +272,7 @@ static bool rank_db_txt_save(RankDB* self)
 	{
 		DBKey k;
 		int points;
-		int rank_id = ranks[i];
+		enum rank_type rank_id = ranks[i];
 		DBIterator* iter = db_iterator(get_ranking(db, rank_id));
 		for( points = (int)(intptr)iter->first(iter, &k); dbi_exists(iter); points = (int)(intptr)iter->next(iter, &k) )
 			fprintf(fp, "%d\t%d\t%d\n", rank_id, k.i, points);
@@ -287,6 +283,19 @@ static bool rank_db_txt_save(RankDB* self)
 		return false;// error
 	db->dirty = false;
 	return true;
+}
+
+
+
+/// Returns an iterator over all rankings of the specified type.
+///
+/// @param self Database
+/// @param rank_id Rank list id
+/// @return Iterator
+static CSDBIterator* rank_db_txt_iterator(RankDB* self, enum rank_type rank_id)
+{
+	RankDB_TXT* db = (RankDB_TXT*)self;
+	return csdb_txt_iterator(db_iterator(get_ranking(db,rank_id)));
 }
 
 
@@ -304,7 +313,7 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 	db->vtable.get_top_rankers = rank_db_txt_get_top_rankers;
 	db->vtable.get_points      = rank_db_txt_get_points;
 	db->vtable.set_points      = rank_db_txt_set_points;
-//	db->vtable.iterator        = rank_db_txt_iterator;
+	db->vtable.iterator        = rank_db_txt_iterator;
 
 	db->owner = owner;
 	db->file_ranks = owner->file_ranks;

@@ -28,7 +28,7 @@ struct RankDB_SQL
 
 
 /// Gets the top rankers in rank rank_id.
-static int rank_db_sql_get_top_rankers(RankDB* self, int rank_id, struct fame_list* list, int count)
+static int rank_db_sql_get_top_rankers(RankDB* self, enum rank_type rank_id, struct fame_list* list, int count)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 	const char* table_ranks = db->table_ranks;
@@ -78,7 +78,7 @@ static int rank_db_sql_get_top_rankers(RankDB* self, int rank_id, struct fame_li
 
 /// Returns the number of points character char_id has in rank rank_id.
 /// Returns 0 if not found.
-static int rank_db_sql_get_points(RankDB* self, int rank_id, int char_id)
+static int rank_db_sql_get_points(RankDB* self, enum rank_type rank_id, int char_id)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 	Sql* sql_handle = db->owner->sql_handle;
@@ -105,7 +105,7 @@ static int rank_db_sql_get_points(RankDB* self, int rank_id, int char_id)
 
 
 /// Sets the number of points character char_id has in rank rank_id.
-static void rank_db_sql_set_points(RankDB* self, int rank_id, int char_id, int points)
+static void rank_db_sql_set_points(RankDB* self, enum rank_type rank_id, int char_id, int points)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
 	Sql* sql_handle = db->owner->sql_handle;
@@ -156,6 +156,108 @@ static bool rank_db_sql_save(RankDB* self)
 
 
 
+/// internal structure
+typedef struct RankDBIterator_SQL
+{
+	// public interface
+	CSDBIterator vtable;
+
+	// state
+	RankDB_SQL* db;
+	int* ids_arr;
+	int ids_num;
+	int pos;
+
+} RankDBIterator_SQL;
+
+
+
+/// Destroys this iterator, releasing all allocated memory (including itself).
+static void rank_db_sql_iter_destroy(CSDBIterator* self)
+{
+	RankDBIterator_SQL* iter = (RankDBIterator_SQL*)self;
+	if( iter->ids_arr )
+		aFree(iter->ids_arr);
+	aFree(iter);
+}
+
+
+
+/// Fetches the next ranking.
+static bool rank_db_sql_iter_next(CSDBIterator* self, int* key)
+{
+	RankDBIterator_SQL* iter = (RankDBIterator_SQL*)self;
+	RankDB_SQL* db = (RankDB_SQL*)iter->db;
+	Sql* sql_handle = db->owner->sql_handle;
+
+	if( iter->pos+1 >= iter->ids_num )
+		return false;
+
+	++iter->pos;
+	if( key )
+		*key = iter->ids_arr[iter->pos];
+	return true;
+}
+
+
+
+/// Returns an iterator over all rankings of the specified type.
+///
+/// @param self Database
+/// @param rank_id Rank list id
+/// @return Iterator
+static CSDBIterator* rank_db_sql_iterator(RankDB* self, enum rank_type rank_id)
+{
+	RankDB_SQL* db = (RankDB_SQL*)self;
+	Sql* sql_handle = db->owner->sql_handle;
+	RankDBIterator_SQL* iter = (RankDBIterator_SQL*)aCalloc(1, sizeof(RankDBIterator_SQL));
+
+	// set up the vtable
+	iter->vtable.destroy = &rank_db_sql_iter_destroy;
+	iter->vtable.next    = &rank_db_sql_iter_next;
+
+	// fill data
+	iter->db = db;
+	iter->ids_arr = NULL;
+	iter->ids_num = 0;
+	iter->pos = -1;
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `rank_id`=%d ORDER BY `char_id` ASC", db->table_ranks, rank_id) )
+		Sql_ShowDebug(sql_handle);
+	else if( Sql_NumRows(sql_handle) > 0 )
+	{
+		int i;
+
+		iter->ids_num = (int)Sql_NumRows(sql_handle);
+		CREATE(iter->ids_arr, int, iter->ids_num);
+
+		i = 0;
+		while( i < iter->ids_num )
+		{
+			char* data;
+			int res = Sql_NextRow(sql_handle);
+			if( res == SQL_SUCCESS )
+				res = Sql_GetData(sql_handle, 0, &data, NULL);
+			if( res == SQL_ERROR )
+				Sql_ShowDebug(sql_handle);
+			if( res != SQL_SUCCESS )
+				break;
+
+			if( data == NULL )
+				continue;
+
+			iter->ids_arr[i] = atoi(data);
+			++i;
+		}
+		iter->ids_num = i;
+	}
+	Sql_FreeResult(sql_handle);
+
+	return &iter->vtable;
+}
+
+
+
 /// Constructs a new RankDB interface.
 /// @protected
 RankDB* rank_db_sql(CharServerDB_SQL* owner)
@@ -169,7 +271,7 @@ RankDB* rank_db_sql(CharServerDB_SQL* owner)
 	db->vtable.get_top_rankers = rank_db_sql_get_top_rankers;
 	db->vtable.get_points      = rank_db_sql_get_points;
 	db->vtable.set_points      = rank_db_sql_set_points;
-//	db->vtable.iterator        = rank_db_sql_iterator;
+	db->vtable.iterator        = rank_db_sql_iterator;
 
 	db->owner = owner;
 	db->table_ranks = owner->table_ranks;
