@@ -89,6 +89,80 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 }
 
 
+static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
+{
+	Sql* sql_handle = db->owner->sql_handle;
+	StringBuf buf;
+	int i, j;
+	bool result = false;
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
+	{
+		Sql_ShowDebug(sql_handle);
+		return result;
+	}
+
+	StringBuf_Init(&buf);
+
+	// try
+	do
+	{
+
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->quest_db, char_id) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`quest_id`, `char_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3`) VALUES ", db->quest_db);
+
+	j = 0; // counter
+	for( i = 0; i < MAX_QUEST_DB; ++i )
+	{
+		const struct quest* qd = &(*log)[i];
+
+		if( qd->quest_id == 0 )
+			continue;
+
+		if( j != 0 )
+			StringBuf_AppendStr(&buf, ",");
+
+		StringBuf_Printf(&buf, "('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')", qd->quest_id, char_id, qd->state, qd->time, qd->mob[0], qd->count[0], qd->mob[1], qd->count[1], qd->mob[2], qd->count[2]);
+
+		j++;
+	}
+
+	if( j == 0 )
+	{// nothing to save
+		result = true;
+		break;
+	}
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
+	{
+		Sql_ShowDebug(sql_handle);
+		break;
+	}
+
+	// success
+	result = true;
+
+	}
+	while(0);
+	// finally
+
+	StringBuf_Destroy(&buf);
+
+	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, (result == true) ? "COMMIT" : "ROLLBACK") )
+	{
+		Sql_ShowDebug(sql_handle);
+		result = false;
+	}
+
+	return result;
+}
+
+
 static bool quest_db_sql_init(QuestDB* self)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -189,6 +263,13 @@ static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* co
 }
 
 
+static bool quest_db_sql_save(QuestDB* self, questlog* log, int char_id)
+{
+	QuestDB_SQL* db = (QuestDB_SQL*)self;
+	return mmo_quests_tosql(db, log, char_id);
+}
+
+
 /// Returns an iterator over all quest entries.
 static CSDBIterator* quest_db_sql_iterator(QuestDB* self)
 {
@@ -210,6 +291,7 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	db->vtable.del       = &quest_db_sql_del;
 	db->vtable.update    = &quest_db_sql_update;
 	db->vtable.load      = &quest_db_sql_load;
+	db->vtable.save      = &quest_db_sql_save;
 	db->vtable.iterator  = &quest_db_sql_iterator;
 
 	// initialize to default values

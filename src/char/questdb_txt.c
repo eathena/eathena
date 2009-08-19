@@ -363,6 +363,29 @@ static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* co
 }
 
 
+static bool quest_db_txt_save(QuestDB* self, questlog* log, int char_id)
+{
+	QuestDB_TXT* db = (QuestDB_TXT*)self;
+	DBMap* quests = db->quests;
+	int i;
+
+	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id > 0);
+	if( i < MAX_QUEST_DB )
+	{
+		questlog* tmp = (questlog*)idb_ensure(quests, char_id, create_questlog);
+		memcpy(tmp, log, sizeof(*log));
+	}
+	else
+	{
+		idb_remove(quests, char_id);
+	}
+
+	db->dirty = true;
+	db->owner->p.request_sync(db->owner);
+	return true;
+}
+
+
 /// Returns an iterator over all quest entries.
 static CSDBIterator* quest_db_txt_iterator(QuestDB* self)
 {
@@ -384,6 +407,7 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	db->vtable.del       = &quest_db_txt_del;
 	db->vtable.update    = &quest_db_txt_update;
 	db->vtable.load      = &quest_db_txt_load;
+	db->vtable.save      = &quest_db_txt_save;
 	db->vtable.iterator  = &quest_db_txt_iterator;
 
 	// initialize to default values

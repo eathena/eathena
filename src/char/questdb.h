@@ -25,6 +25,7 @@ struct QuestDB
 	bool (*update)(QuestDB* self, const struct quest* qd, const int char_id);
 	bool (*del)(QuestDB* self, const int char_id, const int quest_id);
 	bool (*load)(QuestDB* self, questlog* log, int char_id, int* const count);
+	bool (*save)(QuestDB* self, questlog* log, int char_id);
 
 	/// Returns an iterator over all quest entries.
 	///
