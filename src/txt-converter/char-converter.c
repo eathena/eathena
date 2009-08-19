@@ -315,43 +315,80 @@ int convert_char(void)
 
 		iter->destroy(iter);
 	}
-/*
+
 	{// convert quests
 		QuestDB* txt = srcdb->questdb(srcdb);
 		QuestDB* sql = dstdb->questdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
 		questlog data;
 		int key;
+		int count;
 
 		ShowStatus("Converting Quest Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
-			txt->load(txt, &data, key);
+			txt->load(txt, &data, key, &count);
 			sql->save(sql, &data, key);
 		}
 
 		iter->destroy(iter);
 	}
-*//*
-	{// convert rankings
-		RankDB* txt = srcdb->rankdb(srcdb);
-		RankDB* sql = dstdb->rankdb(dstdb);
+
+	{// convert mercenaries
+		MercDB* txt = srcdb->mercdb(srcdb);
+		MercDB* sql = dstdb->mercdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
-		struct questlog data;
+		struct s_mercenary data;
 		int key;
 
-		ShowStatus("Converting Ranking Data...\n");
+		ShowStatus("Converting Mercenary Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
 			txt->load(txt, &data, key);
-			sql->save(sql, &data, key);
+			sql->create(sql, &data);
 		}
 
 		iter->destroy(iter);
 	}
-*/
+
+	{// convert rankings
+		RankDB* txt = srcdb->rankdb(srcdb);
+		RankDB* sql = dstdb->rankdb(dstdb);
+		CSDBIterator* iter;
+		int data;
+		int key;
+
+		ShowStatus("Converting Ranking Data...\n");
+
+		// convert blacksmith ranking
+		iter = txt->iterator(txt, RANK_BLACKSMITH);
+		while( iter->next(iter, &key) )
+		{
+			data = txt->get_points(txt, RANK_BLACKSMITH, key);
+			sql->set_points(sql, RANK_BLACKSMITH, key, data);
+		}
+		iter->destroy(iter);
+
+		// convert alchemist ranking
+		iter = txt->iterator(txt, RANK_ALCHEMIST);
+		while( iter->next(iter, &key) )
+		{
+			data = txt->get_points(txt, RANK_ALCHEMIST, key);
+			sql->set_points(sql, RANK_ALCHEMIST, key, data);
+		}
+		iter->destroy(iter);
+
+		// convert taekwon ranking
+		iter = txt->iterator(txt, RANK_TAEKWON);
+		while( iter->next(iter, &key) )
+		{
+			data = txt->get_points(txt, RANK_TAEKWON, key);
+			sql->set_points(sql, RANK_TAEKWON, key, data);
+		}
+		iter->destroy(iter);
+	}
 
 	ShowStatus("Everything's been converted!\n");
 
