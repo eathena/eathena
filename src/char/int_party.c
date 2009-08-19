@@ -70,7 +70,7 @@ static struct party_data* int_party_load(int party_id)
 	{
 		struct party_member* m = &p->party.member[i];
 
-		if( !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
+		if( m->char_id == 0 || !chars->load_num(chars, &cd, m->char_id) || cd.account_id != m->account_id )
 			continue;
 
 		online = onlinedb_get(m->account_id);

@@ -131,14 +131,16 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		return false;
 	}
 
-	switch( SqlStmt_NextRow(stmt) )
+	if( SqlStmt_NumRows(stmt) == 0 )
 	{
-	case SQL_ERROR:
-		SqlStmt_ShowDebug(stmt);
+		ShowError("Requested non-existant character id: %d!\n", char_id);
 		SqlStmt_Free(stmt);
 		return false;
-	case SQL_NO_DATA:
-		ShowError("Requested non-existant character id: %d!\n", char_id);
+	}
+
+	if( SQL_SUCCESS != SqlStmt_NextRow(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
 		return false;
 	}
@@ -567,7 +569,7 @@ static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 	return self->load_num(self, ch, char_id);
 }
 
-static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
+static bool char_db_sql_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	Sql* sql_handle = db->chars;
@@ -582,7 +584,7 @@ static bool char_db_sql_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 
 	Sql_GetData(sql_handle, 0, &data, NULL);
 	if( name != NULL )
-		safestrncpy(name, data, sizeof(name));
+		safestrncpy(name, data, size);
 	Sql_FreeResult(sql_handle);
 
 	return true;

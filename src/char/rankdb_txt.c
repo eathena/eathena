@@ -72,7 +72,7 @@ static int rank_db_txt_get_top_rankers(RankDB* self, enum rank_type rank_id, str
 
 	// get top rankers
 	iter = db_iterator(ranking);
-	for( points = (int)(intptr)iter->first(iter, &k); iter->exists(iter); points = (int)(intptr)iter->first(iter, &k) )
+	for( points = (int)(intptr)iter->first(iter, &k); iter->exists(iter); points = (int)(intptr)iter->next(iter, &k) )
 	{
 		int char_id = k.i;
 
@@ -94,7 +94,7 @@ static int rank_db_txt_get_top_rankers(RankDB* self, enum rank_type rank_id, str
 
 	// resolve names
 	for( i = 0; i < n; ++i )
-		if( !chardb->id2name(chardb, list[i].id, list[i].name) )
+		if( !chardb->id2name(chardb, list[i].id, list[i].name, sizeof(list[i].name)) )
 			memset(list[i].name, 0, sizeof(list[i].name));
 
 	return n;

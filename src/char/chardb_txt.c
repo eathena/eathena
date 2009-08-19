@@ -292,13 +292,13 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 
 	// inventory items
 	p = inventory;
-	((char*)cart)[-1] = '\0';
+	((char*)cart)[-1] = '\0'; //FIXME: this must not be here, string has to stay intact
 	if( !mmo_storage_fromstr(out_inventory, MAX_INVENTORY, p) )
 		return false;
 
 	// cart items
 	p = cart;
-	((char*)skills)[-1] = '\0';
+	((char*)skills)[-1] = '\0'; //FIXME: this must not be here, string has to stay intact
 	if( !mmo_storage_fromstr(out_cart, MAX_CART, p) )
 		return false;
 
@@ -329,7 +329,7 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		return false;
 
 	// uniqueness checks
-	if( chars->id2name(chars, cd->char_id, tmp_name) )
+	if( chars->id2name(chars, cd->char_id, tmp_name, sizeof(tmp_name)) )
 	{
 		ShowError(CL_RED"mmo_char_fromstr: Collision on id %d between character '%s' and existing character '%s'!\n", cd->char_id, cd->name, tmp_name);
 		return false;
@@ -749,7 +749,7 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 	return self->load_num(self, ch, char_id);
 }
 
-static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH])
+static bool char_db_txt_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
@@ -762,7 +762,7 @@ static bool char_db_txt_id2name(CharDB* self, int char_id, char name[NAME_LENGTH
 	}
 
 	if( name != NULL )
-		safestrncpy(name, tmp->name, sizeof(name));
+		safestrncpy(name, tmp->name, size);
 	
 	return true;
 }

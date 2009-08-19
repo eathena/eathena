@@ -33,7 +33,7 @@ struct CharDB
 	bool (*load_slot)(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
 
 	// look up name using charid
-	bool (*id2name)(CharDB* self, int char_id, char name[NAME_LENGTH]);
+	bool (*id2name)(CharDB* self, int char_id, char* name, size_t size);
 
 	// look up charid/accid using name
 	bool (*name2id)(CharDB* self, const char* name, int* char_id, int* account_id);

@@ -65,20 +65,18 @@ static const char* type2file(StorageDB_TXT* db, enum storage_type type)
 
 bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 {
-	int count;
-	int fields[1+MAX_STORAGE][2]; //FIXME: this should be 'size' dependent
-	int tmp_int[7+MAX_SLOTS+1];
-	int len,i,j;
+	const char* p = str;
+	int i;
 
 	memset(s, 0, size * sizeof(*s)); //clean up memory
 
-	// extract space-separated item blocks from str
-	count = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
-
 	// parse individual item blocks
-	for( i = 0; i < count; ++i )
+	//TODO: remove \t check once this is split off to separate file
+	for( i = 0; *p != '\0' && *p != '\t' && *p != '\n' && *p != '\r'; ++i )
 	{
-		const char* p = &str[fields[i+1][0]];
+		int tmp_int[7+MAX_SLOTS+1];
+		int len;
+		int j;
 
 		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%n",
 		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
@@ -101,6 +99,9 @@ bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 			j++;
 		}
 
+		if( *p == ' ' )
+			p++;
+
 		if( i == size )
 			continue; // discard items over max
 
@@ -112,7 +113,7 @@ bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 		s[i].refine = tmp_int[5];
 		s[i].attribute = tmp_int[6];
 		for( j = 0; j < MAX_SLOTS; ++j )
-			s[i].card[j] = tmp_int[7+j];
+			s[i].card[j] = tmp_int[7+j]; // FIXME: may be uninitialized
 	}
 
 	return true;

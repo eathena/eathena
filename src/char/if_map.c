@@ -405,7 +405,7 @@ int parse_frommap(int fd)
 			WFIFOHEAD(fd,30);
 			WFIFOW(fd,0) = 0x2b09;
 			WFIFOL(fd,2) = RFIFOL(fd,2);
-			if( !chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6)) )
+			if( !chars->id2name(chars, (int)RFIFOL(fd,2), (char*)WFIFOP(fd,6), NAME_LENGTH) )
 				safestrncpy((char*)WFIFOP(fd,6), char_config.unknown_char_name, NAME_LENGTH);
 			WFIFOSET(fd,30);
 
