@@ -165,12 +165,6 @@ int inter_registry_parse_frommap(int fd)
 }
 
 
-bool inter_charreg_delete(int char_id)
-{
-	return charregs->remove(charregs, char_id);
-}
-
-
 void inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb)
 {
 	accregs = accregdb;

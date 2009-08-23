@@ -9,6 +9,5 @@
 void inter_homun_init(HomunDB* db);
 void inter_homun_final(void);
 int inter_homun_parse_frommap(int fd);
-void inter_homun_delete(int homun_id);
 
 #endif /* _INT_HOMUN_H_ */

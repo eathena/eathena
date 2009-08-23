@@ -388,9 +388,13 @@ void char_divorce(int partner_id1, int partner_id2)
 int char_delete(int char_id)
 {
 	CharDB* chars = charserver->chardb(charserver);
+	CharRegDB* charregs = charserver->charregdb(charserver);
 	FriendDB* friends = charserver->frienddb(charserver);
 	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
+	HomunDB* homuns = charserver->homundb(charserver);
+	MercDB* mercs = charserver->mercdb(charserver);
 	QuestDB* quests = charserver->questdb(charserver);
+	StatusDB* statuses = charserver->statusdb(charserver);
 	struct mmo_charstatus cd;
 	int i;
 
@@ -422,11 +426,11 @@ int char_delete(int char_id)
 
 	// delete homunculus
 	if( cd.hom_id )
-		inter_homun_delete(cd.hom_id);
+		homuns->remove(homuns, cd.hom_id);
 
 	// remove mercenary data
 	if( cd.mer_id )
-		inter_mercenary_delete(cd.mer_id);
+		mercs->remove(mercs, cd.mer_id);
 
 	// leave party
 	if( cd.party_id )
@@ -471,10 +475,10 @@ int char_delete(int char_id)
 	}
 
 	// clear status changes
-	inter_status_delete(cd.char_id);
+	statuses->remove(statuses, cd.char_id);
 
 	// delete character registry
-	inter_charreg_delete(cd.char_id);
+	charregs->remove(charregs, cd.char_id);
 
 	// delete friends list
 	friends->remove(friends, cd.char_id);

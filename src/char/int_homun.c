@@ -158,8 +158,3 @@ void inter_homun_final()
 {
 	homuns = NULL;
 }
-
-void inter_homun_delete(int homun_id)
-{
-	homuns->remove(homuns, homun_id);
-}

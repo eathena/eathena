@@ -9,7 +9,6 @@
 
 void inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb);
 void inter_registry_final(void);
-bool inter_charreg_delete(int char_id);
 int inter_registry_parse_frommap(int fd);
 
 #endif /* _INT_REGISTRY_H_ */

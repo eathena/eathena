@@ -89,8 +89,3 @@ void inter_status_final(void)
 {
 	statuses = NULL;
 }
-
-bool inter_status_delete(int char_id)
-{
-	return statuses->remove(statuses, char_id);
-}

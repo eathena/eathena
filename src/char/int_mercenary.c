@@ -105,8 +105,3 @@ void inter_mercenary_final()
 {
 	mercs = NULL;
 }
-
-void inter_mercenary_delete(int mer_id)
-{
-	mercs->remove(mercs, mer_id);
-}
