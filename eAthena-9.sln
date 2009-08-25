@@ -18,6 +18,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "txt-converter-login", "vcpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "txt-converter-char", "vcproj-9\txt-converter-char.vcproj", "{D356871D-58E1-450B-967A-EAE9646175AF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "txt-upgrade", "vcproj-9\txt-upgrade.vcproj", "{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -122,6 +124,16 @@ Global
 		{D356871D-58E1-450B-967A-EAE9646175AF}.Release-sql|Win32.ActiveCfg = Release|Win32
 		{D356871D-58E1-450B-967A-EAE9646175AF}.Release-txt|Win32.ActiveCfg = Release|Win32
 		{D356871D-58E1-450B-967A-EAE9646175AF}.Release-txt|Win32.Build.0 = Release|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Debug|Win32.Build.0 = Debug|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Debug-sql|Win32.ActiveCfg = Debug|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Debug-txt|Win32.ActiveCfg = Debug|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Debug-txt|Win32.Build.0 = Debug|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Release|Win32.ActiveCfg = Release|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Release|Win32.Build.0 = Release|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Release-sql|Win32.ActiveCfg = Release|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Release-txt|Win32.ActiveCfg = Release|Win32
+		{4393F665-D1B9-4BDD-9ACE-EFDFB9E4C502}.Release-txt|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
