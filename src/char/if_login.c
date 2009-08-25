@@ -34,7 +34,6 @@ extern int count_users(void);
 
 int parse_fromlogin(int fd)
 {
-	CharDB* chars = charserver->chardb(charserver);
 	struct char_session_data* sd;
 	int i;
 
@@ -172,6 +171,9 @@ int parse_fromlogin(int fd)
 
 			if( acc > 0 )
 			{
+				CharDB* chars = charserver->chardb(charserver);
+				SkillDB* skills = charserver->skilldb(charserver);
+				StorageDB* storages = charserver->storagedb(charserver);
 				struct mmo_charstatus cd;
 				CSDBIterator* it;
 				int char_id;
@@ -186,6 +188,8 @@ int parse_fromlogin(int fd)
 				while( it->next(it, &char_id) )
 				{
 					chars->load_num(chars, &cd, char_id);
+					skills->load(skills, &cd.skill, char_id);
+					storages->load(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
 					cd.sex = sex;
 
 					if (cd.class_ == JOB_BARD || cd.class_ == JOB_DANCER ||
@@ -227,6 +231,10 @@ int parse_fromlogin(int fd)
 					//If there is a guild, update the guild_member data [Skotlex]
 					if( cd.guild_id > 0 )
 						inter_guild_sex_changed(cd.guild_id, acc, cd.char_id, sex);
+
+					chars->save(chars, &cd);
+					skills->save(skills, &cd.skill, char_id);
+					storages->save(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
 				}
 				it->destroy(it);
 
@@ -329,8 +337,9 @@ int parse_fromlogin(int fd)
 
 			// Deletion of all characters of the account
 			{// discard all chars with 'account_id == RFIFOL(fd,2)'
-				int char_id;
+				CharDB* chars = charserver->chardb(charserver);
 				CSDBIterator* it;
+				int char_id;
 
 				it = chars->characters(chars, RFIFOL(fd,2));
 				while( it->next(it, &char_id) )

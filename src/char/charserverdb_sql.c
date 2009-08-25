@@ -21,11 +21,13 @@ extern GuildDB* guild_db_sql(CharServerDB_SQL* owner);
 extern HomunDB* homun_db_sql(CharServerDB_SQL* owner);
 extern HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner);
 extern MailDB* mail_db_sql(CharServerDB_SQL* owner);
+extern MemoDB* memo_db_sql(CharServerDB_SQL* owner);
 extern MercDB* merc_db_sql(CharServerDB_SQL* owner);
 extern PartyDB* party_db_sql(CharServerDB_SQL* owner);
 extern PetDB* pet_db_sql(CharServerDB_SQL* owner);
 extern QuestDB* quest_db_sql(CharServerDB_SQL* owner);
 extern RankDB* rank_db_sql(CharServerDB_SQL* owner);
+extern SkillDB* skill_db_sql(CharServerDB_SQL* owner);
 extern StatusDB* status_db_sql(CharServerDB_SQL* owner);
 extern StorageDB* storage_db_sql(CharServerDB_SQL* owner);
 
@@ -81,6 +83,8 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		db->auctiondb->init(db->auctiondb) &&
 		db->rankdb->init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
+		db->memodb->init(db->memodb) &&
+		db->skilldb->init(db->skilldb) &&
 		db->statusdb->init(db->statusdb) &&
 		db->storagedb->init(db->storagedb)
 	)
@@ -122,6 +126,10 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
 	db->maildb = NULL;
+	db->memodb->destroy(db->memodb);
+	db->memodb = NULL;
+	db->skilldb->destroy(db->skilldb);
+	db->skilldb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
 	db->storagedb->destroy(db->storagedb);
@@ -425,11 +433,13 @@ static GuildDB*        charserver_db_sql_guilddb       (CharServerDB* self) { re
 static HomunDB*        charserver_db_sql_homundb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->homundb;        }
 static HotkeyDB*       charserver_db_sql_hotkeydb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->hotkeydb;       }
 static MailDB*         charserver_db_sql_maildb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->maildb;         }
+static MemoDB*         charserver_db_sql_memodb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->memodb;         }
 static MercDB*         charserver_db_sql_mercdb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->mercdb;         }
 static PartyDB*        charserver_db_sql_partydb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->partydb;        }
 static PetDB*          charserver_db_sql_petdb         (CharServerDB* self) { return ((CharServerDB_SQL*)self)->petdb;          }
 static QuestDB*        charserver_db_sql_questdb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->questdb;        }
 static RankDB*         charserver_db_sql_rankdb        (CharServerDB* self) { return ((CharServerDB_SQL*)self)->rankdb;         }
+static SkillDB*        charserver_db_sql_skilldb       (CharServerDB* self) { return ((CharServerDB_SQL*)self)->skilldb;        }
 static StatusDB*       charserver_db_sql_statusdb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->statusdb;       }
 static StorageDB*      charserver_db_sql_storagedb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->storagedb;      }
 
@@ -458,7 +468,9 @@ CharServerDB* charserver_db_sql(void)
 	db->vtable.questdb      = charserver_db_sql_questdb;
 	db->vtable.rankdb       = charserver_db_sql_rankdb;
 	db->vtable.maildb       = charserver_db_sql_maildb;
+	db->vtable.memodb       = charserver_db_sql_memodb;
 	db->vtable.auctiondb    = charserver_db_sql_auctiondb;
+	db->vtable.skilldb      = charserver_db_sql_skilldb;
 	db->vtable.statusdb     = charserver_db_sql_statusdb;
 	db->vtable.storagedb    = charserver_db_sql_storagedb;
 	db->vtable.accregdb     = charserver_db_sql_accregdb;
@@ -477,7 +489,9 @@ CharServerDB* charserver_db_sql(void)
 	db->questdb = quest_db_sql(db);
 	db->rankdb = rank_db_sql(db);
 	db->maildb = mail_db_sql(db);
+	db->memodb = memo_db_sql(db);
 	db->auctiondb = auction_db_sql(db);
+	db->skilldb = skill_db_sql(db);
 	db->statusdb = status_db_sql(db);
 	db->storagedb = storage_db_sql(db);
 	db->accregdb = accreg_db_sql(db);

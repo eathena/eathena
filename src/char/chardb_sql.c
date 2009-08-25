@@ -36,10 +36,6 @@ typedef struct CharDB_SQL
 	bool case_sensitive;
 	const char* char_db;
 	const char* mercenary_owner_db;
-	const char* memo_db;
-	const char* inventory_db;
-	const char* cart_db;
-	const char* skill_db;
 
 } CharDB_SQL;
 
@@ -47,16 +43,9 @@ typedef struct CharDB_SQL
 static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_id, bool load_everything)
 {
 	Sql* sql_handle = db->chars;
-	RankDB* rankdb = db->owner->rankdb;
-	StorageDB* storages = db->owner->storagedb;
-
 	SqlStmt* stmt;
 	char last_map[MAP_NAME_LENGTH_EXT];
 	char save_map[MAP_NAME_LENGTH_EXT];
-	char point_map[MAP_NAME_LENGTH_EXT];
-	struct point tmp_point;
-	struct s_skill tmp_skill;
-	int i;
 
 	memset(p, 0, sizeof(struct mmo_charstatus));
 	
@@ -73,7 +62,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`hair`,"
 		"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
-		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`fame`"
+		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`"
 		" FROM `%s` WHERE `char_id`=? LIMIT 1", db->char_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
@@ -124,8 +113,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 44, SQLDT_INT,    &p->father, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 45, SQLDT_INT,    &p->mother, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 46, SQLDT_INT,    &p->child, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 47, SQLDT_INT,    &p->fame, 0, NULL, NULL) )
-	{
+	) {
 		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
 		return false;
@@ -147,22 +135,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 
 	p->last_point.map = mapindex_name2id(last_map);
 	p->save_point.map = mapindex_name2id(save_map);
-	switch( p->class_ )
-	{// TODO make the map-server responsible for this? (handle class2rankid logic) [FlavioJS]
-	case JOB_BLACKSMITH:
-	case JOB_WHITESMITH:
-	case JOB_BABY_BLACKSMITH:
-		p->fame = rankdb->get_points(rankdb, RANK_BLACKSMITH, p->char_id);
-		break;
-	case JOB_ALCHEMIST:
-	case JOB_CREATOR:
-	case JOB_BABY_ALCHEMIST:
-		p->fame = rankdb->get_points(rankdb, RANK_ALCHEMIST, p->char_id);
-		break;
-	case JOB_TAEKWON:
-		p->fame = rankdb->get_points(rankdb, RANK_TAEKWON, p->char_id);
-		break;
-	}
 
 	if (!load_everything) // For quick selection of data when displaying the char menu
 	{
@@ -187,46 +159,6 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		Sql_GetData(sql_handle,  4, &data, NULL); p->spear_faith = atoi(data);
 		Sql_GetData(sql_handle,  5, &data, NULL); p->sword_calls = atoi(data);
 		Sql_GetData(sql_handle,  6, &data, NULL); p->sword_faith = atoi(data);
-	}
-
-	//read memo data
-	//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `map`,`x`,`y` FROM `%s` WHERE `char_id`=? ORDER by `memo_id` LIMIT %d", db->memo_db, MAX_MEMOPOINTS)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
-	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_STRING, &point_map, sizeof(point_map), NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_SHORT,  &tmp_point.x, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 2, SQLDT_SHORT,  &tmp_point.y, 0, NULL, NULL) )
-		SqlStmt_ShowDebug(stmt);
-
-	for( i = 0; i < MAX_MEMOPOINTS && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-	{
-		tmp_point.map = mapindex_name2id(point_map);
-		memcpy(&p->memo_point[i], &tmp_point, sizeof(tmp_point));
-	}
-
-	//read inventory
-	storages->load(storages, p->inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
-
-	//read cart
-	storages->load(storages, p->cart, MAX_CART, STORAGE_CART, char_id);
-
-	//read skill
-	//`skill` (`char_id`, `id`, `lv`)
-	if( SQL_ERROR == SqlStmt_Prepare(stmt, "SELECT `id`, `lv` FROM `%s` WHERE `char_id`=? LIMIT %d", db->skill_db, MAX_SKILL)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
-	||	SQL_ERROR == SqlStmt_Execute(stmt)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0, SQLDT_USHORT, &tmp_skill.id, 0, NULL, NULL)
-	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 1, SQLDT_USHORT, &tmp_skill.lv, 0, NULL, NULL) )
-		SqlStmt_ShowDebug(stmt);
-	tmp_skill.flag = 0;
-
-	for( i = 0; i < MAX_SKILL && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-	{
-		if( tmp_skill.id < ARRAYLENGTH(p->skill) )
-			memcpy(&p->skill[tmp_skill.id], &tmp_skill, sizeof(tmp_skill));
-		else
-			ShowWarning("mmo_char_fromsql: ignoring invalid skill (id=%u,lv=%u) of character %s (AID=%d,CID=%d)\n", tmp_skill.id, tmp_skill.lv, p->name, p->account_id, p->char_id);
 	}
 
 	SqlStmt_Free(stmt);
@@ -336,19 +268,18 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 		(p->class_ != cp->class_) ||
 		(p->partner_id != cp->partner_id) || (p->father != cp->father) ||
 		(p->mother != cp->mother) || (p->child != cp->child) ||
- 		(p->karma != cp->karma) || (p->manner != cp->manner) ||
-		(p->fame != cp->fame)
+ 		(p->karma != cp->karma) || (p->manner != cp->manner)
 	)
 	{
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d',"
 			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',"
 			"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d',"
-			"`karma`='%d',`manner`='%d', `fame`='%d'"
+			"`karma`='%d',`manner`='%d'"
 			" WHERE  `account_id`='%d' AND `char_id` = '%d'",
 			db->char_db, p->class_,
 			p->hair, p->hair_color, p->clothes_color,
 			p->partner_id, p->father, p->mother, p->child,
-			p->karma, p->manner, p->fame,
+			p->karma, p->manner,
 			p->account_id, p->char_id) )
 		{
 			Sql_ShowDebug(sql_handle);
@@ -367,77 +298,6 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 			Sql_ShowDebug(sql_handle);
 		}
 	}
-
-	//inventory data
-	if( memcmp(p->inventory, cp->inventory, sizeof(p->inventory)) )
-		storages->save(storages, p->inventory, MAX_INVENTORY, STORAGE_INVENTORY, p->char_id);
-
-	//cart data
-	if( memcmp(p->cart, cp->cart, sizeof(p->cart)) )
-		storages->save(storages, p->cart, MAX_CART, STORAGE_CART, p->char_id);
-
-	//memo points
-	if( memcmp(p->memo_point, cp->memo_point, sizeof(p->memo_point)) )
-	{
-		char esc_mapname[NAME_LENGTH*2+1];
-
-		//`memo` (`memo_id`,`char_id`,`map`,`x`,`y`)
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->memo_db, p->char_id) )
-			Sql_ShowDebug(sql_handle);
-
-		//insert here.
-		StringBuf_Clear(&buf);
-		StringBuf_Printf(&buf, "INSERT INTO `%s`(`char_id`,`map`,`x`,`y`) VALUES ", db->memo_db);
-		for( i = 0, count = 0; i < MAX_MEMOPOINTS; ++i )
-		{
-			if( p->memo_point[i].map )
-			{
-				if( count )
-					StringBuf_AppendStr(&buf, ",");
-				Sql_EscapeString(sql_handle, esc_mapname, mapindex_id2name(p->memo_point[i].map));
-				StringBuf_Printf(&buf, "('%d', '%s', '%d', '%d')", p->char_id, esc_mapname, p->memo_point[i].x, p->memo_point[i].y);
-				++count;
-			}
-		}
-		if( count )
-		{
-			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-				Sql_ShowDebug(sql_handle);
-		}
-	}
-
-	//FIXME: is this neccessary? [ultramage]
-	for(i=0;i<MAX_SKILL;i++)
-		if ((p->skill[i].lv != 0) && (p->skill[i].id == 0))
-			p->skill[i].id = i; // Fix skill tree
-
-	//skills
-	if( memcmp(p->skill, cp->skill, sizeof(p->skill)) )
-	{
-		//`skill` (`char_id`, `id`, `lv`)
-		if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->skill_db, p->char_id) )
-			Sql_ShowDebug(sql_handle);
-
-		StringBuf_Clear(&buf);
-		StringBuf_Printf(&buf, "INSERT INTO `%s`(`char_id`,`id`,`lv`) VALUES ", db->skill_db);
-		//insert here.
-		for( i = 0, count = 0; i < MAX_SKILL; ++i )
-		{
-			if(p->skill[i].id && p->skill[i].flag!=1)
-			{
-				if( count )
-					StringBuf_AppendStr(&buf, ",");
-				StringBuf_Printf(&buf, "('%d','%d','%d')", p->char_id, p->skill[i].id, (p->skill[i].flag == 0 ? p->skill[i].lv : p->skill[i].flag - 2));
-				++count;
-			}
-		}
-		if( count )
-		{
-			if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
-				Sql_ShowDebug(sql_handle);
-		}
-	}
-
 
 	// success
 	result = true;
@@ -501,10 +361,6 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 	{
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) // mercenary owner data
-	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->memo_db, char_id) // memo points
-	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->inventory_db, char_id) // inventory
-	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->cart_db, char_id) // cart inventory
-	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->skill_db, char_id) // skills
 	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->char_db, char_id) // character
 	) {
 		Sql_ShowDebug(sql_handle);
@@ -791,10 +647,6 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->case_sensitive = false;
 	db->char_db = db->owner->table_chars;
 	db->mercenary_owner_db = db->owner->table_mercenary_owners;
-	db->memo_db = db->owner->table_memos;
-	db->inventory_db = db->owner->table_inventories;
-	db->cart_db = db->owner->table_carts;
-	db->skill_db = db->owner->table_skills;
 
 	return &db->vtable;
 }

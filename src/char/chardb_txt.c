@@ -13,7 +13,6 @@
 #include "../common/timer.h"
 #include "char.h"
 #include "inter.h"
-#include "charregdb.h"
 #include "charserverdb_txt.h"
 
 #include <stdio.h>
@@ -21,14 +20,8 @@
 #include <string.h>
 
 /// global defines
-#define CHARDB_TXT_DB_VERSION 20090810
+#define CHARDB_TXT_DB_VERSION 20090825
 #define START_CHAR_NUM 1
-
-// temporary stuff
-extern bool mmo_storage_fromstr(struct item* s, size_t size, const char* str);
-extern bool mmo_storage_tostr(const struct item* s, size_t size, char* str);
-extern bool mmo_charreg_tostr(const struct regs* reg, char* str);
-extern bool mmo_charreg_fromstr(struct regs* reg, const char* str);
 
 
 /// internal structure
@@ -50,283 +43,80 @@ typedef struct CharDB_TXT
 //-------------------------------------------------------------------------
 // Function to set the character from the line (at read of characters file)
 //-------------------------------------------------------------------------
-static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, struct item* out_inventory, struct item* out_cart, struct regs* out_regs, unsigned int version)
+static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, unsigned int version)
 {
-	int fields[32][2];
-	int count;
-	const char *key, *base, *memo, *inventory, *cart, *skills, *regs;
-	const char* p;
+	const char* p = str;
+	int col[53+1][2];
 	int n;
-
-	char tmp_str[3][128]; //To avoid deleting chars with too long names.
-	int tmp_int[256];
-	char tmp_name[NAME_LENGTH];
 	int tmp_charid;
-	int i;
+	char tmp_name[NAME_LENGTH];
+	char tmp_map[MAP_NAME_LENGTH];
 
-	// initilialise character
-	memset(cd, '\0', sizeof(*cd));
-
-	// extract tab-separated column blocks from str
-	// block layout: <char id> <base data> <memo points> <inventory> <cart> <skills> <char regs>
-	count = sv_parse(str, strlen(str), 0, '\t', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
-
-	// establish structure
-	if( version == 20090810 && count == 7 )
-	{
-		key = &str[fields[1][0]];
-		base = &str[fields[2][0]];
-		memo = &str[fields[3][0]];
-		inventory = &str[fields[4][0]];
-		cart = &str[fields[5][0]];
-		skills = &str[fields[6][0]];
-		regs = &str[fields[7][0]];
-	}
-	else
-	if( version == 0 && count == 20 )
-	{
-		key = &str[fields[1][0]];
-		base = &str[fields[2][0]];
-		memo = &str[fields[15][0]];
-		inventory = &str[fields[16][0]];
-		cart = &str[fields[17][0]];
-		skills = &str[fields[18][0]];
-		regs = &str[fields[19][0]];
-	}
-	else
-	{// unmatched row
-		return false;
-	}
+	memset(cd, 0, sizeof(*cd));
 
 	// key (char id)
-	p = key;
 	if( sscanf(p, "%d%n", &cd->char_id, &n) != 1 || p[n] != '\t' )
 		return false;
 
+	p += n + 1;
+
 	// base data
-	p = base;
-	if( version == 20090810 )
-	{// added mercenary owner block; using map names instead of indexes; using only commas as delimiters
-		char tmp_map[MAP_NAME_LENGTH];
-		int col[54+1][2];
-		int cols = sv_parse(base, (ptrdiff_t)(memo - base), 0, ',', (int*)col, 2*ARRAYLENGTH(col), (e_svopt)(SV_ESCAPE_C));
-		
-		if( cols != 54 )
-			return false;
-
-		cd->account_id     = (int)          strtol (&p[col[ 1][0]], NULL, 10);
-		cd->slot           = (unsigned char)strtoul(&p[col[ 2][0]], NULL, 10);
-		sv_unescape_c(cd->name, &p[col[3][0]], col[3][1]-col[3][0]);
-		cd->class_         = (short)        strtol (&p[col[ 4][0]], NULL, 10);
-		cd->base_level     = (unsigned int) strtoul(&p[col[ 5][0]], NULL, 10);
-		cd->job_level      = (unsigned int) strtoul(&p[col[ 6][0]], NULL, 10);
-		cd->base_exp       = (unsigned int) strtoul(&p[col[ 7][0]], NULL, 10);
-		cd->job_exp        = (unsigned int) strtoul(&p[col[ 8][0]], NULL, 10);
-		cd->zeny           = (int)          strtoul(&p[col[ 9][0]], NULL, 10);
-		cd->hp             = (int)          strtoul(&p[col[10][0]], NULL, 10);
-		cd->max_hp         = (int)          strtoul(&p[col[11][0]], NULL, 10);
-		cd->sp             = (int)          strtoul(&p[col[12][0]], NULL, 10);
-		cd->max_sp         = (int)          strtoul(&p[col[13][0]], NULL, 10);
-		cd->str            = (short)        strtol (&p[col[14][0]], NULL, 10);
-		cd->agi            = (short)        strtol (&p[col[15][0]], NULL, 10);
-		cd->vit            = (short)        strtol (&p[col[16][0]], NULL, 10);
-		cd->int_           = (short)        strtol (&p[col[17][0]], NULL, 10);
-		cd->dex            = (short)        strtol (&p[col[18][0]], NULL, 10);
-		cd->luk            = (short)        strtol (&p[col[19][0]], NULL, 10);
-		cd->status_point   = (unsigned int) strtoul(&p[col[20][0]], NULL, 10);
-		cd->skill_point    = (unsigned int) strtoul(&p[col[21][0]], NULL, 10);
-		cd->option         = (unsigned int) strtoul(&p[col[22][0]], NULL, 10);
-		cd->karma          = (unsigned char)strtoul(&p[col[23][0]], NULL, 10);
-		cd->manner         = (short)        strtol (&p[col[24][0]], NULL, 10);
-		cd->party_id       = (int)          strtol (&p[col[25][0]], NULL, 10);
-		cd->guild_id       = (int)          strtol (&p[col[26][0]], NULL, 10);
-		cd->pet_id         = (int)          strtol (&p[col[27][0]], NULL, 10);
-		cd->hom_id         = (int)          strtol (&p[col[28][0]], NULL, 10);
-		cd->mer_id         = (int)          strtol (&p[col[29][0]], NULL, 10);
-		cd->hair           = (short)        strtol (&p[col[30][0]], NULL, 10);
-		cd->hair_color     = (short)        strtol (&p[col[31][0]], NULL, 10);
-		cd->clothes_color  = (short)        strtol (&p[col[32][0]], NULL, 10);
-		cd->weapon         = (short)        strtol (&p[col[33][0]], NULL, 10);
-		cd->shield         = (short)        strtol (&p[col[34][0]], NULL, 10);
-		cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
-		cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
-		cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
-		safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
-		cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
-		cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
-		safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
-		cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
-		cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
-		cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
-		cd->father         = (int)          strtol (&p[col[45][0]], NULL, 10);
-		cd->mother         = (int)          strtol (&p[col[46][0]], NULL, 10);
-		cd->child          = (int)          strtol (&p[col[47][0]], NULL, 10);
-		cd->fame           = (int)          strtol (&p[col[48][0]], NULL, 10);
-		cd->arch_calls     = (int)          strtol (&p[col[49][0]], NULL, 10);
-		cd->arch_faith     = (int)          strtol (&p[col[50][0]], NULL, 10);
-		cd->spear_calls    = (int)          strtol (&p[col[51][0]], NULL, 10);
-		cd->spear_faith    = (int)          strtol (&p[col[52][0]], NULL, 10);
-		cd->sword_calls    = (int)          strtol (&p[col[53][0]], NULL, 10);
-		cd->sword_faith    = (int)          strtol (&p[col[54][0]], NULL, 10);
-	}
-	else
-	if( version == 0 )
-	{
-		if( sscanf(p, "%d,%d\t%23[^\t]\t%hd,%u,%u\t%u,%u,%d\t%d,%d,%d,%d\t%hd,%hd,%hd,%hd,%hd,%hd\t%u,%u\t%u,%d,%hd%n",
-			&cd->account_id, &tmp_int[0], cd->name,
-			&cd->class_, &cd->base_level, &cd->job_level,
-			&cd->base_exp, &cd->job_exp, &cd->zeny,
-			&cd->hp, &cd->max_hp, &cd->sp, &cd->max_sp,
-			&cd->str, &cd->agi, &cd->vit, &cd->int_, &cd->dex, &cd->luk,
-			&cd->status_point, &cd->skill_point,
-			&cd->option, &tmp_int[1], &cd->manner,
-			&n) != 24 || p[n] != '\t' )
-			return false;
-
-		cd->slot = tmp_int[0];
-		cd->karma = tmp_int[1];
-
-		p += n;
-		if( sscanf(p, "\t%d,%d,%d,%d%n",
-			&cd->party_id, &cd->guild_id, &cd->pet_id, &cd->hom_id,
-			&n) != 4 || p[n] != '\t' )
-		{
-			cd->hom_id = 0;
-			if( sscanf(p, "\t%d,%d,%d%n",
-				&cd->party_id, &cd->guild_id, &cd->pet_id,
-				&n) != 3 || p[n] != '\t' )
-			{
-				cd->pet_id = 0;
-				if( sscanf(p, "\t%d,%d%n",
-					&cd->party_id, &cd->guild_id,
-					&n) != 2 || p[n] != '\t' )
-				{
-					return false;
-				}
-			}
-		}
-	
-		p += n;
-		if( sscanf(p, "\t%hd,%hd,%hd\t%hd,%hd,%hd,%hd,%hd%n",
-			&cd->hair, &cd->hair_color, &cd->clothes_color,
-			&cd->weapon, &cd->shield, &cd->head_top, &cd->head_mid, &cd->head_bottom,
-			&n) != 8 || p[n] != '\t' )
- 			return false;
-
-		p += n;
-		if( sscanf(p, "\t%hu,%hd,%hd\t%hu,%hd,%hd%n",
-			&cd->last_point.map, &cd->last_point.x, &cd->last_point.y,
-			&cd->save_point.map, &cd->save_point.x, &cd->save_point.y,
-			&n) == 6 && p[n] == ',' )
-			;
-		else
-		if( sscanf(p, "\t%127[^,],%hd,%hd\t%127[^,],%hd,%hd%n",
-			tmp_str[0], &cd->last_point.x, &cd->last_point.y,
-			tmp_str[1], &cd->save_point.x, &cd->save_point.y,
-			&n) == 6 && (p[n] == ',' || p[n] == '\t') )
-		{// Convert saved map from string to in-memory index
-			cd->last_point.map = mapindex_name2id(tmp_str[0]);
-			cd->save_point.map = mapindex_name2id(tmp_str[1]);
- 		}
-		else
-			return false;
-
-		p += n;
-		if( sscanf(p, ",%d,%d,%d,%d,%d%n",
-			&cd->partner_id, &cd->father, &cd->mother, &cd->child, &cd->fame,
-			&n) != 5 || p[n] != '\t' )
-		{
-			cd->fame = 0;
-			if( sscanf(p, ",%d,%d,%d,%d%n",
-				&cd->partner_id, &cd->father, &cd->mother, &cd->child,
-				&n) != 4 || p[n] != '\t' )
-			{
-				cd->father = 0;
-				cd->mother = 0;
-				cd->child = 0;
-				if( sscanf(p, ",%d%n",
-					&cd->partner_id,
-					&n) != 1 || p[n] != '\t' )
-				{
-					cd->partner_id = 0;
-					if( sscanf(p, "%n", &n) != 0 || p[n] != '\t' )
-					{
-						return false;
-					}
-				}
-			}
-		}
-	}
-	else
-	{// unmatched row
-		return false;
-	}
-
-	// memo data
-	p = memo;
-	for( i = 0; *p != '\0' && *p != '\t'; ++i )
-	{
-		int tmp_int[3];
-		char tmp_str[256];
-
-		if( sscanf(p, "%d,%d,%d%n", &tmp_int[0], &tmp_int[1], &tmp_int[2], &n) == 3 )
-			;
-		else
-		if( sscanf(p, "%[^,],%d,%d%n", tmp_str, &tmp_int[1], &tmp_int[2], &n) == 3 )
-			tmp_int[0] = mapindex_name2id(tmp_str);
-		else
-			return false;
-
-		if( p[n] != ' ' )
-			return false;
-
-		p += n + 1;
-
-		if( i == MAX_MEMOPOINTS )
-			continue; // TODO: warning?
-
-		cd->memo_point[i].map = tmp_int[0];
-		cd->memo_point[i].x = tmp_int[1];
-		cd->memo_point[i].y = tmp_int[2];
-	}
-
-	// inventory items
-	p = inventory;
-	((char*)cart)[-1] = '\0'; //FIXME: this must not be here, string has to stay intact
-	if( !mmo_storage_fromstr(out_inventory, MAX_INVENTORY, p) )
+	if( sv_parse(p, strlen(p), 0, ',', (int*)col, 2*ARRAYLENGTH(col), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 53 )
 		return false;
 
-	// cart items
-	p = cart;
-	((char*)skills)[-1] = '\0'; //FIXME: this must not be here, string has to stay intact
-	if( !mmo_storage_fromstr(out_cart, MAX_CART, p) )
-		return false;
-
-	// skills
-	p = skills;
-	for( i = 0; *p != '\0' && *p != '\t'; ++i )
-	{
-		int tmp_int[2];
-
-		if( sscanf(p, "%d,%d%n", &tmp_int[0], &tmp_int[1], &n) != 2 )
-			return false;
-
-		if( p[n] != ' ' )
-			return false;
-
-		p += n + 1;
-
-		if( i == MAX_SKILL )
-			continue; // TODO: warning?
-
-		cd->skill[tmp_int[0]].id = tmp_int[0];
-		cd->skill[tmp_int[0]].lv = tmp_int[1];
-	}
-
-	// character regs
-	p = regs;
-	if( !mmo_charreg_fromstr(out_regs, p) )
-		return false;
+	cd->account_id     = (int)          strtol (&p[col[ 1][0]], NULL, 10);
+	cd->slot           = (unsigned char)strtoul(&p[col[ 2][0]], NULL, 10);
+	sv_unescape_c(cd->name, &p[col[3][0]], col[3][1]-col[3][0]);
+	cd->class_         = (short)        strtol (&p[col[ 4][0]], NULL, 10);
+	cd->base_level     = (unsigned int) strtoul(&p[col[ 5][0]], NULL, 10);
+	cd->job_level      = (unsigned int) strtoul(&p[col[ 6][0]], NULL, 10);
+	cd->base_exp       = (unsigned int) strtoul(&p[col[ 7][0]], NULL, 10);
+	cd->job_exp        = (unsigned int) strtoul(&p[col[ 8][0]], NULL, 10);
+	cd->zeny           = (int)          strtoul(&p[col[ 9][0]], NULL, 10);
+	cd->hp             = (int)          strtoul(&p[col[10][0]], NULL, 10);
+	cd->max_hp         = (int)          strtoul(&p[col[11][0]], NULL, 10);
+	cd->sp             = (int)          strtoul(&p[col[12][0]], NULL, 10);
+	cd->max_sp         = (int)          strtoul(&p[col[13][0]], NULL, 10);
+	cd->str            = (short)        strtol (&p[col[14][0]], NULL, 10);
+	cd->agi            = (short)        strtol (&p[col[15][0]], NULL, 10);
+	cd->vit            = (short)        strtol (&p[col[16][0]], NULL, 10);
+	cd->int_           = (short)        strtol (&p[col[17][0]], NULL, 10);
+	cd->dex            = (short)        strtol (&p[col[18][0]], NULL, 10);
+	cd->luk            = (short)        strtol (&p[col[19][0]], NULL, 10);
+	cd->status_point   = (unsigned int) strtoul(&p[col[20][0]], NULL, 10);
+	cd->skill_point    = (unsigned int) strtoul(&p[col[21][0]], NULL, 10);
+	cd->option         = (unsigned int) strtoul(&p[col[22][0]], NULL, 10);
+	cd->karma          = (unsigned char)strtoul(&p[col[23][0]], NULL, 10);
+	cd->manner         = (short)        strtol (&p[col[24][0]], NULL, 10);
+	cd->party_id       = (int)          strtol (&p[col[25][0]], NULL, 10);
+	cd->guild_id       = (int)          strtol (&p[col[26][0]], NULL, 10);
+	cd->pet_id         = (int)          strtol (&p[col[27][0]], NULL, 10);
+	cd->hom_id         = (int)          strtol (&p[col[28][0]], NULL, 10);
+	cd->mer_id         = (int)          strtol (&p[col[29][0]], NULL, 10);
+	cd->hair           = (short)        strtol (&p[col[30][0]], NULL, 10);
+	cd->hair_color     = (short)        strtol (&p[col[31][0]], NULL, 10);
+	cd->clothes_color  = (short)        strtol (&p[col[32][0]], NULL, 10);
+	cd->weapon         = (short)        strtol (&p[col[33][0]], NULL, 10);
+	cd->shield         = (short)        strtol (&p[col[34][0]], NULL, 10);
+	cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
+	cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
+	cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
+	safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
+	cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
+	cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
+	safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
+	cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
+	cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
+	cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
+	cd->father         = (int)          strtol (&p[col[45][0]], NULL, 10);
+	cd->mother         = (int)          strtol (&p[col[46][0]], NULL, 10);
+	cd->child          = (int)          strtol (&p[col[47][0]], NULL, 10);
+	cd->arch_calls     = (int)          strtol (&p[col[48][0]], NULL, 10);
+	cd->arch_faith     = (int)          strtol (&p[col[49][0]], NULL, 10);
+	cd->spear_calls    = (int)          strtol (&p[col[50][0]], NULL, 10);
+	cd->spear_faith    = (int)          strtol (&p[col[51][0]], NULL, 10);
+	cd->sword_calls    = (int)          strtol (&p[col[52][0]], NULL, 10);
+	cd->sword_faith    = (int)          strtol (&p[col[53][0]], NULL, 10);
 
 	// uniqueness checks
 	if( chars->id2name(chars, cd->char_id, tmp_name, sizeof(tmp_name)) )
@@ -347,9 +137,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 //-------------------------------------------------
 // Function to create the character line (for save)
 //-------------------------------------------------
-static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct item* inventory, const struct item* cart, const struct regs* reg)
+static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
 {
-	int i;
 	char esc_name[4*NAME_LENGTH+1];
 	char *str_p = str;
 
@@ -407,7 +196,6 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct item
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->father);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mother);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->child);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->fame);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_calls);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_faith);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_calls);
@@ -415,50 +203,8 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct item
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_calls);
 	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_faith);
 
-	*(str_p++) = '\t';
+	*(str_p++) = '\0';
 
-	// memo points
-	for( i = 0; i < MAX_MEMOPOINTS; i++ )
-	{
-		if( p->memo_point[i].map == 0 )
-			continue;
-
-		str_p += sprintf(str_p, "%s,%d,%d ", mapindex_id2name(p->memo_point[i].map), p->memo_point[i].x, p->memo_point[i].y);
-	}
-	*(str_p++) = '\t';
-
-	// inventory
-	if( inventory != NULL )
-	{
-		mmo_storage_tostr(inventory, MAX_INVENTORY, str_p);
-		str_p += strlen(str_p);
-	}
-	*(str_p++) = '\t';
-
-	// cart
-	if( cart != NULL )
-	{
-		mmo_storage_tostr(cart, MAX_CART, str_p);
-		str_p += strlen(str_p);
-	}
-	*(str_p++) = '\t';
-
-	// skills
-	for( i = 0; i < MAX_SKILL; i++ )
-	{
-		if( p->skill[i].id && p->skill[i].flag != 1 )
-			str_p += sprintf(str_p, "%d,%d ", p->skill[i].id, (p->skill[i].flag == 0) ? p->skill[i].lv : p->skill[i].flag-2);
-	}
-	*(str_p++) = '\t';
-
-	// registry
-	if( reg != NULL )
-	{
-		mmo_charreg_tostr(reg, str_p);
-		str_p += strlen(str_p);
-	}
-
-	*str_p = '\0';
 	return 0;
 }
 
@@ -466,8 +212,6 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p, const struct item
 /// Dumps the entire char db (+ associated data) to disk
 static bool mmo_char_sync(CharDB_TXT* db)
 {
-	StorageDB* storages = db->owner->storagedb;
-	CharRegDB* charregs = db->owner->charregdb;
 	int lock;
 	FILE *fp;
 	void* data;
@@ -488,14 +232,8 @@ static bool mmo_char_sync(CharDB_TXT* db)
 	{
 		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
 		char line[65536]; // ought to be big enough
-		struct item inventory[MAX_INVENTORY];
-		struct item cart[MAX_CART];
-		struct regs reg;
 
-		storages->load(storages, inventory, MAX_INVENTORY, STORAGE_INVENTORY, ch->char_id);
-		storages->load(storages, cart, MAX_CART, STORAGE_CART, ch->char_id);
-		charregs->load(charregs, &reg, ch->char_id);
-		mmo_char_tostr(line, ch, inventory, cart, &reg);
+		mmo_char_tostr(line, ch);
 		fprintf(fp, "%s\n", line);
 	}
 	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
@@ -511,8 +249,6 @@ static bool mmo_char_sync(CharDB_TXT* db)
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	StorageDB* storages = db->owner->storagedb;
-	CharRegDB* charregs = db->owner->charregdb;
 	DBMap* chars;
 
 	char line[65536];
@@ -540,9 +276,7 @@ static bool char_db_txt_init(CharDB* self)
 		int char_id, n;
 		unsigned int v;
 		struct mmo_charstatus* ch;
-		struct item inventory[MAX_INVENTORY];
-		struct item cart[MAX_CART];
-		struct regs reg;
+
 		line_count++;
 
 		if( line[0] == '/' && line[1] == '/' )
@@ -567,16 +301,12 @@ static bool char_db_txt_init(CharDB* self)
 		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 
 		// parse char data
-		if( !mmo_char_fromstr(self, line, ch, inventory, cart, &reg, version) )
+		if( !mmo_char_fromstr(self, line, ch, version) )
  		{
 			ShowFatalError("char_db_txt_init: There was a problem processing data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
 			aFree(ch);
 			exit(EXIT_FAILURE);
 		}
-
-		storages->save(storages, inventory, MAX_INVENTORY, STORAGE_INVENTORY, ch->char_id);
-		storages->save(storages, cart, MAX_CART, STORAGE_CART, ch->char_id);
-		charregs->save(charregs, &reg, ch->char_id); // Initialize char regs
 
 		// record entry in db
 		idb_put(chars, ch->char_id, ch);
@@ -699,22 +429,6 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 
 	// store it
 	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
-	switch( ch->class_ )
-	{// TODO make the map-server responsible for this? (handle class2rankid logic) [FlavioJS]
-	case JOB_BLACKSMITH:
-	case JOB_WHITESMITH:
-	case JOB_BABY_BLACKSMITH:
-		ch->fame = rankdb->get_points(rankdb, RANK_BLACKSMITH, ch->char_id);
-		break;
-	case JOB_ALCHEMIST:
-	case JOB_CREATOR:
-	case JOB_BABY_ALCHEMIST:
-		ch->fame = rankdb->get_points(rankdb, RANK_ALCHEMIST, ch->char_id);
-		break;
-	case JOB_TAEKWON:
-		ch->fame = rankdb->get_points(rankdb, RANK_TAEKWON, ch->char_id);
-		break;
-	}
 
 	return true;
 }

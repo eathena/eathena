@@ -16,6 +16,10 @@
 #include <string.h>
 
 
+/// global defines
+#define ACCREGDB_TXT_DB_VERSION 20090825
+
+
 /// internal structure
 typedef struct AccRegDB_TXT
 {
@@ -38,16 +42,33 @@ static void* create_accregs(DBKey key, va_list args)
 
 static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 {
-	const char* p = str;
-	int i, n;
+	int fields[ACCOUNT_REG_NUM+1][2];
+	int nfields;
+	int i;
 
-	//FIXME: no escaping - will break if str/value contains commas or spaces
-	for( i = 0; i < ACCOUNT_REG_NUM; i++, p += n )
+	if( str[0] == '\0' )
+		nfields = 0;
+	else
+		nfields = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C, SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+
+	for( i = 1; i <= nfields; ++i )
 	{
-		if (sscanf(p, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &n) != 2) 
+		int off[2+1][2];
+
+		if( i == nfields && fields[i][0] == fields[i][1] )
+		{// don't count trailing space as block
+			nfields--;
 			break;
+		}
+
+		if( sv_parse(str, fields[i][1], fields[i][0], ',', (int*)off, 2*ARRAYLENGTH(off), (e_svopt)(SV_ESCAPE_C)) != 2 )
+			return false;
+
+		sv_unescape_c(reg->reg[i-1].str, str + off[1][0], off[1][1] - off[1][0]);
+		sv_unescape_c(reg->reg[i-1].value, str + off[2][0], off[2][1] - off[2][0]);
 	}
-	reg->reg_num = i;
+
+	reg->reg_num = nfields;
 
 	return true;
 }
@@ -56,12 +77,28 @@ static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 static bool mmo_accreg_tostr(const struct regs* reg, char* str)
 {
 	char* p = str;
+	bool first = true;
 	int i;
 
-	p[0] = '\0';
-
 	for( i = 0; i < reg->reg_num; ++i )
-		p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
+	{
+		char esc_str[4*32+1];
+		char esc_value[4*256+1];
+
+		if( reg->reg[i].str[0] == '\0' )
+			continue;
+
+		if( first )
+			first = false;
+		else
+			p += sprintf(p, " ");
+
+			sv_escape_c(esc_str, reg->reg[i].str, strlen(reg->reg[i].str), " ,");
+			sv_escape_c(esc_value, reg->reg[i].value, strlen(reg->reg[i].value), " ");
+			p += sprintf(p, "%s,%s", esc_str, esc_value);
+	}
+
+	*p = '\0';
 
 	return true;
 }
@@ -81,6 +118,8 @@ static bool mmo_accreg_sync(AccRegDB_TXT* db)
 		ShowError("mmo_accreg_sync: can't write [%s] !!! data is lost !!!\n", db->accreg_db);
 		return false;
 	}
+
+	fprintf(fp, "%d\n", ACCREGDB_TXT_DB_VERSION);
 
 	iter = db->accregs->iterator(db->accregs);
 	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
@@ -108,9 +147,9 @@ static bool accreg_db_txt_init(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBMap* accregs;
-
 	char line[8192];
 	FILE* fp;
+	unsigned int version = 0;
 
 	// create accreg database
 	if( db->accregs == NULL )
@@ -129,10 +168,18 @@ static bool accreg_db_txt_init(AccRegDB* self)
 	// load data file
 	while( fgets(line, sizeof(line), fp) )
 	{
-		int account_id;
-		int n;
+		int account_id, n;
+		unsigned int v;
+		struct regs* reg;
 
-		struct regs* reg = (struct regs*)aCalloc(1, sizeof(struct regs));
+		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
+
+		reg = (struct regs*)aCalloc(1, sizeof(struct regs));
 		if( reg == NULL )
 		{
 			ShowFatalError("accreg_db_txt_init: out of memory!\n");
@@ -140,14 +187,15 @@ static bool accreg_db_txt_init(AccRegDB* self)
 		}
 
 		// load account id
-		if( sscanf(line, "%d\t%n", &account_id, &n) != 1 || account_id <= 0 )
+		n = 0;
+		if( sscanf(line, "%d%n\t", &account_id, &n) != 1 || line[n] != '\t' )
 		{
 			aFree(reg);
 			continue;
 		}
 
 		// load regs for this account
-		if( !mmo_accreg_fromstr(reg, line + n) )
+		if( !mmo_accreg_fromstr(reg, line + n + 1) )
 		{
 			ShowError("accreg_db_txt_init: broken data [%s] account id %d\n", db->accreg_db, account_id);
 			aFree(reg);

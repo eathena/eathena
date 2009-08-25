@@ -16,6 +16,10 @@
 #include <string.h>
 
 
+/// global defines
+#define STORAGEDB_TXT_DB_VERSION 20090825
+
+
 /// internal structure
 typedef struct StorageDB_TXT
 {
@@ -31,6 +35,8 @@ typedef struct StorageDB_TXT
 	bool dirty;
 
 	// settings
+	const char* inventory_db;
+	const char* cart_db;
 	const char* storage_db;
 	const char* guildstorage_db;
 
@@ -55,6 +61,8 @@ static const char* type2file(StorageDB_TXT* db, enum storage_type type)
 {
 	switch( type )
 	{
+	case STORAGE_INVENTORY: return db->inventory_db;
+	case STORAGE_CART     : return db->cart_db;
 	case STORAGE_KAFRA    : return db->storage_db;
 	case STORAGE_GUILD    : return db->guildstorage_db;
 	default:
@@ -63,7 +71,7 @@ static const char* type2file(StorageDB_TXT* db, enum storage_type type)
 }
 
 
-bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
+static bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 {
 	const char* p = str;
 	int i;
@@ -71,12 +79,11 @@ bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 	memset(s, 0, size * sizeof(*s)); //clean up memory
 
 	// parse individual item blocks
-	//TODO: remove \t check once this is split off to separate file
-	for( i = 0; *p != '\0' && *p != '\t' && *p != '\n' && *p != '\r'; ++i )
+	for( i = 0; *p != '\0' && *p != '\n' && *p != '\r' && *p != '\t'; ++i )
 	{
 		int tmp_int[7+MAX_SLOTS+1];
 		int len;
-		int j;
+		int j, k;
 
 		if( sscanf(p, "%d,%d,%d,%d,%d,%d,%d%n",
 		    &tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3], &tmp_int[4], &tmp_int[5], &tmp_int[6],
@@ -86,7 +93,7 @@ bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 		p += len;
 
 		j = 0;
-		while( *p != ' ' && *p != '\0' )
+		while( *p != ' ' && *p != '\0' && *p != '\n' && *p != '\r' && *p != '\t' )
 		{
 			if( sscanf(p, ",%d%n", &tmp_int[7+j], &len) != 1 )
 				return false;
@@ -112,23 +119,29 @@ bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 		s[i].identify = tmp_int[4];
 		s[i].refine = tmp_int[5];
 		s[i].attribute = tmp_int[6];
-		for( j = 0; j < MAX_SLOTS; ++j )
-			s[i].card[j] = tmp_int[7+j]; // FIXME: may be uninitialized
+		for( k = 0; k < j; ++k )
+			s[i].card[k] = tmp_int[7+k];
 	}
 
 	return true;
 }
 
 
-bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
+static bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 {
-	size_t i,j;
 	char* p = str;
+	bool first = true;
+	size_t i, j;
 
 	for( i = 0; i < size; i++ )
 	{
 		if( s[i].nameid == 0 || s[i].amount == 0 )
 			continue;
+
+		if( first )
+			first = false;
+		else
+			p += sprintf(p, " ");
 
 		p += sprintf(p, "%d,%d,%d,%d,%d,%d,%d",
 			s[i].id, s[i].nameid, s[i].amount, s[i].equip,
@@ -136,8 +149,6 @@ bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 
 		for( j = 0; j < MAX_SLOTS; j++ )
 			p += sprintf(p, ",%d", s[i].card[j]);
-
-		p += sprintf(p, " ");
 	}
 
 	*p = '\0';
@@ -151,12 +162,13 @@ bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 /// <id>,<count> \tab {<id>,<nameid>,<amount>,<equip>,<identify>,<refine>,<attribute> \space}*
 /// @see mmo_storage_tostr
 /// @param size Maximum number of entries to load
-static bool mmo_storagedb_load(StorageDB_TXT* db, enum storage_type type, size_t size)
+static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t size)
 {
 	DBMap* storages = type2db(db, type);
 	const char* file = type2file(db, type);
 	char line[65536];
 	FILE* fp;
+	unsigned int version = 0;
 
 	// open data file
 	fp = fopen(file, "r");
@@ -168,10 +180,18 @@ static bool mmo_storagedb_load(StorageDB_TXT* db, enum storage_type type, size_t
 
 	while( fgets(line, sizeof(line), fp) )
 	{
-		int id;
-		int n;
+		int id, n;
+		int dummy;
+		unsigned int v;
+		struct item* s;
 
-		struct item* s = (struct item*)aCalloc(size, sizeof(struct item));
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
+
+		s = (struct item*)aCalloc(size, sizeof(struct item));
 		if( s == NULL )
 		{
 			ShowFatalError("mmo_storagedb_load: out of memory!\n");
@@ -179,14 +199,19 @@ static bool mmo_storagedb_load(StorageDB_TXT* db, enum storage_type type, size_t
 		}
 
 		// load id
-		if( sscanf(line, "%d,%*d\t%n", &id, &n) != 1 )
+		n = 0;
+		if( !(
+			version == 20090825 && sscanf(line, "%d%n\t", &id, &n) == 1
+		||  version == 00000000 && sscanf(line, "%d,%d%n\t", &id, &dummy, &n) == 2
+		))
 		{
+			ShowError("mmo_storagedb_load: File %s, broken line data: %s\n", file, line);
 			aFree(s);
 			continue;
 		}
 
 		// load storage for this id
-		if( !mmo_storage_fromstr(s, size, line + n) )
+		if( !mmo_storage_fromstr(s, size, line + n + 1) )
 		{
 			ShowError("mmo_storagedb_load: File %s, broken line data: %s\n", file, line);
 			aFree(s);
@@ -220,6 +245,8 @@ static bool mmo_storagedb_sync(StorageDB_TXT* db, enum storage_type type)
 		return false;
 	}
 
+	fprintf(fp, "%d\n", STORAGEDB_TXT_DB_VERSION);
+
 	iter = db_iterator(storages);
 	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
 	{
@@ -230,7 +257,7 @@ static bool mmo_storagedb_sync(StorageDB_TXT* db, enum storage_type type)
 
 		ARR_FIND(0, SIZE_MAX, size, s[size].amount == 0); // determine size
 		mmo_storage_tostr(s, size, line);
-		fprintf(fp, "%d,%d\t%s\n", id, 0, line);
+		fprintf(fp, "%d\t%s\n", id, line);
 	}
 	iter->destroy(iter);
 
@@ -259,8 +286,10 @@ static bool storage_db_txt_init(StorageDB* self)
 	db_clear(db->storages);
 	db_clear(db->guildstorages);
 
-	if( !mmo_storagedb_load(db, STORAGE_KAFRA, MAX_STORAGE)
-	||  !mmo_storagedb_load(db, STORAGE_GUILD, MAX_GUILD_STORAGE)
+	if( !mmo_storagedb_init(db, STORAGE_INVENTORY, MAX_INVENTORY)
+	||  !mmo_storagedb_init(db, STORAGE_CART, MAX_CART)
+	||  !mmo_storagedb_init(db, STORAGE_KAFRA, MAX_STORAGE)
+	||  !mmo_storagedb_init(db, STORAGE_GUILD, MAX_GUILD_STORAGE)
 	)
 		return false;
 
@@ -304,9 +333,13 @@ static bool storage_db_txt_sync(StorageDB* self)
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
 	bool result = true;
 
-	if( mmo_storagedb_sync(db, STORAGE_KAFRA) == false )
+	if( !mmo_storagedb_sync(db, STORAGE_INVENTORY) )
 		result = false;
-	if( mmo_storagedb_sync(db, STORAGE_GUILD) == false )
+	if( !mmo_storagedb_sync(db, STORAGE_CART) )
+		result = false;
+	if( !mmo_storagedb_sync(db, STORAGE_KAFRA) )
+		result = false;
+	if( !mmo_storagedb_sync(db, STORAGE_GUILD) )
 		result = false;
 
 	return result;
@@ -423,6 +456,8 @@ StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 	db->dirty = false;
 
 	// other settings
+	db->inventory_db = db->owner->file_inventories;
+	db->cart_db = db->owner->file_carts;
 	db->storage_db = db->owner->file_storages;
 	db->guildstorage_db = db->owner->file_guild_storages;
 

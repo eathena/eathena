@@ -229,14 +229,11 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 
 	// retrieve data
 	hotkeylist* tmp = idb_get(hotkeys, char_id);
-	if( tmp == NULL )
-	{// if no data, just fake it
-		memset(list, 0, sizeof(hotkeylist));
-		return true;
-	}
 
-	// store it
-	memcpy(list, tmp, sizeof(hotkeylist));
+	if( tmp != NULL )
+		memcpy(list, tmp, sizeof(hotkeylist));
+	else
+		memset(list, 0, sizeof(hotkeylist));
 
 	return true;
 }

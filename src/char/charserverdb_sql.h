@@ -41,7 +41,9 @@ struct CharServerDB_SQL
 	QuestDB* questdb;
 	RankDB* rankdb;
 	MailDB* maildb;
+	MemoDB* memodb;
 	AuctionDB* auctiondb;
+	SkillDB* skilldb;
 	StatusDB* statusdb;
 	StorageDB* storagedb;
 	AccRegDB* accregdb;

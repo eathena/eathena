@@ -277,3 +277,31 @@ void inter_rank_final(void)
 {
 	rankdb = NULL;
 }
+
+
+
+enum rank_type inter_rank_class2rankid(int class_)
+{
+	enum rank_type result;
+
+	switch( class_ )
+	{
+	case JOB_BLACKSMITH:
+	case JOB_WHITESMITH:
+	case JOB_BABY_BLACKSMITH:
+		result = RANK_BLACKSMITH;
+		break;
+	case JOB_ALCHEMIST:
+	case JOB_CREATOR:
+	case JOB_BABY_ALCHEMIST:
+		result = RANK_ALCHEMIST;
+		break;
+	case JOB_TAEKWON:
+		result = RANK_TAEKWON;
+		break;
+	default:
+		result = (enum rank_type)0;
+	}
+
+	return result;
+}

@@ -92,6 +92,42 @@ int convert_char(void)
 		iter->destroy(iter);
 	}
 
+	{// convert inventory
+		StorageDB* txt = srcdb->storagedb(srcdb);
+		StorageDB* sql = dstdb->storagedb(dstdb);
+		CSDBIterator* iter = txt->iterator(txt, STORAGE_INVENTORY);
+		struct item data[MAX_INVENTORY];
+		int key;
+
+		ShowStatus("Converting Inventory Data...\n");
+
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, data, MAX_INVENTORY, STORAGE_INVENTORY, key);
+			sql->save(sql, data, MAX_INVENTORY, STORAGE_INVENTORY, key);
+		}
+
+		iter->destroy(iter);
+	}
+
+	{// convert cart
+		StorageDB* txt = srcdb->storagedb(srcdb);
+		StorageDB* sql = dstdb->storagedb(dstdb);
+		CSDBIterator* iter = txt->iterator(txt, STORAGE_CART);
+		struct item data[MAX_CART];
+		int key;
+
+		ShowStatus("Converting Cart Data...\n");
+
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, data, MAX_CART, STORAGE_CART, key);
+			sql->save(sql, data, MAX_CART, STORAGE_CART, key);
+		}
+
+		iter->destroy(iter);
+	}
+
 	{// convert storage
 		StorageDB* txt = srcdb->storagedb(srcdb);
 		StorageDB* sql = dstdb->storagedb(dstdb);
@@ -105,6 +141,24 @@ int convert_char(void)
 		{
 			txt->load(txt, data, MAX_STORAGE, STORAGE_KAFRA, key);
 			sql->save(sql, data, MAX_STORAGE, STORAGE_KAFRA, key);
+		}
+
+		iter->destroy(iter);
+	}
+
+	{// convert skill data
+		SkillDB* txt = srcdb->skilldb(srcdb);
+		SkillDB* sql = dstdb->skilldb(dstdb);
+		CSDBIterator* iter = txt->iterator(txt);
+		skilllist data;
+		int key;
+
+		ShowStatus("Converting Skill Data...\n");
+
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
 		}
 
 		iter->destroy(iter);
@@ -126,6 +180,24 @@ int convert_char(void)
 			sql->save(sql, &data);
 			if( data.data != NULL )
 				aFree(data.data);
+		}
+
+		iter->destroy(iter);
+	}
+
+	{// convert memo data
+		MemoDB* txt = srcdb->memodb(srcdb);
+		MemoDB* sql = dstdb->memodb(dstdb);
+		CSDBIterator* iter = txt->iterator(txt);
+		memolist data;
+		int key;
+
+		ShowStatus("Converting Memo Data...\n");
+
+		while( iter->next(iter, &key) )
+		{
+			txt->load(txt, &data, key);
+			sql->save(sql, &data, key);
 		}
 
 		iter->destroy(iter);

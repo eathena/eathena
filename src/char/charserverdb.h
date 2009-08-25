@@ -20,11 +20,13 @@
 #include "homundb.h"
 #include "hotkeydb.h"
 #include "maildb.h"
+#include "memodb.h"
 #include "mercdb.h"
 #include "partydb.h"
 #include "petdb.h"
 #include "questdb.h"
 #include "rankdb.h"
+#include "skilldb.h"
 #include "statusdb.h"
 #include "storagedb.h"
 // TODO include DB interface headers
@@ -178,6 +180,12 @@ struct CharServerDB
 	/// @return Interface for mails
 	MailDB* (*maildb)(CharServerDB* self);
 
+	/// Returns the database interface that handles memo points.
+	///
+	/// @param self Database engine
+	/// @return Interface for memos
+	MemoDB* (*memodb)(CharServerDB* self);
+
 	/// Returns the database interface that handles mercenaries.
 	///
 	/// @param self Database engine
@@ -209,15 +217,19 @@ struct CharServerDB
 	/// @return Interface for rankings
 	RankDB* (*rankdb)(CharServerDB* self);
 
+	/// Returns the database interface that handles skills.
+	///
+	/// @param self Database engine
+	/// @return Interface for skills
+	SkillDB* (*skilldb)(CharServerDB* self);
+
 	/// Returns the database interface that handles statuses.
-	/// Returns NULL if rankings are not supported.
 	///
 	/// @param self Database engine
 	/// @return Interface for statuses
 	StatusDB* (*statusdb)(CharServerDB* self);
 
 	/// Returns the database interface that handles storages.
-	/// Returns NULL if rankings are not supported.
 	///
 	/// @param self Database engine
 	/// @return Interface for storages

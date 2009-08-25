@@ -23,11 +23,13 @@ extern GuildDB* guild_db_txt(CharServerDB_TXT* owner);
 extern HomunDB* homun_db_txt(CharServerDB_TXT* owner);
 extern HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner);
 extern MailDB* mail_db_txt(CharServerDB_TXT* owner);
+extern MemoDB* memo_db_txt(CharServerDB_TXT* owner);
 extern MercDB* merc_db_txt(CharServerDB_TXT* owner);
 extern PartyDB* party_db_txt(CharServerDB_TXT* owner);
 extern PetDB* pet_db_txt(CharServerDB_TXT* owner);
 extern QuestDB* quest_db_txt(CharServerDB_TXT* owner);
 extern RankDB* rank_db_txt(CharServerDB_TXT* owner);
+extern SkillDB* skill_db_txt(CharServerDB_TXT* owner);
 extern StatusDB* status_db_txt(CharServerDB_TXT* owner);
 extern StorageDB* storage_db_txt(CharServerDB_TXT* owner);
 
@@ -92,9 +94,11 @@ static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intp
 			db->mercdb->sync(db->mercdb) &&
 			db->accregdb->sync(db->accregdb) &&
 			db->charregdb->sync(db->charregdb) &&
+			db->skilldb->sync(db->skilldb) &&
 			db->statusdb->sync(db->statusdb) &&
 			db->storagedb->sync(db->storagedb) &&
 			db->maildb->sync(db->maildb) &&
+			db->memodb->sync(db->memodb) &&
 			db->questdb->sync(db->questdb) &&
 			db->rankdb->sync(db->rankdb) &&
 			db->auctiondb->sync(db->auctiondb) )
@@ -114,7 +118,6 @@ static bool charserver_db_txt_init(CharServerDB* self)
 	if( db->initialized )
 		return true;
 
-	// dependencies: charregdb < chardb, storagedb < chardb
 	if(
 		db->accregdb->init(db->accregdb) &&
 		db->charregdb->init(db->charregdb) &&
@@ -132,6 +135,8 @@ static bool charserver_db_txt_init(CharServerDB* self)
 		db->auctiondb->init(db->auctiondb) &&
 		db->rankdb->init(db->rankdb) &&
 		db->maildb->init(db->maildb) &&
+		db->memodb->init(db->memodb) &&
+		db->skilldb->init(db->skilldb) &&
 		db->statusdb->init(db->statusdb)
 	)
 		db->initialized = true;
@@ -180,6 +185,10 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 	db->rankdb = NULL;
 	db->maildb->destroy(db->maildb);
 	db->maildb = NULL;
+	db->memodb->destroy(db->memodb);
+	db->memodb = NULL;
+	db->skilldb->destroy(db->skilldb);
+	db->skilldb = NULL;
 	db->statusdb->destroy(db->statusdb);
 	db->statusdb = NULL;
 	db->storagedb->destroy(db->storagedb);
@@ -255,11 +264,17 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "auction_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_auctions);
 		else
+		if( strcmpi(key, "file_carts") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_carts);
+		else
 		if( strcmpi(key, "castle_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_castles);
 		else
-		if( strcmpi(key, "athena_txt") == 0 )
+		if( strcmpi(key, "char_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_chars);
+		else
+		if( strcmpi(key, "charreg_txt") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_charregs);
 		else
 		if( strcmpi(key, "friends_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_friends);
@@ -276,8 +291,14 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "hotkeys_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_hotkeys);
 		else
+		if( strcmpi(key, "file_inventories") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_inventories);
+		else
 		if( strcmpi(key, "mail_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_mails);
+		else
+		if( strcmpi(key, "file_memos") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_memos);
 		else
 		if( strcmpi(key, "file_mercenaries") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_mercenaries);
@@ -293,6 +314,9 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		else
 		if( strcmpi(key, "file_ranks") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_ranks);
+		else
+		if( strcmpi(key, "file_skills") == 0 )
+			safesnprintf(buf, buflen, "%s", db->file_skills);
 		else
 		if( strcmpi(key, "scdata_txt") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_statuses);
@@ -338,11 +362,17 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "auction_txt") == 0 )
 			safestrncpy(db->file_auctions, value, sizeof(db->file_auctions));
 		else
+		if( strcmpi(key, "file_carts") == 0 )
+			safestrncpy(db->file_carts, value, sizeof(db->file_carts));
+		else
 		if( strcmpi(key, "castle_txt") == 0 )
 			safestrncpy(db->file_castles, value, sizeof(db->file_castles));
 		else
 		if( strcmpi(key, "char_txt") == 0 )
 			safestrncpy(db->file_chars, value, sizeof(db->file_chars));
+		else
+		if( strcmpi(key, "charreg_txt") == 0 )
+			safestrncpy(db->file_charregs, value, sizeof(db->file_charregs));
 		else
 		if( strcmpi(key, "friends_txt") == 0 )
 			safestrncpy(db->file_friends, value, sizeof(db->file_friends));
@@ -359,8 +389,14 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "hotkeys_txt") == 0 )
 			safestrncpy(db->file_hotkeys, value, sizeof(db->file_hotkeys));
 		else
+		if( strcmpi(key, "file_inventories") == 0 )
+			safestrncpy(db->file_inventories, value, sizeof(db->file_inventories));
+		else
 		if( strcmpi(key, "mail_txt") == 0 )
 			safestrncpy(db->file_mails, value, sizeof(db->file_mails));
+		else
+		if( strcmpi(key, "file_memos") == 0 )
+			safestrncpy(db->file_memos, value, sizeof(db->file_memos));
 		else
 		if( strcmpi(key, "file_mercenaries") == 0 )
 			safestrncpy(db->file_mercenaries, value, sizeof(db->file_mercenaries));
@@ -376,6 +412,9 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		else
 		if( strcmpi(key, "file_ranks") == 0 )
 			safestrncpy(db->file_ranks, value, sizeof(db->file_ranks));
+		else
+		if( strcmpi(key, "file_skills") == 0 )
+			safestrncpy(db->file_skills, value, sizeof(db->file_skills));
 		else
 		if( strcmpi(key, "scdata_txt") == 0 )
 			safestrncpy(db->file_statuses, value, sizeof(db->file_statuses));
@@ -404,11 +443,13 @@ static GuildDB*        charserver_db_txt_guilddb       (CharServerDB* self) { re
 static HomunDB*        charserver_db_txt_homundb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->homundb;        }
 static HotkeyDB*       charserver_db_txt_hotkeydb      (CharServerDB* self) { return ((CharServerDB_TXT*)self)->hotkeydb;       }
 static MailDB*         charserver_db_txt_maildb        (CharServerDB* self) { return ((CharServerDB_TXT*)self)->maildb;         }
+static MemoDB*         charserver_db_txt_memodb        (CharServerDB* self) { return ((CharServerDB_TXT*)self)->memodb;         }
 static MercDB*         charserver_db_txt_mercdb        (CharServerDB* self) { return ((CharServerDB_TXT*)self)->mercdb;         }
 static PartyDB*        charserver_db_txt_partydb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->partydb;        }
 static PetDB*          charserver_db_txt_petdb         (CharServerDB* self) { return ((CharServerDB_TXT*)self)->petdb;          }
 static QuestDB*        charserver_db_txt_questdb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->questdb;        }
 static RankDB*         charserver_db_txt_rankdb        (CharServerDB* self) { return ((CharServerDB_TXT*)self)->rankdb;         }
+static SkillDB*        charserver_db_txt_skilldb       (CharServerDB* self) { return ((CharServerDB_TXT*)self)->skilldb;        }
 static StatusDB*       charserver_db_txt_statusdb      (CharServerDB* self) { return ((CharServerDB_TXT*)self)->statusdb;       }
 static StorageDB*      charserver_db_txt_storagedb     (CharServerDB* self) { return ((CharServerDB_TXT*)self)->storagedb;      }
 
@@ -447,7 +488,9 @@ CharServerDB* charserver_db_txt(void)
 	db->vtable.questdb      = charserver_db_txt_questdb;
 	db->vtable.rankdb       = charserver_db_txt_rankdb;
 	db->vtable.maildb       = charserver_db_txt_maildb;
+	db->vtable.memodb       = charserver_db_txt_memodb;
 	db->vtable.auctiondb    = charserver_db_txt_auctiondb;
+	db->vtable.skilldb      = charserver_db_txt_skilldb;
 	db->vtable.statusdb     = charserver_db_txt_statusdb;
 	db->vtable.storagedb    = charserver_db_txt_storagedb;
 	db->vtable.accregdb     = charserver_db_txt_accregdb;
@@ -467,7 +510,9 @@ CharServerDB* charserver_db_txt(void)
 	db->questdb = quest_db_txt(db);
 	db->rankdb = rank_db_txt(db);
 	db->maildb = mail_db_txt(db);
+	db->memodb = memo_db_txt(db);
 	db->auctiondb = auction_db_txt(db);
+	db->skilldb = skill_db_txt(db);
 	db->statusdb = status_db_txt(db);
 	db->storagedb = storage_db_txt(db);
 	db->accregdb = accreg_db_txt(db);
@@ -484,19 +529,23 @@ CharServerDB* charserver_db_txt(void)
 	db->autosave_max_delay = CHARSERVERDB_AUTOSAVE_MAX_DELAY;
 	safestrncpy(db->file_accregs, "save/accreg.txt", sizeof(db->file_accregs));
 	safestrncpy(db->file_auctions, "save/auction.txt", sizeof(db->file_auctions));
+	safestrncpy(db->file_carts, "save/cart.txt", sizeof(db->file_carts));
 	safestrncpy(db->file_castles, "save/castle.txt", sizeof(db->file_castles));
-	safestrncpy(db->file_chars, "save/athena.txt", sizeof(db->file_chars));
+	safestrncpy(db->file_chars, "save/char.txt", sizeof(db->file_chars));
 	safestrncpy(db->file_friends, "save/friends.txt", sizeof(db->file_friends));
 	safestrncpy(db->file_guilds, "save/guild.txt", sizeof(db->file_guilds));
 	safestrncpy(db->file_guild_storages, "save/g_storage.txt", sizeof(db->file_guild_storages));
 	safestrncpy(db->file_homuns, "save/homun.txt", sizeof(db->file_homuns));
 	safestrncpy(db->file_hotkeys, "save/hotkey.txt", sizeof(db->file_hotkeys));
+	safestrncpy(db->file_inventories, "save/inventory.txt", sizeof(db->file_inventories));
 	safestrncpy(db->file_mails, "save/mail.txt", sizeof(db->file_mails));
+	safestrncpy(db->file_memos, "save/memo.txt", sizeof(db->file_memos));
 	safestrncpy(db->file_mercenaries, "save/mercenary.txt", sizeof(db->file_mercenaries));
 	safestrncpy(db->file_parties, "save/party.txt", sizeof(db->file_parties));
 	safestrncpy(db->file_pets, "save/pet.txt", sizeof(db->file_pets));
 	safestrncpy(db->file_quests, "save/quest.txt", sizeof(db->file_quests));
 	safestrncpy(db->file_ranks, "save/ranks.txt", sizeof(db->file_ranks));
+	safestrncpy(db->file_skills, "save/skill.txt", sizeof(db->file_skills));
 	safestrncpy(db->file_statuses, "save/scdata.txt", sizeof(db->file_statuses));
 	safestrncpy(db->file_storages, "save/storage.txt", sizeof(db->file_storages));
 

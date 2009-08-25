@@ -16,6 +16,10 @@
 #include <string.h>
 
 
+/// global defines
+#define CHARREGDB_TXT_DB_VERSION 20090825
+
+
 /// internal structure
 typedef struct CharRegDB_TXT
 {
@@ -24,6 +28,8 @@ typedef struct CharRegDB_TXT
 	CharServerDB_TXT* owner;
 	DBMap* charregs;         // in-memory charreg storage
 	bool dirty;
+
+	const char* charreg_db;  // charreg data storage file
 
 } CharRegDB_TXT;
 
@@ -34,48 +40,99 @@ static void* create_charregs(DBKey key, va_list args)
 }
 
 
-bool mmo_charreg_fromstr(struct regs* reg, const char* str)
+static bool mmo_charreg_fromstr(struct regs* reg, const char* str)
 {
-	//FIXME: no escaping - will break if str/value contains commas or spaces
+	int fields[GLOBAL_REG_NUM+1][2];
+	int nfields;
 	int i;
-	int len;
 
-	for( i = 0; i < GLOBAL_REG_NUM && *str && *str != '\t' && *str != '\n' && *str != '\r'; ++i )
+	if( str[0] == '\0' )
+		nfields = 0;
+	else
+		nfields = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C, SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+
+	for( i = 1; i <= nfields; ++i )
 	{
-		if( sscanf(str, "%[^,],%[^ ] %n", reg->reg[i].str, reg->reg[i].value, &len) != 2 )
-		{ 
-			// because some scripts are not correct, the str can be "". So, we must check that.
-			// If it's, we must not refuse the character, but just this REG value.
-			// Character line will have something like: nov_2nd_cos,9 ,9 nov_1_2_cos_c,1 (here, ,9 is not good)
-			if( *str == ',' && sscanf(str, ",%[^ ] %n", reg->reg[i].value, &len) == 1 )
-				i--;
-			else
-				return false;
-		}
+		int off[2+1][2];
 
-		str += len;
-		if ( *str == ' ' )
-			str++;
+		if( sv_parse(str, fields[i][1], fields[i][0], ',', (int*)off, 2*ARRAYLENGTH(off), (e_svopt)(SV_ESCAPE_C)) != 2 )
+			return false;
+
+		sv_unescape_c(reg->reg[i-1].str, str + off[1][0], off[1][1] - off[1][0]);
+		sv_unescape_c(reg->reg[i-1].value, str + off[2][0], off[2][1] - off[2][0]);
 	}
 
-	reg->reg_num = i;
+	reg->reg_num = nfields;
 
 	return true;
 }
 
 
-//static bool mmo_charreg_tostr(const struct regs* reg, char* str)
-bool mmo_charreg_tostr(const struct regs* reg, char* str)
+static bool mmo_charreg_tostr(const struct regs* reg, char* str)
 {
 	char* p = str;
+	bool first = true;
 	int i;
 
-	p[0] = '\0';
-
 	for( i = 0; i < reg->reg_num; ++i )
-		if( reg->reg[i].str[0] != '\0' )
-			p += sprintf(p, "%s,%s ", reg->reg[i].str, reg->reg[i].value);
+	{
+		char esc_str[4*32+1];
+		char esc_value[4*256+1];
 
+		if( reg->reg[i].str[0] == '\0' )
+			continue;
+
+		if( first )
+			first = false;
+		else
+			p += sprintf(p, " ");
+
+			sv_escape_c(esc_str, reg->reg[i].str, strlen(reg->reg[i].str), " ,");
+			sv_escape_c(esc_value, reg->reg[i].value, strlen(reg->reg[i].value), " ");
+			p += sprintf(p, "%s,%s", esc_str, esc_value);
+	}
+
+	*p = '\0';
+
+	return true;
+}
+
+
+static bool mmo_charreg_sync(CharRegDB_TXT* db)
+{
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->charreg_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mmo_charreg_sync: can't write [%s] !!! data is lost !!!\n", db->charreg_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", CHARREGDB_TXT_DB_VERSION);
+
+	iter = db->charregs->iterator(db->charregs);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		struct regs* reg = (struct regs*) data;
+		char line[8192];
+
+		if( reg->reg_num == 0 )
+			continue;
+
+		mmo_charreg_tostr(reg, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->charreg_db, &lock);
+
+	db->dirty = false;
 	return true;
 }
 
@@ -83,11 +140,68 @@ bool mmo_charreg_tostr(const struct regs* reg, char* str)
 static bool charreg_db_txt_init(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
+	DBMap* charregs;
+	char line[8192];
+	FILE* fp;
+	unsigned int version = 0;
 
 	// create charreg database
 	if( db->charregs == NULL )
 		db->charregs = idb_alloc(DB_OPT_RELEASE_DATA);
+	charregs = db->charregs;
 	db_clear(db->charregs);
+
+	// open data file
+	fp = fopen(db->charreg_db, "r");
+	if( fp == NULL )
+	{
+		ShowError("Charreg file not found: %s.\n", db->charreg_db);
+		return false;
+	}
+
+	// load data file
+	while( fgets(line, sizeof(line), fp) )
+	{
+		int char_id, n;
+		unsigned int v;
+		struct regs* reg;
+
+		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
+
+		reg = (struct regs*)aCalloc(1, sizeof(struct regs));
+		if( reg == NULL )
+		{
+			ShowFatalError("charreg_db_txt_init: out of memory!\n");
+			exit(EXIT_FAILURE);
+		}
+
+		// load char id
+		n = 0;
+		if( sscanf(line, "%d%n\t", &char_id, &n) != 1 || line[n] != '\t' )
+		{
+			aFree(reg);
+			continue;
+		}
+
+		// load regs for this character
+		if( !mmo_charreg_fromstr(reg, line + n + 1) )
+		{
+			ShowError("charreg_db_txt_init: broken data [%s] char id %d\n", db->charreg_db, char_id);
+			aFree(reg);
+			continue;
+		}
+
+		// record entry in db
+		idb_put(charregs, char_id, reg);
+	}
+
+	// close data file
+	fclose(fp);
 
 	db->dirty = false;
 	return true;
@@ -112,9 +226,7 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 static bool charreg_db_txt_sync(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
-	// not applicable
-	db->dirty = false;
-	return true;
+	return mmo_charreg_sync(db);
 }
 
 static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)
@@ -192,6 +304,9 @@ CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 	db->owner = owner;
 	db->charregs = NULL;
 	db->dirty = false;
+
+	// other settings
+	db->charreg_db = db->owner->file_charregs;
 
 	return &db->vtable;
 }

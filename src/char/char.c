@@ -242,6 +242,7 @@ int parse_console(char* buf)
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id)
 {
 	CharDB* chars = charserver->chardb(charserver);
+	StorageDB* storages = charserver->storagedb(charserver);
 	struct mmo_charstatus cd;
 	char name[NAME_LENGTH];
 	int i;
@@ -334,6 +335,12 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	if( !chars->create(chars, &cd) )
 		return -2; // abort
 
+	if( !storages->save(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd.char_id) )
+	{
+		chars->remove(chars, cd.char_id); // uhh... problem.
+		return -2; // abort
+	}
+
 	//Retrieve the newly auto-generated char id
 	if( out_char_id )
 		*out_char_id = cd.char_id;
@@ -349,6 +356,7 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 void char_divorce(int partner_id1, int partner_id2)
 {
 	CharDB* chars = charserver->chardb(charserver);
+	StorageDB* storages = charserver->storagedb(charserver);
 	struct mmo_charstatus cd1, cd2;
 	unsigned char buf[10];
 	int i;
@@ -358,6 +366,10 @@ void char_divorce(int partner_id1, int partner_id2)
 
 	if( cd1.partner_id != cd2.char_id || cd2.partner_id != cd1.char_id )
 		return; // not married to each other
+
+	if( !storages->load(storages, cd1.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd1.char_id)
+	||  !storages->load(storages, cd2.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd2.char_id) )
+		return;
 
 	// end marriage
 	cd1.partner_id = 0;
@@ -376,6 +388,8 @@ void char_divorce(int partner_id1, int partner_id2)
 	//FIXME: unsafe
 	chars->save(chars, &cd1);
 	chars->save(chars, &cd2);
+	storages->save(storages, cd1.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd1.char_id);
+	storages->save(storages, cd2.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd2.char_id);
 
 	// notify all mapservers
 	WBUFW(buf,0) = 0x2b12;
@@ -392,9 +406,12 @@ int char_delete(int char_id)
 	FriendDB* friends = charserver->frienddb(charserver);
 	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
 	HomunDB* homuns = charserver->homundb(charserver);
+	MemoDB* memos = charserver->memodb(charserver);
 	MercDB* mercs = charserver->mercdb(charserver);
 	QuestDB* quests = charserver->questdb(charserver);
+	SkillDB* skills = charserver->skilldb(charserver);
 	StatusDB* statuses = charserver->statusdb(charserver);
+	StorageDB* storages = charserver->storagedb(charserver);
 	struct mmo_charstatus cd;
 	int i;
 
@@ -450,21 +467,23 @@ int char_delete(int char_id)
 		unsigned char buf[64];
 		struct mmo_charstatus fd, md;
 
-		if( cd.father && chars->load_num(chars, &fd, cd.father) )
+		if( cd.father && chars->load_num(chars, &fd, cd.father) && skills->load(skills, &fd.skill, cd.father) )
 		{
 			fd.child = 0;
 			fd.skill[410].id = 0;
 			fd.skill[410].lv = 0;
 			fd.skill[410].flag = 0;
 			chars->save(chars, &fd);
+			skills->save(skills, &fd.skill, cd.father);
 		}
-		if( cd.mother && chars->load_num(chars, &md, cd.mother) )
+		if( cd.mother && chars->load_num(chars, &md, cd.mother) && skills->load(skills, &md.skill, cd.mother) )
 		{
 			md.child = 0;
 			md.skill[410].id = 0;
 			md.skill[410].lv = 0;
 			md.skill[410].flag = 0;
 			chars->save(chars, &md);
+			skills->save(skills, &md.skill, cd.mother);
 		}
 
 		WBUFW(buf,0) = 0x2b25;
@@ -473,6 +492,18 @@ int char_delete(int char_id)
 		WBUFL(buf,10) = char_id; // Baby
 		mapif_sendall(buf,14);
 	}
+
+	// delete inventory
+	storages->remove(storages, STORAGE_INVENTORY, cd.char_id);
+
+	// delete cart
+	storages->remove(storages, STORAGE_CART, cd.char_id);
+
+	// delete skill list
+	skills->remove(skills, cd.char_id);
+
+	// delete memo points
+	memos->remove(memos, cd.char_id);
 
 	// clear status changes
 	statuses->remove(statuses, cd.char_id);

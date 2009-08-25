@@ -186,14 +186,14 @@ static bool quest_db_txt_init(QuestDB* self)
 		}
 
 		// load char id
-		if( sscanf(line, "%d\t%n", &char_id, &n) != 1 || char_id <= 0 )
+		if( sscanf(line, "%d%n\t", &char_id, &n) != 1 || line[n] != '\t' )
 		{
 			aFree(log);
 			continue;
 		}
 
 		// load quests for this char
-		if( !mmo_quests_fromstr(log, line + n, version) )
+		if( !mmo_quests_fromstr(log, line + n + 1, version) )
 		{
 			ShowError("quest_db_txt_init: skipping invalid data: %s", line);
 			continue;

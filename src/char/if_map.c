@@ -113,6 +113,9 @@ int parse_frommap(int fd)
 	CharDB* chars = charserver->chardb(charserver);
 	FriendDB* friends = charserver->frienddb(charserver);
 	HotkeyDB* hotkeys = charserver->hotkeydb(charserver);
+	MemoDB* memos = charserver->memodb(charserver);
+	RankDB* ranks = charserver->rankdb(charserver);
+	SkillDB* skills = charserver->skilldb(charserver);
 	StorageDB* storages = charserver->storagedb(charserver);
 	int i, j;
 	int id;
@@ -275,6 +278,8 @@ int parse_frommap(int fd)
 					storages->save(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, cd.char_id);
 					storages->save(storages, cd.cart, MAX_CART, STORAGE_CART, cd.char_id);
 					storages->save(storages, cd.storage, MAX_STORAGE, STORAGE_KAFRA, cd.account_id);
+					memos->save(memos, &cd.memo_point, cd.char_id);
+					skills->save(skills, &cd.skill, cd.char_id);
 					friends->save(friends, &cd.friends, cd.char_id);
 					hotkeys->save(hotkeys, &cd.hotkeys, cd.char_id);
 				}
@@ -546,8 +551,11 @@ int parse_frommap(int fd)
 				storages->load(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
 				storages->load(storages, cd.cart, MAX_CART, STORAGE_CART, char_id);
 				storages->load(storages, cd.storage, MAX_STORAGE, STORAGE_KAFRA, account_id);
+				memos->load(memos, &cd.memo_point, cd.char_id);
+				skills->load(skills, &cd.skill, cd.char_id);
 				friends->load(friends, &cd.friends, char_id);
-				hotkeys->load(hotkeys, &cd.hotkeys, char_id);			
+				hotkeys->load(hotkeys, &cd.hotkeys, char_id);
+				cd.fame = ranks->get_points(ranks, inter_rank_class2rankid(cd.class_), char_id);
 
 				WFIFOHEAD(fd,24 + sizeof(struct mmo_charstatus));
 				WFIFOW(fd,0) = 0x2afd;

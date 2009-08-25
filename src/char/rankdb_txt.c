@@ -195,14 +195,14 @@ static bool rank_db_txt_init(RankDB* self)
 			DBMap* ranking = get_ranking(db, (enum rank_type)rank_id);
 			if( ranking == NULL )
 			{
-				ShowWarning("rank_db_txt_init: Unsupported rank_id in line %d of file '%s', discarding rank entry. (rank_id=%d char_id=%d points=%d)", linenum, db->file_ranks, rank_id, char_id, points);
+				ShowWarning("rank_db_txt_init: Unsupported rank_id in line %d of file '%s', discarding rank entry. (rank_id=%d char_id=%d points=%d)\n", linenum, db->file_ranks, rank_id, char_id, points);
 				continue;
 			}
 			idb_put(ranking, char_id, (void*)(intptr)points);
 			continue;
 		}
 		// error
-		ShowError("rank_db_txt_init: Invalid rank format in line %d of file '%s'.", linenum, db->file_ranks);
+		ShowError("rank_db_txt_init: Invalid rank format in line %d of file '%s'.\n", linenum, db->file_ranks);
 		fclose(fp);
 		return false;
 	}

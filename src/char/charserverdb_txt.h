@@ -8,7 +8,6 @@
 /// Global header for the TXT database engine and interfaces.
 /// Everything exposed by this header has protected access (only the engine and interface code can use it).
 
-// TODO converter: char.fame => save/ranks.txt {int rank_id, int char_id, int points}.*
 
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
@@ -57,8 +56,10 @@ struct CharServerDB_TXT
 	QuestDB* questdb;
 	RankDB* rankdb;
 	MailDB* maildb;
+	MemoDB* memodb;
 	AuctionDB* auctiondb;
 	StatusDB* statusdb;
+	SkillDB* skilldb;
 	StorageDB* storagedb;
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
@@ -73,18 +74,23 @@ struct CharServerDB_TXT
 	int autosave_max_delay;
 	char file_accregs[256];
 	char file_auctions[256];
+	char file_carts[256];
 	char file_castles[256];
 	char file_chars[256];
+	char file_charregs[256];
 	char file_friends[256];
 	char file_guilds[256];
 	char file_guild_storages[256];
 	char file_homuns[256];
 	char file_hotkeys[256];
+	char file_inventories[256];
 	char file_mails[256];
+	char file_memos[256];
 	char file_mercenaries[256];
 	char file_parties[256];
 	char file_pets[256];
 	char file_quests[256];
+	char file_skills[256];
 	char file_statuses[256];
 	char file_storages[256];
 	char file_ranks[256];

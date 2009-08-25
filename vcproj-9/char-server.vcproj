@@ -664,6 +664,18 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\memodb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\memodb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\memodb_txt.c"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\mercdb.h"
 				>
 			</File>
@@ -733,6 +745,18 @@
 			</File>
 			<File
 				RelativePath="..\src\char\rankdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\skilldb.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\skilldb_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\skilldb_txt.c"
 				>
 			</File>
 			<File
