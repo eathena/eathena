@@ -90,6 +90,7 @@ static bool mmo_merc_sync(MercDB_TXT* db)
 		mmo_merc_tostr(md, line);
 		fprintf(fp, "%s\n", line);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_merc_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->merc_db, &lock);

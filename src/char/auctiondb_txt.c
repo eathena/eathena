@@ -120,6 +120,7 @@ static bool mmo_auctiondb_sync(AuctionDB_TXT* db)
 		mmo_auction_tostr(ad, line);
 		fprintf(fp, "%s\n", line);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_auction_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->auction_db, &lock);

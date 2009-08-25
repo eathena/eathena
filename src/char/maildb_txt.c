@@ -135,6 +135,7 @@ static bool mmo_mail_sync(MailDB_TXT* db)
 		mmo_mail_tostr(msg, line);
 		fprintf(fp, "%s\n", line);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_mail_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->mail_db, &lock);

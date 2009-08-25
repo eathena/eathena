@@ -326,6 +326,7 @@ static bool mmo_guild_sync(GuildDB_TXT* db)
 		mmo_guild_tostr(g, buf);
 		fprintf(fp, "%s\n", buf);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_guild_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->guild_db, &lock);

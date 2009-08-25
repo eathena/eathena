@@ -99,6 +99,7 @@ static bool mmo_pet_sync(PetDB_TXT* db)
 		mmo_pet_tostr(pd, line);
 		fprintf(fp, "%s\n", line);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_pet_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->pet_db, &lock);

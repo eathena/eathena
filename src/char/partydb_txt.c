@@ -117,6 +117,7 @@ static bool mmo_party_sync(PartyDB_TXT* db)
 		mmo_party_tostr(&p->party, buf);
 		fprintf(fp, "%s\n", buf);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_party_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->party_db, &lock);

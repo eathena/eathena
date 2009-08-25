@@ -124,6 +124,7 @@ static bool mmo_homun_sync(HomunDB_TXT* db)
 		mmo_homun_tostr(hd, line);
 		fprintf(fp, "%s\n", line);
 	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_homun_id);
 	iter->destroy(iter);
 
 	lock_fclose(fp, db->homun_db, &lock);
@@ -137,7 +138,6 @@ static bool homun_db_txt_init(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
 	DBMap* homuns;
-
 	char line[8192];
 	FILE* fp;
 
@@ -158,7 +158,17 @@ static bool homun_db_txt_init(HomunDB* self)
 	// load data file
 	while( fgets(line, sizeof(line), fp) != NULL )
 	{
-		struct s_homunculus* hd = (struct s_homunculus*)aCalloc(sizeof(struct s_homunculus), 1);
+		int homun_id, n;
+		struct s_homunculus* hd;
+
+		if( sscanf(line, "%d\t%%newid%%%n", &homun_id, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// auto-increment
+			if( homun_id > db->next_homun_id )
+				db->next_homun_id = homun_id;
+			continue;
+		}
+
+		hd = (struct s_homunculus*)aCalloc(sizeof(struct s_homunculus), 1);
 
 		if( !mmo_homun_fromstr(hd, line) )
 		{
