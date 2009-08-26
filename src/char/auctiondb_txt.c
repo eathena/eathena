@@ -160,12 +160,14 @@ static bool auction_db_txt_init(AuctionDB* self)
 		struct auction_data p;
 		struct auction_data* tmp;
 
+		n = 0;
 		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// format version definition
 			version = v;
 			continue;
 		}
 
+		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &auction_id, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// auto-increment
 			if( auction_id > db->next_auction_id )

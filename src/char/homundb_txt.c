@@ -161,6 +161,7 @@ static bool homun_db_txt_init(HomunDB* self)
 		int homun_id, n;
 		struct s_homunculus* hd;
 
+		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &homun_id, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// auto-increment
 			if( homun_id > db->next_homun_id )

@@ -185,6 +185,7 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 		unsigned int v;
 		struct item* s;
 
+		n = 0;
 		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// format version definition
 			version = v;

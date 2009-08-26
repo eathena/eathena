@@ -175,12 +175,14 @@ static bool mail_db_txt_init(MailDB* self)
 		unsigned int v;
 		struct mail_message* msg;
 
+		n = 0;
 		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// format version definition
 			version = v;
 			continue;
 		}
 
+		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &mail_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
 		{// auto-increment
 			if( mail_id > db->next_mail_id )

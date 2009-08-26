@@ -145,6 +145,7 @@ static bool friend_db_txt_init(FriendDB* self)
 		}
 
 		// load char id
+		n = 0;
 		if( sscanf(line, "%d%n", &char_id, &n) != 1 || char_id <= 0 )
 		{
 			aFree(list);

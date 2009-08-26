@@ -172,6 +172,7 @@ static bool quest_db_txt_init(QuestDB* self)
 		unsigned int v;
 		questlog* log;
 
+		n = 0;
 		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
 		{// format version definition
 			version = v;
@@ -186,6 +187,7 @@ static bool quest_db_txt_init(QuestDB* self)
 		}
 
 		// load char id
+		n = 0;
 		if( sscanf(line, "%d%n\t", &char_id, &n) != 1 || line[n] != '\t' )
 		{
 			aFree(log);
