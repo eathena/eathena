@@ -203,58 +203,58 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 		else
 
 		// table names
-		if( strcmpi(key, "auction_db") == 0 )
+		if( strcmpi(key, "table_auctions") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_auctions);
 		else
-		if( strcmpi(key, "cart_db") == 0 )
+		if( strcmpi(key, "table_carts") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_carts);
 		else
-		if( strcmpi(key, "guild_castle_db") == 0 )
+		if( strcmpi(key, "table_castles") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_castles);
 		else
-		if( strcmpi(key, "char_db") == 0 )
+		if( strcmpi(key, "table_chars") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_chars);
 		else
-		if( strcmpi(key, "friend_db") == 0 )
+		if( strcmpi(key, "table_friends") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_friends);
 		else
-		if( strcmpi(key, "guild_db") == 0 )
+		if( strcmpi(key, "table_guilds") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guilds);
 		else
-		if( strcmpi(key, "guild_alliance_db") == 0 )
+		if( strcmpi(key, "table_guild_alliances") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_alliances);
 		else
-		if( strcmpi(key, "guild_expulsion_db") == 0 )
+		if( strcmpi(key, "table_guild_expulsions") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_expulsions);
 		else
-		if( strcmpi(key, "guild_member_db") == 0 )
+		if( strcmpi(key, "table_guild_members") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_members);
 		else
-		if( strcmpi(key, "guild_position_db") == 0 )
+		if( strcmpi(key, "table_guild_positions") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_positions);
 		else
-		if( strcmpi(key, "guild_skill_db") == 0 )
+		if( strcmpi(key, "table_guild_skills") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_skills);
 		else
-		if( strcmpi(key, "guild_storage") == 0 )
+		if( strcmpi(key, "table_guild_storages") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_guild_storages);
 		else
-		if( strcmpi(key, "homun_db") == 0 )
+		if( strcmpi(key, "table_homuns") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_homuns);
 		else
-		if( strcmpi(key, "homun_skill_db") == 0 )
+		if( strcmpi(key, "table_homun_skills") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_homun_skills);
 		else
-		if( strcmpi(key, "hotkey_db") == 0 )
+		if( strcmpi(key, "table_hotkeys") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_hotkeys);
 		else
-		if( strcmpi(key, "inventory_db") == 0 )
+		if( strcmpi(key, "table_inventories") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_inventories);
 		else
-		if( strcmpi(key, "mail_db") == 0 )
+		if( strcmpi(key, "table_mails") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_mails);
 		else
-		if( strcmpi(key, "memo_db") == 0 )
+		if( strcmpi(key, "table_memos") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_memos);
 		else
 		if( strcmpi(key, "table_mercenaries") == 0 )
@@ -263,28 +263,28 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "table_mercenary_owners") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_mercenary_owners);
 		else
-		if( strcmpi(key, "party_db") == 0 )
+		if( strcmpi(key, "table_parties") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_parties);
 		else
-		if( strcmpi(key, "pet_db") == 0 )
+		if( strcmpi(key, "table_pets") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_pets);
 		else
-		if( strcmpi(key, "quest_db") == 0 )
+		if( strcmpi(key, "table_quests") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_quests);
 		else
 		if( strcmpi(key, "table_ranks") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_ranks);
 		else
-		if( strcmpi(key, "reg_db") == 0 )
+		if( strcmpi(key, "table_registry") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_registry);
 		else
-		if( strcmpi(key, "scdata_db") == 0 )
+		if( strcmpi(key, "table_statuses") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_statuses);
 		else
-		if( strcmpi(key, "skill_db") == 0 )
+		if( strcmpi(key, "table_skills") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_skills);
 		else
-		if( strcmpi(key, "storage_db") == 0 )
+		if( strcmpi(key, "table_storages") == 0 )
 			safesnprintf(buf, buflen, "%s", db->table_storages);
 
 		else
@@ -328,58 +328,58 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 			safestrncpy(db->global_codepage, value, sizeof(db->global_codepage));
 
 		// table names
-		if( strcmpi(key, "auction_db") == 0 )
+		if( strcmpi(key, "table_auctions") == 0 )
 			safestrncpy(db->table_auctions, value, sizeof(db->table_auctions));
 		else
-		if( strcmpi(key, "cart_db") == 0 )
+		if( strcmpi(key, "table_carts") == 0 )
 			safestrncpy(db->table_carts, value, sizeof(db->table_carts));
 		else
-		if( strcmpi(key, "guild_castle_db") == 0 )
+		if( strcmpi(key, "table_castles") == 0 )
 			safestrncpy(db->table_castles, value, sizeof(db->table_castles));
 		else
-		if( strcmpi(key, "char_db") == 0 )
+		if( strcmpi(key, "table_chars") == 0 )
 			safestrncpy(db->table_chars, value, sizeof(db->table_chars));
 		else
-		if( strcmpi(key, "friend_db") == 0 )
+		if( strcmpi(key, "table_friends") == 0 )
 			safestrncpy(db->table_friends, value, sizeof(db->table_friends));
 		else
-		if( strcmpi(key, "guild_db") == 0 )
+		if( strcmpi(key, "table_guilds") == 0 )
 			safestrncpy(db->table_guilds, value, sizeof(db->table_guilds));
 		else
-		if( strcmpi(key, "guild_alliance") == 0 )
+		if( strcmpi(key, "table_guild_alliances") == 0 )
 			safestrncpy(db->table_guild_alliances, value, sizeof(db->table_guild_alliances));
 		else
-		if( strcmpi(key, "guild_expulsion") == 0 )
+		if( strcmpi(key, "table_guild_expulsions") == 0 )
 			safestrncpy(db->table_guild_expulsions, value, sizeof(db->table_guild_expulsions));
 		else
-		if( strcmpi(key, "guild_member") == 0 )
+		if( strcmpi(key, "table_guild_members") == 0 )
 			safestrncpy(db->table_guild_members, value, sizeof(db->table_guild_members));
 		else
-		if( strcmpi(key, "guild_position") == 0 )
+		if( strcmpi(key, "table_guild_positions") == 0 )
 			safestrncpy(db->table_guild_positions, value, sizeof(db->table_guild_positions));
 		else
-		if( strcmpi(key, "guild_skill") == 0 )
+		if( strcmpi(key, "table_guild_skills") == 0 )
 			safestrncpy(db->table_guild_skills, value, sizeof(db->table_guild_skills));
 		else
-		if( strcmpi(key, "guild_storage") == 0 )
+		if( strcmpi(key, "table_guild_storages") == 0 )
 			safestrncpy(db->table_guild_storages, value, sizeof(db->table_guild_storages));
 		else
-		if( strcmpi(key, "homun_db") == 0 )
+		if( strcmpi(key, "table_homuns") == 0 )
 			safestrncpy(db->table_homuns, value, sizeof(db->table_homuns));
 		else
-		if( strcmpi(key, "homun_skill_db") == 0 )
+		if( strcmpi(key, "table_homun_skills") == 0 )
 			safestrncpy(db->table_homun_skills, value, sizeof(db->table_homun_skills));
 		else
-		if( strcmpi(key, "hotkey_db") == 0 )
+		if( strcmpi(key, "table_hotkeys") == 0 )
 			safestrncpy(db->table_hotkeys, value, sizeof(db->table_hotkeys));
 		else
-		if( strcmpi(key, "inventory_db") == 0 )
+		if( strcmpi(key, "table_inventories") == 0 )
 			safestrncpy(db->table_inventories, value, sizeof(db->table_inventories));
 		else
-		if( strcmpi(key, "mail_db") == 0 )
+		if( strcmpi(key, "table_mails") == 0 )
 			safestrncpy(db->table_mails, value, sizeof(db->table_mails));
 		else
-		if( strcmpi(key, "memo_db") == 0 )
+		if( strcmpi(key, "table_memos") == 0 )
 			safestrncpy(db->table_memos, value, sizeof(db->table_memos));
 		else
 		if( strcmpi(key, "table_mercenaries") == 0 )
@@ -388,28 +388,28 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "table_mercenary_owners") == 0 )
 			safestrncpy(db->table_mercenary_owners, value, sizeof(db->table_mercenary_owners));
 		else
-		if( strcmpi(key, "party_db") == 0 )
+		if( strcmpi(key, "table_parties") == 0 )
 			safestrncpy(db->table_parties, value, sizeof(db->table_parties));
 		else
-		if( strcmpi(key, "pet_db") == 0 )
+		if( strcmpi(key, "table_pets") == 0 )
 			safestrncpy(db->table_pets, value, sizeof(db->table_pets));
 		else
-		if( strcmpi(key, "quest_db") == 0 )
+		if( strcmpi(key, "table_quests") == 0 )
 			safestrncpy(db->table_quests, value, sizeof(db->table_quests));
 		else
 		if( strcmpi(key, "table_ranks") == 0 )
 			safestrncpy(db->table_ranks, value, sizeof(db->table_ranks));
 		else
-		if( strcmpi(key, "reg_db") == 0 )
+		if( strcmpi(key, "table_registry") == 0 )
 			safestrncpy(db->table_registry, value, sizeof(db->table_registry));
 		else
-		if( strcmpi(key, "scdata_db") == 0 )
+		if( strcmpi(key, "table_statuses") == 0 )
 			safestrncpy(db->table_statuses, value, sizeof(db->table_statuses));
 		else
-		if( strcmpi(key, "skill_db") == 0 )
+		if( strcmpi(key, "table_skills") == 0 )
 			safestrncpy(db->table_skills, value, sizeof(db->table_skills));
 		else
-		if( strcmpi(key, "storage_db") == 0 )
+		if( strcmpi(key, "table_storages") == 0 )
 			safestrncpy(db->table_storages, value, sizeof(db->table_storages));
 
 		else

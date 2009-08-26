@@ -258,43 +258,43 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "autosave.max_delay") == 0 )
 			safesnprintf(buf, buflen, "%d", db->autosave_max_delay);
 		else
-		if( strcmpi(key, "accreg_txt") == 0 )
+		if( strcmpi(key, "file_accregs") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_accregs);
 		else
-		if( strcmpi(key, "auction_txt") == 0 )
+		if( strcmpi(key, "file_auctions") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_auctions);
 		else
 		if( strcmpi(key, "file_carts") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_carts);
 		else
-		if( strcmpi(key, "castle_txt") == 0 )
+		if( strcmpi(key, "file_castles") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_castles);
 		else
-		if( strcmpi(key, "char_txt") == 0 )
+		if( strcmpi(key, "file_chars") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_chars);
 		else
-		if( strcmpi(key, "charreg_txt") == 0 )
+		if( strcmpi(key, "file_charregs") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_charregs);
 		else
-		if( strcmpi(key, "friends_txt") == 0 )
+		if( strcmpi(key, "file_friends") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_friends);
 		else
-		if( strcmpi(key, "guild_txt") == 0 )
+		if( strcmpi(key, "file_guilds") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_guilds);
 		else
-		if( strcmpi(key, "guild_storage_txt") == 0 )
+		if( strcmpi(key, "file_guild_storages") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_guild_storages);
 		else
-		if( strcmpi(key, "homun_txt") == 0 )
+		if( strcmpi(key, "file_homuns") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_homuns);
 		else
-		if( strcmpi(key, "hotkeys_txt") == 0 )
+		if( strcmpi(key, "file_hotkeys") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_hotkeys);
 		else
 		if( strcmpi(key, "file_inventories") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_inventories);
 		else
-		if( strcmpi(key, "mail_txt") == 0 )
+		if( strcmpi(key, "file_mails") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_mails);
 		else
 		if( strcmpi(key, "file_memos") == 0 )
@@ -303,13 +303,13 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "file_mercenaries") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_mercenaries);
 		else
-		if( strcmpi(key, "party_txt") == 0 )
+		if( strcmpi(key, "file_parties") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_parties);
 		else
-		if( strcmpi(key, "pet_txt") == 0 )
+		if( strcmpi(key, "file_pets") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_pets);
 		else
-		if( strcmpi(key, "quest_txt") == 0 )
+		if( strcmpi(key, "file_quests") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_quests);
 		else
 		if( strcmpi(key, "file_ranks") == 0 )
@@ -318,10 +318,10 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "file_skills") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_skills);
 		else
-		if( strcmpi(key, "scdata_txt") == 0 )
+		if( strcmpi(key, "file_statuses") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_statuses);
 		else
-		if( strcmpi(key, "storage_txt") == 0 )
+		if( strcmpi(key, "file_storages") == 0 )
 			safesnprintf(buf, buflen, "%s", db->file_storages);
 
 		else
@@ -356,43 +356,43 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "autosave.max_delay") == 0 )
 			db->autosave_max_delay = atoi(value);
 		else
-		if( strcmpi(key, "accreg_txt") == 0 )
+		if( strcmpi(key, "file_accregs") == 0 )
 			safestrncpy(db->file_accregs, value, sizeof(db->file_accregs));
 		else
-		if( strcmpi(key, "auction_txt") == 0 )
+		if( strcmpi(key, "file_auctions") == 0 )
 			safestrncpy(db->file_auctions, value, sizeof(db->file_auctions));
 		else
 		if( strcmpi(key, "file_carts") == 0 )
 			safestrncpy(db->file_carts, value, sizeof(db->file_carts));
 		else
-		if( strcmpi(key, "castle_txt") == 0 )
+		if( strcmpi(key, "file_castles") == 0 )
 			safestrncpy(db->file_castles, value, sizeof(db->file_castles));
 		else
-		if( strcmpi(key, "char_txt") == 0 )
+		if( strcmpi(key, "file_chars") == 0 )
 			safestrncpy(db->file_chars, value, sizeof(db->file_chars));
 		else
-		if( strcmpi(key, "charreg_txt") == 0 )
+		if( strcmpi(key, "file_charregs") == 0 )
 			safestrncpy(db->file_charregs, value, sizeof(db->file_charregs));
 		else
-		if( strcmpi(key, "friends_txt") == 0 )
+		if( strcmpi(key, "file_friends") == 0 )
 			safestrncpy(db->file_friends, value, sizeof(db->file_friends));
 		else
-		if( strcmpi(key, "guild_txt") == 0 )
+		if( strcmpi(key, "file_guilds") == 0 )
 			safestrncpy(db->file_guilds, value, sizeof(db->file_guilds));
 		else
-		if( strcmpi(key, "guild_storage_txt") == 0 )
+		if( strcmpi(key, "file_guild_storages") == 0 )
 			safestrncpy(db->file_guild_storages, value, sizeof(db->file_guild_storages));
 		else
-		if( strcmpi(key, "homun_txt") == 0 )
+		if( strcmpi(key, "file_homuns") == 0 )
 			safestrncpy(db->file_homuns, value, sizeof(db->file_homuns));
 		else
-		if( strcmpi(key, "hotkeys_txt") == 0 )
+		if( strcmpi(key, "file_hotkeys") == 0 )
 			safestrncpy(db->file_hotkeys, value, sizeof(db->file_hotkeys));
 		else
 		if( strcmpi(key, "file_inventories") == 0 )
 			safestrncpy(db->file_inventories, value, sizeof(db->file_inventories));
 		else
-		if( strcmpi(key, "mail_txt") == 0 )
+		if( strcmpi(key, "file_mails") == 0 )
 			safestrncpy(db->file_mails, value, sizeof(db->file_mails));
 		else
 		if( strcmpi(key, "file_memos") == 0 )
@@ -401,13 +401,13 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "file_mercenaries") == 0 )
 			safestrncpy(db->file_mercenaries, value, sizeof(db->file_mercenaries));
 		else
-		if( strcmpi(key, "party_txt") == 0 )
+		if( strcmpi(key, "file_parties") == 0 )
 			safestrncpy(db->file_parties, value, sizeof(db->file_parties));
 		else
-		if( strcmpi(key, "pet_txt") == 0 )
+		if( strcmpi(key, "file_pets") == 0 )
 			safestrncpy(db->file_pets, value, sizeof(db->file_pets));
 		else
-		if( strcmpi(key, "quest_txt") == 0 )
+		if( strcmpi(key, "file_quests") == 0 )
 			safestrncpy(db->file_quests, value, sizeof(db->file_quests));
 		else
 		if( strcmpi(key, "file_ranks") == 0 )
@@ -416,10 +416,10 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 		if( strcmpi(key, "file_skills") == 0 )
 			safestrncpy(db->file_skills, value, sizeof(db->file_skills));
 		else
-		if( strcmpi(key, "scdata_txt") == 0 )
+		if( strcmpi(key, "file_statuses") == 0 )
 			safestrncpy(db->file_statuses, value, sizeof(db->file_statuses));
 		else
-		if( strcmpi(key, "storage_txt") == 0 )
+		if( strcmpi(key, "file_storages") == 0 )
 			safestrncpy(db->file_storages, value, sizeof(db->file_storages));
 
 		else
