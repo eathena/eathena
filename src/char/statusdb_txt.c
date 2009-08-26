@@ -250,6 +250,7 @@ static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
 	struct scdata* tmp;
 
 	tmp = (struct scdata*)idb_get(statuses, char_id);
+
 	if( tmp != NULL )
 	{
 		//sc->account_id = tmp->account_id;

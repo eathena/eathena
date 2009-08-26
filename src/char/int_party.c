@@ -267,11 +267,13 @@ void mapif_party_broken(int party_id, int flag)
 void mapif_party_message(int party_id, int account_id, char* mes, int len, int sfd)
 {
 	unsigned char buf[512]; //FIXME: use appropriate size
+	len = min(len, sizeof(buf)-12);
+
 	WBUFW(buf,0) = 0x3827;
 	WBUFW(buf,2) = len + 12;
 	WBUFL(buf,4) = party_id;
 	WBUFL(buf,8) = account_id;
-	memcpy(WBUFP(buf,12), mes, len);
+	safestrncpy((char*)WBUFP(buf,12), mes, len);
 	mapif_sendallwos(sfd, buf, len + 12);
 }
 

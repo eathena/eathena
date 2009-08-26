@@ -76,6 +76,8 @@ void onlinedb_init(void)
 	online_char_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	onlinedb_engine_init();
 
+	onlinedb_sync(); // write online players files with no player
+
 	// ???
 	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
 
@@ -88,6 +90,8 @@ void onlinedb_init(void)
 void onlinedb_final(void)
 {
 	int i;
+
+	onlinedb_sync(); // write online players files with no player
 
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	online_char_db = NULL;

@@ -966,7 +966,6 @@ void do_final(void)
 	ShowInfo("Doing final stage...\n");
 
 	set_all_offline();
-	onlinedb_sync(); // write online players files with no player
 
 	inter_final();
 
@@ -1043,7 +1042,7 @@ int do_init(int argc, char **argv)
 	inter_init(charserver);
 	onlinedb_init();
 	charlog_init();
-
+	
 	set_defaultparse(parse_client);
 
 	if ((naddr_ != 0) && (!login_ip || !char_ip))

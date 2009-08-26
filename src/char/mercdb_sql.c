@@ -22,7 +22,6 @@ typedef struct MercDB_SQL
 	Sql* mercs;       // SQL pet storage
 
 	// other settings
-	bool case_sensitive;
 	const char* merc_db;
 	const char* merc_owner_db;
 
@@ -173,7 +172,6 @@ MercDB* merc_db_sql(CharServerDB_SQL* owner)
 	db->mercs = NULL;
 
 	// other settings
-	db->case_sensitive = false;
 	db->merc_db = db->owner->table_mercenaries;
 	db->merc_owner_db = db->owner->table_mercenary_owners;
 

@@ -31,6 +31,12 @@ typedef struct CastleDB_TXT
 } CastleDB_TXT;
 
 
+static void* create_castle(DBKey key, va_list args)
+{
+	return (struct guild_castle*)aMalloc(sizeof(struct guild_castle));
+}
+
+
 /// parses the castle data string into a castle data structure
 static bool mmo_castle_fromstr(struct guild_castle* gc, char* str)
 {
@@ -255,10 +261,10 @@ static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 	DBMap* castles = db->castles;
 	int castle_id = gc->castle_id;
 
-	// retrieve previous data
-	struct guild_castle* tmp = idb_get(castles, castle_id);
+	// retrieve previous data / allocate new data
+	struct guild_castle* tmp = (struct guild_castle*)idb_ensure(castles, castle_id, create_castle);
 	if( tmp == NULL )
-	{// error condition - entry not found
+	{// error condition - allocation problem?
 		return false;
 	}
 	
