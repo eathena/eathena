@@ -18,8 +18,6 @@ static struct {
 #ifdef WITH_TXT
 	{charlog_db_txt, NULL},
 #endif
-	// end of structure
-	{NULL, NULL}
 };
 
 
@@ -33,8 +31,9 @@ void charlog_create(void)
 	int i;
 
 	// create charlog engines (to accept config settings)
-	for( i = 0; charlog_engines[i].constructor; ++i )
-		charlog_engines[i].engine = charlog_engines[i].constructor();
+	for( i = 0; i < ARRAYLENGTH(charlog_engines); ++i )
+		if( charlog_engines[i].constructor )
+			charlog_engines[i].engine = charlog_engines[i].constructor();
 }
 
 
@@ -48,7 +47,7 @@ void charlog_config_read(const char* w1, const char* w2)
 	else
 	{// try charlog engines
 		int i;
-		for( i = 0; charlog_engines[i].constructor; ++i )
+		for( i = 0; i < ARRAYLENGTH(charlog_engines); ++i )
 		{
 			CharLogDB* engine = charlog_engines[i].engine;
 			if( engine )
@@ -66,7 +65,7 @@ bool charlog_init(void)
 	if( !charlog_enabled )
 		return true;
 
-	for( i = 0; charlog_engines[i].constructor; ++i )
+	for( i = 0; i < ARRAYLENGTH(charlog_engines); ++i )
 	{
 		char name[sizeof(charlog_engine)];
 		CharLogDB* engine = charlog_engines[i].engine;
@@ -93,7 +92,7 @@ bool charlog_init(void)
 void charlog_final(void)
 {
 	int i;
-	for( i = 0; charlog_engines[i].constructor; ++i )
+	for( i = 0; i < ARRAYLENGTH(charlog_engines); ++i )
 	{// destroy all charlog engines
 		CharLogDB* engine = charlog_engines[i].engine;
 		if( engine )

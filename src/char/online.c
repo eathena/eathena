@@ -27,8 +27,6 @@ static struct {
 #ifdef WITH_TXT
 	{online_db_txt, NULL},
 #endif
-	// end of structure
-	{NULL, NULL}
 };
 
 
@@ -50,8 +48,9 @@ void onlinedb_create(void)
 	int i;
 
 	// create onlinedb engines (to accept config settings)
-	for( i = 0; onlinedb_engines[i].constructor; ++i )
-		onlinedb_engines[i].engine = onlinedb_engines[i].constructor();
+	for( i = 0; i < ARRAYLENGTH(onlinedb_engines); ++i )
+		if( onlinedb_engines[i].constructor )
+			onlinedb_engines[i].engine = onlinedb_engines[i].constructor();
 }
 
 
@@ -62,7 +61,7 @@ void onlinedb_config_read(const char* w1, const char* w2)
 	else
 	{// try onlinedb engines
 		int i;
-		for( i = 0; onlinedb_engines[i].constructor; ++i )
+		for( i = 0; i < ARRAYLENGTH(onlinedb_engines); ++i )
 		{
 			OnlineDB* engine = onlinedb_engines[i].engine;
 			if( engine )
@@ -93,7 +92,7 @@ void onlinedb_final(void)
 	online_char_db->destroy(online_char_db, NULL); //dispose the db...
 	online_char_db = NULL;
 
-	for( i = 0; onlinedb_engines[i].constructor; ++i )
+	for( i = 0; i < ARRAYLENGTH(onlinedb_engines); ++i )
 	{// destroy all onlinedb engines
 		OnlineDB* engine = onlinedb_engines[i].engine;
 		if( engine )
@@ -341,7 +340,7 @@ static bool onlinedb_engine_init(void)
 	int i;
 	bool try_all = (strcmp(onlinedb_engine,"auto") == 0);
 
-	for( i = 0; onlinedb_engines[i].constructor; ++i )
+	for( i = 0; i < ARRAYLENGTH(onlinedb_engines); ++i )
 	{
 		char name[sizeof(onlinedb_engine)];
 		OnlineDB* engine = onlinedb_engines[i].engine;

@@ -61,8 +61,6 @@ static struct{
 #ifdef WITH_TXT
 	{charserver_db_txt, NULL},
 #endif
-	// end of structure
-	{NULL, NULL}
 };
 
 // charserver engine
@@ -899,7 +897,7 @@ int char_config_read(const char* cfgName)
 		else
 		{// try the charserver engines
 			int i;
-			for( i = 0; charserver_engines[i].constructor; ++i )
+			for( i = 0; i < ARRAYLENGTH(charserver_engines); ++i )
 			{
 				CharServerDB* engine = charserver_engines[i].engine;
 				if( engine )
@@ -925,7 +923,7 @@ static bool init_charserver_engine(void)
 	int i;
 	bool try_all = (strcmp(charserver_engine,"auto") == 0);
 
-	for( i = 0; charserver_engines[i].constructor; ++i )
+	for( i = 0; ARRAYLENGTH(charserver_engines); ++i )
 	{
 		char name[sizeof(charserver_engine)];
 		CharServerDB* engine = charserver_engines[i].engine;
@@ -986,7 +984,7 @@ void do_final(void)
 
 	log_char("----End of char-server (normal shutdown).\n");
 
-	for( i = 0; charserver_engines[i].constructor; ++i )
+	for( i = 0; i < ARRAYLENGTH(charserver_engines); ++i )
 	{// destroy all charserver engines
 		CharServerDB* engine = charserver_engines[i].engine;
 		if( engine )
@@ -1016,8 +1014,9 @@ int do_init(int argc, char **argv)
 	start_point.map = mapindex_name2id("new_zone01");
 
 	// create engines (to accept config settings)
-	for( i = 0; charserver_engines[i].constructor; ++i )
-		charserver_engines[i].engine = charserver_engines[i].constructor();
+	for( i = 0; i < ARRAYLENGTH(charserver_engines); ++i )
+		if( charserver_engines[i].constructor )
+			charserver_engines[i].engine = charserver_engines[i].constructor();
 
 	onlinedb_create();
 	charlog_create();
