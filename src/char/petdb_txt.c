@@ -76,39 +76,6 @@ static bool mmo_pet_tostr(const struct s_pet* p, char* str)
 }
 
 
-static bool mmo_pet_sync(PetDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->pet_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_pet_sync: can't write [%s] !!! data is lost !!!\n", db->pet_db);
-		return false;
-	}
-
-	iter = db->pets->iterator(db->pets);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct s_pet* pd = (struct s_pet*) data;
-		char line[8192];
-
-		mmo_pet_tostr(pd, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_pet_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->pet_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool pet_db_txt_init(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -187,7 +154,34 @@ static void pet_db_txt_destroy(PetDB* self)
 static bool pet_db_txt_sync(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
-	return mmo_pet_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->pet_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("pet_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->pet_db);
+		return false;
+	}
+
+	iter = db->pets->iterator(db->pets);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_pet* pd = (struct s_pet*) data;
+		char line[8192];
+
+		mmo_pet_tostr(pd, line);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_pet_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->pet_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)

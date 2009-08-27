@@ -96,37 +96,6 @@ static bool mmo_party_tostr(const struct party* p, char* str)
 }
 
 
-static bool mmo_party_sync(PartyDB_TXT* db)
-{
-	FILE *fp;
-	int lock;
-	struct DBIterator* iter;
-	struct party_data* p;
-
-	fp = lock_fopen(db->party_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_party_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
-		return false;
-	}
-
-	iter = db->parties->iterator(db->parties);
-	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
-	{
-		char buf[8192]; // ought to be big enough ^^
-		mmo_party_tostr(&p->party, buf);
-		fprintf(fp, "%s\n", buf);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_party_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->party_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool party_db_txt_init(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -205,7 +174,32 @@ static void party_db_txt_destroy(PartyDB* self)
 static bool party_db_txt_sync(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	return mmo_party_sync(db);
+	FILE *fp;
+	int lock;
+	struct DBIterator* iter;
+	struct party_data* p;
+
+	fp = lock_fopen(db->party_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("party_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
+		return false;
+	}
+
+	iter = db->parties->iterator(db->parties);
+	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
+	{
+		char buf[8192]; // ought to be big enough ^^
+		mmo_party_tostr(&p->party, buf);
+		fprintf(fp, "%s\n", buf);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_party_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->party_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool party_db_txt_create(PartyDB* self, struct party_data* p)

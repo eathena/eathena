@@ -107,41 +107,6 @@ static bool mmo_quests_tostr(const questlog* log, char* str)
 }
 
 
-static bool mmo_questdb_sync(QuestDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	fp = lock_fopen(db->quest_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_questdb_sync: can't write [%s] !!! data is lost !!!\n", db->quest_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", QUEST_TXT_DB_VERSION); // savefile version
-
-	iter = db->quests->iterator(db->quests);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		questlog* log = (questlog*) data;
-		char line[8192]; //FIXME: not nearly enough space for MAX_QUEST_DB entries
-
-		mmo_quests_tostr(log, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->quest_db, &lock);
-
-	return true;
-}
-
-
 static bool quest_db_txt_init(QuestDB* self)
 {
 	QuestDB_TXT* db = (QuestDB_TXT*)self;
@@ -232,7 +197,36 @@ static void quest_db_txt_destroy(QuestDB* self)
 static bool quest_db_txt_sync(QuestDB* self)
 {
 	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	return mmo_questdb_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(db->quest_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("quest_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->quest_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", QUEST_TXT_DB_VERSION); // savefile version
+
+	iter = db->quests->iterator(db->quests);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		questlog* log = (questlog*) data;
+		char line[8192]; //FIXME: not nearly enough space for MAX_QUEST_DB entries
+
+		mmo_quests_tostr(log, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->quest_db, &lock);
+
+	return true;
 }
 
 

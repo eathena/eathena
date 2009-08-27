@@ -80,40 +80,6 @@ static bool mmo_friendlist_tostr(const friendlist* list, char* str)
 }
 
 
-static bool mmo_frienddb_sync(FriendDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->friend_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_friend_sync: can't write [%s] !!! data is lost !!!\n", db->friend_db);
-		return false;
-	}
-
-	iter = db->friends->iterator(db->friends);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		friendlist* list = (friendlist*) data;
-		char line[8192];
-
-		mmo_friendlist_tostr(list, line);
-		fprintf(fp, "%d%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->friend_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool friend_db_txt_init(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -186,7 +152,35 @@ static void friend_db_txt_destroy(FriendDB* self)
 static bool friend_db_txt_sync(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
-	return mmo_frienddb_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->friend_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("friend_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->friend_db);
+		return false;
+	}
+
+	iter = db->friends->iterator(db->friends);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		friendlist* list = (friendlist*) data;
+		char line[8192];
+
+		mmo_friendlist_tostr(list, line);
+		fprintf(fp, "%d%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->friend_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool friend_db_txt_remove(FriendDB* self, const int char_id)

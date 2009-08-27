@@ -95,41 +95,6 @@ static bool mmo_auction_tostr(const struct auction_data* ad, char* str)
 }
 
 
-static bool mmo_auctiondb_sync(AuctionDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->auction_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_auctiondb_sync: can't write [%s] !!! data is lost !!!\n", db->auction_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", AUCTION_TXT_DB_VERSION); // savefile version
-
-	iter = db->auctions->iterator(db->auctions);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct auction_data* ad = (struct auction_data*) data;
-		char line[8192];
-
-		mmo_auction_tostr(ad, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_auction_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->auction_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool auction_db_txt_init(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -216,7 +181,36 @@ static void auction_db_txt_destroy(AuctionDB* self)
 static bool auction_db_txt_sync(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
-	return mmo_auctiondb_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->auction_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("auction_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->auction_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", AUCTION_TXT_DB_VERSION); // savefile version
+
+	iter = db->auctions->iterator(db->auctions);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct auction_data* ad = (struct auction_data*) data;
+		char line[8192];
+
+		mmo_auction_tostr(ad, line);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_auction_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->auction_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)

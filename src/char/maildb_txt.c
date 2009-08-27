@@ -110,41 +110,6 @@ static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
 }
 
 
-static bool mmo_mail_sync(MailDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->mail_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_mail_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", MAIL_TXT_DB_VERSION); // savefile version
-
-	iter = db->mails->iterator(db->mails);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct mail_message* msg = (struct mail_message*) data;
-		char line[8192];
-
-		mmo_mail_tostr(msg, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_mail_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->mail_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool mail_db_txt_init(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -231,7 +196,36 @@ static void mail_db_txt_destroy(MailDB* self)
 static bool mail_db_txt_sync(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
-	return mmo_mail_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->mail_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("mail_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", MAIL_TXT_DB_VERSION); // savefile version
+
+	iter = db->mails->iterator(db->mails);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct mail_message* msg = (struct mail_message*) data;
+		char line[8192];
+
+		mmo_mail_tostr(msg, line);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_mail_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->mail_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool mail_db_txt_create(MailDB* self, struct mail_message* msg)

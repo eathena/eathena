@@ -106,42 +106,6 @@ static bool mmo_skilllist_tostr(const skilllist* list, char* str)
 }
 
 
-static bool mmo_skilldb_sync(SkillDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->skill_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_skilldb_sync: can't write [%s] !!! data is lost !!!\n", db->skill_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", SKILLDB_TXT_DB_VERSION);
-
-	iter = db->skills->iterator(db->skills);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		skilllist* list = (skilllist*) data;
-		char line[8192];
-
-		mmo_skilllist_tostr(list, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->skill_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool skill_db_txt_init(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -233,7 +197,37 @@ static void skill_db_txt_destroy(SkillDB* self)
 static bool skill_db_txt_sync(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	return mmo_skilldb_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->skill_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("skill_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->skill_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", SKILLDB_TXT_DB_VERSION);
+
+	iter = db->skills->iterator(db->skills);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		skilllist* list = (skilllist*) data;
+		char line[8192];
+
+		mmo_skilllist_tostr(list, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->skill_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 

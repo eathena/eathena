@@ -90,41 +90,6 @@ static bool mmo_status_tostr(const struct scdata* sc, char* str)
 }
 
 
-static bool mmo_status_sync(StatusDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->status_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_status_sync: can't write [%s] !!! data is lost !!!\n", db->status_db);
-		return false;
-	}
-
-	iter = db->statuses->iterator(db->statuses);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct scdata* sc = (struct scdata*) data;
-		char line[8192];
-
-		if( sc->count == 0 )
-			continue;
-
-		mmo_status_tostr(sc, line);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->status_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool status_db_txt_init(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -191,7 +156,36 @@ static void status_db_txt_destroy(StatusDB* self)
 static bool status_db_txt_sync(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	return mmo_status_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->status_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("status_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->status_db);
+		return false;
+	}
+
+	iter = db->statuses->iterator(db->statuses);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct scdata* sc = (struct scdata*) data;
+		char line[8192];
+
+		if( sc->count == 0 )
+			continue;
+
+		mmo_status_tostr(sc, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->status_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool status_db_txt_remove(StatusDB* self, int char_id)

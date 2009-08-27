@@ -111,42 +111,6 @@ static bool mmo_memolist_tostr(const memolist* list, char* str)
 }
 
 
-static bool mmo_memodb_sync(MemoDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->memo_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_memodb_sync: can't write [%s] !!! data is lost !!!\n", db->memo_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", MEMODB_TXT_DB_VERSION);
-
-	iter = db->memos->iterator(db->memos);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		memolist* list = (memolist*) data;
-		char line[8192];
-
-		mmo_memolist_tostr(list, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->memo_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool memo_db_txt_init(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -238,7 +202,37 @@ static void memo_db_txt_destroy(MemoDB* self)
 static bool memo_db_txt_sync(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
-	return mmo_memodb_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->memo_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("memo_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->memo_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", MEMODB_TXT_DB_VERSION);
+
+	iter = db->memos->iterator(db->memos);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		memolist* list = (memolist*) data;
+		char line[8192];
+
+		mmo_memolist_tostr(list, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->memo_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 

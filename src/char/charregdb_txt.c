@@ -98,45 +98,6 @@ static bool mmo_charreg_tostr(const struct regs* reg, char* str)
 }
 
 
-static bool mmo_charreg_sync(CharRegDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->charreg_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_charreg_sync: can't write [%s] !!! data is lost !!!\n", db->charreg_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", CHARREGDB_TXT_DB_VERSION);
-
-	iter = db->charregs->iterator(db->charregs);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		struct regs* reg = (struct regs*) data;
-		char line[8192];
-
-		if( reg->reg_num == 0 )
-			continue;
-
-		mmo_charreg_tostr(reg, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->charreg_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool charreg_db_txt_init(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -226,7 +187,40 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 static bool charreg_db_txt_sync(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
-	return mmo_charreg_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->charreg_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("charreg_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->charreg_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", CHARREGDB_TXT_DB_VERSION);
+
+	iter = db->charregs->iterator(db->charregs);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int char_id = key.i;
+		struct regs* reg = (struct regs*) data;
+		char line[8192];
+
+		if( reg->reg_num == 0 )
+			continue;
+
+		mmo_charreg_tostr(reg, line);
+		fprintf(fp, "%d\t%s\n", char_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->charreg_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)

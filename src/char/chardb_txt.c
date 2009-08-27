@@ -209,43 +209,6 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
 }
 
 
-/// Dumps the entire char db (+ associated data) to disk
-static bool mmo_char_sync(CharDB_TXT* db)
-{
-	int lock;
-	FILE *fp;
-	void* data;
-	struct DBIterator* iter;
-
-	// Data save
-	fp = lock_fopen(db->char_db, &lock);
-	if( fp == NULL )
-	{
-		ShowWarning("Server cannot save characters.\n");
-		return false;
-	}
-
-	fprintf(fp, "%d\n", CHARDB_TXT_DB_VERSION); // savefile version
-
-	iter = db->chars->iterator(db->chars);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
-		char line[65536]; // ought to be big enough
-
-		mmo_char_tostr(line, ch);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->char_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -340,10 +303,41 @@ static void char_db_txt_destroy(CharDB* self)
 	aFree(db);
 }
 
+/// Dumps the entire char db (+ associated data) to disk
 static bool char_db_txt_sync(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	return mmo_char_sync(db);
+	int lock;
+	FILE *fp;
+	void* data;
+	struct DBIterator* iter;
+
+	// Data save
+	fp = lock_fopen(db->char_db, &lock);
+	if( fp == NULL )
+	{
+		ShowWarning("Server cannot save characters.\n");
+		return false;
+	}
+
+	fprintf(fp, "%d\n", CHARDB_TXT_DB_VERSION); // savefile version
+
+	iter = db->chars->iterator(db->chars);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
+		char line[65536]; // ought to be big enough
+
+		mmo_char_tostr(line, ch);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->char_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)

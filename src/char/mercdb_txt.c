@@ -65,41 +65,6 @@ static bool mmo_merc_tostr(const struct s_mercenary* md, char* str)
 }
 
 
-static bool mmo_merc_sync(MercDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	fp = lock_fopen(db->merc_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_merc_sync: can't write [%s] !!! data is lost !!!\n", db->merc_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", MERC_TXT_DB_VERSION); // savefile version
-
-	iter = db->mercs->iterator(db->mercs);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct s_mercenary* md = (struct s_mercenary*) data;
-		char line[8192];
-
-		mmo_merc_tostr(md, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_merc_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->merc_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool merc_db_txt_init(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -186,7 +151,36 @@ static void merc_db_txt_destroy(MercDB* self)
 static bool merc_db_txt_sync(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
-	return mmo_merc_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE* fp;
+	int lock;
+
+	fp = lock_fopen(db->merc_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("merc_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->merc_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", MERC_TXT_DB_VERSION); // savefile version
+
+	iter = db->mercs->iterator(db->mercs);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_mercenary* md = (struct s_mercenary*) data;
+		char line[8192];
+
+		mmo_merc_tostr(md, line);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_merc_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->merc_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool merc_db_txt_create(MercDB* self, struct s_mercenary* md)

@@ -104,45 +104,6 @@ static bool mmo_accreg_tostr(const struct regs* reg, char* str)
 }
 
 
-static bool mmo_accreg_sync(AccRegDB_TXT* db)
-{
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->accreg_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_accreg_sync: can't write [%s] !!! data is lost !!!\n", db->accreg_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", ACCREGDB_TXT_DB_VERSION);
-
-	iter = db->accregs->iterator(db->accregs);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int account_id = key.i;
-		struct regs* reg = (struct regs*) data;
-		char line[8192];
-
-		if( reg->reg_num == 0 )
-			continue;
-
-		mmo_accreg_tostr(reg, line);
-		fprintf(fp, "%d\t%s\n", account_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->accreg_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool accreg_db_txt_init(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -232,7 +193,40 @@ static void accreg_db_txt_destroy(AccRegDB* self)
 static bool accreg_db_txt_sync(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
-	return mmo_accreg_sync(db);
+	DBIterator* iter;
+	DBKey key;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->accreg_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("accreg_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->accreg_db);
+		return false;
+	}
+
+	fprintf(fp, "%d\n", ACCREGDB_TXT_DB_VERSION);
+
+	iter = db->accregs->iterator(db->accregs);
+	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	{
+		int account_id = key.i;
+		struct regs* reg = (struct regs*) data;
+		char line[8192];
+
+		if( reg->reg_num == 0 )
+			continue;
+
+		mmo_accreg_tostr(reg, line);
+		fprintf(fp, "%d\t%s\n", account_id, line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->accreg_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool accreg_db_txt_remove(AccRegDB* self, const int account_id)

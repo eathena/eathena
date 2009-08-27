@@ -78,39 +78,6 @@ static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 }
 
 
-static bool mmo_castle_sync(CastleDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	// save castle data
-	fp = lock_fopen(db->castle_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_castle_sync: can't write [%s] !!! data is lost !!!\n", db->castle_db);
-		return false;
-	}
-
-	iter = db->castles->iterator(db->castles);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct guild_castle* gc = (struct guild_castle*) data;
-		char line[16384];
-
-		mmo_castle_tostr(gc, line);
-		fprintf(fp, "%s\n", line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->castle_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool castle_db_txt_init(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -191,7 +158,34 @@ static void castle_db_txt_destroy(CastleDB* self)
 static bool castle_db_txt_sync(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
-	return mmo_castle_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	// save castle data
+	fp = lock_fopen(db->castle_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("castle_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->castle_db);
+		return false;
+	}
+
+	iter = db->castles->iterator(db->castles);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct guild_castle* gc = (struct guild_castle*) data;
+		char line[16384];
+
+		mmo_castle_tostr(gc, line);
+		fprintf(fp, "%s\n", line);
+	}
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->castle_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc)

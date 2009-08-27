@@ -305,37 +305,6 @@ static bool mmo_guild_tostr(const struct guild* g, char* str)
 }
 
 
-static bool mmo_guild_sync(GuildDB_TXT* db)
-{
-	FILE *fp;
-	int lock;
-	struct DBIterator* iter;
-	struct guild* g;
-
-	fp = lock_fopen(db->guild_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_guild_sync: can't write [%s] !!! data is lost !!!\n", db->guild_db);
-		return false;
-	}
-
-	iter = db->guilds->iterator(db->guilds);
-	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
-	{
-		char buf[16384]; // ought to be big enough ^^
-		mmo_guild_tostr(g, buf);
-		fprintf(fp, "%s\n", buf);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_guild_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->guild_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool guild_db_txt_init(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -412,7 +381,32 @@ static void guild_db_txt_destroy(GuildDB* self)
 static bool guild_db_txt_sync(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	return mmo_guild_sync(db);
+	FILE *fp;
+	int lock;
+	struct DBIterator* iter;
+	struct guild* g;
+
+	fp = lock_fopen(db->guild_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("guild_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->guild_db);
+		return false;
+	}
+
+	iter = db->guilds->iterator(db->guilds);
+	for( g = (struct guild*)iter->first(iter,NULL); iter->exists(iter); g = (struct guild*)iter->next(iter,NULL) )
+	{
+		char buf[16384]; // ought to be big enough ^^
+		mmo_guild_tostr(g, buf);
+		fprintf(fp, "%s\n", buf);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_guild_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->guild_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool guild_db_txt_create(GuildDB* self, struct guild* g)

@@ -101,39 +101,6 @@ static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
 }
 
 
-static bool mmo_homun_sync(HomunDB_TXT* db)
-{
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	fp = lock_fopen(db->homun_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mmo_homun_sync: can't write [%s] !!! data is lost !!!\n", db->homun_db);
-		return false;
-	}
-
-	iter = db->homuns->iterator(db->homuns);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct s_homunculus* hd = (struct s_homunculus*) data;
-		char line[8192];
-
-		mmo_homun_tostr(hd, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_homun_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->homun_db, &lock);
-
-	db->dirty = false;
-	return true;
-}
-
-
 static bool homun_db_txt_init(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -211,7 +178,34 @@ static void homun_db_txt_destroy(HomunDB* self)
 static bool homun_db_txt_sync(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	return mmo_homun_sync(db);
+	DBIterator* iter;
+	void* data;
+	FILE *fp;
+	int lock;
+
+	fp = lock_fopen(db->homun_db, &lock);
+	if( fp == NULL )
+	{
+		ShowError("homun_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->homun_db);
+		return false;
+	}
+
+	iter = db->homuns->iterator(db->homuns);
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
+	{
+		struct s_homunculus* hd = (struct s_homunculus*) data;
+		char line[8192];
+
+		mmo_homun_tostr(hd, line);
+		fprintf(fp, "%s\n", line);
+	}
+	fprintf(fp, "%d\t%%newid%%\n", db->next_homun_id);
+	iter->destroy(iter);
+
+	lock_fclose(fp, db->homun_db, &lock);
+
+	db->dirty = false;
+	return true;
 }
 
 static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
