@@ -4,8 +4,10 @@
 #ifndef _AUCTIONDB_H_
 #define _AUCTIONDB_H_
 
+
 #include "../common/mmo.h" // struct auction_data
 #include "csdbiterator.h"
+
 
 typedef struct AuctionDB AuctionDB;
 

@@ -7,14 +7,11 @@
 /// This file contains the public database interface that handles rankings.
 
 
-
 #include "../common/mmo.h" // struct fame_list
 #include "csdbiterator.h"
 
 
-
 typedef struct RankDB RankDB;
-
 
 
 // different rank types supported
@@ -27,8 +24,6 @@ enum rank_type
 	//RANK_?        = ?, // JOB_DEATHKNIGHT
 	//RANK_?        = ?, // JOB_COLLECTOR
 };
-
-
 
 
 /// Public database interface to handle rankings.
@@ -74,5 +69,6 @@ struct RankDB
 	/// @return Iterator
 	CSDBIterator* (*iterator)(RankDB* self, enum rank_type rank_id);
 };
+
 
 #endif /* _RANKDB_H_ */

@@ -21,7 +21,8 @@
 #define MEMODB_TXT_DB_VERSION 20090825
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MemoDB_TXT
 {
 	// public interface
@@ -38,12 +39,14 @@ typedef struct MemoDB_TXT
 } MemoDB_TXT;
 
 
+/// @private
 static void* create_memolist(DBKey key, va_list args)
 {
 	return (memolist*)aMalloc(sizeof(memolist));
 }
 
 
+/// @private
 static bool mmo_memolist_fromstr(memolist* list, char* str)
 {
 	const char* p = str;
@@ -86,6 +89,7 @@ static bool mmo_memolist_fromstr(memolist* list, char* str)
 }
 
 
+/// @private
 static bool mmo_memolist_tostr(const memolist* list, char* str)
 {
 	char* p = str;
@@ -111,6 +115,7 @@ static bool mmo_memolist_tostr(const memolist* list, char* str)
 }
 
 
+/// @protected
 static bool memo_db_txt_init(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -182,6 +187,7 @@ static bool memo_db_txt_init(MemoDB* self)
 }
 
 
+/// @protected
 static void memo_db_txt_destroy(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -199,6 +205,7 @@ static void memo_db_txt_destroy(MemoDB* self)
 }
 
 
+/// @protected
 static bool memo_db_txt_sync(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -236,6 +243,7 @@ static bool memo_db_txt_sync(MemoDB* self)
 }
 
 
+/// @protected
 static bool memo_db_txt_remove(MemoDB* self, const int char_id)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -249,6 +257,7 @@ static bool memo_db_txt_remove(MemoDB* self, const int char_id)
 }
 
 
+/// @protected
 static bool memo_db_txt_save(MemoDB* self, const memolist* list, const int char_id)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -270,6 +279,7 @@ static bool memo_db_txt_save(MemoDB* self, const memolist* list, const int char_
 }
 
 
+/// @protected
 static bool memo_db_txt_load(MemoDB* self, memolist* list, const int char_id)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -287,6 +297,7 @@ static bool memo_db_txt_load(MemoDB* self, memolist* list, const int char_id)
 
 
 /// Returns an iterator over all memo lists.
+/// @protected
 static CSDBIterator* memo_db_txt_iterator(MemoDB* self)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)self;
@@ -294,7 +305,8 @@ static CSDBIterator* memo_db_txt_iterator(MemoDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MemoDB interface.
+/// @protected
 MemoDB* memo_db_txt(CharServerDB_TXT* owner)
 {
 	MemoDB_TXT* db = (MemoDB_TXT*)aCalloc(1, sizeof(MemoDB_TXT));

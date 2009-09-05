@@ -18,7 +18,7 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
 typedef struct OnlineDB_TXT
 {
 	// public interface
@@ -47,6 +47,7 @@ extern CharServerDB* charserver;
 static void create_online_files(OnlineDB_TXT* db);
 
 
+/// @protected
 static bool online_db_txt_init(OnlineDB* self)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
@@ -60,6 +61,7 @@ static bool online_db_txt_init(OnlineDB* self)
 }
 
 
+/// @protected
 static void online_db_txt_destroy(OnlineDB* self)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
@@ -76,6 +78,7 @@ static void online_db_txt_destroy(OnlineDB* self)
 }
 
 
+/// @protected
 static bool online_db_txt_sync(OnlineDB* self)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
@@ -84,6 +87,7 @@ static bool online_db_txt_sync(OnlineDB* self)
 }
 
 
+/// @protected
 static bool online_db_txt_get_property(OnlineDB* self, const char* key, char* buf, size_t buflen)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
@@ -97,6 +101,7 @@ static bool online_db_txt_get_property(OnlineDB* self, const char* key, char* bu
 }
 
 
+/// @protected
 static bool online_db_txt_set_property(OnlineDB* self, const char* key, const char* value)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
@@ -129,7 +134,8 @@ static bool online_db_txt_set_property(OnlineDB* self, const char* key, const ch
 }
 
 
-bool online_db_txt_set_online(OnlineDB* self, int account_id, int char_id)
+/// @protected
+static bool online_db_txt_set_online(OnlineDB* self, int account_id, int char_id)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
 	idb_put(db->onlinedb, account_id, (void*)char_id);
@@ -137,7 +143,8 @@ bool online_db_txt_set_online(OnlineDB* self, int account_id, int char_id)
 }
 
 
-bool online_db_txt_set_offline(OnlineDB* self, int account_id, int char_id)
+/// @protected
+static bool online_db_txt_set_offline(OnlineDB* self, int account_id, int char_id)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)self;
 
@@ -156,7 +163,8 @@ bool online_db_txt_set_offline(OnlineDB* self, int account_id, int char_id)
 }
 
 
-/// public constructor
+/// Constructs a new OnlineDB interface.
+/// @protected
 OnlineDB* online_db_txt(void)
 {
 	OnlineDB_TXT* db = (OnlineDB_TXT*)aCalloc(1, sizeof(OnlineDB_TXT));
@@ -274,6 +282,7 @@ char * job_name(int class_)
 	}
 	return "Unknown Job";
 }
+
 
 //-------------------------------------------------------------
 // Function to create the online files (txt and html). by [Yor]

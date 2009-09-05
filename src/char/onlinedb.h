@@ -4,6 +4,7 @@
 #ifndef _ONLINEDB_H_
 #define _ONLINEDB_H_
 
+
 typedef struct OnlineDB OnlineDB;
 
 

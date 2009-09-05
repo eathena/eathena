@@ -13,21 +13,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MailDB_SQL
 {
+	// public interface
 	MailDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* mails;  // sql handler
+	Sql* mails;
 
-	// other settings
+	// settings
 	const char* mail_db;
 
 } MailDB_SQL;
 
 
-
+/// @private
 static bool mmo_mail_tosql(MailDB_SQL* db, struct mail_message* msg, bool is_new)
 {
 	Sql* sql_handle = db->mails;
@@ -108,6 +111,7 @@ static bool mmo_mail_tosql(MailDB_SQL* db, struct mail_message* msg, bool is_new
 }
 
 
+/// @private
 static bool mmo_mail_fromsql(MailDB_SQL* db, struct mail_message* msg, int mail_id)
 {
 	Sql* sql_handle = db->mails;
@@ -159,6 +163,8 @@ static bool mmo_mail_fromsql(MailDB_SQL* db, struct mail_message* msg, int mail_
 	return true;
 }
 
+
+/// @private
 static bool mmo_mails_fromsql(MailDB_SQL* db, struct mail_data* md, const int char_id)
 {
 	Sql* sql_handle = db->mails;
@@ -239,6 +245,7 @@ static bool mmo_mails_fromsql(MailDB_SQL* db, struct mail_data* md, const int ch
 }
 
 
+/// @protected
 static bool mail_db_sql_init(MailDB* self)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
@@ -246,6 +253,8 @@ static bool mail_db_sql_init(MailDB* self)
 	return true;
 }
 
+
+/// @protected
 static void mail_db_sql_destroy(MailDB* self)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
@@ -253,17 +262,23 @@ static void mail_db_sql_destroy(MailDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool mail_db_sql_sync(MailDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_sql_create(MailDB* self, struct mail_message* msg)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
 	return mmo_mail_tosql(db, msg, true);
 }
 
+
+/// @protected
 static bool mail_db_sql_remove(MailDB* self, const int mail_id)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
@@ -278,18 +293,24 @@ static bool mail_db_sql_remove(MailDB* self, const int mail_id)
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_sql_save(MailDB* self, const struct mail_message* msg)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
 	return mmo_mail_tosql(db, (struct mail_message*)msg, false);
 }
 
+
+/// @protected
 static bool mail_db_sql_load(MailDB* self, struct mail_message* msg, const int mail_id)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
 	return mmo_mail_fromsql(db, msg, mail_id);
 }
 
+
+/// @protected
 static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int char_id)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
@@ -298,6 +319,7 @@ static bool mail_db_sql_loadall(MailDB* self, struct mail_data* md, const int ch
 
 
 /// Returns an iterator over all mails.
+/// @protected
 static CSDBIterator* mail_db_sql_iterator(MailDB* self)
 {
 	MailDB_SQL* db = (MailDB_SQL*)self;
@@ -305,7 +327,8 @@ static CSDBIterator* mail_db_sql_iterator(MailDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MailDB interface.
+/// @protected
 MailDB* mail_db_sql(CharServerDB_SQL* owner)
 {
 	MailDB_SQL* db = (MailDB_SQL*)aCalloc(1, sizeof(MailDB_SQL));

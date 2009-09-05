@@ -14,7 +14,8 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MemoDB_SQL
 {
 	// public interface
@@ -30,6 +31,7 @@ typedef struct MemoDB_SQL
 } MemoDB_SQL;
 
 
+/// @private
 static bool mmo_memolist_fromsql(MemoDB_SQL* db, memolist* list, int char_id)
 {
 	Sql* sql_handle = db->memos;
@@ -73,6 +75,7 @@ static bool mmo_memolist_fromsql(MemoDB_SQL* db, memolist* list, int char_id)
 }
 
 
+/// @private
 static bool mmo_memolist_tosql(MemoDB_SQL* db, const memolist* list, int char_id)
 {
 	Sql* sql_handle = db->memos;
@@ -126,6 +129,7 @@ static bool mmo_memolist_tosql(MemoDB_SQL* db, const memolist* list, int char_id
 }
 
 
+/// @protected
 static bool memo_db_sql_init(MemoDB* self)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -134,6 +138,7 @@ static bool memo_db_sql_init(MemoDB* self)
 }
 
 
+/// @protected
 static void memo_db_sql_destroy(MemoDB* self)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -142,12 +147,14 @@ static void memo_db_sql_destroy(MemoDB* self)
 }
 
 
+/// @protected
 static bool memo_db_sql_sync(MemoDB* self)
 {
 	return true;
 }
 
 
+/// @protected
 static bool memo_db_sql_remove(MemoDB* self, const int char_id)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -163,6 +170,7 @@ static bool memo_db_sql_remove(MemoDB* self, const int char_id)
 }
 
 
+/// @protected
 static bool memo_db_sql_save(MemoDB* self, const memolist* list, const int char_id)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -170,6 +178,7 @@ static bool memo_db_sql_save(MemoDB* self, const memolist* list, const int char_
 }
 
 
+/// @protected
 static bool memo_db_sql_load(MemoDB* self, memolist* list, const int char_id)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -178,6 +187,7 @@ static bool memo_db_sql_load(MemoDB* self, memolist* list, const int char_id)
 
 
 /// Returns an iterator over all memo lists.
+/// @protected
 static CSDBIterator* memo_db_sql_iterator(MemoDB* self)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)self;
@@ -185,7 +195,8 @@ static CSDBIterator* memo_db_sql_iterator(MemoDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MemoDB interface.
+/// @protected
 MemoDB* memo_db_sql(CharServerDB_SQL* owner)
 {
 	MemoDB_SQL* db = (MemoDB_SQL*)aCalloc(1, sizeof(MemoDB_SQL));

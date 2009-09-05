@@ -21,22 +21,26 @@
 #define START_MAIL_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MailDB_TXT
 {
-	MailDB vtable;             // public interface
+	// public interface
+	MailDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* mails;              // in-memory mail storage
-	int next_mail_id;          // auto_increment
+	DBMap* mails;
+	int next_mail_id;
 	bool dirty;
 
-	const char* mail_db;       // mail data storage file
+	// settings
+	const char* mail_db;
 
 } MailDB_TXT;
 
 
-
+/// @private
 static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int version)
 {
 	char* fields[32];
@@ -86,6 +90,7 @@ static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int v
 }
 
 
+/// @private
 static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
 {
 	char esc_title[MAIL_TITLE_LENGTH*2+1];
@@ -110,6 +115,7 @@ static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
 }
 
 
+/// @protected
 static bool mail_db_txt_init(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -177,6 +183,8 @@ static bool mail_db_txt_init(MailDB* self)
 	return true;
 }
 
+
+/// @protected
 static void mail_db_txt_destroy(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -193,6 +201,8 @@ static void mail_db_txt_destroy(MailDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool mail_db_txt_sync(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -228,6 +238,8 @@ static bool mail_db_txt_sync(MailDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_txt_create(MailDB* self, struct mail_message* msg)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -263,6 +275,8 @@ static bool mail_db_txt_create(MailDB* self, struct mail_message* msg)
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_txt_remove(MailDB* self, const int mail_id)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -275,6 +289,8 @@ static bool mail_db_txt_remove(MailDB* self, const int mail_id)
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_txt_save(MailDB* self, const struct mail_message* msg)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -296,6 +312,8 @@ static bool mail_db_txt_save(MailDB* self, const struct mail_message* msg)
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_txt_load(MailDB* self, struct mail_message* msg, const int mail_id)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -314,6 +332,8 @@ static bool mail_db_txt_load(MailDB* self, struct mail_message* msg, const int m
 	return true;
 }
 
+
+/// @protected
 static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int char_id)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -367,6 +387,7 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 
 
 /// Returns an iterator over all mails.
+/// @protected
 static CSDBIterator* mail_db_txt_iterator(MailDB* self)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
@@ -374,7 +395,8 @@ static CSDBIterator* mail_db_txt_iterator(MailDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MailDB interface.
+/// @protected
 MailDB* mail_db_txt(CharServerDB_TXT* owner)
 {
 	MailDB_TXT* db = (MailDB_TXT*)aCalloc(1, sizeof(MailDB_TXT));

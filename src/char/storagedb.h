@@ -4,8 +4,10 @@
 #ifndef _STORAGEDB_H_
 #define _STORAGEDB_H_
 
+
 #include "../common/mmo.h" // struct item
 #include "csdbiterator.h"
+
 
 typedef struct StorageDB StorageDB;
 

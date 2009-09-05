@@ -12,7 +12,8 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct QuestDB_SQL
 {
 	// public interface
@@ -28,7 +29,7 @@ typedef struct QuestDB_SQL
 } QuestDB_SQL;
 
 
-
+/// @private
 static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int* const count)
 {
 	Sql* sql_handle = db->quests;
@@ -89,6 +90,7 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 }
 
 
+/// @private
 static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
 {
 	Sql* sql_handle = db->owner->sql_handle;
@@ -163,6 +165,7 @@ static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
 }
 
 
+/// @protected
 static bool quest_db_sql_init(QuestDB* self)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -171,6 +174,7 @@ static bool quest_db_sql_init(QuestDB* self)
 }
 
 
+/// @protected
 static void quest_db_sql_destroy(QuestDB* self)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -179,12 +183,14 @@ static void quest_db_sql_destroy(QuestDB* self)
 }
 
 
+/// @protected
 static bool quest_db_sql_sync(QuestDB* self)
 {
 	return true;
 }
 
 
+/// @protected
 static bool quest_db_sql_remove(QuestDB* self, const int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -202,6 +208,7 @@ static bool quest_db_sql_remove(QuestDB* self, const int char_id)
 }
 
 
+/// @protected
 static bool quest_db_sql_add(QuestDB* self, const struct quest* qd, const int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -220,6 +227,7 @@ static bool quest_db_sql_add(QuestDB* self, const struct quest* qd, const int ch
 }
 
 
+/// @protected
 static bool quest_db_sql_update(QuestDB* self, const struct quest* qd, const int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -238,6 +246,7 @@ static bool quest_db_sql_update(QuestDB* self, const struct quest* qd, const int
 }
 
 
+/// @protected
 static bool quest_db_sql_del(QuestDB* self, const int char_id, const int quest_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -256,6 +265,7 @@ static bool quest_db_sql_del(QuestDB* self, const int char_id, const int quest_i
 }
 
 
+/// @protected
 static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* const count)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -263,6 +273,7 @@ static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* co
 }
 
 
+/// @protected
 static bool quest_db_sql_save(QuestDB* self, questlog* log, int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -271,6 +282,7 @@ static bool quest_db_sql_save(QuestDB* self, questlog* log, int char_id)
 
 
 /// Returns an iterator over all quest entries.
+/// @protected
 static CSDBIterator* quest_db_sql_iterator(QuestDB* self)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
@@ -278,7 +290,8 @@ static CSDBIterator* quest_db_sql_iterator(QuestDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new QuestDB interface.
+/// @protected
 QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)aCalloc(1, sizeof(QuestDB_SQL));

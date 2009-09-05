@@ -12,7 +12,7 @@
 #include <string.h> // strcmpi()
 
 
-/// internal structure
+/// Internal structure.
 typedef struct OnlineDB_SQL
 {
 	// public interface
@@ -33,6 +33,7 @@ typedef struct OnlineDB_SQL
 } OnlineDB_SQL;
 
 
+/// @protected
 static bool online_db_sql_init(OnlineDB* self)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
@@ -54,6 +55,7 @@ static bool online_db_sql_init(OnlineDB* self)
 }
 
 
+/// @protected
 static void online_db_sql_destroy(OnlineDB* self)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
@@ -62,12 +64,14 @@ static void online_db_sql_destroy(OnlineDB* self)
 }
 
 
+/// @protected
 static bool online_db_sql_sync(OnlineDB* self)
 {
 	return true;
 }
 
 
+/// @protected
 static bool online_db_sql_get_property(OnlineDB* self, const char* key, char* buf, size_t buflen)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
@@ -81,6 +85,7 @@ static bool online_db_sql_get_property(OnlineDB* self, const char* key, char* bu
 }
 
 
+/// @protected
 static bool online_db_sql_set_property(OnlineDB* self, const char* key, const char* value)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
@@ -109,7 +114,8 @@ static bool online_db_sql_set_property(OnlineDB* self, const char* key, const ch
 }
 
 
-bool online_db_sql_set_online(OnlineDB* self, int account_id, int char_id)
+/// @protected
+static bool online_db_sql_set_online(OnlineDB* self, int account_id, int char_id)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
 
@@ -123,7 +129,8 @@ bool online_db_sql_set_online(OnlineDB* self, int account_id, int char_id)
 }
 
 
-bool online_db_sql_set_offline(OnlineDB* self, int account_id, int char_id)
+/// @protected
+static bool online_db_sql_set_offline(OnlineDB* self, int account_id, int char_id)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)self;
 
@@ -157,7 +164,8 @@ bool online_db_sql_set_offline(OnlineDB* self, int account_id, int char_id)
 }
 
 
-/// public constructor
+/// Constructs a new OnlineDB interface.
+/// @protected
 OnlineDB* online_db_sql(void)
 {
 	OnlineDB_SQL* db = (OnlineDB_SQL*)aCalloc(1, sizeof(OnlineDB_SQL));

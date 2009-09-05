@@ -4,8 +4,10 @@
 #ifndef _HOTKEYDB_H_
 #define _HOTKEYDB_H_
 
+
 #include "../common/mmo.h" // struct hotkey, MAX_HOTKEYS
 #include "csdbiterator.h"
+
 
 typedef struct HotkeyDB HotkeyDB;
 typedef struct hotkey hotkeylist[MAX_HOTKEYS];

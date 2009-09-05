@@ -14,35 +14,38 @@
 #include "char.h"
 #include "inter.h"
 #include "charserverdb_txt.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 
 /// global defines
 #define CHARDB_TXT_DB_VERSION 20090825
 #define START_CHAR_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CharDB_TXT
 {
-	CharDB vtable;       // public interface
+	// public interface
+	CharDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* chars;        // in-memory character storage
-	int next_char_id;    // auto_increment
+	DBMap* chars;
+	int next_char_id;
 	bool dirty;
 
-	const char* char_db; // character data storage file
-	bool case_sensitive; // how to look up usernames
+	// settings
+	const char* char_db;
+	bool case_sensitive;
 
 } CharDB_TXT;
 
 
-//-------------------------------------------------------------------------
-// Function to set the character from the line (at read of characters file)
-//-------------------------------------------------------------------------
+/// Function to set the character from the line (at read of characters file).
+/// @private
 static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, unsigned int version)
 {
 	const char* p = str;
@@ -134,9 +137,8 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 }
 
 
-//-------------------------------------------------
-// Function to create the character line (for save)
-//-------------------------------------------------
+/// Function to create the character line (for save)
+/// @private
 static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
 {
 	char esc_name[4*NAME_LENGTH+1];
@@ -209,6 +211,7 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
 }
 
 
+/// @protected
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -287,6 +290,8 @@ static bool char_db_txt_init(CharDB* self)
 	return true;
 }
 
+
+/// @protected
 static void char_db_txt_destroy(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -303,7 +308,9 @@ static void char_db_txt_destroy(CharDB* self)
 	aFree(db);
 }
 
+
 /// Dumps the entire char db (+ associated data) to disk
+/// @protected
 static bool char_db_txt_sync(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -340,6 +347,8 @@ static bool char_db_txt_sync(CharDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -375,6 +384,8 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_remove(CharDB* self, const int char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -387,6 +398,8 @@ static bool char_db_txt_remove(CharDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -408,6 +421,8 @@ static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -427,6 +442,8 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
 {
 //	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -442,6 +459,8 @@ static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	return self->load_num(self, ch, char_id);
 }
 
+
+/// @protected
 static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
 {
 //	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -457,6 +476,8 @@ static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 	return self->load_num(self, ch, char_id);
 }
 
+
+/// @protected
 static bool char_db_txt_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -475,6 +496,8 @@ static bool char_db_txt_id2name(CharDB* self, int char_id, char* name, size_t si
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -503,6 +526,8 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, int* char_id, in
 	return true;
 }
 
+
+/// @protected
 static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -530,6 +555,7 @@ static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* cha
 
 
 /// Returns an iterator over all the characters.
+/// @protected
 static CSDBIterator* char_db_txt_iterator(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -538,6 +564,7 @@ static CSDBIterator* char_db_txt_iterator(CharDB* self)
 
 
 /// internal structure
+/// @private
 typedef struct CharDBIterator_TXT
 {
 	CSDBIterator vtable;      // public interface
@@ -549,6 +576,7 @@ typedef struct CharDBIterator_TXT
 
 
 /// Destroys this iterator, releasing all allocated memory (including itself).
+/// @protected
 static void char_db_txt_iter_destroy(CSDBIterator* self)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
@@ -558,6 +586,7 @@ static void char_db_txt_iter_destroy(CSDBIterator* self)
 
 
 /// Fetches the next character.
+/// @protected
 static bool char_db_txt_iter_next(CSDBIterator* self, int* key)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
@@ -580,6 +609,7 @@ static bool char_db_txt_iter_next(CSDBIterator* self, int* key)
 
 
 /// Returns an iterator over all the characters of the account.
+/// @protected
 static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
@@ -598,7 +628,8 @@ static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 }
 
 
-/// public constructor
+/// Constructs a new CharDB interface.
+/// @protected
 CharDB* char_db_txt(CharServerDB_TXT* owner)
 {
 	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));

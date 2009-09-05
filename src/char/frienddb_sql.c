@@ -12,22 +12,25 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct FriendDB_SQL
 {
-	FriendDB vtable;    // public interface
+	// public interface
+	FriendDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* friends;       // SQL friend storage
+	Sql* friends;
 
-	// other settings
+	// settings
 	const char* friend_db;
 	const char* char_db;
 
 } FriendDB_SQL;
 
 
-
+/// @private
 static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_id)
 {
 	Sql* sql_handle = db->friends;
@@ -67,6 +70,7 @@ static bool mmo_friendlist_fromsql(FriendDB_SQL* db, friendlist* list, int char_
 }
 
 
+/// @private
 static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int char_id)
 {
 	Sql* sql_handle = db->friends;
@@ -133,6 +137,7 @@ static bool mmo_friendlist_tosql(FriendDB_SQL* db, const friendlist* list, int c
 }
 
 
+/// @protected
 static bool friend_db_sql_init(FriendDB* self)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
@@ -140,6 +145,8 @@ static bool friend_db_sql_init(FriendDB* self)
 	return true;
 }
 
+
+/// @protected
 static void friend_db_sql_destroy(FriendDB* self)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
@@ -147,11 +154,15 @@ static void friend_db_sql_destroy(FriendDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool friend_db_sql_sync(FriendDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool friend_db_sql_remove(FriendDB* self, const int char_id)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
@@ -183,12 +194,16 @@ static bool friend_db_sql_remove(FriendDB* self, const int char_id)
 	return result;
 }
 
+
+/// @protected
 static bool friend_db_sql_save(FriendDB* self, const friendlist* list, const int char_id)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
 	return mmo_friendlist_tosql(db, list, char_id);
 }
 
+
+/// @protected
 static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_id)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
@@ -197,6 +212,7 @@ static bool friend_db_sql_load(FriendDB* self, friendlist* list, const int char_
 
 
 /// Returns an iterator over all friend lists.
+/// @protected
 static CSDBIterator* friend_db_sql_iterator(FriendDB* self)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)self;
@@ -204,7 +220,8 @@ static CSDBIterator* friend_db_sql_iterator(FriendDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new FriendDB interface.
+/// @protected
 FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 {
 	FriendDB_SQL* db = (FriendDB_SQL*)aCalloc(1, sizeof(FriendDB_SQL));

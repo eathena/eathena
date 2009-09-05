@@ -4,8 +4,10 @@
 #ifndef _HOMUNDB_H_
 #define _HOMUNDB_H_
 
+
 #include "../common/mmo.h" // struct s_homunculus
 #include "csdbiterator.h"
+
 
 typedef struct HomunDB HomunDB;
 

@@ -6,7 +6,8 @@
 #include "csdbiterator.h"
 
 
-/// generic txt db iterator
+/// Internal structure.
+/// @private
 typedef struct CSDBIterator_TXT
 {
 	CSDBIterator vtable;
@@ -17,6 +18,7 @@ CSDBIterator_TXT;
 
 
 /// Destroys this iterator, releasing all allocated memory (including itself).
+/// @protected
 static void csdb_txt_iter_destroy(CSDBIterator* self)
 {
 	CSDBIterator_TXT* iter = (CSDBIterator_TXT*)self;
@@ -26,6 +28,7 @@ static void csdb_txt_iter_destroy(CSDBIterator* self)
 
 
 /// Fetches the next entry's key.
+/// @protected
 static bool csdb_txt_iter_next(CSDBIterator* self, int* key)
 {
 	CSDBIterator_TXT* iter = (CSDBIterator_TXT*)self;
@@ -43,7 +46,8 @@ static bool csdb_txt_iter_next(CSDBIterator* self, int* key)
 }
 
 
-/// generic txt db iterator constructor
+/// Constructs a new CSDBIterator interface.
+/// @protected
 CSDBIterator* csdb_txt_iterator(DBIterator* db_iterator)
 {
 	struct CSDBIterator_TXT* iter = (CSDBIterator_TXT*)aCalloc(1, sizeof(CSDBIterator_TXT));

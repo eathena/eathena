@@ -13,26 +13,32 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define START_GUILD_NUM 1
 
-/// internal structure
+
+/// Internal structure.
+/// @private
 typedef struct GuildDB_TXT
 {
-	GuildDB vtable;      // public interface
+	// public interface
+	GuildDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* guilds;       // in-memory guild storage
-	int next_guild_id;   // auto_increment
+	DBMap* guilds;
+	int next_guild_id;
 	bool dirty;
 
+	// settings
 	bool case_sensitive;
-	const char* guild_db; // guild data storage file
+	const char* guild_db;
 
 } GuildDB_TXT;
 
 
-
 /// parses the guild data string into a guild data structure
+/// @private
 static bool mmo_guild_fromstr(struct guild* g, char* str)
 {
 	int i, c;
@@ -233,6 +239,7 @@ static bool mmo_guild_fromstr(struct guild* g, char* str)
 
 
 /// serializes the guild data structure into the provided string
+/// @private
 static bool mmo_guild_tostr(const struct guild* g, char* str)
 {
 	int i, c;
@@ -305,6 +312,7 @@ static bool mmo_guild_tostr(const struct guild* g, char* str)
 }
 
 
+/// @protected
 static bool guild_db_txt_init(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -362,6 +370,8 @@ static bool guild_db_txt_init(GuildDB* self)
 	return true;
 }
 
+
+/// @protected
 static void guild_db_txt_destroy(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -378,6 +388,8 @@ static void guild_db_txt_destroy(GuildDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool guild_db_txt_sync(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -409,6 +421,8 @@ static bool guild_db_txt_sync(GuildDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -444,6 +458,8 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -469,6 +485,8 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -490,6 +508,8 @@ static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_s
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_txt_load(GuildDB* self, struct guild* g, int guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -508,6 +528,8 @@ static bool guild_db_txt_load(GuildDB* self, struct guild* g, int guild_id)
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -538,6 +560,7 @@ static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 
 
 /// Returns an iterator over all guilds.
+/// @protected
 static CSDBIterator* guild_db_txt_iterator(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
@@ -545,7 +568,8 @@ static CSDBIterator* guild_db_txt_iterator(GuildDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new GuildDB interface.
+/// @protected
 GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)aCalloc(1, sizeof(GuildDB_TXT));

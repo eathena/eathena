@@ -13,21 +13,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct HotkeyDB_SQL
 {
-	HotkeyDB vtable;    // public interface
+	// public interface
+	HotkeyDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* hotkeys;       // SQL hotkey storage
+	Sql* hotkeys;
 
-	// other settings
+	// settings
 	const char* hotkey_db;
 
 } HotkeyDB_SQL;
 
 
-
+/// @private
 static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_id)
 {
 	Sql* sql_handle = db->hotkeys;
@@ -73,6 +76,7 @@ static bool mmo_hotkeylist_fromsql(HotkeyDB_SQL* db, hotkeylist* list, int char_
 }
 
 
+/// @private
 static bool mmo_hotkeylist_tosql(HotkeyDB_SQL* db, const hotkeylist* list, int char_id)
 {
 	Sql* sql_handle = db->hotkeys;
@@ -115,6 +119,7 @@ static bool mmo_hotkeylist_tosql(HotkeyDB_SQL* db, const hotkeylist* list, int c
 }
 
 
+/// @protected
 static bool hotkey_db_sql_init(HotkeyDB* self)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
@@ -122,6 +127,8 @@ static bool hotkey_db_sql_init(HotkeyDB* self)
 	return true;
 }
 
+
+/// @protected
 static void hotkey_db_sql_destroy(HotkeyDB* self)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
@@ -129,11 +136,15 @@ static void hotkey_db_sql_destroy(HotkeyDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool hotkey_db_sql_sync(HotkeyDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool hotkey_db_sql_remove(HotkeyDB* self, const int char_id)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
@@ -148,12 +159,16 @@ static bool hotkey_db_sql_remove(HotkeyDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool hotkey_db_sql_save(HotkeyDB* self, const hotkeylist* list, const int char_id)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
 	return mmo_hotkeylist_tosql(db, list, char_id);
 }
 
+
+/// @protected
 static bool hotkey_db_sql_load(HotkeyDB* self, hotkeylist* list, const int char_id)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
@@ -162,6 +177,7 @@ static bool hotkey_db_sql_load(HotkeyDB* self, hotkeylist* list, const int char_
 
 
 /// Returns an iterator over all hotkey lists.
+/// @protected
 static CSDBIterator* hotkey_db_sql_iterator(HotkeyDB* self)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)self;
@@ -169,7 +185,8 @@ static CSDBIterator* hotkey_db_sql_iterator(HotkeyDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new HotkeyDB interface.
+/// @protected
 HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 {
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)aCalloc(1, sizeof(HotkeyDB_SQL));

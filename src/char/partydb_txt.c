@@ -13,26 +13,31 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define START_PARTY_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct PartyDB_TXT
 {
-	PartyDB vtable;      // public interface
+	// public interface
+	PartyDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* parties;      // in-memory party storage
-	int next_party_id;   // auto_increment
+	DBMap* parties;
+	int next_party_id;
 	bool dirty;
 
+	// settings
 	bool case_sensitive;
-	const char* party_db; // party data storage file
+	const char* party_db;
 
 } PartyDB_TXT;
 
 
-
+/// @private
 static bool mmo_party_fromstr(struct party* p, char* str)
 {
 	int i, j;
@@ -78,6 +83,7 @@ static bool mmo_party_fromstr(struct party* p, char* str)
 }
 
 
+/// @private
 static bool mmo_party_tostr(const struct party* p, char* str)
 {
 	int i, len;
@@ -96,6 +102,7 @@ static bool mmo_party_tostr(const struct party* p, char* str)
 }
 
 
+/// @protected
 static bool party_db_txt_init(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -155,6 +162,8 @@ static bool party_db_txt_init(PartyDB* self)
 	return true;
 }
 
+
+/// @protected
 static void party_db_txt_destroy(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -171,6 +180,8 @@ static void party_db_txt_destroy(PartyDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool party_db_txt_sync(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -202,6 +213,8 @@ static bool party_db_txt_sync(PartyDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool party_db_txt_create(PartyDB* self, struct party_data* p)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -237,6 +250,8 @@ static bool party_db_txt_create(PartyDB* self, struct party_data* p)
 	return true;
 }
 
+
+/// @protected
 static bool party_db_txt_remove(PartyDB* self, const int party_id)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -249,6 +264,8 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id)
 	return true;
 }
 
+
+/// @protected
 static bool party_db_txt_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -270,6 +287,8 @@ static bool party_db_txt_save(PartyDB* self, const struct party_data* p, enum pa
 	return true;
 }
 
+
+/// @protected
 static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -288,6 +307,8 @@ static bool party_db_txt_load(PartyDB* self, struct party_data* p, int party_id)
 	return true;
 }
 
+
+/// @protected
 static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -318,6 +339,7 @@ static bool party_db_txt_name2id(PartyDB* self, int* party_id, const char* name)
 
 
 /// Returns an iterator over all parties.
+/// @protected
 static CSDBIterator* party_db_txt_iterator(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
@@ -325,7 +347,8 @@ static CSDBIterator* party_db_txt_iterator(PartyDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new PartyDB interface.
+/// @protected
 PartyDB* party_db_txt(CharServerDB_TXT* owner)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));

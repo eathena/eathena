@@ -13,15 +13,18 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct PartyDB_SQL
 {
-	PartyDB vtable;    // public interface
+	// public interface
+	PartyDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* parties;      // SQL party storage
+	Sql* parties;
 
-	// other settings
+	// settings
 	bool case_sensitive;
 	const char* char_db;
 	const char* party_db;
@@ -29,7 +32,7 @@ typedef struct PartyDB_SQL
 } PartyDB_SQL;
 
 
-
+/// @private
 static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 {
 	Sql* sql_handle = db->parties;
@@ -86,6 +89,7 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 }
 
 
+/// @private
 static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_flags flag, int index)
 {
 	Sql* sql_handle = db->parties;
@@ -194,6 +198,7 @@ static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_fl
 }
 
 
+/// @protected
 static bool party_db_sql_init(PartyDB* self)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -201,6 +206,8 @@ static bool party_db_sql_init(PartyDB* self)
 	return true;
 }
 
+
+/// @protected
 static void party_db_sql_destroy(PartyDB* self)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -208,17 +215,23 @@ static void party_db_sql_destroy(PartyDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool party_db_sql_sync(PartyDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool party_db_sql_create(PartyDB* self, struct party_data* p)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	return mmo_party_tosql(db, &p->party, PS_CREATE|PS_ADDMEMBER, 0);
 }
 
+
+/// @protected
 static bool party_db_sql_remove(PartyDB* self, const int party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -258,12 +271,16 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id)
 	return result;
 }
 
+
+/// @protected
 static bool party_db_sql_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	return mmo_party_tosql(db, (struct party*)&p->party, flag, index);
 }
 
+
+/// @protected
 static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -274,6 +291,8 @@ static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
 	return true;
 }
 
+
+/// @protected
 static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -314,6 +333,7 @@ static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name)
 
 
 /// Returns an iterator over all parties.
+/// @protected
 static CSDBIterator* party_db_sql_iterator(PartyDB* self)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
@@ -321,7 +341,8 @@ static CSDBIterator* party_db_sql_iterator(PartyDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new PartyDB interface.
+/// @protected
 PartyDB* party_db_sql(CharServerDB_SQL* owner)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)aCalloc(1, sizeof(PartyDB_SQL));

@@ -18,20 +18,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CharRegDB_SQL
 {
-	CharRegDB vtable;        // public interface
+	// public interface
+	CharRegDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* charregs;           // SQL charreg storage
+	Sql* charregs;
 	
-	// other settings
+	// settings
 	const char* charreg_db;
 
 } CharRegDB_SQL;
 
 
+/// @private
 static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id)
 {
 	Sql* sql_handle = db->charregs;
@@ -62,6 +66,7 @@ static bool mmo_charreg_fromsql(CharRegDB_SQL* db, struct regs* reg, int char_id
 }
 
 
+/// @private
 static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int char_id)
 {
 	Sql* sql_handle = db->charregs;
@@ -147,6 +152,7 @@ static bool mmo_charreg_tosql(CharRegDB_SQL* db, const struct regs* reg, int cha
 }
 
 
+/// @protected
 static bool charreg_db_sql_init(CharRegDB* self)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
@@ -154,6 +160,8 @@ static bool charreg_db_sql_init(CharRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static void charreg_db_sql_destroy(CharRegDB* self)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
@@ -161,12 +169,16 @@ static void charreg_db_sql_destroy(CharRegDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool charreg_db_sql_sync(CharRegDB* self)
 {
 	// not applicable
 	return true;
 }
 
+
+/// @protected
 static bool charreg_db_sql_remove(CharRegDB* self, const int char_id)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
@@ -181,12 +193,16 @@ static bool charreg_db_sql_remove(CharRegDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool charreg_db_sql_save(CharRegDB* self, const struct regs* reg, int char_id)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
 	return mmo_charreg_tosql(db, reg, char_id);
 }
 
+
+/// @protected
 static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
@@ -195,6 +211,7 @@ static bool charreg_db_sql_load(CharRegDB* self, struct regs* reg, int char_id)
 
 
 /// Returns an iterator over all character regs.
+/// @protected
 static CSDBIterator* charreg_db_sql_iterator(CharRegDB* self)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)self;
@@ -202,7 +219,8 @@ static CSDBIterator* charreg_db_sql_iterator(CharRegDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new CharRegDB interface.
+/// @protected
 CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 {
 	CharRegDB_SQL* db = (CharRegDB_SQL*)aCalloc(1, sizeof(CharRegDB_SQL));

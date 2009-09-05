@@ -16,27 +16,33 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct FriendDB_TXT
 {
-	FriendDB vtable;      // public interface
+	// public interface
+	FriendDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* friends;       // in-memory friend storage
+	DBMap* friends;
 	bool dirty;
 
-	const char* friend_db; // friend data storage file
+	// settings
+	const char* friend_db;
 
 } FriendDB_TXT;
 
 
 
+/// @private
 static void* create_friendlist(DBKey key, va_list args)
 {
 	return (friendlist*)aMalloc(sizeof(friendlist));
 }
 
 
+/// @private
 static bool mmo_friendlist_fromstr(friendlist* list, char* str)
 {
 	const char* p = str;
@@ -65,6 +71,7 @@ static bool mmo_friendlist_fromstr(friendlist* list, char* str)
 }
 
 
+/// @private
 static bool mmo_friendlist_tostr(const friendlist* list, char* str)
 {
 	int i;
@@ -80,6 +87,7 @@ static bool mmo_friendlist_tostr(const friendlist* list, char* str)
 }
 
 
+/// @protected
 static bool friend_db_txt_init(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -136,6 +144,8 @@ static bool friend_db_txt_init(FriendDB* self)
 	return true;
 }
 
+
+/// @protected
 static void friend_db_txt_destroy(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -149,6 +159,8 @@ static void friend_db_txt_destroy(FriendDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool friend_db_txt_sync(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -183,6 +195,8 @@ static bool friend_db_txt_sync(FriendDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool friend_db_txt_remove(FriendDB* self, const int char_id)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -195,6 +209,8 @@ static bool friend_db_txt_remove(FriendDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool friend_db_txt_save(FriendDB* self, const friendlist* list, const int char_id)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -215,6 +231,8 @@ static bool friend_db_txt_save(FriendDB* self, const friendlist* list, const int
 	return true;
 }
 
+
+/// @protected
 static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_id)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -236,6 +254,7 @@ static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_
 
 
 /// Returns an iterator over all friend lists.
+/// @protected
 static CSDBIterator* friend_db_txt_iterator(FriendDB* self)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
@@ -243,7 +262,8 @@ static CSDBIterator* friend_db_txt_iterator(FriendDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new FriendDB interface.
+/// @protected
 FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)aCalloc(1, sizeof(FriendDB_TXT));

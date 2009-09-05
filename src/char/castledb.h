@@ -4,8 +4,10 @@
 #ifndef _CASTLEDB_H_
 #define _CASTLEDB_H_
 
+
 #include "../common/mmo.h" // struct guild_castle
 #include "csdbiterator.h"
+
 
 typedef struct CastleDB CastleDB;
 

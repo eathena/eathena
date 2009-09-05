@@ -20,7 +20,8 @@
 #define STORAGEDB_TXT_DB_VERSION 20090825
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct StorageDB_TXT
 {
 	// public interface
@@ -43,6 +44,7 @@ typedef struct StorageDB_TXT
 } StorageDB_TXT;
 
 
+/// @private
 static DBMap* type2db(StorageDB_TXT* db, enum storage_type type)
 {
 	switch( type )
@@ -57,6 +59,7 @@ static DBMap* type2db(StorageDB_TXT* db, enum storage_type type)
 }
 
 
+/// @private
 static const char* type2file(StorageDB_TXT* db, enum storage_type type)
 {
 	switch( type )
@@ -71,6 +74,7 @@ static const char* type2file(StorageDB_TXT* db, enum storage_type type)
 }
 
 
+/// @private
 static bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 {
 	const char* p = str;
@@ -127,6 +131,7 @@ static bool mmo_storage_fromstr(struct item* s, size_t size, const char* str)
 }
 
 
+/// @private
 static bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 {
 	char* p = str;
@@ -162,6 +167,7 @@ static bool mmo_storage_tostr(const struct item* s, size_t size, char* str)
 /// <id>,<count> \tab {<id>,<nameid>,<amount>,<equip>,<identify>,<refine>,<attribute> \space}*
 /// @see mmo_storage_tostr
 /// @param size Maximum number of entries to load
+/// @protected
 static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t size)
 {
 	DBMap* storages = type2db(db, type);
@@ -229,6 +235,7 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 }
 
 
+/// @protected
 static bool mmo_storagedb_sync(StorageDB_TXT* db, enum storage_type type)
 {
 	DBMap* storages = type2db(db, type);
@@ -269,6 +276,7 @@ static bool mmo_storagedb_sync(StorageDB_TXT* db, enum storage_type type)
 }
 
 
+/// @protected
 static bool storage_db_txt_init(StorageDB* self)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -298,6 +306,7 @@ static bool storage_db_txt_init(StorageDB* self)
 }
 
 
+/// @protected
 static void storage_db_txt_destroy(StorageDB* self)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -329,6 +338,7 @@ static void storage_db_txt_destroy(StorageDB* self)
 }
 
 
+/// @protected
 static bool storage_db_txt_sync(StorageDB* self)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -347,6 +357,7 @@ static bool storage_db_txt_sync(StorageDB* self)
 }
 
 
+/// @protected
 static bool storage_db_txt_remove(StorageDB* self, enum storage_type type, const int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -362,6 +373,7 @@ static bool storage_db_txt_remove(StorageDB* self, enum storage_type type, const
 
 /// Writes provided data into storage cache.
 /// If data contains 0 items, any existing entry in cache is destroyed instead.
+/// @protected
 static bool storage_db_txt_save(StorageDB* self, const struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -406,6 +418,7 @@ static bool storage_db_txt_save(StorageDB* self, const struct item* s, size_t si
 
 /// Loads storage data into the provided data structure.
 /// If data doesn't exist, the destination is zeroed instead.
+/// @protected
 static bool storage_db_txt_load(StorageDB* self, struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -427,6 +440,7 @@ static bool storage_db_txt_load(StorageDB* self, struct item* s, size_t size, en
 
 
 /// Returns an iterator over all storages.
+/// @protected
 static CSDBIterator* storage_db_txt_iterator(StorageDB* self, enum storage_type type)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
@@ -434,7 +448,8 @@ static CSDBIterator* storage_db_txt_iterator(StorageDB* self, enum storage_type 
 }
 
 
-/// public constructor
+/// Constructs a new StorageDB interface.
+/// @protected
 StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)aCalloc(1, sizeof(StorageDB_TXT));

@@ -4,8 +4,10 @@
 #ifndef _CHARDB_H_
 #define _CHARDB_H_
 
+
 #include "../common/mmo.h" // struct mmo_charstatus, NAME_LENGTH
 #include "csdbiterator.h"
+
 
 typedef struct CharDB CharDB;
 

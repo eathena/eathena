@@ -4,8 +4,10 @@
 #ifndef _ACCREGDB_H_
 #define _ACCREGDB_H_
 
+
 #include "../common/mmo.h" // struct regs
 #include "csdbiterator.h"
+
 
 typedef struct AccRegDB AccRegDB;
 

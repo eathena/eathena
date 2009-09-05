@@ -14,7 +14,6 @@
 #include "char.h"
 #include "inter.h"
 #include "charserverdb_sql.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,15 +23,18 @@
 #define CHARDBITERATOR_MAXCACHE 16000
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CharDB_SQL
 {
-	CharDB vtable;    // public interface
+	// public interface
+	CharDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* chars;       // SQL character storage
+	Sql* chars;
 
-	// other settings
+	// settings
 	bool case_sensitive;
 	const char* char_db;
 	const char* mercenary_owner_db;
@@ -40,6 +42,7 @@ typedef struct CharDB_SQL
 } CharDB_SQL;
 
 
+/// @private
 static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_id, bool load_everything)
 {
 	Sql* sql_handle = db->chars;
@@ -167,6 +170,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 }
 
 
+/// @private
 static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new)
 {
 	Sql* sql_handle = db->chars;
@@ -319,6 +323,7 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 }
 
 
+/// @protected
 static bool char_db_sql_init(CharDB* self)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -326,6 +331,8 @@ static bool char_db_sql_init(CharDB* self)
 	return true;
 }
 
+
+/// @protected
 static void char_db_sql_destroy(CharDB* self)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -333,17 +340,23 @@ static void char_db_sql_destroy(CharDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool char_db_sql_sync(CharDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	return mmo_char_tosql(db, cd, true);
 }
 
+
+/// @protected
 static bool char_db_sql_remove(CharDB* self, const int char_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -383,18 +396,24 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 	return result;
 }
 
+
+/// @protected
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	return mmo_char_tosql(db, (struct mmo_charstatus*)ch, false);
 }
 
+
+/// @protected
 static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	return mmo_char_fromsql(db, ch, char_id, true);
 }
 
+
+/// @protected
 static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
 {
 //	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -410,6 +429,8 @@ static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	return self->load_num(self, ch, char_id);
 }
 
+
+/// @protected
 static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
 {
 //	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -425,6 +446,8 @@ static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int a
 	return self->load_num(self, ch, char_id);
 }
 
+
+/// @protected
 static bool char_db_sql_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -446,6 +469,8 @@ static bool char_db_sql_id2name(CharDB* self, int char_id, char* name, size_t si
 	return true;
 }
 
+
+/// @protected
 static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -483,6 +508,8 @@ static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, in
 	return true;
 }
 
+
+/// @protected
 static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -520,6 +547,7 @@ static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* cha
 
 
 /// Returns an iterator over all the characters.
+/// @protected
 static CSDBIterator* char_db_sql_iterator(CharDB* self)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -529,6 +557,7 @@ static CSDBIterator* char_db_sql_iterator(CharDB* self)
 
 
 /// internal structure
+/// @private
 typedef struct CharDBIterator_SQL
 {
 	CSDBIterator vtable;    // public interface
@@ -542,6 +571,7 @@ typedef struct CharDBIterator_SQL
 
 
 /// Destroys this iterator, releasing all allocated memory (including itself).
+/// @protected
 static void char_db_sql_iter_destroy(CSDBIterator* self)
 {
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
@@ -550,7 +580,9 @@ static void char_db_sql_iter_destroy(CSDBIterator* self)
 	aFree(iter);
 }
 
+
 /// Fetches the next character.
+/// @protected
 static bool char_db_sql_iter_next(CSDBIterator* self, int* key)
 {
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
@@ -566,7 +598,9 @@ static bool char_db_sql_iter_next(CSDBIterator* self, int* key)
 	return true;
 }
 
+
 /// Returns an iterator over all the characters of the account.
+/// @protected
 static CSDBIterator* char_db_sql_characters(CharDB* self, int account_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -618,7 +652,8 @@ static CSDBIterator* char_db_sql_characters(CharDB* self, int account_id)
 }
 
 
-/// public constructor
+/// Constructs a new CharDB interface.
+/// @protected
 CharDB* char_db_sql(CharServerDB_SQL* owner)
 {
 	CharDB_SQL* db = (CharDB_SQL*)aCalloc(1, sizeof(CharDB_SQL));
@@ -650,4 +685,3 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 
 	return &db->vtable;
 }
-

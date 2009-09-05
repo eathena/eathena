@@ -4,8 +4,10 @@
 #ifndef _CHARREGDB_H_
 #define _CHARREGDB_H_
 
+
 #include "../common/mmo.h" // struct regs
 #include "csdbiterator.h"
+
 
 typedef struct CharRegDB CharRegDB;
 

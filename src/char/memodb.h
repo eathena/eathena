@@ -4,8 +4,10 @@
 #ifndef _MEMODB_H_
 #define _MEMODB_H_
 
+
 #include "../common/mmo.h" // struct point, MAX_MEMOPOINTS
 #include "csdbiterator.h"
+
 
 typedef struct MemoDB MemoDB;
 typedef struct point memolist[MAX_MEMOPOINTS];

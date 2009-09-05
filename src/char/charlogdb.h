@@ -4,8 +4,10 @@
 #ifndef __CHARLOGDB_H_INCLUDED__
 #define __CHARLOGDB_H_INCLUDED__
 
+
 #include "../common/cbasetypes.h"
 #include <stdarg.h>
+
 
 typedef struct CharLogDB CharLogDB;
 

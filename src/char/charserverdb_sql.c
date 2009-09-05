@@ -5,7 +5,6 @@
 #include "../common/malloc.h"
 #include "../common/strlib.h"
 #include "charserverdb_sql.h"
-
 #include <string.h>
 #include <stdlib.h>
 
@@ -32,8 +31,8 @@ extern StatusDB* status_db_sql(CharServerDB_SQL* owner);
 extern StorageDB* storage_db_sql(CharServerDB_SQL* owner);
 
 
-
 /// Initializes this database engine, making it ready for use.
+/// @protected
 static bool charserver_db_sql_init(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -94,8 +93,8 @@ static bool charserver_db_sql_init(CharServerDB* self)
 }
 
 
-
 /// Destroys this database engine, releasing all allocated memory (including itself).
+/// @protected
 static void charserver_db_sql_destroy(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -145,17 +144,17 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 }
 
 
-
 /// Writes pending data to permanent storage.
 /// If force is true, writes all cached data even if unchanged.
+/// @protected
 static bool charserver_db_sql_sync(CharServerDB* self, bool force)
 {
 	return true; //not needed for this engine
 }
 
 
-
 /// Gets a property from this database engine.
+/// @protected
 static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -296,8 +295,8 @@ static bool charserver_db_sql_get_property(CharServerDB* self, const char* key, 
 }
 
 
-
 /// Sets a property in this database engine.
+/// @protected
 static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, const char* value)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
@@ -421,7 +420,6 @@ static bool charserver_db_sql_set_property(CharServerDB* self, const char* key, 
 }
 
 
-
 // Accessors for the various DB interfaces.
 static AccRegDB*       charserver_db_sql_accregdb      (CharServerDB* self) { return ((CharServerDB_SQL*)self)->accregdb;       }
 static AuctionDB*      charserver_db_sql_auctiondb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->auctiondb;      }
@@ -444,8 +442,8 @@ static StatusDB*       charserver_db_sql_statusdb      (CharServerDB* self) { re
 static StorageDB*      charserver_db_sql_storagedb     (CharServerDB* self) { return ((CharServerDB_SQL*)self)->storagedb;      }
 
 
-
-/// constructor
+/// Constructs a new CharServerDB interface.
+/// @public
 CharServerDB* charserver_db_sql(void)
 {
 	CharServerDB_SQL* db;

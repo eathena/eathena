@@ -21,7 +21,8 @@
 #define SKILLDB_TXT_DB_VERSION 20090825
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct SkillDB_TXT
 {
 	// public interface
@@ -38,12 +39,14 @@ typedef struct SkillDB_TXT
 } SkillDB_TXT;
 
 
+/// @private
 static void* create_skilllist(DBKey key, va_list args)
 {
 	return (skilllist*)aMalloc(sizeof(skilllist));
 }
 
 
+/// @private
 static bool mmo_skilllist_fromstr(skilllist* list, char* str)
 {
 	const char* p = str;
@@ -81,6 +84,7 @@ static bool mmo_skilllist_fromstr(skilllist* list, char* str)
 }
 
 
+/// @private
 static bool mmo_skilllist_tostr(const skilllist* list, char* str)
 {
 	char* p = str;
@@ -106,6 +110,7 @@ static bool mmo_skilllist_tostr(const skilllist* list, char* str)
 }
 
 
+/// @protected
 static bool skill_db_txt_init(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -177,6 +182,7 @@ static bool skill_db_txt_init(SkillDB* self)
 }
 
 
+/// @protected
 static void skill_db_txt_destroy(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -194,6 +200,7 @@ static void skill_db_txt_destroy(SkillDB* self)
 }
 
 
+/// @protected
 static bool skill_db_txt_sync(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -231,6 +238,7 @@ static bool skill_db_txt_sync(SkillDB* self)
 }
 
 
+/// @protected
 static bool skill_db_txt_remove(SkillDB* self, const int char_id)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -244,6 +252,7 @@ static bool skill_db_txt_remove(SkillDB* self, const int char_id)
 }
 
 
+/// @protected
 static bool skill_db_txt_save(SkillDB* self, const skilllist* list, const int char_id)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -265,6 +274,7 @@ static bool skill_db_txt_save(SkillDB* self, const skilllist* list, const int ch
 }
 
 
+/// @protected
 static bool skill_db_txt_load(SkillDB* self, skilllist* list, const int char_id)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -282,6 +292,7 @@ static bool skill_db_txt_load(SkillDB* self, skilllist* list, const int char_id)
 
 
 /// Returns an iterator over all skill lists.
+/// @protected
 static CSDBIterator* skill_db_txt_iterator(SkillDB* self)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
@@ -289,7 +300,8 @@ static CSDBIterator* skill_db_txt_iterator(SkillDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new SkillDB interface.
+/// @protected
 SkillDB* skill_db_txt(CharServerDB_TXT* owner)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)aCalloc(1, sizeof(SkillDB_TXT));

@@ -18,20 +18,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct AccRegDB_SQL
 {
-	AccRegDB vtable;        // public interface
+	// public interface
+	AccRegDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* accregs;           // SQL accreg storage
+	Sql* accregs;
 	
-	// other settings
+	// settings
 	const char* accreg_db;
 
 } AccRegDB_SQL;
 
 
+/// @private
 static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_id)
 {
 	Sql* sql_handle = db->accregs;
@@ -62,6 +66,7 @@ static bool mmo_accreg_fromsql(AccRegDB_SQL* db, struct regs* reg, int account_i
 }
 
 
+/// @private
 static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int account_id)
 {
 	Sql* sql_handle = db->accregs;
@@ -147,6 +152,7 @@ static bool mmo_accreg_tosql(AccRegDB_SQL* db, const struct regs* reg, int accou
 }
 
 
+/// @protected
 static bool accreg_db_sql_init(AccRegDB* self)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
@@ -154,6 +160,8 @@ static bool accreg_db_sql_init(AccRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static void accreg_db_sql_destroy(AccRegDB* self)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
@@ -161,11 +169,15 @@ static void accreg_db_sql_destroy(AccRegDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool accreg_db_sql_sync(AccRegDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool accreg_db_sql_remove(AccRegDB* self, const int account_id)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
@@ -180,12 +192,16 @@ static bool accreg_db_sql_remove(AccRegDB* self, const int account_id)
 	return true;
 }
 
+
+/// @protected
 static bool accreg_db_sql_save(AccRegDB* self, const struct regs* reg, int account_id)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
 	return mmo_accreg_tosql(db, reg, account_id);
 }
 
+
+/// @protected
 static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
@@ -194,6 +210,7 @@ static bool accreg_db_sql_load(AccRegDB* self, struct regs* reg, int account_id)
 
 
 /// Returns an iterator over all account regs.
+/// @protected
 static CSDBIterator* accreg_db_sql_iterator(AccRegDB* self)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)self;
@@ -201,7 +218,8 @@ static CSDBIterator* accreg_db_sql_iterator(AccRegDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new AccRegDB interface.
+/// @protected
 AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 {
 	AccRegDB_SQL* db = (AccRegDB_SQL*)aCalloc(1, sizeof(AccRegDB_SQL));

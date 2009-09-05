@@ -13,7 +13,8 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct StorageDB_SQL
 {
 	// public interface
@@ -32,6 +33,7 @@ typedef struct StorageDB_SQL
 } StorageDB_SQL;
 
 
+/// @private
 static const char* type2table(StorageDB_SQL* db, enum storage_type type)
 {
 	switch( type )
@@ -46,6 +48,7 @@ static const char* type2table(StorageDB_SQL* db, enum storage_type type)
 }
 
 
+/// @private
 static const char* type2column(StorageDB_SQL* db, enum storage_type type)
 {
 	switch( type )
@@ -61,6 +64,7 @@ static const char* type2column(StorageDB_SQL* db, enum storage_type type)
 
 
 /// Loads an array of 'item' entries from the specified table.
+/// @private
 static bool mmo_storage_fromsql(StorageDB_SQL* db, struct item* items, size_t size, enum storage_type type, int id)
 {
 	Sql* sql_handle = db->storages;
@@ -108,6 +112,7 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct item* items, size_t si
 
 
 /// Saves an array of 'item' entries into the specified table.
+/// @private
 static bool mmo_storage_tosql(StorageDB_SQL* db, const struct item* items, size_t size, enum storage_type type, int id)
 {
 	Sql* sql_handle = db->storages;
@@ -241,6 +246,7 @@ static bool mmo_storage_tosql(StorageDB_SQL* db, const struct item* items, size_
 }
 
 
+/// @protected
 static bool storage_db_sql_init(StorageDB* self)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -249,6 +255,7 @@ static bool storage_db_sql_init(StorageDB* self)
 }
 
 
+/// @protected
 static void storage_db_sql_destroy(StorageDB* self)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -257,12 +264,14 @@ static void storage_db_sql_destroy(StorageDB* self)
 }
 
 
+/// @protected
 static bool storage_db_sql_sync(StorageDB* self)
 {
 	return true;
 }
 
 
+/// @protected
 static bool storage_db_sql_remove(StorageDB* self, enum storage_type type, const int id)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -286,6 +295,7 @@ static bool storage_db_sql_remove(StorageDB* self, enum storage_type type, const
 /// @param size Number of fields in the array
 /// @param type Type of storage
 /// @param id Id of the storage data
+/// @protected
 static bool storage_db_sql_save(StorageDB* self, const struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -299,6 +309,7 @@ static bool storage_db_sql_save(StorageDB* self, const struct item* s, size_t si
 /// @param size Number of fields in the array
 /// @param type Type of storage
 /// @param id Id of the storage data
+/// @protected
 static bool storage_db_sql_load(StorageDB* self, struct item* s, size_t size, enum storage_type type, int id)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -310,6 +321,7 @@ static bool storage_db_sql_load(StorageDB* self, struct item* s, size_t size, en
 /// @param self Database
 /// @param type Type of storage
 /// @return Iterator
+/// @protected
 static CSDBIterator* storage_db_sql_iterator(StorageDB* self, enum storage_type type)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)self;
@@ -317,7 +329,8 @@ static CSDBIterator* storage_db_sql_iterator(StorageDB* self, enum storage_type 
 }
 
 
-/// public constructor
+/// Constructs a new StorageDB interface.
+/// @protected
 StorageDB* storage_db_sql(CharServerDB_SQL* owner)
 {
 	StorageDB_SQL* db = (StorageDB_SQL*)aCalloc(1, sizeof(StorageDB_SQL));

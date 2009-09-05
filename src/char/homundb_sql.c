@@ -13,22 +13,26 @@
 #include "homundb.h"
 #include <string.h>
 
-/// internal structure
+
+/// Internal structure.
+/// @private
 typedef struct HomunDB_SQL
 {
-	HomunDB vtable;    // public interface
+	// public interface
+	HomunDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* homuns;       // SQL homun storage
+	Sql* homuns;
 
-	// other settings
+	// settings
 	const char* homun_db;
 	const char* homun_skill_db;
 
 } HomunDB_SQL;
 
 
-
+/// @private
 static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homun_id)
 {
 	Sql* sql_handle = db->homuns;
@@ -134,6 +138,7 @@ static bool mmo_homun_fromsql(HomunDB_SQL* db, struct s_homunculus* hd, int homu
 }
 
 
+/// @private
 static bool mmo_homun_tosql(HomunDB_SQL* db, struct s_homunculus* hd, bool is_new)
 {
 	Sql* sql_handle = db->homuns;
@@ -266,6 +271,7 @@ static bool mmo_homun_tosql(HomunDB_SQL* db, struct s_homunculus* hd, bool is_ne
 }
 
 
+/// @protected
 static bool homun_db_sql_init(HomunDB* self)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
@@ -273,6 +279,8 @@ static bool homun_db_sql_init(HomunDB* self)
 	return true;
 }
 
+
+/// @protected
 static void homun_db_sql_destroy(HomunDB* self)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
@@ -280,17 +288,23 @@ static void homun_db_sql_destroy(HomunDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool homun_db_sql_sync(HomunDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool homun_db_sql_create(HomunDB* self, struct s_homunculus* hd)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
 	return mmo_homun_tosql(db, hd, true);
 }
 
+
+/// @protected
 static bool homun_db_sql_remove(HomunDB* self, int homun_id)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
@@ -330,12 +344,16 @@ static bool homun_db_sql_remove(HomunDB* self, int homun_id)
 	return result;
 }
 
+
+/// @protected
 static bool homun_db_sql_save(HomunDB* self, const struct s_homunculus* hd)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
 	return mmo_homun_tosql(db, (struct s_homunculus*)hd, false);
 }
 
+
+/// @protected
 static bool homun_db_sql_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
@@ -344,6 +362,7 @@ static bool homun_db_sql_load(HomunDB* self, struct s_homunculus* hd, int homun_
 
 
 /// Returns an iterator over all homunculi.
+/// @protected
 static CSDBIterator* homun_db_sql_iterator(HomunDB* self)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)self;
@@ -351,7 +370,8 @@ static CSDBIterator* homun_db_sql_iterator(HomunDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new HomunDB interface.
+/// @protected
 HomunDB* homun_db_sql(CharServerDB_SQL* owner)
 {
 	HomunDB_SQL* db = (HomunDB_SQL*)aCalloc(1, sizeof(HomunDB_SQL));

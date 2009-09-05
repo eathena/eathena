@@ -18,7 +18,8 @@
 typedef struct CharLogDB_TXT CharLogDB_TXT;
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 struct CharLogDB_TXT
 {
 	// public interface
@@ -32,6 +33,7 @@ struct CharLogDB_TXT
 };
 
 
+/// @protected
 static bool charlog_db_txt_init(CharLogDB* self)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
@@ -40,6 +42,7 @@ static bool charlog_db_txt_init(CharLogDB* self)
 }
 
 
+/// @protected
 static void charlog_db_txt_destroy(CharLogDB* self)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
@@ -47,6 +50,7 @@ static void charlog_db_txt_destroy(CharLogDB* self)
 }
 
 
+/// @protected
 bool charlog_db_txt_get_property(CharLogDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
@@ -63,6 +67,7 @@ bool charlog_db_txt_get_property(CharLogDB* self, const char* key, char* buf, si
 }
 
 
+/// @protected
 bool charlog_db_txt_set_property(CharLogDB* self, const char* key, const char* value)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
@@ -76,6 +81,7 @@ bool charlog_db_txt_set_property(CharLogDB* self, const char* key, const char* v
 }
 
 
+/// @protected
 bool charlog_db_txt_log(CharLogDB* self, int char_id, int account_id, int slot, const char* name, const char* msg, va_list ap)
 {
 	CharLogDB_TXT* db = (CharLogDB_TXT*)self;
@@ -112,6 +118,8 @@ bool charlog_db_txt_log(CharLogDB* self, int char_id, int account_id, int slot, 
 }
 
 
+/// Constructs a new CharLogDB interface.
+/// @protected
 CharLogDB* charlog_db_txt(void)
 {
 	CharLogDB_TXT* db;

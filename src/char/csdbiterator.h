@@ -4,6 +4,7 @@
 #ifndef _CSDBITERATOR_H_
 #define _CSDBITERATOR_H_
 
+
 #include "../common/cbasetypes.h" // bool
 
 

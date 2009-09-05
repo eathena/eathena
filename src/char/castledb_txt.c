@@ -13,24 +13,30 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define START_CASTLE_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CastleDB_TXT
 {
-	CastleDB vtable;      // public interface
+	// public interface
+	CastleDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* castles;       // in-memory castle storage
-	int next_castle_id;   // auto_increment
+	DBMap* castles;
+	int next_castle_id;
 	bool dirty;
 
-	const char* castle_db; // castle data storage file
+	// settings
+	const char* castle_db;
 
 } CastleDB_TXT;
 
 
+/// @private
 static void* create_castle(DBKey key, va_list args)
 {
 	return (struct guild_castle*)aMalloc(sizeof(struct guild_castle));
@@ -38,6 +44,7 @@ static void* create_castle(DBKey key, va_list args)
 
 
 /// parses the castle data string into a castle data structure
+/// @private
 static bool mmo_castle_fromstr(struct guild_castle* gc, char* str)
 {
 	int dummy;
@@ -64,6 +71,7 @@ static bool mmo_castle_fromstr(struct guild_castle* gc, char* str)
 
 
 /// serializes the castle data structure into the provided string
+/// @private
 static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 {
 	int len;
@@ -78,6 +86,7 @@ static bool mmo_castle_tostr(const struct guild_castle* gc, char* str)
 }
 
 
+/// @protected
 static bool castle_db_txt_init(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -139,6 +148,8 @@ static bool castle_db_txt_init(CastleDB* self)
 	return true;
 }
 
+
+/// @protected
 static void castle_db_txt_destroy(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -155,6 +166,8 @@ static void castle_db_txt_destroy(CastleDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool castle_db_txt_sync(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -188,6 +201,8 @@ static bool castle_db_txt_sync(CastleDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -217,6 +232,8 @@ static bool castle_db_txt_create(CastleDB* self, struct guild_castle* gc)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -229,6 +246,8 @@ static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -249,6 +268,8 @@ static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -270,6 +291,8 @@ static bool castle_db_txt_save(CastleDB* self, const struct guild_castle* gc)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_txt_load(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -290,6 +313,7 @@ static bool castle_db_txt_load(CastleDB* self, struct guild_castle* gc, int cast
 
 
 /// Returns an iterator over all castles.
+/// @protected
 static CSDBIterator* castle_db_txt_iterator(CastleDB* self)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
@@ -297,7 +321,8 @@ static CSDBIterator* castle_db_txt_iterator(CastleDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new CastleDB interface.
+/// @protected
 CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)aCalloc(1, sizeof(CastleDB_TXT));

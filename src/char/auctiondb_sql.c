@@ -12,21 +12,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct AuctionDB_SQL
 {
-	AuctionDB vtable;    // public interface
+	// public interface
+	AuctionDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* auctions;       // SQL auction storage
+	Sql* auctions;
 
-	// other settings
+	// settings
 	const char* auction_db;
 
 } AuctionDB_SQL;
 
 
-
+/// @private
 static bool mmo_auction_tosql(AuctionDB_SQL* db, struct auction_data* ad, bool is_new)
 {
 	Sql* sql_handle = db->auctions;
@@ -106,6 +109,7 @@ static bool mmo_auction_tosql(AuctionDB_SQL* db, struct auction_data* ad, bool i
 }
 
 
+/// @private
 static bool mmo_auction_fromsql(AuctionDB_SQL* db, struct auction_data* ad, int auction_id)
 {
 	Sql* sql_handle = db->auctions;
@@ -172,6 +176,7 @@ static bool mmo_auction_fromsql(AuctionDB_SQL* db, struct auction_data* ad, int 
 }
 
 
+/// @protected
 static bool auction_db_sql_init(AuctionDB* self)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -179,6 +184,8 @@ static bool auction_db_sql_init(AuctionDB* self)
 	return true;
 }
 
+
+/// @protected
 static void auction_db_sql_destroy(AuctionDB* self)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -186,17 +193,23 @@ static void auction_db_sql_destroy(AuctionDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool auction_db_sql_sync(AuctionDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_sql_create(AuctionDB* self, struct auction_data* ad)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
 	return mmo_auction_tosql(db, ad, true);
 }
 
+
+/// @protected
 static bool auction_db_sql_remove(AuctionDB* self, const int auction_id)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -211,19 +224,25 @@ static bool auction_db_sql_remove(AuctionDB* self, const int auction_id)
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_sql_save(AuctionDB* self, const struct auction_data* ad)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
 	return mmo_auction_tosql(db, (struct auction_data*)ad, false);
 }
 
+
+/// @protected
 static bool auction_db_sql_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
 	return mmo_auction_fromsql(db, ad, auction_id);
 }
 
+
 /// List the auctions for the specified search results page.
+/// @protected
 static bool auction_db_sql_search(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -293,7 +312,9 @@ static bool auction_db_sql_search(AuctionDB* self, struct auction_data ad[5], in
 	return true;
 }
 
+
 /// Count the number of auctions started by this character.
+/// @protected
 static int auction_db_sql_count(AuctionDB* self, const int char_id)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -320,7 +341,9 @@ static int auction_db_sql_count(AuctionDB* self, const int char_id)
 	return count;
 }
 
+
 /// Find the auction with the earliest expiration time.
+/// @protected
 static bool auction_db_sql_first(AuctionDB* self, struct auction_data* ad)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -348,6 +371,7 @@ static bool auction_db_sql_first(AuctionDB* self, struct auction_data* ad)
 
 
 /// Returns an iterator over all auctions.
+/// @protected
 static CSDBIterator* auction_db_sql_iterator(AuctionDB* self)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)self;
@@ -355,7 +379,8 @@ static CSDBIterator* auction_db_sql_iterator(AuctionDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new AuctionDB interface.
+/// @protected
 AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
 {
 	AuctionDB_SQL* db = (AuctionDB_SQL*)aCalloc(1, sizeof(AuctionDB_SQL));

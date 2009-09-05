@@ -16,7 +16,8 @@
 typedef struct CharLogDB_SQL CharLogDB_SQL;
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 struct CharLogDB_SQL
 {
 	// public interface
@@ -37,6 +38,7 @@ struct CharLogDB_SQL
 };
 
 
+/// @protected
 static bool charlog_db_sql_init(CharLogDB* self)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
@@ -58,6 +60,7 @@ static bool charlog_db_sql_init(CharLogDB* self)
 }
 
 
+/// @protected
 static void charlog_db_sql_destroy(CharLogDB* self)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
@@ -66,6 +69,7 @@ static void charlog_db_sql_destroy(CharLogDB* self)
 }
 
 
+/// @protected
 static bool charlog_db_sql_get_property(CharLogDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
@@ -82,6 +86,7 @@ static bool charlog_db_sql_get_property(CharLogDB* self, const char* key, char* 
 }
 
 
+/// @protected
 static bool charlog_db_sql_set_property(CharLogDB* self, const char* key, const char* value)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
@@ -110,6 +115,7 @@ static bool charlog_db_sql_set_property(CharLogDB* self, const char* key, const 
 }
 
 
+/// @protected
 static bool charlog_db_sql_log(CharLogDB* self, int char_id, int account_id, int slot, const char* name, const char* msg, va_list ap)
 {
 	CharLogDB_SQL* db = (CharLogDB_SQL*)self;
@@ -140,6 +146,8 @@ static bool charlog_db_sql_log(CharLogDB* self, int char_id, int account_id, int
 }
 
 
+/// Constructs a new CharLogDB interface.
+/// @protected
 CharLogDB* charlog_db_sql(void)
 {
 	CharLogDB_SQL* db;

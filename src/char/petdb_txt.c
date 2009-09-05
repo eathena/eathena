@@ -14,25 +14,30 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define START_PET_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct PetDB_TXT
 {
-	PetDB vtable;       // public interface
+	// public interface
+	PetDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* pets;         // in-memory pet storage
-	int next_pet_id;     // auto_increment
+	DBMap* pets;
+	int next_pet_id;
 	bool dirty;
 
-	const char* pet_db;  // pet data storage file
+	// settings
+	const char* pet_db;
 
 } PetDB_TXT;
 
 
-
+/// @private
 static bool mmo_pet_fromstr(struct s_pet* p, char* str)
 {
 	int tmp_int[16];
@@ -66,6 +71,7 @@ static bool mmo_pet_fromstr(struct s_pet* p, char* str)
 }
 
 
+/// @private
 static bool mmo_pet_tostr(const struct s_pet* p, char* str)
 {
 	sprintf(str, "%d,%d,%s\t%d,%d,%d,%d,%d,%d,%d,%d,%d",
@@ -76,6 +82,7 @@ static bool mmo_pet_tostr(const struct s_pet* p, char* str)
 }
 
 
+/// @protected
 static bool pet_db_txt_init(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -135,6 +142,8 @@ static bool pet_db_txt_init(PetDB* self)
 	return true;
 }
 
+
+/// @protected
 static void pet_db_txt_destroy(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -151,6 +160,8 @@ static void pet_db_txt_destroy(PetDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool pet_db_txt_sync(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -184,6 +195,8 @@ static bool pet_db_txt_sync(PetDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -219,6 +232,8 @@ static bool pet_db_txt_create(PetDB* self, struct s_pet* pd)
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_txt_remove(PetDB* self, const int pet_id)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -231,6 +246,8 @@ static bool pet_db_txt_remove(PetDB* self, const int pet_id)
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -252,6 +269,8 @@ static bool pet_db_txt_save(PetDB* self, const struct s_pet* pd)
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_txt_load(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -272,6 +291,7 @@ static bool pet_db_txt_load(PetDB* self, struct s_pet* pd, int pet_id)
 
 
 /// Returns an iterator over all pets.
+/// @protected
 static CSDBIterator* pet_db_txt_iterator(PetDB* self)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
@@ -279,7 +299,8 @@ static CSDBIterator* pet_db_txt_iterator(PetDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new PetDB interface.
+/// @protected
 PetDB* pet_db_txt(CharServerDB_TXT* owner)
 {
 	PetDB_TXT* db = (PetDB_TXT*)aCalloc(1, sizeof(PetDB_TXT));

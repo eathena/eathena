@@ -9,7 +9,6 @@
 /// Everything exposed by this header is meant to be used by external code.
 
 
-
 #include "accregdb.h"
 #include "auctiondb.h"
 #include "castledb.h"
@@ -42,14 +41,13 @@
 // groups : families, friends, parties, guilds
 
 
-
 typedef struct CharServerDB CharServerDB;
-
 
 
 // charserver_db_<engine>
 #define CHARSERVERDB_CONSTRUCTOR_(engine) charserver_db_##engine
 #define CHARSERVERDB_CONSTRUCTOR(engine) CHARSERVERDB_CONSTRUCTOR_(engine)
+
 
 // standard engines
 #ifdef WITH_TXT
@@ -74,7 +72,6 @@ CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_3)(void);
 #ifdef CHARSERVERDB_ENGINE_4
 CharServerDB* CHARSERVERDB_CONSTRUCTOR(CHARSERVERDB_ENGINE_4)(void);
 #endif
-
 
 
 struct CharServerDB
@@ -235,7 +232,6 @@ struct CharServerDB
 	/// @return Interface for storages
 	StorageDB* (*storagedb)(CharServerDB* self);
 };
-
 
 
 #endif /* _CHARSERVERDB_H_ */

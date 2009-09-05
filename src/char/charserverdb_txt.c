@@ -7,7 +7,6 @@
 #include "../common/strlib.h"
 #include "../common/timer.h"
 #include "charserverdb_txt.h"
-
 #include <string.h>
 #include <stdlib.h>
 
@@ -36,7 +35,6 @@ extern StorageDB* storage_db_txt(CharServerDB_TXT* owner);
 
 // forward declarations
 static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intptr data);
-
 
 
 /// Schedules a sync operation with the specified delay.
@@ -68,7 +66,6 @@ static void charserver_db_txt_scheduleSync(CharServerDB_TXT* db, int delay)
 			settick_timer(db->sync_timer, newtick);
 	}
 }
-
 
 
 /// Timer function.
@@ -109,8 +106,8 @@ static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intp
 }
 
 
-
 /// Initializes this database engine, making it ready for use.
+/// @protected
 static bool charserver_db_txt_init(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -145,8 +142,8 @@ static bool charserver_db_txt_init(CharServerDB* self)
 }
 
 
-
 /// Destroys this database engine, releasing all allocated memory (including itself).
+/// @protected
 static void charserver_db_txt_destroy(CharServerDB* self)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -202,9 +199,9 @@ static void charserver_db_txt_destroy(CharServerDB* self)
 }
 
 
-
 /// Writes pending data to permanent storage.
 /// If force is true, writes all cached data even if unchanged.
+/// @protected
 static bool charserver_db_txt_sync(CharServerDB* self, bool force)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -219,8 +216,8 @@ static bool charserver_db_txt_sync(CharServerDB* self, bool force)
 }
 
 
-
 /// Gets a property from this database engine.
+/// @protected
 static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, char* buf, size_t buflen)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -333,8 +330,8 @@ static bool charserver_db_txt_get_property(CharServerDB* self, const char* key, 
 }
 
 
-
 /// Sets a property in this database engine.
+/// @protected
 static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, const char* value)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)self;
@@ -431,7 +428,6 @@ static bool charserver_db_txt_set_property(CharServerDB* self, const char* key, 
 }
 
 
-
 // Accessors for the various DB interfaces.
 static AccRegDB*       charserver_db_txt_accregdb      (CharServerDB* self) { return ((CharServerDB_TXT*)self)->accregdb;       }
 static AuctionDB*      charserver_db_txt_auctiondb     (CharServerDB* self) { return ((CharServerDB_TXT*)self)->auctiondb;      }
@@ -454,7 +450,6 @@ static StatusDB*       charserver_db_txt_statusdb      (CharServerDB* self) { re
 static StorageDB*      charserver_db_txt_storagedb     (CharServerDB* self) { return ((CharServerDB_TXT*)self)->storagedb;      }
 
 
-
 /// Requests a sync.
 /// Called when data is changed in one of the database interfaces.
 /// @protected
@@ -464,8 +459,8 @@ void charserver_db_txt_request_sync(CharServerDB_TXT* db)
 }
 
 
-
-/// constructor
+/// Constructs a new CharServerDB interface.
+/// @public
 CharServerDB* charserver_db_txt(void)
 {
 	CharServerDB_TXT* db;

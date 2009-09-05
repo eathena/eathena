@@ -11,21 +11,24 @@
 #include <stdlib.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct StatusDB_SQL
 {
-	StatusDB vtable;    // public interface
+	// public interface
+	StatusDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* statuses;      // SQL status storage
+	Sql* statuses;
 
-	// other settings
+	// settings
 	const char* status_db;
 
 } StatusDB_SQL;
 
 
-
+/// @private
 static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 {
 	Sql* sql_handle = db->statuses;
@@ -66,6 +69,7 @@ static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 }
 
 
+/// @private
 static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
 {
 	Sql* sql_handle = db->statuses;
@@ -132,6 +136,7 @@ static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
 }
 
 
+/// @protected
 static bool status_db_sql_init(StatusDB* self)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
@@ -139,6 +144,8 @@ static bool status_db_sql_init(StatusDB* self)
 	return true;
 }
 
+
+/// @protected
 static void status_db_sql_destroy(StatusDB* self)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
@@ -146,11 +153,15 @@ static void status_db_sql_destroy(StatusDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool status_db_sql_sync(StatusDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool status_db_sql_remove(StatusDB* self, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
@@ -165,12 +176,16 @@ static bool status_db_sql_remove(StatusDB* self, int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool status_db_sql_save(StatusDB* self, struct scdata* sc)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
 	return mmo_status_tosql(db, sc);
 }
 
+
+/// @protected
 static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
@@ -179,6 +194,7 @@ static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
 
 
 /// Returns an iterator over all status entries.
+/// @protected
 static CSDBIterator* status_db_sql_iterator(StatusDB* self)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
@@ -186,7 +202,8 @@ static CSDBIterator* status_db_sql_iterator(StatusDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new StatusDB interface.
+/// @protected
 StatusDB* status_db_sql(CharServerDB_SQL* owner)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)aCalloc(1, sizeof(StatusDB_SQL));

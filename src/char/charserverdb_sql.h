@@ -8,19 +8,17 @@
 /// Global header for the SQL database engine and interfaces.
 /// Everything exposed by this header has protected access (only the engine and interface code can use it).
 
+
 #include "../common/cbasetypes.h"
 #include "../common/sql.h"
 #include "charserverdb.h"
-
 
 
 /// global defines
 #define CHARSERVERDB_SQL_VERSION 20090210 // update this whenever the database format changes
 
 
-
 typedef struct CharServerDB_SQL CharServerDB_SQL;
-
 
 
 /// internal structure
@@ -92,10 +90,9 @@ struct CharServerDB_SQL
 };
 
 
-
-// generic sql db iterator constructor
+/// Constructs a new CSDBIterator interface.
+/// @protected
 extern CSDBIterator* csdb_sql_iterator(Sql* sql_handle, const char* sql_table, const char* sql_column);
-
 
 
 #endif /* _CHARSERVERDB_SQL_H_ */

@@ -4,8 +4,10 @@
 #ifndef _PARTYDB_H_
 #define _PARTYDB_H_
 
+
 #include "../common/mmo.h" // struct party
 #include "csdbiterator.h"
+
 
 typedef struct PartyDB PartyDB;
 

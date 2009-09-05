@@ -4,8 +4,10 @@
 #ifndef _FRIENDDB_H_
 #define _FRIENDDB_H_
 
+
 #include "../common/mmo.h" // struct s_friend, MAX_FRIENDS
 #include "csdbiterator.h"
+
 
 typedef struct FriendDB FriendDB;
 typedef struct s_friend friendlist[MAX_FRIENDS];

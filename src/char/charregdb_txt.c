@@ -20,26 +20,32 @@
 #define CHARREGDB_TXT_DB_VERSION 20090825
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CharRegDB_TXT
 {
-	CharRegDB vtable;        // public interface
+	// public interface
+	CharRegDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* charregs;         // in-memory charreg storage
+	DBMap* charregs;
 	bool dirty;
 
-	const char* charreg_db;  // charreg data storage file
+	// settings
+	const char* charreg_db;
 
 } CharRegDB_TXT;
 
 
+/// @private
 static void* create_charregs(DBKey key, va_list args)
 {
 	return (struct regs*)aMalloc(sizeof(struct regs));
 }
 
 
+/// @private
 static bool mmo_charreg_fromstr(struct regs* reg, const char* str)
 {
 	int fields[GLOBAL_REG_NUM+1][2];
@@ -68,6 +74,7 @@ static bool mmo_charreg_fromstr(struct regs* reg, const char* str)
 }
 
 
+/// @private
 static bool mmo_charreg_tostr(const struct regs* reg, char* str)
 {
 	char* p = str;
@@ -98,6 +105,7 @@ static bool mmo_charreg_tostr(const struct regs* reg, char* str)
 }
 
 
+/// @protected
 static bool charreg_db_txt_init(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -168,6 +176,8 @@ static bool charreg_db_txt_init(CharRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static void charreg_db_txt_destroy(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -184,6 +194,8 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool charreg_db_txt_sync(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -223,6 +235,8 @@ static bool charreg_db_txt_sync(CharRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -235,6 +249,8 @@ static bool charreg_db_txt_remove(CharRegDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool charreg_db_txt_save(CharRegDB* self, const struct regs* reg, int char_id)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -255,6 +271,8 @@ static bool charreg_db_txt_save(CharRegDB* self, const struct regs* reg, int cha
 	return true;
 }
 
+
+/// @protected
 static bool charreg_db_txt_load(CharRegDB* self, struct regs* reg, int char_id)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -273,6 +291,7 @@ static bool charreg_db_txt_load(CharRegDB* self, struct regs* reg, int char_id)
 
 
 /// Returns an iterator over all character regs.
+/// @protected
 static CSDBIterator* charreg_db_txt_iterator(CharRegDB* self)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
@@ -280,7 +299,8 @@ static CSDBIterator* charreg_db_txt_iterator(CharRegDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new CharRegDB interface.
+/// @protected
 CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)aCalloc(1, sizeof(CharRegDB_TXT));

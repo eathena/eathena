@@ -14,15 +14,18 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct GuildDB_SQL
 {
-	GuildDB vtable;    // public interface
+	// public interface
+	GuildDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* guilds;       // SQL guild storage
+	Sql* guilds;
 
-	// other settings
+	// settings
 	bool case_sensitive;
 	const char* char_db;
 	const char* guild_db;
@@ -35,7 +38,7 @@ typedef struct GuildDB_SQL
 } GuildDB_SQL;
 
 
-
+/// @private
 static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 {
 	Sql* sql_handle = db->guilds;
@@ -186,6 +189,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 }
 
 
+/// @private
 static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_flags flag)
 {
 	Sql* sql_handle = db->guilds;
@@ -419,6 +423,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 }
 
 
+/// @protected
 static bool guild_db_sql_init(GuildDB* self)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -426,6 +431,8 @@ static bool guild_db_sql_init(GuildDB* self)
 	return true;
 }
 
+
+/// @protected
 static void guild_db_sql_destroy(GuildDB* self)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -433,17 +440,23 @@ static void guild_db_sql_destroy(GuildDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool guild_db_sql_sync(GuildDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
 	return mmo_guild_tosql(db, g, GS_CREATE|GS_MEMBER|GS_POSITION|GS_ALLIANCE|GS_EXPULSION|GS_SKILL);
 }
 
+
+/// @protected
 static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -487,18 +500,24 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 	return result;
 }
 
+
+/// @protected
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
 	return mmo_guild_tosql(db, (struct guild*)g, flag);
 }
 
+
+/// @protected
 static bool guild_db_sql_load(GuildDB* self, struct guild* g, int guild_id)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
 	return mmo_guild_fromsql(db, g, guild_id);
 }
 
+
+/// @protected
 static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -539,6 +558,7 @@ static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 
 
 /// Returns an iterator over all guilds.
+/// @protected
 static CSDBIterator* guild_db_sql_iterator(GuildDB* self)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -546,7 +566,8 @@ static CSDBIterator* guild_db_sql_iterator(GuildDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new GuildDB interface.
+/// @protected
 GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)aCalloc(1, sizeof(GuildDB_SQL));

@@ -14,20 +14,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct CastleDB_SQL
 {
-	CastleDB vtable;    // public interface
+	// public interface
+	CastleDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* castles;       // SQL castle storage
+	Sql* castles;
 
-	// other settings
+	// settings
 	const char* castle_db;
 
 } CastleDB_SQL;
 
 
+/// @private
 static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int castle_id)
 {
 	Sql* sql_handle = db->castles;
@@ -79,6 +83,7 @@ static bool mmo_castle_fromsql(CastleDB_SQL* db, struct guild_castle* gc, int ca
 }
 
 
+/// @private
 static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
 {
 	// `guild_castle` (`castle_id`, `guild_id`, `economy`, `defense`, `triggerE`, `triggerD`, `nextTime`, `payTime`, `createTime`, `visibleC`, `visibleG0`, `visibleG1`, `visibleG2`, `visibleG3`, `visibleG4`, `visibleG5`, `visibleG6`, `visibleG7`)
@@ -106,6 +111,7 @@ static bool mmo_castle_tosql(CastleDB_SQL* db, const struct guild_castle* gc)
 }
 
 
+/// @protected
 static bool castle_db_sql_init(CastleDB* self)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -113,6 +119,8 @@ static bool castle_db_sql_init(CastleDB* self)
 	return true;
 }
 
+
+/// @protected
 static void castle_db_sql_destroy(CastleDB* self)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -120,17 +128,23 @@ static void castle_db_sql_destroy(CastleDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool castle_db_sql_sync(CastleDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_sql_create(CastleDB* self, struct guild_castle* gc)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
 	return mmo_castle_tosql(db, gc);
 }
 
+
+/// @protected
 static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -142,6 +156,8 @@ static bool castle_db_sql_remove(CastleDB* self, const int castle_id)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_sql_remove_gid(CastleDB* self, const int guild_id)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -153,12 +169,16 @@ static bool castle_db_sql_remove_gid(CastleDB* self, const int guild_id)
 	return true;
 }
 
+
+/// @protected
 static bool castle_db_sql_save(CastleDB* self, const struct guild_castle* gc)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
 	return mmo_castle_tosql(db, gc);
 }
 
+
+/// @protected
 static bool castle_db_sql_load(CastleDB* self, struct guild_castle* gc, int castle_id)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -167,6 +187,7 @@ static bool castle_db_sql_load(CastleDB* self, struct guild_castle* gc, int cast
 
 
 /// Returns an iterator over all castles.
+/// @protected
 static CSDBIterator* castle_db_sql_iterator(CastleDB* self)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)self;
@@ -174,7 +195,8 @@ static CSDBIterator* castle_db_sql_iterator(CastleDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new CastleDB interface.
+/// @protected
 CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 {
 	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));

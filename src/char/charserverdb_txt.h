@@ -14,7 +14,6 @@
 #include "charserverdb.h"
 
 
-
 /// global defines
 #define CHARSERVERDB_TXT_VERSION 20090210 // update this whenever the database format changes
 #define CHARSERVERDB_AUTOSAVE_CHANGE_DELAY 1000
@@ -22,9 +21,7 @@
 #define CHARSERVERDB_AUTOSAVE_MAX_DELAY 10000
 
 
-
 typedef struct CharServerDB_TXT CharServerDB_TXT;
-
 
 
 /// internal structure
@@ -97,10 +94,9 @@ struct CharServerDB_TXT
 };
 
 
-
-// generic txt db iterator constructor
+/// Constructs a new CSDBIterator interface.
+/// @protected
 extern CSDBIterator* csdb_txt_iterator(DBIterator* db_iterator);
-
 
 
 #endif /* _CHARSERVERDB_TXT_H_ */

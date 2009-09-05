@@ -4,8 +4,10 @@
 #ifndef _MERCDB_H_
 #define _MERCDB_H_
 
+
 #include "../common/mmo.h" // struct s_mercenary
 #include "csdbiterator.h"
+
 
 typedef struct MercDB MercDB;
 

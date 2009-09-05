@@ -13,22 +13,25 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MercDB_SQL
 {
-	MercDB vtable;    // public interface
+	// public interface
+	MercDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* mercs;       // SQL pet storage
+	Sql* mercs;
 
-	// other settings
+	// settings
 	const char* merc_db;
 	const char* merc_owner_db;
 
 } MercDB_SQL;
 
 
-
+/// @private
 static bool mmo_merc_fromsql(MercDB_SQL* db, struct s_mercenary* md, int merc_id)
 {
 	Sql* sql_handle = db->mercs;
@@ -61,6 +64,7 @@ static bool mmo_merc_fromsql(MercDB_SQL* db, struct s_mercenary* md, int merc_id
 }
 
 
+/// @private
 static bool mmo_merc_tosql(MercDB_SQL* db, struct s_mercenary* md, bool is_new)
 {
 	Sql* sql_handle = db->mercs;
@@ -92,6 +96,7 @@ static bool mmo_merc_tosql(MercDB_SQL* db, struct s_mercenary* md, bool is_new)
 }
 
 
+/// @protected
 static bool merc_db_sql_init(MercDB* self)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
@@ -99,6 +104,8 @@ static bool merc_db_sql_init(MercDB* self)
 	return true;
 }
 
+
+/// @protected
 static void merc_db_sql_destroy(MercDB* self)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
@@ -106,17 +113,23 @@ static void merc_db_sql_destroy(MercDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool merc_db_sql_sync(MercDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_sql_create(MercDB* self, struct s_mercenary* md)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
 	return mmo_merc_tosql(db, md, true);
 }
 
+
+/// @protected
 static bool merc_db_sql_remove(MercDB* self, const int merc_id)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
@@ -131,12 +144,16 @@ static bool merc_db_sql_remove(MercDB* self, const int merc_id)
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_sql_save(MercDB* self, const struct s_mercenary* md)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
 	return mmo_merc_tosql(db, (struct s_mercenary*)md, false);
 }
 
+
+/// @protected
 static bool merc_db_sql_load(MercDB* self, struct s_mercenary* md, int merc_id)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
@@ -145,6 +162,7 @@ static bool merc_db_sql_load(MercDB* self, struct s_mercenary* md, int merc_id)
 
 
 /// Returns an iterator over all mercs.
+/// @protected
 static CSDBIterator* merc_db_sql_iterator(MercDB* self)
 {
 	MercDB_SQL* db = (MercDB_SQL*)self;
@@ -152,7 +170,8 @@ static CSDBIterator* merc_db_sql_iterator(MercDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MercDB interface.
+/// @protected
 MercDB* merc_db_sql(CharServerDB_SQL* owner)
 {
 	MercDB_SQL* db = (MercDB_SQL*)aCalloc(1, sizeof(MercDB_SQL));

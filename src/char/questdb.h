@@ -4,8 +4,10 @@
 #ifndef _QUESTDB_H_
 #define _QUESTDB_H_
 
+
 #include "../common/mmo.h" // struct quest, MAX_QUEST_DB
 #include "csdbiterator.h"
+
 
 typedef struct QuestDB QuestDB;
 typedef struct quest questlog[MAX_QUEST_DB];

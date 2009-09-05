@@ -4,8 +4,10 @@
 #ifndef _MAILDB_H_
 #define _MAILDB_H_
 
+
 #include "../common/mmo.h"  // struct mail_data, struct mail_message
 #include "csdbiterator.h"
+
 
 typedef struct MailDB MailDB;
 

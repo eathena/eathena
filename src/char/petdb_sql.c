@@ -13,21 +13,24 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct PetDB_SQL
 {
-	PetDB vtable;    // public interface
+	// public interface
+	PetDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	Sql* pets;       // SQL pet storage
+	Sql* pets;
 
-	// other settings
+	// settings
 	const char* pet_db;
 
 } PetDB_SQL;
 
 
-
+/// @private
 static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id)
 {
 	Sql* sql_handle = db->pets;
@@ -90,6 +93,7 @@ static bool mmo_pet_fromsql(PetDB_SQL* db, struct s_pet* pd, int pet_id)
 }
 
 
+/// @private
 static bool mmo_pet_tosql(PetDB_SQL* db, struct s_pet* pd, bool is_new)
 {
 	Sql* sql_handle = db->pets;
@@ -161,6 +165,7 @@ static bool mmo_pet_tosql(PetDB_SQL* db, struct s_pet* pd, bool is_new)
 }
 
 
+/// @protected
 static bool pet_db_sql_init(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
@@ -168,6 +173,8 @@ static bool pet_db_sql_init(PetDB* self)
 	return true;
 }
 
+
+/// @protected
 static void pet_db_sql_destroy(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
@@ -175,17 +182,23 @@ static void pet_db_sql_destroy(PetDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool pet_db_sql_sync(PetDB* self)
 {
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_sql_create(PetDB* self, struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
 	return mmo_pet_tosql(db, pd, true);
 }
 
+
+/// @protected
 static bool pet_db_sql_remove(PetDB* self, const int pet_id)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
@@ -200,12 +213,16 @@ static bool pet_db_sql_remove(PetDB* self, const int pet_id)
 	return true;
 }
 
+
+/// @protected
 static bool pet_db_sql_save(PetDB* self, const struct s_pet* pd)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
 	return mmo_pet_tosql(db, (struct s_pet*)pd, false);
 }
 
+
+/// @protected
 static bool pet_db_sql_load(PetDB* self, struct s_pet* pd, int pet_id)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
@@ -214,6 +231,7 @@ static bool pet_db_sql_load(PetDB* self, struct s_pet* pd, int pet_id)
 
 
 /// Returns an iterator over all pets.
+/// @protected
 static CSDBIterator* pet_db_sql_iterator(PetDB* self)
 {
 	PetDB_SQL* db = (PetDB_SQL*)self;
@@ -221,7 +239,8 @@ static CSDBIterator* pet_db_sql_iterator(PetDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new PetDB interface.
+/// @protected
 PetDB* pet_db_sql(CharServerDB_SQL* owner)
 {
 	PetDB_SQL* db = (PetDB_SQL*)aCalloc(1, sizeof(PetDB_SQL));

@@ -16,27 +16,32 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct HotkeyDB_TXT
 {
-	HotkeyDB vtable;      // public interface
+	// public interface
+	HotkeyDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* hotkeys;       // in-memory hotkey storage
+	DBMap* hotkeys;
 	bool dirty;
 
-	const char* hotkey_db; // hotkey data storage file
+	// settings
+	const char* hotkey_db;
 
 } HotkeyDB_TXT;
 
 
-
+/// @private
 static void* create_hotkeylist(DBKey key, va_list args)
 {
 	return (hotkeylist*)aMalloc(sizeof(hotkeylist));
 }
 
 
+/// @private
 static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str)
 {
 	const char* p = str;
@@ -60,6 +65,7 @@ static bool mmo_hotkeylist_fromstr(hotkeylist* list, char* str)
 }
 
 
+/// @private
 static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str)
 {
 	int i;
@@ -74,6 +80,7 @@ static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str)
 }
 
 
+/// @protected
 static bool hotkey_db_txt_init(HotkeyDB* self)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -135,6 +142,8 @@ static bool hotkey_db_txt_init(HotkeyDB* self)
 	return true;
 }
 
+
+/// @protected
 static void hotkey_db_txt_destroy(HotkeyDB* self)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -151,6 +160,8 @@ static void hotkey_db_txt_destroy(HotkeyDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool hotkey_db_txt_sync(HotkeyDB* self)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -185,6 +196,8 @@ static bool hotkey_db_txt_sync(HotkeyDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool hotkey_db_txt_remove(HotkeyDB* self, const int char_id)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -197,6 +210,8 @@ static bool hotkey_db_txt_remove(HotkeyDB* self, const int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool hotkey_db_txt_save(HotkeyDB* self, const hotkeylist* list, const int char_id)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -217,6 +232,8 @@ static bool hotkey_db_txt_save(HotkeyDB* self, const hotkeylist* list, const int
 	return true;
 }
 
+
+/// @protected
 static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_id)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -235,6 +252,7 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 
 
 /// Returns an iterator over all hotkey lists.
+/// @protected
 static CSDBIterator* hotkey_db_txt_iterator(HotkeyDB* self)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
@@ -242,7 +260,8 @@ static CSDBIterator* hotkey_db_txt_iterator(HotkeyDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new HotkeyDB interface.
+/// @protected
 HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)aCalloc(1, sizeof(HotkeyDB_TXT));

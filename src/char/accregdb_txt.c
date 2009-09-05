@@ -20,26 +20,32 @@
 #define ACCREGDB_TXT_DB_VERSION 20090825
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct AccRegDB_TXT
 {
-	AccRegDB vtable;        // public interface
+	// public interface
+	AccRegDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* accregs;         // in-memory accreg storage
+	DBMap* accregs;
 	bool dirty;
-	
-	const char* accreg_db;  // accreg data storage file
+
+	// settings
+	const char* accreg_db;
 
 } AccRegDB_TXT;
 
 
+/// @private
 static void* create_accregs(DBKey key, va_list args)
 {
 	return (struct regs*)aMalloc(sizeof(struct regs));
 }
 
 
+/// @private
 static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 {
 	int fields[ACCOUNT_REG_NUM+1][2];
@@ -74,6 +80,7 @@ static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 }
 
 
+/// @private
 static bool mmo_accreg_tostr(const struct regs* reg, char* str)
 {
 	char* p = str;
@@ -104,6 +111,7 @@ static bool mmo_accreg_tostr(const struct regs* reg, char* str)
 }
 
 
+/// @protected
 static bool accreg_db_txt_init(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -174,6 +182,8 @@ static bool accreg_db_txt_init(AccRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static void accreg_db_txt_destroy(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -190,6 +200,8 @@ static void accreg_db_txt_destroy(AccRegDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool accreg_db_txt_sync(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -229,6 +241,8 @@ static bool accreg_db_txt_sync(AccRegDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool accreg_db_txt_remove(AccRegDB* self, const int account_id)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -241,6 +255,8 @@ static bool accreg_db_txt_remove(AccRegDB* self, const int account_id)
 	return true;
 }
 
+
+/// @protected
 static bool accreg_db_txt_save(AccRegDB* self, const struct regs* reg, int account_id)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -261,6 +277,8 @@ static bool accreg_db_txt_save(AccRegDB* self, const struct regs* reg, int accou
 	return true;
 }
 
+
+/// @protected
 static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -279,6 +297,7 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 
 
 /// Returns an iterator over all account regs.
+/// @protected
 static CSDBIterator* accreg_db_txt_iterator(AccRegDB* self)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
@@ -286,7 +305,8 @@ static CSDBIterator* accreg_db_txt_iterator(AccRegDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new AccRegDB interface.
+/// @protected
 AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)aCalloc(1, sizeof(AccRegDB_TXT));

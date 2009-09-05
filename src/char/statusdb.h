@@ -4,8 +4,10 @@
 #ifndef _STATUSDB_H_
 #define _STATUSDB_H_
 
+
 #include "../common/mmo.h" // struct status_change_data, NAME_LENGTH
 #include "csdbiterator.h"
+
 
 typedef struct StatusDB StatusDB;
 

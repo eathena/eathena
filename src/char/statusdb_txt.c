@@ -15,21 +15,25 @@
 #include <string.h>
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct StatusDB_TXT
 {
-	StatusDB vtable;      // public interface
+	// public interface
+	StatusDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* statuses;      // in-memory status storage
+	DBMap* statuses;
 	bool dirty;
 
-	const char* status_db;// status data storage file
+	// settings
+	const char* status_db;
 
 } StatusDB_TXT;
 
 
-
+/// @private
 static void* create_scdata(DBKey key, va_list args)
 {
 	struct scdata* sc = (struct scdata*)aMalloc(sizeof(struct scdata));
@@ -41,6 +45,7 @@ static void* create_scdata(DBKey key, va_list args)
 }
 
 
+/// @private
 static int scdata_db_final(DBKey key, void* data, va_list ap)
 {
 	struct scdata* sc = (struct scdata*)data;
@@ -51,6 +56,7 @@ static int scdata_db_final(DBKey key, void* data, va_list ap)
 }
 
 
+/// @private
 static bool mmo_status_fromstr(struct scdata* sc, char* str)
 {
 	int i, len, next;
@@ -75,6 +81,7 @@ static bool mmo_status_fromstr(struct scdata* sc, char* str)
 }
 
 
+/// @private
 static bool mmo_status_tostr(const struct scdata* sc, char* str)
 {
 	int i, len;
@@ -90,6 +97,7 @@ static bool mmo_status_tostr(const struct scdata* sc, char* str)
 }
 
 
+/// @protected
 static bool status_db_txt_init(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -137,6 +145,8 @@ static bool status_db_txt_init(StatusDB* self)
 	return true;
 }
 
+
+/// @protected
 static void status_db_txt_destroy(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -153,6 +163,8 @@ static void status_db_txt_destroy(StatusDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool status_db_txt_sync(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -188,6 +200,8 @@ static bool status_db_txt_sync(StatusDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool status_db_txt_remove(StatusDB* self, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -205,6 +219,8 @@ static bool status_db_txt_remove(StatusDB* self, int char_id)
 	return true;
 }
 
+
+/// @protected
 static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -237,6 +253,8 @@ static bool status_db_txt_save(StatusDB* self, struct scdata* sc)
 	return true;
 }
 
+
+/// @protected
 static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -266,6 +284,7 @@ static bool status_db_txt_load(StatusDB* self, struct scdata* sc, int char_id)
 
 
 /// Returns an iterator over all status entries.
+/// @protected
 static CSDBIterator* status_db_txt_iterator(StatusDB* self)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
@@ -273,7 +292,8 @@ static CSDBIterator* status_db_txt_iterator(StatusDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new StatusDB interface.
+/// @protected
 StatusDB* status_db_txt(CharServerDB_TXT* owner)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)aCalloc(1, sizeof(StatusDB_TXT));

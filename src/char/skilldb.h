@@ -4,8 +4,10 @@
 #ifndef _SKILLDB_H_
 #define _SKILLDB_H_
 
+
 #include "../common/mmo.h" // struct s_skill, MAX_SKILL
 #include "csdbiterator.h"
+
 
 typedef struct SkillDB SkillDB;
 typedef struct s_skill skilllist[MAX_SKILL];

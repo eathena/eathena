@@ -7,31 +7,32 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
-
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
 
-typedef struct RankDB_TXT RankDB_TXT;
-
-
 #define RANKDB_TXT_VERSION 20090210
 
 
-
-/// private
-struct RankDB_TXT
+/// Internal structure.
+/// @private
+typedef struct RankDB_TXT
 {
+	// public interface
 	RankDB vtable;
+
+	// state
 	CharServerDB_TXT* owner;
-	const char* file_ranks;
 	DBMap* rank_blacksmith;// int char_id -> int points
 	DBMap* rank_alchemist;// int char_id -> int points
 	DBMap* rank_taekwon;// int char_id -> int points
 	bool dirty;
-};
 
+	// settings
+	const char* file_ranks;
+
+} RankDB_TXT;
 
 
 /// Returns the DBMap of the target rank_id or NULL if not supported.
@@ -48,8 +49,8 @@ static DBMap* get_ranking(RankDB_TXT* db, enum rank_type rank_id)
 }
 
 
-
 /// Gets the top rankers in rank rank_id.
+/// @protected
 static int rank_db_txt_get_top_rankers(RankDB* self, enum rank_type rank_id, struct fame_list* list, int count)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
@@ -101,9 +102,9 @@ static int rank_db_txt_get_top_rankers(RankDB* self, enum rank_type rank_id, str
 }
 
 
-
 /// Returns the number of points character char_id has in rank rank_id.
 /// Returns 0 if not found.
+/// @protected
 static int rank_db_txt_get_points(RankDB* self, enum rank_type rank_id, int char_id)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
@@ -115,8 +116,8 @@ static int rank_db_txt_get_points(RankDB* self, enum rank_type rank_id, int char
 }
 
 
-
 /// Sets the number of points character char_id has in rank rank_id.
+/// @protected
 static void rank_db_txt_set_points(RankDB* self, enum rank_type rank_id, int char_id, int points)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
@@ -131,7 +132,6 @@ static void rank_db_txt_set_points(RankDB* self, enum rank_type rank_id, int cha
 	else
 		ShowError("rank_db_txt_set_points: Unsupported rank_id. (rank_id=%d char_id=%d points=%d)\n", rank_id, char_id, points);
 }
-
 
 
 /// Initializes this RankDB interface.
@@ -212,7 +212,6 @@ static bool rank_db_txt_init(RankDB* self)
 }
 
 
-
 /// Destroys this RankDB interface.
 /// @protected
 static void rank_db_txt_destroy(RankDB* self)
@@ -237,7 +236,6 @@ static void rank_db_txt_destroy(RankDB* self)
 	db->owner = NULL;
 	aFree(db);
 }
-
 
 
 /// Saves any pending data.
@@ -286,18 +284,17 @@ static bool rank_db_txt_save(RankDB* self)
 }
 
 
-
 /// Returns an iterator over all rankings of the specified type.
 ///
 /// @param self Database
 /// @param rank_id Rank list id
 /// @return Iterator
+/// @protected
 static CSDBIterator* rank_db_txt_iterator(RankDB* self, enum rank_type rank_id)
 {
 	RankDB_TXT* db = (RankDB_TXT*)self;
 	return csdb_txt_iterator(db_iterator(get_ranking(db,rank_id)));
 }
-
 
 
 /// Constructs a new RankDB interface.

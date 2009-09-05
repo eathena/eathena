@@ -11,7 +11,8 @@
 #define CSDBITERATOR_MAXCACHE 16000
 
 
-/// generic sql db iterator
+/// Internal structure.
+/// @private
 typedef struct CSDBIterator_SQL
 {
 	CSDBIterator vtable;
@@ -27,7 +28,8 @@ typedef struct CSDBIterator_SQL
 CSDBIterator_SQL;
 
 
-/// Private. Fills the cache of the iterator with keys.
+/// Fills the cache of the iterator with keys.
+/// @private
 static void csdb_sql_iter_P_fillcache(CSDBIterator_SQL* iter)
 {
 	int res;
@@ -110,6 +112,7 @@ static void csdb_sql_iter_P_fillcache(CSDBIterator_SQL* iter)
 
 
 /// Destroys this iterator, releasing all allocated memory (including itself).
+/// @protected
 static void csdb_sql_iter_destroy(CSDBIterator* self)
 {
 	CSDBIterator_SQL* iter = (CSDBIterator_SQL*)self;
@@ -120,6 +123,7 @@ static void csdb_sql_iter_destroy(CSDBIterator* self)
 
 
 /// Fetches the next entry's key.
+/// @protected
 static bool csdb_sql_iter_next(CSDBIterator* self, int* key)
 {
 	CSDBIterator_SQL* iter = (CSDBIterator_SQL*)self;
@@ -140,7 +144,8 @@ static bool csdb_sql_iter_next(CSDBIterator* self, int* key)
 }
 
 
-/// generic sql db iterator constructor
+/// Constructs a new CSDBIterator interface.
+/// @protected
 CSDBIterator* csdb_sql_iterator(Sql* sql_handle, const char* sql_table, const char* sql_column)
 {
 	struct CSDBIterator_SQL* iter = (CSDBIterator_SQL*)aCalloc(1, sizeof(CSDBIterator_SQL));

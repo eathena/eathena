@@ -21,22 +21,26 @@
 #define START_AUCTION_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct AuctionDB_TXT
 {
-	AuctionDB vtable;        // public interface
+	// public interface
+	AuctionDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* auctions;         // in-memory auction storage
-	int next_auction_id;     // auto_increment
+	DBMap* auctions;
+	int next_auction_id;
 	bool dirty;
 
-	const char* auction_db;  // auction data storage file
+	// settings
+	const char* auction_db;
 
 } AuctionDB_TXT;
 
 
-
+/// @private
 static bool mmo_auction_fromstr(struct auction_data* ad, char* str, unsigned int version)
 {
 	char* fields[32];
@@ -78,6 +82,7 @@ static bool mmo_auction_fromstr(struct auction_data* ad, char* str, unsigned int
 }
 
 
+/// @private
 static bool mmo_auction_tostr(const struct auction_data* ad, char* str)
 {
 	char* p = str;
@@ -95,6 +100,7 @@ static bool mmo_auction_tostr(const struct auction_data* ad, char* str)
 }
 
 
+/// @protected
 static bool auction_db_txt_init(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -162,6 +168,8 @@ static bool auction_db_txt_init(AuctionDB* self)
 	return true;
 }
 
+
+/// @protected
 static void auction_db_txt_destroy(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -178,6 +186,8 @@ static void auction_db_txt_destroy(AuctionDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool auction_db_txt_sync(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -213,6 +223,8 @@ static bool auction_db_txt_sync(AuctionDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -248,6 +260,8 @@ static bool auction_db_txt_create(AuctionDB* self, struct auction_data* ad)
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_txt_remove(AuctionDB* self, const int auction_id)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -260,6 +274,8 @@ static bool auction_db_txt_remove(AuctionDB* self, const int auction_id)
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -281,6 +297,8 @@ static bool auction_db_txt_save(AuctionDB* self, const struct auction_data* ad)
 	return true;
 }
 
+
+/// @protected
 static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const int auction_id)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -299,7 +317,9 @@ static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const 
 	return true;
 }
 
+
 /// List the auctions for the specified search results page.
+/// @protected
 static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -345,6 +365,8 @@ static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], in
 	return true;
 }
 
+
+/// @protected
 static int auction_db_txt_count(AuctionDB* self, const int char_id)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -365,6 +387,8 @@ static int auction_db_txt_count(AuctionDB* self, const int char_id)
 	return result;
 }
 
+
+/// @protected
 static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -391,6 +415,7 @@ static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 
 
 /// Returns an iterator over all auctions.
+/// @protected
 static CSDBIterator* auction_db_txt_iterator(AuctionDB* self)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
@@ -398,7 +423,8 @@ static CSDBIterator* auction_db_txt_iterator(AuctionDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new AuctionDB interface.
+/// @protected
 AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)aCalloc(1, sizeof(AuctionDB_TXT));

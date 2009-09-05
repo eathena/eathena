@@ -20,22 +20,26 @@
 #define START_MERCENARY_NUM 1
 
 
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct MercDB_TXT
 {
-	MercDB vtable;       // public interface
+	// public interface
+	MercDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* mercs;         // in-memory mercenary storage
-	int next_merc_id;     // auto_increment
+	DBMap* mercs;
+	int next_merc_id;
 	bool dirty;
 
-	const char* merc_db;  // mercenary data storage file
+	// settings
+	const char* merc_db;
 
 } MercDB_TXT;
 
 
-
+/// @private
 static bool mmo_merc_fromstr(struct s_mercenary* md, char* str, unsigned int version)
 {
 	// zero out the destination first
@@ -55,6 +59,7 @@ static bool mmo_merc_fromstr(struct s_mercenary* md, char* str, unsigned int ver
 }
 
 
+/// @private
 static bool mmo_merc_tostr(const struct s_mercenary* md, char* str)
 {
 	char* p = str;
@@ -65,6 +70,7 @@ static bool mmo_merc_tostr(const struct s_mercenary* md, char* str)
 }
 
 
+/// @protected
 static bool merc_db_txt_init(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -132,6 +138,8 @@ static bool merc_db_txt_init(MercDB* self)
 	return true;
 }
 
+
+/// @protected
 static void merc_db_txt_destroy(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -148,6 +156,8 @@ static void merc_db_txt_destroy(MercDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool merc_db_txt_sync(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -183,6 +193,8 @@ static bool merc_db_txt_sync(MercDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_txt_create(MercDB* self, struct s_mercenary* md)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -218,6 +230,8 @@ static bool merc_db_txt_create(MercDB* self, struct s_mercenary* md)
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_txt_remove(MercDB* self, const int merc_id)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -230,6 +244,8 @@ static bool merc_db_txt_remove(MercDB* self, const int merc_id)
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_txt_save(MercDB* self, const struct s_mercenary* md)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -251,6 +267,8 @@ static bool merc_db_txt_save(MercDB* self, const struct s_mercenary* md)
 	return true;
 }
 
+
+/// @protected
 static bool merc_db_txt_load(MercDB* self, struct s_mercenary* md, int merc_id)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -271,6 +289,7 @@ static bool merc_db_txt_load(MercDB* self, struct s_mercenary* md, int merc_id)
 
 
 /// Returns an iterator over all mercs.
+/// @protected
 static CSDBIterator* merc_db_txt_iterator(MercDB* self)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
@@ -278,7 +297,8 @@ static CSDBIterator* merc_db_txt_iterator(MercDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new MercDB interface.
+/// @protected
 MercDB* merc_db_txt(CharServerDB_TXT* owner)
 {
 	MercDB_TXT* db = (MercDB_TXT*)aCalloc(1, sizeof(MercDB_TXT));

@@ -6,28 +6,28 @@
 #include "../common/sql.h"
 #include "../common/strlib.h"
 #include "charserverdb_sql.h"
-
 #include <string.h>
 #include <stdlib.h>
 
 
-
-typedef struct RankDB_SQL RankDB_SQL;
-
-
-
-/// private
-struct RankDB_SQL
+/// Internal structure.
+/// @private
+typedef struct RankDB_SQL
 {
+	// public interface
 	RankDB vtable;
 
+	// state
 	CharServerDB_SQL* owner;
-	const char* table_ranks;
-};
 
+	// settings
+	const char* table_ranks;
+
+} RankDB_SQL;
 
 
 /// Gets the top rankers in rank rank_id.
+/// @protected
 static int rank_db_sql_get_top_rankers(RankDB* self, enum rank_type rank_id, struct fame_list* list, int count)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
@@ -75,9 +75,9 @@ static int rank_db_sql_get_top_rankers(RankDB* self, enum rank_type rank_id, str
 }
 
 
-
 /// Returns the number of points character char_id has in rank rank_id.
 /// Returns 0 if not found.
+/// @protected
 static int rank_db_sql_get_points(RankDB* self, enum rank_type rank_id, int char_id)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
@@ -103,8 +103,8 @@ static int rank_db_sql_get_points(RankDB* self, enum rank_type rank_id, int char
 }
 
 
-
 /// Sets the number of points character char_id has in rank rank_id.
+/// @protected
 static void rank_db_sql_set_points(RankDB* self, enum rank_type rank_id, int char_id, int points)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
@@ -121,7 +121,6 @@ static void rank_db_sql_set_points(RankDB* self, enum rank_type rank_id, int cha
 }
 
 
-
 /// Initializes this RankDB interface.
 /// @protected
 static bool rank_db_sql_init(RankDB* self)
@@ -130,7 +129,6 @@ static bool rank_db_sql_init(RankDB* self)
 
 	return true;
 }
-
 
 
 /// Destroys this RankDB interface.
@@ -144,7 +142,6 @@ static void rank_db_sql_destroy(RankDB* self)
 }
 
 
-
 /// Saves any pending data.
 /// @protected
 static bool rank_db_sql_save(RankDB* self)
@@ -155,8 +152,8 @@ static bool rank_db_sql_save(RankDB* self)
 }
 
 
-
-/// internal structure
+/// Internal structure.
+/// @private
 typedef struct RankDBIterator_SQL
 {
 	// public interface
@@ -171,8 +168,8 @@ typedef struct RankDBIterator_SQL
 } RankDBIterator_SQL;
 
 
-
 /// Destroys this iterator, releasing all allocated memory (including itself).
+/// @protected
 static void rank_db_sql_iter_destroy(CSDBIterator* self)
 {
 	RankDBIterator_SQL* iter = (RankDBIterator_SQL*)self;
@@ -182,8 +179,8 @@ static void rank_db_sql_iter_destroy(CSDBIterator* self)
 }
 
 
-
 /// Fetches the next ranking.
+/// @protected
 static bool rank_db_sql_iter_next(CSDBIterator* self, int* key)
 {
 	RankDBIterator_SQL* iter = (RankDBIterator_SQL*)self;
@@ -200,12 +197,12 @@ static bool rank_db_sql_iter_next(CSDBIterator* self, int* key)
 }
 
 
-
 /// Returns an iterator over all rankings of the specified type.
 ///
 /// @param self Database
 /// @param rank_id Rank list id
 /// @return Iterator
+/// @protected
 static CSDBIterator* rank_db_sql_iterator(RankDB* self, enum rank_type rank_id)
 {
 	RankDB_SQL* db = (RankDB_SQL*)self;
@@ -255,7 +252,6 @@ static CSDBIterator* rank_db_sql_iterator(RankDB* self, enum rank_type rank_id)
 
 	return &iter->vtable;
 }
-
 
 
 /// Constructs a new RankDB interface.

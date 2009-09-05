@@ -4,8 +4,10 @@
 #ifndef _GUILDDB_H_
 #define _GUILDDB_H_
 
+
 #include "../common/mmo.h" // struct guild
 #include "csdbiterator.h"
+
 
 typedef struct GuildDB GuildDB;
 

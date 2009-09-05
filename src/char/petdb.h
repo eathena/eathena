@@ -4,8 +4,10 @@
 #ifndef _PETDB_H_
 #define _PETDB_H_
 
+
 #include "../common/mmo.h" // struct s_pet, NAME_LENGTH
 #include "csdbiterator.h"
+
 
 typedef struct PetDB PetDB;
 

@@ -13,24 +13,30 @@
 #include <stdio.h>
 #include <string.h>
 
+
 #define START_HOMUN_NUM 1
 
-/// internal structure
+
+/// Internal structure.
+/// @private
 typedef struct HomunDB_TXT
 {
-	HomunDB vtable;      // public interface
+	// public interface
+	HomunDB vtable;
 
+	// state
 	CharServerDB_TXT* owner;
-	DBMap* homuns;       // in-memory homun storage
-	int next_homun_id;   // auto_increment
+	DBMap* homuns;
+	int next_homun_id;
 	bool dirty;
 
-	const char* homun_db; // homun data storage file
+	// settings
+	const char* homun_db;
 
 } HomunDB_TXT;
 
 
-
+/// @private
 static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
 {
 	int next, len;
@@ -75,6 +81,7 @@ static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
 }
 
 
+/// @private
 static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
 {
 	int i;
@@ -101,6 +108,7 @@ static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
 }
 
 
+/// @protected
 static bool homun_db_txt_init(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -159,6 +167,8 @@ static bool homun_db_txt_init(HomunDB* self)
 	return true;
 }
 
+
+/// @protected
 static void homun_db_txt_destroy(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -175,6 +185,8 @@ static void homun_db_txt_destroy(HomunDB* self)
 	aFree(db);
 }
 
+
+/// @protected
 static bool homun_db_txt_sync(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -208,6 +220,8 @@ static bool homun_db_txt_sync(HomunDB* self)
 	return true;
 }
 
+
+/// @protected
 static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -243,6 +257,8 @@ static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
 	return true;
 }
 
+
+/// @protected
 static bool homun_db_txt_remove(HomunDB* self, int homun_id)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -255,6 +271,8 @@ static bool homun_db_txt_remove(HomunDB* self, int homun_id)
 	return true;
 }
 
+
+/// @protected
 static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -276,6 +294,8 @@ static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd)
 	return true;
 }
 
+
+/// @protected
 static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -296,6 +316,7 @@ static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_
 
 
 /// Returns an iterator over all homunculi.
+/// @protected
 static CSDBIterator* homun_db_txt_iterator(HomunDB* self)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
@@ -303,7 +324,8 @@ static CSDBIterator* homun_db_txt_iterator(HomunDB* self)
 }
 
 
-/// public constructor
+/// Constructs a new HomunDB interface.
+/// @protected
 HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
