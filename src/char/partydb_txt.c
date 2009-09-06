@@ -11,9 +11,12 @@
 #include "partydb.h"
 #include "charserverdb.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 
+/// global defines
+#define PARTYDB_TXT_DB_VERSION 20090906
 #define START_PARTY_NUM 1
 
 
@@ -38,45 +41,87 @@ typedef struct PartyDB_TXT
 
 
 /// @private
-static bool mmo_party_fromstr(struct party* p, char* str)
+static bool mmo_party_fromstr(struct party* p, char* str, unsigned int version)
 {
-	int i, j;
-	int party_id;
-	char name[256];
-	int exp;
-	int item;
-	
 	memset(p, 0, sizeof(*p));
 
-	if( sscanf(str, "%d\t%255[^\t]\t%d,%d\t", &party_id, name, &exp, &item) != 4 )
-		return false;
-
-	p->party_id = party_id;
-	safestrncpy(p->name, name, sizeof(p->name));
-	p->exp = exp ? 1:0;
-	p->item = item;
-
-	for( j = 0; j < 3 && str != NULL; j++ )
-		str = strchr(str + 1, '\t');
-
-	for( i = 0; i < MAX_PARTY; i++ )
+	if( version == 20090906 )
 	{
-		struct party_member* m = &p->member[i];
-		int account_id;
-		int char_id;
-		int leader;
+		int fields[3+1][2];
+		int base[3+1][2];
+		int members[MAX_PARTY+1][2];
+		int member[3+1][2];
+		int nmembers;
+		int i;
 
-		if( str == NULL )
+		// layout := <party id> \t <party base data> \t <party member list>
+		if( sv_parse(str, strlen(str), 0, '\t', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 3 )
 			return false;
 
-		if( sscanf(str + 1, "%d,%d,%d\t", &account_id, &char_id, &leader) != 3 )
+		// party id := <party id>
+		p->party_id = strtol(&str[fields[1][0]], NULL, 10);
+
+		// party base data := <name>,<exp>,<item>
+		if( sv_parse(str, fields[2][1], fields[2][0], ',', (int*)base, 2*ARRAYLENGTH(base), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 3 )
+			return false;
+		sv_unescape_c(p->name, &str[base[1][0]], base[1][1]-base[1][0]);
+		p->exp = strtoul(&str[base[2][0]], NULL, 10) ? 1 : 0;
+		p->item = strtoul(&str[base[3][0]], NULL, 10);
+
+		// party member list := {<party member data> }*
+		nmembers = sv_parse(str, fields[3][1], fields[3][0], ' ', (int*)members, 2*ARRAYLENGTH(members), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		for( i = 0; i < nmembers; ++i )
+		{
+			// party member data := <account id>,<char id>,<leader flag>
+			if( sv_parse(str, members[i+1][1], members[i+1][0], ',', (int*)member, 2*ARRAYLENGTH(member), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 3 )
+				return false;
+			p->member[i].account_id = strtol(&str[member[1][0]], NULL, 10);
+			p->member[i].char_id = strtol(&str[member[2][0]], NULL, 10);
+			p->member[i].leader = strtoul(&str[member[3][0]], NULL, 10) ? 1 : 0;
+		}
+	}
+	else
+	if( version == 0 )
+	{
+		int party_id;
+		char name[256];
+		int exp;
+		int item;
+		int n;
+		int i;
+
+		n = 0;
+		if( sscanf(str, "%d\t%255[^\t]\t%d,%d%n", &party_id, name, &exp, &item, &n) != 4 || str[n] != '\t' )
 			return false;
 
-		m->account_id = account_id;
-		m->char_id = char_id; 
-		m->leader = leader ? 1:0;
+		p->party_id = party_id;
+		safestrncpy(p->name, name, sizeof(p->name));
+		p->exp = exp ? 1:0;
+		p->item = item;
 
-		str = strchr(str + 1, '\t');
+		str += n + 1;
+
+		for( i = 0; i < MAX_PARTY; i++ )
+		{
+			struct party_member* m = &p->member[i];
+			int account_id;
+			int char_id;
+			int leader;
+
+			n = 0;
+			if( sscanf(str, "%d,%d,%d%n", &account_id, &char_id, &leader, &n) != 3 || str[n] != '\t' )
+				return false;
+
+			m->account_id = account_id;
+			m->char_id = char_id; 
+			m->leader = leader ? 1:0;
+
+			str += n + 1;
+		}
+	}
+	else
+	{// unmatched row	
+		return false;
 	}
 
 	return true;
@@ -86,16 +131,27 @@ static bool mmo_party_fromstr(struct party* p, char* str)
 /// @private
 static bool mmo_party_tostr(const struct party* p, char* str)
 {
-	int i, len;
+	char esc_name[sizeof(p->name)*4+1];
+	bool first = true;
+	int i;
 
-	// write basic data
-	len = sprintf(str, "%d\t%s\t%d,%d\t", p->party_id, p->name, p->exp, p->item);
+	// write base data
+	sv_escape_c(esc_name, p->name, strlen(p->name), ",");
+	str += sprintf(str, "%d\t%s,%d,%d\t", p->party_id, p->name, p->exp, p->item);
 
 	// write party member data
 	for( i = 0; i < MAX_PARTY; i++ )
 	{
 		const struct party_member* m = &p->member[i];
-		len += sprintf(str + len, "%d,%d,%d\t", m->account_id, m->char_id, m->leader);
+		if( m->account_id == 0 && m->char_id == 0 )
+			continue; // skip empty entries
+
+		if( first )
+			first = false;
+		else
+			str += sprintf(str, " ");
+
+		str += sprintf(str, "%d,%d,%d", m->account_id, m->char_id, m->leader);
 	}
 
 	return true;
@@ -107,9 +163,9 @@ static bool party_db_txt_init(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	DBMap* parties;
-
 	char line[8192];
 	FILE *fp;
+	unsigned int version = 0;
 
 	// create party database
 	if( db->parties == NULL )
@@ -131,6 +187,14 @@ static bool party_db_txt_init(PartyDB* self)
 		int party_id, n;
 		struct party_data p;
 		struct party_data* tmp;
+		unsigned int v;
+
+		n = 0;
+		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
+		{// format version definition
+			version = v;
+			continue;
+		}
 
 		n = 0;
 		if( sscanf(line, "%d\t%%newid%%%n", &party_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
@@ -140,7 +204,7 @@ static bool party_db_txt_init(PartyDB* self)
 			continue;
 		}
 
-		if( !mmo_party_fromstr(&p.party, line) )
+		if( !mmo_party_fromstr(&p.party, line, version) )
 		{
 			ShowError("party_db_txt_init: skipping invalid data: %s", line);
 			continue;
@@ -196,6 +260,8 @@ static bool party_db_txt_sync(PartyDB* self)
 		ShowError("party_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
 		return false;
 	}
+
+	fprintf(fp, "%d\n", PARTYDB_TXT_DB_VERSION);
 
 	iter = db->parties->iterator(db->parties);
 	for( p = (struct party_data*)iter->first(iter,NULL); iter->exists(iter); p = (struct party_data*)iter->next(iter,NULL) )
