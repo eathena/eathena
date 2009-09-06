@@ -77,11 +77,11 @@ static bool mmo_friendlist_tostr(const friendlist* list, char* str)
 	int i;
 	char* p = str;
 
-	p[0] = '\0';
-
 	for( i = 0; i < MAX_FRIENDS; i++ )
 		if( (*list)[i].account_id > 0 && (*list)[i].char_id > 0 && (*list)[i].name[0] != '\0' )
 			p += sprintf(p, ",%d,%d,%s", (*list)[i].account_id, (*list)[i].char_id, (*list)[i].name);
+
+	*p = '\0';
 
 	return true;
 }

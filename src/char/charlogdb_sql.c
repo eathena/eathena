@@ -34,7 +34,6 @@ struct CharLogDB_SQL
 	char db_password[32];
 	char db_database[32];
 	char table_charlog[256];
-	bool enabled;
 };
 
 
@@ -170,7 +169,6 @@ CharLogDB* charlog_db_sql(void)
 	safestrncpy(db->db_password, "ragnarok", sizeof(db->db_password));
 	safestrncpy(db->db_database, "log", sizeof(db->db_database));
 	safestrncpy(db->table_charlog, "charlog", sizeof(db->table_charlog));
-	db->enabled = true;
 
 	return &db->vtable;
 }

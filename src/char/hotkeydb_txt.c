@@ -71,10 +71,10 @@ static bool mmo_hotkeylist_tostr(const hotkeylist* list, char* str)
 	int i;
 	char* p = str;
 
-	p[0] = '\0';
-
 	for( i = 0; i < MAX_HOTKEYS; i++ )
 		p += sprintf(p, ",%d,%d,%d", (*list)[i].type, (*list)[i].id, (*list)[i].lv);
+
+	*p = '\0';
 
 	return true;
 }

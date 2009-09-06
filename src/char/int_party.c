@@ -288,17 +288,6 @@ static void mapif_parse_CreateParty(int fd, char *name, int item, int item2, str
 	struct party_data* p;
 	int i;
 
-#ifdef TXT_ONLY
-	//FIXME: this should be removed once the savefiles can handle all symbols
-	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
-		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
-			ShowInfo("int_party: illegal party name [%s]\n", name);
-			mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
-			return;
-		}
-	}
-#endif
-
 	// Check Authorised letters/symbols in the name of the party
 	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
@@ -418,7 +407,7 @@ static void mapif_parse_PartyLeave(int fd, int party_id, int account_id, int cha
 
 	if( p == NULL )
 	{// Party does not exist
-		mapif_party_noinfo(fd, party_id); //TODO: check if this is right
+		mapif_party_noinfo(fd, party_id);
 		return;
 	}
 

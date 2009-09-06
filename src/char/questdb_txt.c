@@ -107,6 +107,8 @@ static bool mmo_quests_tostr(const questlog* log, char* str)
 
 	}
 
+	*p = '\0';
+
 	return true;
 }
 
