@@ -97,8 +97,6 @@ struct point start_point = { 0, 53, 111 }; // Initial position (it's possible to
 // storage-specific options
 //TXT
 int email_creation = 0; // disabled by default
-//SQL
-int char_per_account = 0; //Maximum charas per account (default unlimited) [Sirius]
 
 
 //FIXME: this setting needs re-work due to changes in code structure
@@ -698,6 +696,7 @@ void char_set_defaults(void)
 	char_config.console = false;
 	safestrncpy(char_config.char_log_filename, "log/char.log", sizeof(char_config.char_log_filename));
 	char_config.log_char_enabled = true;
+	char_config.chars_per_account = 0;
 	char_config.char_del_level = 0;
 }
 
@@ -871,11 +870,9 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "db_path") == 0 )
 			safestrncpy(char_config.db_path, w2, sizeof(char_config.db_path));
-#ifndef TXT_ONLY
 		else
-		if( strcmpi(w1, "chars_per_account") == 0 ) //maxchars per account [Sirius]
-			char_per_account = atoi(w2);
-#endif
+		if( strcmpi(w1, "chars_per_account") == 0 )
+			char_config.chars_per_account = atoi(w2);
 		else
 		if( strcmpi(w1, "char_del_level") == 0 )
 			char_config.char_del_level = atoi(w2);

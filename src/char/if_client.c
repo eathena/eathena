@@ -273,6 +273,7 @@ int parse_client(int fd)
 
 			if( !char_config.char_new
 			|| (slot < 0 || slot >= MAX_CHARS || sd->slots[slot] != 0) // invalid slot or in use
+			|| (char_config.chars_per_account > 0 && sd->chars_num >= char_config.chars_per_account) // maximum number of chars reached
 			|| (hairstyle < 0 || hairstyle >= 24) // hair style
 			|| (haircolor < 0 || haircolor >= 9) // hair color
 			|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
