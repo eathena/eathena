@@ -339,10 +339,13 @@ static void storage_db_txt_destroy(StorageDB* self)
 
 
 /// @protected
-static bool storage_db_txt_sync(StorageDB* self)
+static bool storage_db_txt_sync(StorageDB* self, bool force)
 {
 	StorageDB_TXT* db = (StorageDB_TXT*)self;
 	bool result = true;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	if( !mmo_storagedb_sync(db, STORAGE_INVENTORY) )
 		result = false;
@@ -353,6 +356,8 @@ static bool storage_db_txt_sync(StorageDB* self)
 	if( !mmo_storagedb_sync(db, STORAGE_GUILD) )
 		result = false;
 
+	if( result )
+		db->dirty = false;
 	return result;
 }
 
@@ -455,9 +460,9 @@ StorageDB* storage_db_txt(CharServerDB_TXT* owner)
 	StorageDB_TXT* db = (StorageDB_TXT*)aCalloc(1, sizeof(StorageDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &storage_db_txt_init;
-	db->vtable.destroy   = &storage_db_txt_destroy;
-	db->vtable.sync      = &storage_db_txt_sync;
+	db->vtable.p.init      = &storage_db_txt_init;
+	db->vtable.p.destroy   = &storage_db_txt_destroy;
+	db->vtable.p.sync      = &storage_db_txt_sync;
 	db->vtable.remove    = &storage_db_txt_remove;
 	db->vtable.save      = &storage_db_txt_save;
 	db->vtable.load      = &storage_db_txt_load;

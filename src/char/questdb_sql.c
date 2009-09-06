@@ -184,7 +184,7 @@ static void quest_db_sql_destroy(QuestDB* self)
 
 
 /// @protected
-static bool quest_db_sql_sync(QuestDB* self)
+static bool quest_db_sql_sync(QuestDB* self, bool force)
 {
 	return true;
 }
@@ -297,9 +297,9 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	QuestDB_SQL* db = (QuestDB_SQL*)aCalloc(1, sizeof(QuestDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &quest_db_sql_init;
-	db->vtable.destroy   = &quest_db_sql_destroy;
-	db->vtable.sync      = &quest_db_sql_sync;
+	db->vtable.p.init      = &quest_db_sql_init;
+	db->vtable.p.destroy   = &quest_db_sql_destroy;
+	db->vtable.p.sync      = &quest_db_sql_sync;
 	db->vtable.add       = &quest_db_sql_add;
 	db->vtable.del       = &quest_db_sql_del;
 	db->vtable.update    = &quest_db_sql_update;

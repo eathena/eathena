@@ -15,10 +15,14 @@ typedef struct quest questlog[MAX_QUEST_DB];
 
 struct QuestDB
 {
-	bool (*init)(QuestDB* self);
-	void (*destroy)(QuestDB* self);
-
-	bool (*sync)(QuestDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(QuestDB* self);
+		void (*destroy)(QuestDB* self);
+		bool (*sync)(QuestDB* self, bool force);
+	} p;
 
 	/// Deletes a character's entire quest log.
 	bool (*remove)(QuestDB* self, const int char_id);

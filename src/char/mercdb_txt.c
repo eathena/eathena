@@ -158,13 +158,16 @@ static void merc_db_txt_destroy(MercDB* self)
 
 
 /// @protected
-static bool merc_db_txt_sync(MercDB* self)
+static bool merc_db_txt_sync(MercDB* self, bool force)
 {
 	MercDB_TXT* db = (MercDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE* fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->merc_db, &lock);
 	if( fp == NULL )
@@ -304,9 +307,9 @@ MercDB* merc_db_txt(CharServerDB_TXT* owner)
 	MercDB_TXT* db = (MercDB_TXT*)aCalloc(1, sizeof(MercDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &merc_db_txt_init;
-	db->vtable.destroy   = &merc_db_txt_destroy;
-	db->vtable.sync      = &merc_db_txt_sync;
+	db->vtable.p.init      = &merc_db_txt_init;
+	db->vtable.p.destroy   = &merc_db_txt_destroy;
+	db->vtable.p.sync      = &merc_db_txt_sync;
 	db->vtable.create    = &merc_db_txt_create;
 	db->vtable.remove    = &merc_db_txt_remove;
 	db->vtable.save      = &merc_db_txt_save;

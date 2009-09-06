@@ -265,7 +265,7 @@ static void storage_db_sql_destroy(StorageDB* self)
 
 
 /// @protected
-static bool storage_db_sql_sync(StorageDB* self)
+static bool storage_db_sql_sync(StorageDB* self, bool force)
 {
 	return true;
 }
@@ -336,9 +336,9 @@ StorageDB* storage_db_sql(CharServerDB_SQL* owner)
 	StorageDB_SQL* db = (StorageDB_SQL*)aCalloc(1, sizeof(StorageDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &storage_db_sql_init;
-	db->vtable.destroy   = &storage_db_sql_destroy;
-	db->vtable.sync      = &storage_db_sql_sync;
+	db->vtable.p.init      = &storage_db_sql_init;
+	db->vtable.p.destroy   = &storage_db_sql_destroy;
+	db->vtable.p.sync      = &storage_db_sql_sync;
 	db->vtable.remove    = &storage_db_sql_remove;
 	db->vtable.save      = &storage_db_sql_save;
 	db->vtable.load      = &storage_db_sql_load;

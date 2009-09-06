@@ -14,11 +14,14 @@ typedef struct MercDB MercDB;
 
 struct MercDB
 {
-	bool (*init)(MercDB* self);
-
-	void (*destroy)(MercDB* self);
-
-	bool (*sync)(MercDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(MercDB* self);
+		void (*destroy)(MercDB* self);
+		bool (*sync)(MercDB* self, bool force);
+	} p;
 
 	bool (*create)(MercDB* self, struct s_mercenary* md);
 

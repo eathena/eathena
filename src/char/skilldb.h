@@ -15,10 +15,14 @@ typedef struct s_skill skilllist[MAX_SKILL];
 
 struct SkillDB
 {
-	bool (*init)(SkillDB* self);
-	void (*destroy)(SkillDB* self);
-
-	bool (*sync)(SkillDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(SkillDB* self);
+		void (*destroy)(SkillDB* self);
+		bool (*sync)(SkillDB* self, bool force);
+	} p;
 
 	bool (*remove)(SkillDB* self, const int char_id);
 

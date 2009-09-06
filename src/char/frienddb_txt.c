@@ -161,7 +161,7 @@ static void friend_db_txt_destroy(FriendDB* self)
 
 
 /// @protected
-static bool friend_db_txt_sync(FriendDB* self)
+static bool friend_db_txt_sync(FriendDB* self, bool force)
 {
 	FriendDB_TXT* db = (FriendDB_TXT*)self;
 	DBIterator* iter;
@@ -169,6 +169,9 @@ static bool friend_db_txt_sync(FriendDB* self)
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->friend_db, &lock);
 	if( fp == NULL )
@@ -269,9 +272,9 @@ FriendDB* friend_db_txt(CharServerDB_TXT* owner)
 	FriendDB_TXT* db = (FriendDB_TXT*)aCalloc(1, sizeof(FriendDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &friend_db_txt_init;
-	db->vtable.destroy   = &friend_db_txt_destroy;
-	db->vtable.sync      = &friend_db_txt_sync;
+	db->vtable.p.init      = &friend_db_txt_init;
+	db->vtable.p.destroy   = &friend_db_txt_destroy;
+	db->vtable.p.sync      = &friend_db_txt_sync;
 	db->vtable.remove    = &friend_db_txt_remove;
 	db->vtable.save      = &friend_db_txt_save;
 	db->vtable.load      = &friend_db_txt_load;

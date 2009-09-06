@@ -168,13 +168,16 @@ static void castle_db_txt_destroy(CastleDB* self)
 
 
 /// @protected
-static bool castle_db_txt_sync(CastleDB* self)
+static bool castle_db_txt_sync(CastleDB* self, bool force)
 {
 	CastleDB_TXT* db = (CastleDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	// save castle data
 	fp = lock_fopen(db->castle_db, &lock);
@@ -328,9 +331,9 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	CastleDB_TXT* db = (CastleDB_TXT*)aCalloc(1, sizeof(CastleDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &castle_db_txt_init;
-	db->vtable.destroy   = &castle_db_txt_destroy;
-	db->vtable.sync      = &castle_db_txt_sync;
+	db->vtable.p.init      = &castle_db_txt_init;
+	db->vtable.p.destroy   = &castle_db_txt_destroy;
+	db->vtable.p.sync      = &castle_db_txt_sync;
 	db->vtable.create    = &castle_db_txt_create;
 	db->vtable.remove    = &castle_db_txt_remove;
 	db->vtable.remove_gid= &castle_db_txt_remove_gid;

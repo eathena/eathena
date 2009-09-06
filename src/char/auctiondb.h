@@ -14,10 +14,14 @@ typedef struct AuctionDB AuctionDB;
 
 struct AuctionDB
 {
-	bool (*init)(AuctionDB* self);
-	void (*destroy)(AuctionDB* self);
-
-	bool (*sync)(AuctionDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(AuctionDB* self);
+		void (*destroy)(AuctionDB* self);
+		bool (*sync)(AuctionDB* self, bool force);
+	} p;
 
 	bool (*create)(AuctionDB* self, struct auction_data* ad);
 	bool (*remove)(AuctionDB* self, const int auction_id);

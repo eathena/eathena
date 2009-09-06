@@ -115,7 +115,7 @@ static void merc_db_sql_destroy(MercDB* self)
 
 
 /// @protected
-static bool merc_db_sql_sync(MercDB* self)
+static bool merc_db_sql_sync(MercDB* self, bool force)
 {
 	return true;
 }
@@ -177,9 +177,9 @@ MercDB* merc_db_sql(CharServerDB_SQL* owner)
 	MercDB_SQL* db = (MercDB_SQL*)aCalloc(1, sizeof(MercDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &merc_db_sql_init;
-	db->vtable.destroy   = &merc_db_sql_destroy;
-	db->vtable.sync      = &merc_db_sql_sync;
+	db->vtable.p.init      = &merc_db_sql_init;
+	db->vtable.p.destroy   = &merc_db_sql_destroy;
+	db->vtable.p.sync      = &merc_db_sql_sync;
 	db->vtable.create    = &merc_db_sql_create;
 	db->vtable.remove    = &merc_db_sql_remove;
 	db->vtable.save      = &merc_db_sql_save;

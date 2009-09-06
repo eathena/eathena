@@ -196,7 +196,7 @@ static void charreg_db_txt_destroy(CharRegDB* self)
 
 
 /// @protected
-static bool charreg_db_txt_sync(CharRegDB* self)
+static bool charreg_db_txt_sync(CharRegDB* self, bool force)
 {
 	CharRegDB_TXT* db = (CharRegDB_TXT*)self;
 	DBIterator* iter;
@@ -204,6 +204,9 @@ static bool charreg_db_txt_sync(CharRegDB* self)
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->charreg_db, &lock);
 	if( fp == NULL )
@@ -306,9 +309,9 @@ CharRegDB* charreg_db_txt(CharServerDB_TXT* owner)
 	CharRegDB_TXT* db = (CharRegDB_TXT*)aCalloc(1, sizeof(CharRegDB_TXT));
 
 	// set up the vtable
-	db->vtable.init    = &charreg_db_txt_init;
-	db->vtable.destroy = &charreg_db_txt_destroy;
-	db->vtable.sync    = &charreg_db_txt_sync;
+	db->vtable.p.init    = &charreg_db_txt_init;
+	db->vtable.p.destroy = &charreg_db_txt_destroy;
+	db->vtable.p.sync    = &charreg_db_txt_sync;
 	db->vtable.remove  = &charreg_db_txt_remove;
 	db->vtable.save    = &charreg_db_txt_save;
 	db->vtable.load    = &charreg_db_txt_load;

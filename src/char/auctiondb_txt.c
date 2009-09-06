@@ -188,13 +188,16 @@ static void auction_db_txt_destroy(AuctionDB* self)
 
 
 /// @protected
-static bool auction_db_txt_sync(AuctionDB* self)
+static bool auction_db_txt_sync(AuctionDB* self, bool force)
 {
 	AuctionDB_TXT* db = (AuctionDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->auction_db, &lock);
 	if( fp == NULL )
@@ -430,9 +433,9 @@ AuctionDB* auction_db_txt(CharServerDB_TXT* owner)
 	AuctionDB_TXT* db = (AuctionDB_TXT*)aCalloc(1, sizeof(AuctionDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &auction_db_txt_init;
-	db->vtable.destroy   = &auction_db_txt_destroy;
-	db->vtable.sync      = &auction_db_txt_sync;
+	db->vtable.p.init      = &auction_db_txt_init;
+	db->vtable.p.destroy   = &auction_db_txt_destroy;
+	db->vtable.p.sync      = &auction_db_txt_sync;
 	db->vtable.create    = &auction_db_txt_create;
 	db->vtable.remove    = &auction_db_txt_remove;
 	db->vtable.save      = &auction_db_txt_save;

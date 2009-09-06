@@ -14,10 +14,14 @@ typedef struct PetDB PetDB;
 
 struct PetDB
 {
-	bool (*init)(PetDB* self);
-	void (*destroy)(PetDB* self);
-
-	bool (*sync)(PetDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(PetDB* self);
+		void (*destroy)(PetDB* self);
+		bool (*sync)(PetDB* self, bool force);
+	} p;
 
 	bool (*create)(PetDB* self, struct s_pet* pd);
 

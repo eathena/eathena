@@ -171,7 +171,7 @@ static void charreg_db_sql_destroy(CharRegDB* self)
 
 
 /// @protected
-static bool charreg_db_sql_sync(CharRegDB* self)
+static bool charreg_db_sql_sync(CharRegDB* self, bool force)
 {
 	// not applicable
 	return true;
@@ -226,9 +226,9 @@ CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 	CharRegDB_SQL* db = (CharRegDB_SQL*)aCalloc(1, sizeof(CharRegDB_SQL));
 
 	// set up the vtable
-	db->vtable.init    = &charreg_db_sql_init;
-	db->vtable.destroy = &charreg_db_sql_destroy;
-	db->vtable.sync    = &charreg_db_sql_sync;
+	db->vtable.p.init    = &charreg_db_sql_init;
+	db->vtable.p.destroy = &charreg_db_sql_destroy;
+	db->vtable.p.sync    = &charreg_db_sql_sync;
 	db->vtable.remove  = &charreg_db_sql_remove;
 	db->vtable.save    = &charreg_db_sql_save;
 	db->vtable.load    = &charreg_db_sql_load;

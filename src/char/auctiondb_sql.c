@@ -195,7 +195,7 @@ static void auction_db_sql_destroy(AuctionDB* self)
 
 
 /// @protected
-static bool auction_db_sql_sync(AuctionDB* self)
+static bool auction_db_sql_sync(AuctionDB* self, bool force)
 {
 	return true;
 }
@@ -386,9 +386,9 @@ AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
 	AuctionDB_SQL* db = (AuctionDB_SQL*)aCalloc(1, sizeof(AuctionDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &auction_db_sql_init;
-	db->vtable.destroy   = &auction_db_sql_destroy;
-	db->vtable.sync      = &auction_db_sql_sync;
+	db->vtable.p.init      = &auction_db_sql_init;
+	db->vtable.p.destroy   = &auction_db_sql_destroy;
+	db->vtable.p.sync      = &auction_db_sql_sync;
 	db->vtable.create    = &auction_db_sql_create;
 	db->vtable.remove    = &auction_db_sql_remove;
 	db->vtable.save      = &auction_db_sql_save;

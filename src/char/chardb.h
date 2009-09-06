@@ -14,10 +14,14 @@ typedef struct CharDB CharDB;
 
 struct CharDB
 {
-	bool (*init)(CharDB* self);
-	void (*destroy)(CharDB* self);
-
-	bool (*sync)(CharDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(CharDB* self);
+		void (*destroy)(CharDB* self);
+		bool (*sync)(CharDB* self, bool force);
+	} p;
 
 	bool (*create)(CharDB* self, struct mmo_charstatus* status);
 

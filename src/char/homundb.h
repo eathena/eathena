@@ -14,11 +14,14 @@ typedef struct HomunDB HomunDB;
 
 struct HomunDB
 {
-	bool (*init)(HomunDB* self);
-
-	void (*destroy)(HomunDB* self);
-
-	bool (*sync)(HomunDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(HomunDB* self);
+		void (*destroy)(HomunDB* self);
+		bool (*sync)(HomunDB* self, bool force);
+	} p;
 
 	bool (*create)(HomunDB* self, struct s_homunculus* p);
 

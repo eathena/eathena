@@ -42,11 +42,14 @@ enum guild_save_flags
 
 struct GuildDB
 {
-	bool (*init)(GuildDB* self);
-
-	void (*destroy)(GuildDB* self);
-
-	bool (*sync)(GuildDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(GuildDB* self);
+		void (*destroy)(GuildDB* self);
+		bool (*sync)(GuildDB* self, bool force);
+	} p;
 
 	bool (*create)(GuildDB* self, struct guild* g);
 

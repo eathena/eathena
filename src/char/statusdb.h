@@ -22,10 +22,14 @@ struct scdata
 
 struct StatusDB
 {
-	bool (*init)(StatusDB* self);
-	void (*destroy)(StatusDB* self);
-
-	bool (*sync)(StatusDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(StatusDB* self);
+		void (*destroy)(StatusDB* self);
+		bool (*sync)(StatusDB* self, bool force);
+	} p;
 
 	bool (*remove)(StatusDB* self, int char_id);
 

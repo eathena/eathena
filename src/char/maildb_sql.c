@@ -264,7 +264,7 @@ static void mail_db_sql_destroy(MailDB* self)
 
 
 /// @protected
-static bool mail_db_sql_sync(MailDB* self)
+static bool mail_db_sql_sync(MailDB* self, bool force)
 {
 	return true;
 }
@@ -334,9 +334,9 @@ MailDB* mail_db_sql(CharServerDB_SQL* owner)
 	MailDB_SQL* db = (MailDB_SQL*)aCalloc(1, sizeof(MailDB_SQL));
 
 	// set up the vtable
-	db->vtable.init    = &mail_db_sql_init;
-	db->vtable.destroy = &mail_db_sql_destroy;
-	db->vtable.sync    = &mail_db_sql_sync;
+	db->vtable.p.init    = &mail_db_sql_init;
+	db->vtable.p.destroy = &mail_db_sql_destroy;
+	db->vtable.p.sync    = &mail_db_sql_sync;
 	db->vtable.create  = &mail_db_sql_create;
 	db->vtable.remove  = &mail_db_sql_remove;
 	db->vtable.save    = &mail_db_sql_save;

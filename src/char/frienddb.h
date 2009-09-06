@@ -15,10 +15,14 @@ typedef struct s_friend friendlist[MAX_FRIENDS];
 
 struct FriendDB
 {
-	bool (*init)(FriendDB* self);
-	void (*destroy)(FriendDB* self);
-
-	bool (*sync)(FriendDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(FriendDB* self);
+		void (*destroy)(FriendDB* self);
+		bool (*sync)(FriendDB* self, bool force);
+	} p;
 
 	bool (*remove)(FriendDB* self, const int char_id);
 

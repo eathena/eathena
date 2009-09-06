@@ -203,7 +203,7 @@ static void quest_db_txt_destroy(QuestDB* self)
 
 
 /// @protected
-static bool quest_db_txt_sync(QuestDB* self)
+static bool quest_db_txt_sync(QuestDB* self, bool force)
 {
 	QuestDB_TXT* db = (QuestDB_TXT*)self;
 	DBIterator* iter;
@@ -211,6 +211,9 @@ static bool quest_db_txt_sync(QuestDB* self)
 	void* data;
 	FILE* fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->quest_db, &lock);
 	if( fp == NULL )
@@ -413,9 +416,9 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	QuestDB_TXT* db = (QuestDB_TXT*)aCalloc(1, sizeof(QuestDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &quest_db_txt_init;
-	db->vtable.destroy   = &quest_db_txt_destroy;
-	db->vtable.sync      = &quest_db_txt_sync;
+	db->vtable.p.init      = &quest_db_txt_init;
+	db->vtable.p.destroy   = &quest_db_txt_destroy;
+	db->vtable.p.sync      = &quest_db_txt_sync;
 	db->vtable.add       = &quest_db_txt_add;
 	db->vtable.del       = &quest_db_txt_del;
 	db->vtable.update    = &quest_db_txt_update;

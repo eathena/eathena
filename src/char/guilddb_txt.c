@@ -390,13 +390,16 @@ static void guild_db_txt_destroy(GuildDB* self)
 
 
 /// @protected
-static bool guild_db_txt_sync(GuildDB* self)
+static bool guild_db_txt_sync(GuildDB* self, bool force)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	FILE *fp;
 	int lock;
 	struct DBIterator* iter;
 	struct guild* g;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->guild_db, &lock);
 	if( fp == NULL )
@@ -575,9 +578,9 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	GuildDB_TXT* db = (GuildDB_TXT*)aCalloc(1, sizeof(GuildDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &guild_db_txt_init;
-	db->vtable.destroy   = &guild_db_txt_destroy;
-	db->vtable.sync      = &guild_db_txt_sync;
+	db->vtable.p.init      = &guild_db_txt_init;
+	db->vtable.p.destroy   = &guild_db_txt_destroy;
+	db->vtable.p.sync      = &guild_db_txt_sync;
 	db->vtable.create    = &guild_db_txt_create;
 	db->vtable.remove    = &guild_db_txt_remove;
 	db->vtable.save      = &guild_db_txt_save;

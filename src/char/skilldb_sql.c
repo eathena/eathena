@@ -155,7 +155,7 @@ static void skill_db_sql_destroy(SkillDB* self)
 
 
 /// @protected
-static bool skill_db_sql_sync(SkillDB* self)
+static bool skill_db_sql_sync(SkillDB* self, bool force)
 {
 	return true;
 }
@@ -209,9 +209,9 @@ SkillDB* skill_db_sql(CharServerDB_SQL* owner)
 	SkillDB_SQL* db = (SkillDB_SQL*)aCalloc(1, sizeof(SkillDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &skill_db_sql_init;
-	db->vtable.destroy   = &skill_db_sql_destroy;
-	db->vtable.sync      = &skill_db_sql_sync;
+	db->vtable.p.init      = &skill_db_sql_init;
+	db->vtable.p.destroy   = &skill_db_sql_destroy;
+	db->vtable.p.sync      = &skill_db_sql_sync;
 	db->vtable.remove    = &skill_db_sql_remove;
 	db->vtable.save      = &skill_db_sql_save;
 	db->vtable.load      = &skill_db_sql_load;

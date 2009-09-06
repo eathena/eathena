@@ -162,13 +162,16 @@ static void pet_db_txt_destroy(PetDB* self)
 
 
 /// @protected
-static bool pet_db_txt_sync(PetDB* self)
+static bool pet_db_txt_sync(PetDB* self, bool force)
 {
 	PetDB_TXT* db = (PetDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->pet_db, &lock);
 	if( fp == NULL )
@@ -306,9 +309,9 @@ PetDB* pet_db_txt(CharServerDB_TXT* owner)
 	PetDB_TXT* db = (PetDB_TXT*)aCalloc(1, sizeof(PetDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &pet_db_txt_init;
-	db->vtable.destroy   = &pet_db_txt_destroy;
-	db->vtable.sync      = &pet_db_txt_sync;
+	db->vtable.p.init      = &pet_db_txt_init;
+	db->vtable.p.destroy   = &pet_db_txt_destroy;
+	db->vtable.p.sync      = &pet_db_txt_sync;
 	db->vtable.create    = &pet_db_txt_create;
 	db->vtable.remove    = &pet_db_txt_remove;
 	db->vtable.save      = &pet_db_txt_save;

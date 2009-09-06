@@ -15,10 +15,14 @@ typedef struct hotkey hotkeylist[MAX_HOTKEYS];
 
 struct HotkeyDB
 {
-	bool (*init)(HotkeyDB* self);
-	void (*destroy)(HotkeyDB* self);
-
-	bool (*sync)(HotkeyDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(HotkeyDB* self);
+		void (*destroy)(HotkeyDB* self);
+		bool (*sync)(HotkeyDB* self, bool force);
+	} p;
 
 	bool (*remove)(HotkeyDB* self, const int char_id);
 

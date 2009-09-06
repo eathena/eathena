@@ -148,7 +148,7 @@ static void memo_db_sql_destroy(MemoDB* self)
 
 
 /// @protected
-static bool memo_db_sql_sync(MemoDB* self)
+static bool memo_db_sql_sync(MemoDB* self, bool force)
 {
 	return true;
 }
@@ -202,9 +202,9 @@ MemoDB* memo_db_sql(CharServerDB_SQL* owner)
 	MemoDB_SQL* db = (MemoDB_SQL*)aCalloc(1, sizeof(MemoDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &memo_db_sql_init;
-	db->vtable.destroy   = &memo_db_sql_destroy;
-	db->vtable.sync      = &memo_db_sql_sync;
+	db->vtable.p.init      = &memo_db_sql_init;
+	db->vtable.p.destroy   = &memo_db_sql_destroy;
+	db->vtable.p.sync      = &memo_db_sql_sync;
 	db->vtable.remove    = &memo_db_sql_remove;
 	db->vtable.save      = &memo_db_sql_save;
 	db->vtable.load      = &memo_db_sql_load;

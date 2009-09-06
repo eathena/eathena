@@ -246,13 +246,16 @@ static void party_db_txt_destroy(PartyDB* self)
 
 
 /// @protected
-static bool party_db_txt_sync(PartyDB* self)
+static bool party_db_txt_sync(PartyDB* self, bool force)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
 	FILE *fp;
 	int lock;
 	struct DBIterator* iter;
 	struct party_data* p;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->party_db, &lock);
 	if( fp == NULL )
@@ -420,9 +423,9 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &party_db_txt_init;
-	db->vtable.destroy   = &party_db_txt_destroy;
-	db->vtable.sync      = &party_db_txt_sync;
+	db->vtable.p.init      = &party_db_txt_init;
+	db->vtable.p.destroy   = &party_db_txt_destroy;
+	db->vtable.p.sync      = &party_db_txt_sync;
 	db->vtable.create    = &party_db_txt_create;
 	db->vtable.remove    = &party_db_txt_remove;
 	db->vtable.save      = &party_db_txt_save;

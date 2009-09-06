@@ -34,11 +34,14 @@ struct party_data
 
 struct PartyDB
 {
-	bool (*init)(PartyDB* self);
-
-	void (*destroy)(PartyDB* self);
-
-	bool (*sync)(PartyDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(PartyDB* self);
+		void (*destroy)(PartyDB* self);
+		bool (*sync)(PartyDB* self, bool force);
+	} p;
 
 	bool (*create)(PartyDB* self, struct party_data* p);
 

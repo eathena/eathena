@@ -138,7 +138,7 @@ static void hotkey_db_sql_destroy(HotkeyDB* self)
 
 
 /// @protected
-static bool hotkey_db_sql_sync(HotkeyDB* self)
+static bool hotkey_db_sql_sync(HotkeyDB* self, bool force)
 {
 	return true;
 }
@@ -192,9 +192,9 @@ HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 	HotkeyDB_SQL* db = (HotkeyDB_SQL*)aCalloc(1, sizeof(HotkeyDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &hotkey_db_sql_init;
-	db->vtable.destroy   = &hotkey_db_sql_destroy;
-	db->vtable.sync      = &hotkey_db_sql_sync;
+	db->vtable.p.init      = &hotkey_db_sql_init;
+	db->vtable.p.destroy   = &hotkey_db_sql_destroy;
+	db->vtable.p.sync      = &hotkey_db_sql_sync;
 	db->vtable.remove    = &hotkey_db_sql_remove;
 	db->vtable.save      = &hotkey_db_sql_save;
 	db->vtable.load      = &hotkey_db_sql_load;

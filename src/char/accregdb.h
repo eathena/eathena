@@ -14,10 +14,14 @@ typedef struct AccRegDB AccRegDB;
 
 struct AccRegDB
 {
-	bool (*init)(AccRegDB* self);
-	void (*destroy)(AccRegDB* self);
-
-	bool (*sync)(AccRegDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(AccRegDB* self);
+		void (*destroy)(AccRegDB* self);
+		bool (*sync)(AccRegDB* self, bool force);
+	} p;
 
 	/// Erases all regs associated with the specified account_id.
 	bool (*remove)(AccRegDB* self, const int account_id);

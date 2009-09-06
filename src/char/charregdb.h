@@ -14,10 +14,14 @@ typedef struct CharRegDB CharRegDB;
 
 struct CharRegDB
 {
-	bool (*init)(CharRegDB* self);
-	void (*destroy)(CharRegDB* self);
-
-	bool (*sync)(CharRegDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(CharRegDB* self);
+		void (*destroy)(CharRegDB* self);
+		bool (*sync)(CharRegDB* self, bool force);
+	} p;
 
 	/// Erases all regs associated with the specified char_id.
 	bool (*remove)(CharRegDB* self, const int char_id);

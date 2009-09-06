@@ -184,7 +184,7 @@ static void pet_db_sql_destroy(PetDB* self)
 
 
 /// @protected
-static bool pet_db_sql_sync(PetDB* self)
+static bool pet_db_sql_sync(PetDB* self, bool force)
 {
 	return true;
 }
@@ -246,9 +246,9 @@ PetDB* pet_db_sql(CharServerDB_SQL* owner)
 	PetDB_SQL* db = (PetDB_SQL*)aCalloc(1, sizeof(PetDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &pet_db_sql_init;
-	db->vtable.destroy   = &pet_db_sql_destroy;
-	db->vtable.sync      = &pet_db_sql_sync;
+	db->vtable.p.init      = &pet_db_sql_init;
+	db->vtable.p.destroy   = &pet_db_sql_destroy;
+	db->vtable.p.sync      = &pet_db_sql_sync;
 	db->vtable.create    = &pet_db_sql_create;
 	db->vtable.remove    = &pet_db_sql_remove;
 	db->vtable.save      = &pet_db_sql_save;

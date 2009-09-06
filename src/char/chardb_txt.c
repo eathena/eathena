@@ -311,13 +311,16 @@ static void char_db_txt_destroy(CharDB* self)
 
 /// Dumps the entire char db (+ associated data) to disk
 /// @protected
-static bool char_db_txt_sync(CharDB* self)
+static bool char_db_txt_sync(CharDB* self, bool force)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	int lock;
 	FILE *fp;
 	void* data;
 	struct DBIterator* iter;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	// Data save
 	fp = lock_fopen(db->char_db, &lock);
@@ -635,11 +638,11 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &char_db_txt_init;
-	db->vtable.destroy   = &char_db_txt_destroy;
+	db->vtable.p.init      = &char_db_txt_init;
+	db->vtable.p.destroy   = &char_db_txt_destroy;
+	db->vtable.p.sync      = &char_db_txt_sync;
 	db->vtable.create    = &char_db_txt_create;
 	db->vtable.remove    = &char_db_txt_remove;
-	db->vtable.sync      = &char_db_txt_sync;
 	db->vtable.save      = &char_db_txt_save;
 	db->vtable.load_num  = &char_db_txt_load_num;
 	db->vtable.load_str  = &char_db_txt_load_str;

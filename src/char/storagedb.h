@@ -24,10 +24,14 @@ enum storage_type
 
 struct StorageDB
 {
-	bool (*init)(StorageDB* self);
-	void (*destroy)(StorageDB* self);
-
-	bool (*sync)(StorageDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(StorageDB* self);
+		void (*destroy)(StorageDB* self);
+		bool (*sync)(StorageDB* self, bool force);
+	} p;
 
 	bool (*remove)(StorageDB* self, enum storage_type type, const int id);
 

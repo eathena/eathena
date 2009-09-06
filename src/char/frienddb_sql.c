@@ -156,7 +156,7 @@ static void friend_db_sql_destroy(FriendDB* self)
 
 
 /// @protected
-static bool friend_db_sql_sync(FriendDB* self)
+static bool friend_db_sql_sync(FriendDB* self, bool force)
 {
 	return true;
 }
@@ -227,9 +227,9 @@ FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 	FriendDB_SQL* db = (FriendDB_SQL*)aCalloc(1, sizeof(FriendDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &friend_db_sql_init;
-	db->vtable.destroy   = &friend_db_sql_destroy;
-	db->vtable.sync      = &friend_db_sql_sync;
+	db->vtable.p.init      = &friend_db_sql_init;
+	db->vtable.p.destroy   = &friend_db_sql_destroy;
+	db->vtable.p.sync      = &friend_db_sql_sync;
 	db->vtable.remove    = &friend_db_sql_remove;
 	db->vtable.save      = &friend_db_sql_save;
 	db->vtable.load      = &friend_db_sql_load;

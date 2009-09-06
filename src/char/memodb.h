@@ -15,10 +15,14 @@ typedef struct point memolist[MAX_MEMOPOINTS];
 
 struct MemoDB
 {
-	bool (*init)(MemoDB* self);
-	void (*destroy)(MemoDB* self);
-
-	bool (*sync)(MemoDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(MemoDB* self);
+		void (*destroy)(MemoDB* self);
+		bool (*sync)(MemoDB* self, bool force);
+	} p;
 
 	bool (*remove)(MemoDB* self, int char_id);
 

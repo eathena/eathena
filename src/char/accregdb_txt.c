@@ -202,7 +202,7 @@ static void accreg_db_txt_destroy(AccRegDB* self)
 
 
 /// @protected
-static bool accreg_db_txt_sync(AccRegDB* self)
+static bool accreg_db_txt_sync(AccRegDB* self, bool force)
 {
 	AccRegDB_TXT* db = (AccRegDB_TXT*)self;
 	DBIterator* iter;
@@ -210,6 +210,9 @@ static bool accreg_db_txt_sync(AccRegDB* self)
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->accreg_db, &lock);
 	if( fp == NULL )
@@ -312,9 +315,9 @@ AccRegDB* accreg_db_txt(CharServerDB_TXT* owner)
 	AccRegDB_TXT* db = (AccRegDB_TXT*)aCalloc(1, sizeof(AccRegDB_TXT));
 
 	// set up the vtable
-	db->vtable.init    = &accreg_db_txt_init;
-	db->vtable.destroy = &accreg_db_txt_destroy;
-	db->vtable.sync    = &accreg_db_txt_sync;
+	db->vtable.p.init    = &accreg_db_txt_init;
+	db->vtable.p.destroy = &accreg_db_txt_destroy;
+	db->vtable.p.sync    = &accreg_db_txt_sync;
 	db->vtable.remove  = &accreg_db_txt_remove;
 	db->vtable.save    = &accreg_db_txt_save;
 	db->vtable.load    = &accreg_db_txt_load;

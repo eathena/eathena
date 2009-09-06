@@ -342,7 +342,7 @@ static void char_db_sql_destroy(CharDB* self)
 
 
 /// @protected
-static bool char_db_sql_sync(CharDB* self)
+static bool char_db_sql_sync(CharDB* self, bool force)
 {
 	return true;
 }
@@ -659,11 +659,11 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	CharDB_SQL* db = (CharDB_SQL*)aCalloc(1, sizeof(CharDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &char_db_sql_init;
-	db->vtable.destroy   = &char_db_sql_destroy;
+	db->vtable.p.init      = &char_db_sql_init;
+	db->vtable.p.destroy   = &char_db_sql_destroy;
+	db->vtable.p.sync      = &char_db_sql_sync;
 	db->vtable.create    = &char_db_sql_create;
 	db->vtable.remove    = &char_db_sql_remove;
-	db->vtable.sync      = &char_db_sql_sync;
 	db->vtable.save      = &char_db_sql_save;
 	db->vtable.load_num  = &char_db_sql_load_num;
 	db->vtable.load_str  = &char_db_sql_load_str;

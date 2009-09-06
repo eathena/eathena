@@ -67,25 +67,25 @@ static bool charserver_db_sql_init(CharServerDB* self)
 		Sql_ShowDebug(sql_handle);
 
 	if(
-		db->accregdb->init(db->accregdb) &&
-		db->charregdb->init(db->charregdb) &&
-		db->castledb->init(db->castledb) &&
-		db->chardb->init(db->chardb) &&
-		db->frienddb->init(db->frienddb) &&
-		db->guilddb->init(db->guilddb) &&
-		db->homundb->init(db->homundb) &&
-		db->mercdb->init(db->mercdb) &&
-		db->hotkeydb->init(db->hotkeydb) &&
-		db->partydb->init(db->partydb) &&
-		db->petdb->init(db->petdb) &&
-		db->questdb->init(db->questdb) &&
-		db->auctiondb->init(db->auctiondb) &&
-		db->rankdb->init(db->rankdb) &&
-		db->maildb->init(db->maildb) &&
-		db->memodb->init(db->memodb) &&
-		db->skilldb->init(db->skilldb) &&
-		db->statusdb->init(db->statusdb) &&
-		db->storagedb->init(db->storagedb)
+		db->accregdb->p.init(db->accregdb) &&
+		db->charregdb->p.init(db->charregdb) &&
+		db->castledb->p.init(db->castledb) &&
+		db->chardb->p.init(db->chardb) &&
+		db->frienddb->p.init(db->frienddb) &&
+		db->guilddb->p.init(db->guilddb) &&
+		db->homundb->p.init(db->homundb) &&
+		db->mercdb->p.init(db->mercdb) &&
+		db->hotkeydb->p.init(db->hotkeydb) &&
+		db->partydb->p.init(db->partydb) &&
+		db->petdb->p.init(db->petdb) &&
+		db->questdb->p.init(db->questdb) &&
+		db->auctiondb->p.init(db->auctiondb) &&
+		db->rankdb->p.init(db->rankdb) &&
+		db->maildb->p.init(db->maildb) &&
+		db->memodb->p.init(db->memodb) &&
+		db->skilldb->p.init(db->skilldb) &&
+		db->statusdb->p.init(db->statusdb) &&
+		db->storagedb->p.init(db->storagedb)
 	)
 		db->initialized = true;
 
@@ -99,43 +99,43 @@ static void charserver_db_sql_destroy(CharServerDB* self)
 {
 	CharServerDB_SQL* db = (CharServerDB_SQL*)self;
 
-	db->castledb->destroy(db->castledb);
+	db->castledb->p.destroy(db->castledb);
 	db->castledb = NULL;
-	db->chardb->destroy(db->chardb);
+	db->chardb->p.destroy(db->chardb);
 	db->chardb = NULL;
-	db->frienddb->destroy(db->frienddb);
+	db->frienddb->p.destroy(db->frienddb);
 	db->frienddb = NULL;
-	db->guilddb->destroy(db->guilddb);
+	db->guilddb->p.destroy(db->guilddb);
 	db->guilddb = NULL;
-	db->homundb->destroy(db->homundb);
+	db->homundb->p.destroy(db->homundb);
 	db->homundb = NULL;
-	db->mercdb->destroy(db->mercdb);
+	db->mercdb->p.destroy(db->mercdb);
 	db->mercdb = NULL;
-	db->hotkeydb->destroy(db->hotkeydb);
+	db->hotkeydb->p.destroy(db->hotkeydb);
 	db->hotkeydb = NULL;
-	db->partydb->destroy(db->partydb);
+	db->partydb->p.destroy(db->partydb);
 	db->partydb = NULL;
-	db->petdb->destroy(db->petdb);
+	db->petdb->p.destroy(db->petdb);
 	db->petdb = NULL;
-	db->questdb->destroy(db->questdb);
+	db->questdb->p.destroy(db->questdb);
 	db->questdb = NULL;
-	db->auctiondb->destroy(db->auctiondb);
+	db->auctiondb->p.destroy(db->auctiondb);
 	db->auctiondb = NULL;
-	db->rankdb->destroy(db->rankdb);
+	db->rankdb->p.destroy(db->rankdb);
 	db->rankdb = NULL;
-	db->maildb->destroy(db->maildb);
+	db->maildb->p.destroy(db->maildb);
 	db->maildb = NULL;
-	db->memodb->destroy(db->memodb);
+	db->memodb->p.destroy(db->memodb);
 	db->memodb = NULL;
-	db->skilldb->destroy(db->skilldb);
+	db->skilldb->p.destroy(db->skilldb);
 	db->skilldb = NULL;
-	db->statusdb->destroy(db->statusdb);
+	db->statusdb->p.destroy(db->statusdb);
 	db->statusdb = NULL;
-	db->storagedb->destroy(db->storagedb);
+	db->storagedb->p.destroy(db->storagedb);
 	db->storagedb= NULL;
-	db->accregdb->destroy(db->accregdb);
+	db->accregdb->p.destroy(db->accregdb);
 	db->accregdb = NULL;
-	db->charregdb->destroy(db->charregdb);
+	db->charregdb->p.destroy(db->charregdb);
 	db->charregdb = NULL;
 
 	Sql_Free(db->sql_handle);

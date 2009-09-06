@@ -203,13 +203,16 @@ static void mail_db_txt_destroy(MailDB* self)
 
 
 /// @protected
-static bool mail_db_txt_sync(MailDB* self)
+static bool mail_db_txt_sync(MailDB* self, bool force)
 {
 	MailDB_TXT* db = (MailDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->mail_db, &lock);
 	if( fp == NULL )
@@ -402,9 +405,9 @@ MailDB* mail_db_txt(CharServerDB_TXT* owner)
 	MailDB_TXT* db = (MailDB_TXT*)aCalloc(1, sizeof(MailDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &mail_db_txt_init;
-	db->vtable.destroy   = &mail_db_txt_destroy;
-	db->vtable.sync      = &mail_db_txt_sync;
+	db->vtable.p.init      = &mail_db_txt_init;
+	db->vtable.p.destroy   = &mail_db_txt_destroy;
+	db->vtable.p.sync      = &mail_db_txt_sync;
 	db->vtable.create    = &mail_db_txt_create;
 	db->vtable.remove    = &mail_db_txt_remove;
 	db->vtable.save      = &mail_db_txt_save;

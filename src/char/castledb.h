@@ -14,11 +14,14 @@ typedef struct CastleDB CastleDB;
 
 struct CastleDB
 {
-	bool (*init)(CastleDB* self);
-
-	void (*destroy)(CastleDB* self);
-
-	bool (*sync)(CastleDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(CastleDB* self);
+		void (*destroy)(CastleDB* self);
+		bool (*sync)(CastleDB* self, bool force);
+	} p;
 
 	bool (*create)(CastleDB* self, struct guild_castle* gc);
 

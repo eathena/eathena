@@ -14,10 +14,14 @@ typedef struct MailDB MailDB;
 
 struct MailDB
 {
-	bool (*init)(MailDB* self);
-	void (*destroy)(MailDB* self);
-
-	bool (*sync)(MailDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(MailDB* self);
+		void (*destroy)(MailDB* self);
+		bool (*sync)(MailDB* self, bool force);
+	} p;
 
 	bool (*create)(MailDB* self, struct mail_message* msg);
 	bool (*remove)(MailDB* self, const int mail_id);

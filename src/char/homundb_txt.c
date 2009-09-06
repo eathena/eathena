@@ -187,13 +187,16 @@ static void homun_db_txt_destroy(HomunDB* self)
 
 
 /// @protected
-static bool homun_db_txt_sync(HomunDB* self)
+static bool homun_db_txt_sync(HomunDB* self, bool force)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->homun_db, &lock);
 	if( fp == NULL )
@@ -331,9 +334,9 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &homun_db_txt_init;
-	db->vtable.destroy   = &homun_db_txt_destroy;
-	db->vtable.sync      = &homun_db_txt_sync;
+	db->vtable.p.init      = &homun_db_txt_init;
+	db->vtable.p.destroy   = &homun_db_txt_destroy;
+	db->vtable.p.sync      = &homun_db_txt_sync;
 	db->vtable.create    = &homun_db_txt_create;
 	db->vtable.remove    = &homun_db_txt_remove;
 	db->vtable.save      = &homun_db_txt_save;

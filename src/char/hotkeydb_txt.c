@@ -162,7 +162,7 @@ static void hotkey_db_txt_destroy(HotkeyDB* self)
 
 
 /// @protected
-static bool hotkey_db_txt_sync(HotkeyDB* self)
+static bool hotkey_db_txt_sync(HotkeyDB* self, bool force)
 {
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)self;
 	DBIterator* iter;
@@ -170,6 +170,9 @@ static bool hotkey_db_txt_sync(HotkeyDB* self)
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->hotkey_db, &lock);
 	if( fp == NULL )
@@ -267,9 +270,9 @@ HotkeyDB* hotkey_db_txt(CharServerDB_TXT* owner)
 	HotkeyDB_TXT* db = (HotkeyDB_TXT*)aCalloc(1, sizeof(HotkeyDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &hotkey_db_txt_init;
-	db->vtable.destroy   = &hotkey_db_txt_destroy;
-	db->vtable.sync      = &hotkey_db_txt_sync;
+	db->vtable.p.init      = &hotkey_db_txt_init;
+	db->vtable.p.destroy   = &hotkey_db_txt_destroy;
+	db->vtable.p.sync      = &hotkey_db_txt_sync;
 	db->vtable.remove    = &hotkey_db_txt_remove;
 	db->vtable.save      = &hotkey_db_txt_save;
 	db->vtable.load      = &hotkey_db_txt_load;

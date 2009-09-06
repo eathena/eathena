@@ -165,13 +165,16 @@ static void status_db_txt_destroy(StatusDB* self)
 
 
 /// @protected
-static bool status_db_txt_sync(StatusDB* self)
+static bool status_db_txt_sync(StatusDB* self, bool force)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)self;
 	DBIterator* iter;
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->status_db, &lock);
 	if( fp == NULL )
@@ -299,9 +302,9 @@ StatusDB* status_db_txt(CharServerDB_TXT* owner)
 	StatusDB_TXT* db = (StatusDB_TXT*)aCalloc(1, sizeof(StatusDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &status_db_txt_init;
-	db->vtable.destroy   = &status_db_txt_destroy;
-	db->vtable.sync      = &status_db_txt_sync;
+	db->vtable.p.init      = &status_db_txt_init;
+	db->vtable.p.destroy   = &status_db_txt_destroy;
+	db->vtable.p.sync      = &status_db_txt_sync;
 	db->vtable.remove    = &status_db_txt_remove;
 	db->vtable.save      = &status_db_txt_save;
 	db->vtable.load      = &status_db_txt_load;

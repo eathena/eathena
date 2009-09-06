@@ -130,7 +130,7 @@ static void castle_db_sql_destroy(CastleDB* self)
 
 
 /// @protected
-static bool castle_db_sql_sync(CastleDB* self)
+static bool castle_db_sql_sync(CastleDB* self, bool force)
 {
 	return true;
 }
@@ -202,9 +202,9 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
 
 	// set up the vtable
-	db->vtable.init      = &castle_db_sql_init;
-	db->vtable.destroy   = &castle_db_sql_destroy;
-	db->vtable.sync      = &castle_db_sql_sync;
+	db->vtable.p.init      = &castle_db_sql_init;
+	db->vtable.p.destroy   = &castle_db_sql_destroy;
+	db->vtable.p.sync      = &castle_db_sql_sync;
 	db->vtable.create    = &castle_db_sql_create;
 	db->vtable.remove    = &castle_db_sql_remove;
 	db->vtable.remove_gid= &castle_db_sql_remove_gid;

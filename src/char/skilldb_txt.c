@@ -201,7 +201,7 @@ static void skill_db_txt_destroy(SkillDB* self)
 
 
 /// @protected
-static bool skill_db_txt_sync(SkillDB* self)
+static bool skill_db_txt_sync(SkillDB* self, bool force)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)self;
 	DBIterator* iter;
@@ -209,6 +209,9 @@ static bool skill_db_txt_sync(SkillDB* self)
 	void* data;
 	FILE *fp;
 	int lock;
+
+	if( !force && !db->dirty )
+		return true;// nothing to do
 
 	fp = lock_fopen(db->skill_db, &lock);
 	if( fp == NULL )
@@ -307,9 +310,9 @@ SkillDB* skill_db_txt(CharServerDB_TXT* owner)
 	SkillDB_TXT* db = (SkillDB_TXT*)aCalloc(1, sizeof(SkillDB_TXT));
 
 	// set up the vtable
-	db->vtable.init      = &skill_db_txt_init;
-	db->vtable.destroy   = &skill_db_txt_destroy;
-	db->vtable.sync      = &skill_db_txt_sync;
+	db->vtable.p.init      = &skill_db_txt_init;
+	db->vtable.p.destroy   = &skill_db_txt_destroy;
+	db->vtable.p.sync      = &skill_db_txt_sync;
 	db->vtable.remove    = &skill_db_txt_remove;
 	db->vtable.save      = &skill_db_txt_save;
 	db->vtable.load      = &skill_db_txt_load;

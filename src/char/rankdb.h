@@ -29,9 +29,14 @@ enum rank_type
 /// Public database interface to handle rankings.
 struct RankDB
 {
-	bool (*init)(RankDB* self);
-	void (*destroy)(RankDB* self);
-	bool (*sync)(RankDB* self);
+	/// For use by CharServerDB.
+	/// @protected
+	struct
+	{
+		bool (*init)(RankDB* self);
+		void (*destroy)(RankDB* self);
+		bool (*sync)(RankDB* self, bool force);
+	} p;
 
 	/// Gets the top rankers in rank rank_id.
 	/// Entries are sorted by points.

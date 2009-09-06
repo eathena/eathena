@@ -171,7 +171,7 @@ static void accreg_db_sql_destroy(AccRegDB* self)
 
 
 /// @protected
-static bool accreg_db_sql_sync(AccRegDB* self)
+static bool accreg_db_sql_sync(AccRegDB* self, bool force)
 {
 	return true;
 }
@@ -225,9 +225,9 @@ AccRegDB* accreg_db_sql(CharServerDB_SQL* owner)
 	AccRegDB_SQL* db = (AccRegDB_SQL*)aCalloc(1, sizeof(AccRegDB_SQL));
 
 	// set up the vtable
-	db->vtable.init    = &accreg_db_sql_init;
-	db->vtable.destroy = &accreg_db_sql_destroy;
-	db->vtable.sync    = &accreg_db_sql_sync;
+	db->vtable.p.init    = &accreg_db_sql_init;
+	db->vtable.p.destroy = &accreg_db_sql_destroy;
+	db->vtable.p.sync    = &accreg_db_sql_sync;
 	db->vtable.remove  = &accreg_db_sql_remove;
 	db->vtable.save    = &accreg_db_sql_save;
 	db->vtable.load    = &accreg_db_sql_load;
