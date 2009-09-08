@@ -151,6 +151,7 @@ int mapif_parse_WisRequest(int fd)
 	int fd2;
 	struct online_char_data* character;
 	int aid, cid;
+	unsigned int n;
 
 	if( RFIFOW(fd,2)-52 >= sizeof(wd->msg) )
 	{
@@ -165,7 +166,8 @@ int mapif_parse_WisRequest(int fd)
 	safestrncpy(name, (char*)RFIFOP(fd,28), NAME_LENGTH); //Received name may be too large and not contain \0! [Skotlex]
 
 	// search if character exists before to ask all map-servers
-	if( !chars->name2id(chars, name, &cid, &aid) )
+	if( !chars->name2id(chars, name, true, &cid, &aid, &n) &&// not exact
+		!(!char_config.character_name_case_sensitive && chars->name2id(chars, name, false, &cid, &aid, &n) && n == 1) )// not unique
 	{
 		mapif_wis_end(fd, (char*)RFIFOP(fd,4), 1);
 		return 0;

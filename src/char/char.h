@@ -84,6 +84,7 @@ struct Char_Config {
 	bool log_char_enabled; // whether to log the charserver or not
 	int chars_per_account; // maximum number of characters on a single account (0: unlimited)
 	int char_del_level;   // char deletion prevention using base level (-n: can't delete <= n, +n: can't delete >= n)
+	bool character_name_case_sensitive; // if the character name is case sensitive
 };
 
 extern struct Char_Config char_config;

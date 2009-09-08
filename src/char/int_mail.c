@@ -181,6 +181,7 @@ static void mapif_parse_Mail_send(int fd, int size, int account_id, const void* 
 {
 	struct mail_message msg;
 	int charid, accid;
+	unsigned int n;
 
 	if( size != 8 + sizeof(struct mail_message) )
 		return;
@@ -192,7 +193,8 @@ static void mapif_parse_Mail_send(int fd, int size, int account_id, const void* 
 	do
 	{
 
-	if( !chars->name2id(chars, msg.dest_name, &charid, &accid) )
+	if( !chars->name2id(chars, msg.dest_name, true, &charid, &accid, &n) &&// not exact
+		!(!char_config.character_name_case_sensitive && chars->name2id(chars, msg.dest_name, false, &charid, &accid, &n) && n == 1) )// not unique
 		break;
 
 	if( accid == account_id )

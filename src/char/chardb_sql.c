@@ -35,7 +35,6 @@ typedef struct CharDB_SQL
 	Sql* chars;
 
 	// settings
-	bool case_sensitive;
 	const char* char_db;
 	const char* mercenary_owner_db;
 
@@ -414,14 +413,16 @@ static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 
 
 /// @protected
-static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name)
+static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name, bool case_sensitive)
 {
 //	CharDB_SQL* db = (CharDB_SQL*)self;
 	int char_id;
+	unsigned int n;
 
 	// find char id
-	if( !self->name2id(self, name, &char_id, NULL) )
-	{// entry not found
+	if( !self->name2id(self, name, true, &char_id, NULL, &n) &&// not exact
+		!(!case_sensitive && self->name2id(self, name, false, &char_id, NULL, &n) && n == 1) )// not unique
+	{// name not exact and not unique
 		return false;
 	}
 
@@ -471,29 +472,28 @@ static bool char_db_sql_id2name(CharDB* self, int char_id, char* name, size_t si
 
 
 /// @protected
-static bool char_db_sql_name2id(CharDB* self, const char* name, int* char_id, int* account_id)
+static bool char_db_sql_name2id(CharDB* self, const char* name, bool case_sensitive, int* char_id, int* account_id, unsigned int* count)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	Sql* sql_handle = db->chars;
 	char esc_name[2*NAME_LENGTH+1];
 	char* data;
 
+	if( count != NULL )
+		*count = 0;
+
 	Sql_EscapeString(sql_handle, esc_name, name);
 
 	// get the list of char IDs for this char name
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id`,`account_id` FROM `%s` WHERE `name`= %s '%s'",
-		db->char_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
+		db->char_db, (case_sensitive ? "BINARY" : ""), esc_name) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
 	}
 
-	if( Sql_NumRows(sql_handle) > 1 )
-	{// serious problem - duplicit char name
-		ShowError("char_db_sql_name2id: multiple chars found when looking up char '%s'!\n", name);
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
+	if( count != NULL )
+		*count = (unsigned int)Sql_NumRows(sql_handle);
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
 	{// no such entry
@@ -679,7 +679,6 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->chars = NULL;
 
 	// other settings
-	db->case_sensitive = false;
 	db->char_db = db->owner->table_chars;
 	db->mercenary_owner_db = db->owner->table_mercenary_owners;
 

@@ -443,7 +443,7 @@ int parse_frommap(int fd)
 			safestrncpy(name, (char*)RFIFOP(fd,6), NAME_LENGTH); // name of the target character
 			RFIFOSKIP(fd,44);
 
-			if( !chars->load_str(chars, &cd, name) )
+			if( !chars->load_str(chars, &cd, name, char_config.character_name_case_sensitive) )
 				result = 1; // 1-player not found
 			else
 			{

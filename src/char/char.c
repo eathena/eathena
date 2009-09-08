@@ -99,10 +99,6 @@ struct point start_point = { 0, 53, 111 }; // Initial position (it's possible to
 int email_creation = 0; // disabled by default
 
 
-//FIXME: this setting needs re-work due to changes in code structure
-bool name_ignoring_case = false; // Allow or not identical name for characters but with a different case by [Yor]
-
-
 //-----------------------------------------------------
 // Auth database
 //-----------------------------------------------------
@@ -271,7 +267,7 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	} // else, all letters/symbols are authorised (except control char removed before)
 
 	// check name (already in use?)
-	if( chars->name2id(chars, name, NULL, NULL) )
+	if( chars->name2id(chars, name, char_config.character_name_case_sensitive, NULL, NULL, NULL) )
 		return -1; // name already exists
 
 	// insert new char to database
@@ -698,6 +694,7 @@ void char_set_defaults(void)
 	char_config.log_char_enabled = true;
 	char_config.chars_per_account = 0;
 	char_config.char_del_level = 0;
+	char_config.character_name_case_sensitive = true;
 }
 
 int char_config_read(const char* cfgName)
@@ -856,9 +853,6 @@ int char_config_read(const char* cfgName)
 		if( strcmpi(w1, "unknown_char_name") == 0 )
 			safestrncpy(char_config.unknown_char_name, w2, sizeof(char_config.unknown_char_name));
 		else
-		if( strcmpi(w1, "name_ignoring_case") == 0 )
-			name_ignoring_case = (bool)config_switch(w2);
-		else
 		if( strcmpi(w1, "char_name_option") == 0 )
 			char_config.char_name_option = atoi(w2);
 		else
@@ -882,6 +876,9 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "guild_exp_rate") == 0 )
 			guild_exp_rate = atoi(w2);
+		else
+		if( strcmpi(w1, "character.name.case_sensitive") == 0 )
+			char_config.character_name_case_sensitive = (bool)atoi(w2);
 		else
 		if( rank_config_read(w1,w2) )
 			continue;

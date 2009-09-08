@@ -32,8 +32,15 @@ struct CharDB
 	// retrieve data using charid
 	bool (*load_num)(CharDB* self, struct mmo_charstatus* status, int char_id);
 
-	// retrieve data using charname
-	bool (*load_str)(CharDB* self, struct mmo_charstatus* status, const char* name);
+	/// Retrieve character data by character name.
+	/// Returns true if the name match is exact (case-sensitive) or unique (single case-insensitive).
+	///
+	/// @param self Database
+	/// @param status Variable for the character data
+	/// @param name Target character name
+	/// @param case_sensitive If the search is case-sensitive
+	/// @return true if exact or unique
+	bool (*load_str)(CharDB* self, struct mmo_charstatus* status, const char* name, bool case_sensitive);
 
 	// retrieve data using accid + slot
 	bool (*load_slot)(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
@@ -41,8 +48,17 @@ struct CharDB
 	// look up name using charid
 	bool (*id2name)(CharDB* self, int char_id, char* name, size_t size);
 
-	// look up charid/accid using name
-	bool (*name2id)(CharDB* self, const char* name, int* char_id, int* account_id);
+	/// Looks up a character name.
+	/// Returns true if found.
+	/// Optionally provides char_id, account_id and/or match count.
+	///
+	/// @param self Database
+	/// @param case_sensitive If the name lookup is case sensitive
+	/// @param char_id Optional variable for the char_id
+	/// @param account_id Optional variable for the account_id
+	/// @param count Optional variable for the number of matches (always filled in)
+	/// @return true if found
+	bool (*name2id)(CharDB* self, const char* name, bool case_sensitive, int* char_id, int* account_id, unsigned int* count);
 
 	// look up charid using accid + slot
 	bool (*slot2id)(CharDB* self, int account_id, int slot, int* char_id);
