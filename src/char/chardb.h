@@ -23,6 +23,14 @@ struct CharDB
 		bool (*sync)(CharDB* self, bool force);
 	} p;
 
+	/// Creates a character.
+	/// Set status->char_id to -1 to auto-assign an id; it will be updated to the chosen id.
+	/// Returns false if the id or name are being used.
+	/// Returns true if successful.
+	///
+	/// @param self Database
+	/// @param status Character data
+	/// @return true if successful
 	bool (*create)(CharDB* self, struct mmo_charstatus* status);
 
 	bool (*remove)(CharDB* self, const int char_id);
@@ -42,9 +50,6 @@ struct CharDB
 	/// @return true if exact or unique
 	bool (*load_str)(CharDB* self, struct mmo_charstatus* status, const char* name, bool case_sensitive);
 
-	// retrieve data using accid + slot
-	bool (*load_slot)(CharDB* self, struct mmo_charstatus* status, int account_id, int slot);
-
 	// look up name using charid
 	bool (*id2name)(CharDB* self, int char_id, char* name, size_t size);
 
@@ -53,15 +58,13 @@ struct CharDB
 	/// Optionally provides char_id, account_id and/or match count.
 	///
 	/// @param self Database
-	/// @param case_sensitive If the name lookup is case sensitive
+	/// @param name Character name
+	/// @param case_sensitive If the lookup is case sensitive
 	/// @param char_id Optional variable for the char_id
 	/// @param account_id Optional variable for the account_id
 	/// @param count Optional variable for the number of matches (always filled in)
 	/// @return true if found
 	bool (*name2id)(CharDB* self, const char* name, bool case_sensitive, int* char_id, int* account_id, unsigned int* count);
-
-	// look up charid using accid + slot
-	bool (*slot2id)(CharDB* self, int account_id, int slot, int* char_id);
 
 	/// Returns an iterator over all the characters.
 	///

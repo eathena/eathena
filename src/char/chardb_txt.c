@@ -33,8 +33,8 @@ typedef struct CharDB_TXT
 
 	// state
 	CharServerDB_TXT* owner;
-	DBMap* chars;// int char_id -> struct mmo_charstatus* cd
-	DBMap* idx_name;// char* name -> int char_id (case-sensitive)
+	DBMap* chars;// int char_id -> struct mmo_charstatus* cd (releases data)
+	DBMap* idx_name;// char* name -> struct mmo_charstatus* cd (case-sensitive, WARNING: uses data of DBMap chars)
 	int next_char_id;
 	bool dirty;
 
@@ -279,7 +279,7 @@ static bool char_db_txt_init(CharDB* self)
 
 		// record entry in db
 		idb_put(chars, ch->char_id, ch);
-		strdb_put(db->idx_name, ch->name, (void*)(intptr)ch->char_id);
+		strdb_put(db->idx_name, ch->name, ch);
 
 		if( ch->char_id >= db->next_char_id )
 			db->next_char_id = ch->char_id + 1;
@@ -302,15 +302,15 @@ static void char_db_txt_destroy(CharDB* self)
 	DBMap* chars = db->chars;
 
 	// delete chars database
-	if( chars != NULL )
-	{
-		db_destroy(chars);
-		db->chars = NULL;
-	}
 	if( db->idx_name != NULL )
 	{
 		db_destroy(db->idx_name);
 		db->idx_name = NULL;
+	}
+	if( chars != NULL )
+	{
+		db_destroy(chars);
+		db->chars = NULL;
 	}
 
 	// delete entire structure
@@ -370,19 +370,18 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 	// decide on the char id to assign
 	int char_id = ( cd->char_id != -1 ) ? cd->char_id : db->next_char_id;
 
-	// check if the char_id is free
-	tmp = idb_get(chars, char_id);
-	if( tmp != NULL )
-	{// error condition - entry already present
-		ShowError("char_db_txt_create: cannot create character %d:'%s', this id is already occupied by %d:'%s'!\n", char_id, cd->name, char_id, tmp->name);
-		return false;
-	}
+	// data restrictions
+	if( cd->char_id != -1 && self->id2name(self, cd->char_id, NULL, 0) )
+		return false;// id is being used
+	if( self->name2id(self, cd->name, true, NULL, NULL, NULL) )
+		return false;// name is being used
 
 	// copy the data and store it in the db
 	tmp = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
 	memcpy(tmp, cd, sizeof(struct mmo_charstatus));
 	tmp->char_id = char_id;
 	idb_put(chars, char_id, tmp);
+	strdb_put(db->idx_name, cd->name, tmp);
 
 	// increment the auto_increment value
 	if( char_id >= db->next_char_id )
@@ -402,13 +401,13 @@ static bool char_db_txt_remove(CharDB* self, const int char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
-	char tmp_name[NAME_LENGTH];
+	struct mmo_charstatus* tmp;
 
-	if( !self->id2name(self, char_id, tmp_name, ARRAYLENGTH(tmp_name)) )
-		return true;// not found
-
+	tmp = (struct mmo_charstatus*)idb_get(chars, char_id);
+	if( tmp == NULL )
+		return true;// nothing to do
+	strdb_remove(db->idx_name, tmp->name);
 	idb_remove(chars, char_id);
-	strdb_remove(db->idx_name, tmp_name);
 
 	db->dirty = true;
 	db->owner->p.request_sync(db->owner);
@@ -422,6 +421,7 @@ static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 	CharDB_TXT* db = (CharDB_TXT*)self;
 	DBMap* chars = db->chars;
 	int char_id = ch->char_id;
+	bool name_changed = false;
 
 	// retrieve previous data
 	struct mmo_charstatus* tmp = idb_get(chars, char_id);
@@ -429,8 +429,21 @@ static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
 	{// error condition - entry not found
 		return false;
 	}
-	
+	if( strcmp(ch->name, tmp->name) != 0 )
+	{// name changed
+		name_changed = true;
+		if( strdb_get(db->idx_name, ch->name) != NULL )
+		{// error condition - name taken
+			return false;
+		}
+	}
+
 	// overwrite with new data
+	if( name_changed )
+	{
+		strdb_remove(db->idx_name, tmp->name);
+		strdb_put(db->idx_name, ch->name, tmp);
+	}
 	memcpy(tmp, ch, sizeof(struct mmo_charstatus));
 
 	db->dirty = true;
@@ -447,7 +460,7 @@ static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int ch
 	DBMap* chars = db->chars;
 
 	// retrieve data
-	struct mmo_charstatus* tmp = idb_get(chars, char_id);
+	struct mmo_charstatus* tmp = (struct mmo_charstatus*)idb_get(chars, char_id);
 	if( tmp == NULL )
 	{// entry not found
 		return false;
@@ -471,23 +484,6 @@ static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	if( !self->name2id(self, name, true, &char_id, NULL, &n) &&// not exact
 		!(!case_sensitive && self->name2id(self, name, false, &char_id, NULL, &n) && n == 1) )// not unique
 	{// name not exact and not unique
-		return false;
-	}
-
-	// retrieve data
-	return self->load_num(self, ch, char_id);
-}
-
-
-/// @protected
-static bool char_db_txt_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
-{
-//	CharDB_TXT* db = (CharDB_TXT*)self;
-	int char_id;
-
-	// find char id
-	if( !self->slot2id(self, account_id, slot, &char_id) )
-	{// entry not found
 		return false;
 	}
 
@@ -529,8 +525,7 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, bool case_sensit
 	// retrieve data
 	if( case_sensitive )
 	{
-		int cid = (int)(intptr)strdb_get(db->idx_name, name);
-		tmp = idb_get(chars, cid);
+		tmp = (struct mmo_charstatus*)strdb_get(db->idx_name, name);
 	}
 	else
 	{
@@ -559,33 +554,6 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, bool case_sensit
 		*char_id = tmp->char_id;
 	if( account_id != NULL )
 		*account_id = tmp->account_id;
-
-	return true;
-}
-
-
-/// @protected
-static bool char_db_txt_slot2id(CharDB* self, int account_id, int slot, int* char_id)
-{
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-
-	// retrieve data
-	struct DBIterator* iter = chars->iterator(chars);
-	struct mmo_charstatus* tmp;
-
-	for( tmp = (struct mmo_charstatus*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct mmo_charstatus*)iter->next(iter,NULL) )
-		if( account_id == tmp->account_id && slot == tmp->slot )
-			break;
-	iter->destroy(iter);
-
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	if( char_id != NULL )
-		*char_id = tmp->char_id;
 
 	return true;
 }
@@ -680,10 +648,8 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->vtable.save      = &char_db_txt_save;
 	db->vtable.load_num  = &char_db_txt_load_num;
 	db->vtable.load_str  = &char_db_txt_load_str;
-	db->vtable.load_slot = &char_db_txt_load_slot;
 	db->vtable.id2name   = &char_db_txt_id2name;
 	db->vtable.name2id   = &char_db_txt_name2id;
-	db->vtable.slot2id   = &char_db_txt_slot2id;
 	db->vtable.iterator  = &char_db_txt_iterator;
 	db->vtable.characters = &char_db_txt_characters;
 

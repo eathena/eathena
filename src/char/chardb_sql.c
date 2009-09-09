@@ -173,11 +173,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new)
 {
 	Sql* sql_handle = db->chars;
-	StorageDB* storages = db->owner->storagedb;
 
-	int i = 0;
-	int count = 0;
-	int diff = 0;
 	struct mmo_charstatus tmp;
 	struct mmo_charstatus* cp = &tmp;
 	StringBuf buf;
@@ -351,6 +347,13 @@ static bool char_db_sql_sync(CharDB* self, bool force)
 static bool char_db_sql_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
+
+	// data restrictions
+	if( cd->char_id != -1 && self->id2name(self, cd->char_id, NULL, 0) )
+		return false;// id is being used
+	if( self->name2id(self, cd->name, true, NULL, NULL, NULL) )
+		return false;// name is being used
+
 	return mmo_char_tosql(db, cd, true);
 }
 
@@ -432,23 +435,6 @@ static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 
 
 /// @protected
-static bool char_db_sql_load_slot(CharDB* self, struct mmo_charstatus* ch, int account_id, int slot)
-{
-//	CharDB_SQL* db = (CharDB_SQL*)self;
-	int char_id;
-
-	// find char id
-	if( !self->slot2id(self, account_id, slot, &char_id) )
-	{// entry not found
-		return false;
-	}
-
-	// retrieve data
-	return self->load_num(self, ch, char_id);
-}
-
-
-/// @protected
 static bool char_db_sql_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
@@ -509,43 +495,6 @@ static bool char_db_sql_name2id(CharDB* self, const char* name, bool case_sensit
 }
 
 
-/// @protected
-static bool char_db_sql_slot2id(CharDB* self, int account_id, int slot, int* char_id)
-{
-	CharDB_SQL* db = (CharDB_SQL*)self;
-	Sql* sql_handle = db->chars;
-	char* data;
-
-	// get the list of char IDs for this acc/slot
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `char_id` FROM `%s` WHERE `account_id`='%d' AND `char_num`='%d'",
-		db->char_db, account_id, slot) )
-	{
-		Sql_ShowDebug(sql_handle);
-		return false;
-	}
-
-	if( Sql_NumRows(sql_handle) > 1 )
-	{// serious problem - multiple chars on same slot
-		ShowError("char_db_sql_slot2id: multiple chars found when looking up acc/slot '%d'/'%d'!\n", account_id, slot);
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-
-	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
-	{// no such entry
-		Sql_FreeResult(sql_handle);
-		return false;
-	}
-
-	Sql_GetData(sql_handle, 0, &data, NULL);
-	if( char_id != NULL )
-		*char_id = atoi(data);
-	Sql_FreeResult(sql_handle);
-
-	return true;
-}
-
-
 /// Returns an iterator over all the characters.
 /// @protected
 static CSDBIterator* char_db_sql_iterator(CharDB* self)
@@ -586,8 +535,6 @@ static void char_db_sql_iter_destroy(CSDBIterator* self)
 static bool char_db_sql_iter_next(CSDBIterator* self, int* key)
 {
 	CharDBIterator_SQL* iter = (CharDBIterator_SQL*)self;
-	CharDB_SQL* db = (CharDB_SQL*)iter->db;
-	Sql* sql_handle = db->chars;
 
 	if( iter->pos+1 >= iter->ids_num )
 		return false;
@@ -667,10 +614,8 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->vtable.save      = &char_db_sql_save;
 	db->vtable.load_num  = &char_db_sql_load_num;
 	db->vtable.load_str  = &char_db_sql_load_str;
-	db->vtable.load_slot = &char_db_sql_load_slot;
 	db->vtable.id2name   = &char_db_sql_id2name;
 	db->vtable.name2id   = &char_db_sql_name2id;
-	db->vtable.slot2id   = &char_db_sql_slot2id;
 	db->vtable.iterator  = &char_db_sql_iterator;
 	db->vtable.characters = &char_db_sql_characters;
 
