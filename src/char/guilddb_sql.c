@@ -26,7 +26,6 @@ typedef struct GuildDB_SQL
 	Sql* guilds;
 
 	// settings
-	bool case_sensitive;
 	const char* char_db;
 	const char* guild_db;
 	const char* guild_alliance_db;
@@ -452,6 +451,13 @@ static bool guild_db_sql_sync(GuildDB* self, bool force)
 static bool guild_db_sql_create(GuildDB* self, struct guild* g)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
+
+	// data restrictions
+	if( g->guild_id != -1 && self->id2name(self, g->guild_id, NULL, 0) )
+		return false;// id is being used
+	if( self->name2id(self, g->name, NULL) )
+		return false;// name is being used
+
 	return mmo_guild_tosql(db, g, GS_CREATE|GS_MEMBER|GS_POSITION|GS_ALLIANCE|GS_EXPULSION|GS_SKILL);
 }
 
@@ -518,6 +524,29 @@ static bool guild_db_sql_load(GuildDB* self, struct guild* g, int guild_id)
 
 
 /// @protected
+static bool guild_db_sql_id2name(GuildDB* self, int guild_id, char* name, size_t size)
+{
+	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	Sql* sql_handle = db->guilds;
+	char* data;
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `guild_id`='%d'", db->guild_db, guild_id)
+	||  SQL_SUCCESS != Sql_NextRow(sql_handle)
+	) {
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL);
+	if( name != NULL )
+		safestrncpy(name, data, size);
+	Sql_FreeResult(sql_handle);
+
+	return true;
+}
+
+
+/// @protected
 static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
@@ -528,8 +557,8 @@ static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
 
 	// get the list of guild IDs for this guild name
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `guild_id` FROM `%s` WHERE `name`= %s '%s'",
-		db->guild_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `guild_id` FROM `%s` WHERE `name`= BINARY '%s'",
+		db->guild_db, esc_name) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -538,8 +567,6 @@ static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 	if( Sql_NumRows(sql_handle) > 1 )
 	{// serious problem - duplicit guild name
 		ShowError("guild_db_sql_load_str: multiple guilds found when retrieving data for guild '%s'!\n", name);
-		Sql_FreeResult(sql_handle);
-		return false;
 	}
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
@@ -580,6 +607,7 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &guild_db_sql_remove;
 	db->vtable.save      = &guild_db_sql_save;
 	db->vtable.load      = &guild_db_sql_load;
+	db->vtable.id2name   = &guild_db_sql_id2name;
 	db->vtable.name2id   = &guild_db_sql_name2id;
 	db->vtable.iterator  = &guild_db_sql_iterator;
 
@@ -588,7 +616,6 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	db->guilds = NULL;
 
 	// other settings
-	db->case_sensitive = false;
 	db->char_db = db->owner->table_chars;
 	db->guild_db = db->owner->table_guilds;
 	db->guild_alliance_db = db->owner->table_guild_alliances;

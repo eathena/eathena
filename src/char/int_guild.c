@@ -390,12 +390,6 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	struct guild g;
 	int i;
 
-	if ( guilds->name2id(guilds, name, NULL) )
-	{// guild name already occupied
-		mapif_guild_created(fd, account_id, 0);
-		return 0;
-	}
-
 	// Check Authorised letters/symbols in the name of the character
 	if (char_config.char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
@@ -434,8 +428,8 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	g.guild_id = -1; // Request to assign new guild id
 	if( !guilds->create(guilds, &g) )
 	{// Failed to Create guild....
-		ShowError("Failed to create Guild %s (Guild Master: %s)\n", g.name, g.master);
 		mapif_guild_created(fd, account_id, 0);
+		return 0;
 	}
 
 	// Report to client

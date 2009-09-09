@@ -51,6 +51,14 @@ struct GuildDB
 		bool (*sync)(GuildDB* self, bool force);
 	} p;
 
+	/// Creates a guild.
+	/// Set g->guild_id to -1 to auto-assign an id; it will be updated to the chosen id.
+	/// Returns false if the id or name are being used.
+	/// Returns true if successful.
+	///
+	/// @param self Database
+	/// @param g Guild data
+	/// @return true if successful
 	bool (*create)(GuildDB* self, struct guild* g);
 
 	bool (*remove)(GuildDB* self, const int guild_id);
@@ -58,6 +66,8 @@ struct GuildDB
 	bool (*save)(GuildDB* self, const struct guild* p, enum guild_save_flags flag);
 
 	bool (*load)(GuildDB* self, struct guild* p, int guild_id);
+
+	bool (*id2name)(GuildDB* self, int guild_id, char* name, size_t size);
 
 	bool (*name2id)(GuildDB* self, const char* name, int* guild_id);
 

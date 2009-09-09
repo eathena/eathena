@@ -226,7 +226,7 @@ static bool char_db_txt_init(CharDB* self)
 	if( db->chars == NULL )
 		db->chars = idb_alloc(DB_OPT_RELEASE_DATA);
 	if( db->idx_name == NULL )
-		db->idx_name = idb_alloc(DB_OPT_DUP_KEY);
+		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
 	chars = db->chars;
 	db_clear(chars);
 	db_clear(db->idx_name);

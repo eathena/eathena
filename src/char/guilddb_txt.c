@@ -26,12 +26,12 @@ typedef struct GuildDB_TXT
 
 	// state
 	CharServerDB_TXT* owner;
-	DBMap* guilds;
+	DBMap* guilds;// int guild_id -> struct guild* g (releases data)
+	DBMap* idx_name;// char* name -> struct guild* g (case-sensitive, WARNING: uses data of DBMap guilds)
 	int next_guild_id;
 	bool dirty;
 
 	// settings
-	bool case_sensitive;
 	const char* guild_db;
 
 } GuildDB_TXT;
@@ -39,9 +39,10 @@ typedef struct GuildDB_TXT
 
 /// parses the guild data string into a guild data structure
 /// @private
-static bool mmo_guild_fromstr(struct guild* g, char* str)
+static bool mmo_guild_fromstr(GuildDB_TXT* db, struct guild* g, char* str)
 {
 	int i, c;
+	struct guild* tmp;
 
 	memset(g, 0, sizeof(struct guild));
 
@@ -234,6 +235,20 @@ static bool mmo_guild_fromstr(struct guild* g, char* str)
 		str = strchr(str, '\t');
 	}
 
+	// uniqueness checks
+	tmp = (struct guild*)idb_get(db->guilds, g->guild_id);
+	if( tmp != NULL )
+	{
+		ShowError(CL_RED"mmo_guild_fromstr: Collision on id %d between guild '%s' and existing guild '%s'!\n", g->guild_id, g->name, tmp->name);
+		return false;
+	}
+	tmp = (struct guild*)strdb_get(db->idx_name, g->name);
+	if( tmp != NULL )
+	{
+		ShowError(CL_RED"mmo_guild_fromstr: Collision on name '%s' between guild %d and existing guild %d!\n", g->name, g->guild_id, tmp->guild_id);
+		return false;
+	}
+
 	return true;
 }
 
@@ -324,8 +339,11 @@ static bool guild_db_txt_init(GuildDB* self)
 	// create guild database
 	if( db->guilds == NULL )
 		db->guilds = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( db->idx_name == NULL )
+		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
 	guilds = db->guilds;
 	db_clear(guilds);
+	db_clear(db->idx_name);
 
 	// open data file
 	fp = fopen(db->guild_db, "r");
@@ -348,7 +366,7 @@ static bool guild_db_txt_init(GuildDB* self)
 			continue;
 		}
 
-		if( !mmo_guild_fromstr(&g, line) )
+		if( !mmo_guild_fromstr(db, &g, line) )
 		{
 			ShowError("guild_db_txt_init: skipping invalid data: %s", line);
 			continue;
@@ -378,6 +396,11 @@ static void guild_db_txt_destroy(GuildDB* self)
 	DBMap* guilds = db->guilds;
 
 	// delete guild database
+	if( db->idx_name != NULL )
+	{
+		db_destroy(db->idx_name);
+		db->idx_name = NULL;
+	}
 	if( guilds != NULL )
 	{
 		db_destroy(guilds);
@@ -435,13 +458,11 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 	// decide on the guild id to assign
 	int guild_id = ( g->guild_id != -1 ) ? g->guild_id : db->next_guild_id;
 
-	// check if the guild_id is free
-	tmp = idb_get(guilds, guild_id);
-	if( tmp != NULL )
-	{// error condition - entry already present
-		ShowError("guild_db_txt_create: cannot create guild %d:'%s', this id is already occupied by %d:'%s'!\n", guild_id, g->name, guild_id, tmp->name);
-		return false;
-	}
+	// data restrictions
+	if( g->guild_id != -1 && self->id2name(self, g->guild_id, NULL, 0) )
+		return false;// id is being used
+	if( self->name2id(self, g->name, NULL) )
+		return false;// name is being used
 
 	// copy the data and store it in the db
 	CREATE(tmp, struct guild, 1);
@@ -470,6 +491,10 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 	struct DBIterator* iter;
 	struct guild* tmp;
 
+	tmp = idb_get(guilds, guild_id);
+	if( tmp == NULL )
+		return true;// nothing to do
+	strdb_remove(db->idx_name, tmp->name);
 	idb_remove(guilds, guild_id);
 
 	// end all alliances / oppositions
@@ -495,6 +520,7 @@ static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_s
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;
 	int guild_id = g->guild_id;
+	bool name_changed = false;
 
 	// retrieve previous data
 	struct guild* tmp = idb_get(guilds, guild_id);
@@ -502,8 +528,21 @@ static bool guild_db_txt_save(GuildDB* self, const struct guild* g, enum guild_s
 	{// error condition - entry not found
 		return false;
 	}
+	if( strcmp(g->name, tmp->name) != 0 )
+	{// name changed
+		name_changed = true;
+		if( strdb_get(db->idx_name, g->name) != NULL )
+		{// error condition - name taken
+			return false;
+		}
+	}
 	
 	// overwrite with new data
+	if( name_changed )
+	{
+		strdb_remove(db->idx_name, tmp->name);
+		strdb_put(db->idx_name, g->name, tmp);
+	}
 	memcpy(tmp, g, sizeof(struct guild));
 
 	db->dirty = true;
@@ -533,22 +572,33 @@ static bool guild_db_txt_load(GuildDB* self, struct guild* g, int guild_id)
 
 
 /// @protected
+static bool guild_db_txt_id2name(GuildDB* self, int guild_id, char* name, size_t size)
+{
+	GuildDB_TXT* db = (GuildDB_TXT*)self;
+	DBMap* guilds = db->guilds;
+
+	// retrieve data
+	struct guild* tmp = (struct guild*)idb_get(guilds, guild_id);
+	if( tmp == NULL )
+	{// entry not found
+		return false;
+	}
+
+	if( name != NULL )
+		safestrncpy(name, tmp->name, size);
+	
+	return true;
+}
+
+
+/// @protected
 static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
 	DBMap* guilds = db->guilds;
 
 	// retrieve data
-	struct DBIterator* iter;
-	struct guild* tmp;
-	int (*compare)(const char* str1, const char* str2) = ( db->case_sensitive ) ? strcmp : stricmp;
-
-	iter = guilds->iterator(guilds);
-	for( tmp = (struct guild*)iter->first(iter,NULL); iter->exists(iter); tmp = (struct guild*)iter->next(iter,NULL) )
-		if( compare(name, tmp->name) == 0 )
-			break;
-	iter->destroy(iter);
-
+	struct guild* tmp = (struct guild*)strdb_get(db->idx_name, name);
 	if( tmp == NULL )
 	{// entry not found
 		return false;
@@ -585,17 +635,18 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &guild_db_txt_remove;
 	db->vtable.save      = &guild_db_txt_save;
 	db->vtable.load      = &guild_db_txt_load;
+	db->vtable.id2name   = &guild_db_txt_id2name;
 	db->vtable.name2id   = &guild_db_txt_name2id;
 	db->vtable.iterator  = &guild_db_txt_iterator;
 
 	// initialize to default values
 	db->owner = owner;
 	db->guilds = NULL;
+	db->idx_name = NULL;
 	db->next_guild_id = START_GUILD_NUM;
 	db->dirty = false;
 
 	// other settings
-	db->case_sensitive = false;
 	db->guild_db = db->owner->file_guilds;
 
 	return &db->vtable;
