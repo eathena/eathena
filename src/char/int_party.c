@@ -18,6 +18,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+struct party_data
+{
+	struct party party;
+	unsigned int min_lv, max_lv;
+	int family; //Is this party a family? if so, this holds the child id.
+	unsigned char size; //Total size of party.
+};
+
+
 // party database
 static PartyDB* parties = NULL;
 
@@ -58,7 +68,7 @@ static struct party_data* int_party_load(int party_id)
 		return NULL;
 
 	// fetch base data from PartyDB
-	if( !parties->load(parties, p, party_id) )
+	if( !parties->load(parties, &p->party, party_id) )
 	{
 		aFree(p);
 		return NULL;
@@ -303,13 +313,6 @@ static void mapif_parse_CreateParty(int fd, char *name, int item, int item2, str
 			}
 	}
 
-	// check the availability of this party name
-	if( parties->name2id(parties, NULL, name) )
-	{
-		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
-		return;
-	}
-
 	// prepare new party data
 	CREATE(p, struct party_data, 1);
 	p->party.party_id = -1; // automatic id generation
@@ -319,7 +322,7 @@ static void mapif_parse_CreateParty(int fd, char *name, int item, int item2, str
 	memcpy(&p->party.member[0], leader, sizeof(struct party_member));
 	p->party.member[0].leader = 1;
 
-	if( !parties->create(parties, p) )
+	if( !parties->create(parties, &p->party) )
 	{// failed to create party
 		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
 		return;
@@ -366,7 +369,7 @@ static void mapif_parse_PartyAddMember(int fd, int party_id, struct party_member
 
 	memcpy(&p->party.member[i], member, sizeof(struct party_member));
 	p->party.member[i].leader = 0;
-	parties->save(parties, p, PS_ADDMEMBER, i);
+	parties->save(parties, &p->party, PS_ADDMEMBER, i);
 
 	int_party_calc_state(p);
 	mapif_party_memberadded(fd, party_id, member->account_id, member->char_id, 0);
@@ -392,7 +395,7 @@ static void mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, 
 
 	p->party.item = item&0x3; //Filter out invalid values.
 
-	parties->save(parties, p, PS_BASIC, -1);
+	parties->save(parties, &p->party, PS_BASIC, -1);
 
 	mapif_party_optionchanged(fd, &p->party, account_id, flag);
 }
@@ -446,7 +449,7 @@ static void mapif_parse_PartyLeave(int fd, int party_id, int account_id, int cha
 
 	if( !party_check_empty(p) )
 	{
-		parties->save(parties, p, PS_DELMEMBER, i);
+		parties->save(parties, &p->party, PS_DELMEMBER, i);
 		int_party_calc_state(p);
 		mapif_party_info(-1, &p->party);
 	}
@@ -533,7 +536,7 @@ static void mapif_parse_PartyLeaderChange(int fd, int party_id, int account_id, 
 	if( i < MAX_PARTY )
 		p->party.member[i].leader = 1;
 
-	parties->save(parties, p, PS_LEADER, i);
+	parties->save(parties, &p->party, PS_LEADER, i);
 }
 
 

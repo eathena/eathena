@@ -511,6 +511,12 @@ static bool guild_db_sql_remove(GuildDB* self, const int guild_id)
 static bool guild_db_sql_save(GuildDB* self, const struct guild* g, enum guild_save_flags flag)
 {
 	GuildDB_SQL* db = (GuildDB_SQL*)self;
+	int tmp_id;
+
+	// data restrictions
+	if( self->name2id(self, g->name, &tmp_id) && tmp_id != g->guild_id )
+		return false;// name is being used
+
 	return mmo_guild_tosql(db, (struct guild*)g, flag);
 }
 
@@ -566,7 +572,7 @@ static bool guild_db_sql_name2id(GuildDB* self, const char* name, int* guild_id)
 
 	if( Sql_NumRows(sql_handle) > 1 )
 	{// serious problem - duplicit guild name
-		ShowError("guild_db_sql_load_str: multiple guilds found when retrieving data for guild '%s'!\n", name);
+		ShowError("guild_db_sql_name2id: multiple guilds found when retrieving data for guild '%s'!\n", name);
 	}
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )

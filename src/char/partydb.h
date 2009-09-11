@@ -23,15 +23,6 @@ enum party_save_flags
 };
 
 
-struct party_data
-{
-	struct party party;
-	unsigned int min_lv, max_lv;
-	int family; //Is this party a family? if so, this holds the child id.
-	unsigned char size; //Total size of party.
-};
-
-
 struct PartyDB
 {
 	/// For use by CharServerDB.
@@ -43,18 +34,29 @@ struct PartyDB
 		bool (*sync)(PartyDB* self, bool force);
 	} p;
 
-	bool (*create)(PartyDB* self, struct party_data* p);
+	/// Creates a party.
+	/// Set p->party_id to -1 to auto-assign an id; it will be updated to the chosen id.
+	/// Returns false if the id or name are being used.
+	/// Returns true if successful.
+	///
+	/// @param self Database
+	/// @param p Party data
+	/// @return true if successful
+	bool (*create)(PartyDB* self, struct party* p);
 
 	bool (*remove)(PartyDB* self, const int party_id);
 
-	bool (*save)(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index);
+	bool (*save)(PartyDB* self, const struct party* p, enum party_save_flags flag, int index);
 
 	// retrieve data using party id
 	// does not calculate temporary/derived values
-	bool (*load)(PartyDB* self, struct party_data* p, int party_id);
+	bool (*load)(PartyDB* self, struct party* p, int party_id);
+
+	// look up party name using party id
+	bool (*id2name)(PartyDB* self, int party_id, char* name, size_t size);
 
 	// look up party id using party name
-	bool (*name2id)(PartyDB* self, int* party_id, const char* name);
+	bool (*name2id)(PartyDB* self, const char* name, int* party_id);
 
 	/// Returns an iterator over all parties.
 	///

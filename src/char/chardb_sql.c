@@ -403,6 +403,12 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
+	int tmp_id;
+
+	// data restrictions
+	if( self->name2id(self, ch->name, true, &tmp_id, NULL, NULL) && tmp_id != ch->char_id )
+		return false;// name is being used
+
 	return mmo_char_tosql(db, (struct mmo_charstatus*)ch, false);
 }
 

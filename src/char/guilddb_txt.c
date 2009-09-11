@@ -469,6 +469,7 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 	memcpy(tmp, g, sizeof(struct guild));
 	tmp->guild_id = guild_id;
 	idb_put(guilds, guild_id, tmp);
+	strdb_put(db->idx_name, tmp->name, tmp);
 
 	// increment the auto_increment value
 	if( guild_id >= db->next_guild_id )

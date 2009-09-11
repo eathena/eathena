@@ -25,7 +25,6 @@ typedef struct PartyDB_SQL
 	Sql* parties;
 
 	// settings
-	bool case_sensitive;
 	const char* char_db;
 	const char* party_db;
 
@@ -90,7 +89,7 @@ static bool mmo_party_fromsql(PartyDB_SQL* db, struct party* p, int party_id)
 
 
 /// @private
-static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_flags flag, int index)
+static bool mmo_party_tosql(PartyDB_SQL* db, const struct party* p, enum party_save_flags flag, int index, int* out_party_id)
 {
 	Sql* sql_handle = db->parties;
 	SqlStmt* stmt = NULL;
@@ -130,10 +129,9 @@ static bool mmo_party_tosql(PartyDB_SQL* db, struct party* p, enum party_save_fl
 		}
 
 		insert_id = (int)SqlStmt_LastInsertId(stmt);
-		if( p->party_id == -1 )
-			p->party_id = insert_id; // fill in output value
-		else
-		if( p->party_id != insert_id )
+		if( out_party_id != NULL )
+			*out_party_id = insert_id;
+		if( p->party_id != -1 && p->party_id != insert_id )
 			break; // error, unexpected value
 	}
 
@@ -224,10 +222,17 @@ static bool party_db_sql_sync(PartyDB* self, bool force)
 
 
 /// @protected
-static bool party_db_sql_create(PartyDB* self, struct party_data* p)
+static bool party_db_sql_create(PartyDB* self, struct party* p)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-	return mmo_party_tosql(db, &p->party, PS_CREATE|PS_ADDMEMBER, 0);
+	
+	// data restrictions
+	if( p->party_id != -1 && self->id2name(self, p->party_id, NULL, 0) )
+		return false;// id is being used
+	if( self->name2id(self, p->name, NULL) )
+		return false;// name is being used
+
+	return mmo_party_tosql(db, p, PS_CREATE|PS_ADDMEMBER, 0, &p->party_id);
 }
 
 
@@ -273,19 +278,25 @@ static bool party_db_sql_remove(PartyDB* self, const int party_id)
 
 
 /// @protected
-static bool party_db_sql_save(PartyDB* self, const struct party_data* p, enum party_save_flags flag, int index)
+static bool party_db_sql_save(PartyDB* self, const struct party* p, enum party_save_flags flag, int index)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
-	return mmo_party_tosql(db, (struct party*)&p->party, flag, index);
+	int tmp_id;
+
+	// data restrictions
+	if( self->name2id(self, p->name, &tmp_id) && tmp_id != p->party_id )
+		return false;// name is being used
+
+	return mmo_party_tosql(db, (struct party*)p, flag, index, NULL);
 }
 
 
 /// @protected
-static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
+static bool party_db_sql_load(PartyDB* self, struct party* p, int party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 
-	if( !mmo_party_fromsql(db, &p->party, party_id) )
+	if( !mmo_party_fromsql(db, p, party_id) )
 		return false;
 
 	return true;
@@ -293,18 +304,41 @@ static bool party_db_sql_load(PartyDB* self, struct party_data* p, int party_id)
 
 
 /// @protected
-static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name)
+static bool party_db_sql_id2name(PartyDB* self, int party_id, char* name, size_t size)
+{
+	PartyDB_SQL* db = (PartyDB_SQL*)self;
+	Sql* sql_handle = db->parties;
+	char* data;
+
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "SELECT `name` FROM `%s` WHERE `party_id`='%d'", db->party_db, party_id)
+	||  SQL_SUCCESS != Sql_NextRow(sql_handle)
+	) {
+		Sql_ShowDebug(sql_handle);
+		return false;
+	}
+
+	Sql_GetData(sql_handle, 0, &data, NULL);
+	if( name != NULL )
+		safestrncpy(name, data, size);
+	Sql_FreeResult(sql_handle);
+
+	return true;
+}
+
+
+/// @protected
+static bool party_db_sql_name2id(PartyDB* self, const char* name, int* party_id)
 {
 	PartyDB_SQL* db = (PartyDB_SQL*)self;
 	Sql* sql_handle = db->parties;
 	char esc_name[2*NAME_LENGTH+1];
 	char* data;
 
-	Sql_EscapeString(sql_handle, esc_name, name);
+	Sql_EscapeStringLen(sql_handle, esc_name, name, strnlen(name, NAME_LENGTH));
 
 	// get the list of party IDs for this party name
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `party_id` FROM `%s` WHERE `name`= %s '%s'",
-		db->party_db, (db->case_sensitive ? "BINARY" : ""), esc_name) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `party_id` FROM `%s` WHERE `name`= BINARY '%s'",
+		db->party_db, esc_name) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -312,9 +346,7 @@ static bool party_db_sql_name2id(PartyDB* self, int* party_id, const char* name)
 
 	if( Sql_NumRows(sql_handle) > 1 )
 	{// serious problem - duplicit party name
-		ShowError("party_db_sql_load_str: multiple parties found when retrieving data for party '%s'!\n", name);
-		Sql_FreeResult(sql_handle);
-		return false;
+		ShowError("party_db_sql_name2id: multiple parties found when retrieving data for party '%s'!\n", name);
 	}
 
 	if( SQL_SUCCESS != Sql_NextRow(sql_handle) )
@@ -355,6 +387,7 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &party_db_sql_remove;
 	db->vtable.save      = &party_db_sql_save;
 	db->vtable.load      = &party_db_sql_load;
+	db->vtable.id2name   = &party_db_sql_id2name;
 	db->vtable.name2id   = &party_db_sql_name2id;
 	db->vtable.iterator  = &party_db_sql_iterator;
 
@@ -363,7 +396,6 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	db->parties = NULL;
 
 	// other settings
-	db->case_sensitive = false;
 	db->char_db = db->owner->table_chars;
 	db->party_db = db->owner->table_parties;
 
