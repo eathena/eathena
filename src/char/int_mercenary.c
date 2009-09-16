@@ -41,11 +41,19 @@ static void mapif_parse_mercenary_create(int fd, struct s_mercenary* merc)
 	mapif_mercenary_send(fd, merc, result);
 }
 
-static void mapif_parse_mercenary_load(int fd, int merc_id)
+static void mapif_parse_mercenary_load(int fd, int merc_id, int char_id)
 {
 	struct s_mercenary merc;
-	bool result = mercs->load(mercs, &merc, merc_id);
-	mapif_mercenary_send(fd, &merc, result);
+	if( mercs->load(mercs, &merc, merc_id) )
+	{
+		mapif_mercenary_send(fd, &merc, true);
+	}
+	else
+	{
+		memset(&merc, 0x00, sizeof(merc));
+		merc.char_id = char_id;
+		mapif_mercenary_send(fd, &merc, false);
+	}
 }
 
 static void mapif_mercenary_deleted(int fd, unsigned char flag)
@@ -87,7 +95,7 @@ int inter_mercenary_parse_frommap(int fd)
 	switch( cmd )
 	{
 		case 0x30C0: mapif_parse_mercenary_create(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
-		case 0x30C1: mapif_parse_mercenary_load(fd, (int)RFIFOL(fd,2)); break;
+		case 0x30C1: mapif_parse_mercenary_load(fd, (int)RFIFOL(fd,2), (int)RFIFOL(fd,6)); break;
 		case 0x30C2: mapif_parse_mercenary_delete(fd, (int)RFIFOL(fd,2)); break;
 		case 0x30C3: mapif_parse_mercenary_save(fd, (struct s_mercenary*)RFIFOP(fd,4)); break;
 		default:

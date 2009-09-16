@@ -34,13 +34,13 @@
 static const int packet_len_table[]={
 	-1,-1,27,-1, -1,-1,37, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3800-0x380f
 	 0, 0, 0, 0,  0, 0, 0, 0, -1,11, 0, 0,  0, 0,  0, 0, //0x3810
-	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820
-	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830
-	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840
+	39,-1,15,15, 14,19, 7,-1,  0, 0, 0, 0,  0, 0,  0, 0, //0x3820  Party
+	10,-1,15, 0, 79,19, 7,-1,  0,-1,-1,-1, 14,67,186,-1, //0x3830  Guild
+	 9, 9,-1,14,  0, 0, 0, 0, -1,74,-1,11, 11,-1,  0, 0, //0x3840  Guild
 	-1,-1, 7, 7,  7,11, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3850  Auctions [Zephyrus]
 	-1,-1, 0, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3860  Quests [Kevin] [Inkfish]
 	-1, 3, 3, 0,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3870  Mercenaries [Zephyrus]
-	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880
+	11,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3880  Pets
 	-1,-1, 7, 3,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0, //0x3890  Homunculus [albator]
 };
 
@@ -2087,6 +2087,7 @@ int intif_parse(int fd)
 	case 0x3806:	intif_parse_ChangeNameOk(fd); break;
 	case 0x3818:	intif_parse_LoadGuildStorage(fd); break;
 	case 0x3819:	intif_parse_SaveGuildStorage(fd); break;
+	// Party
 	case 0x3820:	intif_parse_PartyCreated(fd); break;
 	case 0x3821:	intif_parse_PartyInfo(fd); break;
 	case 0x3822:	intif_parse_PartyMemberAdded(fd); break;
@@ -2095,6 +2096,7 @@ int intif_parse(int fd)
 	case 0x3825:	intif_parse_PartyMove(fd); break;
 	case 0x3826:	intif_parse_PartyBroken(fd); break;
 	case 0x3827:	intif_parse_PartyMessage(fd); break;
+	// Guild
 	case 0x3830:	intif_parse_GuildCreated(fd); break;
 	case 0x3831:	intif_parse_GuildInfo(fd); break;
 	case 0x3832:	intif_parse_GuildMemberAdded(fd); break;
@@ -2113,7 +2115,6 @@ int intif_parse(int fd)
 	case 0x3841:	intif_parse_GuildCastleDataSave(fd); break;
 	case 0x3842:	intif_parse_GuildCastleAllDataLoad(fd); break;
 	case 0x3843:	intif_parse_GuildMasterChanged(fd); break;
-
 	//Quest system
 	case 0x3860:	intif_parse_questlog(fd); break;
 	case 0x3861:	intif_parse_questsave(fd); break;
@@ -2135,15 +2136,17 @@ int intif_parse(int fd)
 	case 0x3870:	intif_parse_mercenary_received(fd); break;
 	case 0x3871:	intif_parse_mercenary_deleted(fd); break;
 	case 0x3872:	intif_parse_mercenary_saved(fd); break;
-
+	// Pets
 	case 0x3880:	intif_parse_CreatePet(fd); break;
 	case 0x3881:	intif_parse_RecvPetData(fd); break;
 	case 0x3882:	intif_parse_SavePetOk(fd); break;
 	case 0x3883:	intif_parse_DeletePetOk(fd); break;
+	// Homunculus
 	case 0x3890:	intif_parse_CreateHomunculus(fd); break;
 	case 0x3891:	intif_parse_RecvHomunculusData(fd); break;
 	case 0x3892:	intif_parse_SaveHomunculusOk(fd); break;
 	case 0x3893:	intif_parse_DeleteHomunculusOk(fd); break;
+
 	default:
 		ShowError("intif_parse : unknown packet %d %x\n",fd,RFIFOW(fd,0));
 		return 0;

@@ -57,6 +57,9 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 
 	memset(cd, 0, sizeof(*cd));
 
+	if( version != CHARDB_TXT_DB_VERSION )
+		return false;
+
 	// key (char id)
 	if( sscanf(p, "%d%n", &cd->char_id, &n) != 1 || p[n] != '\t' )
 		return false;

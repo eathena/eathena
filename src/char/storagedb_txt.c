@@ -180,7 +180,7 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 	fp = fopen(file, "r");
 	if( fp == NULL )
 	{
-		ShowError("mmo_storagedb_load: Cannot open file %s!\n", file);
+		ShowError("mmo_storagedb_init: Cannot open file %s!\n", file);
 		return false;
 	}
 
@@ -198,10 +198,10 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 			continue;
 		}
 
-		s = (struct item*)aCalloc(size, sizeof(struct item));
+		s = (struct item*)aMalloc(size * sizeof(struct item));
 		if( s == NULL )
 		{
-			ShowFatalError("mmo_storagedb_load: out of memory!\n");
+			ShowFatalError("mmo_storagedb_init: out of memory!\n");
 			exit(EXIT_FAILURE);
 		}
 
@@ -212,7 +212,7 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 		||  version == 00000000 && sscanf(line, "%d,%d%n\t", &id, &dummy, &n) == 2
 		))
 		{
-			ShowError("mmo_storagedb_load: File %s, broken line data: %s\n", file, line);
+			ShowError("mmo_storagedb_init: File %s, broken line data: %s\n", file, line);
 			aFree(s);
 			continue;
 		}
@@ -220,7 +220,7 @@ static bool mmo_storagedb_init(StorageDB_TXT* db, enum storage_type type, size_t
 		// load storage for this id
 		if( !mmo_storage_fromstr(s, size, line + n + 1) )
 		{
-			ShowError("mmo_storagedb_load: File %s, broken line data: %s\n", file, line);
+			ShowError("mmo_storagedb_init: File %s, broken line data: %s\n", file, line);
 			aFree(s);
 			continue;
 		}
@@ -407,7 +407,7 @@ static bool storage_db_txt_save(StorageDB* self, const struct item* s, size_t si
 	{// has items
 		if( k != size )
 			tmp = (struct item*)aRealloc(tmp, (k+1)*sizeof(*s));
-		memset(tmp+k, 0x00, sizeof(*s));
+		memset(tmp+k, 0x00, sizeof(*s)); // terminate array
 		idb_put(storages, id, tmp);
 	}
 	else
