@@ -12,45 +12,27 @@
 static StatusDB* statuses = NULL;
 
 
-// Deliver status change data.
-static void mapif_status_load(int fd, const struct scdata* sc)
+static void mapif_parse_StatusLoad(int fd)
 {
-	WFIFOHEAD(fd, 14 + sc->count * sizeof(struct status_change_data));
+	int cid = RFIFOL(fd,2);
+	size_t size = statuses->size(statuses, cid);
+
+	WFIFOHEAD(fd, 10 + size * sizeof(struct status_change_data));
 	WFIFOW(fd,0) = 0x2b1d;
-	WFIFOW(fd,2) = 14 + sc->count * sizeof(struct status_change_data);
-	WFIFOL(fd,4) = sc->account_id;
-	WFIFOL(fd,8) = sc->char_id;
-	WFIFOW(fd,12) = sc->count;
-	memcpy(WFIFOP(fd,14), sc->data, sc->count * sizeof(struct status_change_data));
+	WFIFOW(fd,2) = 10 + size * sizeof(struct status_change_data);
+	WFIFOL(fd,4) = cid;
+	WFIFOW(fd,8) = size;
+	statuses->load(statuses, (struct status_change_data*)WFIFOP(fd,10), size, cid);
 	WFIFOSET(fd, WFIFOW(fd,2));
 }
 
 
-static void mapif_parse_StatusLoad(int fd)
-{
-	int aid = RFIFOL(fd,2);
-	int cid = RFIFOL(fd,6);
-	struct scdata sc;
-
-	if( !statuses->load(statuses, &sc, cid) )
-		return; // no data
-
-	sc.account_id = aid; // here for compatibility reasons
-
-	mapif_status_load(fd, &sc);
-
-	if( sc.data != NULL )
-		aFree(sc.data);
-}
-
 static void mapif_parse_StatusSave(int fd)
 {
-	size_t size = RFIFOW(fd,2) - 14;
-	int aid = RFIFOL(fd,4);
-	int cid = RFIFOL(fd,8);
-	int count = RFIFOW(fd,12);
-	uint8* scbuf = RFIFOP(fd,14);
-	struct scdata sc;
+	size_t size = RFIFOW(fd,2) - 10;
+	int cid = RFIFOL(fd,4);
+	int count = RFIFOW(fd,8);
+	struct status_change_data* sc = (struct status_change_data*)RFIFOP(fd,10);
 
 	if( size != count * sizeof(struct status_change_data) )
 	{// size mismatch
@@ -58,12 +40,7 @@ static void mapif_parse_StatusSave(int fd)
 		return;
 	}
 
-	sc.account_id = aid;
-	sc.char_id = cid;
-	sc.count = count;
-	sc.data = (struct status_change_data*)scbuf;
-
-	statuses->save(statuses, &sc);
+	statuses->save(statuses, sc, count, cid);
 }
 
 
@@ -84,6 +61,7 @@ void inter_status_init(StatusDB* db)
 {
 	statuses = db;
 }
+
 
 void inter_status_final(void)
 {

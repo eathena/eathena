@@ -29,11 +29,11 @@ typedef struct StatusDB_SQL
 
 
 /// @private
-static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
+static bool mmo_status_fromsql(StatusDB_SQL* db, struct status_change_data* sc, size_t size, int char_id)
 {
 	Sql* sql_handle = db->statuses;
 	char* data;
-	int i;
+	size_t i;
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `char_id`='%d'",
 		db->status_db, char_id) )
@@ -42,39 +42,29 @@ static bool mmo_status_fromsql(StatusDB_SQL* db, struct scdata* sc, int char_id)
 		return false;
 	}
 
-	//sc->account_id = account_id;
-	sc->char_id = char_id;
-	sc->count = (int)Sql_NumRows(sql_handle);
-	sc->data = (struct status_change_data*)aMalloc(sc->count * sizeof(struct status_change_data));
-
-	for( i = 0; i < sc->count && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
+	for( i = 0; i < size && SQL_SUCCESS == Sql_NextRow(sql_handle); ++i )
 	{
-		Sql_GetData(sql_handle, 0, &data, NULL); sc->data[i].type = atoi(data);
-		Sql_GetData(sql_handle, 1, &data, NULL); sc->data[i].tick = atoi(data);
-		Sql_GetData(sql_handle, 2, &data, NULL); sc->data[i].val1 = atoi(data);
-		Sql_GetData(sql_handle, 3, &data, NULL); sc->data[i].val2 = atoi(data);
-		Sql_GetData(sql_handle, 4, &data, NULL); sc->data[i].val3 = atoi(data);
-		Sql_GetData(sql_handle, 5, &data, NULL); sc->data[i].val4 = atoi(data);
+		Sql_GetData(sql_handle, 0, &data, NULL); sc[i].type = atoi(data);
+		Sql_GetData(sql_handle, 1, &data, NULL); sc[i].tick = atoi(data);
+		Sql_GetData(sql_handle, 2, &data, NULL); sc[i].val1 = atoi(data);
+		Sql_GetData(sql_handle, 3, &data, NULL); sc[i].val2 = atoi(data);
+		Sql_GetData(sql_handle, 4, &data, NULL); sc[i].val3 = atoi(data);
+		Sql_GetData(sql_handle, 5, &data, NULL); sc[i].val4 = atoi(data);
 	}
 
 	Sql_FreeResult(sql_handle);
-
-	if( i < sc->count )
-	{
-		aFree(sc->data);
-		return false;
-	}
 
 	return true;
 }
 
 
 /// @private
-static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
+static bool mmo_status_tosql(StatusDB_SQL* db, const struct status_change_data* sc, size_t size, int char_id)
 {
 	Sql* sql_handle = db->statuses;
 	StringBuf buf;
-	int i;
+	size_t i;
+	bool first = true;
 	bool result = false;
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
@@ -89,29 +79,28 @@ static bool mmo_status_tosql(StatusDB_SQL* db, const struct scdata* sc)
 	do
 	{
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `account_id`='%d' AND `char_id`='%d'", db->status_db, sc->account_id, sc->char_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->status_db, char_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		break;
 	}
 
-	if( sc->count <= 0 )
-	{// nothing more needed
-		result = true;
-		break;
-	}
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", db->status_db);
 
-	StringBuf_Printf(&buf, "INSERT INTO `%s` (`account_id`, `char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", db->status_db);
-
-	for( i = 0; i < sc->count; ++i )
+	for( i = 0; i < size; ++i )
 	{
-		if( i > 0 )
-			StringBuf_AppendStr(&buf, ", ");
+		if( sc[i].type == (unsigned short)-1 )
+			continue;
 
-		StringBuf_Printf(&buf, "('%d','%d','%hu','%d','%d','%d','%d','%d')", sc->account_id, sc->char_id,
-			sc->data[i].type, sc->data[i].tick, sc->data[i].val1, sc->data[i].val2, sc->data[i].val3, sc->data[i].val4);
+		if( first )
+			first = false;
+		else
+			StringBuf_AppendStr(&buf, " ");
+
+		StringBuf_Printf(&buf, "('%d','%hu','%d','%d','%d','%d','%d')", char_id, sc[i].type, sc[i].tick, sc[i].val1, sc[i].val2, sc[i].val3, sc[i].val4);
 	}
 
+	if( !first ) // run query only if there's any data to write
 	if( SQL_ERROR == Sql_QueryStr(sql_handle, StringBuf_Value(&buf)) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -178,18 +167,40 @@ static bool status_db_sql_remove(StatusDB* self, int char_id)
 
 
 /// @protected
-static bool status_db_sql_save(StatusDB* self, struct scdata* sc)
+static bool status_db_sql_save(StatusDB* self, const struct status_change_data* sc, size_t size, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
-	return mmo_status_tosql(db, sc);
+	return mmo_status_tosql(db, sc, size, char_id);
 }
 
 
 /// @protected
-static bool status_db_sql_load(StatusDB* self, struct scdata* sc, int char_id)
+static bool status_db_sql_load(StatusDB* self, struct status_change_data* sc, size_t size, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
-	return mmo_status_fromsql(db, sc, char_id);
+	return mmo_status_fromsql(db, sc, size, char_id);
+}
+
+
+/// @protected
+static size_t status_db_sql_size(StatusDB* self, int char_id)
+{
+	StatusDB_SQL* db = (StatusDB_SQL*)self;
+	char* data;
+	size_t result;
+
+	if( SQL_SUCCESS != Sql_Query(db->statuses, "SELECT COUNT(*) FROM `%s` WHERE `char_id` = %d", db->status_db, char_id)
+	||  SQL_SUCCESS != Sql_NextRow(db->statuses)
+	) {
+		Sql_ShowDebug(db->statuses);
+		Sql_FreeResult(db->statuses);
+		return 0;
+	}
+
+	Sql_GetData(db->statuses, 0, &data, NULL);
+	result = atoi(data);
+
+	return result;
 }
 
 
@@ -209,12 +220,13 @@ StatusDB* status_db_sql(CharServerDB_SQL* owner)
 	StatusDB_SQL* db = (StatusDB_SQL*)aCalloc(1, sizeof(StatusDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &status_db_sql_init;
-	db->vtable.p.destroy   = &status_db_sql_destroy;
-	db->vtable.p.sync      = &status_db_sql_sync;
+	db->vtable.p.init    = &status_db_sql_init;
+	db->vtable.p.destroy = &status_db_sql_destroy;
+	db->vtable.p.sync    = &status_db_sql_sync;
 	db->vtable.remove    = &status_db_sql_remove;
 	db->vtable.save      = &status_db_sql_save;
 	db->vtable.load      = &status_db_sql_load;
+	db->vtable.size      = &status_db_sql_size;
 	db->vtable.iterator  = &status_db_sql_iterator;
 
 	// initialize to default values

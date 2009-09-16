@@ -1043,7 +1043,7 @@ int pc_reg_received(struct map_session_data *sd)
 		ShowError("pc_reg_received: Failed to properly remove player %d:%d from logging db!\n", sd->status.account_id, sd->status.char_id);
 
 	status_calc_pc(sd,1);
-	chrif_scdata_request(sd->status.account_id, sd->status.char_id);
+	chrif_scdata_request(sd->status.char_id);
 
 	intif_Mail_requestinbox(sd->status.char_id, 0); // MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);

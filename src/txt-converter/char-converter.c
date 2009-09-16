@@ -168,18 +168,20 @@ int convert_char(void)
 		StatusDB* txt = srcdb->statusdb(srcdb);
 		StatusDB* sql = dstdb->statusdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
-		struct scdata data;
+		struct status_change_data* data;
 		int key;
 
 		ShowStatus("Converting Status Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
-			txt->load(txt, &data, key);
-			data.account_id = -1;
-			sql->save(sql, &data);
-			if( data.data != NULL )
-				aFree(data.data);
+			size_t size = txt->size(txt, key);
+			data = (struct status_change_data*)aMalloc(size * sizeof(*data));
+
+			txt->load(txt, data, size, key);
+			sql->save(sql, data, size, key);
+
+			aFree(data);
 		}
 
 		iter->destroy(iter);
@@ -261,7 +263,7 @@ int convert_char(void)
 		PartyDB* txt = srcdb->partydb(srcdb);
 		PartyDB* sql = dstdb->partydb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
-		struct party_data data;
+		struct party data;
 		int key;
 
 		ShowStatus("Converting Party Data...\n");

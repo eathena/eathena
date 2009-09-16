@@ -501,16 +501,15 @@ int chrif_sendmapack(int fd)
 /*==========================================
  * Request sc_data from charserver [Skotlex]
  *------------------------------------------*/
-int chrif_scdata_request(int account_id, int char_id)
+int chrif_scdata_request(int char_id)
 {
 #ifdef ENABLE_SC_SAVING
 	chrif_check(-1);
 
-	WFIFOHEAD(char_fd,10);
+	WFIFOHEAD(char_fd,6);
 	WFIFOW(char_fd,0) = 0x30a0;
-	WFIFOL(char_fd,2) = account_id;
-	WFIFOL(char_fd,6) = char_id;
-	WFIFOSET(char_fd,10);
+	WFIFOL(char_fd,2) = char_id;
+	WFIFOSET(char_fd,6);
 #endif
 	return 0;
 }
@@ -1064,10 +1063,9 @@ int chrif_save_scdata(struct map_session_data *sd)
 	chrif_check(-1);
 	tick = gettick();
 	
-	WFIFOHEAD(char_fd, 14 + SC_MAX*sizeof(struct status_change_data));
+	WFIFOHEAD(char_fd, 10 + SC_MAX*sizeof(struct status_change_data));
 	WFIFOW(char_fd,0) = 0x30a1;
-	WFIFOL(char_fd,4) = sd->status.account_id;
-	WFIFOL(char_fd,8) = sd->status.char_id;
+	WFIFOL(char_fd,4) = sd->status.char_id;
 	for (i = 0; i < SC_MAX; i++)
 	{
 		if (!sc->data[i])
@@ -1085,11 +1083,11 @@ int chrif_save_scdata(struct map_session_data *sd)
 		data.val2 = sc->data[i]->val2;
 		data.val3 = sc->data[i]->val3;
 		data.val4 = sc->data[i]->val4;
-		memcpy(WFIFOP(char_fd,14 +count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
+		memcpy(WFIFOP(char_fd, 10+count*sizeof(struct status_change_data)), &data, sizeof(struct status_change_data));
 		count++;
 	}
-	WFIFOW(char_fd,12) = count;
-	WFIFOW(char_fd,2) = 14 +count*sizeof(struct status_change_data); //Total packet size
+	WFIFOW(char_fd,8) = count;
+	WFIFOW(char_fd,2) = 10 +count*sizeof(struct status_change_data); //Total packet size
 	WFIFOSET(char_fd,WFIFOW(char_fd,2));
 #endif
 	return 0;
@@ -1099,30 +1097,22 @@ int chrif_save_scdata(struct map_session_data *sd)
 int chrif_load_scdata(int fd)
 {	
 #ifdef ENABLE_SC_SAVING
-	struct map_session_data *sd;
-	struct status_change_data *data;
-	int aid, cid, i, count;
+	int cid = RFIFOL(fd,4); //Player Char ID
+	int count = RFIFOW(fd,8); //sc_count
+	struct status_change_data* data = (struct status_change_data*)RFIFOP(fd,10);
 
-	aid = RFIFOL(fd,4); //Player Account ID
-	cid = RFIFOL(fd,8); //Player Char ID
-	
-	sd = map_id2sd(aid);
+	struct map_session_data* sd;
+	int i;
+
+	sd = map_charid2sd(cid);
 	if (!sd)
 	{
-		ShowError("chrif_load_scdata: Player of AID %d not found!\n", aid);
+		ShowError("chrif_load_scdata: Player with CID %d not found!\n", cid);
 		return -1;
 	}
-	if (sd->status.char_id != cid)
-	{
-		ShowError("chrif_load_scdata: Receiving data for account %d, char id does not matches (%d != %d)!\n", aid, sd->status.char_id, cid);
-		return -1;
-	}
-	count = RFIFOW(fd,12); //sc_count
-	for (i = 0; i < count; i++)
-	{
-		data = (struct status_change_data*)RFIFOP(fd,14 + i*sizeof(struct status_change_data));
-		status_change_start(&sd->bl, (sc_type)data->type, 10000, data->val1, data->val2, data->val3, data->val4, data->tick, 15);
-	}
+
+	for( i = 0; i < count; i++ )
+		status_change_start(&sd->bl, (sc_type)data[i].type, 10000, data[i].val1, data[i].val2, data[i].val3, data[i].val4, data[i].tick, 15);
 #endif
 	return 0;
 }
