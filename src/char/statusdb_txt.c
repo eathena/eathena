@@ -45,12 +45,21 @@ static bool mmo_status_fromstr(struct status_change_data* sc, size_t size, char*
 	if( version == 20090907 )
 	{
 		const char* p = str;
+		bool first = true;
 		int n;
 		size_t i;
 		
 		for( i = 0; i < size && *p != '\0' && *p != '\r' && *p != '\n'; i++ )
 		{
-			if (sscanf(p, " %hu,%d,%d,%d,%d,%d%n", &sc[i].type, &sc[i].tick, &sc[i].val1, &sc[i].val2, &sc[i].val3, &sc[i].val4, &n) < 6)
+			if( first )
+				first = false;
+			else
+			if( *p == ' ' )
+				p++;
+			else
+				return false;
+
+			if (sscanf(p, "%hu,%d,%d,%d,%d,%d%n", &sc[i].type, &sc[i].tick, &sc[i].val1, &sc[i].val2, &sc[i].val3, &sc[i].val4, &n) < 6)
 				return false;
 
 			p += n;

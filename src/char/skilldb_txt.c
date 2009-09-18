@@ -73,11 +73,11 @@ static bool mmo_skilllist_fromstr(skilllist* list, char* str)
 
 		p += n;
 
-		if( i == MAX_SKILL )
+		if( tmp_int[0] >= MAX_SKILL )
 			continue; // TODO: warning?
 
-		(*list)[i].id = tmp_int[0];
-		(*list)[i].lv = tmp_int[1];
+		(*list)[tmp_int[0]].id = tmp_int[0];
+		(*list)[tmp_int[0]].lv = tmp_int[1];
 	}
 
 	return true;
@@ -156,7 +156,7 @@ static bool skill_db_txt_init(SkillDB* self)
 
 		// load char id
 		n = 0;
-		if( sscanf(line, "%d%n\t", &char_id, &n) != 1 || line[n] != '\t' )
+		if( sscanf(line, "%d%n", &char_id, &n) != 1 || line[n] != '\t' )
 		{
 			aFree(list);
 			continue;

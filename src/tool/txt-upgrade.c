@@ -339,7 +339,7 @@ bool load_from_00000000(char* str, struct chardata_00000000* cd)
 
 		p += n + 1;
 
-		if( i == MAX_SKILL )
+		if( tmp_int[0] >= MAX_SKILL )
 			continue; // TODO: warning?
 
 		cd->skill[tmp_int[0]].id = tmp_int[0];
