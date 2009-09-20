@@ -107,6 +107,14 @@ SOURCE=..\src\common\malloc.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\common\md5calc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\md5calc.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\common\mapindex.c
 # End Source File
 # Begin Source File
@@ -215,11 +223,11 @@ SOURCE=..\src\map\battle.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\charcommand.c
+SOURCE=..\src\map\battleground.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\charcommand.h
+SOURCE=..\src\map\battleground.h
 # End Source File
 # Begin Source File
 
@@ -308,6 +316,14 @@ SOURCE=..\src\map\mapreg.h
 # Begin Source File
 
 SOURCE=..\src\map\mapreg_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\homunculus.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\homunculus.h
 # End Source File
 # Begin Source File
 
