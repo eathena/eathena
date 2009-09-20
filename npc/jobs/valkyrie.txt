@@ -5,7 +5,7 @@
 //= finished, optimized and tested by Lupus
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.9b
+//= 3.0
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -36,6 +36,7 @@
 //= 2.8 Corrected NPC names to fall within proper restrictions. [L0ne_W0lf]
 //= 2.9 Corrected Valkyrie case spicifying where to warp after rebirthing. [L0ne_W0lf]
 //= 2.9b Fixed Verdandi typo, fixed resetting vars [Lupus]
+//= 3.0 Added quest log commands. [L0ne_W0lf]
 //============================================================ 
 
 valkyrie,48,86,4	script	Valkyrie#	811,{
@@ -138,7 +139,6 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			mes "[Valkyrie]";
 			mes "One...";
 			mes "Two......";
-			//callfunc("F_SaveQuestSkills"); //now not used
 			next;
 			mes "[Valkyrie]";
 			mes "One...";
@@ -152,6 +152,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			set MISC_QUEST,MISC_QUEST | 1024; //<-reset Skill Reset Event
 			skill 142,1,0;
 			skill 143,1,0;
+			completequest 1000;
 			next;
 			mes "[Valkyrie]";
 			mes "Congratulations.";
@@ -228,7 +229,7 @@ yuno_in02,88,164,5	script	Metheus Sylphe#Library	742,{
 			mes "1,285,000 zeny.";
 			next;
 			if (select("Donate.:Cancel.") == 1) {
-				if (Zeny > 1284449) {
+				if (Zeny >= 1285000) {
 					set zeny,zeny-1285000;
 					set valkyrie_Q,1;
 					mes "[Metheus Sylphe]";
@@ -323,6 +324,9 @@ yuno_in02,93,207,1	script	Book of Ymir	111,{
 			mes "can confirm that Valkyrie and Valhalla actually exist...";
 			next;
 			set valkyrie_Q,2;
+			if(checkquest(1000) == -1) {
+				setquest 1000;
+			}
 			mes "[The Book of Ymir]";
 			mes "Let the heroes live new lives";
 			mes "so they can protect the world";

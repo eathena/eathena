@@ -1,5 +1,310 @@
-﻿Date		Added
+Date		Added
 ======
+2009/09/16
+	* Rev. 14060 Added messing 'end;' in one of the 13.1 lighthalzen guard. [L0ne_W0lf]
+	* Fixed NPC IDs in niflheim quests again. Should be 111 and "non-clickable"
+2009/09/10
+	* Rev. 14052 Added some, and enabled existing episode 13.1 content. [L0ne_W0lf]
+2009/08/18
+	* Rev. 14013 Bug fixes mostly. [L0ne_W0lf]
+	- Fixed Brynhild dialog in the Asprika quests. (bugreport:3085)
+	- Removed "Disabled" tag from Volcano base quest. (bugreport:3342)
+	- Attempted to fix the sign quest dancing portion. (bugreport:3382)
+	- Fixed Guardian in schg_cas03 using invalid coords. (bugreport:3462)
+	- Fixed Turbo Track records using wrong variable type. (bugreport:3484)
+	- Fixed the checkweights in the Crow of Fate quest. (bugreport:3500)
+2009/08/11
+	* Rev. 14001 More episode 12.1 updates, mainly to morroc quests. [L0ne_W0lf]
+	- Updated Satan Morroc to allow people who have finished it to return to the previous map.
+	- Added quest log commands for Resurrection of Satan Morocc.
+	- Added the two remaining episode 12.1 quests. 
+2009/07/26
+	* Rev. 13970 Another Episode 12 change, and more 13.1 content. [L0ne_W0lf]
+	- Moved Voting staff in Morroc to Morroc Ruins.
+	- Added Manuk/Slpendide mob spawn files (commented out.)
+	* Rev. 13969 Added Quest Log commands for 1-1 job quests and trans quest. [L0ne_W0lf]
+2009/07/18
+	* Fixed "OnMobDeath" doesn't work sometime in Izlude Party Arena. [Inkfish]
+2009/07/07
+	* Rev. 13940 A few minor bugs fixed. :3 [L0ne_W0lf]
+	- Fixed npc in okolnir quest using non-existant event. (Bugreport:3085)
+	- Translated non-translated lines in Okolnir quest.
+	- Fixed Asprika quest giving Brynhild requirement message.
+	- Added missing warps for The Sign quest. (Bugreport:3295)
+	- Corrected time check for Sir Jore in the Sign Quest.
+	* Updated warps for 13.1 maps.
+2009/06/09
+	* Rev. 13878 Implemented rewrite of the quest "The Sign". [L0ne_W0lf]
+	- Attempts to save player progress when quest npcs are talked too. This is Untested.
+	- Talking to any quest related NPC will remove all out-dated quest vars.
+	* Fixed incorrect sprite ID used in some Niflheim quest npcs.
+2009/06/06
+	* Rewrote Platinum Skill NPC to give all correct skills to all proper classes. [Paradox924X]
+	* Fixed several issues introduced by Kisuka and/or Spre in r13214 with custom platinum skills script. Fix by Ancyker (bugreport:3190) [Paradox924X]
+2009/05/29
+	- Fixed a spelling typo in Kafras' dialog. (bugreport:3145) [brianluau]
+2009/05/25
+	* Now use 'boss_monster' to summon the boss monsters so that Convex Mirror can work properly. [Inkfish]
+2009/05/17
+	* Rev. 13782 First round of bug fixes for the Okolnir scripts. (bugreport:3085) [L0ne_W0lf]
+	- Fixed two spawn locations of the key stones in Piamete's room.
+	- Fixed calling an event that doesn't exist when killing Piamete.
+	- Fixed the Wish Maiden not enabling when the boss is killed.
+	- Fixed two NPC named that were missed when translating.
+	- Fixed Dialog that was overlooked in some files and not others.
+2009/05/15
+	* Rev. 13781 Falicious Okolnir update - Brynhild creation quest. Basic unoptimized version. [L0ne_W0lf]
+	* Rev. 13780 Falicious Okolnir update - Asprika creation quest. Basic unoptimized version. [L0ne_W0lf]
+2009/05/12
+	* Rev. 13764 Completely rescripted the DTS warp service based on the aegis 11.3 file. [L0ne_W0lf]
+	- Updated F_ClearGarbage to erase obsolete DTS player variables.
+	- Moved Cool Corp. Staff NPCs to Lighthalzen (cities/lighthalzen.txt.)
+	- Now everyone can enjoy the global broadcast "every-hour-nag" to vote!
+	- Note: Upon loading ALL prior DTS global variables are erased.
+2009/05/11
+	- Fixed double-quotes not being escaped in the custom xmas_rings_event. (bugreport:2546) [brianluau]
+	- Renamed an OnClock label in schg_cas01 so it's consistent with the other castles. (bugreport:2831)
+2009/05/07
+	- Fixed a "player not attached" error in the Moscovia quest. (bugreport:3041) [brianluau]
+	- Fixed a race condition in the Arunafeltz quest blocking progress. (bugreport:2782)
+2009/05/04
+	- Added a missing zeny check in the Jawaii Bartender. (bugreport:2897) [brianluau]
+	- Added a missing 'close' in the Mage quest Bookshelf. (bugreport:2873)
+2009/05/03
+	- Switched the slot enchanter's checks so they come AFTER the final 'next' pause. (bugreport:2664)
+	* Removed the obfuscation of the #kafra_code password, following ultramage's suggestion. [brianluau]
+2009/05/02
+	- Changed a misleading message in the custom Job Changer. (bugreport:682) [brianluau]
+	- Updated some NPC's facing directions. (bugreport:3030)
+	- Fixed a grammar typo in the Assassin skill quest.
+	* Applied timexy's pvp warp name fix (bugreport:2938) [Playtester]
+2009/04/30
+	* Fixed various typos in the Moscovia quests thanks to Ihades (bugreport:3036) [Playtester]
+2009/04/29
+	* Updated ASSIN_Q2 variable range check from < 1 to < 3 to defend against the variable being stuck at an incorrect value of 1 or 2,
+	  caused by logging out or pressing cancel on choices list at an inappropriate time thus rendering the player unable to complete the Assassin Quest.
+	  Thanks to Chibi for Report. [Paradox924X]
+2009/04/28
+	* Removed unnecessary text and fixed a goto in the Hunter Jobquest (bugreport:3014) [Playtester]
+	* A few quest updates due to bugreports [Playtester]
+	- added a missing close in the Kiel Hyre Quest (bugreport:2885)
+	- added L0ne_W0lf's Cool Event Corp script + a few fixes to it (bugreport:3019)
+	- fixed a small typo in rachel.txt (bugreport:3029)
+2009/04/23
+	* Fixed wrong coordinates of the Prontera Bartender (bugreport:3000) [Playtester]
+	* Fixed a chat window not being closeable in the Training Grounds (bugreport:3009) [Playtester]
+2009/04/20
+	* Applied BrianL's castle switch fix (bugreport:2969) [Playtester]
+	* Various script updates [Playtester]
+	- Removed the Acorn repeatable quest (got removed on iRO)
+	- Re-enabled Umbala bungee jumping (bugreport:2978)
+	- Fixed a reward in monster race (bugreport:2990)
+2009/04/17
+	* Fixed small typo in /battlegrounds/bg_common.txt [Jguy]
+2009/04/15
+	* Corrected in error in the mjolnir fields spawn script. [Jguy]
+	* Rev. 13674 Modified the commented out Phreeoni and forgot to fix the varience for the active one as well. [L0ne_W0lf]
+	* Rev. 13673 Corrected most MVP spawn variances. Some were right (11.3+), and a couple are unchanged (Kiel for example.) [L0ne_W0lf]
+2009/04/01
+	* Optimized the renters.txt thanks to various people [Playtester]
+	* Fixed an Aldebaran castle flag thanks to BrianL [Playtester]
+2009/03/31
+	* Fixed viewpoint coordinates of the Aldebaran Guides thanks to rvitoi and Saithis [Playtester]
+2009/03/29
+	* Fixed a few errors in quests_moscovia.txt, one not being able to move on with the quest at 'Swap' and the other having in incorrect variable. [Jguy]
+2009/03/25
+	* Renamed the cooking quest variable to cooking_q to avoid a naming collision. [ultramage]
+	- You need to manually rename all occurences of this variable in your txt-savefile/sql-database if you want to preserve player progress.
+	* Fixed Thief Training Quest [Playtester]
+2009/03/18
+	* Fixed Moscovia mob names in the spawn file [Playtester]
+2009/03/04
+	* Rev. 13566 Follow up to r13559, r13560 and r13561. Moved some stuff around in the WoESE agits, and corrected a few mistakes I made. [L0ne_W0lf]
+2009/03/03
+	* Rev. 13563 Removed extra lines from schg_cas02 resetting data before eco/def is applied. (bugreport:2842) [L0ne_W0lf]
+	* Rev. 13561 Applied the updated eco/def investment system to Juno WoESE castles. [L0ne_W0lf]
+	* Rev. 13560 Applied the updated eco/def investment system to Rachel WoESE castles, Juno's next. [L0ne_W0lf]
+	* Corrected the conditions in the if block that I goofed up, in agit_template.
+2009/03/02
+	* Rev. 13559 Another round of bug fixes to various scripts. [L0ne_W0lf]
+	- Added Satan Morroc spawn and corrected shadow spawn timers. (bugreport:2690)
+	- Fixed Group of Evil NPC not reactivating  when it should. (bugreport:2696)
+	- Fixed the Zeny check when summoning guardians in agits. (bugreport:2712)
+	- Added zeny check to Jawaii bartender (hung the script.) (bugreport:2747)
+	- Corrected a mapwarp assosiated with the z-gang quest. (bugreport:2757)
+	- Fixed warps in ice dungeon 3 being usable all the time. (bugreport:2776)
+	- Corrected impossible condition if in Keil Hyre quest. (bugreport:2789)
+	- Corrected leftover aegis variables in several scripts. (bugreport:2794)
+	- Removed duplicate line from nameless quest. (bugreport:2795)
+	* Implemented official behaviour/Cost for investing in economy and defence
+	- Eco/Def will be modified on the turn of the day instead of immediately.
+	- Cost has been updated to official values. Investing twice now costs 4 times the first investment.
+2009/01/19
+	* Rev. 13458 Looooots of bugfixes provided by various people! [L0ne_W0lf]
+	- Fixed Seal quest checking for oridecon hammer. Again. (Bugreport:2363)
+	- Fixed some requirements for the socket NPC. (famiong) (Bugreport:2572)
+	- Fixed a global variable-collision in Z-Gang quest. (Bugreport:2616)
+	- Fixed issue with Zhed saying things he shouldn't (Bugreport:2627)
+	- Fixed OnMyMobDwead in Nameless quest issue. (Bugreport:2628)
+	- Fixed Kyle Hyre script halting on delitem. (Bugreport:2633)
+	- Added missing part of Peace for Arunafelts (Gepard) (Bugreport:2639)
+	- Added missing Kafra npc to Comodo. (Daegaladh) (Bugreport:2662)
+	- Fixed a minor error in Einbroch Tower NPC. (magegahell) (Bugreport:2669)
+	- Fixed exp reward in Peace for Arunafeltz. (Gepard) (Bugreport:2676)
+	- Fixed exp reward in Meg. God Seal quest. (Daegaladh) (Bugreport:2677)
+2009/01/06
+	* Rev. 13436 Uncommented warp moc_fild02 -> pay_fild04, in morroc_fild.txt. [L0ne_W0lf]
+2008/12/29
+	* Rev. 13423 Fixed Econ values in agit_template. Commited by accident, as it's not finished. [L0ne_W0lf]
+	* Rev. 13422 Workin' on fixing some bugs. :) [L0ne_W0lf]
+	- Corrected issues with the Keil Hyre quest. (bugreport:2511)
+	- Corrected minor typo in alchemsit quest. (bugreport:2530)
+	- High Aco is now given skills on change. (bugreport:2552)
+	- Added item checks to Ice Necklace quest.
+	- Uncommented a warp in morroc_fild.
+2008/12/26
+	Rev. 13415 Happy boxing day, eAthena! Here have a massive update. [L0ne_W0lf]
+	* Implemented the first round of episode 12.1 change which include:
+	- Many Morroc NPCs have been moved to Morroc Ruins.
+	- The addition of new of NPCs to the ruins of Morroc.
+	- Several warp points leading around Morroc altered.
+	- The implementation of the continental Guard Quest.
+	- The removal of the 'Dandelion's Request" quest.
+	- This update contains several changes, as Morroc and several fields no longer
+	  exist in one sense of the word. AS such, many NPCs have been moved, there may
+	  be quests that no longer function because of NPCs on inaccessable maps.
+2008/12/25
+	* Added a check in The Sign Quest for Sign_Branch8A before attempting to run a delitem on items not needed based on Path taken. [Paradox924X]
+2008/12/23
+	* Small update to the checkweight in Christmas 2005 Event. (bugreport:2553) [Paradox924X]
+2008/11/21
+	* Fixed typos in var names from EIN_LOVERQRQ to EIN_LOVERQ in Einbroch Lovers Quest. (bugreport:2464) [Paradox924X]
+2008/11/18
+	* Rev. 13376 Bug fixes up the wazoo! Hoorah! L0ne's doing something! [L0ne_W0lf]
+	- Removed redundent input from mercenary vendor. (bugreport:2427)
+	- Fixed delitem causing the sign quest to fault. (bugreport:2444)
+2008/11/04
+	* Small update to fix merchant Paul Spanner from giving item 612 instead of .@item. (bugreport:2418) [Paradox924X]
+	* Fixed a few donpcevent's that didn't include the NPC's hidden display name. (bugreport:2407) [Paradox924X]
+	* Added a bunch of missing "end;"s for Broken Sword Quest that caused NPC to execute unwanted labels. (bugreport:2404) [Paradox924X]
+2008/10/28
+	* Fixed location error in Blacksmith quest. NPC said Alberta, NPC location in Einbech (bugreport:2401) [Jman]
+	* Fixed minor typo in tu_archer NPC. (bugreport:2393) [Jman]
+	* Rev. 13328 More boredom and bugfixing to various scripts. :D [L0ne_W0lf]
+	- Updated an outdated comment in refine.txt. (bugreport:2370)
+	- Fixed two bad event calls in arug_cas04/05. (bugreport:2386)
+	- Fixed wrong check in haire dresser script. (bugreport:2392)
+	- Fixed infinite loop in archer quest scropt. (bugreport:2393)
+	- Bonus: Updated the blacksmith supply dealer in Einbroch
+2008/10/27
+	* Replaced 96 instances of "S_BonusREward" with "S_BonusReward" as it should be in monster_race.txt. [Paradox924X]
+2008/10/25
+	* Rev. 13326 Fixed setcell coords for the first barricade in schg_cas03. [L0ne_W0lf].
+	* Rev. 13325 Fixed a copy/paste error in Nordri. (bugreport:2372) [L0ne_W0lf]
+2008/10/24
+	* Rev. 13319 Bugfixing yay! Just goin' though the tracker. [L0ne_W0lf]
+	- Fixed variables in a loop in the novice grounds. (bugreport:2374)
+	- Swapped switch for if in Louyang Guard Tower thing. (bugreport:2377)
+	- Swapped mobcount for npc vars in two keil hyre npcs. (bugreport:2380)
+2008/10/17
+	* Rev. 13305 Corrected some issues in the Keil Hyre Quest and Mjolnir Seal quest. [L0ne_W0lf]
+	- Corrected Sudri not setting player and NPC hp variables. (bugreport:2355)
+	- Corrected a few minor typos in the Kyle Hyre Quest. (bugreport:2356)
+	- Corrected bad if condition checking in Kyle Hyre Quest. (bugreport:2358)
+	- Corrected Mjolnir seal checking for Oridecon hammer. (bugreport:2363)
+2008/10/16
+	* Rev. 13295 Corrected typo in Nameless Monestary quest. (bugreport:2352) [L0ne_W0lf]
+	* Swapped baseclass for basejob and fixed server-wide announce in god item quests. (bugreport:2349)
+2008/10/12
+	* Rev. 13289 Reverted donpcevent change to wizard quest. Moved a percentheal, which should fix bugreport:2311. [L0ne_W0lf]
+	* Changed An nonexistent variable in Refine NPC. (bugreport:2340) [Samuray22]
+	* Fixed a Exploit in Thief Quest Skill. (bugreport:2332)
+	* Fixed donpcevent to doevent. (bugreport:2311)
+2008/09/30
+	* Rev. 13250 Added Mercenary System related NPCs. [L0ne_W0lf]
+	* Rev. 13249 Full implementation of all Episode 11.3 Quests. [L0ne_W0lf]
+	* Corrected a wrong variable name in the Novice Training Ground (bugreport:2293) [Samuray22]
+2008/09/29
+	* Rev. 13247 Fixed the delitem assosiated with the last uptate. [L0ne_W0lf]
+	* Rev. 13246 Fixed item requirement for Stellar hairpin in monstertamers.txt. (bugreport:2290) [L0ne_W0lf]
+2008/09/27
+	* Rev. 13242 Implemented fixes for The Sign quest until my rewrite is finished. (bugreport:2269) [L0ne_W0lf]
+	* Continues replacing of specialeffect/2 numerics with constants. [Samuray22]
+	* Corrected an If to continue the President's Quest. (bugreport:2276)
+2008/09/25
+	* Rev. 13238 Continues replacing of specialeffect/2 numerics with constants. [L0ne_W0lf]
+	- A lot of files still remain, but they don't have the proper
+	  effect names in commented in beside the ID. ;P
+	* Rev. 13237 Replacing specialeffect/2 numerics with constants in quests. [L0ne_W0lf]
+2008/09/23
+	* Rev. 13233 Fixed error in Megingjard seal quest. (bugreport:2261) [L0ne_W0lf]
+	* Applied fix to Hanson in Novice Grounds. (bugreport:1747)
+	* Changed some " + name +" to strcharinfo(0) in Brisingamen Seal. [Samuray22]
+2008/09/22
+	* Fixed a little Exploit to bug the Dancer Job Quest. (bugreport:2252) [Samuray22]
+	* Fixed a Little Bug with Whispers Summoned in the Sage Job Quest. (bugreport:2253)
+2008/09/21
+	* Rev. 13229 Large update to Einbroch. Requires testing. [L0ne_W0lf]
+	- Added missing somewhat-global einbroch quest.
+	- Full update to Uwe Kleine quest. Needs testing. 
+	- Updated the structure of the other quests.
+	- Updated the structure of several NPCs.
+	* Rev. 13228 Corrected some issues with the lighthalzen biolab quest. (bugreport:1798) [L0ne_W0lf]
+	* Rev. 13224 Corrected Sealstatus checking global vars instead of character. (bugreport:2250) [L0ne_W0lf]
+	* Deleted Unnecesary Next; in Hunter Job Quest. (bugreports:1665,2239,2179) [Samuray22]
+	* Fixed a bug with the Bio Lab Quest when you relog. (bugreport:1798)
+	* Corrected some Issues with the Waiting Room in Hunter Job Quest. (bugreport:1890)
+2008/09/20
+	* Rev. 13222 Fixed DZeroX's fix! (Missing ;'s) [L0ne_W0lf]
+	* Added Guild PVP NPC, and seal progress NPC.
+2008/09/18
+	* Rev. 13219 Slew of bugreport fixage. Figured I should do something. [L0ne_W0lf]
+	* Fixed copy/paste errors in Aru castles. (bugreport:2012)
+	* Updated Trans-only warp in thanatos tower. (bugreport:2227)
+	* Fixed improper variable in airship quest (bugreport:2238)
+	* Fixed a minor bug in updated repairmain. (bugreport:2245)
+2008/09/15
+	* Rev. 13216 Corrected a typo in Sleinpr seal quest. (bugreport:2234) [L0ne_W0lf]
+2008/09/14
+	* Rev. 13210 Added updates to crusader job quest from bugreport:1887. [L0ne_W0lf] 
+	* Rev. 13209 Corrected a typo in monster races. (bugreport:2147)
+	* Rev. 13208 Updated refiner function to allow for addition features per npc. [L0ne_W0lf]
+	* Updated repairmen positions and function. Now repairs all items at once.
+	* Added a missing close2 to the meg seal NPC Rebarev Doug (bugreport:2228)
+	* Changed a couple close2;'s to close;'s in the Refine NPC. (bugreport:2229) [Paradox924X]
+2008/09/09
+	* Rev. 13202 Enabled WoE SE to be run independently of normal WoE. [L0ne_W0lf]
+	* Rev. 13201 Small bugfixes to arug_cas02 [Yommy]
+	- Typo fixes in advanced refiner [Yommy]
+	- Nameless entrance layout fix [Yommy]
+2008/09/06
+	* Rev. 13194 Lots of small updates and corrections to seal quests. [L0ne_W0lf]
+	* Rev. 13193 Applied bug fixes for IDs in recent quests. (bugreport:2189) [L0ne_W0lf]
+2008/09/03
+	* Rev. 13188 Fixed inconsitencies in mosk_dun spawns. (bugreport:2165) [L0ne_W0lf]
+	* Rev. 13187 Fixed bug in refiner merchants. (bugreport:2168) [L0ne_W0lf]
+2008/09/01
+	* Rev. 13181 Fixed item requirements for PH D. Hat again. [L0ne_W0lf]
+	* Rev. 13180 Updating god item seal quests (5/5) [L0ne_W0lf]
+	- Disabled god item quest variable modifying NPCs.
+	* Rev. 13179 Updating god item seal quests (4/5) [L0ne_W0lf]
+	* Rev. 13178 Updating god item seal quests (3/5) [L0ne_W0lf]
+	* Rev. 13177 Updating god item seal quests (2/5) [L0ne_W0lf]
+	* Rev. 13175 Updating god item seal quests (1/5) [L0ne_W0lf]
+	* Rev. 13174 More bugfixes tot he keil Hyre quest. [L0ne_W0lf]
+	* Rev. 13173 Fixed item requirements for PH D. Hat. [L0ne_W0lf]
+	* Rev. 13168 Updated refiner and related merchants. [L0ne_W0lf]
+2008/08/31
+	* Rev. 13164 Updated Monster Taming item cute pet armor quests. [L0ne_W0lf]
+	* Rev. 13163 Updated several ancient headgear quests. [L0ne_W0lf]
+	* Rev. 13154 Missed one of those blatant errors in the Keil Hyre Quest. [L0ne_W0lf]
+	* Rev. 13154 Fixed blatant errors that I added to Keil Hyre Quest. [L0ne_W0lf]
+2008/08/29
+	* Rev. 13152 Just fixing some reported script bug. [L0ne_W0lf]
+	- Fixed coordinate in level 60 arena. (bugreport:1663)
+	- Fixed errors in the Keil Hyre quest. (bugreport:2129)
+	- Fixed guild look ups in Arug_cas02. (bugreport:2134)
+	- Corrected treasure spawn in schg_cas03. (bugreport:2142)
 2008/08/20
 	* Rev. 13102 Follow up to r13091, fixed weight check in stone dismantler. [L0ne_W0lf]
 2008/08/19
@@ -739,7 +1044,7 @@
 	- Thanks to Barron-Monster.
 	* Rev. 10906 Fixed the Kafra Welcome message for guilds. Thanks Barron-Monster. [L0ne_W0lf]
 2007/07/23
-	* Fixed 3� Test in Hunter Job Quest. [Samuray22]
+	* Fixed 3  Test in Hunter Job Quest. [Samuray22]
 	-Thanks to ultramage.
 	* Fixed a little bug in "Dandelion Quest" with "Job_Alchemist" changed to "Job_Alchem". [Samuray22]
 	-Thanks to Nobuo
@@ -1629,7 +1934,7 @@
 	* Tried to remove all duplicates (in default NPCs) [Toms]
 	* Removed useless 'npc\other\old' directory, who would need that anyway... [DracoRPG]
 	* Commented out the path to Divorce NPC as Lupus forgot to add it for good [DracoRPG]
-	* Fixed critical syntax errors in the new Valkyrie script, (�_�) @ Lupus [DracoRPG]
+	* Fixed critical syntax errors in the new Valkyrie script, ( _ ) @ Lupus [DracoRPG]
 	* Improved Bioethics quest & nearby Rekenber Guards [DracoRPG]
 	  - Used isequipped() instead of getequipid() to simplify code (esp. with accessories)
 	  - Rewritten the custom text about Hom. Res. and removed its actual learning

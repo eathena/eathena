@@ -4,7 +4,7 @@
 //= A reference manual for the eAthena scripting language.
 //= Commands are sorted depending on their functionality.
 //===== Version ===========================================
-//= 3.22.20080622
+//= 3.25.20081220
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -120,6 +120,18 @@
 //=       unitskilluseid, unitskillusepos, bonus/bonus2/bonus3/bonus4/bonus5
 //= 3.22.20080622
 //=       Extended 'set' to return the variable reference. [FlavioJS]
+//= 3.22.20080901
+//=       Adjusted the 'getequipname' description to match src [ultramage]
+//= 3.23.20080909
+//=       Added WoE SE related commands. [L0ne_W0lf]
+//= 3.24.20081111
+//=       Changed the error behaviour of delitem/delitem2/Zeny. [FlavioJS]
+//= 3.25.20081220
+//=       Extended the behaviour of duplicates (warps/shops/cashshops). [FlavioJS]
+//= 3.26.20090702
+//=       Replaced 'bonusautoscript' by 'autobonus'. [Inkfish]
+//= 3.27.20090725
+//=       Added Quest Log related commands. [Inkfish]
 //=========================================================
 
 This document is a reference manual for all the scripting commands and functions 
@@ -369,15 +381,6 @@ triggered. It may contain commands and function calls, descriptions of which
 compose most of this document. It has to be in curly brackets, unlike elsewhere 
 where we use curly brackets, these do NOT signify an optional parameter.
 
-** Define an NPC duplicate.
-
-<map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<name>%TAB%<sprite id>
-<map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<name>%TAB%<sprite id>,<triggerX>,<triggerY>
-
-This will duplicate an NPC referred to by 'label'. The duplicate runs the same 
-code as the source NPC, but has its own name, location, facing, sprite ID and
-trigger area (in other words, the duplicate does not 'inherit' any of these).
-
 ** Define a 'floating' NPC object.
 
 -%TAB%script%TAB%<NPC Name>%TAB%-1,{<code>}
@@ -387,8 +390,9 @@ normally mean it's pointless since it can't do anything, but there are
 exceptions, mostly related to running scripts at specified time, which is what 
 these floating NPC objects are for. More on that below.
 
-** Define a shop NPC.
+** Define a shop/cashshop NPC.
 
+-%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
 <map name>,<x>,<y>,<facing>%TAB%shop%TAB%<NPC Name>%TAB%<sprite id>,<itemid>:<price>{,<itemid>:<price>...}
 
 This will define a shop NPC, which, when triggered (which can only be done by 
@@ -408,6 +412,21 @@ to use the Cash Shop interface, allowing you to buy items with special points
 This type of shop will not allow you to sell items at it, you may only
 purchase items here. The layout used to define sale items still count, and
 "<price>" refers to how many points will be spent purchasing the them.
+
+** Define an warp/shop/cashshop/NPC duplicate.
+
+warp: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<spanx>,<spany>
+shop/cashshop/npc: -%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
+shop/cashshop/npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>
+npc: -%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
+npc: <map name>,<x>,<y>,<facing>%TAB%duplicate(<label>)%TAB%<NPC Name>%TAB%<sprite id>,<triggerX>,<triggerY>
+
+This will duplicate an warp/shop/cashshop/NPC referred to by 'label'.
+Warp duplicates inherit the target location.
+Shop/cashshop duplicates inherit the item list.
+NPC duplicates inherit the script code.
+The rest (name, location, facing, sprite ID, span/trigger area)
+is obtained from the definition of the duplicate (not inherited).
 
 ** Define a function object
 
@@ -627,6 +646,7 @@ not certain whether this will work for all of them. Whenever there is a command
 or a function to set something, it's usually preferable to use that instead. The 
 notable exception is Zeny, which you can and often will address directly -
 setting it will make the character own this number of zeny.
+If you try to set Zeny to a negative number, the script will be terminated with an error.
 
 Strings
 -------
@@ -878,6 +898,9 @@ once and will not execute if the map server reconnects to the char server later.
 OnAgitStart:
 OnAgitEnd:
 OnAgitInit:
+OnAgitStart2:
+OnAgitEnd2:
+OnAgitInit2:
 
 OnAgitStart will run whenever the server shifts into WoE mode, whether it is 
 done with @agitstart GM command or with 'AgitStart' script command. OnAgitEnd 
@@ -887,6 +910,9 @@ loaded from the char-server by the map server.
 No RID will be attached while any of the abovementioned labels are triggered, so 
 no character or account-based variables will be accessible, until you attach a 
 RID with 'attachrid' (see below).
+
+The above also applies to, the last three laels, the only difference is that
+these labels are used exclusively for WoE SE, and are called independantly.
 
 OnTouch:
 
@@ -977,6 +1003,7 @@ From here on, we will have the commands sorted as follow:
 4.- Player-related commands.
 5.- Mob / NPC -related commands.
 6.- Other commands.
+7.- Instance Commands.
 
 =====================
 |1.- Basic commands.|
@@ -1171,7 +1198,7 @@ with other command, such as "if", but often used on it's own.
 Label:
 	mes "This will be seen";
 
-Note by FlavioJS: goto's are "evil" and should be avoided if possible (Ú_Û)
+Note by FlavioJS: goto's are "evil" and should be avoided if possible (√≤_√≥)
 
 ---------------------------------------
 
@@ -1441,6 +1468,7 @@ generally cleaner:
 ---------------------------------------
 
 *callsub <label>{,<argument>,...<argument>};
+*callsub(<label>{,<argument>,...<argument>})
 
 This command will go to a specified label within the current script (do NOT use 
 quotes around it) coming in as if it were a 'callfunc' call, and pass it 
@@ -1452,16 +1480,48 @@ you like, to save space and time, without creating extra NPC objects which are
 needed with 'callfunc'. A label is not callable in this manner from another 
 script.
 
-		mes "[Woman]"
-		mes "Lets see if you win";
-		callsub Check;
-		mes "Well done you have won";
+Example 1: callsub for checking (if checks pass, return to script)
+	callsub S_CheckFull, "guild_vs2",50;
+	switch( rand(4) ) {
+		case 0:	warp "guild_vs2",9,50;	end;
+		case 1:	warp "guild_vs2",49,90;	end;
+		case 2:	warp "guild_vs2",90,50;	end;
+		case 3:	warp "guild_vs2",49,9;	end;
+	}
+
+...
+
+S_CheckFull:
+	if (getmapusers(getarg(0)) >= getarg(1)) {
+		mes "I'm sorry, this arena is full.  Please try again later.";
 		close;
-	Check:
-		set @win, rand(2);
-		if(@win==0) return;
-		mes "Sorry you lost";
-		close;
+	}
+	return;
+
+Example 2: callsub used repeatedly, with different arguments
+// notice how the zeny check/delete is reused, instead of copy-pasting for every warp
+	switch(select("Abyss Lake:Amatsu Dungeon:Anthell:Ayothaya Dungeon:Beacon Island, Pharos") {
+		case 1:	callsub S_DunWarp,"hu_fild05",192,207;
+		case 2:	callsub S_DunWarp,"ama_in02",119,181;
+		case 3:	callsub S_DunWarp,"moc_fild20",164,145;
+		case 4:	callsub S_DunWarp,"ayo_fild02",279,150;
+		case 5:	callsub S_DunWarp,"cmd_fild07",132,125;
+		// etc
+	}
+
+...
+
+S_DunWarp:
+// getarg(0) = "mapname"
+// getarg(1) = x
+// getarg(2) = y
+	if (Zeny >= 100) {
+		set Zeny, Zeny-100;
+		warp getarg(0),getarg(1),getarg(2);
+	} else {
+		mes "Dungeon warp costs 100 zeny.";
+	}
+	close;
 
 ---------------------------------------
 
@@ -1765,6 +1825,92 @@ optimisation.
 
 ---------------------------------------
 
+*while (<condition>) <statement>;
+
+This is probably the simplest and most frequently used loop structure. The 'while' 
+statement can be interpreted as "while <condition> is true, perform <statement>". 
+It is a pretest loop, meaning the conditional expression is tested before any of the 
+statements in the body of the loop are performed. If the condition evaluates to 
+false, the statement(s) in the body of the loop is/are never executed. If the 
+condition evaluates to true, the statement(s) are executed, then control transfers 
+back to the conditional expression, which is reevaluated and the cycle continues. 
+
+Multiple statements can be grouped with { }, curly braces, just like with the 'if' statement.
+
+Example 1:
+	while (switch(select("Yes:No") == 2 ))
+		mes "You picked no.";
+
+Example 2: multiple statements
+	while (switch(select("Yes:No") == 2 )) {
+		mes "Why did you pick no?";
+		mes "You should pick yes instead!";
+	}
+
+Example 3: counter-controlled loop
+	set .@i, 1;
+	while (.@i <= 5) {
+		mes "This line will print 5 times.";
+		set .@i, .@i +1;
+	}
+
+Example 4: sentinel-controlled loop
+	mes "Input 0 to stop";
+	input .@num;
+	while (.@num != 0) {
+		mes "You entered " + .@num;
+		input .@num;
+	}
+	close;
+
+---------------------------------------
+
+*for (<variable initialization>; <condition>; <variable update>) <statement>;
+
+Another pretest looping structure is the 'for' statement. It is considered a 
+specialized form of the 'while' statement, and is usually associated with counter-
+controlled loops. Here are the steps of the 'for' statement: the initialize 
+statement is executed first and only once. The condition test is performed. 
+When the condition evaluates to false, the rest of the for statement is skipped. 
+When the condition evaluates to true, the body of the loop is executed, then the 
+update statement is executed (this usually involves incrementing a variable). 
+Then the condition is reevaluated and the cycle continues. 
+
+Example 1:
+	for( set .@i, 1; .@i <= 5; set .@i, .@i +1 )
+		mes "This line will print 5 times.";
+
+Example 2:
+	mes "This will print the numbers 1 - 5.";
+	for( set .@i, 1; .@i <= 5; set .@i, .@i +1 )
+		mes .@i;
+
+---------------------------------------
+
+*do { <statement>; } while (<condition>);
+
+The 'do...while' is the only posttest loop structure available in this script 
+language. With a posttest, the statements are executed once before the condition 
+is tested. When the condition is true, the statement(s) are repeated. When the 
+condition is false, control is transferred to the statement following the 
+'do...while' loop expression.
+
+Example 1: sentinel-controlled loop
+	mes "This menu will keep appearing until you pick Cancel";
+	do {
+		set .@menu, select("One:Two:Three:Cancel");
+	} while (.@menu != 4);
+
+Example 2: counter-controlled loop
+	mes "This will countdown from 10 to 1.";
+	set .@i, 10;
+	do {
+		mes .@i;
+		set .@i, .@i - 1;
+	} while (.@i > 0);
+
+---------------------------------------
+
 *setarray <array name>[<first value>],<value>{,<value>...<value>};
 
 This command will allow you to quickly fill up an array in one go. Check the 
@@ -1990,7 +2136,7 @@ if( getcharid(2) == 0 ) mes "Only members of a guild are allowed here!";
 *getmotherid()
 *getfatherid()
 
-These functions return the characters (shild/mother/father) ID
+These functions return the characters (child/mother/father) ID
 
     if (getmotherid()) mes "Oh... I know your mother's ID:"+getmotherid();
 
@@ -2026,7 +2172,7 @@ Lets say the ID of a party was saved as a global variable:
 
 ---------------------------------------
 
-*getpartymember <party id>,{<type>};
+*getpartymember <party id>{,<type>};
 
 Thank you to HappyDenn for all this information.
 
@@ -2090,7 +2236,7 @@ Example:
 
 ---------------------------------------
 
-*getpartyleader(<party id>,{<type>});
+*getpartyleader(<party id>{,<type>});
 
 This function returns some information about the given party-id's leader.
 When type is ommitted, the default information retrieved is the leader's name.
@@ -2168,7 +2314,7 @@ You can also use it to make sure people don't pass a point before removing an
 item totally from them. Let's say you don't want people to wear Legion Plate 
 armor, but also don't want them to equip if after the check, you would do this:
 
-        if ((getequipid(EQI_ARMOR) == 2341) || (getequipid(EQI_ARMOR) == 2342) goto L_EquipedLegionPlate; 
+        if ((getequipid(EQI_ARMOR) == 2341) || (getequipid(EQI_ARMOR) == 2342) goto L_EquipedLegionPlate;
     // the || is used as an or argument, there is 2341 and 2342 cause there are 
     // two different legion plate armors, one with a slot one without.
         if ((countitem(2341) > 0) || (countitem(2432) > 0) goto L_InventoryLegionPlate;
@@ -2187,17 +2333,16 @@ armor, but also don't want them to equip if after the check, you would do this:
 
 *getequipname(<equpment slot>)
 
-This function will return the name of the item equipped in the specified 
-equipment slot on the invoking character. Almost identical to 'getequipid', good 
-for an NPC to state what your are wearing, or maybe saving as a string variable. 
+Returns the jname of the item equipped in the specified equipment slot on the
+invoking character, or an empty string if nothing is equipped in that position.
+Does the same thing as getitemname(getequipid()). Useful for an NPC to state
+what your are wearing, or maybe saving as a string variable.
 See 'getequipid' for a full list of valid equipment slots.
 
-        if (getequipname(EQI_HEAD_TOP)==0) goto L_No_HeadGear;
-        mes "So you are wearing a "+getequipname(EQI_HEAD_TOP)+" on your head";
-        close;
-    L_No_HeadGear:
-        mes "You are not wearing any head gear";
-        close;
+        if( getequipname(EQI_HEAD_TOP) != "" )
+	        mes "So you are wearing a "+getequipname(EQI_HEAD_TOP)+" on your head";
+	else
+	        mes "You are not wearing any head gear";
 
 ---------------------------------------
 
@@ -2213,13 +2358,13 @@ the players would normally see on screen.)
 
 This function will search the invoking character's inventory for any broken 
 items, and will return their item ID numbers. Since the character may have 
-several broken items, 0 given as an argument will return the first one found, 1 
+several broken items, 1 given as an argument will return the first one found, 2 
 will return the second one, etc. Will return 0 if no such item is found.
 
     // Let's see if they have anything broken:
-        if (getbrokenid(0)==0) goto Skip;
+        if (getbrokenid(1)==0) goto Skip;
     // They do, so let's print the name of the first broken item:
-        mes "Oh, I see you have a broken "+getitemname(getbrokenid(0))+" here!";
+        mes "Oh, I see you have a broken "+getitemname(getbrokenid(1))+" here!";
     Skip:
         mes "You don't have anything broken, quit bothering me.";
 
@@ -2464,7 +2609,7 @@ when you want to check item cards or if it's signed. Useful for such quests as
 "Sign this refined item with players name" etc;
 	Hat[0] +4 -> Player's Hat[0] +4
 	
---------------------------------------
+---------------------------------------
 
 *getitemslots (<item id>);
 
@@ -2475,7 +2620,7 @@ Example(s):
 //@slots now has the amount of slots of the item with ID 1205.
 	set @slots, getItemSlots(1205);
 	
---------------------------------------
+---------------------------------------
 //
 2,1.- End of item-related commands.
 //
@@ -2790,7 +2935,7 @@ has a skill or not, and it can tell you if the level is high enough.
 
 Example 1:
 
-        f (getskilllv(152)) goto L_HasSkillThrowStone;
+        if (getskilllv(152)) goto L_HasSkillThrowStone;
         mes "You don't have Throw Stone";
         close;
     L_HasSkillThrowStone:
@@ -2900,6 +3045,56 @@ Check sample in nps\sample\getmonsterinfo.txt
 
 ---------------------------------------
 
+*getmobdrops(<mob id>)
+
+This command will find all drops of the specified mob and return the item IDs 
+and drop percentages into arrays of temporary global variables. 
+'getmobdrops' returns 1 if successful and 0 if the mob ID doesn't exist.
+
+Upon executing this,
+
+$@MobDrop_item[] is a global temporary number array which contains the 
+                 item IDs of the monster's drops.
+
+$@MobDrop_rate[] is a global temporary number array which contains the 
+                 drop percentages of each item. (1 = .01%)
+
+$@MobDrop_count  is the number of item drops found.
+
+Be sure to use $@MobDrop_count to go through the arrays, and not 
+'getarraysize', because the temporary global arrays are not cleared between 
+runs of 'getmobdrops'. If a mob with 7 item drops is looked up, the arrays would 
+have 7 elements. But if another mob is looked up and it only has 5 item drops, 
+the server will not clear the arrays for you, overwriting the values instead. So 
+in addition to returning the 5 item drops, the 6th and 7th elements from the 
+last call remain, and you will get 5+2 item drops, of which the last 2 don't 
+belong to the new mob. $@MobDrop_count will always contain the correct number 
+(5), unlike 'getarraysize()' which would return 7 in this case.
+
+Example:
+
+	// get a Mob ID from the user
+	input .@mob_id;
+	
+	if (getmobdrops(.@mob_id)) {	// 'getmobdrops' returns 1 on success
+		// immediately copy global temporary variables into scope variables, 
+		// since we don't know when 'getmobdrops' will get called again for 
+		// another mob, overwriting your global temporary variables
+		set .@count, $@MobDrop_count;
+		copyarray .@item[0],$@MobDrop_item[0],.@count;
+		copyarray .@rate[0],$@MobDrop_rate[0],.@count;
+		
+		mes getmonsterinfo(.@mob_id,MOB_NAME) + " - " + .@count + " drops found:";
+		for( set .@i,0; .@i < .@count; set .@i,.@i +1 ) {
+			mes .@item[.@i] + " (" + getitemname(.@item[.@i]) + ") " + .@rate[.@i]/100 + ((.@rate[.@i]%100 < 10) ? ".0":".") + .@rate[.@i]%100 + "%";
+		}
+	} else {
+		mes "Unknown monster ID.";
+	}
+	close;
+
+---------------------------------------
+
 *getmapmobs("<map name>")
 
 This function will return the total count of monsters currently located on the 
@@ -2917,7 +3112,7 @@ other length limits and asking them to try to input something else.
 
 ---------------------------------------
 
-*skillpointcount; 
+*skillpointcount()
 
 Returns the total amount of skill points a character posesses (SkillPoint+SP's used in skills)
 This command can be used to check the currently attached characters total amount of skillpoints.
@@ -2932,7 +3127,7 @@ Example:
 	
 //Self-explanatory... :P
 	if (skillPointCount() > 20)
-		mes "Wow, you have more then 20 Skill Points in total!"; 
+		mes "Wow, you have more then 20 Skill Points in total!";
 
 ---------------------------------------
 
@@ -2958,7 +3153,7 @@ currently work due to a bug.
 ========================
 -------------------------
 
-*playerattached;
+*playerattached()
 
 Returns the ID of the player currently attached to the script. It will return
 0 if noone is attached, or if the attached player no longer exists on the map
@@ -2967,9 +3162,9 @@ deal with timers as there's no guarantee the player will still be logged on
 when the timer triggers. Note that the ID of a player is actually their
 account ID.
 
--------------------------
+---------------------------------------
 
-*isloggedin(<account id>{,<char id>});
+*isloggedin(<account id>{,<char id>})
 
 This function returns 1 if the specified account is logged in and 0 if they 
 aren't. You can also pass the char_id to check for both account and char id.
@@ -3157,9 +3352,11 @@ if (checkChatting()) mes "You are currently chatting!";
 ---------------------------------------
 
 *agitcheck()
+*agitcheck2()
 
-This function will let you check whether the server is currently in WoE mode.
-It will return 1 if the War of Emperium is on and 0 if it isn't.
+These function will let you check whether the server is currently in WoE mode
+(or WoE SE mode if the second function is called) and will return 1 if War of
+Emperium is on and 0 if it isn't. 
 
 ---------------------------------------
 
@@ -3427,7 +3624,7 @@ There is also a nice example on using this with the 'rand' function, to give you
 a random ammount of healing.
 
     // This will heal anything thing from 100 to 150 HP and no SP
-    itemheal rand(100,150),0; 
+    itemheal rand(100,150),0;
 
 ---------------------------------------
 
@@ -3464,9 +3661,9 @@ list of job names and the numbers they correspond to can be found in
 'db/const.txt'.
 
     // This would change your player into a Swordman
-    jobchange Job_Swordman; 
+    jobchange Job_Swordman;
     // This would change your player into a Swordman High
-    jobchange Job_Swordman_High; 
+    jobchange Job_Swordman_High;
 
 'upper flag' can alternatively be used to specify the type of job one changes
 to. For example, jobchange Job_Swordman,1; will change the character to a high
@@ -3575,19 +3772,13 @@ do, but this will only happen in a later SVN revision.
 
 This command will change the gender for the attached character's account. If it 
 was male, it will become female, if it was female, it will become male. The 
-change will be written to the character server, but there is no way to send this 
-information to the client, so the player will continue to see their character as 
-the gender it previously was. What the other players will see before the 
-relogin is not clear.
+change will be written to the character server, the player will receive the 
+message: "Need disconnection to perform change-sex request..." and the player 
+will be immediately kicked to the login screen. When they log back in, they will 
+be the opposite sex.
 
-If the character currently connected when this command was invoked was a 
-Dancer/Gypsy or Bard/Clown, they will become a Swordman upon 'changesex'. 
-Whatever happens to their skills is not clear. Whatever happens if another 
-character on the same account was a gender-specific class is not clear either, 
-but it's likely that the client will have serious issues with that, since no 
-other characters on the same account will get altered.
-
-There's good reasons to be very careful when using this command.
+If there are any Dancer/Gypsy or Bard/Clown characters on the account, 
+they will also have their skills reset upon 'changesex'.
 
 ---------------------------------------
 
@@ -3614,21 +3805,23 @@ adjusts the gained value. If you want to bypass this, use the 'set' method.
 ---------------------------------------
 
 *setlook <look type>,<look value>;
+*changelook <look type>,<look value>;
 
-This command will alter the look data for the invoking character. It is used 
-mainly for changing the palette used on hair and clothes, you specify which look 
+'setlook' will alter the look data for the invoking character. It is used 
+mainly for changing the palette used on hair and clothes: you specify which look 
 type you want to change, then the palette you want to use. Make sure you specify 
 a palette number that exists/is usable by the client you use.
+'changelook' works the same, but is only client side (it doesn't save the look value).
 
     // This will change your hair(6), so that it uses palette 8, what ever your 
-    // palette 8 is your hair will use that colour
+    // palette 8 is, your hair will use that colour
 
-    setlook 6,8; 
+    setlook 6,8;
 
     // This will change your clothes(7), so they are using palette 1, whatever 
     // your palette 1 is, your clothes will then use that set of colours.
     
-    setlook 7,1; 
+    setlook 7,1;
 
 Here are the possible look types:
  
@@ -3813,7 +4006,7 @@ this really cause.
 
 ---------------------------------------
 
-* getnameditem <item name|item id>,<Character name|character ID>;
+*getnameditem <item name|item id>,<Character name|character ID>;
 
 -Note: there's a total of 4 possible combinations of this command.
 E.g: item name and character name, or with character id, etc...
@@ -3830,12 +4023,26 @@ Failure occurs when there is:
 Example:
 
 //This will give the currently attached player a Aaron's Apple (if Aaron is online).
-	getnameditem "Apple","Aaron"; 
+	getnameditem "Apple","Aaron";
 	
 //Self-explanatory (I hope).
-	if (getnameitem("Apple,"Aaron")) {
-		mes "You now have a Aaron's Apple!"; 
+	if (getnameitem("Apple","Aaron")) {
+		mes "You now have a Aaron's Apple!";
 	}
+
+---------------------------------------
+
+*rentitem <item id>,<time>;
+*rentitem "<item name>",<time>;
+
+Creates a rental item in the attached character's inventory. The item will expire 
+in <time> seconds and be automatically deleted. When receiving a rental item, 
+the character will receive a message in their chat window. The character will 
+also receive warning messages in their chat window before the item disappears.
+
+This command can not be used to rent stackable items. Rental items cannot be 
+removed from the character's inventory. (i.e. trade mask 123 in ../db/item_trade.txt)
+Note: 'delitem' in an NPC script can still remove rental items.
 
 ---------------------------------------
 
@@ -3861,7 +4068,7 @@ If the map name is given as "this", the map the invoking character is on will be
 *delitem <item id>,<amount>{,<account ID>};
 *delitem "<item name>",<amount>{,<account ID>};
 
-This command will take a specified amount of items from the invoking character. 
+This command will take a specified amount of items from the invoking/target character. 
 As all the item commands, this one uses the ID of the item found inside 
 'db/item_db.txt'. The items are destroyed - there is no way an NPC can simply 
 own items and have an inventory of them, other as by destroying and recreating 
@@ -3870,10 +4077,9 @@ them when needed.
     delitem 502,10 // The person will lose 10 apples
     delitem 617,1  // The person will lose 1 Old Violet Box
 
-It is always a good idea to to check if the player actually has the item before 
-you take it from them, Otherwise, you could try to delete items which the 
-players don't actually have, which won't fail and won't give an error message, 
-but might open up ways to exploit your script.
+It is always a good idea to check if the player actually has the items before you delete them.
+If you try to delete more items that the player has, the player will lose the ones he/she has 
+and the script will be terminated with an error.
 
 Like 'getitem' this command will also accept an 'english name' field from the 
 database. If the name is not found, nothing will be deleted.
@@ -3883,7 +4089,7 @@ database. If the name is not found, nothing will be deleted.
 *delitem2 <item id>,<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
 *delitem2 "<Item name>",<amount>,<identify>,<refine>,<attribute>,<card1>,<card2>,<card3>,<card4>{,<account ID>};
 
-This command will take a specified amount of items from the invoking character. 
+This command will take a specified amount of items from the invoking/target character. 
 Check 'getitem2' to understand its expanded parameters.
 
 ---------------------------------------
@@ -4107,6 +4313,30 @@ before you open storage.
     close2;
     openstorage;
     end;
+
+---------------------------------------
+
+*openmail;
+
+This will open a character's Mail window on the client connected to the 
+invoking character.
+
+    mes "Close this window to open your mail inbox.";
+    close2;
+    openmail;
+    end;
+
+---------------------------------------
+
+*openauction;
+
+This will open the Auction window on the client connected to the invoking character.
+
+    mes "Close this window to open the Auction window.";
+    close2;
+    openauction;
+    end;
+
 ---------------------------------------
 \\
 4,2.- Guild-related commands
@@ -4182,10 +4412,11 @@ Advanced jobs, which will reset the invoking character's stats and level
 depending on the action type given. Valid action types are:
 
  1 - Base level 1, Job level 1, 0 skill points, 0 base xp, 0 job xp, wipes the 
-     status effects, sets all stats to 1. If the new job is 'Novice High', give 
-     100 status points, give First Aid and Play Dead skills.
- 2 - Base level 1, Job level 1, 0 skill points, 0 XP/JXP. Skills and attribute 
-     values are not altered.
+     status effects (only the ones settable by 'setoption'), sets all stats to 1. 
+     If the new job is 'Novice High', give 100 status points, give First Aid and 
+     Play Dead skills.
+ 2 - Base level 1, Job level 1, 0 skill points, 0 base xp, 0 job xp. 
+     Skills and attribute values are not altered.
  3 - Base level 1, base xp 0. Nothing else is changed.
  4 - Job level 1, job xp 0. Nothing else is changed.
 
@@ -4301,7 +4532,7 @@ character.
 
 ---------------------------------------
 
-*specialeffect <effect number>;
+*specialeffect <effect number>{,<send_target>};
 
 This command will display special effect with the given number, centered on the 
 specified NPCs coordinates, if any. For a full list of special effect numbers 
@@ -4311,7 +4542,7 @@ released after April 2005.)
 
 ---------------------------------------
 
-*specialeffect2 <effect number>;
+*specialeffect2 <effect number>{,<send_target>};
 
 This command behaves identically to the 'specialeffect', but the effect will be 
 centered on the invoking character's sprite.
@@ -4358,42 +4589,55 @@ kind in 'doc/item_bonus.txt'.
 
 ---------------------------------------
 
-*bonusautoscript <script>,<rate>{,<flag>}
-*bonusautoscript2 <script>,<rate>{,<flag>}
+*autobonus <bonus script>,<rate>,<duration>{,<flag>,{<other script>}};
+*autobonus2 <bonus script>,<rate>,<duration>{,<flag>,{<other script>}};
+*autobonus3 <bonus script>,<rate>,<duration>,<skill id>,{<other script>};
+*autobonus3 <bonus script>,<rate>,<duration>,"<skill name>",{<other script>};
 
 These commands are meant to be used in item scripts. They will probably work 
 outside item scripts, but the bonus will not persist for long. They, as 
 expected, refer only to an invoking character.
 
 What these commands do is 'attach' a script to the player which will get
-executed on attack (or when attacked in the case of bonusautoscript2). Rate is
-the trigger rate of the script (1000 = 100%). The optional argument flag is
-used to classify the type of attack where the script can trigger (it shares
-the same flags as the bAutoSpell bonus script):
+executed on attack (or when attacked in the case of autobonus2).
+
+Rate is the trigger rate of the script (1000 = 100%). 
+
+Duration is the time that the bonus will last for since the script has triggered.
+
+The optional argument 'flag' is used to classify the type of attack where the script
+can trigger (it shares the same flags as the bAutoSpell bonus script):
 
 Range criteria:
-	BF_SHORT: Trigger on melee attack
-	BF_LONG: Trigger on ranged attack
-	Default: BF_SHORT+BF_LONG
+	BF_SHORT:  Trigger on melee attack
+	BF_LONG:   Trigger on ranged attack
+	Default:   BF_SHORT+BF_LONG
 Attack type criteria:
 	BF_WEAPON: Trigger on weapon skills 
-	BF_MAGIC: Trigger on magic skills 
-	BF_MISC: Trigger on misc skills
-	Default: BF_WEAPON
+	BF_MAGIC:  Trigger on magic skills 
+	BF_MISC:   Trigger on misc skills
+	Default:   BF_WEAPON
 Skill criteria:
 	BF_NORMAL: Trigger on normal attacks
-	BF_SKILL: Trigger on skills
-	default: If the attack type is BF_WEAPON (only) BF_NORMAL is used, otherwise
-		BF_SKILL+BF_NORMAL is used.
+	BF_SKILL:  Trigger on skills
+	default:   If the attack type is BF_WEAPON (only) BF_NORMAL is used,
+		   otherwise BF_SKILL+BF_NORMAL is used.
 
-In both cases, when the script triggers, the attached player will be the one
-who holds the bonus. There is currently no way of knowing within this script
-who was the other character (the attacker in autoscript2, or the target in
-autoscript).
+The difference between the optional argument 'other script' and the 'bonus script' is that,
+the former one triggers only when attacking(or attacked) and the latter one runs on 
+status calculation as well, which makes sure, within the duration, the "bonus" that get
+lost on status calculation is restored. So, 'bonus script' is technically supposed to accept
+"bonus" command only. And we usually use 'other script' to show visual effects.
+
+In all cases, when the script triggers, the attached player will be the one
+who holds the bonus. There is currently no way of knowing within this script  
+who was the other character (the attacker in autobonus2, or the target in
+autobonus and autobonus3).
 
 //Grants a 1% chance of starting the state "all stats +10" for 10 seconds when
-//using weapon or misc attacks (both melee and ranged skills).
-	bonusautoscript "{ sc_start SC_INCALLSTATUS,10000,10; }",10,BF_WEAPON|BF_MISC;
+//using weapon or misc attacks (both melee and ranged skills) and shows a special 
+//effect when the bonus is active.
+	autobonus "{ bonus bAllStats,10; }",10,10000,BF_WEAPON|BF_MISC,"{ specialeffect2 EF_FIRESPLASHHIT; }";
 
 ---------------------------------------
 
@@ -4421,11 +4665,11 @@ previously, they will now at 0+the level given.
 
 // This will permanently give the character Stone Throw (TF_THROWSTONE,152), at 
 // level 1.
-    skill 152,1,0; 
+    skill 152,1,0;
 
 ---------------------------------------
 
-*nude; 
+*nude;
 
 This command will unequip anything equipped on the invoking character.
 
@@ -4468,7 +4712,7 @@ both of these characters. No rings will be given and no effects will be shown.
 *wedding;
 
 This command will call up wedding effects - the music and confetti - centered on 
-the invoking character.
+the invoking character. Example can be found in the wedding script.
 
 ---------------------------------------
 
@@ -4510,7 +4754,7 @@ online.
 ---------------------------------------
 
 *pcfollow <id>,<target id>;
-*pcstopfollow <id>; 
+*pcstopfollow <id>;
 
 Makes a character follow or stop following someone. This command does the same as the @follow command.
 The main difference is that @follow can use character names, and this commands needs the Account ID for the target.
@@ -4525,7 +4769,7 @@ Example(s):
 	
 ---------------------------------------
 
-* pcblockmove <id>,<option>;
+*pcblockmove <id>,<option>;
 
 Prevents the given ID from moving when the option != 0, 0 enables the ID to move again.
 ID should be able to be GID of a monster/npc or AID from a character.
@@ -4535,7 +4779,7 @@ Example(s):
 //prevents the current char from moving away;
 	pcblockmove getcharid(3),1;
 	
-//enables the current char to move again.	
+//enables the current char to move again.
 	pcblockmove getcharid(3),0;
 
 --------------------------------------- 
@@ -4596,7 +4840,7 @@ Simple monster killing script:
         mes "Now go and kill all the Poring I summoned";
         // He summoned ten.
         close;
-    L_PoringKilled:
+    OnPoringKilled:
         set $PoringKilled,$PoringKilled+1;
         if ($PoringKilled==10) goto L_AllDead;
         end;
@@ -4606,6 +4850,30 @@ Simple monster killing script:
         end;
 
 For more good examples see just about any official 2-1 or 2-2 job quest script.
+
+---------------------------------------
+
+*areamobuseskill "<map name>",<x>,<y>,<range>,<mob id>,<skill id>,<skill level>,<cast time>,<cancelable>,<emotion>,<target type>;
+*areamobuseskill "<map name>",<x>,<y>,<range>,<mob id>,"<skill name>",<skill level>,<cast time>,<cancelable>,<emotion>,<target type>;
+
+This command will make all monsters of the specified mob ID in the specified 
+area use the specified skill. Map name, x, and y define the center of the area, 
+which extending <range> cells in each direction (ex: a range of 3 would create 
+a 7x7 square). The skill can be specified by skill ID or name. <cast time> is in 
+milliseconds (1000 = 1 second), and the rest should be self-explanatory. 
+
+<target type> can be: 
+	0 = self
+	1 = the mob's current target
+	2 = the mob's master
+	3 = random target
+
+Example:
+
+	// spawn 1 Shining Plant in the 5x5 area centered on (155,188)
+	areamonster "prontera",153,186,157,190,"Shining Plant",1083,1;
+	// make the plant cast level 10 Cold Bolt on a random target
+	areamobuseskill "prontera",155,188,2,1083,"MG_COLDBOLT",10,3000,1,e_gg,3;
 
 ---------------------------------------
 
@@ -4729,8 +4997,8 @@ the homunculus must be on at least 91000/100000 intimacy with it's owner.
 
 ---------------------------------------
 
-* unitwalk <GID>,<x>,<y>;
-* unitwalk <GID>,<mapid>;
+*unitwalk <GID>,<x>,<y>;
+*unitwalk <GID>,<mapid>;
 
 This is one command, but can be used in two ways. If only the first argument is given,
 the unit whose GID is given will start walking towards the map with the given mapid 
@@ -4749,12 +5017,12 @@ Example(s):
 
 ---------------------------------------
 
-* unitkill <GID>;
-* unitwarp <GID>,<Mapname>,<x>,<y>;
-* unitattack <GID>,<Target ID>;
-* unitstop <GID>;
-* unittalk <GID>,<Text>;
-* unitemote <GID>,<Emote>;
+*unitkill <GID>;
+*unitwarp <GID>,<Mapname>,<x>,<y>;
+*unitattack <GID>,<Target ID>;
+*unitstop <GID>;
+*unittalk <GID>,<Text>;
+*unitemote <GID>,<Emote>;
 
 Okay, these commands should be fairly self explaining.
 For the emotions, you can look in db/const.txt for prefixes with e_
@@ -4900,20 +5168,31 @@ Since trunk r11779
 *deltimer "<NPC object name>::<event label>";
 *addtimercount <ticks>,"<NPC object name>::<event label>";
 
-These commands will create, destroy, and delay a countdown timer - 'addtimer' to 
+These commands will create and manage a player-based timer: 'addtimer' to 
 create, 'deltimer' to destroy and 'addtimercount' to delay it by the specified 
 number of ticks. For all three cases, the event label given is the identifier of 
-that timer.
+that timer. A player can have multiple timers running at the same time, and 
+there can even be multiple timers referencing the same label.
 
 When this timer runs out, a new execution thread will start in the specified NPC 
-object at the specified label. If no such label is found in the NPC object, it 
-will run as if clicked. In either case, the script runs with no RID attached.
+object at the specified label, and the script will run attached to that player. 
+If the specified label is not found, the map server will happily print an error.
 
 The ticks are given in 1/1000ths of a second.
 
 One more thing. These timers are stored as part of player data. If the player
 logs out, all of these get immediately deleted, without executing the script.
 If this behavior is undesirable, use some other timer mechanism (like 'sleep').
+
+Example 1:
+<NPC Header> {
+	dispbottom "Starting a 5 second timer...";
+	addtimer 5000, strnpcinfo(3)+"::On5secs";
+	end;
+On5secs:
+	dispbottom "5 seconds have passed!";
+	end;
+}
 
 ---------------------------------------
 
@@ -4924,7 +5203,7 @@ If this behavior is undesirable, use some other timer mechanism (like 'sleep').
 *startnpctimer{ "<NPC name>" {, <Attach Flag>} } |
               { "<NPC name>" | <Attach Flag> };
 *setnpctimer <tick>{,"<NPC name>"};
-*getnpctimer(<type of information>{,"<NPC name>"});
+*getnpctimer(<type of information>{,"<NPC name>"})
 *attachnpctimer {"<character name>"};
 *detachnpctimer {"<NPC name>"};
 
@@ -4968,8 +5247,8 @@ The 'setnpctimer' command will explicitly set the timer to a given tick.
  0 - Will return the current tick count of the timer.
  1 - Will return 1 if there are remaining "OnTimer<ticks>:" labels in the 
      specified NPC waiting for execution.
- 2 - Will return the number of times the timer has triggered an "OnTimer<tick>:" 
-     label in the specified NPC.
+ 2 - Will return the number of times the timer has triggered and will trigger
+     an "OnTimer<tick>:"  label in the specified NPC.
 
 Example 1:
 
@@ -4993,7 +5272,7 @@ Example 1:
         npctalk "1";
         end;
     OnTimer10000:
-        stopnpctimer;
+        stopnpctimer; // This command is indeed not neccessary here because timer automaticly stopped due to no remaining events.
         mes "[Man]";
         mes "Ok we can talk now";
     }
@@ -5001,8 +5280,10 @@ Example 1:
 Example 2:
 
     OnTimer15000:
-	npctalk "Another 15 seconds have passed.";
-        setnpctimer 0;
+				npctalk "Another 15 seconds have passed.";
+        initnpctimer; // You have to use 'initnpctimer' instead of 'setnpctimer 0'.
+        							// This is equal to 'setnpctimer 0' + 'startnpctimer'.
+        							// Alternatively, you can also insert another 'OnTimer15001' label so that the timer won't stop.
         end;
        
     // This OnInit label will run when the script is loaded, so that the timer 
@@ -5025,7 +5306,7 @@ Example 4:
     mes "[Man]";
     mes "Ok I will let you have 30 sec more";
     close2;
-    setnpctimer (getnpctimer(0)-30000); 
+    setnpctimer (getnpctimer(0)-30000);
     // Notice the 'close2'. If there were a 'next' there the timer would be 
     // changed only after the player pressed the 'next' button.
     end;
@@ -5134,7 +5415,7 @@ labels can take over handling for relatively the buying of items from the shop
 and selling the items to a shop. Via these labels you can customize the way an item
 is bought or sold by a player. 
 
-In the OnBuyItem, two arrays are set (@bought_nameid and @bough_quantity), which
+In the OnBuyItem, two arrays are set (@bought_nameid and @bought_quantity), which
 hold information about the name id (item id) sold and the amount sold of it. Same 
 goes for the OnSellItem label, only the variables are named different 
 (@sold_nameid and @sold_quantity). An example on a shop comes with eAthena, and 
@@ -5323,7 +5604,7 @@ example.
 
 ---------------------------------------
 
-*waitingroomkickall {"<NPC object name>"};
+*kickwaitingroomall {"<NPC object name>"};
 
 This command would kick everybody out of a specified waiting room chat. IF it 
 was properly linked into the script interpreter which it isn't, even though the 
@@ -5361,8 +5642,22 @@ mf_fireworks) and whether day/night will be in effect on this map (mf_indoors).
 
 ---------------------------------------
 
+*removemapflag "<map name>",<flag>;
+
+This command removes a mapflag from a specified map. 
+See 'setmapflag' for a list of mapflags.
+
+---------------------------------------
+
+*getmapflag("<map name>",<flag>)
+
+This command checks the status of a given mapflag and returns the mapflag's state. 
+0 means OFF, and 1 means ON. See 'setmapflag' for a list of mapflags.
+
+---------------------------------------
+
 *setbattleflag "<battle flag>",<value>;
-*getbattleflag "<battle flag>";
+*getbattleflag("<battle flag>")
 
 Sets or gets the value of the given battle flag.
 Battle flags are the flags found in the battle/*.conf files and is also used in Lupus' variable rates script.
@@ -5372,14 +5667,8 @@ Example(s):
 //will set the base experience rate to 20x (2000%)
 	setBattleFlag "base_exp_rate",2000;
 	
-//will return the value of the base experience rate (when used after the above example, it would return 2000).
-	getBattleFlag "base_exp_rate";
-
----------------------------------------
-
-*removemapflag "<map name>",<flag>;
-
-This command removes a mapflag from a specified map. See 'setmapflag'.
+//will return the value of the base experience rate (when used after the above example, it would print 2000).
+	mes getBattleFlag("base_exp_rate");
 
 ---------------------------------------
 
@@ -5431,13 +5720,16 @@ For examples, check the WoE scripts in the distribution.
 
 *agitstart;
 *agitend;
+*agitstart2;
+*agitend2;
 
-These two commands will start and end War of Emperium.
+These four commands will start and end War of Emperium or War of Emperium SE.
 
 This is a bit more complex than it sounds, since the commands themselves won't 
 actually do anything interesting, except causing all 'OnAgitStart:' and 
-'OnAgitEnd:' events to run everywhere, respectively. They are used as 
-simple triggers to run a lot of complex scripts all across the server, and they, 
+'OnAgitEnd:', or 'OnAgitStart2:' and 'OnAgitEnd2:' in the case of latter two
+commands, events to run everywhere, respectively. They are used as  simple 
+triggers to run a lot of complex scripts all across the server, and they, 
 in turn, are triggered by clock with an 'OnClock<time>:' time-triggering label.
 
 ---------------------------------------
@@ -5466,7 +5758,7 @@ returns a guild id:
 // This will change the emblem on the flag to that of the guild that owns
 // "guildcastle"
 
-    flagemblem GetCastleData("guildcastle",1); 
+    flagemblem GetCastleData("guildcastle",1);
 
 ---------------------------------------
 
@@ -5634,7 +5926,7 @@ memory of where the points are set whatsoever.
 This command will display a picture stored in the GRF file in the client for the 
 player. 
 
-The files are taken from '\data\texture\A_A£AIèIíÑAI´ß\illust' directory in the 
+The files are taken from '\data\texture\Ïú†Ï†ÄÏù∏ÌÑ∞ÌéòÏù¥Ïä§\illust' directory in the 
 GRF file. Also it seems that card cutins from \cardbmp will work here as well. 
 Only bitmaps (images stored in the bitmap format) will actually get displayed. 
 The '.bmp' extension is optional. 
@@ -5754,23 +6046,10 @@ one.
 
 *charcommand <command>;
 
-NOTE: This command is changed a bit on newer trunk versions, 
-scroll down a bit for the new version!
+This command will run the given command line exactly as if it was typed in from 
+the keyboard from a character that belonged to an account which had GM level 99.
 
-On older trunk versions and stable:
-
-command is the name of the current character (strcharinfo(0))
-followed by ':' and the command and it's parameters.
-
-Example(s):
-
-//Will be executed as if a lvl 99 GM done the #option command.
-	charCommand strcharinfo(0)+":#option 0 0 0 Roy";
-
-Newer Trunk version:
-
-The big change is that the character name is no longer needed.
-This also enabled the commands to run without a player attached (according to Lance).
+The commands can also run without an attached rid.
 
 Example(s):
 
@@ -5891,7 +6170,7 @@ set @i, pow(2,3); // @i will be 8
 
 Returns square-root of number.
 
-Examlpe:
+Example:
 set @i, sqrt(25); // @i will be 5
 
 ---------------------------------------
@@ -5902,6 +6181,17 @@ Returns distance between 2 points.
 
 Example:
 set @i, distance(100,200,101,202);
+
+---------------------------------------
+
+*md5("<string>")
+
+Returns the md5 checksum of a number or string.
+
+Example:
+	mes md5(12345);
+	mes md5("12345"); 	// Will both display 827ccb0eea8a706c4c34a16891f84e7b
+	mes md5("qwerty"); 	// Will display d8578edf8458ce06fbc5bb76a58c5ca4
 
 ---------------------------------------
 
@@ -5927,15 +6217,30 @@ to query the server log tables.
 
 ---------------------------------------
 
-*setitemscript(<ItemID>,<"{ new item script }">);
+*escape_sql("<string>")
+
+Escapes special characters in the string, so that it is safe to use in query_sql(), 
+and returns the escaped form of the given string.
+
+Example 1:
+	set .@str$, "John's Laptop";
+	set .@esc_str$, escape_sql(.@name$);	// Escaped string: John\'s Laptop
+
+---------------------------------------
+
+*setitemscript(<item id>,<"{ new item script }">{,<type>});
 
 Set a new script bonus to the Item. Very useful for game events.
-You can remove an item's itemscript by leaving empty the itemscript argument.
+You can remove an item's itemscript by leaving the itemscript argument empty.
+Type can optionally be used indicates which script to set (default is 0):
+ 0 - Script
+ 1 - OnEquip_Script
+ 2 - OnUnequip_Script
 
 Example:
 
-setitemscript 2637,"{ bonus bDamageWhenUnequip,40; if(isequipped(2236)==0)end; if(getskilllv(26)){skill 40,1;}else{skill 26,1+isequipped(2636);} }";
-setitemscript 2639,"";
+setitemscript 2637,"{ if(isequipped(2236)==0)end; if(getskilllv(26)){skill 40,1;}else{skill 26,1+isequipped(2636);} }";
+setitemscript 2637,"";
 
 ---------------------------------------
 
@@ -5969,7 +6274,7 @@ Example(s):
 	if (compare("Blood Butterfly","Bloody"))
 		dothat;
 
---------------------------------------
+---------------------------------------
 
 *charisalpha("<string>",<position>)
 
@@ -5977,12 +6282,6 @@ This function will return 1 if the character number Position in the given string
 is a letter, 0 if it isn't a letter but a digit or a space.
 
 ---------------------------------------
-
-*wedding_effect;
-Starts the effect used when a wedding is done (music and everything else)
-Example can be found in the wedding script.
-
---------------------------------------
 
 * The Pet AI commands
 
@@ -6058,7 +6357,7 @@ buffing items.
 
 Nobody tried this before, so you're essentially on your own here.
 
---------------------------------------
+---------------------------------------
 
 *bpet;
 
@@ -6083,18 +6382,6 @@ caught a pet in the normal way.
 Notice that you absolutely have to create pet eggs with this command. If you try 
 to give a pet egg with 'getitem', pet data will not be created by the char 
 server and the egg will disappear when anyone tries to hatch it.
-
----------------------------------------
-
-*openmail;
-
-This will open a character's Mail window on the client connected to the 
-invoking character.
-
-    mes "Close this window to open your mail inbox.";
-    close2;
-    openmail;
-    end;
 
 ---------------------------------------
 
@@ -6187,6 +6474,153 @@ Example:
 Creates an invisible wall, an array of "setcell" starting from x,y and doing a
 line of the given size in the given direction. The difference with setcell is
 this one update client part too to avoid the glith problem.
+
+---------------------------------------
+
+*readbook <book id>,<page>;
+
+This will open a book item at the specified page
+
+---------------------------------------
+
+========================
+|7.- Instance commands.|
+========================
+---------------------------------------
+
+*instance_create("<Instance Name>",<Party ID>,<Instance>)
+
+Create an instance using the name "<Instance Name>" for the Party of <Party ID>.
+Instance ID currently will only be ID_ENDLESS (5) or ID_CATACOMBS (6)
+Most Instance_* commands are used in conjunction with this command and depend
+on the ID this command returns.
+
+Example: 
+	// Store the Party ID of the invoking character.
+	set .@party_id, getcharid(1);
+	// Atempt to create an instance using that party ID.
+	set .@id, instance_create("Endless Tower", .@party_id, ID_ENDLESS);
+	if (.@id == -1) { // Party ID is in use by another instance.
+		...
+	}
+	else (.@id < 0) { // Unspecified error while queuing instance.
+		...
+	}
+---------------------------------------
+
+*instance_destroy(<Instance ID>)
+
+Destroys instance with the ID <Instance ID>.
+
+---------------------------------------
+
+*instance_attachmap(<Instance ID>,"<Map Name>")
+*instance_detachmap(<Instance ID>,"<Map Name>")
+
+Attach or detach the map "<Map Name>" to the instance with the <Instance ID>.
+
+---------------------------------------
+
+*instance_init(<Instance ID>);
+
+Initiate the instance of <Instance ID>.
+
+---------------------------------------
+
+*instance_announce <Instance ID>,"<text>",<flag>{,<color>};
+
+Works like announce, but has the <Instance ID> paramter, where 0 = active instance?
+
+---------------------------------------
+
+*instance_attach(<Instance ID>);
+
+Attaches a script to the proviced <Instance ID>?
+
+---------------------------------------
+
+*instance_npcname("<NPC Name>",<Instance ID>)
+
+Retrieve the unique name given to a copy of an NPC for an instance, the given
+"<NPC Name>" that belonds to instance <Instance ID>. Can be used with such commands
+as enablenpc and disablenpc, donpcevent, etc.
+
+---------------------------------------
+
+*has_instance("<Map Name>")
+
+Check if the player has been queued for the <Map Name> instance.
+
+---------------------------------------
+
+*instance_id(<?>)
+
+Apparantly returns the ID the player is currently attached too.
+
+---------------------------------------
+
+*instance_warpall "<Map Name>",<x>,<y>;
+
+Warp all palyers in the instance to <map name> and given coordinates.
+
+---------------------------------------
+
+*instance_set_timeout <Time1>,<Time2>,<Instance ID>;
+
+Lifetime of <Time1> for <Instance ID>, while <Time2> is how long until the 
+instance times out while inactive. 
+
+---------------------------------------
+
+========================
+|8.- Quest Log commands.|
+========================
+---------------------------------------
+
+*setquest <ID>;
+
+Place quest of <ID> in the users quest log, the state of which is "active".
+
+---------------------------------------
+
+*completequest <ID>;
+
+Change the state for the given quest <ID> to "complete" and remove from the users quest log.
+
+---------------------------------------
+
+*erasequest <ID>;
+
+Remove the quest of the given <ID> from the user's quest log.
+
+---------------------------------------
+
+*changequest <ID>,<ID2>;
+
+Remove quest of the given <ID> from the user's quest log.
+Add quest of the <ID2> to the the quest log, and the state is "active".
+
+---------------------------------------
+
+*checkquest(<ID>{,PLAYTIME|HUNTING})
+
+If no additonal argument supplied, return the state of the quest: 
+	-1 = Quest not started (not in quest log)
+	0  = Quest has been given, but the state is "inactive"
+	1  = Quest has been given, and the state is "active"
+	2  = Quest comepleted
+	
+If parameter "PLAYTIME" is supplied:
+	-1 = Quest not started (not in quest log)
+	0  = the time limit has not yet been reached
+	1  = the time limit has not been reached but the quest is marked as complete
+	2  = the time limit has been reached
+	
+If parameter "HUNTING" is supplied:
+	-1 = Quest not started (not in quest log)
+	0  = you haven't killed all of the target monsters and the time limit has not been reached.
+	1  = you haven't killed all of the target monsters but the time limit has been reached.
+	2  = you've killed all of the target monsters
 
 ---------------------------------------
 

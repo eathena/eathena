@@ -5,7 +5,7 @@
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 6.1
+//= 6.3
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: =========================================
@@ -33,7 +33,6 @@
 //= 3.2 Fixed an exploit [Lupus]
 //= 4.0 Added Kafra storage password protection. [Lupus]
 //=	to block Kafra Password, read comments at 350 line
-//=	Note: You can change '1337' value to another to raise password protection
 //= 5.0 Fixed the close2;....close; end; lines. Who let them slip away? =/ [erKURITA]
 //=	  Also, the kafra upon warp was giving back the zeny. Removed. [erKURITA]
 //= 5.1 Optimized a little, added no tele/save arg's [Evera]
@@ -57,6 +56,8 @@
 //= 6.0 Closed Kafra Password exploit in Cool Event Corp. Storages until we got a client/packet based password support.
 //=		Added 2 args into F_SetKafCode to fit it in Cool Evnt Co. NPC [Lupus]
 //= 6.1 Added menu for Turbo Track Kafra Staff. [L0ne_W0lf]
+//= 6.2 Updated/Fixed warp cords. [Kisuka]
+//= 6.3 #kafra_code is now stored as is. [brianluau]
 //============================================================ 
 
 
@@ -77,7 +78,7 @@ function	script	F_Kafra	{
 		case 0:
 			mes "[Kafra Employee]";
 			mes "Welcome to the";
-			mes "Kafra Corporartion.";
+			mes "Kafra Corporation.";
 			mes "The Kafra services";
 			mes "are always on your side.";
 			mes "How may I assist you?";
@@ -398,19 +399,19 @@ function	script	F_KafTele	{
 			set RESRVPTS, RESRVPTS + (@wrpP[@num]/16);
 		}
 		if (@wrpD$[@num] == "Alberta") warp "alberta", 117, 56;
-		if (@wrpD$[@num] == "Al De Baran") warp "aldebaran",143,110;
-		if (@wrpD$[@num] == "Aldebaran") warp "aldebaran",143,110;
-		if (@wrpD$[@num] == "Comodo") warp "comodo", 207, 144;
+		if (@wrpD$[@num] == "Al De Baran") warp "aldebaran",168,112;
+		if (@wrpD$[@num] == "Aldebaran") warp "aldebaran",168,112;
+		if (@wrpD$[@num] == "Comodo") warp "comodo", 209, 143;
 		if (@wrpD$[@num] == "Izlude") warp "izlude", 91, 105;
 		if (@wrpD$[@num] == "Geffen") warp "geffen", 120, 39;
 		if (@wrpD$[@num] == "Morroc") warp "morocc", 156, 46;
-		if (@wrpD$[@num] == "Payon") warp "payon", 168, 103;
+		if (@wrpD$[@num] == "Payon") warp "payon", 161, 58;
 		if (@wrpD$[@num] == "Prontera") warp "prontera", 116, 72;
-		if (@wrpD$[@num] == "Mjolnir Dead Pit") warp "mjolnir_02", 82, 347;
+		if (@wrpD$[@num] == "Mjolnir Dead Pit") warp "mjolnir_02", 99, 351;
 		if (@wrpD$[@num] == "Comodo Pharos Beacon") warp "cmd_fild07", 127, 134;
 		if (@wrpD$[@num] == "Orc Dungeon") warp "gef_fild10", 52, 326;
-		if (@wrpD$[@num] == "Umbala") warp "umbala", 130, 130;
-		if (@wrpD$[@num] == "Juno") warp "yuno", 157, 123;
+		if (@wrpD$[@num] == "Umbala") warp "umbala", 100, 154;
+		if (@wrpD$[@num] == "Juno") warp "yuno", 158, 125;
 		cutin "", 255;
 		end;
 }
@@ -560,7 +561,7 @@ function	script	F_CheckKafCode	{
 	mes "Enter your storage password:";
 	set @code_,0;
 	input @code_;
-	if(@code_ != #kafra_code-getcharid(3)-1337) {
+	if(@code_ != #kafra_code) {
 		dispbottom "Wrong storage password.";
 		close2;
 		cutin "",255;
@@ -592,7 +593,7 @@ function	script	F_SetKafCode	{
 	mes getarg(0);
 	mes "At first, please enter your ^0000FFold password^000000.";
 	set @code,callfunc("F_EntKafCode");
-	if(@code==0 || @code != #kafra_code-getcharid(3)-1337) {
+	if(@code==0 || @code != #kafra_code) {
 		mes "Wrong password. You can't set a new password.";
 		emotion e_hmm;
 		goto M_END;
@@ -614,7 +615,7 @@ M_SET:
 	set Zeny,Zeny-5000;
 	//set RESRVPTS, RESRVPTS + (5000/50);	//hardcoded password doesn't add pts
 
-	set #kafra_code,@code+getcharid(3)+1337;
+	set #kafra_code,@code;
 	mes "You've protected your storage with a secret password.";
 	mes "Thank you for using "+getarg(1)+".";
 	emotion e_thx;
@@ -634,7 +635,7 @@ M_CLEAR:
 	if(Zeny < 1000) goto L_ZENY;
 	set Zeny,Zeny-1000;
 	//set RESRVPTS, RESRVPTS + (1000/50);	//hardcoded password doesn't add pts
-	if(@code == #kafra_code-getcharid(3)-1337) {
+	if(@code == #kafra_code) {
 		set #kafra_code,0;
 		mes "You've successfully cleared your storage password.";
 		mes "Thank you for using "+getarg(1)+".";
@@ -664,13 +665,12 @@ function	script	F_EntKafCode	{
 		set @kafcode_try,0;
 		logmes "Hack: Tried to fit storage password.";
 	}
-	input @code_;
-	if(@code_<1000) {
-		mes "You shouldn't use such short password.";
+	if(input(@code_) == 1) {
+		mes "You can't use such big password.";
 		return 0;
 	}
-	if(@code_>10000000) {
-		mes "You can't use such big password.";
+	if(@code_<1000) {
+		mes "You shouldn't use such short password.";
 		return 0;
 	}
 	return @code_;

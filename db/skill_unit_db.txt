@@ -40,7 +40,7 @@
  91,0x86,    ,  0, 2,1000,enemy, 0x010	//WZ_HEAVENDRIVE
  92,0x8e,    ,  2, 0,  -1,enemy, 0x010	//WZ_QUAGMIRE
 115,0x90,    ,  0, 1,1000,enemy, 0x006	//HT_SKIDTRAP
-116,0x93,    ,  0, 0,1000,enemy, 0x006	//HT_LANDMINE
+116,0x93,    ,  0, 1,1000,enemy, 0x006	//HT_LANDMINE
 117,0x91,    ,  0, 1,1000,enemy, 0x006	//HT_ANKLESNARE
 118,0x94,    ,  0, 1,1000,enemy, 0x006	//HT_SHOCKWAVE
 119,0x95,    ,  0, 1,1000,enemy, 0x006	//HT_SANDMAN
@@ -52,7 +52,7 @@
 140,0x92,    , -1, 0,1000,enemy, 0x000	//AS_VENOMDUST
 220,0xb0,    ,  0, 0,  -1,all,   0x002	//RG_GRAFFITI
 229,0xb1,    ,  0, 1,1000,enemy, 0x006	//AM_DEMONSTRATION
-254,0x86,    , -1, 0, 400,enemy, 0x010	//CR_GRANDCROSS
+254,0x86,    , -1, 0, 300,enemy, 0x010	//CR_GRANDCROSS
 285,0x9a,    ,  3, 0,  -1,all,   0x010	//SA_VOLCANO
 286,0x9b,    ,  3, 0,  -1,all,   0x010	//SA_DELUGE
 287,0x9c,    ,  3, 0,  -1,all,   0x010	//SA_VIOLENTGALE
@@ -76,12 +76,12 @@
 329,0xae,    ,  3, 0,  -1,all,   0x140	//DC_FORTUNEKISS
 330,0xaf,    ,  3, 0,  -1,all,   0x140	//DC_SERVICEFORYOU
 336,0xb2,    ,  0,-1,  -1,noone, 0x000	//WE_CALLPARTNER
-339,0x86,    , -1, 0, 400,enemy, 0x000	//NPC_DARKGRANDCROSS
+339,0x86,    , -1, 0, 300,enemy, 0x000	//NPC_DARKGRANDCROSS
 362,0xb4,    ,  0, 2, 300,all,   0x000	//HP_BASILICA
 369,0xb3,    , -1, 0,10000,all,  0x008	//PA_GOSPEL
 395,0xb5,    ,  4, 0,  -1,all,   0x200	//CG_MOONLIT
 404,0xb6,    , -1, 0,  -1,all,   0x000	//PF_FOGWALL
-405,0xb7,    ,  0, 1,1000,enemy, 0x000	//PF_SPIDERWEB
+405,0xb7,    ,  0, 0,  -1,enemy, 0x000	//PF_SPIDERWEB
 409,0xb2,    ,  0,-1,  -1,noone, 0x000	//WE_CALLBABY
 410,0xb2,    ,  0,-1,  -1,noone, 0x000	//WE_CALLPARENT
 428,0x86,    ,  0, 1, 100,enemy, 0x000	//SG_SUN_WARM
@@ -89,13 +89,14 @@
 430,0x86,    ,  0, 1, 100,enemy, 0x000	//SG_STAR_WARM
 484,0xb8,    ,  2, 0,1000,enemy, 0x808	//HW_GRAVITATION
 488,0xb9,    ,  3, 0,  -1,all,   0x200	//CG_HERMODE
-516,0xba,    ,  3, 0, 100,enemy, 0x000	//GS_DESPERADO
+516,0x86,    ,  3, 0, 100,enemy, 0x000	//GS_DESPERADO
 521,0xbe,    ,  0, 1,1000,enemy, 0x000	//GS_GROUNDDRIFT
 527,0xbc,    , -1, 0,2000,enemy, 0x018	//NJ_TATAMIGAESHI
 535,0xbd,    , -1, 0,  20,enemy, 0x010	//NJ_KAENSIN
 538,0xbb,    ,  1:1:1:2:2:2:3:3:3:4,0,-1,all,0x010	//NJ_SUITON
 670,0xc7,    ,  1, 4:7:10:13:16:19:22:25:28:31,1000,all,0x008	//NPC_EVILLAND
-//8209,0x90,    ,  0, 1,1000,enemy, 0x002	//MA_SKIDTRAP
-//8210,0x93,    ,  0, 0,1000,enemy, 0x002	//MA_LANDMINE
-//8211,0x95,    ,  0, 1,1000,enemy, 0x002	//MA_SANDMAN
-//8212,0x97,    ,  0, 1,1000,enemy, 0x002	//MA_FREEZINGTRAP
+8208,0x86,    ,  0, 2,1000,enemy, 0x080	//MA_SHOWER
+8209,0x90,    ,  0, 1,1000,enemy, 0x006	//MA_SKIDTRAP
+8210,0x93,    ,  0, 0,1000,enemy, 0x006	//MA_LANDMINE
+8211,0x95,    ,  0, 1,1000,enemy, 0x006	//MA_SANDMAN
+8212,0x97,    ,  0, 1,1000,enemy, 0x006	//MA_FREEZINGTRAP

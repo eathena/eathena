@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf (Script), DZeroX (Timer)
 //===== Current Version: ===================================== 
-//= 4.0
+//= 4.6
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -67,8 +67,8 @@
 //= 3.2b Fixed some typos and grammar mistakes. [SinSloth]
 //= 3.3 Fixed the receiver log out bugs. [L0ne_W0lf]
 //= 3.4 Fixed bug when u can't get a Yellow Keycard if u got the Blue one at first [Lupus]
-//=		Note: There are many condition checks that should be omitted in the future fixed item names in item_db.txt / txt resources according the quest
-//=		for items, should be used bitwise methods in a single variable. So let's fix the rest possible bugs (if they exist) and then optimize ^_-		
+//=     Note: There are many condition checks that should be omitted in the future fixed item names in item_db.txt / txt resources according the quest
+//=     for items, should be used bitwise methods in a single variable. So let's fix the rest possible bugs (if they exist) and then optimize ^_-		
 //= 3.5 Changed the way the Black Keycard distibuting NPCs work slighty. [L0ne_W0lf]
 //= 3.6 Keil Hyre removes ALL outstanding quest items when he is talked [L0ne_W0lf]
 //=	to after finishing the quest.
@@ -87,6 +87,16 @@
 //=     Updated some NPC positions, and facings.
 //=     Changed the way some NPCs work.
 //=     Updated comments for get/delitem commands.
+//= 4.1 Added an 'end;' to Kiel Hyre's dialog for the "Yes" option for if you want to confront Kiehl.
+//= 4.2 Fixed some issues reported in bugreport:2129. [L0ne_W0lf]
+//= 4.2a Follow up to last update. [L0ne_W0lf]
+//= 4.2b Missed a condition, fixed it though. [L0ne_W0lf]
+//= 4.2c More various fixes :D [L0ne_W0lf]
+//= 4.3 Fixed improper condition in the Elly NPC. [L0ne_W0lf]
+//=     Corrected some typos in the dialogs.
+//= 4.4 Updated reviecer and robots NPC to use mobcount. (bugreport:2380) [L0ne_W0lf]
+//= 4.5 Removed a delitem that was no logner needed. [L0en_W0lf]
+//= 4.6 Fixed impossible condition for security guard. [L0ne_W0lf]
 //============================================================ 
 
 //============================================================================
@@ -102,8 +112,6 @@
 //  - I've fixed a few of iRO's mistakes, but I'm sure I made some of my own. 
 //  - Will probably require a major optimizing.
 //  - Not going to list ALL of the more usless NPCs. (Doors + Empty "Beautiful Ladies")
-//  - Near the end I finshed the quest with some people. Used packet logging to get dialog.
-//    Because of the above mentioned, NPC placement and dialog is a little sloppier.
 //  - Parties are *NOT REQUIRED* as per Doddler's Wiki information.
 //
 //----------------------------------------------------------------------------
@@ -446,7 +454,7 @@ yuno_in01,35,179,4	script	Pub Master#kh	46,5,5,{
 		mes "can complain about the delivery.";
 		close;
 	}
-	else if (KielHyreQuest > 6) {
+	else if (KielHyreQuest == 6) {
 		if (countitem(7487) == 0) {
 			mes "[Vandt]";
 			mes "Oh, you're back.";
@@ -491,7 +499,8 @@ yuno_in01,35,179,4	script	Pub Master#kh	46,5,5,{
 		mes "worker, you know that?";
 		mes "Dependable, responsible,";
 		mes "willing to help others, and";
-		mes "proactive too! I think you'll^FFFFFF ^000000 go far in life, kid, I really do~";
+		mes "proactive too! I think you'll";
+		mes "go far in life, kid, I really do~";
 		close;
 	}
 
@@ -748,7 +757,7 @@ yuno_fild08,196,196,5	script	Hanie#kh1	102,{
 // Academy Security Guards
 //----------------------------------------------------------------------------
 yuno_fild08,158,194,6	script	Security Guard#1::KHAGuard	852,{
-	if ((KielHyreQuest < 2) && (KielHyreQuest > 31)) { 
+	if ((KielHyreQuest < 2) || (KielHyreQuest > 31)) { 
 		mes "[Security Guard]";
 		mes "I'm sorry, but if you aren't";
 		mes "associated with this institution,";
@@ -1174,14 +1183,14 @@ kh_school,179,39,0	script	Cute Student#kh	895,{
 			mes "give me a moment while I bake";
 			mes "these cookies?  It shouldn't take";
 			mes "long, so hold on just a bit.";
-			set KielHyreQuest,8;
-			//KHPubMasterEnd no longer needed-- deleting.
-			set KHPubMasterEnd,0;
 			delitem 519,7; //Milk
 			delitem 548,2; //Cheese
 			delitem 7182,5; //Cacao
 			delitem 7487,1; //Tavern_Wine
 			delitem 7488,1; //Delivery_Package
+			set KielHyreQuest,8;
+			//KHPubMasterEnd no longer needed-- deleting.
+			set KHPubMasterEnd,0;
 			emotion e_ho;
 		}
 	}
@@ -1209,8 +1218,8 @@ kh_school,179,39,0	script	Cute Student#kh	895,{
 		mes "[Elly]";
 		mes ""+strcharinfo(0)+"?";
 		mes "...that name! It's wonderful!";
-		set KielHyreQuest,10;
 		getitem 538,5; //Well_Baked_Cookie
+		set KielHyreQuest,10;
 	}
 	else if (KielHyreQuest == 10) {
 		mes "[Elly]";
@@ -1425,7 +1434,7 @@ kh_school,179,39,0	script	Cute Student#kh	895,{
 			mes "[Elly]";
 			mes "This place certainly";
 			mes "isn't like other schools.";
-			mes "You already know that only";
+			//mes "You already know that only";
 			mes "Yeah, everything is made to";
 			mes "fit each of the student's needs.";
 			next;
@@ -1488,7 +1497,7 @@ kh_school,179,39,0	script	Cute Student#kh	895,{
 			}
 		}
 	}
-	else if (KielHyreQuest >= 24 || KielHyreQuest >= 26) {
+	else if (KielHyreQuest >= 24 && KielHyreQuest <= 26) {
 		cutin "kh_elly04",2;
 		mes "[Elly]";
 		mes "Argh, I'm in a fix!";
@@ -1539,7 +1548,7 @@ kh_school,179,39,0	script	Cute Student#kh	895,{
 // Elly's Window 
 //----------------------------------------------------------------------------
 yuno_fild08,69,185,0	script	Window#kh	111,{
-	if (KielHyreQuest > 29) {
+	if (KielHyreQuest < 29) {
 		mes "^3355FFYou can see a curtain";
 		mes "decorated with a cute";
 		mes "design through the";
@@ -1548,7 +1557,7 @@ yuno_fild08,69,185,0	script	Window#kh	111,{
 		mes "used by a young girl.^000000";
 		close;
 	}
-	if (KielHyreQuest > 30) {
+	else if (KielHyreQuest== 29) {
 		mes "^3355FFThis must be Elly's room.";
 		mes "It doesn't sound like anyone";
 		mes "is inside, so she probably";
@@ -1558,7 +1567,7 @@ yuno_fild08,69,185,0	script	Window#kh	111,{
 		mes "in their cottage's Study.^000000";
 		close;
 	}
-	if ((KielHyreQuest <= 30) && (KielHyreQuest >= 45)) {
+	else if ((KielHyreQuest >= 30) && (KielHyreQuest <= 45)) {
 		mes "^3355FFThis slightly open window";
 		mes "must lead into Elly's room.";
 		mes "Although she asked you to";
@@ -1840,7 +1849,7 @@ kh_school,175,176,0	script	Cookie Basket#kh	111,{
 		mes "It was probably written";
 		mes "by Elly for you to read.^000000";
 		next;
-		mes "^333333Dearest "+name_kh+",";
+		mes "^333333Dearest "+strcharinfo(0)+",";
 		mes " ";
 		mes "My teachers usually yell at me";
 		mes "since I make so many mistakes,";
@@ -2530,6 +2539,7 @@ kh_vila,14,55,0	script	Calabash#khp1	111,{
 			mes "feel around with your";
 			mes "fingers until you retrieve";
 			mes "an Old Bronze Key.^000000";
+			getitem 7329,1; //Old_Bronze_Key
 			close;
 		case 3:
 			mes "^3355FFThere's probably";
@@ -2720,7 +2730,7 @@ kh_vila,115,186,0	script	Drawer#khp1	111,{
 			mes "^3355FFYou obtain a Yellow";
 			mes "Keycard from inside the";
 			mes "drawer. Opening that drawer";
-			mes "Fturned out to be worthwhile.^000000";
+			mes "turned out to be worthwhile.^000000";
 			getitem 7492,1; //Yellow_Key_Card
 			close;
 		case 2:
@@ -3039,6 +3049,7 @@ kh_vila,123,170,0	script	Medicine Chest#khp1	111,{
 		mes "ink on the blank piece of paper";
 		mes "with the Kiel Hyre Foundation";
 		mes "seal. Would you like read it?^000000";
+		next;
 		switch(select("No time!:Read")) {
 		case 1:
 			mes "^3355FFYou're running out of";
@@ -3164,7 +3175,7 @@ kh_vila,136,68,0	script	Sword Hilt#kh	111,{
 					}
 					next;
 					mes "^3355FFLastly, please select";
-					mes "Fthe snake in which you";
+					mes "the snake in which you";
 					mes "will insert the fourth sword.^000000";
 					next;
 					switch(select("First Snake:Second Snake:Third Snake:Fourth Snake")) {
@@ -3238,6 +3249,7 @@ kh_vila,185,68,0	script	Test Tube::TestTubeKHQ2	111,{
 		mes "^3355FFA strange looking,";
 		mes "wizened old man is";
 		mes "held within this test tube.^000000";
+		close;
 	}
 	else if (KielHyreQuest == 28) {
 		mes "^3355FFA strange looking,";
@@ -3323,7 +3335,7 @@ kh_vila,185,68,0	script	Test Tube::TestTubeKHQ2	111,{
 // Robotic's Factory; Heavy Door
 //----------------------------------------------------------------------------
 kh_dun01,235,48,0	script	Heavy Door#kh1::HeavyDoorKHQ1	111,{
-	if (KielHyreQuest > 38) {
+	if (KielHyreQuest < 38) {
 		mes "^3355FFThere is a large, heavy";
 		mes "door infront of you.^000000";
 		next;
@@ -3525,7 +3537,7 @@ kh_school,122,186,4	script	Beautiful Lady#kh6	894,{
 		close;
 	}
 	cutin "kh_ellisia",2;
-	if (KielHyreQuest > 38) {
+	if (KielHyreQuest < 38) {
 		mes "[??????]";
 		mes "This is private property.";
 		mes "Please leave immediately!";
@@ -3569,7 +3581,7 @@ kh_school,122,186,4	script	Beautiful Lady#kh6	894,{
 		case 2:
 			mes "[Allysia]";
 			mes "^3355FFKiehl^000000 has proceeded to";
-			mes "proform abnormal modifications";
+			mes "perform abnormal modifications";
 			mes "to the humanoid robots. This";
 			mes "has been reported to Kiel Hyre,";
 			mes "who has left to stop Kiehl.";
@@ -3634,8 +3646,8 @@ kh_school,122,186,4	script	Beautiful Lady#kh6	894,{
 		mes "Alright, I've recieved";
 		mes "Kiel Hyre's orders, and";
 		mes "must carry them out...";
-		set KielHyreQuest,44;
 		delitem 7497,1; //Steel_Piece
+		set KielHyreQuest,44;
 		close2;
 		cutin "",255;
 		end;
@@ -3775,7 +3787,7 @@ OnTouch:
 		mes "^333333...Kiehl...";
 		mes "...How dare you...!^000000";
 		next;
-		mes "["+name_kh+"]";
+		mes "["+strcharinfo(0)+"]";
 		mes "Mister Kiel Hyre?";
 		mes "Is that you in there?";
 		next;
@@ -3783,7 +3795,7 @@ OnTouch:
 		mes "Wh-who's there?";
 		mes "Identify yourself!";
 		next;
-		mes "["+name_kh+"]";
+		mes "["+strcharinfo(0)+"]";
 		mes "I'm... I'm...";
 		next;
 		mes "^3355FFYou explain your story";
@@ -3917,7 +3929,7 @@ kh_mansion,78,55,5	script	Steward#kh	109,{
 			mes "afraid that I must insist on";
 			mes "your immediate departure!";
 			close2;
-			warp "lightalzen",188,201;
+			warp "lighthalzen",188,201;
 			end;
 		}
 	}
@@ -4017,7 +4029,7 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "questions to ask me, so I'll";
 		mes "do my best to give you answers.";
 		next;
-		while(0) {
+		while(1) {
 			switch(select("Robots?:^3355FFKiehl^000000?:^FF0000Elly^000000's button?")) {
 			case 1:
 				mes "[Kiel Hyre]";
@@ -4043,6 +4055,7 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 				mes "everything much more succinctly";
 				mes "than I can. I tend to ramble...";
 				set .@KHQRead,.@KHQRead+1;
+				next;
 				break;
 			case 2:
 				mes "[Kiel Hyre]";
@@ -4069,6 +4082,7 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 				mes "to do this. I still have";
 				mes "absolutely no clue...";
 				set .@KHQRead,.@KHQRead+1;
+				next;
 				break;
 			case 3:
 				mes "[Kiel Hyre]";
@@ -4087,10 +4101,10 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 				mes "his face! Kiehl just hired";
 				mes "him without letting me know...";
 				set .@KHQRead,.@KHQRead+1;
+				next;
 				break;
 			}
 			if (.@KHQRead == 3) {
-				next;
 				mes "[Kiel Hyre]";
 				mes "If you don't have";
 				mes "anymore questions for me,";
@@ -4111,9 +4125,9 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "Please, take this as";
 		mes "a little reward for";
 		mes "saving my life.";
-		set KielHyreQuest,50;
 		getitem 12105,1; //Taming_Gift_Set
 		getexp 700000,0;
+		set KielHyreQuest,50;
 	}
 	else if ((KielHyreQuest >= 50) && (KielHyreQuest < 64)) {
 		mes "[Kiel Hyre]";
@@ -4395,7 +4409,7 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "I'm assuming the place you";
 		mes "two first met was near the";
 		mes "river. No more of your lies:";
-		mes "well me what really happened!";
+		mes "Tell me what really happened!";
 		next;
 		cutin "kh_kyel02",2;
 		mes "[Kiel Hyre]";
@@ -4451,13 +4465,12 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "wrong... and she just... just...";
 		mes "The river swallowed her...";
 		mes "I felt empty. She was gone. ";
-		set KielHyreQuest,70;
-		delitem 7498,1; //Rosimier_Key
 		delitem 7499,1; //Family_Portrait
 		delitem 7500,1; //Elysia_Portrait
 		delitem 7501,1; //Kyll_Hyre_Letter2
 		delitem 7502,1; //Piece_Memo_Of_James
 		delitem 7503,1; //Man_Portrait
+		set KielHyreQuest,70;
 		close2;
 		cutin "",255;
 		end;
@@ -4670,6 +4683,8 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 			close2;
 			enablenpc "Kiehl_Room_Warp";
 			donpcevent "Kiehl_Room_Warp::OnEnable";
+			cutin "",255;
+			end;
 			break;
 		case 2:
 			mes "[Kiel Hyre]";
@@ -4721,8 +4736,8 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "enter and investigate the";
 		mes "deepest levels of the factory.";
 		mes "I'll investigate Kiehl's room.";
-		set KielHyreQuest,108;
 		getitem 7509,1; //Fancy_Key_Card
+		set KielHyreQuest,108;
 		next;
 		if (sex == 0) {
 			if (getpartnerid() == 0) set .@KHTitle$,"Miss";
@@ -4745,28 +4760,6 @@ kh_mansion,22,28,4	script	Kiel Hyre#kh	903,{
 		mes "......";
 		mes ".........";
 		mes "............";
-		delitem 7487,countitem(7487); //Tavern_Wine
-		delitem 7488,countitem(7488); //Delivery_Package
-		delitem 7489,countitem(7489); //Villa_Spare_Key
-		delitem 7490,countitem(7490); //Kyll_Hire_Letter
-		delitem 7491,countitem(7491); //Iron_Box
-		delitem 7492,countitem(7492); //Yellow_Key_Card
-		delitem 7493,countitem(7493); //Golden_Key
-		delitem 7494,countitem(7494); //Kiel_Button
-		delitem 7495,countitem(7495); //Blue_Key_Card
-		delitem 7496,countitem(7496); //Red_Key_Card
-		delitem 7497,countitem(7497); //Steel_Piece
-		delitem 7498,countitem(7498); //Rosimier_Key
-		delitem 7499,countitem(7499); //Family_Portrait
-		delitem 7500,countitem(7500); //Elysia_Portrait
-		delitem 7501,countitem(7501); //Kyll_Hyre_Letter2
-		delitem 7502,countitem(7502); //Piece_Memo_Of_James
-		delitem 7503,countitem(7503); //Man_Portrait
-		delitem 7504,countitem(7504); //Toy_Motor
-		delitem 7505,countitem(7505); //Toy_Key
-		delitem 7506,countitem(7506); //Black_Key_Card
-		delitem 7508,countitem(7508); //Elysia_Ring
-		delitem 7516,countitem(7516); //Green_Key_Card
 	}
 	close2;
 	cutin "",255;
@@ -4893,7 +4886,7 @@ kh_mansion,18,30,4	script	Allysia	894,{
 				mes "[Allysia]";
 				mes "With their organic bodies";
 				mes "and advanced artificial hearts";
-				mes "make from imitation Ymir Heart";
+				mes "made from imitation Ymir Heart";
 				mes "Pieces, they can experience";
 				mes "physiologic phenomena";
 				mes "just like ordinary humans.";
@@ -5057,7 +5050,7 @@ OnTouch:
 			mes "son and heir, Kiehl, helped";
 			mes "his father establish this";
 			mes "special academy as their";
-			mes "way of giving back t society.";
+			mes "way of giving back to society.";
 			next;
 			mes "[??????]";
 			mes "Almost every corporation and";
@@ -5164,7 +5157,7 @@ OnTouch:
 		next;
 		mes "[Mitchell]";
 		mes "This is too much of a";
-		mes "coincidense. I want you to";
+		mes "coincidence. I want you to";
 		mes "go to Juno and investigate.";
 		mes "When you're done, talk to";
 		mes "Kiel Hyre's steward, and";
@@ -5459,8 +5452,8 @@ yuno,250,132,0	script	Old Lady#kh	711,{
 			mes "from City Hall ask me for it.";
 			mes "Alright then, I hope you find";
 			mes "what you're looking for.";
-			set KielHyreQuest,58;
 			getitem 7498,1; //Rosimier_Key
+			set KielHyreQuest,58;
 			close;
 		}
 	}
@@ -5521,8 +5514,8 @@ yuno,250,132,0	script	Old Lady#kh	711,{
 		mes "Allysia's body in the river,";
 		mes "so he might have a better";
 		mes "idea of what had happened.";
-		set KielHyreQuest,60;
 		delitem 7498,1; //Rosimier_Key 
+		set KielHyreQuest,60;
 		close;
 	}
 	else if (KielHyreQuest >= 60) {
@@ -5637,7 +5630,7 @@ kh_rossi,92,40,0	script	Shelf#khr	111,{
 					next;
 					cutin "kh_ellisia_port",2;
 					mes "^3355FFThe message, ''To my love,";
-					mes "FAllysia. From James.'' is";
+					mes "Allysia. From James.'' is";
 					mes "written on the back.^000000";
 					getitem 7500,1; //Elysia_Portrait
 					close2;
@@ -5846,7 +5839,7 @@ yuno_fild12,232,222,0	script	Old Fisherman	709,{
 			mes "for me? Heh, how very";
 			mes "generous of you. If you're";
 			mes "going to be so kind, then";
-			mes "i suppose I have to repay";
+			mes "I suppose I have to repay";
 			mes "the favor. Ask me anything~";
 			next;
 			select("30 years ago, a woman killed herself...");
@@ -5957,8 +5950,8 @@ yuno_fild09,158,217,0	script	Wooden Board#kh	111,{
 		mes "of Kiel Hyre, in a broken";
 		mes "picture frame underneath";
 		mes "the old wooden board.^000000";
-		set KielHyreQuest,64;
 		getitem 7503,1;	//Man_Portrait
+		set KielHyreQuest,64;
 		next;
 		cutin "",255;
 		mes "^3355FFYou have enough";
@@ -5985,7 +5978,7 @@ yuno_fild09,158,217,0	script	Wooden Board#kh	111,{
 // Kiehl's Room; Receiver (Gives black keycards upon killing mobs)
 //----------------------------------------------------------------------------
 kh_kiehl01,17,39,0	script	Receiver#kh	111,{
-	if (.KHKilled < 1) {
+	if (mobcount("kh_kiehl01","Receiver#kh::OnMyMobDead") < 1) {
 		mes "^333333*BBBZZZ*^000000";
 		if (KielHyreQuest == 74) {
 			next;
@@ -5999,9 +5992,8 @@ kh_kiehl01,17,39,0	script	Receiver#kh	111,{
 			set KielHyreQuest,76;
 		}
 		close2;
-		set .KHKilled,2;
-		monster "kh_kiehl01",16,32,"Alicel",1739,1,"Receiver::OnMyMobDead";
-		monster "kh_kiehl01",18,31,"Aliot",1740,1,"Receiver::OnMyMobDead";
+		monster "kh_kiehl01",16,32,"Alicel",1739,1,"Receiver#kh::OnMyMobDead";
+		monster "kh_kiehl01",18,31,"Aliot",1740,1,"Receiver#kh::OnMyMobDead";
 		end;
 	}
 
@@ -6010,10 +6002,8 @@ kh_kiehl01,17,39,0	script	Receiver#kh	111,{
 	}
 
 OnMyMobDead:
-	set .KHKilled,.KHKilled-1;
-	if (.KHKilled < 1) { 
-		makeitem 7506,1,"this",19,36; 
-		set .KHKilled,0;
+	if (mobcount("kh_kiehl01","Receiver#kh::OnMyMobDead") <1) { 
+		makeitem 7506,1,"this",19,36;
 	}
 	end;
 }
@@ -6374,13 +6364,12 @@ OnTouch:
 // Kiehl's Room; Robots
 //----------------------------------------------------------------------------
 kh_kiehl01,15,179,0	script	Robots#kh1	111,{
-	if (.KHKilled < 1) {
+	if (mobcount("kh_kiehl01","Robots#kh1::OnMyMobDead") < 1) {
 		mes "^3355FFAs soon as you";
 		mes "touch the test tube,";
 		mes "a bunch of robots";
 		mes "suddenly appeared.^000000.";
 		close2;
-		set .KHKilled,4;
 		monster "kh_kiehl01",18,181,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
 		monster "kh_kiehl01",18,180,"Alicel",1739,1,"Robots#kh1::OnMyMobDead";
 		monster "kh_kiehl01",18,179,"Aliot",1740,1,"Robots#kh1::OnMyMobDead";
@@ -6392,11 +6381,9 @@ kh_kiehl01,15,179,0	script	Robots#kh1	111,{
 	}
 
 OnMyMobDead:
-	set .KHKilled,.KHKilled-1;
-	if (.KHKilled < 1) { 
+	if (mobcount("kh_kiehl01","Robots#kh1::OnMyMobDead") < 1) { 
 		makeitem 7506,1,"this",18,180;
-		set .KHKilled,0;
-	}
+		}
 	end;
 }
 
@@ -6435,12 +6422,12 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 			mes "This must be some";
 			mes "kind of security device.^000000";
 			close2;
-			set .@KHDoorPushAttempt,.@KHDoorPushAttempt+1;
+			set @KHDoorPushAttempt,@KHDoorPushAttempt+1;
 			monster "kh_kiehl01",163,183,"Alicel",1739,1;
 			monster "kh_kiehl01",163,179,"Aliot",1740,1;
 			monster "kh_kiehl01",169,183,"Alicel",1739,1;
 			monster "kh_kiehl01",169,179,"Aliot",1740,1;
-			if (.@KHDoorPushAttempt >= 3) { 
+			if (@KHDoorPushAttempt >= 3) { 
 				set KielHyreQuest,86; 
 			}
 			end;
@@ -6475,8 +6462,8 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 						mes "The gap widens a little bit,";
 						mes "but you break one of your";
 						mes "Solid Iron Pieces.^000000";
-						set KielHyreQuest,KielHyreQuest+2;
 						delitem 7507,1; //Hard_Piece_of_Steel
+						set KielHyreQuest,KielHyreQuest+2;
 						close;
 					}
 					else if (KielHyreQuest == 92) {
@@ -6487,8 +6474,8 @@ kh_kiehl01,166,187,0	script	Big Door#BigDoorKHQ5	111,{
 						mes "Unable the withstand the";
 						mes "awesome force, this Solid";
 						mes "Iron Piece shatters into dust.^000000";
-						set KielHyreQuest,94;
 						delitem 7507,1; //Hard_Piece_of_Steel
+						set KielHyreQuest,94;
 						close;
 					}
 				}
@@ -7056,8 +7043,8 @@ kh_kiehl02,50,52,4	script	Kiehl#Original	902,{
 		mes "^3355FFYou retrieve the";
 		mes "ring from the heart of";
 		mes "Kiehl's old robotic body.^000000";
-		set KielHyreQuest,106;
 		getitem 7508,1; //Elysia_Ring
+		set KielHyreQuest,106;
 		close2;
 		cutin "",255;
 		end;

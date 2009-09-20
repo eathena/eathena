@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS `cart_inventory` (
   `card1` int(11) NOT NULL default '0',
   `card2` int(11) NOT NULL default '0',
   `card3` int(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) ENGINE=MyISAM;
@@ -70,11 +71,11 @@ CREATE TABLE IF NOT EXISTS `char` (
   `hp` mediumint(8) unsigned NOT NULL default '0',
   `max_sp` mediumint(6) unsigned NOT NULL default '0',
   `sp` mediumint(6) unsigned NOT NULL default '0',
-  `status_point` smallint(4) unsigned NOT NULL default '0',
-  `skill_point` smallint(4) unsigned NOT NULL default '0',
+  `status_point` int(11) unsigned NOT NULL default '0',
+  `skill_point` int(11) unsigned NOT NULL default '0',
   `option` int(11) NOT NULL default '0',
   `karma` tinyint(3) NOT NULL default '0',
-  `manner` tinyint(3) NOT NULL default '0',
+  `manner` smallint(6) NOT NULL default '0',
   `party_id` int(11) unsigned NOT NULL default '0',
   `guild_id` int(11) unsigned NOT NULL default '0',
   `pet_id` int(11) unsigned NOT NULL default '0',
@@ -289,6 +290,7 @@ CREATE TABLE IF NOT EXISTS `guild_storage` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `guild_id` (`guild_id`)
 ) ENGINE=MyISAM;
@@ -340,6 +342,7 @@ CREATE TABLE IF NOT EXISTS `inventory` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) ENGINE=MyISAM;
@@ -446,6 +449,7 @@ CREATE TABLE IF NOT EXISTS `mail` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM;
 
@@ -461,6 +465,37 @@ CREATE TABLE IF NOT EXISTS `memo` (
   `y` smallint(4) unsigned NOT NULL default '0',
   PRIMARY KEY  (`memo_id`),
   KEY `char_id` (`char_id`)
+) ENGINE=MyISAM;
+
+--
+-- Table structure for table `mercenary`
+--
+
+CREATE TABLE IF NOT EXISTS `mercenary` (
+  `mer_id` int(11) unsigned NOT NULL auto_increment,
+  `char_id` int(11) NOT NULL,
+  `class` mediumint(9) unsigned NOT NULL default '0',
+  `hp` int(12) NOT NULL default '1',
+  `sp` int(12) NOT NULL default '1',
+  `kill_counter` int(11) NOT NULL,
+  `life_time` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`mer_id`)
+) ENGINE=MyISAM;
+
+--
+-- Table structure for table `mercenary_owner`
+--
+
+CREATE TABLE IF NOT EXISTS `mercenary_owner` (
+  `char_id` int(11) NOT NULL,
+  `merc_id` int(11) NOT NULL default '0',
+  `arch_calls` int(11) NOT NULL default '0',
+  `arch_faith` int(11) NOT NULL default '0',
+  `spear_calls` int(11) NOT NULL default '0',
+  `spear_faith` int(11) NOT NULL default '0',
+  `sword_calls` int(11) NOT NULL default '0',
+  `sword_faith` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`char_id`)
 ) ENGINE=MyISAM;
 
 --

@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 1.4
+//= 1.7
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -17,6 +17,10 @@
 //= 1.4 Fixed investment period not resetting. [L0ne_W0lf]
 //=     Made it so treasure won't spawn if castle is empty.
 //=     Treasure will now be killed before spawning.
+//= 1.5 Replaced effect numerics with constants. [L0ne_W0lf]
+//= 1.6 Applied updated eco/def systems. [L0ne_W0lf]
+//= 1.7 Fixed eco/def not actually incrementing. [L0ne_W0lf]
+//=     Can no longer gain eco/def higher than 100.
 //============================================================
 
 schg_cas04,1,1,0	script	Manager#sch04_02	111,{
@@ -33,8 +37,8 @@ OnRecvCastlesc04:
 	}
 	end;
 
-OnAgitStart:
-	if (agitcheck()) {
+OnAgitStart2:
+	if (agitcheck2()) {
 		MapRespawnGuildID "schg_cas04",GetCastleData("schg_cas04",1),2;
 		GvgOn "schg_cas04";
 		donpcevent "Manager#sch04_02::Onstart";
@@ -47,7 +51,7 @@ OnAgitStart:
 	}
 	end;
 
-OnAgitEnd:
+OnAgitEnd2:
 	GvgOff "schg_cas04";
 	if (GetCastleData("schg_cas04",1)) {
 		KillMonster "schg_cas04","Steward#sch04::OnStartArena";
@@ -88,7 +92,7 @@ Onreset:
 	donpcevent "Control Device01#sch04::OnDisable";
 	donpcevent "Control Device02#sch04::OnDisable";
 	donpcevent "Control Device03#sch04::OnDisable";
-	if (agitcheck()) {
+	if (agitcheck2()) {
 		setarray $agit_sc04[0],0,0,1,1,1,0;
 	}
 	end;
@@ -105,8 +109,18 @@ OnClock0001:
 	if (!GetCastleData("schg_cas04",1)) end;
 	killmonster "schg_cas04","Manager#sch04_02::OnTreasureDied";
 
-	setcastledata "schg_cas04",4,0;
-	setcastledata "schg_cas04",5,0;
+	if (GetCastleData("schg_cas04",4)) {
+		set .@Economy,GetCastleData("schg_cas04",2);
+		SetCastleData "schg_cas04",2,.@Economy + GetCastleData("schg_cas04",4) + (rand(2) && getgdskilllv(.@GID,10014));
+		if (GetCastleData("schg_cas04",2) > 100) SetCastleData "schg_cas04",2,100;
+		setcastledata "schg_cas04",4,0;
+	}
+	if (GetCastleData("schg_cas04",5)) {
+		set .@Defence,GetCastleData("schg_cas04",3);
+		SetCastleData "schg_cas04",3,.@Defence + GetCastleData("schg_cas04",5);
+		if (GetCastleData("schg_cas04",3) > 100) SetCastleData "schg_cas04",3,100;
+		setcastledata "schg_cas04",5,0;
+	}
 
 	set .@Treasure,GetCastleData("schg_cas04",2)/5+4;
 	if (.@Treasure) {
@@ -181,7 +195,7 @@ schg_cas04,123,306,3	script	Ef#sch04_01	868,{
 			close;
 		}
 		else {
-			if (agitcheck() == 0) {
+			if (agitcheck2() == 0) {
 				mes "[Ef]";
 				mes "I am Ef, guardian of";
 				mes "this stronghold. For now,";
@@ -690,7 +704,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 					else {
 						switch(rand(1,3)) {
 						case 1:
-							specialeffect 54; //"1st Guardian Stone#sch04" EF_BEGINSPELL2
+							specialeffect EF_BEGINSPELL2;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -713,13 +727,13 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Blue Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							}
 							break;
 						case 2:
-							specialeffect 225; //"1st Guardian Stone#sch04" EF_VOLCANO
+							specialeffect EF_VOLCANO;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -730,7 +744,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Red Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 2:
@@ -748,7 +762,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 							}
 							break;
 						case 3:
-							specialeffect 56; //"1st Guardian Stone#sch04" EF_BEGINSPELL4
+							specialeffect EF_BEGINSPELL4;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -765,7 +779,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Yellow Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 3:
@@ -786,7 +800,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 						close;
 					}
 					else {
-						if (agitcheck() == 0) {
+						if (agitcheck2() == 0) {
 							mes "^3355FFIt is impossible to";
 							mes "rebuild the Guardian";
 							mes "Stone because the";
@@ -805,7 +819,7 @@ schg_cas04,27,36,0	script	1st Guardian Stone#sch04	844,{
 							delitem 716,5; //Red_Gemstone
 							close2;
 							donpcevent "#sch04_df01::OnEnable";
-							specialeffect 135; //"1st Guardian Stone#sch04" EF_ICECRASH
+							specialeffect EF_ICECRASH;
 							disablenpc "1st Guardian Stone#sch04";
 							setarray $agit_sc04[0],0;
 							set .@df_all,$agit_sc04[0]+$agit_sc04[1];
@@ -851,7 +865,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "1st Guardian Stone#sch04";
-	specialeffect 247; //"1st Guardian Stone#sch04" EF_MAPPILLAR2
+	specialeffect EF_MAPPILLAR2;
 	end;
 
 OnDisable:
@@ -999,7 +1013,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 					else {
 						switch(rand(1,3)) {
 						case 1:
-							specialeffect 54; //"2nd Guardian Stone#sch04" EF_BEGINSPELL2
+							specialeffect EF_BEGINSPELL2;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1022,13 +1036,13 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Blue Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							}
 							break;
 						case 2:
-							specialeffect 225; //"2nd Guardian Stone#sch04" EF_VOLCANO
+							specialeffect EF_VOLCANO;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1039,7 +1053,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Red Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 2:
@@ -1057,7 +1071,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 							}
 							break;
 						case 3:
-							specialeffect 56; //"2nd Guardian Stone#sch04" EF_BEGINSPELL4
+							specialeffect EF_BEGINSPELL4;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1074,7 +1088,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 								mes "^3355FFYou placed the Yellow Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#sch04" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 3:
@@ -1095,7 +1109,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 						close;
 					}
 					else {
-						if (agitcheck() == 0) {
+						if (agitcheck2() == 0) {
 							mes "^3355FFIt is impossible to";
 							mes "rebuild the Guardian";
 							mes "Stone because the";
@@ -1114,7 +1128,7 @@ schg_cas04,208,75,0	script	2nd Guardian Stone#sch04	844,{
 							delitem 716,5; //Red_Gemstone
 							close2;
 							donpcevent "#sch04_df02::OnEnable";
-							specialeffect 135; //"2nd Guardian Stone#sch04" EF_ICECRASH
+							specialeffect EF_ICECRASH;
 							disablenpc "2nd Guardian Stone#sch04";
 							setarray $agit_sc04[1],0;
 							set .@df_all,$agit_sc04[0]+$agit_sc04[1];
@@ -1160,7 +1174,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "2nd Guardian Stone#sch04";
-	specialeffect 247; //"2nd Guardian Stone#sch04" EF_MAPPILLAR2
+	specialeffect EF_MAPPILLAR2;
 	end;
 
 OnDisable:
@@ -1313,7 +1327,7 @@ schg_cas04,124,52,0	script	Control Device01#sch04	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1364,7 +1378,7 @@ schg_cas04,124,52,0	script	Control Device01#sch04	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1388,7 +1402,7 @@ schg_cas04,124,52,0	script	Control Device01#sch04	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1429,7 +1443,7 @@ schg_cas04,124,52,0	script	Control Device01#sch04	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1446,7 +1460,7 @@ schg_cas04,124,52,0	script	Control Device01#sch04	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -1548,7 +1562,7 @@ schg_cas04,128,157,0	script	Control Device02#sch04	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1601,7 +1615,7 @@ schg_cas04,128,157,0	script	Control Device02#sch04	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1625,7 +1639,7 @@ schg_cas04,128,157,0	script	Control Device02#sch04	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1666,7 +1680,7 @@ schg_cas04,128,157,0	script	Control Device02#sch04	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1683,7 +1697,7 @@ schg_cas04,128,157,0	script	Control Device02#sch04	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -1787,7 +1801,7 @@ schg_cas04,109,247,0	script	Control Device03#sch04	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1840,7 +1854,7 @@ schg_cas04,109,247,0	script	Control Device03#sch04	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1864,7 +1878,7 @@ schg_cas04,109,247,0	script	Control Device03#sch04	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1905,7 +1919,7 @@ schg_cas04,109,247,0	script	Control Device03#sch04	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1922,7 +1936,7 @@ schg_cas04,109,247,0	script	Control Device03#sch04	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -2303,16 +2317,30 @@ schg_cas04,247,305,3	script	Steward#sch04	55,{
 		close;
 	case 2:
 		set .@Economy,GetCastleData("schg_cas04",2);
-		if(.@Economy < 8) set .@eco_invest,10000;
-		if(.@Economy >= 8) set .@eco_invest,20000;
-		if(.@Economy >= 16) set .@eco_invest,40000;
-		if(.@Economy >= 25) set .@eco_invest,80000;
-		if(.@Economy >= 34) set .@eco_invest,160000;
-		if(.@Economy >= 44) set .@eco_invest,320000;
-		if(.@Economy >= 54) set .@eco_invest,640000;
-		if(.@Economy >= 65) set .@eco_invest,1280000;
-		if(.@Economy >= 76) set .@eco_invest,2560000;
-		if(.@Economy >= 88) set .@eco_invest,5120000;
+		if (.@Economy < 6) { set .@eco_invest,5000; }
+		else if ((.@Economy >= 6) && (.@Economy <= 10)) { set .@eco_invest,10000; }
+		else if ((.@Economy >= 11) && (.@Economy <= 15)) { set .@eco_invest,20000; }
+		else if ((.@Economy >= 16) && (.@Economy <= 20)) { set .@eco_invest,35000; }
+		else if ((.@Economy >= 21) && (.@Economy <= 25)) { set .@eco_invest,55000; }
+		else if ((.@Economy >= 26) && (.@Economy <= 30)) { set .@eco_invest,80000; }
+		else if ((.@Economy >= 31) && (.@Economy <= 35)) { set .@eco_invest,110000; }
+		else if ((.@Economy >= 36) && (.@Economy <= 40)) { set .@eco_invest,145000; }
+		else if ((.@Economy >= 41) && (.@Economy <= 45)) { set .@eco_invest,185000; }
+		else if ((.@Economy >= 46) && (.@Economy <= 50)) { set .@eco_invest,230000; }
+		else if ((.@Economy >= 51) && (.@Economy <= 55)) { set .@eco_invest,280000; }
+		else if ((.@Economy >= 56) && (.@Economy <= 60)) { set .@eco_invest,335000; }
+		else if ((.@Economy >= 61) && (.@Economy <= 65)) { set .@eco_invest,395000; }
+		else if ((.@Economy >= 66) && (.@Economy <= 70)) { set .@eco_invest,460000; }
+		else if ((.@Economy >= 71) && (.@Economy <= 75)) { set .@eco_invest,530000; }
+		else if ((.@Economy >= 76) && (.@Economy <= 80)) { set .@eco_invest,605000; }
+		else if ((.@Economy >= 81) && (.@Economy <= 85)) { set .@eco_invest,685000; }
+		else if ((.@Economy >= 86) && (.@Economy <= 90)) { set .@eco_invest,770000; }
+		else if ((.@Economy >= 91) && (.@Economy <= 95)) { set .@eco_invest,860000; }
+		else if ((.@Economy >= 96) && (.@Economy <= 100)) { set .@eco_invest,955000; }
+		//Quadruple the cost of investing if you've already invested once.
+		if (GetCastleData("schg_cas04",4)) {
+			set .@eco_invest,.@eco_invest*4;
+		}
 		mes "[ Steward ]";
 		mes "Raising the stronghold's";
 		mes "commercial growth will";
@@ -2374,7 +2402,6 @@ schg_cas04,247,305,3	script	Steward#sch04	55,{
 			}
 			set zeny,zeny-.@eco_invest;
 			SetCastleData "schg_cas04",4,GetCastleData("schg_cas04",4)+1;
-			SetCastleData "schg_cas04",2,.@Economy + 1 + (.@Economy<99 && rand(2) && getgdskilllv(.@GID,10014));
 			mes "[ Steward ]";
 			mes "A wise use of the guild's";
 			mes "funds, Master. We can expect";
@@ -2388,16 +2415,30 @@ schg_cas04,247,305,3	script	Steward#sch04	55,{
 		}
 	case 3:
 		set .@Defence,GetCastleData("schg_cas04",3);
-		if(.@Defence < 8) set .@def_invest,20000;
-		if(.@Defence >= 8) set .@def_invest,40000;
-		if(.@Defence >= 16) set .@def_invest,80000;
-		if(.@Defence >= 25) set .@def_invest,160000;
-		if(.@Defence >= 34) set .@def_invest,320000;
-		if(.@Defence >= 44) set .@def_invest,640000;
-		if(.@Defence >= 54) set .@def_invest,1280000;
-		if(.@Defence >= 65) set .@def_invest,2560000;
-		if(.@Defence >= 76) set .@def_invest,5120000;
-		if(.@Defence >= 88) set .@def_invest,10240000;
+		if (.@Defence < 6) { set .@def_invest,10000; }
+		else if ((.@Defence >= 6) && (.@Defence <= 10)) { set .@def_invest,20000; }
+		else if ((.@Defence >= 11) && (.@Defence <= 15)) { set .@def_invest,40000; }
+		else if ((.@Defence >= 16) && (.@Defence <= 20)) { set .@def_invest,70000; }
+		else if ((.@Defence >= 21) && (.@Defence <= 25)) { set .@def_invest,110000; }
+		else if ((.@Defence >= 26) && (.@Defence <= 30)) { set .@def_invest,160000; }
+		else if ((.@Defence >= 31) && (.@Defence <= 35)) { set .@def_invest,220000; }
+		else if ((.@Defence >= 36) && (.@Defence <= 40)) { set .@def_invest,290000; }
+		else if ((.@Defence >= 41) && (.@Defence <= 45)) { set .@def_invest,370000; }
+		else if ((.@Defence >= 46) && (.@Defence <= 50)) { set .@def_invest,460000; }
+		else if ((.@Defence >= 51) && (.@Defence <= 55)) { set .@def_invest,560000; }
+		else if ((.@Defence >= 56) && (.@Defence <= 60)) { set .@def_invest,670000; }
+		else if ((.@Defence >= 61) && (.@Defence <= 65)) { set .@def_invest,790000; }
+		else if ((.@Defence >= 66) && (.@Defence <= 70)) { set .@def_invest,920000; }
+		else if ((.@Defence >= 71) && (.@Defence <= 75)) { set .@def_invest,1060000; }
+		else if ((.@Defence >= 76) && (.@Defence <= 80)) { set .@def_invest,1210000; }
+		else if ((.@Defence >= 81) && (.@Defence <= 85)) { set .@def_invest,1370000; }
+		else if ((.@Defence >= 86) && (.@Defence <= 90)) { set .@def_invest,1540000; }
+		else if ((.@Defence >= 91) && (.@Defence <= 95)) { set .@def_invest,1720000; }
+		else if ((.@Defence >= 96) && (.@Defence <= 100)) { set .@def_invest,1910000; }
+		//Quadruple the cost of investing if you've already invested once.
+		if (GetCastleData("schg_cas04",5)) {
+			set .@def_invest,.@def_invest*4;
+		}
 		mes "[ Steward ]";
 		mes "Investing in our stronghold's";
 		mes "defense will enhance the";
@@ -2453,7 +2494,6 @@ schg_cas04,247,305,3	script	Steward#sch04	55,{
 			}
 			set zeny,zeny-.@def_invest;
 			SetCastleData "schg_cas04",5,GetCastleData("schg_cas04",5)+1;
-			SetCastleData "schg_cas04",3,.@Defence+1;
 			mes "[ Steward ]";
 			mes "A wise use of the guild's";
 			mes "funds, Master. Increasing";
@@ -2649,7 +2689,7 @@ OnStartArena:
 	else if (.msg == 2) {
 		announce "The [" + getguildname(.@gid) + "] conquered the [Nithafjoll 4] stronghold of "+GetCastleName("schg_cas04"),bc_all;
 		mapannounce "schg_cas04","The emperium has been shattered!",bc_map,"0x00FF00";
-		if (agitcheck()) {
+		if (agitcheck2()) {
 			donpcevent "Manager#sch04_02::Onreset";
 			initnpctimer;
 		}

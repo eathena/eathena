@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 1.5
+//= 2.2
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -18,6 +18,14 @@
 //=     Made it so treasure won't spawn if castle is empty.
 //=     Treasure will now be killed before spawning.
 //= 1.5 Fixed error with control devices. [L0ne_W0lf]
+//= 1.6 Two small fixes. (aegis carry-overs) [L0ne_W0lf]
+//= 1.7 Another two fixes [Yommy]
+//= 1.8 Corrected copy/paste error. [L0ne_W0lf]
+//= 1.9 Implemented new Wall System. [Zephyrus]
+//= 2.0 Replaced effect numerics with constants. [L0ne_W0lf]
+//= 2.1 Applied updated eco/def systems. [L0ne_W0lf]
+//= 2.2 Fixed eco/def not actually incrementing. [L0ne_W0lf]
+//=     Can no longer gain eco/def higher than 100.
 //============================================================
 
 arug_cas02,1,1,0	script	Manager#aru02_02	111,{
@@ -34,8 +42,8 @@ OnRecvCastleAr02:
 	}
 	end;
 
-OnAgitStart:
-	if (agitcheck()) {
+OnAgitStart2:
+	if (agitcheck2()) {
 		MapRespawnGuildID "arug_cas02",GetCastleData("arug_cas02",1),2;
 		GvgOn "arug_cas02";
 		donpcevent "Manager#aru02_02::Onstart";
@@ -48,7 +56,7 @@ OnAgitStart:
 	}
 	end;
 
-OnAgitEnd:
+OnAgitEnd2:
 	GvgOff "arug_cas02";
 	if (GetCastleData("arug_cas02",1)) {
 		KillMonster "arug_cas02","Steward#aru02::OnStartArena";
@@ -89,7 +97,7 @@ Onreset:
 	donpcevent "Control Device01#aru02::OnDisable";
 	donpcevent "Control Device02#aru02::OnDisable";
 	donpcevent "Control Device03#aru02::OnDisable";
-	if (agitcheck()) {
+	if (agitcheck2()) {
 		setarray $agit_ar02[0],0,0,1,1,1,0;
 	}
 	end;
@@ -106,8 +114,18 @@ OnClock0001:
 	if (!GetCastleData("arug_cas02",1)) end;
 	killmonster "arug_cas02","Manager#aru02_02::OnTreasureDied";
 
-	setcastledata "arug_cas02",4,0;
-	setcastledata "arug_cas02",5,0;
+	if (GetCastleData("arug_cas02",4)) {
+		set .@Economy,GetCastleData("arug_cas02",2);
+		SetCastleData "arug_cas02",2,.@Economy + GetCastleData("arug_cas02",4) + (rand(2) && getgdskilllv(.@GID,10014));
+		if (GetCastleData("arug_cas02",2) > 100) SetCastleData "arug_cas02",2,100;
+		setcastledata "arug_cas02",4,0;
+	}
+	if (GetCastleData("arug_cas02",5)) {
+		set .@Defence,GetCastleData("arug_cas02",3);
+		SetCastleData "arug_cas02",3,.@Defence + GetCastleData("arug_cas02",5);
+		if (GetCastleData("arug_cas02",3) > 100) SetCastleData "arug_cas02",3,100;
+		setcastledata "arug_cas02",5,0;
+	}
 
 	set .@Treasure,GetCastleData("arug_cas02",2)/5+4;
 	if (.@Treasure) {
@@ -174,7 +192,7 @@ arug_cas02,38,259,5	script	Yumenes#aru02_01	868,{
 	}
 	if (getcharid(2) == .@GID) {
 		if (strcharinfo(0) != getguildmaster(.@GID)) {
-			mes "[Brace]";
+			mes "[Yumenes]";
 			mes "As guardian of this";
 			mes "stronghold, I answer only";
 			mes "to the master of the guild";
@@ -182,7 +200,7 @@ arug_cas02,38,259,5	script	Yumenes#aru02_01	868,{
 			close;
 		}
 		else {
-			if (agitcheck() == 0) {
+			if (agitcheck2() == 0) {
 				mes "[Yumenes]";
 				mes "I am Yumenes, guardian of";
 				mes "this stronghold. For now,";
@@ -584,7 +602,7 @@ OnGuardianStoneDied:
 	end;
 
 OnTimer300000:
-	donpcevent "1st Guardian Stone#aru02::OnGuardian";
+	donpcevent "1st Guardian Stone#aru02::OnEnable";
 	setarray $agit_ar02[0],2; //Global Variable
 	stopnpctimer;
 	end;
@@ -691,7 +709,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 					else {
 						switch(rand(1,3)) {
 						case 1:
-							specialeffect 54; //"1st Guardian Stone#aru02" EF_BEGINSPELL2
+							specialeffect EF_BEGINSPELL2;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -714,13 +732,13 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Blue Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							}
 							break;
 						case 2:
-							specialeffect 225; //"1st Guardian Stone#aru02" EF_VOLCANO
+							specialeffect EF_VOLCANO;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -731,7 +749,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Red Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL; 
 								next;
 								break;
 							case 2:
@@ -749,7 +767,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 							}
 							break;
 						case 3:
-							specialeffect 56; //"1st Guardian Stone#aru02" EF_BEGINSPELL4
+							specialeffect EF_BEGINSPELL4;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -766,7 +784,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Yellow Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"1st Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 3:
@@ -787,7 +805,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 						close;
 					}
 					else {
-						if (agitcheck() == 0) {
+						if (agitcheck2() == 0) {
 							mes "^3355FFIt is impossible to";
 							mes "rebuild the Guardian";
 							mes "Stone because the";
@@ -806,7 +824,7 @@ arug_cas02,33,168,0	script	1st Guardian Stone#aru02	844,{
 							delitem 716,5; //Red_Gemstone
 							close2;
 							donpcevent "#aru02_df01::OnEnable";
-							specialeffect 135; //"1st Guardian Stone#aru02" EF_ICECRASH
+							specialeffect EF_ICECRASH;
 							disablenpc "1st Guardian Stone#aru02";
 							setarray $agit_ar02[0],0;
 							set .@df_all,$agit_ar02[0]+$agit_ar02[1];
@@ -852,7 +870,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "1st Guardian Stone#aru02";
-	specialeffect 247; //"1st Guardian Stone#aru02" EF_MAPPILLAR2
+	specialeffect EF_MAPPILLAR2;
 	end;
 
 OnDisable:
@@ -893,7 +911,7 @@ OnGuardianStoneDied:
 	end;
 
 OnTimer300000:
-	donpcevent "2nd Guardian Stone#aru02::OnGuardian";
+	donpcevent "2nd Guardian Stone#aru02::OnEnable";
 	setarray $agit_ar02[1],2; //Global Variable
 	stopnpctimer;
 	end;
@@ -1000,7 +1018,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 					else {
 						switch(rand(1,3)) {
 						case 1:
-							specialeffect 54; //"2nd Guardian Stone#aru02" EF_BEGINSPELL2
+							specialeffect EF_BEGINSPELL2;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1023,13 +1041,13 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Blue Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							}
 							break;
 						case 2:
-							specialeffect 225; //"2nd Guardian Stone#aru02" EF_VOLCANO
+							specialeffect EF_VOLCANO;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1040,7 +1058,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Red Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 2:
@@ -1058,7 +1076,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 							}
 							break;
 						case 3:
-							specialeffect 56; //"2nd Guardian Stone#aru02" EF_BEGINSPELL4
+							specialeffect EF_BEGINSPELL4;
 							mes "^3355FFThe Gemstones must";
 							mes "be arranged in the correct";
 							mes "order according to their";
@@ -1075,7 +1093,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 								mes "^3355FFYou placed the Yellow Gemstone.^000000";
 								set .@nice,.@nice+10;
 								set .@roof0,.@roof0 + 1;
-								specialeffect 18; //"2nd Guardian Stone#aru02" EF_STEAL
+								specialeffect EF_STEAL;
 								next;
 								break;
 							case 3:
@@ -1096,7 +1114,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 						close;
 					}
 					else {
-						if (agitcheck() == 0) {
+						if (agitcheck2() == 0) {
 							mes "^3355FFIt is impossible to";
 							mes "rebuild the Guardian";
 							mes "Stone because the";
@@ -1115,7 +1133,7 @@ arug_cas02,245,168,0	script	2nd Guardian Stone#aru02	844,{
 							delitem 716,5; //Red_Gemstone
 							close2;
 							donpcevent "#aru02_df02::OnEnable";
-							specialeffect 135; //"2nd Guardian Stone#aru02" EF_ICECRASH
+							specialeffect EF_ICECRASH;
 							disablenpc "2nd Guardian Stone#aru02";
 							setarray $agit_ar02[1],0;
 							set .@df_all,$agit_ar02[0]+$agit_ar02[1];
@@ -1161,7 +1179,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "2nd Guardian Stone#aru02";
-	specialeffect 247; //"2nd Guardian Stone#aru02" EF_MAPPILLAR2
+	specialeffect EF_MAPPILLAR2;
 	end;
 
 OnDisable:
@@ -1169,11 +1187,9 @@ OnDisable:
 	end;
 }
 
-// Barrier Summoners
 arug_cas02,2,1,0	script	#aru02_RL00	-1,{
 OnEnable:
-	setcell "arug_cas02",136,136,143,136,cell_walkable,0;
-	setcell "arug_cas02",136,136,143,136,cell_shootable,0;
+	setwall "arug_cas02",136,136,8,6,0,"aru02_RL00";
 	guardian "arug_cas02",137,137," ",1905,"#aru02_RL00::OnBarrierDestroyed"; //24;
 	guardian "arug_cas02",139,137," ",1905,"#aru02_RL00::OnBarrierDestroyed"; //25;
 	guardian "arug_cas02",141,137," ",1905,"#aru02_RL00::OnBarrierDestroyed"; //26;
@@ -1181,8 +1197,7 @@ OnEnable:
 	end;
 
 OnDisable:
-	setcell "arug_cas02",136,136,143,136,cell_walkable,1;
-	setcell "arug_cas02",136,136,143,136,cell_shootable,1;
+	delwall "aru02_RL00";
 	killmonster "arug_cas02","#aru02_RL00::OnBarrierDestroyed";
 	end;
 
@@ -1193,7 +1208,7 @@ OnBarrierDestroyed:
 arug_cas02,2,2,0	script	#aru02_RL01	-1,{
 OnEnable:
 	set .MyMobCount,6;
-	setcell "arug_cas02",150,223,161,223,cell_walkable,0;
+	setwall "arug_cas02",150,223,12,6,1,"aru02_RL01";
 	guardian "arug_cas02",151,222," ",1905,"#aru02_RL01::OnBarrierDestroyed"; //28;
 	guardian "arug_cas02",153,222," ",1905,"#aru02_RL01::OnBarrierDestroyed"; //29;
 	guardian "arug_cas02",155,222," ",1905,"#aru02_RL01::OnBarrierDestroyed"; //30;
@@ -1207,12 +1222,12 @@ OnBarrierDestroyed:
 	if (.MyMobCount == 0) {
 		setarray $agit_ar02[2],1;
 		mapannounce "arug_cas02","The 1st Fortress Gate is destroyed.",bc_map,"0x00ff00";
-		setcell "arug_cas02",150,223,161,223,cell_walkable,1;
+		delwall "aru02_RL01";
 	}
 	end;
 
 OnDisable:
-	setcell "arug_cas02",150,223,161,223,cell_walkable,1;
+	delwall "aru02_RL01";
 	killmonster "arug_cas02","#aru02_RL01::OnBarrierDestroyed";
 	end;
 }
@@ -1220,7 +1235,7 @@ OnDisable:
 arug_cas02,2,3,0	script	#aru02_RL02	-1,{
 OnEnable:
 	set .MyMobCount,6;
-	setcell "arug_cas02",125,342,125,349,cell_walkable,0;
+	setwall "arug_cas02",125,342,8,0,1,"aru02_RL02";
 	guardian "arug_cas02",126,343," ",1905,"#aru02_RL02::OnBarrierDestroyed"; //34;
 	guardian "arug_cas02",126,345," ",1905,"#aru02_RL02::OnBarrierDestroyed"; //35;
 	guardian "arug_cas02",126,347," ",1905,"#aru02_RL02::OnBarrierDestroyed"; //36;
@@ -1234,12 +1249,12 @@ OnBarrierDestroyed:
 	if (.MyMobCount == 0) {
 		setarray $agit_ar02[3],1;
 		mapannounce "arug_cas02","The 2nd Fortress Gate is destroyed.",bc_map,"0x00ff00";
-		setcell "arug_cas02",125,342,125,349,cell_walkable,1;
+		delwall "aru02_RL02";
 	}
 	end;
 
 OnDisable:
-	setcell "arug_cas02",125,342,125,349,cell_walkable,1;
+	delwall "aru02_RL02";
 	killmonster "arug_cas02","#aru02_RL02::OnBarrierDestroyed";
 	end;
 }
@@ -1247,7 +1262,7 @@ OnDisable:
 arug_cas02,2,4,0	script	#aru02_RL03	-1,{
 OnEnable:
 	set .MyMobCount,4;
-	setcell "arug_cas02",38,314,49,314,cell_walkable,0;
+	setwall "arug_cas02",38,314,12,6,1,"aru02_RL03";
 	guardian "arug_cas02",40,315," ",1905,"#aru02_RL03::OnBarrierDestroyed"; //40;
 	guardian "arug_cas02",42,315," ",1905,"#aru02_RL03::OnBarrierDestroyed"; //41;
 	guardian "arug_cas02",44,315," ",1905,"#aru02_RL03::OnBarrierDestroyed"; //42;
@@ -1259,12 +1274,12 @@ OnBarrierDestroyed:
 	if (.MyMobCount == 0) {
 		setarray $agit_ar02[4],1;
 		mapannounce "arug_cas02","The 3rd Fortress Gate is destroyed!",bc_map,"0x00ff00";
-		setcell "arug_cas02",38,314,49,314,cell_walkable,1;
+		delwall "aru02_RL03";
 	}
 	end;
 
 OnDisable:
-	setcell "arug_cas02",38,314,49,314,cell_walkable,1;
+	delwall "aru02_RL03";
 	killmonster "arug_cas02","#aru02_RL03::OnBarrierDestroyed";
 	end;
 }
@@ -1312,7 +1327,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1365,7 +1380,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1389,7 +1404,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1430,7 +1445,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1447,7 +1462,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -1465,7 +1480,7 @@ arug_cas02,143,228,0	script	Control Device01#aru02	111,{
 							donpcevent "#aru02_RL01::OnEnable";
 							disablenpc "Control Device01#aru02";
 							mapannounce "arug_cas02","The 1st Fortress Gate has been reconstructed!",bc_map,"0x00ff00";
-							setarray $agit_ar01[2],0;
+							setarray $agit_ar02[2],0;
 							end;
 						}
 						else {
@@ -1549,7 +1564,7 @@ arug_cas02,118,356,0	script	Control Device02#aru02	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1602,7 +1617,7 @@ arug_cas02,118,356,0	script	Control Device02#aru02	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1626,7 +1641,7 @@ arug_cas02,118,356,0	script	Control Device02#aru02	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1667,7 +1682,7 @@ arug_cas02,118,356,0	script	Control Device02#aru02	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1684,7 +1699,7 @@ arug_cas02,118,356,0	script	Control Device02#aru02	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -1788,7 +1803,7 @@ arug_cas02,56,308,0	script	Control Device03#aru02	111,{
 									mes "reinforced with wood.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 2:
@@ -1841,7 +1856,7 @@ arug_cas02,56,308,0	script	Control Device03#aru02	111,{
 									mes "like this will work.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								}
@@ -1865,7 +1880,7 @@ arug_cas02,56,308,0	script	Control Device03#aru02	111,{
 									mes "is starting to look more solid.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 3:
@@ -1906,7 +1921,7 @@ arug_cas02,56,308,0	script	Control Device03#aru02	111,{
 									mes "much of the gate's damage.^000000";
 									set .@rp_temp,.@rp_temp + 1;
 									set .@ro_of02,.@ro_of02 + 1;
-									specialeffect2 101; // EF_REPAIRWEAPON
+									specialeffect2 EF_REPAIRWEAPON;
 									next;
 									break;
 								case 4:
@@ -1923,7 +1938,7 @@ arug_cas02,56,308,0	script	Control Device03#aru02	111,{
 					mes "you're just about done";
 					mes "with repairing the gate.^000000";
 					next;
-					if (agitcheck() == 0) {
+					if (agitcheck2() == 0) {
 						mes "^3355FFUnfortunately, the Fortress";
 						mes "Gate can't be reconstructed:";
 						mes "the Emperium is no longer here.^000000";
@@ -2258,16 +2273,30 @@ arug_cas02,303,341,3	script	Steward#aru02	55,{
 		close;
 	case 2:
 		set .@Economy,GetCastleData("arug_cas02",2);
-		if(.@Economy < 8) set .@eco_invest,10000;
-		if(.@Economy >= 8) set .@eco_invest,20000;
-		if(.@Economy >= 16) set .@eco_invest,40000;
-		if(.@Economy >= 25) set .@eco_invest,80000;
-		if(.@Economy >= 34) set .@eco_invest,160000;
-		if(.@Economy >= 44) set .@eco_invest,320000;
-		if(.@Economy >= 54) set .@eco_invest,640000;
-		if(.@Economy >= 65) set .@eco_invest,1280000;
-		if(.@Economy >= 76) set .@eco_invest,2560000;
-		if(.@Economy >= 88) set .@eco_invest,5120000;
+		if (.@Economy < 6) { set .@eco_invest,5000; }
+		else if ((.@Economy >= 6) && (.@Economy <= 10)) { set .@eco_invest,10000; }
+		else if ((.@Economy >= 11) && (.@Economy <= 15)) { set .@eco_invest,20000; }
+		else if ((.@Economy >= 16) && (.@Economy <= 20)) { set .@eco_invest,35000; }
+		else if ((.@Economy >= 21) && (.@Economy <= 25)) { set .@eco_invest,55000; }
+		else if ((.@Economy >= 26) && (.@Economy <= 30)) { set .@eco_invest,80000; }
+		else if ((.@Economy >= 31) && (.@Economy <= 35)) { set .@eco_invest,110000; }
+		else if ((.@Economy >= 36) && (.@Economy <= 40)) { set .@eco_invest,145000; }
+		else if ((.@Economy >= 41) && (.@Economy <= 45)) { set .@eco_invest,185000; }
+		else if ((.@Economy >= 46) && (.@Economy <= 50)) { set .@eco_invest,230000; }
+		else if ((.@Economy >= 51) && (.@Economy <= 55)) { set .@eco_invest,280000; }
+		else if ((.@Economy >= 56) && (.@Economy <= 60)) { set .@eco_invest,335000; }
+		else if ((.@Economy >= 61) && (.@Economy <= 65)) { set .@eco_invest,395000; }
+		else if ((.@Economy >= 66) && (.@Economy <= 70)) { set .@eco_invest,460000; }
+		else if ((.@Economy >= 71) && (.@Economy <= 75)) { set .@eco_invest,530000; }
+		else if ((.@Economy >= 76) && (.@Economy <= 80)) { set .@eco_invest,605000; }
+		else if ((.@Economy >= 81) && (.@Economy <= 85)) { set .@eco_invest,685000; }
+		else if ((.@Economy >= 86) && (.@Economy <= 90)) { set .@eco_invest,770000; }
+		else if ((.@Economy >= 91) && (.@Economy <= 95)) { set .@eco_invest,860000; }
+		else if ((.@Economy >= 96) && (.@Economy <= 100)) { set .@eco_invest,955000; }
+		//Quadruple the cost of investing if you've already invested once.
+		if (GetCastleData("arug_cas02",4)) {
+			set .@eco_invest,.@eco_invest*4;
+		}
 		mes "[ Steward ]";
 		mes "Raising the stronghold's";
 		mes "commercial growth will";
@@ -2329,7 +2358,6 @@ arug_cas02,303,341,3	script	Steward#aru02	55,{
 			}
 			set zeny,zeny-.@eco_invest;
 			SetCastleData "arug_cas02",4,GetCastleData("arug_cas02",4)+1;
-			SetCastleData "arug_cas02",2,.@Economy + 1 + (.@Economy<99 && rand(2) && getgdskilllv(.@GID,10014));
 			mes "[ Steward ]";
 			mes "A wise use of the guild's";
 			mes "funds, Master. We can expect";
@@ -2343,16 +2371,30 @@ arug_cas02,303,341,3	script	Steward#aru02	55,{
 		}
 	case 3:
 		set .@Defence,GetCastleData("arug_cas02",3);
-		if(.@Defence < 8) set .@def_invest,20000;
-		if(.@Defence >= 8) set .@def_invest,40000;
-		if(.@Defence >= 16) set .@def_invest,80000;
-		if(.@Defence >= 25) set .@def_invest,160000;
-		if(.@Defence >= 34) set .@def_invest,320000;
-		if(.@Defence >= 44) set .@def_invest,640000;
-		if(.@Defence >= 54) set .@def_invest,1280000;
-		if(.@Defence >= 65) set .@def_invest,2560000;
-		if(.@Defence >= 76) set .@def_invest,5120000;
-		if(.@Defence >= 88) set .@def_invest,10240000;
+		if (.@Defence < 6) { set .@def_invest,10000; }
+		else if ((.@Defence >= 6) && (.@Defence <= 10)) { set .@def_invest,20000; }
+		else if ((.@Defence >= 11) && (.@Defence <= 15)) { set .@def_invest,40000; }
+		else if ((.@Defence >= 16) && (.@Defence <= 20)) { set .@def_invest,70000; }
+		else if ((.@Defence >= 21) && (.@Defence <= 25)) { set .@def_invest,110000; }
+		else if ((.@Defence >= 26) && (.@Defence <= 30)) { set .@def_invest,160000; }
+		else if ((.@Defence >= 31) && (.@Defence <= 35)) { set .@def_invest,220000; }
+		else if ((.@Defence >= 36) && (.@Defence <= 40)) { set .@def_invest,290000; }
+		else if ((.@Defence >= 41) && (.@Defence <= 45)) { set .@def_invest,370000; }
+		else if ((.@Defence >= 46) && (.@Defence <= 50)) { set .@def_invest,460000; }
+		else if ((.@Defence >= 51) && (.@Defence <= 55)) { set .@def_invest,560000; }
+		else if ((.@Defence >= 56) && (.@Defence <= 60)) { set .@def_invest,670000; }
+		else if ((.@Defence >= 61) && (.@Defence <= 65)) { set .@def_invest,790000; }
+		else if ((.@Defence >= 66) && (.@Defence <= 70)) { set .@def_invest,920000; }
+		else if ((.@Defence >= 71) && (.@Defence <= 75)) { set .@def_invest,1060000; }
+		else if ((.@Defence >= 76) && (.@Defence <= 80)) { set .@def_invest,1210000; }
+		else if ((.@Defence >= 81) && (.@Defence <= 85)) { set .@def_invest,1370000; }
+		else if ((.@Defence >= 86) && (.@Defence <= 90)) { set .@def_invest,1540000; }
+		else if ((.@Defence >= 91) && (.@Defence <= 95)) { set .@def_invest,1720000; }
+		else if ((.@Defence >= 96) && (.@Defence <= 100)) { set .@def_invest,1910000; }
+		//Quadruple the cost of investing if you've already invested once.
+		if (GetCastleData("arug_cas02",5)) {
+			set .@def_invest,.@def_invest*4;
+		}
 		mes "[ Steward ]";
 		mes "Investing in our stronghold's";
 		mes "defense will enhance the";
@@ -2408,7 +2450,6 @@ arug_cas02,303,341,3	script	Steward#aru02	55,{
 			}
 			set zeny,zeny-.@def_invest;
 			SetCastleData "arug_cas02",5,GetCastleData("arug_cas02",5)+1;
-			SetCastleData "arug_cas02",3,.@Defence+1;
 			mes "[ Steward ]";
 			mes "A wise use of the guild's";
 			mes "funds, Master. Increasing";
@@ -2464,7 +2505,7 @@ arug_cas02,303,341,3	script	Steward#aru02	55,{
 				mes "allow her to stay with us.";
 				close;
 			}
-			disablenpc "Kafra Employee#arug_cas02";
+			disablenpc "Kafra Employee#aru02";
 			SetCastleData "arug_cas02",9,0;
 			mes "[ Steward ]";
 			mes "That Kafra Employee";
@@ -2604,7 +2645,7 @@ OnStartArena:
 	else if (.msg == 2) {
 		announce "The [" + getguildname(.@gid) + "] conquered the [Valfreyja 2] stronghold of "+GetCastleName("arug_cas02"),bc_all;
 		mapannounce "arug_cas02","The emperium has been shattered!",bc_map,"0x00FF00";
-		if (agitcheck()) {
+		if (agitcheck2()) {
 			donpcevent "Manager#aru02_02::Onreset";
 			initnpctimer;
 		}
@@ -2631,6 +2672,7 @@ OnTimer10000:
 
 // Guild Kafra
 arug_cas02,354,326,3	script	Kafra Employee#aru02	117,{
+	cutin "kafra_01",2;
 	set .@GID, GetCastleData("arug_cas02",1);
 	if (getcharid(2) == .@GID && getgdskilllv(.@GID,10001)) {
 		mes "[Kafra Employee]";
@@ -2847,11 +2889,11 @@ aru_gld,120,83,5	script	Cyr#flag_Ar02_3	722,{
 		mes "The Holy Kingdom of";
 		mes "Arunafeltz decrees that";
 		mes "this stronghold is owned";
-		mes "by the ^FF0000" + guildName + "^000000 Guild.";
+		mes "by the ^FF0000" + getGuildName(.@GID) + "^000000 Guild.";
 		next;
 		mes "[ Arunafeltz Royal Edict ]";
-		mes "^FF0000" + guildMaster + "^000000 is";
-		mes "Guild Master of ^FF0000" + guildName + "^000000.";
+		mes "^FF0000" + getGuildMaster(.@GID) + "^000000 is";
+		mes "Guild Master of ^FF0000" + getGuildName(.@GID) + "^000000.";
 		mes "Any that object must claim this";
 		mes "stronghold through strength of";
 		mes "steel and magic during the";

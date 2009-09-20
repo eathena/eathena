@@ -7,39 +7,274 @@
 	1308 Golden Axe:		NEED INFO
 	1475 Equestrian's Spear:	NEED INFO.
 	13005 Angelic Wing Dagger:	NEED INFO.
-	-----
-	Missing Effects:
-	12214 Convex_Mirror:		Detect MVP spawn on minimap; doesn't work with special condition MVPs. (Recommend constant: SC_DetectMVPSpawn)
-
-	Missing 12.1 Equipment Bonuses:
-	2537 Diablos_Manteau		Increase damage taken from "Satan Morroc" by 10%
-	2729 Diablos_Ring		Increase damage taken from "Satan Morroc" by 10%
-	1630 Release_of_Wish		Increased recovery skill effect + 5%. On magical attack, chance for two seconds you'll recover 50 SP and 100 HP.
-	1541 Nemesis			When attacking, chance to increase damage against demon and dark element monsters by 10%.
-
-	Battleground Reward items:
-	Various weapons			Some weapons require a bonus to bypass 20% defense on demi-human opponents.
-	13037 Assassin_Dagger_		When attacking, chance to gain occult impaction/icepick effect for 6 seconds, .
-	1380 Elite_Soldier's_Battle_Axe_	When attacking, chance to destroy (100%) the opponents armor for 3 seconds.
-	1543 Millitant_Morning_Star	When attacking, chance to stun (50%) the opponent for 6 seconds.
-	1824,Champion's_Battle_Fist_	When attacking, chance to negate the cast time on Guillotine Fist for 10 seconds.
-	1632 Wolong's_Magic_Staff	Adds a 5% chance to stun opponents with your magic.
-	1633 Wolong's_Magic_Staff_
-	13172 Soldier_Gatling_Gun	HP should drain gradually at 120hp/second while ATK boost is in effect.
-	13174 Soldier_Grenade_Launcher	
-	13173 Soldier_Shotgun		HP should drain gradually at 100hp/second while ATK boost is in effect.
-	13306 Battleground_Shuriken_	When attacking, chance to raise attack power of Throw Huuma Shuriken and Final Strike by 100% for 10 seconds
-	2379 Wolong's_Battle_Robe	chance to stone enemies for 10 seconds when receiving physical damage
-	2380 Robe_of_Order
-	2376 General's_Plate_Mail	Increases heal recovery effectiveness on you by 10%
-
-	Endless Tower+
-	13412 Naght_Seiger_Twin_Edge	Chance while attacking to pierce enemy defence for 5 seconds.
-	13413 Naght_Seiger_Twin_Edge_	Chance while attacking to pierce enemy defence for 5 seconds.
-	1185 Violet_Fear		Chance while attacking to pierce enemy defence for 5 seconds.
-	2385 Recuvative_Armor		Should trigger HP/SP return with magical kills as well.
-
 =======================
+2009/09/19
+	* Stone Curse's petrify duration should be 20 seconds at any levels. [Inkfish]
+2009/09/18
+	* Storm Gust's freeze duration should be 12 seconds at any levels. [Inkfish]
+2009/09/16
+	* Rev, 14061 Re-added missing mercenary scrolls to item_trade database, must have gotten lost while diffing. [L0ne_W0lf]
+	* Rev. 14060 Fixed the AI mode for Zombie, change I made while testing new the Luciola AI. [L0ne_W0lf]
+	* Updated item_trade with several new items, hopefully retaining most white space.
+2009/09/10
+	* Rev. 14052 Updated monster info 13.1 mobs. [L0ne_W0lf]
+	- Updated some stats and implemented Luciola Vespa AI use.
+	- Tweaked the skills for them, still custom though.
+2009/08/24
+	* Fixed items other than Masamune using bAspd. (only Masamune use bAspd in Aegis) [Inkfish]
+	* Fixed Cold Heart not checking weapon refinery count. (bugreport:3525) [Inkfish]
+	* Fixed some bonuses for Krieger weapons. [Inkfish]
+	* Fixed some conditions for bAddEff. [Inkfish]
+2009/08/03
+	* Rev. 13990 Fixed an error in an autobonus script (Nemesis), and added other items. [L0ne_W0lf]
+2009/07/30
+	Rev. 13983 Updated several 12.1 and 13.1 equipment effects and proc rates. [L0ne_W0lf]
+2009/07/26
+	* Rev. 13971 Updated item database with 13.1 content. [L0ne_W0lf]
+	- Added equipment using various sources, and iRO descs.
+	- Added ETC items based on personal experiences in game.
+	* Removed garbage text from the quest database.
+2009/07/25
+	* Rev. 13965 Extreme update to the quest_db file. [L0ne_W0lf]
+	- Added many new quests, although they are all unused by scripts currently.
+	- Changed several of the old quest names to match the names on iRO
+	- Removed garbage "quest(" remainants from several of the quests...
+2009/07/11
+	* The range of Magnetic Earth should be 2. (bugreport:3339) [Inkfish]
+2009/07/02
+	* Fixed a bug in Ifrit's drops (bugreport:3319) [Playtester]
+2009/06/29
+	* Updated drops to the released official bRO 12.1 drops [Playtester]
+2009/06/15
+	* Updated mob_db [Playtester]
+	- fixed various ATK2 values (bugreport:3185)
+	- Frilldora is finally angry again (bugreport:3243)
+2009/06/12
+	* Fixed the Memory Book combo using Eye Patch instead of Monocle (bugreport:3237) [Playtester]
+2009/06/08
+	* Fixed Radiant Wisdom giving double as much HP/SP than it should [Playtester]
+	- it will give 100 HP and 50 SP every 2 seconds for 10 seconds when it activates
+	* Fixed up the first set of Battle Ground armors [Playtester]
+	- reduced guessed chances from 5% to 0.5%
+	- fixed valorous huuma only giving 10% attack bonus instead of 100%
+2009/06/07
+	* Fixed up the first set of Battle Ground weapons [Playtester]
+	- reduced guessed chances from 5% to 0.5%
+	- some bonuses might still not work
+	* Fixed Ring of Flame Lord casting LK_CONCENTRATION instead of CH_SOULCOLLECT (bugreport:3199) [Playtester]
+	- also reduced level of MO_EXPLOSIONSPIRITS to 1
+2009/06/04
+	* Rev. 13843 Added skill information for NPC_HELLPOWER and NPC_WIDEHELLDIGNITY, and enabled skills in mob_skill_db. [L0ne_W0lf]
+2009/06/03
+	* Rev. 13842 Fixed Party Assumptio scroll casting level 10 assumptio. [L0ne_W0lf]
+2009/06/02
+	* Rev. 13840 Misc updates, and updates for party buff items. [L0ne_W0lf]
+	- Added CASH_BLESSING, CASH_INCAGI and CASH_ASSUMPTIO skills.
+	- Added itemskill commands for the party buff scrolls.
+	- Corrected Equipment repair book's itemtype to 11.
+2009/05/29
+	* Rev. 13825 Removed an extra comma from chocolate_pie. [L0ne_W0lf]
+	* Rev. 13824 Various item database updates of my own :D [L0ne_W0lf]
+	- Updated items that increase heal effectiveness to use bHealPower.
+	- Added Fishing gear (has no effect and is currently not used)
+	- Added some missing items from the episode 13.1 update.
+	- Updated AEGIS names for various episode 13.1 items.
+	* Various small item_db fixes [Playtester]
+	- 11.3 typo fixes
+	- fixed Phantom Spear being backwards (now you need the seal to decrease the self-confusion)
+	- added missing bHealPower bonuses
+	- Base Guitar and Foot of Sea Witch now autocast on target rather than self
+	- Valkyrie's Shoes, Ragamuffin Manteau, Valkyrie's Manteau, Asprika and Vanilmirth Hat are now unbreakable
+	- Asprika and Vanilmirth Hat make no longer your armor unbreakable
+2009/05/26
+	* Some mob_skill_db updates [Playtester]
+	- fixed monsters trying to use Exile on self
+	- removed Bowling Bash from Thanatos (he doesn't use it anymore)
+2009/05/19
+	* Updated item_db and skill_cast_db [Playtester]
+	- fixed Sabbath giving 500 Crit instead of 50 Crit
+	- updated the comment on Dragon Fear in skill_cast_db
+	* Fixed Coma chances being 10 times too high [Playtester]
+2009/05/18
+	* NPC skills now use the official default durations for status changes [Playtester]
+2009/05/15
+	* Rev. 13784 Updated walk speed and aspd of Okolnir mobs, also fixed the flower mob modes. [L0ne_W0lf]
+	* Rev. 13779 Minor database updates related to the Falicious Okolnir dungeon. [L0ne_W0lf]
+	- Corrected the names of Andvari's Ring and Valkyrie's Token.
+	- Added Crystal_Key and Valkyrie's_Gift item_trade restrictions.
+	* Removed custom behavior on some AutoSpellWhenHit bonuses [Playtester]
+	- they now use aegis default activation (SHORT+LONG+WEAPON+NORMAL+SKILL)
+	* Added graphical effects to bonusautoscripts of Bloody Eater and Atroce Card [Playtester]
+2009/05/13
+	* Fixed activation rates on Bloody Eater and Violet Fear [Playtester]
+	- Bloody Eater is 0.1% activation for 5 seconds
+	- Violet Fear is 3% chance to activate Meteor Storm and 5% chance to activate Frost Nova
+2009/05/12
+	* SG_WARM no longer ignores FLEE by default. [Inkfish]
+2009/05/11
+	* Rev. 13753 Fixed a couple mistakes in r13752, extra commas at the end a couple lines, and missing quotes around an AL_HEAL. [L0ne_W0lf]
+2009/05/10
+	* Rev. 13752 Updated pet database. [L0ne_W0lf]
+	- Defined the header for the pet database. Lordy was this not fun.
+	- All pets now walk at character speed (150), but do not inherit bonuses from owner.
+	- All pets have the same hungrydelay, and will lose hunger at 80 points per 60 seconds.
+	- Corrected capture success rates for Alice, Zealotus, and the goblin pets.
+	* Rev. 13749 Osiris now summons the correct amount of Ancient Mummies at the right slave number (Partial revert of r7010.) [L0ne_W0lf]
+2009/05/08
+	* Rev. 13743 Well, as it turns out, DETECTOR is actually detect hidden (not cast sense.) Elder is at least fixed though. [L0ne_W0lf]
+	- Reverted the mob mode change for nearly all mobs. Elder is exempt from this revert.
+	- Adding some "closer to official" stats for the Okolnir Monsters, Wish Maiden, Piamette, Etc.
+	* As an added bonus for that snaffu I'm implementing hte Okolnir mob skills as well.
+2009/05/07
+	* Rev. 13742 Looking into why the monster Elder was not working as intended lead to fixes! [L0ne_W0lf]
+	- Monsters that are 1) aggressive 2) change targets and 3) and ANGRY will no longer cast sensor.
+	* Fixed Satan Morroc resummoning normal mobs instead of slaves (bugreport:3056) [Playtester]
+2009/05/04
+	* Added cast time and sp cost for Waterball Lvl 6 - 10 [Inkfish]
+2009/05/03
+	* Snatch now works with all weapons (including bow!) [Playtester]
+	- range doesn't depend on weapon range anymore and is always 1 even with bows
+2009/05/02
+	* Re-added Kasa's missing Shield Reflect (bugreport:3039) [Playtester]
+2009/04/29
+	* Incarnation of Morroc (Angel) is now Shadow 1 instead of Holy 1 [Playtester]
+2009/04/21
+	* Fixed items that use the "AddSPAmount_Action" bonus on aegis [Playtester]
+	- Guillotine gives you 2 SP each time you attack something with a normal attack
+	  (only worked with DemiHuman)
+	- Tjungkuletti gives you 1 SP each time you attack something with a normal attack
+	  (before it drained 1 SP from the target instead)
+	- Dark Priest Card gives Sages 1 SP each time you attack something with a normal attack
+	  (before it was per kill)
+	- also added the bSPDrainValue bonus to the documentation again
+2009/04/20
+	* Fixed slotted Memory Book not giving the combo bonus (bugreport:2997) [Playtester]
+2009/04/17
+	* Fixed a few items [Playtester]
+	- Windhawk can be equipped by thief class
+	- a few axes are for trans classes only
+	- fixed def bonus of Luna Bow
+	- fixed a few aegis names thanks to b0nes
+2009/04/06
+	* Updated Gatekeeper-DD and two minor Endless Tower fixes [Playtester]
+2009/04/04
+	* Monster and Item update [Playtester]
+	- implemented Endless Tower and Sealed Shrine mobs properly
+	- added the official drops to them
+	- some skills are still missing so be careful
+	- fixed up the remaining 12.1 cards (chances)
+	* Fixed many of the 12.1 gears [Playtester]
+	- for details create a diff of the changes
+2009/04/03
+	* Fixed mob mode on Beetle King and Les [Playtester]
+	- Beetle King is passive / assist now
+	- Les can't detect anymore
+2009/04/02
+	* Fixed Kasa and Muscipular Card [Playtester]
+	* Fixed Gazeti Card [Playtester]
+2009/04/01
+	* Fixed 12.1 Swords and Daggers [Playtester]
+2009/03/31
+	* Fixed Nemesis [Playtester]
+	* Some fixes on the 12.1 Rods [Playtester]
+2009/03/29
+	* Fixed Ribbon of Bride and Baphomet Horns [Playtester]
+2009/03/25
+	* Added cooking packets to packet_db.txt
+	* Changed the cooking kit items to use the new 'cooking' function [ultramage]
+	* Added missing 12.1 drops to the monsters [Playtester]
+	* Fixed Sonic Blow's and Arrow Vulcan's aftercast delay being reducable by Bragi [Playtester]
+2009/03/24
+	* Fixed Incarnations of Morroc losing their boss mode [Playtester]
+2009/03/23
+	* Fixed the duration of NPC_Statuschange skills [Playtester]
+	- duration is a fixed 30s, except for stun 5s and bleeding 60s
+	- petrify/stone don't have a 5-second solidifying phase (instant stone)
+	- also lol @ DARKGRANDNESS
+	* Added new packets, included new status change packet. [Sara]
+2009/03/22
+	* Hopefully fixed NPC_DEFENDER not working [Playtester]
+	  (thanks to Brainstorm for the fix)
+2009/03/21
+	* Fixed Anubis (who made him broken and exploitable in the first place?) [Playtester]
+2009/03/19
+	* A few database fixes [Playtester]
+	- Fixed Maya Purple losing her boss mode
+	- Removed combo bonuses that shouldn't exist
+	- Removed stun chance from normal potatos
+2009/03/18
+	* Corrected names, damage and modes of Moscovia mobs [Playtester]
+2009/03/17
+	* Rev. 13592 Removed garbage # from the medal of honor names. [L0ne_W0lf]
+2009/03/16
+	* Rev. 13589 Lots of tiny little updates here and there. [L0ne_W0lf]
+	- Added official skills for Naght Seiger and Entweihen Crothen.
+	- Added the skill bash to the list for the Wild Rose mercenary.
+	- Updated some of the newer item names to the iRO equivilent.
+	- Added new items for Sealed Catacombs and Endless Tower.
+	- Minor updates to the Arrow Crafting database.
+2009/01/06
+	* Rev. 13436 Updated monster modes for battleground NPCs. [L0ne_W0lf]
+2009/01/02
+	* Rev. 13429 Removed bonuses from Novice Armlet. C'mon guys. :( [L0ne_W0lf]
+2008/12/26
+	* Rev. 13415 Updated episode 12.1 skills to official. [L0ne_W0lf]
+2008/12/17
+	* Rev. 13405 Added additional maps to map_index.txt. [L0ne_W0lf]
+	* Rev. 13404 Semi-reverted r13396. All item bonuses from past events can be found in item_db2. [L0ne_W0lf]
+2008/12/05
+	* Rev. 13393 Added new, and for the time being, useless, 'quest_db'. [L0ne_W0lf]
+2008/11/22
+	* Updated effects for the Radio Antenna (bugreport:2465) [Jman]
+	* Fixed small typo with Platinum Shield (bugreport:2470) [Jman]
+2008/11/18
+	* Rev. 13376 Some bug fixes here too! Holy crap! Bug fixes everywhere! [L0ne_W0lf]
+	- Corrected Wolfheiden and Mithril magic cape skill levels. (bugreport:2431)
+	- Corrected 12.1 monsters using penuma on target not self. (bugreport:2435)
+2008/11/07
+	* Rev. 13357 Corrected typo in Librarian Gloves bonuses. [L0ne_W0lf]
+2008/11/05
+	* Fixed the maximum level of Create Elemental Converter. (bugreport:2423) [Sara]
+2008/10/27
+	* Removed a leftover instance of "bLoseSPWhenUnequip" in item 2385, Recuperative_Armor. [Paradox924X]
+2008/10/25
+	* Rev. 13324 iRO lied to me. Reverted casting range of traps to 3. [L0ne_W0lf]
+	* Rev. 13323 Just some random updates and bugfixes! [L0ne_W0lf]
+	- Corrected Landmine's placement range. (bugreport:2305)
+	- Corrected comment in merc skill db. (bugreport:2324)
+	- Corrected the casting range for traps. (Based on visial comparison from iRO)
+2008/10/11
+	* Rev. 13282 Just some minor updates and fixes I've been putting off :D [L0ne_W0lf]
+	- Corrected some of the item typos mentioned by Argatlahm. (bugreport:2326)
+	- Corrected Gorynych summoning Freezers instead of Leskava. (bugreport:2334)
+	- Moved all event items to item_db2 as part of the fix for bugreport:2337.
+	  To activate event bonuses for old event items, you need to just uncomment them now.
+2008/10/09
+	* Rev. 13273 Removed duplicate constant I added in r13272. [L0ne_W0lf]
+2008/10/07
+	* Rev. 13267 Adjusted known values for BonusAutoScript down by rate/10. [L0ne_W0lf]
+	- Most cards now trigger at a 0.x% while Isilla only triggers 5%.
+	* Implemented Monster Rental Rings that increase exp by 1% per race.
+	* Corrected typo in Strawberry Chocolate. SC -> AL. (bugreport:2303)
+2008/10/03
+	* Rev. 13255 Implemented Official Moscovia monster skills. Should finish 11.3 [L0ne_W0lf]
+	* Corrected Beelzebub's summonslave so he spawns 7 flys and 3 chons.
+	* Implemented the Bombring Box. On use summons one bomb poring.
+2008/09/10
+	* Rev. 13219 Updated Giant Enyclopedia bonus. (bugreport:2053)
+	* Removed Snap from nocast_db in WoE SE
+2008/09/05
+	* Rev. 13192 Removed job and level restriction on Mercenary ASPD potions. [L0ne_W0lf]
+	* Added Monster Mercenaries using mobs original stats.
+2008/09/03
+	* Fixed minor inconsistencies with mob_skill_db. (bugreport:2148) [L0ne_W0lf]
+2008/08/31
+	* Rev. 13160 Added item effects for Mercenary potions. [L0ne_W0lf]
+2008/08/29
+	* Rev. 13153 Couple small corrections to the mob database. [L0ne_W0lf]
+2008/08/25
+	* Rev. 13133 Corrected Spear and Swordman mercenary scrolls again. [L0ne_W0lf]
+	* Rev. 13132 Corrected Spear and Swordman mercenary summoning scrolls. [L0ne_W0lf]
 2008/08/21
 	* Rev. 13105 Archer and Knight guardians (WoE 1.0) will no longer detect hidden. [L0ne_W0lf]
 2008/08/19
