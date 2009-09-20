@@ -1007,7 +1007,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 
 			rate = (!sd->state.arrow_atk) ? sd->autospell[i].rate : sd->autospell[i].rate / 2;
 
-			if (rand()%1000 > rate)
+			if (rand()%1000 >= rate)
 				continue;
 
 			tbl = (sd->autospell[i].id < 0) ? src : bl;
@@ -1048,7 +1048,7 @@ int skill_additional_effect (struct block_list* src, struct block_list *bl, int 
 		int i;
 		for( i = 0; i < ARRAYLENGTH(sd->autobonus); i++ )
 		{
-			if( rand()%1000 > sd->autobonus[i].rate )
+			if( rand()%1000 >= sd->autobonus[i].rate )
 				continue;
 			if( sd->autobonus[i].active != INVALID_TIMER )
 				continue;
@@ -1107,7 +1107,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, int s
 
 		if( sd->autospell3[i].id >= 0 && bl == NULL )
 			continue; // No target
-		if( rand()%1000 > sd->autospell3[i].rate )
+		if( rand()%1000 >= sd->autospell3[i].rate )
 			continue;
 		tbl = (sd->autospell3[i].id < 0) ? &sd->bl : bl;
 
@@ -1129,7 +1129,7 @@ int skill_onskillusage(struct map_session_data *sd, struct block_list *bl, int s
 	{
 		for( i = 0; i < ARRAYLENGTH(sd->autobonus3); i++ )
 		{
-			if( rand()%1000 > sd->autobonus3[i].rate )
+			if( rand()%1000 >= sd->autobonus3[i].rate )
 				continue;
 			if( sd->autobonus3[i].active != INVALID_TIMER )
 				continue;
@@ -1234,13 +1234,21 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		status_heal(src, 0, status_get_lv(bl)*(95+15*rate)/100, 2);
 	}
 
-	if( sd && status_isdead(bl) && attack_type&BF_WEAPON )
+	if( sd && status_isdead(bl) )
 	{
 		int sp = 0, hp = 0;
-		sp += sd->sp_gain_value;
-		sp += sd->sp_gain_race[status_get_race(bl)];
-		sp += sd->sp_gain_race[is_boss(bl)?RC_BOSS:RC_NONBOSS];
-		hp += sd->hp_gain_value;
+		if( attack_type&BF_WEAPON )
+		{
+			sp += sd->sp_gain_value;
+			sp += sd->sp_gain_race[status_get_race(bl)];
+			sp += sd->sp_gain_race[is_boss(bl)?RC_BOSS:RC_NONBOSS];
+			hp += sd->hp_gain_value;
+		}
+		if( attack_type&BF_MAGIC )
+		{
+			sp += sd->magic_sp_gain_value;
+			hp += sd->magic_hp_gain_value;
+		}
 		if( hp || sp )
 			status_heal(src, hp, sp, battle_config.show_hp_sp_gain?2:0);
 	}
@@ -1270,7 +1278,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 
 			if (skillnotok(skillid, dstsd))
 				continue;
-			if (rand()%1000 > rate)
+			if (rand()%1000 >= rate)
 				continue;
 
 			tbl = (dstsd->autospell2[i].id < 0) ? bl : src;
@@ -1311,7 +1319,7 @@ int skill_counter_additional_effect (struct block_list* src, struct block_list *
 		int i;
 		for( i = 0; i < ARRAYLENGTH(dstsd->autobonus2); i++ )
 		{
-			if( rand()%1000 > dstsd->autobonus2[i].rate )
+			if( rand()%1000 >= dstsd->autobonus2[i].rate )
 				continue;
 			if( dstsd->autobonus2[i].active != INVALID_TIMER )
 				continue;
@@ -1739,7 +1747,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 				unit_cancel_combo(src); // Cancel combo wait
 				break;
 			default:
-				status_change_end(src,SC_COMBO,-1);
+				if( src == dsrc ) // Ground skills are exceptions. [Inkfish]
+					status_change_end(src,SC_COMBO,-1);
 			}
 		}
 		switch(skillid)
@@ -1917,7 +1926,8 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	if(skillid == CR_GRANDCROSS || skillid == NPC_GRANDDARKNESS)
 		dmg.flag |= BF_WEAPON;
 
-	if(sd && dmg.flag&BF_WEAPON && src != bl && src == dsrc && damage > 0) {
+	if( sd && dmg.flag&BF_WEAPON && src != bl && ( src == dsrc || ( dsrc->type == BL_SKILL && ( skillid == SG_SUN_WARM || skillid == SG_MOON_WARM || skillid == SG_STAR_WARM ) ) )  && damage > 0 )
+	{
 		if (battle_config.left_cardfix_to_right)
 			battle_drain(sd, bl, dmg.damage, dmg.damage, tstatus->race, tstatus->mode&MD_BOSS);
 		else
@@ -3815,7 +3825,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 	case CR_DEVOTION:
 		{
 			int count, lv;
-			if( !dstsd )
+			if( !dstsd || (!sd && !mer) )
 			{ // Only players can be devoted
 				if( sd )
 					clif_skill_fail(sd, skillid, 0, 0);
@@ -4231,8 +4241,6 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			}
 			if(status_isimmune(bl) || !tsc)
 				break;
-			if (dstmd)
-				mob_target(dstmd,src,skill_get_range2(src,skillid,skilllv));
 
 			if (tsc->data[SC_STONE]) {
 				status_change_end(bl,SC_STONE,-1);
@@ -4398,7 +4406,7 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 				break;
 			}
 
-			if( sd->state.autocast || sd->skillitem == AL_TELEPORT || (battle_config.skip_teleport_lv1_menu && skilllv == 1) || skilllv > 2 )
+			if( sd->state.autocast || ( (sd->skillitem == AL_TELEPORT || battle_config.skip_teleport_lv1_menu) && skilllv == 1 ) || skilllv == 3 )
 			{
 				if( skilllv == 1 )
 					pc_randomwarp(sd,3);
@@ -7464,8 +7472,12 @@ int skill_unit_onplace_timer (struct skill_unit *src, struct block_list *bl, uns
 							status_zap(bl, 0, 15); // sp damage to players
 						else // mobs
 						if( status_charge(ss, 0, 2) ) // costs 2 SP per hit
-							skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick+count*sg->interval,0);
-						else { //should end when out of sp.
+						{
+							if( !skill_attack(BF_WEAPON,ss,&src->bl,bl,sg->skill_id,sg->skill_lv,tick+count*sg->interval,0) )
+								status_charge(ss, 0, 8); //costs additional 8 SP if miss
+						}
+						else
+						{ //should end when out of sp.
 							sg->limit = DIFF_TICK(tick,sg->tick);
 							break;
 						}

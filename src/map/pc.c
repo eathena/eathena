@@ -25,6 +25,7 @@
 #include "map.h"
 #include "path.h"
 #include "homunculus.h"
+#include "instance.h"
 #include "mercenary.h"
 #include "mob.h" // MAX_MOB_RACE_DB
 #include "npc.h" // fake_nd
@@ -2229,6 +2230,14 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		if(!sd->state.lr_flag)
 			sd->hp_gain_value += val;
 		break;
+	case SP_MAGIC_SP_GAIN_VALUE:
+		if(!sd->state.lr_flag)
+			sd->magic_sp_gain_value += val;
+		break;
+	case SP_MAGIC_HP_GAIN_VALUE:
+		if(!sd->state.lr_flag)
+			sd->magic_hp_gain_value += val;
+		break;
 	case SP_ADD_HEAL_RATE:
 		if(sd->state.lr_flag != 2)
 			sd->add_heal_rate += val;
@@ -3873,11 +3882,13 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
  *------------------------------------------*/
 int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y, uint8 clrtype)
 {
+	struct party_data *p;
 	int m;
 
 	nullpo_retr(0, sd);
 
-	if (!mapindex || !mapindex_id2name(mapindex)) {
+	if( !mapindex || !mapindex_id2name(mapindex) )
+	{
 		ShowDebug("pc_setpos: Passed mapindex(%d) is invalid!\n", mapindex);
 		return 1;
 	}
@@ -3889,17 +3900,17 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	}
 
 	m = map_mapindex2mapid(mapindex);
-	if( map[m].instance_map[0] && map[m].instance_id == 0 )
-	{ // Source Instance Map
-		int im = map_instance_map2imap(m, sd, 0);
-		if( im <= 0 )
-		{
-			ShowError("pc_setpos: player %s trying to enter instance map '%s' without instanced copy.\n", sd->status.name, map[m].name);
-			return 2; // map not found
+	if( map[m].flag.src4instance && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+	{
+		// Request the mapid of this src map into the instance of the party
+		int im = instance_map2imap(m, p->instance_id);
+		if( im < 0 )
+			; // Player will enter the src map for instances
+		else
+		{ // Changes destiny to the instance map, not the source map
+			m = im;
+			mapindex = map_id2index(m);
 		}
-
-		m = im;
-		mapindex = map_id2index(m);
 	}
 
 	sd->state.changemap = (sd->mapindex != mapindex);
@@ -5368,23 +5379,25 @@ static int pc_respawn_timer(int tid, unsigned int tick, int id, intptr data)
 void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp)
 {
 	if (sp) clif_updatestatus(sd,SP_SP);
-	if (!hp) return;
+	if (hp) clif_updatestatus(sd,SP_HP);
+	else return;
+	
+	if( !src || src == &sd->bl )
+		return;
 
-	if(pc_issit(sd)) {
+	if( pc_issit(sd) )
+	{
 		pc_setstand(sd);
 		skill_sit(sd,0);
 	}
 
-	clif_updatestatus(sd,SP_HP);
+	if( sd->progressbar.npc_id )
+		clif_progressbar_abort(sd);
 
-	if(!src || src == &sd->bl)
-		return;
-	
-	if(sd->status.pet_id > 0 && sd->pd && battle_config.pet_damage_support)
+	if( sd->status.pet_id > 0 && sd->pd && battle_config.pet_damage_support )
 		pet_target_check(sd,src,1);
 
 	sd->canlog_tick = gettick();
-	return;
 }
 
 int pc_dead(struct map_session_data *sd,struct block_list *src)

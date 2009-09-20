@@ -1823,6 +1823,8 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		+ sizeof(sd->add_heal2_rate)
 		+ sizeof(sd->hp_gain_value)
 		+ sizeof(sd->sp_gain_value)
+		+ sizeof(sd->magic_hp_gain_value)
+		+ sizeof(sd->magic_sp_gain_value)
 		+ sizeof(sd->sp_vanish_rate)
 		+ sizeof(sd->sp_vanish_per)
 		+ sizeof(sd->unbreakable)
@@ -4625,7 +4627,8 @@ int status_get_sc_def(struct block_list *bl, enum sc_type type, int rate, int ti
 	}
 
 	//When no tick def, reduction is the same for both.
-	if (!tick_def) tick_def = sc_def;
+	if( !tick_def && type != SC_STONE ) //Recent tests show duration of petrify isn't reduced by MDEF. [Inkfish]
+		tick_def = sc_def;
 
 	//Natural resistance
 	if (!(flag&8)) {
@@ -4730,7 +4733,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			return 0;
 	break;
 	case SC_AETERNA:
-		if (sc->data[SC_STONE] || sc->data[SC_FREEZE])
+		if( (sc->data[SC_STONE] && sc->opt1 == OPT1_STONE) || sc->data[SC_FREEZE] )
 			return 0;
 	break;
 	case SC_KYRIE:

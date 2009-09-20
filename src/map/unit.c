@@ -13,6 +13,7 @@
 #include "mob.h"
 #include "pet.h"
 #include "homunculus.h"
+#include "instance.h"
 #include "mercenary.h"
 #include "skill.h"
 #include "clif.h"
@@ -846,8 +847,12 @@ int unit_skilluse_id2(struct block_list *src, int target_id, short skill_num, sh
 		sc = NULL; //Unneeded
 
 	//temp: used to signal combo-skills right now.
-	temp = ( target_id == src->id && 
-		   ( (sd && sd->state.combo) || (skill_get_inf(skill_num)&INF_SELF_SKILL && skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF) ) );
+	temp =	( target_id == src->id && 
+				( 
+					( !(skill_get_inf(skill_num)&INF_SELF_SKILL) && sd && sd->state.combo ) || 
+					( skill_get_inf(skill_num)&INF_SELF_SKILL && skill_get_inf2(skill_num)&INF2_NO_TARGET_SELF ) 
+				) 
+			);
 	if (temp)
 		target_id = ud->target; //Auto-select skills. [Skotlex]
 
@@ -1843,7 +1848,7 @@ int unit_remove_map_(struct block_list *bl, int clrtype, const char* file, int l
 		if( map[bl->m].instance_id )
 		{
 			instance[map[bl->m].instance_id].users--;
-			map_instance_check_idle(map[bl->m].instance_id);
+			instance_check_idle(map[bl->m].instance_id);
 		}
 		sd->state.debug_remove_map = 1; // temporary state to track double remove_map's [FlavioJS]
 		sd->debug_file = file;

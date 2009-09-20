@@ -33,15 +33,6 @@
 #include <stdarg.h>
 #include <time.h>
 
-struct s_quest_db {
-	int id;
-	unsigned int time;
-	int mob[MAX_QUEST_OBJECTIVES];
-	int count[MAX_QUEST_OBJECTIVES];
-	//char name[NAME_LENGTH];
-};
-struct s_quest_db quest_db[MAX_QUEST_DB];
-
 int quest_search_db(int quest_id)
 {
 	int i;
@@ -59,8 +50,8 @@ int quest_pc_login(TBL_PC * sd)
 	if(sd->avail_quests == 0)
 		return 1;
 
-	clif_send_questlog(sd);
-	clif_send_questlog_info(sd);
+	clif_quest_send_list(sd);
+	clif_quest_send_mission(sd);
 
 	return 0;
 }
@@ -68,7 +59,7 @@ int quest_pc_login(TBL_PC * sd)
 int quest_add(TBL_PC * sd, int quest_id)
 {
 
-	int i, j, count;
+	int i, j;
 
 	if( sd->num_quests >= MAX_QUEST_DB )
 	{
@@ -90,23 +81,22 @@ int quest_add(TBL_PC * sd, int quest_id)
 
 	i = sd->avail_quests;
 	memmove(&sd->quest_log[i+1], &sd->quest_log[i], sizeof(struct quest)*(sd->num_quests-sd->avail_quests));
+	memmove(sd->quest_index+i+1, sd->quest_log+i, sizeof(int)*(sd->num_quests-sd->avail_quests));
 
 	memset(&sd->quest_log[i], 0, sizeof(struct quest));
 	sd->quest_log[i].quest_id = quest_db[j].id;
 	if( quest_db[j].time )
 		sd->quest_log[i].time = (unsigned int)(time(NULL) + quest_db[j].time);
 	sd->quest_log[i].state = Q_ACTIVE;
-	for( count = 0; count < MAX_QUEST_OBJECTIVES && quest_db[j].mob[count]; count++ )
-		sd->quest_log[i].mob[count] = quest_db[j].mob[count];
-	sd->quest_log[i].num_objectives = count;
 
+	sd->quest_index[i] = j;
 	sd->num_quests++;
 	sd->avail_quests++;
 
+	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
+
 	if( save_settings&64 )
 		chrif_save(sd,0);
-	else
-		intif_quest_save(sd);
 
 	return 0;
 }
@@ -114,13 +104,7 @@ int quest_add(TBL_PC * sd, int quest_id)
 int quest_change(TBL_PC * sd, int qid1, int qid2)
 {
 
-	int i, j, count;
-
-	if( sd->num_quests >= MAX_QUEST_DB )
-	{
-		ShowError("quest_change: Character %d has got all the quests.(max quests: %d)\n", sd->status.char_id, MAX_QUEST_DB);
-		return 1;
-	}
+	int i, j;
 
 	if( quest_check(sd, qid2, HAVEQUEST) >= 0 )
 	{
@@ -147,27 +131,19 @@ int quest_change(TBL_PC * sd, int qid1, int qid2)
 		return -1;
 	}
 
-	// Complete quest
-	sd->quest_log[i].state = Q_COMPLETE;
-	memcpy(&sd->quest_log[sd->num_quests], &sd->quest_log[i],sizeof(struct quest));
-	clif_send_quest_delete(sd, qid1);
-
-	// Add new quest
 	memset(&sd->quest_log[i], 0, sizeof(struct quest));
 	sd->quest_log[i].quest_id = quest_db[j].id;
 	if( quest_db[j].time )
 		sd->quest_log[i].time = (unsigned int)(time(NULL) + quest_db[j].time);
 	sd->quest_log[i].state = Q_ACTIVE;
-	for( count = 0; count < MAX_QUEST_OBJECTIVES && quest_db[j].mob[count]; count++ )
-		sd->quest_log[i].mob[count] = quest_db[j].mob[count];
-	sd->quest_log[i].num_objectives = count;
 
-	sd->num_quests++;
+	sd->quest_index[i] = j;
+
+	clif_quest_delete(sd, qid1);
+	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
 
 	if( save_settings&64 )
 		chrif_save(sd,0);
-	else
-		intif_quest_save(sd);
 
 	return 0;
 }
@@ -187,18 +163,42 @@ int quest_delete(TBL_PC * sd, int quest_id)
 	if( sd->quest_log[i].state != Q_COMPLETE )
 		sd->avail_quests--;
 	if( sd->num_quests-- < MAX_QUEST_DB && sd->quest_log[i+1].quest_id )
+	{
 		memmove(&sd->quest_log[i], &sd->quest_log[i+1], sizeof(struct quest)*(sd->num_quests-i));
+		memmove(sd->quest_index+i, sd->quest_index+i+1, sizeof(int)*(sd->num_quests-i));
+	}
 	memset(&sd->quest_log[sd->num_quests], 0, sizeof(struct quest));
+	sd->quest_index[sd->num_quests] = 0;
 
-	clif_send_quest_delete(sd, quest_id);
+	clif_quest_delete(sd, quest_id);
 
 	if( save_settings&64 )
 		chrif_save(sd,0);
-	else
-		intif_quest_save(sd);
 
 	return 0;
 }
+
+int quest_update_objective_sub(struct block_list *bl, va_list ap)
+{
+	struct map_session_data * sd;
+	int mob, party;
+
+	nullpo_retr(0, bl);
+	nullpo_retr(0, sd = (struct map_session_data *)bl);
+
+	party = va_arg(ap,int);
+	mob = va_arg(ap,int);
+
+	if( !sd->avail_quests )
+		return 0;
+	if( sd->status.party_id != party )
+		return 0;
+
+	quest_update_objective(sd, mob);
+
+	return 1;
+}
+
 
 void quest_update_objective(TBL_PC * sd, int mob)
 {
@@ -210,14 +210,10 @@ void quest_update_objective(TBL_PC * sd, int mob)
 			continue;
 
 		for( j = 0; j < MAX_QUEST_OBJECTIVES; j++ )
-			if( sd->quest_log[i].mob[j] == mob )
+			if( quest_db[sd->quest_index[i]].mob[j] == mob && sd->quest_log[i].count[j] < quest_db[sd->quest_index[i]].count[j] ) 
 			{
 				sd->quest_log[i].count[j]++;
-
-				// Should figure out the real packet.
-				//clif_send_quest_delete(sd, sd->quest_log[i].quest_id);
-				//clif_send_quest_info(sd, &sd->quest_log[i]);
-				//break;
+				clif_quest_update_objective(sd,&sd->quest_log[i],sd->quest_index[i]);
 			}
 	}
 }
@@ -238,7 +234,7 @@ int quest_update_status(TBL_PC * sd, int quest_id, quest_state status)
 
 	if( status < Q_COMPLETE )
 	{
-		clif_send_quest_status(sd, quest_id, (bool)status);
+		clif_quest_update_status(sd, quest_id, (bool)status);
 		return 0;
 	}
 
@@ -250,12 +246,10 @@ int quest_update_status(TBL_PC * sd, int quest_id, quest_state status)
 		memcpy(&sd->quest_log[sd->avail_quests], &tmp_quest,sizeof(struct quest));
 	}
 
-	clif_send_quest_delete(sd, quest_id);
+	clif_quest_delete(sd, quest_id);
 
 	if( save_settings&64 )
 		chrif_save(sd,0);
-	else
-		intif_quest_save(sd);
 
 	return 0;
 }
@@ -276,13 +270,7 @@ int quest_check(TBL_PC * sd, int quest_id, quest_check_type type)
 		return (sd->quest_log[i].time < (unsigned int)time(NULL) ? 2 : sd->quest_log[i].state == Q_COMPLETE ? 1 : 0);
 	case HUNTING:
 		{
-			int j = quest_search_db(quest_id);
-
-			if( j < 0 )
-			{
-				ShowError("quest_check_quest: quest %d not found in DB.\n",quest_id);
-				return -1;
-			}
+			int j = sd->quest_index[i];
 
 			if( sd->quest_log[i].count[0] < quest_db[j].count[0] || sd->quest_log[i].count[1] < quest_db[j].count[1] || sd->quest_log[i].count[2] < quest_db[j].count[2] )
 			{
@@ -306,7 +294,7 @@ int quest_read_db(void)
 {
 	FILE *fp;
 	char line[1024];
-	int j,k = 0;
+	int i,j,k = 0;
 	char *str[20],*p,*np;
 
 	sprintf(line, "%s/quest_db.txt", db_path);
@@ -342,12 +330,15 @@ int quest_read_db(void)
 
 		quest_db[k].id = atoi(str[0]);
 		quest_db[k].time = atoi(str[1]);
-		quest_db[k].mob[0] = atoi(str[2]);
-		quest_db[k].count[0] = atoi(str[3]);
-		quest_db[k].mob[1] = atoi(str[4]);
-		quest_db[k].count[1] = atoi(str[5]);
-		quest_db[k].mob[2] = atoi(str[6]);
-		quest_db[k].count[2] = atoi(str[7]);
+		for( i = 0; i < MAX_QUEST_OBJECTIVES; i++ )
+		{
+			quest_db[k].mob[i] = atoi(str[2*i+2]);
+			quest_db[k].count[i] = atoi(str[2*i+3]);
+
+			if( !quest_db[k].mob[i] || !quest_db[k].count[i] )
+				break;
+		}
+		quest_db[k].num_objectives = i;
 		//memcpy(quest_db[k].name, str[8], sizeof(str[8]));
 		k++;
 	}

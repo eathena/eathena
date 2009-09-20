@@ -431,11 +431,12 @@ void clif_viewequip_fail(struct map_session_data* sd);
 void clif_equipcheckbox(struct map_session_data* sd);
 
 //quest system [Kevin] [Inkfish]
-void clif_send_questlog(struct map_session_data * sd);
-void clif_send_questlog_info(struct map_session_data * sd);
-void clif_send_quest_info(struct map_session_data * sd, struct quest * qd);
-void clif_send_quest_delete(struct map_session_data * sd, int quest_id);
-void clif_send_quest_status(struct map_session_data * sd, int quest_id, bool active);
+void clif_quest_send_list(struct map_session_data * sd);  
+void clif_quest_send_mission(struct map_session_data * sd);  
+void clif_quest_add(struct map_session_data * sd, struct quest * qd, int index);  
+void clif_quest_delete(struct map_session_data * sd, int quest_id);  
+void clif_quest_update_status(struct map_session_data * sd, int quest_id, bool active); 
+void clif_quest_update_objective(struct map_session_data * sd, struct quest * qd, int index); 
 
 int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target type);
 int do_final_clif(void);
@@ -479,5 +480,9 @@ void clif_readbook(int fd, int book_id, int page);
 
 // Show Picker
 void clif_party_show_picker(struct map_session_data * sd, struct item * item_data);
+
+// Progress Bar [Inkfish]
+void clif_progressbar(struct map_session_data * sd, unsigned long color, unsigned int second);
+void clif_progressbar_abort(struct map_session_data * sd);
 
 #endif /* _CLIF_H_ */

@@ -17,7 +17,7 @@
 
 
 /// global defines
-#define QUEST_TXT_DB_VERSION 20090801
+#define QUEST_TXT_DB_VERSION 20090920
 
 
 /// Internal structure.
@@ -51,6 +51,30 @@ static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
 	// zero out the destination first
 	memset(log, 0, sizeof(*log));
 
+	if( version == 20090920 )
+	{// quest blocks separated by tabs, quest fields separated by commas, 6 fields total
+		char* quests[MAX_QUEST_DB+1];
+		int count;
+		int i;
+
+		// extract tab-separated columns from str
+		count = sv_split(str, strlen(str), 0, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+
+		for( i = 0; i < count; ++i )
+		{
+			char* fields[6+1];
+			if( sv_split(quests[i+1], strlen(quests[i+1]), 0, ',', fields, ARRAYLENGTH(fields), SV_NOESCAPE_NOTERMINATE) != 6 )
+				return false;
+
+			(*log)[i].quest_id = strtol(fields[1], NULL, 10);
+			(*log)[i].state = strtol(fields[2], NULL, 10);
+			(*log)[i].time = strtoul(fields[3], NULL, 10);
+			(*log)[i].count[0] = strtol(fields[4], NULL, 10);
+			(*log)[i].count[1] = strtol(fields[5], NULL, 10);
+			(*log)[i].count[2] = strtol(fields[6], NULL, 10);
+		}
+	}
+	else
 	if( version == 20090801 )
 	{// quest blocks separated by tabs, quest fields separated by commas, 10 fields total
 		char* quests[MAX_QUEST_DB+1];
@@ -69,12 +93,12 @@ static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
 			(*log)[i].quest_id = strtol(fields[1], NULL, 10);
 			(*log)[i].state = strtol(fields[2], NULL, 10);
 			(*log)[i].time = strtoul(fields[3], NULL, 10);
-			(*log)[i].num_objectives = strtol(fields[4], NULL, 10);
-			(*log)[i].mob[0] = strtol(fields[5], NULL, 10);
+			//(*log)[i].num_objectives = strtol(fields[4], NULL, 10);
+			//(*log)[i].mob[0] = strtol(fields[5], NULL, 10);
 			(*log)[i].count[0] = strtol(fields[6], NULL, 10);
-			(*log)[i].mob[1] = strtol(fields[7], NULL, 10);
+			//(*log)[i].mob[1] = strtol(fields[7], NULL, 10);
 			(*log)[i].count[1] = strtol(fields[8], NULL, 10);
-			(*log)[i].mob[2] = strtol(fields[9], NULL, 10);
+			//(*log)[i].mob[2] = strtol(fields[9], NULL, 10);
 			(*log)[i].count[2] = strtol(fields[10], NULL, 10);
 		}
 	}
@@ -102,9 +126,7 @@ static bool mmo_quests_tostr(const questlog* log, char* str)
 		if( i != 0 )
 			p += sprintf(p, "\t");
 
-		p += sprintf(p, "%d,%d,%u,%d,", qd->quest_id, qd->state, qd->time, qd->num_objectives);
-		p += sprintf(p, "%d,%d,%d,%d,%d,%d", qd->mob[0], qd->count[0], qd->mob[1], qd->count[1], qd->mob[2], qd->count[2]);
-
+		p += sprintf(p, "%d,%d,%u,%d,%d,%d", qd->quest_id, qd->state, qd->time, qd->count[0], qd->count[1], qd->count[2]);
 	}
 
 	*p = '\0';

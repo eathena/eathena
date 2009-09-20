@@ -30,6 +30,7 @@
 #include "pet.h"
 #include "mapreg.h"
 #include "homunculus.h"
+#include "instance.h"
 #include "mercenary.h"
 #include "intif.h"
 #include "skill.h"
@@ -70,10 +71,6 @@
 // - remove dynamic allocation in add_word()
 // - remove GETVALUE / SETVALUE
 // - clean up the set_reg / set_val / setd_sub mess
-
-void crc32_init();
-
-
 
 //
 // struct script_state* st;
@@ -3447,7 +3444,6 @@ int do_final_script()
  *------------------------------------------*/
 int do_init_script()
 {
-	crc32_init();
 	userfunc_db=strdb_alloc(DB_OPT_DUP_KEY,0);
 	scriptlabel_db=strdb_alloc((DBOptions)(DB_OPT_DUP_KEY|DB_OPT_ALLOW_NULL_DATA),50);
 
@@ -7474,10 +7470,9 @@ BUILDIN_FUNC(monster)
 	else
 	{
 		m = map_mapname2mapid(mapn);
-		if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id )
-		{
-			m = map_instance_mapid2imapid(m, st->instance_id);
-			if( m < 0 )
+		if( map[m].flag.src4instance && st->instance_id )
+		{ // Try to redirect to the instance map, not the src map
+			if( (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 			{
 				ShowError("buildin_monster: Trying to spawn monster (%d) on instance map (%s) without instance attached.\n", class_, mapn);
 				return 1;
@@ -7555,10 +7550,9 @@ BUILDIN_FUNC(areamonster)
 	else
 	{
 		m = map_mapname2mapid(mapn);
-		if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id )
-		{
-			m = map_instance_mapid2imapid(m, st->instance_id);
-			if( m < 0 )
+		if( map[m].flag.src4instance && st->instance_id )
+		{ // Try to redirect to the instance map, not the src map
+			if( (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 			{
 				ShowError("buildin_areamonster: Trying to spawn monster (%d) on instance map (%s) without instance attached.\n", class_, mapn);
 				return 1;
@@ -7619,9 +7613,9 @@ BUILDIN_FUNC(killmonster)
 	if( (m=map_mapname2mapid(mapname))<0 )
 		return 0;
 		
-	if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id && (m=map_instance_mapid2imapid(m, st->instance_id)) < 0 )
+	if( map[m].flag.src4instance && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 		return 0;
-		
+
 	if( script_hasdata(st,4) ) {
 		if ( script_getnum(st,4) == 1 ) {
 			map_foreachinmap(buildin_killmonster_sub, m, BL_MOB, event ,allflag);
@@ -7657,10 +7651,10 @@ BUILDIN_FUNC(killmonsterall)
 	int m;
 	mapname=script_getstr(st,2);
 	
-	if( (m=map_mapname2mapid(mapname))<0 )
+	if( (m = map_mapname2mapid(mapname))<0 )
 		return 0;
-	
-	if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id && (m=map_instance_mapid2imapid(m, st->instance_id)) < 0 )
+
+	if( map[m].flag.src4instance && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 		return 0;
 
 	if( script_hasdata(st,3) ) {
@@ -9915,12 +9909,12 @@ BUILDIN_FUNC(mobcount)	// Added by RoVeRT
 	event=script_getstr(st,3);
 	check_event(st, event);
 
-	if( (m=map_mapname2mapid(mapname))<0 ) {
+	if( (m = map_mapname2mapid(mapname)) < 0 ) {
 		script_pushint(st,-1);
 		return 0;
 	}
 	
-	if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id && (m=map_instance_mapid2imapid(m, st->instance_id)) < 0 )
+	if( map[m].flag.src4instance && map[m].instance_id == 0 && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 	{
 		script_pushint(st,-1);
 		return 0;
@@ -13478,8 +13472,8 @@ BUILDIN_FUNC(waitingroom2bg)
 	int x, y, i, mapindex = 0, bg_id, n;
 	struct map_session_data *sd;
 
-	if( script_hasdata(st,8) )
-		nd = npc_name2id(script_getstr(st,8));
+	if( script_hasdata(st,7) )
+		nd = npc_name2id(script_getstr(st,7));
 	else
 		nd = (struct npc_data *)map_id2bl(st->oid);
 
@@ -13723,15 +13717,12 @@ BUILDIN_FUNC(bg_get_data)
 BUILDIN_FUNC(instance_create)
 {
 	const char *name;
-	int party_id, name_id;
-	int res;
+	int party_id, res;
 
 	name = script_getstr(st, 2);
 	party_id = script_getnum(st, 3);
-	name_id = script_getnum(st, 4);
 
-	res = map_instance_create(party_id, name_id, name);
-
+	res = instance_create(party_id, name);
 	if( res == -4 ) // Already exists
 	{
 		script_pushint(st, -1);
@@ -13759,19 +13750,24 @@ BUILDIN_FUNC(instance_create)
 BUILDIN_FUNC(instance_destroy)
 {
 	int instance_id;
-	
+	struct map_session_data *sd;
+	struct party_data *p;
+
 	if( script_hasdata(st, 2) )
 		instance_id = script_getnum(st, 2);
-	else
+	else if( st->instance_id )
 		instance_id = st->instance_id;
-		
+	else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+	else return 0;
+
 	if( instance_id <= 0 || instance_id >= MAX_INSTANCE )
 	{
 		ShowError("buildin_instance_destroy: Trying to destroy invalid instance %d.\n", instance_id);
 		return 0;
 	}
-		
-	map_instance_destroy(instance_id);
+
+	instance_destroy(instance_id);
 	return 0;
 }
 
@@ -13780,19 +13776,19 @@ BUILDIN_FUNC(instance_attachmap)
 	const char *name;
 	int m;
 	int instance_id;
+	bool usebasename = false;
 	
-	instance_id = script_getnum(st, 2);
-	name = script_getstr(st, 3);
-	
-	m = map_instance_map(name, instance_id);
-	
-	if( m < 0 )
+	name = script_getstr(st,2);
+	instance_id = script_getnum(st,3);
+	if( script_hasdata(st,4) && script_getnum(st,4) > 0)
+		usebasename = true;
+
+	if( (m = instance_add_map(name, instance_id, usebasename)) < 0 ) // [Saithis]
 	{
 		ShowError("buildin_instance_attachmap: instance creation failed (%s): %d\n", name, m);
 		script_pushconststr(st, "");
 		return 0;
 	}
-	
 	script_pushconststr(st, map[m].name);
 	
 	return 0;
@@ -13800,19 +13796,27 @@ BUILDIN_FUNC(instance_attachmap)
 
 BUILDIN_FUNC(instance_detachmap)
 {
-	const char *name;
-	int m;
-	
-	name = script_getstr(st, 2);
-	
-	m = map_mapname2mapid(name);
-	if( m < 0 )
-	{
-		ShowError("buildin_instance_detachmap: Trying to detach invalid map %s\n", name);
-		return 0;
-	}
-	map_instance_del(m);
-	
+	struct map_session_data *sd;
+	struct party_data *p;
+	const char *str;
+	int m, instance_id;
+ 	
+	str = script_getstr(st, 2);
+	if( script_hasdata(st, 3) )
+		instance_id = script_getnum(st, 3);
+	else if( st->instance_id )
+		instance_id = st->instance_id;
+	else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+	else return 0;
+ 	
+	if( (m = map_mapname2mapid(str)) < 0 || (m = instance_map2imap(m,instance_id)) < 0 )
+ 	{
+		ShowError("buildin_instance_detachmap: Trying to detach invalid map %s\n", str);
+ 		return 0;
+ 	}
+
+ 	instance_del_map(m);
 	return 0;
 }
 
@@ -13831,7 +13835,7 @@ BUILDIN_FUNC(instance_attach)
 BUILDIN_FUNC(instance_id)
 {
 	int type, instance_id;
-	struct map_session_data *sd = script_rid2sd(st);
+	struct map_session_data *sd;
 	struct party_data *p;
 	
 	if( script_hasdata(st, 2) )
@@ -13839,13 +13843,14 @@ BUILDIN_FUNC(instance_id)
 		type = script_getnum(st, 2);
 		if( type == 0 )
 			instance_id = st->instance_id;
-		else if( type == 1 && sd && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL )
+		else if( type == 1 && (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL )
 			instance_id = p->instance_id;
 		else
 			instance_id = 0;
 	}
 	else
 		instance_id = st->instance_id;
+
 	script_pushint(st, instance_id);
 	return 0;
 }
@@ -13854,29 +13859,30 @@ BUILDIN_FUNC(instance_set_timeout)
 {
 	int progress_timeout, idle_timeout;
 	int instance_id;
+	struct map_session_data *sd;
+	struct party_data *p;
 	
 	progress_timeout = script_getnum(st, 2);
 	idle_timeout = script_getnum(st, 3);
-	
+
 	if( script_hasdata(st, 4) )
 		instance_id = script_getnum(st, 4);
-	else
+	else if( st->instance_id )
 		instance_id = st->instance_id;
-		
+	else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+	else return 0;
+
 	if( instance_id > 0 )
-		map_instance_set_timeout(instance_id, progress_timeout, idle_timeout);
+		instance_set_timeout(instance_id, progress_timeout, idle_timeout);
 		
 	return 0;
 }
 
 BUILDIN_FUNC(instance_init)
 {
-	int instance_id;
-	
-	instance_id = script_getnum(st, 2);
-	
-	map_instance_init(instance_id);
-	
+	int instance_id = script_getnum(st, 2);
+	instance_init(instance_id);
 	return 0;
 }
 
@@ -13884,78 +13890,111 @@ BUILDIN_FUNC(instance_announce)
 {
 	const char *str, *color=NULL;
 	int flag,instance_id,i;
+	struct map_session_data *sd;
+	struct party_data *p;
 	
-	instance_id=script_getnum(st,2);
-	str=script_getstr(st,3);
-	flag=script_getnum(st,4);
-	if (script_hasdata(st,5))
-		color=script_getstr(st,5);
-		
+	instance_id = script_getnum(st,2);
+	str = script_getstr(st,3);
+	flag = script_getnum(st,4);
+	if( script_hasdata(st,5) )
+		color = script_getstr(st,5);
+
 	if( instance_id == 0 )
-		instance_id = st->instance_id;
-	
+	{
+		if( st->instance_id )
+			instance_id = st->instance_id;
+		else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+			instance_id = p->instance_id;
+		else return 0;
+	}
+
 	if( instance_id <= 0 || instance_id >= MAX_INSTANCE )
 		return 0;
 		
-	for(i=0; i<instance[instance_id].num_map; i++)
-		map_foreachinmap(buildin_mapannounce_sub, instance[instance_id].map[i], BL_PC, str,strlen(str)+1,flag&0x10, color);
+	for( i = 0; i < instance[instance_id].num_map; i++ )
+		map_foreachinmap(buildin_mapannounce_sub, instance[instance_id].map[i], BL_PC, str, strlen(str) + 1, flag&0x10, color);
+
 	return 0;
 }
 
 BUILDIN_FUNC(instance_npcname)
 {
 	const char *str;
-	struct npc_data *nd = map_id2nd(st->oid);
-	int instance_id;
+	int instance_id = 0;
+
+	struct map_session_data *sd;
+	struct party_data *p;
+	struct npc_data *nd;
 	
 	str = script_getstr(st, 2);
 	if( script_hasdata(st, 3) )
 		instance_id = script_getnum(st, 3);
-	else
+	else if( st->instance_id )
 		instance_id = st->instance_id;
-	
-	script_pushconststr(st, map_instance_npcname((char*)str, instance_id));
+	else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+
+	if( instance_id && (nd = npc_name2id(str)) != NULL )
+ 	{
+		static char npcname[NAME_LENGTH+1];
+		snprintf(npcname, sizeof(npcname), "dup_%d_%d", instance_id, nd->bl.id);
+ 		script_pushconststr(st,npcname);
+	}
+	else
+		script_pushconststr(st,"");
+
 	return 0;
 }
 
 BUILDIN_FUNC(has_instance)
 {
-	TBL_PC* sd = script_rid2sd(st);
-	const char *str;
-	int m;
-	
-	str = script_getstr(st, 2);
-	
-	if( (m = map_mapname2mapid(str)) < 0 || (m = map_instance_map2imap(m,sd,0)) < 0 )
+	struct map_session_data *sd;
+	struct party_data *p;
+ 	const char *str;
+	int m, instance_id = 0;
+ 
+ 	str = script_getstr(st, 2);
+	if( script_hasdata(st, 3) )
+		instance_id = script_getnum(st, 3);
+	else if( st->instance_id )
+		instance_id = st->instance_id;
+	else if( (sd = script_rid2sd(st)) != NULL && sd->status.party_id && (p = party_search(sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+
+	if( !instance_id || (m = map_mapname2mapid(str)) < 0 || (m = instance_map2imap(m, instance_id)) < 0 )
 	{
 		script_pushconststr(st, "");
 		return 0;
 	}
-	
+
 	script_pushconststr(st, map[m].name);
 	return 0;
 }
 
 BUILDIN_FUNC(instance_warpall)
 {
-	TBL_PC *pl_sd;
-	int m, i;
+	struct map_session_data *pl_sd;
+	int m, i, instance_id;
 	const char *mapn;
 	int x, y;
 	unsigned short mapindex;
 	struct party_data *p = NULL;
-	
-	if( !st->instance_id )
+
+	mapn = script_getstr(st,2);
+	x    = script_getnum(st,3);
+	y    = script_getnum(st,4);
+	if( script_hasdata(st,5) )
+		instance_id = script_getnum(st,5);
+	else if( st->instance_id )
+		instance_id = st->instance_id;
+	else if( (pl_sd = script_rid2sd(st)) != NULL && pl_sd->status.party_id && (p = party_search(pl_sd->status.party_id)) != NULL && p->instance_id )
+		instance_id = p->instance_id;
+	else return 0;
+
+	if( (m = map_mapname2mapid(mapn)) < 0 || (map[m].flag.src4instance && (m = instance_mapid2imapid(m, instance_id)) < 0) )
 		return 0;
-		
-	mapn = script_getstr(st, 2);
-	x    = script_getnum(st, 3);
-	y    = script_getnum(st, 4);
-		
-	if( (m=map_mapname2mapid(mapn)) < 0 || (map[m].instance_map[0] && (m=map_instance_mapid2imapid(m,st->instance_id)) < 0) )
-		return 0;
-		
-	if( !(p = party_search(instance[st->instance_id].party_id)) )
+
+	if( !(p = party_search(instance[instance_id].party_id)) )
 		return 0;
 
 	mapindex = map_id2index(m);
@@ -13963,39 +14002,6 @@ BUILDIN_FUNC(instance_warpall)
 		if( (pl_sd = p->data[i].sd) && map[pl_sd->bl.m].instance_id == st->instance_id ) pc_setpos(pl_sd,mapindex,x,y,3);
 
 	return 0;
-}
-
-void crc32_init()
-{
-	uint32 crc, poly;
-	uint32 i, c;
-	
-	poly = 0xEDB88320;
-	
-	for( i = 0; i < 256; i++ )
-	{
-		crc = i;
-		for( c = 8; c; c-- )
-		{
-			if( crc & 1 )
-				crc = (crc >> 1) ^ poly;
-			else
-				crc >>= 1;
-		}
-
-		crctab[i] = crc;
-	}
-}
-
-uint32 crc32(char *dat, int len)
-{
-	uint32 crc, i;
-	
-	crc = 0xFFFFFFFF;	
-	for( i=0; i<len; i++ )
-		crc = ((crc >> 8 ) & 0x00FFFFFF) ^ crctab[(crc ^ *dat++) & 0xFF];
-		
-	return (crc ^ 0xFFFFFFFF);
 }
 
 /*==========================================
@@ -14070,7 +14076,7 @@ BUILDIN_FUNC(areamobuseskill)
 		return 0;
 	}
 
-	if( map[m].instance_map[0] && map[m].instance_id == 0 && st->instance_id && (m=map_instance_mapid2imapid(m, st->instance_id)) < 0 )
+	if( map[m].flag.src4instance && st->instance_id && (m = instance_mapid2imapid(m, st->instance_id)) < 0 )
 		return 0;
 
 	center.m = m;
@@ -14089,6 +14095,30 @@ BUILDIN_FUNC(areamobuseskill)
 	
 	map_foreachinrange(buildin_mobuseskill_sub, &center, range, BL_MOB, mobid, skillid, skilllv, casttime, cancel, emotion, target);
 	return 0;
+}
+
+
+BUILDIN_FUNC(progressbar)
+{
+#if PACKETVER >= 20080318
+	struct map_session_data * sd = script_rid2sd(st);
+	const char * color;
+	unsigned int second;
+
+	if( !st || !sd )
+		return 0;
+
+	st->state = STOP;
+
+	color = script_getstr(st,2);
+	second = script_getnum(st,3);
+
+	sd->progressbar.npc_id = st->oid;
+	sd->progressbar.timeout = gettick() + second*1000;
+
+	clif_progressbar(sd, strtol(color, (char **)NULL, 0), second);
+#endif
+    return 0;
 }
 
 // declarations that were supposed to be exported from npc_chat.c
@@ -14446,6 +14476,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(readbook,"ii"),
 	BUILDIN_DEF(setfont,"i"),
 	BUILDIN_DEF(areamobuseskill,"siiiiviiiii"),
+	BUILDIN_DEF(progressbar, "si"),
 	// WoE SE
 	BUILDIN_DEF(agitstart2,""),
 	BUILDIN_DEF(agitend2,""),
@@ -14463,19 +14494,21 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(bg_get_data,"ii"),
 	BUILDIN_DEF(bg_getareausers,"isiiii"),
 	BUILDIN_DEF(bg_updatescore,"sii"),
+
 	// Instancing
-	BUILDIN_DEF(instance_create,"sii?"),
+	BUILDIN_DEF(instance_create,"si"),
 	BUILDIN_DEF(instance_destroy,"?"),
-	BUILDIN_DEF(instance_attachmap,"is"),
-	BUILDIN_DEF(instance_detachmap,"is"),
+	BUILDIN_DEF(instance_attachmap,"si?"),
+	BUILDIN_DEF(instance_detachmap,"s?"),
+	BUILDIN_DEF(instance_attach,"i"),
+	BUILDIN_DEF(instance_id,"?"),
+	BUILDIN_DEF(instance_set_timeout,"ii?"),
 	BUILDIN_DEF(instance_init,"i"),
 	BUILDIN_DEF(instance_announce,"isi*"),
-	BUILDIN_DEF(instance_attach,"i"),
 	BUILDIN_DEF(instance_npcname,"s?"),
-	BUILDIN_DEF(has_instance,"s"),
-	BUILDIN_DEF(instance_id,"?"),
-	BUILDIN_DEF(instance_warpall,"sii"),
-	BUILDIN_DEF(instance_set_timeout,"ii?"),
+	BUILDIN_DEF(has_instance,"s?"),
+	BUILDIN_DEF(instance_warpall,"sii?"),
+
 	//Quest Log System [Inkfish]
 	BUILDIN_DEF(setquest, "i"),
 	BUILDIN_DEF(erasequest, "i"),

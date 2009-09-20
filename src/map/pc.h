@@ -171,6 +171,11 @@ struct map_session_data {
 	time_t idletime;
 
 	struct{
+		int npc_id;
+		unsigned int timeout;
+	} progressbar; //Progress Bar [Inkfish]
+
+	struct{
 		char name[NAME_LENGTH];
 	} ignore[MAX_IGNORE_LIST];
 
@@ -275,7 +280,7 @@ struct map_session_data {
 	short splash_range, splash_add_range;
 	short add_steal_rate;
 	short add_heal_rate, add_heal2_rate;
-	short sp_gain_value, hp_gain_value;
+	short sp_gain_value, hp_gain_value, magic_sp_gain_value, magic_hp_gain_value;
 	short sp_vanish_rate;
 	short sp_vanish_per;	
 	unsigned short unbreakable;	// chance to prevent ANY equipment breaking [celest]
@@ -382,6 +387,7 @@ struct map_session_data {
 	//Quest log system [Kevin] [Inkfish]
 	int num_quests;
 	int avail_quests;
+	int quest_index[MAX_QUEST_DB];
 	struct quest quest_log[MAX_QUEST_DB];
 
 	// temporary debug [flaviojs]

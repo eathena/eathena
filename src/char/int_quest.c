@@ -71,9 +71,8 @@ static void mapif_parse_quests_save(int fd)
 	struct quest qd2[MAX_QUEST_DB]; // previous quest log
 	int num1 = (RFIFOW(fd,2)-8)/sizeof(struct quest);
 	int num2;
-	int buf[MAX_QUEST_DB];
-	int count = 0;
 	int i, j;
+	bool success = true;
 
 	memset(qd1, 0, sizeof(qd1));
 	memset(qd2, 0, sizeof(qd2));
@@ -87,7 +86,7 @@ static void mapif_parse_quests_save(int fd)
 		if( j < num2 ) // Update existed quests
 		{	// Only states and counts are changable.
 			if( qd1[i].state != qd2[j].state || qd1[i].count[0] != qd2[j].count[0] || qd1[i].count[1] != qd2[j].count[1] || qd1[i].count[2] != qd2[j].count[2] )
-				quests->update(quests, &qd1[i], char_id);
+				success &= quests->update(quests, &qd1[i], char_id);
 
 			if( j < (--num2) )
 			{
@@ -96,24 +95,18 @@ static void mapif_parse_quests_save(int fd)
 			}
 		}
 		else // Add new quests
-		{
-			quests->add(quests, &qd1[i], char_id);
-
-			WBUFL(buf,count*4) = qd1[i].quest_id;
-			count++;
-		}
+			success &= quests->add(quests, &qd1[i], char_id);
 	}
 
 	for( i = 0; i < num2; i++ ) // Quests not in qd1 but in qd2 are to be erased.
-		quests->del(quests, char_id, qd2[i].quest_id);
+		success &= quests->del(quests, char_id, qd2[i].quest_id);
 
 	// send back list of newly added quest ids
-	WFIFOHEAD(fd,8+4*count);
+	WFIFOHEAD(fd,7);
 	WFIFOW(fd,0) = 0x3861;
-	WFIFOW(fd,2) = 8+4*count;
-	WFIFOL(fd,4) = char_id;
-	memcpy(WFIFOP(fd,8), buf, count*4);
-	WFIFOSET(fd,WFIFOW(fd,2));
+	WFIFOL(fd,2) = char_id;
+	WFIFOB(fd,6) = success ? 1 : 0;
+	WFIFOSET(fd,7);
 }
 
 

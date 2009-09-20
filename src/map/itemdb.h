@@ -6,7 +6,7 @@
 
 #include "../common/mmo.h" // ITEM_NAME_LENGTH
 
-#define MAX_RANDITEM	10000
+#define MAX_RANDITEM	11000
 
 #define MAX_SEARCH	5  //Designed for search functions, species max number of matches to display.
 
@@ -22,7 +22,7 @@
 #define IG_FINDINGORE 6
 #define IG_POTION 37
 //The max. item group count (increase this when needed).
-#define MAX_ITEMGROUP 47
+#define MAX_ITEMGROUP 53
 
 #define CARD0_FORGE 0x00FF
 #define CARD0_CREATE 0x00FE

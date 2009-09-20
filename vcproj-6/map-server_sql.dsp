@@ -311,6 +311,14 @@ SOURCE=..\src\map\mapreg_sql.c
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\map\instance.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\instance.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\map\mercenary.c
 # End Source File
 # Begin Source File

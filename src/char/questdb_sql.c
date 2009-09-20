@@ -46,35 +46,21 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 	do
 	{
 
-	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST_DB)
+	if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "SELECT `quest_id`, `state`, `time`, `count1`, `count2`, `count3` FROM `%s` WHERE `char_id`=%d LIMIT %d", db->quest_db, char_id, MAX_QUEST_DB)
 	||	SQL_SUCCESS != SqlStmt_Execute(stmt)
 	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 0, SQLDT_INT, &tmp_quest.quest_id, 0, NULL, NULL)
 	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 1, SQLDT_INT, &tmp_quest.state, 0, NULL, NULL)
 	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 2, SQLDT_UINT,&tmp_quest.time, 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 3, SQLDT_INT, &tmp_quest.mob[0], 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 4, SQLDT_INT, &tmp_quest.count[0], 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 5, SQLDT_INT, &tmp_quest.mob[1], 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 6, SQLDT_INT, &tmp_quest.count[1], 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 7, SQLDT_INT, &tmp_quest.mob[2], 0, NULL, NULL)
-	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 8, SQLDT_INT, &tmp_quest.count[2], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 3, SQLDT_INT, &tmp_quest.count[0], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 4, SQLDT_INT, &tmp_quest.count[1], 0, NULL, NULL)
+	||	SQL_SUCCESS != SqlStmt_BindColumn(stmt, 5, SQLDT_INT, &tmp_quest.count[2], 0, NULL, NULL)
 	) {
 		SqlStmt_ShowDebug(stmt);
 		break;
 	}
 
 	for( i = 0; i < MAX_QUEST_DB && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-	{
-		(*log)[i].quest_id = tmp_quest.quest_id;
-		(*log)[i].state = tmp_quest.state;
-		(*log)[i].time = tmp_quest.time;
-		(*log)[i].mob[0] = tmp_quest.mob[0];
-		(*log)[i].count[0] = tmp_quest.count[0];
-		(*log)[i].mob[1] = tmp_quest.mob[1];
-		(*log)[i].count[1] = tmp_quest.count[1];
-		(*log)[i].mob[2] = tmp_quest.mob[2];
-		(*log)[i].count[2] = tmp_quest.count[2];
-		(*log)[i].num_objectives = (tmp_quest.mob[0]) ? 0 : (tmp_quest.mob[1]) ? 1 : (tmp_quest.mob[2]) ? 2 : 3;
-	}
+		memcpy(&(*log)[i], &tmp_quest, sizeof(tmp_quest));
 
 	*count = i;
 
@@ -116,7 +102,7 @@ static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
 		break;
 	}
 
-	StringBuf_Printf(&buf, "INSERT INTO `%s` (`quest_id`, `char_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3`) VALUES ", db->quest_db);
+	StringBuf_Printf(&buf, "INSERT INTO `%s` (`quest_id`, `char_id`, `state`, `time`, `count1`, `count2`, `count3`) VALUES ", db->quest_db);
 
 	j = 0; // counter
 	for( i = 0; i < MAX_QUEST_DB; ++i )
@@ -129,7 +115,7 @@ static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
 		if( j != 0 )
 			StringBuf_AppendStr(&buf, ",");
 
-		StringBuf_Printf(&buf, "('%d','%d','%d','%d','%d','%d','%d','%d','%d','%d')", qd->quest_id, char_id, qd->state, qd->time, qd->mob[0], qd->count[0], qd->mob[1], qd->count[1], qd->mob[2], qd->count[2]);
+		StringBuf_Printf(&buf, "('%d','%d','%d','%d','%d','%d','%d')", qd->quest_id, char_id, qd->state, qd->time, qd->count[0], qd->count[1], qd->count[2]);
 
 		j++;
 	}
@@ -215,9 +201,9 @@ static bool quest_db_sql_add(QuestDB* self, const struct quest* qd, const int ch
 	Sql* sql_handle = db->quests;
 
 	if( SQL_SUCCESS != Sql_Query(sql_handle,
-	    "INSERT INTO `%s`(`quest_id`, `char_id`, `state`, `time`, `mob1`, `count1`, `mob2`, `count2`, `mob3`, `count3`) "
-		"VALUES ('%d', '%d', '%d','%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-	    db->quest_db, qd->quest_id, char_id, qd->state, qd->time, qd->mob[0], qd->count[0], qd->mob[1], qd->count[1], qd->mob[2], qd->count[2]) )
+	    "INSERT INTO `%s`(`quest_id`, `char_id`, `state`, `time`, `count1`, `count2`, `count3`) "
+		"VALUES ('%d', '%d', '%d','%d', '%d', '%d', '%d')",
+	    db->quest_db, qd->quest_id, char_id, qd->state, qd->time, qd->count[0], qd->count[1], qd->count[2]) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
