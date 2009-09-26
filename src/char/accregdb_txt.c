@@ -55,7 +55,7 @@ static bool mmo_accreg_fromstr(struct regs* reg, const char* str)
 	if( str[0] == '\0' )
 		nfields = 0;
 	else
-		nfields = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C, SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		nfields = sv_parse(str, strlen(str), 0, ' ', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
 	for( i = 1; i <= nfields; ++i )
 	{
