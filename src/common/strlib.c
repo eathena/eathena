@@ -453,8 +453,8 @@ int sv_parse_next(struct s_svstate* sv)
 	((opt&SV_TERMINATE_CR) && str[i] == '\r') || \
 	((opt&SV_TERMINATE_CRLF) && i+1 < len && str[i] == '\r' && str[i+1] == '\n') )
 #define IS_C_ESCAPE() ( (opt&SV_ESCAPE_C) && str[i] == '\\' )
-#define SET_FIELD_START() if( sv->start != NULL ) *(sv->start) = i
-#define SET_FIELD_END() if( sv->end != NULL ) *(sv->end) = i
+#define SET_FIELD_START() sv->start = i
+#define SET_FIELD_END() sv->end = i
 
 	i = sv->off;
 	state = START_OF_FIELD;
@@ -581,24 +581,27 @@ int sv_parse(const char* str, int len, int startoff, char delim, int* out_pos, i
 	struct s_svstate sv;
 	int count;
 
+	// initialize
+	if( out_pos == NULL ) npos = 0;
+	for( count = 0; count < npos; ++count )
+		out_pos[count] = -1;
 	sv.str = str;
 	sv.len = len;
 	sv.off = startoff;
-	sv.start = NULL;
-	sv.end = NULL;
 	sv.opt = opt;
 	sv.delim = delim;
 	sv.done = false;
 
-	if( npos > 0 ) out_pos[0] = startoff;
+	// parse
 	count = 0;
+	if( npos > 0 ) out_pos[0] = startoff;
 	while( !sv.done )
 	{
 		++count;
-		sv.start = (npos > count*2? out_pos+count*2: NULL);
-		sv.end = (npos > count*2+1? out_pos+count*2+1: NULL);
 		if( sv_parse_next(&sv) <= 0 )
 			return -1;// error
+		if( npos > count*2 ) out_pos[count*2] = sv.start;
+		if( npos > count*2+1 ) out_pos[count*2+1] = sv.end;
 	}
 	if( npos > 1 ) out_pos[1] = sv.off;
 	return count;

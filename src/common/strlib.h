@@ -77,8 +77,8 @@ struct s_svstate
 	const char* str; //< string to parse
 	int len; //< string length
 	int off; //< current offset in the string
-	int* start; //< where the field starts
-	int* end; //< where the field ends
+	int start; //< where the field starts
+	int end; //< where the field ends
 	enum e_svopt opt; //< parse options
 	char delim; //< field delimiter
 	bool done; //< if all the text has been parsed
