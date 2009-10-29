@@ -16,6 +16,7 @@ typedef enum TxtDataType
 {
 	TXTDT_NULL,
 	// platform dependent size
+	TXTDT_BOOL,
 	TXTDT_CHAR,
 	TXTDT_SHORT,
 	TXTDT_INT,
@@ -24,9 +25,12 @@ typedef enum TxtDataType
 	TXTDT_USHORT,
 	TXTDT_UINT,
 	TXTDT_ULONG,
+	TXTDT_TIME,
 	// other
 	TXTDT_STRING,
 	TXTDT_CSTRING,
+	TXTDT_ENUM,
+	TXTDT_UENUM,
 }
 TxtDataType;
 
@@ -45,11 +49,12 @@ Txt* Txt_Malloc(void);
 /// @param self Txt handle
 /// @param str String to be parsed/written
 /// @param length Size (for parsing) or capacity (for writing) of the string
-/// @param nfields Maximum number of fields to read/write
-/// @param delim Delimiter between fields
-/// @param escapes Characters to escape when writing fields (the delimiter should be present here)
+/// @param max_fields Maximum number of fields to parse/write
+/// @param field_delim Delimiter between fields
+/// @param block_delim Delimiter between blocks of fields
+/// @param escapes Characters to escape when writing fields (all delimiters should be present here)
 /// @return TXT_SUCCESS or TXT_ERROR
-int Txt_Init(Txt* self, char* str, size_t length, size_t nfields, char delim, const char* escapes);
+int Txt_Init(Txt* self, char* str, size_t length, size_t max_fields, char field_delim, char block_delim, const char* escapes);
 
 
 /// Binds a variable to the specified field.
@@ -75,6 +80,14 @@ int Txt_Parse(Txt* self);
 /// @param self Txt handle
 /// @return TXT_SUCCESS or TXT_ERROR
 int Txt_Write(Txt* self);
+
+
+/// Number of fields in the string.
+/// Determined during Parse()/Write().
+///
+/// @param self Txt handle
+/// @return Number of fields, or 0 if no procsesing has been done yet
+size_t Txt_NumFields(Txt* self);
 
 
 /// Frees a Txt handle returned by Txt_Malloc().

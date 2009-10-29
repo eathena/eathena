@@ -484,6 +484,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\txt.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\utils.c"
 				>
 			</File>
