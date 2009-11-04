@@ -29,11 +29,11 @@ typedef struct StatusDB_SQL
 
 
 /// @private
-static bool mmo_status_fromsql(StatusDB_SQL* db, struct status_change_data* sc, size_t size, int char_id)
+static bool mmo_status_fromsql(StatusDB_SQL* db, struct status_change_data* sc, int size, int char_id)
 {
 	Sql* sql_handle = db->statuses;
 	char* data;
-	size_t i;
+	int i;
 
 	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT type, tick, val1, val2, val3, val4 from `%s` WHERE `char_id`='%d'",
 		db->status_db, char_id) )
@@ -59,11 +59,11 @@ static bool mmo_status_fromsql(StatusDB_SQL* db, struct status_change_data* sc, 
 
 
 /// @private
-static bool mmo_status_tosql(StatusDB_SQL* db, const struct status_change_data* sc, size_t size, int char_id)
+static bool mmo_status_tosql(StatusDB_SQL* db, const struct status_change_data* sc, int count, int char_id)
 {
 	Sql* sql_handle = db->statuses;
 	StringBuf buf;
-	size_t i;
+	int i;
 	bool first = true;
 	bool result = false;
 
@@ -87,7 +87,7 @@ static bool mmo_status_tosql(StatusDB_SQL* db, const struct status_change_data* 
 
 	StringBuf_Printf(&buf, "INSERT INTO `%s` (`char_id`, `type`, `tick`, `val1`, `val2`, `val3`, `val4`) VALUES ", db->status_db);
 
-	for( i = 0; i < size; ++i )
+	for( i = 0; i < count; ++i )
 	{
 		if( sc[i].type == (unsigned short)-1 )
 			continue;
@@ -167,27 +167,27 @@ static bool status_db_sql_remove(StatusDB* self, int char_id)
 
 
 /// @protected
-static bool status_db_sql_save(StatusDB* self, const struct status_change_data* sc, size_t size, int char_id)
+static bool status_db_sql_save(StatusDB* self, const struct status_change_data* sc, int count, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
-	return mmo_status_tosql(db, sc, size, char_id);
+	return mmo_status_tosql(db, sc, count, char_id);
 }
 
 
 /// @protected
-static bool status_db_sql_load(StatusDB* self, struct status_change_data* sc, size_t size, int char_id)
+static bool status_db_sql_load(StatusDB* self, struct status_change_data* sc, int count, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
-	return mmo_status_fromsql(db, sc, size, char_id);
+	return mmo_status_fromsql(db, sc, count, char_id);
 }
 
 
 /// @protected
-static size_t status_db_sql_size(StatusDB* self, int char_id)
+static int status_db_sql_count(StatusDB* self, int char_id)
 {
 	StatusDB_SQL* db = (StatusDB_SQL*)self;
 	char* data;
-	size_t result;
+	int result;
 
 	if( SQL_SUCCESS != Sql_Query(db->statuses, "SELECT COUNT(*) FROM `%s` WHERE `char_id` = %d", db->status_db, char_id)
 	||  SQL_SUCCESS != Sql_NextRow(db->statuses)
@@ -226,7 +226,7 @@ StatusDB* status_db_sql(CharServerDB_SQL* owner)
 	db->vtable.remove    = &status_db_sql_remove;
 	db->vtable.save      = &status_db_sql_save;
 	db->vtable.load      = &status_db_sql_load;
-	db->vtable.size      = &status_db_sql_size;
+	db->vtable.count     = &status_db_sql_count;
 	db->vtable.iterator  = &status_db_sql_iterator;
 
 	// initialize to default values

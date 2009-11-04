@@ -9,11 +9,14 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "homundb.h"
 #include <stdio.h>
 #include <string.h>
 
 
+/// global defines
+#define HOMUNDB_TXT_DB_VERSION 00000000
 #define START_HOMUN_NUM 1
 
 
@@ -24,66 +27,79 @@ typedef struct HomunDB_TXT
 	// public interface
 	HomunDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* homuns;
-	int next_homun_id;
-	bool dirty;
-
-	// settings
-	const char* homun_db;
+	// data provider
+	CSDB_TXT* db;
 
 } HomunDB_TXT;
 
 
-/// @private
-static bool mmo_homun_fromstr(struct s_homunculus* hd, char* str)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool homun_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	int next, len;
+	struct s_homunculus* hd = (struct s_homunculus*)data;
 
-	memset(hd, 0, sizeof(struct s_homunculus));
+	*out_size = sizeof(*hd);
 
-	if( sscanf(str,
-		"%d,%hd\t%23[^\t]\t%d,%d,%d,%d,%d,"
-		"%u,%hd,%hd,%hd,"
-		"%u,%hd,%hd,"
-		"%d,%d,%d,%d,%d,%d\t%n",
-		&hd->hom_id, &hd->class_, hd->name,
-		&hd->char_id, &hd->hp, &hd->max_hp, &hd->sp, &hd->max_sp,
-		&hd->intimacy, &hd->hunger, &hd->skillpts, &hd->level,
-		&hd->exp, &hd->rename_flag, &hd->vaporize,
-		&hd->str, &hd->agi, &hd->vit, &hd->int_, &hd->dex, &hd->luk,
-		&next) != 21 )
-		return false;
+	if( size < sizeof(*hd) )
+		return true;
 
-	//Read skills.
-	while( str[next] != '\0' && str[next] != '\n' && str[next] != '\r' )
+	if( version == 00000000 )
 	{
-		int id, lv;
+		int next, len;
 
-		if( sscanf(str+next, "%d,%d,%n", &id, &lv, &len) != 2 )
+		memset(hd, 0, sizeof(*hd));
+
+		if( sscanf(str,
+			"%d,%hd\t%23[^\t]\t%d,%d,%d,%d,%d,"
+			"%u,%hd,%hd,%hd,"
+			"%u,%hd,%hd,"
+			"%d,%d,%d,%d,%d,%d\t%n",
+			&hd->hom_id, &hd->class_, hd->name,
+			&hd->char_id, &hd->hp, &hd->max_hp, &hd->sp, &hd->max_sp,
+			&hd->intimacy, &hd->hunger, &hd->skillpts, &hd->level,
+			&hd->exp, &hd->rename_flag, &hd->vaporize,
+			&hd->str, &hd->agi, &hd->vit, &hd->int_, &hd->dex, &hd->luk,
+			&next) != 21 )
 			return false;
 
-		if( id >= HM_SKILLBASE && id < HM_SKILLBASE+MAX_HOMUNSKILL )
+		//Read skills.
+		while( str[next] != '\0' && str[next] != '\n' && str[next] != '\r' )
 		{
-			int i = id - HM_SKILLBASE;
-			hd->hskill[i].id = id;
-			hd->hskill[i].lv = lv;
-		} else
-			ShowError("Read Homun: Unsupported Skill ID %d for homunculus (Homun ID=%d)\n", id, hd->hom_id);
+			int id, lv;
 
-		next += len;
-		if( str[next] == ' ' )
-			next++;
+			if( sscanf(str+next, "%d,%d,%n", &id, &lv, &len) != 2 )
+				return false;
+
+			if( id >= HM_SKILLBASE && id < HM_SKILLBASE+MAX_HOMUNSKILL )
+			{
+				int i = id - HM_SKILLBASE;
+				hd->hskill[i].id = id;
+				hd->hskill[i].lv = lv;
+			} else
+				ShowError("Read Homun: Unsupported Skill ID %d for homunculus (Homun ID=%d)\n", id, hd->hom_id);
+
+			next += len;
+			if( str[next] == ' ' )
+				next++;
+		}
+
+		*key = hd->hom_id;
+	}
+	else
+	{// unmatched row	
+		return false;
 	}
 
 	return true;
 }
 
 
+/// Serializes the provided data structure into a string.
 /// @private
-static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
+static bool homun_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
+	const struct s_homunculus* hd = (const struct s_homunculus*)data;
 	int i;
 
 	str += sprintf(str,
@@ -104,217 +120,67 @@ static bool mmo_homun_tostr(const struct s_homunculus* hd, char* str)
 	}
 
 	return true;
-
 }
 
 
 /// @protected
 static bool homun_db_txt_init(HomunDB* self)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns;
-	char line[8192];
-	FILE* fp;
-
-	// create chars database
-	if( db->homuns == NULL )
-		db->homuns = idb_alloc(DB_OPT_RELEASE_DATA);
-	homuns = db->homuns;
-	db_clear(homuns);
-
-	// open data file
-	fp = fopen(db->homun_db, "r");
-	if( fp == NULL )
-	{
-		ShowError("Homun file not found: %s.\n", db->homun_db);
-		return false;
-	}
-
-	// load data file
-	while( fgets(line, sizeof(line), fp) != NULL )
-	{
-		int homun_id, n;
-		struct s_homunculus* hd;
-
-		n = 0;
-		if( sscanf(line, "%d\t%%newid%%%n", &homun_id, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// auto-increment
-			if( homun_id > db->next_homun_id )
-				db->next_homun_id = homun_id;
-			continue;
-		}
-
-		hd = (struct s_homunculus*)aCalloc(sizeof(struct s_homunculus), 1);
-
-		if( !mmo_homun_fromstr(hd, line) )
-		{
-			ShowError("homun_db_txt_init: skipping invalid data: %s", line);
-			aFree(hd);
-			continue;
-		}
-
-		// record entry in db
-		idb_put(homuns, hd->hom_id, hd);
-
-		if( hd->hom_id >= db->next_homun_id )
-			db->next_homun_id = hd->hom_id + 1;
-	}
-
-	// close data file
-	fclose(fp);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->init(db);
 }
 
 
 /// @protected
 static void homun_db_txt_destroy(HomunDB* self)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns = db->homuns;
-
-	// delete homun database
-	if( homuns != NULL )
-	{
-		db_destroy(homuns);
-		db->homuns = NULL;
-	}
-
-	// delete entire structure
-	aFree(db);
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	db->destroy(db);
+	aFree(self);
 }
 
 
 /// @protected
 static bool homun_db_txt_sync(HomunDB* self, bool force)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->homun_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("homun_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->homun_db);
-		return false;
-	}
-
-	iter = db->homuns->iterator(db->homuns);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct s_homunculus* hd = (struct s_homunculus*) data;
-		char line[8192];
-
-		mmo_homun_tostr(hd, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_homun_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->homun_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
 /// @protected
 static bool homun_db_txt_create(HomunDB* self, struct s_homunculus* hd)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns = db->homuns;
-	struct s_homunculus* tmp;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
 
-	// decide on the homun id to assign
-	int homun_id = ( hd->hom_id != -1 ) ? hd->hom_id : db->next_homun_id;
+	if( hd->hom_id == -1 )
+		hd->hom_id = db->next_key(db);
 
-	// check if the homun is free
-	tmp = idb_get(homuns, homun_id);
-	if( tmp != NULL )
-	{// error condition - entry already present
-		ShowError("homun_db_txt_create: cannot create homunculus %d:'%s', this id is already occupied by %d:'%s'!\n", homun_id, hd->name, homun_id, tmp->name);
-		return false;
-	}
-
-	// copy the data and store it in the db
-	CREATE(tmp, struct s_homunculus, 1);
-	memcpy(tmp, hd, sizeof(struct s_homunculus));
-	tmp->hom_id = homun_id;
-	idb_put(homuns, homun_id, tmp);
-
-	// increment the auto_increment value
-	if( homun_id >= db->next_homun_id )
-		db->next_homun_id = homun_id + 1;
-
-	// write output
-	hd->hom_id = homun_id;
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	return db->insert(db, hd->hom_id, hd, sizeof(*hd));
 }
 
 
 /// @protected
 static bool homun_db_txt_remove(HomunDB* self, int homun_id)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns = db->homuns;
-
-	idb_remove(homuns, homun_id);
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->remove(db, homun_id);
 }
 
 
 /// @protected
 static bool homun_db_txt_save(HomunDB* self, const struct s_homunculus* hd)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns = db->homuns;
-	int homun_id = hd->hom_id;
-
-	// retrieve previous data
-	struct s_homunculus* tmp = idb_get(homuns, homun_id);
-	if( tmp == NULL )
-	{// error condition - entry not found
-		return false;
-	}
-	
-	// overwrite with new data
-	memcpy(tmp, hd, sizeof(struct s_homunculus));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->update(db, hd->hom_id, hd, sizeof(*hd));
 }
 
 
 /// @protected
 static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_id)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	DBMap* homuns = db->homuns;
-
-	// retrieve data
-	struct s_homunculus* tmp = idb_get(homuns, homun_id);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	// store it
-	memcpy(hd, tmp, sizeof(struct s_homunculus));
-
-	return true;
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->load(db, homun_id, hd, sizeof(*hd), NULL);
 }
 
 
@@ -322,8 +188,8 @@ static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_
 /// @protected
 static CSDBIterator* homun_db_txt_iterator(HomunDB* self)
 {
-	HomunDB_TXT* db = (HomunDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->homuns));
+	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -333,24 +199,20 @@ HomunDB* homun_db_txt(CharServerDB_TXT* owner)
 {
 	HomunDB_TXT* db = (HomunDB_TXT*)aCalloc(1, sizeof(HomunDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_homuns, HOMUNDB_TXT_DB_VERSION, START_HOMUN_NUM);
+	db->db->p.fromstr = &homun_db_txt_fromstr;
+	db->db->p.tostr   = &homun_db_txt_tostr;
+
 	// set up the vtable
-	db->vtable.p.init      = &homun_db_txt_init;
-	db->vtable.p.destroy   = &homun_db_txt_destroy;
-	db->vtable.p.sync      = &homun_db_txt_sync;
+	db->vtable.p.init    = &homun_db_txt_init;
+	db->vtable.p.destroy = &homun_db_txt_destroy;
+	db->vtable.p.sync    = &homun_db_txt_sync;
 	db->vtable.create    = &homun_db_txt_create;
 	db->vtable.remove    = &homun_db_txt_remove;
 	db->vtable.save      = &homun_db_txt_save;
 	db->vtable.load      = &homun_db_txt_load;
 	db->vtable.iterator  = &homun_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->homuns = NULL;
-	db->next_homun_id = START_HOMUN_NUM;
-	db->dirty = false;
-
-	// other settings
-	db->homun_db = db->owner->file_homuns;
 
 	return &db->vtable;
 }

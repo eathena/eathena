@@ -11,9 +11,10 @@
 #include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
+#include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "char.h"
 #include "inter.h"
-#include "charserverdb_txt.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -643,9 +644,9 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));
 
 	// set up the vtable
-	db->vtable.p.init      = &char_db_txt_init;
-	db->vtable.p.destroy   = &char_db_txt_destroy;
-	db->vtable.p.sync      = &char_db_txt_sync;
+	db->vtable.p.init    = &char_db_txt_init;
+	db->vtable.p.destroy = &char_db_txt_destroy;
+	db->vtable.p.sync    = &char_db_txt_sync;
 	db->vtable.create    = &char_db_txt_create;
 	db->vtable.remove    = &char_db_txt_remove;
 	db->vtable.save      = &char_db_txt_save;

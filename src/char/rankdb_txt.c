@@ -7,6 +7,7 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>

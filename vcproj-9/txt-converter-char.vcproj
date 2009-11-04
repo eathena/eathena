@@ -284,6 +284,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\csdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\csdb_txt.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\csdbiterator.h"
 				>
 			</File>
@@ -545,6 +553,14 @@
 			</File>
 			<File
 				RelativePath="..\src\common\timer.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\txt.h"
 				>
 			</File>
 			<File

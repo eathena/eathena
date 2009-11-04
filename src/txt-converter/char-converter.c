@@ -175,11 +175,11 @@ int convert_char(void)
 
 		while( iter->next(iter, &key) )
 		{
-			size_t size = txt->size(txt, key);
-			data = (struct status_change_data*)aMalloc(size * sizeof(*data));
+			int count = txt->count(txt, key);
+			data = (struct status_change_data*)aMalloc(count * sizeof(*data));
 
-			txt->load(txt, data, size, key);
-			sql->save(sql, data, size, key);
+			txt->load(txt, data, count, key);
+			sql->save(sql, data, count, key);
 
 			aFree(data);
 		}

@@ -15,14 +15,14 @@ static StatusDB* statuses = NULL;
 static void mapif_parse_StatusLoad(int fd)
 {
 	int cid = RFIFOL(fd,2);
-	size_t size = statuses->size(statuses, cid);
+	int count = statuses->count(statuses, cid);
 
-	WFIFOHEAD(fd, 10 + size * sizeof(struct status_change_data));
+	WFIFOHEAD(fd, 10 + count * sizeof(struct status_change_data));
 	WFIFOW(fd,0) = 0x2b1d;
-	WFIFOW(fd,2) = 10 + size * sizeof(struct status_change_data);
+	WFIFOW(fd,2) = 10 + count * sizeof(struct status_change_data);
 	WFIFOL(fd,4) = cid;
-	WFIFOW(fd,8) = size;
-	statuses->load(statuses, (struct status_change_data*)WFIFOP(fd,10), size, cid);
+	WFIFOW(fd,8) = count;
+	statuses->load(statuses, (struct status_change_data*)WFIFOP(fd,10), count, cid);
 	WFIFOSET(fd, WFIFOW(fd,2));
 }
 

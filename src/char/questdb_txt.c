@@ -10,6 +10,7 @@
 #include "../common/strlib.h"
 #include "../common/utils.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "questdb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,7 @@
 
 
 /// global defines
-#define QUEST_TXT_DB_VERSION 20090920
+#define QUESTDB_TXT_DB_VERSION 20090920
 
 
 /// Internal structure.
@@ -27,38 +28,37 @@ typedef struct QuestDB_TXT
 	// public interface
 	QuestDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* quests;
-	bool dirty;
-
-	// settings
-	const char* quest_db;
+	// data provider
+	CSDB_TXT* db;
 
 } QuestDB_TXT;
 
 
-/// @private
-static void* create_questlog(DBKey key, va_list args)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool skill_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	return (questlog*)aCalloc(1, sizeof(questlog));
-}
+	questlog* log = (questlog*)data;
 
+	*out_size = sizeof(*log);
 
-/// @private
-static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
-{
-	// zero out the destination first
-	memset(log, 0, sizeof(*log));
+	if( size < sizeof(*log) )
+		return true;
 
 	if( version == 20090920 )
 	{// quest blocks separated by tabs, quest fields separated by commas, 6 fields total
 		char* quests[MAX_QUEST_DB+1];
+		int char_id, n, i;
 		int count;
-		int i;
+
+		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
+			return false;
+
+		// zero out the destination first
+		memset(log, 0, sizeof(*log));
 
 		// extract tab-separated columns from str
-		count = sv_split(str, strlen(str), 0, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		count = sv_split(str, strlen(str), n + 1, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
 		for( i = 0; i < count; ++i )
 		{
@@ -73,16 +73,24 @@ static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
 			(*log)[i].count[1] = strtol(fields[5], NULL, 10);
 			(*log)[i].count[2] = strtol(fields[6], NULL, 10);
 		}
+
+		*key = char_id;
 	}
 	else
 	if( version == 20090801 )
 	{// quest blocks separated by tabs, quest fields separated by commas, 10 fields total
 		char* quests[MAX_QUEST_DB+1];
+		int char_id, n, i;
 		int count;
-		int i;
+
+		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
+			return false;
+
+		// zero out the destination first
+		memset(log, 0, sizeof(*log));
 
 		// extract tab-separated columns from str
-		count = sv_split(str, strlen(str), 0, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		count = sv_split(str, strlen(str), n + 1, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
 		for( i = 0; i < count; ++i )
 		{
@@ -101,6 +109,8 @@ static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
 			//(*log)[i].mob[2] = strtol(fields[9], NULL, 10);
 			(*log)[i].count[2] = strtol(fields[10], NULL, 10);
 		}
+
+		*key = char_id;
 	}
 	else
 	{// unmatched row
@@ -111,25 +121,41 @@ static bool mmo_quests_fromstr(questlog* log, char* str, unsigned int version)
 }
 
 
+/// Serializes the provided data structure into a string.
 /// @private
-static bool mmo_quests_tostr(const questlog* log, char* str)
+static bool skill_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
 	char* p = str;
+	int char_id = key;
+	questlog* log = (questlog*)data;
 	int i;
+	int count = 0;
+	bool first = true;
+
+	if( size != sizeof(*log) )
+		return false;
+
+	p += sprintf(p, "%d\t", char_id);
 
 	for( i = 0; i < MAX_QUEST_DB; ++i )
 	{
 		const struct quest* qd = &(*log)[i];
+
 		if( qd->quest_id == 0 )
 			continue;
 
-		if( i != 0 )
+		if( first )
+			first = false;
+		else
 			p += sprintf(p, "\t");
 
 		p += sprintf(p, "%d,%d,%u,%d,%d,%d", qd->quest_id, qd->state, qd->time, qd->count[0], qd->count[1], qd->count[2]);
+	
+		count++;
 	}
 
-	*p = '\0';
+	if( count == 0 )
+		str[0] = '\0';
 
 	return true;
 }
@@ -138,160 +164,58 @@ static bool mmo_quests_tostr(const questlog* log, char* str)
 /// @protected
 static bool quest_db_txt_init(QuestDB* self)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests;
-	char line[8192];
-	FILE *fp;
-	unsigned int version = 0;
-
-	// create quest database
-	if( db->quests == NULL )
-		db->quests = idb_alloc(DB_OPT_RELEASE_DATA);
-	quests = db->quests;
-	db_clear(quests);
-
-	// open data file
-	fp = fopen(db->quest_db, "r");
-	if( fp == NULL )
-	{
-		ShowError("Quest file not found: %s.\n", db->quest_db);
-		return false;
-	}
-
-	// load data file
-	while( fgets(line, sizeof(line), fp) )
-	{
-		int char_id;
-		int n;
-		unsigned int v;
-		questlog* log;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		log = (questlog*)aCalloc(1, sizeof(questlog));
-		if( log == NULL )
-		{
-			ShowFatalError("quest_db_txt_init: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-
-		// load char id
-		n = 0;
-		if( sscanf(line, "%d%n\t", &char_id, &n) != 1 || line[n] != '\t' )
-		{
-			aFree(log);
-			continue;
-		}
-
-		// load quests for this char
-		if( !mmo_quests_fromstr(log, line + n + 1, version) )
-		{
-			ShowError("quest_db_txt_init: skipping invalid data: %s", line);
-			continue;
-		}
-
-		// record entry in db
-		idb_put(quests, char_id, log);
-	}
-
-	// close data file
-	fclose(fp);
-
-	return true;
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	return db->init(db);
 }
 
 
 /// @protected
 static void quest_db_txt_destroy(QuestDB* self)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
-
-	// delete quest database
-	if( quests != NULL )
-	{
-		db_destroy(quests);
-		db->quests = NULL;
-	}
-
-	// delete entire structure
-	aFree(db);
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	db->destroy(db);
+	aFree(self);
 }
 
 
 /// @protected
 static bool quest_db_txt_sync(QuestDB* self, bool force)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE* fp;
-	int lock;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->quest_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("quest_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->quest_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", QUEST_TXT_DB_VERSION); // savefile version
-
-	iter = db->quests->iterator(db->quests);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		questlog* log = (questlog*) data;
-		char line[8192]; //FIXME: not nearly enough space for MAX_QUEST_DB entries
-
-		mmo_quests_tostr(log, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->quest_db, &lock);
-
-	return true;
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
 /// @protected
 static bool quest_db_txt_remove(QuestDB* self, const int char_id)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	return db->remove(db, char_id);
+}
 
-	idb_remove(quests, char_id);
 
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+/// @protected
+static bool quest_db_txt_save(QuestDB* self, questlog* log, int char_id)
+{
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	int i;
+
+	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id > 0);
+	if( i < MAX_QUEST_DB )
+		return db->replace(db, char_id, log, sizeof(*log));
+	else
+		return db->remove(db, char_id);
 }
 
 
 /// @protected
 static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* const count)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
 	int i;
 
-	questlog* tmp = idb_get(quests, char_id);
-
-	if( tmp != NULL )
+	if( db->load(db, char_id, log, sizeof(*log), NULL) )
 	{
-		// store it
-		memcpy(log, tmp, sizeof(questlog));
-
 		// calculate and update 'count'
 		*count = 0;
 		for( i = 0; i < MAX_QUEST_DB; ++i )
@@ -300,34 +224,10 @@ static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* co
 	}
 	else
 	{
-		memset(log, 0x00, sizeof(*log));
+		memset(log, 0, sizeof(*log));
 		*count = 0;
 	}
 
-	return true;
-}
-
-
-/// @protected
-static bool quest_db_txt_save(QuestDB* self, questlog* log, int char_id)
-{
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
-	int i;
-
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id > 0);
-	if( i < MAX_QUEST_DB )
-	{
-		questlog* tmp = (questlog*)idb_ensure(quests, char_id, create_questlog);
-		memcpy(tmp, log, sizeof(*log));
-	}
-	else
-	{
-		idb_remove(quests, char_id);
-	}
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -336,8 +236,8 @@ static bool quest_db_txt_save(QuestDB* self, questlog* log, int char_id)
 /// @protected
 static CSDBIterator* quest_db_txt_iterator(QuestDB* self)
 {
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->quests));
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -347,22 +247,19 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 {
 	QuestDB_TXT* db = (QuestDB_TXT*)aCalloc(1, sizeof(QuestDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_quests, QUESTDB_TXT_DB_VERSION, 0);
+	db->db->p.fromstr = &skill_db_txt_fromstr;
+	db->db->p.tostr   = &skill_db_txt_tostr;
+
 	// set up the vtable
-	db->vtable.p.init      = &quest_db_txt_init;
-	db->vtable.p.destroy   = &quest_db_txt_destroy;
-	db->vtable.p.sync      = &quest_db_txt_sync;
+	db->vtable.p.init    = &quest_db_txt_init;
+	db->vtable.p.destroy = &quest_db_txt_destroy;
+	db->vtable.p.sync    = &quest_db_txt_sync;
 	db->vtable.remove    = &quest_db_txt_remove;
 	db->vtable.load      = &quest_db_txt_load;
 	db->vtable.save      = &quest_db_txt_save;
 	db->vtable.iterator  = &quest_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->quests = NULL;
-	db->dirty = false;
-
-	// other settings
-	db->quest_db = db->owner->file_quests;
 
 	return &db->vtable;
 }

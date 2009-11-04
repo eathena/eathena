@@ -1,6 +1,7 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include "../common/lock.h"
 #include "../common/malloc.h"
@@ -8,8 +9,8 @@
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "partydb.h"
-#include "charserverdb.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,25 +28,25 @@ typedef struct PartyDB_TXT
 	// public interface
 	PartyDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* parties;// int party_id -> struct party* g (releases data)
-	DBMap* idx_name;// char* name -> struct party* g (case-sensitive, WARNING: uses data of DBMap parties)
-	int next_party_id;
-	bool dirty;
+	// data provider
+	CSDB_TXT* db;
 
-	// settings
-	const char* party_db;
+	// indexes
+	DBMap* idx_name;// char* name -> int party_id (case-sensitive)
 
 } PartyDB_TXT;
 
 
-/// @private
-static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str, unsigned int version)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool party_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	struct party* tmp;
+	struct party* p = (struct party*)data;
 
-	memset(p, 0, sizeof(*p));
+	*out_size = sizeof(*p);
+
+	if( size < sizeof(*p) )
+		return true;
 
 	if( version == 20090906 )
 	{
@@ -55,6 +56,8 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str, unsig
 		int member[3+1][2];
 		int nmembers;
 		int i;
+
+		memset(p, 0, sizeof(*p));
 
 		// layout := <party id> \t <party base data> \t <party member list>
 		if( sv_parse(str, strlen(str), 0, '\t', (int*)fields, 2*ARRAYLENGTH(fields), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 3 )
@@ -81,9 +84,11 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str, unsig
 			p->member[i].char_id = strtol(&str[member[2][0]], NULL, 10);
 			p->member[i].leader = strtoul(&str[member[3][0]], NULL, 10) ? 1 : 0;
 		}
+
+		*key = p->party_id;
 	}
 	else
-	if( version == 0 )
+	if( version == 00000000 )
 	{
 		int party_id;
 		char name[256];
@@ -91,6 +96,8 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str, unsig
 		int item;
 		int n;
 		int i;
+
+		memset(p, 0, sizeof(*p));
 
 		n = 0;
 		if( sscanf(str, "%d\t%255[^\t]\t%d,%d%n", &party_id, name, &exp, &item, &n) != 4 || str[n] != '\t' )
@@ -120,33 +127,40 @@ static bool mmo_party_fromstr(PartyDB_TXT* db, struct party* p, char* str, unsig
 
 			str += n + 1;
 		}
+
+		*key = p->party_id;
 	}
 	else
 	{// unmatched row	
 		return false;
 	}
-
+/*
 	// uniqueness checks
-	tmp = (struct party*)idb_get(db->parties, p->party_id);
-	if( tmp != NULL )
+	if( db->db->exists(db->db, p->party_id) )
 	{
-		ShowError(CL_RED"mmo_party_fromstr: Collision on id %d between party '%s' and existing party '%s'!\n", p->party_id, p->name, tmp->name);
-		return false;
-	}
-	tmp = (struct party*)strdb_get(db->idx_name, p->name);
-	if( tmp != NULL )
-	{
-		ShowError(CL_RED"mmo_party_fromstr: Collision on name '%s' between party %d and existing party %d!\n", p->party_id, p->name, tmp->name);
+		char tmp[NAME_LENGTH];
+		db->vtable.id2name(&db->vtable, p->party_id, tmp, sizeof(tmp));
+		ShowError(CL_RED"mmo_party_fromstr: Collision on id %d between party '%s' and existing party '%s'!\n", p->party_id, p->name, tmp);
 		return false;
 	}
 
+	if( strdb_exists(db->idx_name, p->name) )
+	{
+		int tmp;
+		tmp = (int)strdb_get(db->idx_name, p->name);
+		ShowError(CL_RED"mmo_party_fromstr: Collision on name '%s' between party %d and existing party %d!\n", p->party_id, p->name, tmp);
+		return false;
+	}
+*/
 	return true;
 }
 
 
-/// @private
-static bool mmo_party_tostr(const struct party* p, char* str)
+/// Serializes the provided data structure into a string.
+/// @protected
+static bool party_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
+	const struct party* p = (const struct party*)data;
 	char esc_name[sizeof(p->name)*4+1];
 	bool first = true;
 	int i;
@@ -178,71 +192,25 @@ static bool mmo_party_tostr(const struct party* p, char* str)
 static bool party_db_txt_init(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties;
-	char line[8192];
-	FILE *fp;
-	unsigned int version = 0;
+	CSDBIterator* iter;
+	int party_id;
 
-	// create party database
-	if( db->parties == NULL )
-		db->parties = idb_alloc(DB_OPT_RELEASE_DATA);
+	if( !db->db->init(db->db) )
+		return false;
+
+	// create index
 	if( db->idx_name == NULL )
 		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
-	parties = db->parties;
-	db_clear(parties);
 	db_clear(db->idx_name);
-
-	// open data file
-	fp = fopen(db->party_db, "r");
-	if( fp == NULL )
+	iter = db->db->iterator(db->db);
+	while( iter->next(iter, &party_id) )
 	{
-		ShowError("Party file not found: %s.\n", db->party_db);
-		return false;
-	}
-
-	// load data file
-	while( fgets(line, sizeof(line), fp) != NULL )
-	{
-		int party_id, n;
 		struct party p;
-		struct party* tmp;
-		unsigned int v;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		n = 0;
-		if( sscanf(line, "%d\t%%newid%%%n", &party_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
-		{// auto-increment
-			if( party_id > db->next_party_id )
-				db->next_party_id = party_id;
-			continue;
-		}
-
-		if( !mmo_party_fromstr(db, &p, line, version) )
-		{
-			ShowError("party_db_txt_init: skipping invalid data: %s", line);
-			continue;
-		}
-
-		// record entry in db
-		tmp = (struct party*)aMalloc(sizeof(struct party));
-		memcpy(tmp, &p, sizeof(struct party));
-		idb_put(parties, p.party_id, tmp);
-		strdb_put(db->idx_name, p.name, tmp);
-
-		if( p.party_id >= db->next_party_id )
-			db->next_party_id = p.party_id + 1;
+		db->db->load(db->db, party_id, &p, sizeof(p), NULL);
+		strdb_put(db->idx_name, p.name, (void*)party_id);
 	}
+	iter->destroy(iter);
 
-	// close data file
-	fclose(fp);
-
-	db->dirty = false;
 	return true;
 }
 
@@ -251,19 +219,13 @@ static bool party_db_txt_init(PartyDB* self)
 static void party_db_txt_destroy(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
 
 	// delete party database
+	db->db->destroy(db->db);
+
+	// delete indexes
 	if( db->idx_name != NULL )
-	{
 		db_destroy(db->idx_name);
-		db->idx_name = NULL;
-	}
-	if( parties != NULL )
-	{
-		db_destroy(parties);
-		db->parties = NULL;
-	}
 
 	// delete entire structure
 	aFree(db);
@@ -273,38 +235,8 @@ static void party_db_txt_destroy(PartyDB* self)
 /// @protected
 static bool party_db_txt_sync(PartyDB* self, bool force)
 {
-	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	FILE *fp;
-	int lock;
-	struct DBIterator* iter;
-	struct party* p;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->party_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("party_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->party_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", PARTYDB_TXT_DB_VERSION);
-
-	iter = db->parties->iterator(db->parties);
-	for( p = (struct party*)iter->first(iter,NULL); iter->exists(iter); p = (struct party*)iter->next(iter,NULL) )
-	{
-		char buf[8192]; // ought to be big enough ^^
-		mmo_party_tostr(p, buf);
-		fprintf(fp, "%s\n", buf);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_party_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->party_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((PartyDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
@@ -312,34 +244,20 @@ static bool party_db_txt_sync(PartyDB* self, bool force)
 static bool party_db_txt_create(PartyDB* self, struct party* p)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
-	struct party* tmp;
 
-	// decide on the party id to assign
-	int party_id = ( p->party_id != -1 ) ? p->party_id : db->next_party_id;
+	if( p->party_id == -1 )
+		p->party_id = db->db->next_key(db->db);
 
 	// data restrictions
-	if( p->party_id != -1 && self->id2name(self, p->party_id, NULL, 0) )
+	if( self->id2name(self, p->party_id, NULL, 0) )
 		return false;// id is being used
 	if( self->name2id(self, p->name, NULL) )
 		return false;// name is being used
 
-	// copy the data and store it in the db
-	CREATE(tmp, struct party, 1);
-	memcpy(tmp, p, sizeof(struct party));
-	tmp->party_id = party_id;
-	idb_put(parties, party_id, tmp);
-	strdb_put(db->idx_name, tmp->name, tmp);
+	// store data
+	db->db->insert(db->db, p->party_id, p, sizeof(*p));
+	strdb_put(db->idx_name, p->name, (void*)p->party_id);
 
-	// increment the auto_increment value
-	if( party_id >= db->next_party_id )
-		db->next_party_id = party_id + 1;
-
-	// write output
-	p->party_id = party_id;
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -348,17 +266,15 @@ static bool party_db_txt_create(PartyDB* self, struct party* p)
 static bool party_db_txt_remove(PartyDB* self, const int party_id)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
-	struct party* tmp;
+	struct party p;
 
-	tmp = (struct party*)idb_get(parties, party_id);
-	if( tmp == NULL )
-		return true;// nothing to do
-	strdb_remove(db->idx_name, tmp->name);
-	idb_remove(parties, party_id);
+	if( !db->db->load(db->db, party_id, &p, sizeof(p), NULL) )
+		return true; // nothing to delete
 
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
+	// delete from database and index
+	db->db->remove(db->db, party_id);
+	strdb_remove(db->idx_name, p.name);
+
 	return true;
 }
 
@@ -367,32 +283,32 @@ static bool party_db_txt_remove(PartyDB* self, const int party_id)
 static bool party_db_txt_save(PartyDB* self, const struct party* p, enum party_save_flags flag, int index)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
+	struct party tmp;
 	bool name_changed = false;
 
 	// retrieve previous data
-	struct party* tmp = idb_get(parties, p->party_id);
-	if( tmp == NULL )
-	{// error condition - entry not found
-		return false;
-	}
-	if( strcmp(p->name, tmp->name) != 0 )
-	{// name changed
+	if( !db->db->load(db->db, p->party_id, &tmp, sizeof(tmp), NULL) )
+		return false; // entry not found
+
+	// check integrity constraints
+	if( strcmp(p->name, tmp.name) != 0 )
+	{
 		name_changed = true;
-		if( strdb_get(db->idx_name, p->name) != NULL )
-			return false;// name is being used
+		if( strdb_exists(db->idx_name, p->name) )
+			return false; // name already taken
 	}
-	
-	// overwrite with new data
+
+	// write new data
+	if( !db->db->update(db->db, p->party_id, p, sizeof(*p)) )
+		return false;
+
+	// update index
 	if( name_changed )
 	{
-		strdb_remove(db->idx_name, tmp->name);
-		strdb_put(db->idx_name, p->name, tmp);
+		strdb_remove(db->idx_name, tmp.name);
+		strdb_put(db->idx_name, p->name, (void*)p->party_id);
 	}
-	memcpy(tmp, p, sizeof(struct party));
 
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -400,18 +316,38 @@ static bool party_db_txt_save(PartyDB* self, const struct party* p, enum party_s
 /// @protected
 static bool party_db_txt_load(PartyDB* self, struct party* p, int party_id)
 {
+	CSDB_TXT* db = ((PartyDB_TXT*)self)->db;
+	return db->load(db, party_id, p, sizeof(*p), NULL);
+}
+
+
+/// @protected
+static bool party_db_txt_id2name(PartyDB* self, int party_id, char* name, size_t size)
+{
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
+	struct party p;
 
-	// retrieve data
-	struct party* tmp = idb_get(parties, party_id);
-	if( tmp == NULL )
-	{// entry not found
+	if( !db->db->load(db->db, party_id, &p, sizeof(p), NULL) )
 		return false;
-	}
 
+	if( name != NULL )
+		safestrncpy(name, p.name, size);
+
+	return true;
+}
+
+
+/// @protected
+static bool party_db_txt_name2id(PartyDB* self, const char* name, int* party_id)
+{
+	PartyDB_TXT* db = (PartyDB_TXT*)self;
+
+	if( !strdb_exists(db->idx_name, name) )
+		return false;
+	
 	// store it
-	memcpy(p, tmp, sizeof(struct party));
+	if( party_id != NULL )
+		*party_id = (int)strdb_get(db->idx_name, name);
 
 	return true;
 }
@@ -421,49 +357,8 @@ static bool party_db_txt_load(PartyDB* self, struct party* p, int party_id)
 /// @protected
 static CSDBIterator* party_db_txt_iterator(PartyDB* self)
 {
-	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->parties));
-}
-
-
-/// @protected
-static bool party_db_txt_id2name(PartyDB* self, int party_id, char* name, size_t size)
-{
-	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
-
-	// retrieve data
-	struct party* tmp = (struct party*)idb_get(parties, party_id);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	if( name != NULL )
-		safestrncpy(name, tmp->name, size);
-	
-	return true;
-}
-
-
-/// @protected
-static bool party_db_txt_name2id(PartyDB* self, const char* name, int* party_id)
-{
-	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBMap* parties = db->parties;
-
-	// retrieve data
-	struct party* tmp = (struct party*)strdb_get(db->idx_name, name);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	// store it
-	if( party_id != NULL )
-		*party_id = tmp->party_id;
-
-	return true;
+	CSDB_TXT* db = ((PartyDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -473,10 +368,15 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)aCalloc(1, sizeof(PartyDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_parties, PARTYDB_TXT_DB_VERSION, START_PARTY_NUM);
+	db->db->p.fromstr = &party_db_txt_fromstr;
+	db->db->p.tostr   = &party_db_txt_tostr;
+
 	// set up the vtable
-	db->vtable.p.init      = &party_db_txt_init;
-	db->vtable.p.destroy   = &party_db_txt_destroy;
-	db->vtable.p.sync      = &party_db_txt_sync;
+	db->vtable.p.init    = &party_db_txt_init;
+	db->vtable.p.destroy = &party_db_txt_destroy;
+	db->vtable.p.sync    = &party_db_txt_sync;
 	db->vtable.create    = &party_db_txt_create;
 	db->vtable.remove    = &party_db_txt_remove;
 	db->vtable.save      = &party_db_txt_save;
@@ -484,16 +384,6 @@ PartyDB* party_db_txt(CharServerDB_TXT* owner)
 	db->vtable.id2name   = &party_db_txt_id2name;
 	db->vtable.name2id   = &party_db_txt_name2id;
 	db->vtable.iterator  = &party_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->parties = NULL;
-	db->idx_name = NULL;
-	db->next_party_id = START_PARTY_NUM;
-	db->dirty = false;
-
-	// other settings
-	db->party_db = db->owner->file_parties;
 
 	return &db->vtable;
 }

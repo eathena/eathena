@@ -8,8 +8,10 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/txt.h"
 #include "../common/utils.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "maildb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +19,7 @@
 
 
 /// global defines
-#define MAIL_TXT_DB_VERSION 20090707
+#define MAILDB_TXT_DB_VERSION 20090707
 #define START_MAIL_NUM 1
 
 
@@ -28,58 +30,60 @@ typedef struct MailDB_TXT
 	// public interface
 	MailDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* mails;
-	int next_mail_id;
-	bool dirty;
-
-	// settings
-	const char* mail_db;
+	// data provider
+	CSDB_TXT* db;
 
 } MailDB_TXT;
 
 
-/// @private
-static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int version)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool mail_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	char* fields[32];
-	int count;
+	struct mail_message* msg = (struct mail_message*)data;
 
-	// zero out the destination first
-	memset(msg, 0x00, sizeof(*msg));
+	*out_size = sizeof(*msg);
 
-	// extract tab-separated columns from str
-	count = sv_split(str, strlen(str), 0, '\t', fields, ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
+	if( size < sizeof(*msg) )
+		return true;
 
-	if( version == 20090707 && count >= 16 )
+	if( version == 20090707 )
 	{
-		char esc_title[2*sizeof(msg->title)+1];
-		char esc_body[2*sizeof(msg->body)+1];
+		Txt* txt;
 		int i;
 
-		msg->id = (int)strtol(fields[1], NULL, 10);
-		msg->send_id = (int)strtol(fields[2], NULL, 10);
-		safestrncpy(msg->send_name, fields[3], sizeof(msg->send_name));
-		msg->dest_id = (int)strtol(fields[4], NULL, 10);
-		safestrncpy(msg->dest_name, fields[5], sizeof(msg->dest_name));
-		safestrncpy(esc_title, fields[6], sizeof(esc_title));
-		safestrncpy(esc_body, fields[7], sizeof(esc_body));
-		msg->status = (enum mail_status)strtoul(fields[8], NULL, 10);
-		msg->timestamp = (time_t)strtol(fields[9], NULL, 10);
-		msg->zeny = (int)strtol(fields[10], NULL, 10);
-		msg->item.nameid = (short)strtol(fields[11], NULL, 10);
-		msg->item.amount = (short)strtol(fields[12], NULL, 10);
-		msg->item.equip = (unsigned short)strtoul(fields[13], NULL, 10);
-		msg->item.identify = (char)strtol(fields[14], NULL, 10);
-		msg->item.refine = (char)strtol(fields[15], NULL, 10);
-		msg->item.attribute = (char)strtol(fields[16], NULL, 10);
+		// zero out the destination first
+		memset(msg, 0x00, sizeof(*msg));
 
-		for( i = 0; i < count - 16 && i < MAX_SLOTS; ++i )
-			msg->item.card[i] = (short)strtol(fields[17+i], NULL, 10);
+		txt = Txt_Malloc();
+		Txt_Init(txt, (char*)str, strlen(str), 16 + MAX_SLOTS, '\t', '\0', "\t");
+		Txt_Bind(txt,  0, TXTDT_INT, &msg->id, sizeof(msg->id));
+		Txt_Bind(txt,  1, TXTDT_INT, &msg->send_id, sizeof(msg->send_id));
+		Txt_Bind(txt,  2, TXTDT_STRING, &msg->send_name, sizeof(msg->send_name));
+		Txt_Bind(txt,  3, TXTDT_INT, &msg->dest_id, sizeof(msg->dest_id));
+		Txt_Bind(txt,  4, TXTDT_STRING, &msg->dest_name, sizeof(msg->dest_name));
+		Txt_Bind(txt,  5, TXTDT_CSTRING, &msg->title, sizeof(msg->title));
+		Txt_Bind(txt,  6, TXTDT_CSTRING, &msg->body, sizeof(msg->body));
+		Txt_Bind(txt,  7, TXTDT_ENUM, &msg->status, sizeof(msg->status));
+		Txt_Bind(txt,  8, TXTDT_TIME, &msg->timestamp, sizeof(msg->timestamp));
+		Txt_Bind(txt,  9, TXTDT_INT, &msg->zeny, sizeof(msg->zeny));
+		Txt_Bind(txt, 10, TXTDT_SHORT, &msg->item.nameid, sizeof(msg->item.nameid));
+		Txt_Bind(txt, 11, TXTDT_SHORT, &msg->item.amount, sizeof(msg->item.amount));
+		Txt_Bind(txt, 12, TXTDT_USHORT, &msg->item.equip, sizeof(msg->item.equip));
+		Txt_Bind(txt, 13, TXTDT_CHAR, &msg->item.identify, sizeof(msg->item.identify));
+		Txt_Bind(txt, 14, TXTDT_CHAR, &msg->item.refine, sizeof(msg->item.refine));
+		Txt_Bind(txt, 15, TXTDT_CHAR, &msg->item.attribute, sizeof(msg->item.attribute));
+		for( i = 0; i < MAX_SLOTS; ++i )
+			Txt_Bind(txt, 16+i, TXTDT_SHORT, &msg->item.card[i], sizeof(msg->item.card[i]));
 
-		sv_unescape_c(msg->title, esc_title, strlen(esc_title));
-		sv_unescape_c(msg->body, esc_body, strlen(esc_body));
+		if( Txt_Write(txt) != TXT_SUCCESS || Txt_NumFields(txt) < 16 )
+		{
+			Txt_Free(txt);
+			return false;
+		}
+		Txt_Free(txt);
+
+		*key = msg->id;
 	}
 	else
 	{// unmatched row
@@ -90,295 +94,147 @@ static bool mmo_mail_fromstr(struct mail_message* msg, char* str, unsigned int v
 }
 
 
-/// @private
-static bool mmo_mail_tostr(const struct mail_message* msg, char* str)
+/// Serializes the provided data structure into a string.
+/// @protected
+static bool mail_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
-	char esc_title[MAIL_TITLE_LENGTH*2+1];
-	char esc_body[MAIL_BODY_LENGTH*2+1];
-	int len;
+	struct mail_message* msg = (struct mail_message*)data;
+	bool result;
 	int i;
 
-	sv_escape_c(esc_title, msg->title, strlen(msg->title), NULL);
-	sv_escape_c(esc_body, msg->body, strlen(msg->body), NULL);
+	Txt* txt = Txt_Malloc();
+	Txt_Init(txt, str, SIZE_MAX, 16+MAX_SLOTS, '\t', '\0', "\t");
+	Txt_Bind(txt,  0, TXTDT_INT, &msg->id, sizeof(msg->id));
+	Txt_Bind(txt,  1, TXTDT_INT, &msg->send_id, sizeof(msg->send_id));
+	Txt_Bind(txt,  2, TXTDT_STRING, &msg->send_name, sizeof(msg->send_name));
+	Txt_Bind(txt,  3, TXTDT_INT, &msg->dest_id, sizeof(msg->dest_id));
+	Txt_Bind(txt,  4, TXTDT_STRING, &msg->dest_name, sizeof(msg->dest_name));
+	Txt_Bind(txt,  5, TXTDT_CSTRING, &msg->title, sizeof(msg->title));
+	Txt_Bind(txt,  6, TXTDT_CSTRING, &msg->body, sizeof(msg->body));
+	Txt_Bind(txt,  7, TXTDT_ENUM, &msg->status, sizeof(msg->status));
+	Txt_Bind(txt,  8, TXTDT_TIME, &msg->timestamp, sizeof(msg->timestamp));
+	Txt_Bind(txt,  9, TXTDT_INT, &msg->zeny, sizeof(msg->zeny));
+	Txt_Bind(txt, 10, TXTDT_SHORT, &msg->item.nameid, sizeof(msg->item.nameid));
+	Txt_Bind(txt, 11, TXTDT_SHORT, &msg->item.amount, sizeof(msg->item.amount));
+	Txt_Bind(txt, 12, TXTDT_USHORT, &msg->item.equip, sizeof(msg->item.equip));
+	Txt_Bind(txt, 13, TXTDT_CHAR, &msg->item.identify, sizeof(msg->item.identify));
+	Txt_Bind(txt, 14, TXTDT_CHAR, &msg->item.refine, sizeof(msg->item.refine));
+	Txt_Bind(txt, 15, TXTDT_CHAR, &msg->item.attribute, sizeof(msg->item.attribute));
+	for( i = 0; i < MAX_SLOTS; ++i )
+		Txt_Bind(txt, 16+i, TXTDT_SHORT, &msg->item.card[i], sizeof(msg->item.card[i]));
 
-	len = sprintf(str, "%d\t%d\t%s\t%d\t%s\t%s\t%s\t%u\t%lu\t%d\t%d\t%d\t%u\t%u\t%u\t%u",
-	              msg->id, msg->send_id, msg->send_name, msg->dest_id, msg->dest_name,
-	              esc_title, esc_body, msg->status, (unsigned long)msg->timestamp, msg->zeny,
-	              msg->item.nameid, msg->item.amount, msg->item.equip, msg->item.identify, msg->item.refine, msg->item.attribute);
+	result = ( Txt_Write(txt) == TXT_SUCCESS && Txt_NumFields(txt) == 16+MAX_SLOTS );
+	Txt_Free(txt);
 
-	for( i = 0; i < MAX_SLOTS; i++ )
-		len += sprintf(str+len, "\t%d", msg->item.card[i]);
-
-	strcat(str+len, "\t");
-
-	return true;
+	return result;
 }
 
 
 /// @protected
 static bool mail_db_txt_init(MailDB* self)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails;
-
-	char line[8192];
-	FILE *fp;
-	unsigned int version = 0;
-
-	// create mail database
-	if( db->mails == NULL )
-		db->mails = idb_alloc(DB_OPT_RELEASE_DATA);
-	mails = db->mails;
-	db_clear(mails);
-
-	// open data file
-	fp = fopen(db->mail_db, "r");
-	if( fp == NULL )
-	{
-		ShowError("Mail file not found: %s.\n", db->mail_db);
-		return false;
-	}
-
-	// load data file
-	while( fgets(line, sizeof(line), fp) )
-	{
-		int mail_id, n;
-		unsigned int v;
-		struct mail_message* msg;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		n = 0;
-		if( sscanf(line, "%d\t%%newid%%%n", &mail_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
-		{// auto-increment
-			if( mail_id > db->next_mail_id )
-				db->next_mail_id = mail_id;
-			continue;
-		}
-
-		msg = (struct mail_message*)aMalloc(sizeof(struct mail_message));
-		if( !mmo_mail_fromstr(msg, line, version) )
-		{
-			ShowError("mail_db_txt_init: skipping invalid data: %s", line);
-			aFree(msg);
-			continue;
-		}
-	
-		// record entry in db
-		idb_put(mails, msg->id, msg);
-
-		if( msg->id >= db->next_mail_id )
-			db->next_mail_id = msg->id + 1;
-	}
-
-	// close data file
-	fclose(fp);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->init(db);
 }
 
 
 /// @protected
 static void mail_db_txt_destroy(MailDB* self)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails = db->mails;
-
-	// delete mail database
-	if( mails != NULL )
-	{
-		db_destroy(mails);
-		db->mails = NULL;
-	}
-
-	// delete entire structure
-	aFree(db);
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	db->destroy(db);
+	aFree(self);
 }
 
 
 /// @protected
 static bool mail_db_txt_sync(MailDB* self, bool force)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBIterator* iter;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->mail_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("mail_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->mail_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", MAIL_TXT_DB_VERSION); // savefile version
-
-	iter = db->mails->iterator(db->mails);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct mail_message* msg = (struct mail_message*) data;
-		char line[8192];
-
-		mmo_mail_tostr(msg, line);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_mail_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->mail_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
 /// @protected
 static bool mail_db_txt_create(MailDB* self, struct mail_message* msg)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails = db->mails;
-	struct mail_message* tmp;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
 
-	// decide on the mail id to assign
-	int mail_id = ( msg->id != -1 ) ? msg->id : db->next_mail_id;
+	if( msg->id == -1 )
+		msg->id = db->next_key(db);
 
-	// check if the mail id is free
-	tmp = idb_get(mails, mail_id);
-	if( tmp != NULL )
-	{// error condition - entry already present
-		ShowError("mail_db_txt_create: cannot create mail %d:'%s', this id is already occupied by %d:'%s'!\n", mail_id, msg->title, mail_id, tmp->title);
-		return false;
-	}
-
-	// copy the data and store it in the db
-	CREATE(tmp, struct mail_message, 1);
-	memcpy(tmp, msg, sizeof(struct mail_message));
-	tmp->id = mail_id;
-	idb_put(mails, mail_id, tmp);
-
-	// increment the auto_increment value
-	if( mail_id >= db->next_mail_id )
-		db->next_mail_id = mail_id + 1;
-
-	// write output
-	msg->id = mail_id;
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	return db->insert(db, msg->id, msg, sizeof(*msg));
 }
 
 
 /// @protected
 static bool mail_db_txt_remove(MailDB* self, const int mail_id)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails = db->mails;
-
-	idb_remove(mails, mail_id);
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->remove(db, mail_id);
 }
 
 
 /// @protected
 static bool mail_db_txt_save(MailDB* self, const struct mail_message* msg)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails = db->mails;
-	int mail_id = msg->id;
-
-	// retrieve previous data
-	struct mail_message* tmp = idb_get(mails, mail_id);
-	if( tmp == NULL )
-	{// error condition - entry not found
-		return false;
-	}
-	
-	// overwrite with new data
-	memcpy(tmp, msg, sizeof(struct mail_message));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->replace(db, msg->id, msg, sizeof(*msg));
 }
 
 
 /// @protected
 static bool mail_db_txt_load(MailDB* self, struct mail_message* msg, const int mail_id)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	DBMap* mails = db->mails;
-
-	// retrieve data
-	struct mail_message* tmp = idb_get(mails, mail_id);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	// store it
-	memcpy(msg, tmp, sizeof(struct mail_message));
-
-	return true;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->load(db, mail_id, msg, sizeof(*msg), NULL);
 }
 
 
 /// @protected
 static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int char_id)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	struct mail_message* msg;
-	DBIterator* iter;
-	void* data;
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	struct mail_message msg;
+	CSDBIterator* iter;
+	int mail_id;
+	int total = 0;
 	int i;
 
-	memset(md, 0, sizeof(struct mail_data));
-	i = 0;
+	memset(md, 0, sizeof(*md));
 
-	iter = db->mails->iterator(db->mails);
-	for( data = iter->first(iter, NULL); iter->exists(iter); data = iter->next(iter, NULL) )
+	iter = db->iterator(db);
+	while( iter->next(iter, &mail_id) )
 	{
-		msg = (struct mail_message*)data;
+		if( !db->load(db, mail_id, &msg, sizeof(msg), NULL) )
+			continue;
 
-		if( msg->dest_id != char_id )
+		if( msg.dest_id != char_id )
 			continue;
 
 		if( md->amount < MAIL_MAX_INBOX )
 		{
-			memcpy(&md->msg[md->amount], msg, sizeof(struct mail_message));
+			memcpy(&md->msg[md->amount], &msg, sizeof(msg));
 			md->amount++;
 		}
 
-		++i; // total message count
+		++total;
 	}
 	iter->destroy(iter);
 
-	md->full = ( i > MAIL_MAX_INBOX );
-
 	// process retrieved data
+	md->full = ( total > MAIL_MAX_INBOX );
 	md->unchecked = 0;
 	md->unread = 0;
 	for( i = 0; i < md->amount; ++i )
 	{
-		msg = &md->msg[i];
+		struct mail_message* msg = &md->msg[i];
 
 		if( msg->status == MAIL_NEW )
 		{// change to 'unread'
 			msg->status = MAIL_UNREAD;
 			md->unchecked++;
+			db->update(db, msg->id, msg, sizeof(*msg)); //FIXME: messy
 		}
 		else
 		if( msg->status == MAIL_UNREAD )
@@ -393,8 +249,8 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 /// @protected
 static CSDBIterator* mail_db_txt_iterator(MailDB* self)
 {
-	MailDB_TXT* db = (MailDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->mails));
+	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -404,25 +260,21 @@ MailDB* mail_db_txt(CharServerDB_TXT* owner)
 {
 	MailDB_TXT* db = (MailDB_TXT*)aCalloc(1, sizeof(MailDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_mails, MAILDB_TXT_DB_VERSION, START_MAIL_NUM);
+	db->db->p.fromstr = &mail_db_txt_fromstr;
+	db->db->p.tostr   = &mail_db_txt_tostr;
+
 	// set up the vtable
-	db->vtable.p.init      = &mail_db_txt_init;
-	db->vtable.p.destroy   = &mail_db_txt_destroy;
-	db->vtable.p.sync      = &mail_db_txt_sync;
+	db->vtable.p.init    = &mail_db_txt_init;
+	db->vtable.p.destroy = &mail_db_txt_destroy;
+	db->vtable.p.sync    = &mail_db_txt_sync;
 	db->vtable.create    = &mail_db_txt_create;
 	db->vtable.remove    = &mail_db_txt_remove;
 	db->vtable.save      = &mail_db_txt_save;
 	db->vtable.load      = &mail_db_txt_load;
 	db->vtable.loadall   = &mail_db_txt_loadall;
 	db->vtable.iterator  = &mail_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->mails = NULL;
-	db->next_mail_id = START_MAIL_NUM;
-	db->dirty = false;
-
-	// other settings
-	db->mail_db = db->owner->file_mails;
 
 	return &db->vtable;
 }

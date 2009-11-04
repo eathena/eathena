@@ -8,8 +8,10 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/txt.h"
 #include "../common/utils.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "statusdb.h"
 #include <limits.h> // SIZE_MAX
 #include <stdio.h>
@@ -28,69 +30,104 @@ typedef struct StatusDB_TXT
 	// public interface
 	StatusDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* statuses;
-	bool dirty;
-
-	// settings
-	const char* status_db;
+	// data provider
+	CSDB_TXT* db;
 
 } StatusDB_TXT;
 
 
-/// @private
-static bool mmo_status_fromstr(struct status_change_data* sc, size_t size, char* str, unsigned int version)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool status_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
+	struct status_change_data* sc = (struct status_change_data*)data;
+
 	if( version == 20090907 )
 	{
-		const char* p = str;
-		bool first = true;
-		int n;
-		size_t i;
-		
-		for( i = 0; i < size && *p != '\0' && *p != '\r' && *p != '\n'; i++ )
+		Txt* txt;
+		int char_id, n, i;
+		struct status_change_data tmp;
+		bool done = false;
+
+		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
+			return false;
+
+		str += n + 1;
+
+		memset(&tmp, 0, sizeof(tmp));
+		*out_size = 0;
+
+		txt = Txt_Malloc();
+		Txt_Init(txt, (char*)str, strlen(str), 6, ',', ' ', "");
+		Txt_Bind(txt, 0, TXTDT_USHORT, &tmp.type, sizeof(tmp.type));
+		Txt_Bind(txt, 1, TXTDT_INT, &tmp.tick, sizeof(tmp.tick));
+		Txt_Bind(txt, 2, TXTDT_INT, &tmp.val1, sizeof(tmp.val1));
+		Txt_Bind(txt, 3, TXTDT_INT, &tmp.val2, sizeof(tmp.val2));
+		Txt_Bind(txt, 4, TXTDT_INT, &tmp.val3, sizeof(tmp.val3));
+		Txt_Bind(txt, 5, TXTDT_INT, &tmp.val4, sizeof(tmp.val4));
+
+		i = 0;
+		while( !done )
 		{
-			if( first )
-				first = false;
-			else
-			if( *p == ' ' )
-				p++;
-			else
-				return false;
+			if( Txt_Parse(txt) != TXT_SUCCESS )
+				break;
 
-			if (sscanf(p, "%hu,%d,%d,%d,%d,%d%n", &sc[i].type, &sc[i].tick, &sc[i].val1, &sc[i].val2, &sc[i].val3, &sc[i].val4, &n) < 6)
-				return false;
+			if( Txt_NumFields(txt) == 0 )
+			{// no more data
+				done = true;
+				break;
+			}
 
-			p += n;
+			if( Txt_NumFields(txt) != 6 )
+				break; // parsing failure
+
+			*out_size += sizeof(struct status_change_data);
+
+			if( (i+1) * sizeof(struct status_change_data) > size )
+				continue; // discard entries over max
+
+			memcpy(&sc[i], &tmp, sizeof(tmp));
+			memset(&tmp, 0, sizeof(tmp));
+			i++;
 		}
 
-		for( i = i; i < size; ++i )
-		{
-			memset(sc, 0, sizeof(*sc));
-			sc[i].type = -1;
-		}
+		Txt_Free(txt);
+
+		if( !done )
+			return false;
+
+		*key = char_id;
 	}
 	else
 	if( version == 00000000 )
 	{
-		const char* p = str;
-		int n;
-		size_t i;
-		
-		for( i = 0; i < size && *p != '\0' && *p != '\r' && *p != '\n'; i++ )
+		int account_id, char_id, count, n, i;
+		struct status_change_data tmp;
+
+		if( sscanf(str, "%d,%d,%d%n", &account_id, &char_id, &count, &n) != 3 && str[n] != '\t' )
+			return false;
+
+		str += n + 1;
+
+		memset(&tmp, 0, sizeof(tmp));
+		*out_size = 0;
+
+		for( i = 0; i < count; i++ )
 		{
-			if (sscanf(p, "%hu,%d,%d,%d,%d,%d\t%n", &sc[i].type, &sc[i].tick, &sc[i].val1, &sc[i].val2, &sc[i].val3, &sc[i].val4, &n) < 6)
+			if( sscanf(str, "%hu,%d,%d,%d,%d,%d%n", &tmp.type, &tmp.tick, &tmp.val1, &tmp.val2, &tmp.val3, &tmp.val4, &n) < 6 || str[n] != '\t' )
 				return false;
 
-			p += n;
+			str += n + 1;
+			*out_size += sizeof(struct status_change_data);
+
+			if( (i+1) * sizeof(struct status_change_data) > size )
+				continue; // discard entries over max
+
+			memcpy(&sc[i], &tmp, sizeof(tmp));
+			memset(&tmp, 0, sizeof(tmp));
 		}
 
-		for( i = i; i < size; ++i )
-		{
-			memset(sc, 0, sizeof(*sc));
-			sc[i].type = -1;
-		}
+		*key = char_id;
 	}
 	else
 	{// unmatched row	
@@ -101,25 +138,47 @@ static bool mmo_status_fromstr(struct status_change_data* sc, size_t size, char*
 }
 
 
+/// Serializes the provided data structure into a string.
 /// @private
-static bool mmo_status_tostr(const struct status_change_data* sc, size_t size, char* str)
+static bool status_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
 	char* p = str;
-	bool first = true;
+	int char_id = key;
+	struct status_change_data* sc = (struct status_change_data*)data;
 	size_t i;
+	int count = 0;
+	Txt* txt;
 
-	for( i = 0; i < size; i++ )
+	p += sprintf(p, "%d\t", char_id);
+
+	txt = Txt_Malloc();
+	Txt_Init(txt, p, SIZE_MAX, 6, ',', ' ', ", ");
+
+	for( i = 0; i < size / sizeof(struct status_change_data); i++ )
 	{
 		if( sc[i].type == (unsigned short)-1 )
 			continue;
 
-		if( first )
-			first = false;
-		else
-			p += sprintf(p, " ");
+		Txt_Bind(txt, 0, TXTDT_USHORT, &sc[i].type, sizeof(sc[i].type));
+		Txt_Bind(txt, 1, TXTDT_INT, &sc[i].tick, sizeof(sc[i].tick));
+		Txt_Bind(txt, 2, TXTDT_INT, &sc[i].val1, sizeof(sc[i].val1));
+		Txt_Bind(txt, 3, TXTDT_INT, &sc[i].val2, sizeof(sc[i].val2));
+		Txt_Bind(txt, 4, TXTDT_INT, &sc[i].val3, sizeof(sc[i].val3));
+		Txt_Bind(txt, 5, TXTDT_INT, &sc[i].val4, sizeof(sc[i].val4));
 
-		p += sprintf(p, "%d,%d,%d,%d,%d,%d", sc[i].type, sc[i].tick, sc[i].val1, sc[i].val2, sc[i].val3, sc[i].val4);
+		if( Txt_Write(txt) != TXT_SUCCESS )
+		{
+			Txt_Free(txt);
+			return false;
+		}
+
+		count++;
 	}
+
+	Txt_Free(txt);
+
+	if( count == 0 )
+		str[0] = '\0';
 
 	return true;
 }
@@ -128,240 +187,67 @@ static bool mmo_status_tostr(const struct status_change_data* sc, size_t size, c
 /// @protected
 static bool status_db_txt_init(StatusDB* self)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBMap* statuses;
-	char line[8192];
-	FILE *fp;
-	unsigned int version = 0;
-
-	// create pet database
-	if( db->statuses == NULL )
-		db->statuses = idb_alloc(DB_OPT_RELEASE_DATA);
-	statuses = db->statuses;
-	statuses->clear(statuses, NULL);
-
-	// open data file
-	fp = fopen(db->status_db, "r");
-	if( fp == NULL )
-	{
-		ShowError("status_db_txt_init: Cannot open file %s!\n", db->status_db);
-		return false;
-	}
-
-	while( fgets(line, sizeof(line), fp) )
-	{
-		int char_id, n;
-		unsigned int v;
-		struct status_change_data* sc;
-		int count;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		// load char id and determine size
-		n = 0;
-		if( version == 20090907 && sscanf(line, "%d%n", &char_id, &n) == 1 && line[n] == '\t' )
-			count = sv_parse(line, strlen(line), n + 1, ' ', NULL, 0, (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF));
-		else
-		if( version == 00000000 && sscanf(line, "%*d,%d,%*d%n", &char_id, &n) == 1 && line[n] == '\t' )
-			count = sv_parse(line, strlen(line), n + 1, '\t', NULL, 0, (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF)) - 1;
-		else
-		{
-			ShowError("status_db_txt_init: File %s, broken line data: %s\n", db->status_db, line);
-			continue;
-		}
-
-		// allocate space
-		sc = (struct status_change_data*)aMalloc(count * sizeof(struct status_change_data));
-		if( sc == NULL )
-		{
-			ShowFatalError("status_db_txt_init: out of memory!\n");
-			exit(EXIT_FAILURE);
-		}
-
-		// load data
-		if( !mmo_status_fromstr(sc, count, line + n + 1, version) )
-		{
-			ShowError("status_db_txt_init: Broken line data: %s\n", line);
-			aFree(sc);
-			continue;
-		}
-
-		db->vtable.save(&db->vtable, sc, count, char_id);
-		aFree(sc);
-	}
-
-	fclose(fp);
-
-	return true;
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	return db->init(db);
 }
 
 
 /// @protected
 static void status_db_txt_destroy(StatusDB* self)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBMap* statuses = db->statuses;
-
-	// delete status database
-	if( statuses != NULL )
-	{
-		statuses->destroy(statuses, NULL);
-		db->statuses = NULL;
-	}
-
-	// delete entire structure
-	aFree(db);
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	db->destroy(db);
+	aFree(self);
 }
 
 
 /// @protected
 static bool status_db_txt_sync(StatusDB* self, bool force)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->status_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("status_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->status_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", STATUSDB_TXT_DB_VERSION);
-
-	iter = db->statuses->iterator(db->statuses);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		struct status_change_data* sc = (struct status_change_data*) data;
-		char line[8192];
-		size_t size;
-
-		ARR_FIND(0, SIZE_MAX, size, sc[size].type == (unsigned short)-1); // determine size
-		mmo_status_tostr(sc, size, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->status_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
 /// @protected
 static bool status_db_txt_remove(StatusDB* self, int char_id)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBMap* statuses = db->statuses;
-
-	idb_remove(statuses, char_id);
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	return db->remove(db, char_id);
 }
 
 
 /// @protected
-static bool status_db_txt_save(StatusDB* self, const struct status_change_data* sc, size_t size, int char_id)
+static bool status_db_txt_save(StatusDB* self, const struct status_change_data* sc, int count, int char_id)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBMap* statuses = db->statuses;
-	struct status_change_data* tmp;
-	size_t i, k;
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	return db->replace(db, char_id, sc, count * sizeof(struct status_change_data));
+}
 
-	if( sc == NULL )
+
+/// @protected
+static bool status_db_txt_load(StatusDB* self, struct status_change_data* sc, int count, int char_id)
+{
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+
+	if( !db->load(db, char_id, sc, count * sizeof(struct status_change_data), NULL) )
+		memset(sc, 0, count * sizeof(struct status_change_data));
+
+	return true;
+}
+
+
+/// Gives the number of status changes stored for this character.
+/// @protected
+static int status_db_txt_count(StatusDB* self, int char_id)
+{
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	size_t size;
+
+	if( !db->load(db, char_id, NULL, 0, &size) )
 		size = 0;
 
-	// remove old status list
-	idb_remove(statuses, char_id);
-
-	// fill list (compact array + append zero terminator)
-	tmp = (struct status_change_data*)aMalloc((size+1)*sizeof(*sc));
-	k = 0;
-	for( i = 0; i < size; ++i )
-	{
-		if( sc[i].type == (unsigned short)-1 )
-			continue;
-		memcpy(&tmp[k], &sc[i], sizeof(*sc));
-		++k;
-	}
-
-	if( k > 0 )
-	{// has entries
-		if( k != size )
-			tmp = (struct status_change_data*)aRealloc(tmp, (k+1)*sizeof(*sc));
-		memset(tmp+k, 0x00, sizeof(*sc));
-		tmp[k].type = -1; // terminate array
-		idb_put(statuses, char_id, tmp);
-	}
-	else
-	{// no data to store
-		aFree(tmp);
-	}
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
-}
-
-
-/// @protected
-static bool status_db_txt_load(StatusDB* self, struct status_change_data* sc, size_t size, int char_id)
-{
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	DBMap* statuses = db->statuses;
-	struct status_change_data* tmp;
-	size_t i = 0;
-
-	tmp = (struct status_change_data*)idb_get(statuses, char_id);
-
-	if( tmp != NULL )
-		ARR_FIND(0, size, i, tmp[i].type == (unsigned short)-1);
-	if( i > 0 )
-		memcpy(sc, tmp, i*sizeof(*sc));
-	if( i != size )
-	{
-		size_t j;
-		for( j = i; j < size; ++j )
-		{
-			memset(sc+j, 0x00, sizeof(*sc));
-			sc[j].type = -1;
-		}
-	}
-
-	return true;
-}
-
-
-/// @protected
-static size_t status_db_txt_size(StatusDB* self, int char_id)
-{
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	struct status_change_data* tmp;
-	size_t result;
-	size_t i = 0;
-
-	tmp = (struct status_change_data*)idb_get(db->statuses, char_id);
-	if( tmp != NULL )
-		ARR_FIND(0, SIZE_MAX, i, tmp[i].type == (unsigned short)-1);
-	result = i;
-
-	return result;
+	return size / sizeof(struct status_change_data);
 }
 
 
@@ -369,8 +255,8 @@ static size_t status_db_txt_size(StatusDB* self, int char_id)
 /// @protected
 static CSDBIterator* status_db_txt_iterator(StatusDB* self)
 {
-	StatusDB_TXT* db = (StatusDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->statuses));
+	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -380,6 +266,11 @@ StatusDB* status_db_txt(CharServerDB_TXT* owner)
 {
 	StatusDB_TXT* db = (StatusDB_TXT*)aCalloc(1, sizeof(StatusDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_statuses, STATUSDB_TXT_DB_VERSION, 0);
+	db->db->p.fromstr = &status_db_txt_fromstr;
+	db->db->p.tostr   = &status_db_txt_tostr;
+
 	// set up the vtable
 	db->vtable.p.init    = &status_db_txt_init;
 	db->vtable.p.destroy = &status_db_txt_destroy;
@@ -387,16 +278,8 @@ StatusDB* status_db_txt(CharServerDB_TXT* owner)
 	db->vtable.remove    = &status_db_txt_remove;
 	db->vtable.save      = &status_db_txt_save;
 	db->vtable.load      = &status_db_txt_load;
-	db->vtable.size      = &status_db_txt_size;
+	db->vtable.count     = &status_db_txt_count;
 	db->vtable.iterator  = &status_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->statuses = NULL;
-	db->dirty = false;
-
-	// other settings
-	db->status_db = db->owner->file_statuses;
 
 	return &db->vtable;
 }

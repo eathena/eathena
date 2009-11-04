@@ -9,8 +9,10 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/txt.h"
 #include "../common/utils.h"
 #include "charserverdb_txt.h"
+#include "csdb_txt.h"
 #include "skilldb.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,70 +30,92 @@ typedef struct SkillDB_TXT
 	// public interface
 	SkillDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* skills;
-	bool dirty;
-
-	// settings
-	const char* skill_db;
+	// data provider
+	CSDB_TXT* db;
 
 } SkillDB_TXT;
 
 
-/// @private
-static void* create_skilllist(DBKey key, va_list args)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool skill_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	return (skilllist*)aMalloc(sizeof(skilllist));
-}
+	skilllist* list = (skilllist*)data;
 
+	*out_size = sizeof(*list);
 
-/// @private
-static bool mmo_skilllist_fromstr(skilllist* list, char* str)
-{
-	const char* p = str;
-	bool first = true;
-	int n = 0;
-	int i;
+	if( size < sizeof(*list) )
+		return true;
 
-	memset(list, 0, sizeof(*list));
-
-	for( i = 0; *p != '\0' && *p != '\n' && *p != '\r'; ++i )
+	if( version == 20090825 )
 	{
-		int tmp_int[2];
+		Txt* txt;
+		int char_id, n;
+		int skill_id, skill_lv;
+		bool done = false;
 
-		if( first )
-			first = false;
-		else
-		if( *p == ' ' )
-			p++;
-		else
+		memset(list, 0, sizeof(*list));
+
+		// load char id
+		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
 			return false;
 
-		if( sscanf(p, "%d,%d%n", &tmp_int[0], &tmp_int[1], &n) != 2 )
+		str += n + 1;
+
+		txt = Txt_Malloc();
+		Txt_Init(txt, (char*)str, strlen(str), 2, ',', ' ', "");
+		Txt_Bind(txt, 0, TXTDT_INT, &skill_id, sizeof(skill_id));
+		Txt_Bind(txt, 1, TXTDT_INT, &skill_lv, sizeof(skill_lv));
+
+		while( Txt_Parse(txt) == TXT_SUCCESS )
+		{
+			if( Txt_NumFields(txt) == 0 )
+			{// no more data
+				done = true;
+				break;
+			}
+
+			if( Txt_NumFields(txt) != 2 )
+				break; // parsing failure
+
+			if( skill_id >= MAX_SKILL )
+				continue; // TODO: warning?
+
+			(*list)[skill_id].id = skill_id;
+			(*list)[skill_id].lv = skill_lv;
+		}
+
+		Txt_Free(txt);
+
+		if( !done )
 			return false;
 
-		p += n;
-
-		if( tmp_int[0] >= MAX_SKILL )
-			continue; // TODO: warning?
-
-		(*list)[tmp_int[0]].id = tmp_int[0];
-		(*list)[tmp_int[0]].lv = tmp_int[1];
+		*key = char_id;
 	}
 
 	return true;
 }
 
 
+/// Serializes the provided data structure into a string.
 /// @private
-static bool mmo_skilllist_tostr(const skilllist* list, char* str)
+static bool skill_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
 	char* p = str;
-	bool first = true;
+	int char_id = key;
+	skilllist* list = (skilllist*)data;
 	int i;
+	int count = 0;
+	bool first = true;
 
-	for( i = 0; i < MAX_SKILL; ++i )
+	if( size != sizeof(*list) )
+		return false;
+
+	// write char id
+	p += sprintf(p, "%d\t", char_id);
+
+	// write friend list for this char
+	for( i = 0; i < MAX_SKILL; i++ )
 	{
 		if( (*list)[i].id == 0 || (*list)[i].flag == 1 )
 			continue;
@@ -102,9 +126,12 @@ static bool mmo_skilllist_tostr(const skilllist* list, char* str)
 			p += sprintf(p, " ");
 
 		p += sprintf(p, "%d,%d", (*list)[i].id, ((*list)[i].flag == 0) ? (*list)[i].lv : (*list)[i].flag-2);
+
+		count++;
 	}
 
-	*p = '\0';
+	if( count == 0 )
+		str[0] = '\0';
 
 	return true;
 }
@@ -113,182 +140,51 @@ static bool mmo_skilllist_tostr(const skilllist* list, char* str)
 /// @protected
 static bool skill_db_txt_init(SkillDB* self)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBMap* skills;
-	char line[8192];
-	FILE *fp;
-	unsigned int version = 0;
-
-	// create skill database
-	if( db->skills == NULL )
-		db->skills = idb_alloc(DB_OPT_RELEASE_DATA);
-	skills = db->skills;
-	db_clear(skills);
-
-	// open data file
-	fp = fopen(db->skill_db, "r");
-	if( fp == NULL )
-	{
-		ShowError("Skill file not found: %s.\n", db->skill_db);
-		return false;
-	}
-
-	// load data file
-	while( fgets(line, sizeof(line), fp) )
-	{
-		int char_id, n;
-		unsigned int v;
-		skilllist* list;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		list = (skilllist*)aCalloc(1, sizeof(skilllist));
-		if( list == NULL )
-		{
-			ShowFatalError("skill_db_txt_init: out of skillry!\n");
-			exit(EXIT_FAILURE);
-		}
-
-		// load char id
-		n = 0;
-		if( sscanf(line, "%d%n", &char_id, &n) != 1 || line[n] != '\t' )
-		{
-			aFree(list);
-			continue;
-		}
-
-		// load skills for this char
-		if( !mmo_skilllist_fromstr(list, line + n + 1) )
-		{
-			ShowError("skill_db_txt_init: skipping invalid data: %s", line);
-			aFree(list);
-			continue;
-		}
-	
-		// record entry in db
-		idb_put(skills, char_id, list);
-	}
-
-	// close data file
-	fclose(fp);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	return db->init(db);
 }
 
 
 /// @protected
 static void skill_db_txt_destroy(SkillDB* self)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBMap* skills = db->skills;
-
-	// delete skill database
-	if( skills != NULL )
-	{
-		db_destroy(skills);
-		db->skills = NULL;
-	}
-
-	// delete entire structure
-	aFree(db);
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	db->destroy(db);
+	aFree(self);
 }
 
 
 /// @protected
 static bool skill_db_txt_sync(SkillDB* self, bool force)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBIterator* iter;
-	DBKey key;
-	void* data;
-	FILE *fp;
-	int lock;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	fp = lock_fopen(db->skill_db, &lock);
-	if( fp == NULL )
-	{
-		ShowError("skill_db_txt_sync: can't write [%s] !!! data is lost !!!\n", db->skill_db);
-		return false;
-	}
-
-	fprintf(fp, "%d\n", SKILLDB_TXT_DB_VERSION);
-
-	iter = db->skills->iterator(db->skills);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
-	{
-		int char_id = key.i;
-		skilllist* list = (skilllist*) data;
-		char line[8192];
-
-		mmo_skilllist_tostr(list, line);
-		fprintf(fp, "%d\t%s\n", char_id, line);
-	}
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->skill_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
 /// @protected
 static bool skill_db_txt_remove(SkillDB* self, const int char_id)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBMap* skills = db->skills;
-
-	idb_remove(skills, char_id);
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	return db->remove(db, char_id);
 }
 
 
 /// @protected
 static bool skill_db_txt_save(SkillDB* self, const skilllist* list, const int char_id)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBMap* skills = db->skills;
-
-	// retrieve previous data / allocate new data
-	skilllist* tmp = idb_ensure(skills, char_id, create_skilllist);
-	if( tmp == NULL )
-	{// error condition - allocation problem?
-		return false;
-	}
-
-	// overwrite with new data
-	memcpy(tmp, list, sizeof(skilllist));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	return db->replace(db, char_id, list, sizeof(*list));
 }
 
 
 /// @protected
 static bool skill_db_txt_load(SkillDB* self, skilllist* list, const int char_id)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	DBMap* skills = db->skills;
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
 
-	skilllist* tmp = idb_get(skills, char_id);
-
-	if( tmp != NULL )
-		memcpy(list, tmp, sizeof(skilllist));
-	else
-		memset(list, 0, sizeof(skilllist));
+	if( !db->load(db, char_id, list, sizeof(*list), NULL) )
+		memset(list, 0, sizeof(*list));
 
 	return true;
 }
@@ -298,8 +194,8 @@ static bool skill_db_txt_load(SkillDB* self, skilllist* list, const int char_id)
 /// @protected
 static CSDBIterator* skill_db_txt_iterator(SkillDB* self)
 {
-	SkillDB_TXT* db = (SkillDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->skills));
+	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -309,22 +205,19 @@ SkillDB* skill_db_txt(CharServerDB_TXT* owner)
 {
 	SkillDB_TXT* db = (SkillDB_TXT*)aCalloc(1, sizeof(SkillDB_TXT));
 
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_skills, SKILLDB_TXT_DB_VERSION, 0);
+	db->db->p.fromstr = &skill_db_txt_fromstr;
+	db->db->p.tostr   = &skill_db_txt_tostr;
+
 	// set up the vtable
-	db->vtable.p.init      = &skill_db_txt_init;
-	db->vtable.p.destroy   = &skill_db_txt_destroy;
-	db->vtable.p.sync      = &skill_db_txt_sync;
+	db->vtable.p.init    = &skill_db_txt_init;
+	db->vtable.p.destroy = &skill_db_txt_destroy;
+	db->vtable.p.sync    = &skill_db_txt_sync;
 	db->vtable.remove    = &skill_db_txt_remove;
 	db->vtable.save      = &skill_db_txt_save;
 	db->vtable.load      = &skill_db_txt_load;
 	db->vtable.iterator  = &skill_db_txt_iterator;
-
-	// initialize to default values
-	db->owner = owner;
-	db->skills = NULL;
-	db->dirty = true;
-
-	// other settings
-	db->skill_db = db->owner->file_skills;
 
 	return &db->vtable;
 }
