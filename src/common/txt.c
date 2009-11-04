@@ -71,6 +71,9 @@ int Txt_Init(Txt* self, char* str, size_t length, size_t max_fields, char field_
 	if( self == NULL )
 		return TXT_ERROR;
 
+	if( field_delim == block_delim )
+		return TXT_ERROR; // not supported
+
 	self->str = str;
 	self->length = length;
 	self->field_delim = field_delim;
@@ -148,24 +151,26 @@ int Txt_Parse(Txt* self)
 	if( self == NULL )
 		return TXT_ERROR;
 
+	//TODO: handle the case when self->block_delim is '\0'
+
 	// set up block-level parsing
 	sv.str = self->str;
 	sv.len = self->length;
 	sv.off = self->cursor;
-	sv.opt = SV_ESCAPE_C;
+	sv.opt = SV_ESCAPE_C | SV_TERMINATE_LF | SV_TERMINATE_CRLF;
 	sv.delim = self->block_delim;
 	sv.done = false;
 
 	if( sv.off > 0 )
 	{
-		if( sv.str[sv.off] == sv.delim )
-			sv.off++; // step to next block
-		else
-		if( sv.str[sv.off] == '\0' )
+		if( sv.str[sv.off] == '\0' || sv.str[sv.off] == '\r' || sv.str[sv.off] == '\n' )
 		{// already processed all blocks
 			self->nfields = 0;
 			return TXT_SUCCESS;
 		}
+		else
+		if( sv.str[sv.off] == sv.delim )
+			sv.off++; // step to next block
 	}
 
 	// locate the start and end of this block
@@ -185,7 +190,6 @@ int Txt_Parse(Txt* self)
 	while( !sv.done )
 	{
 		sv.opt = ( self->bind && self->bind[i].buffer_type != TXTDT_STRING ) ? SV_ESCAPE_C : SV_NOESCAPE_NOTERMINATE;
-		sv.opt |= SV_TERMINATE_LF|SV_TERMINATE_CRLF;
 
 		if( sv_parse_next(&sv) <= 0 )
 			return TXT_ERROR;
@@ -246,6 +250,7 @@ int Txt_Write(Txt* self)
 	if( self->cursor > 0 )
 		str += sprintf(str, "%c", self->block_delim);
 
+	//TODO: handle the case when self->block_delim is '\0'
 	//TODO: output string capacity checking
 
 	self->nfields = 0;
@@ -268,8 +273,8 @@ int Txt_Write(Txt* self)
 		case TXTDT_UINT   : str += sprintf(str, "%u", (unsigned int)*(unsigned int*)self->bind[i].buffer); break;
 		case TXTDT_ULONG  : str += sprintf(str, "%lu", (unsigned long)*(unsigned long*)self->bind[i].buffer); break;
 		case TXTDT_TIME   : str += sprintf(str, "%lu", (unsigned long)*(time_t*)self->bind[i].buffer); break; // unsigned long for now
-		case TXTDT_STRING : str += sprintf(str, "%s", (char*)self->bind[i].buffer); break;
-		case TXTDT_CSTRING: str += sv_escape_c(str, (char*)self->bind[i].buffer, self->bind[i].buffer_len, self->escapes); break;
+		case TXTDT_STRING : str += sprintf(str, "%s", (char*)self->bind[i].buffer); break; //TODO: buffer length check
+		case TXTDT_CSTRING: str += sv_escape_c(str, (char*)self->bind[i].buffer, strnlen((char*)self->bind[i].buffer, self->bind[i].buffer_len - 1), self->escapes); break;
 		default:
 			self->str[self->cursor] = '\0'; // restore original string
 			return TXT_ERROR;
@@ -301,8 +306,13 @@ size_t Txt_NumFields(Txt* self)
 /// @return TXT_SUCCESS or TXT_ERROR
 int Txt_Free(Txt* self)
 {
-	if( self && self->bind )
+	if( self )
+	{
+		if( self->bind )
 		aFree(self->bind);
+
+		aFree(self);
+	}
 
 	return TXT_SUCCESS;
 }
