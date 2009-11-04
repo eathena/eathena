@@ -279,96 +279,6 @@ static bool quest_db_txt_remove(QuestDB* self, const int char_id)
 
 
 /// @protected
-static bool quest_db_txt_add(QuestDB* self, const struct quest* qd, const int char_id)
-{
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
-	int i;
-
-	questlog* log = (questlog*)idb_ensure(quests, char_id, create_questlog);
-	if( log == NULL )
-	{// allocation failure <_<
-		return false;
-	}
-
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id == qd->quest_id);
-	if( i < MAX_QUEST_DB )
-	{// quest already exists
-		return false;
-	}
-
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id == 0);
-	if( i == MAX_QUEST_DB )
-	{// no free room for this quest
-		return false;
-	}
-
-	// write new questlog entry
-	memcpy(&(*log)[i], qd, sizeof(struct quest));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
-}
-
-
-/// @protected
-static bool quest_db_txt_update(QuestDB* self, const struct quest* qd, const int char_id)
-{
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
-	int i;
-
-	questlog* log = (questlog*)idb_get(quests, char_id);
-	if( log == NULL )
-	{// empty quest log
-		return false;
-	}
-
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id == qd->quest_id);
-	if( i == MAX_QUEST_DB )
-	{// quest not found
-		return false;
-	}
-
-	// update questlog entry
-	memcpy(&(*log)[i], qd, sizeof(struct quest));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
-}
-
-
-/// @protected
-static bool quest_db_txt_del(QuestDB* self, const int char_id, const int quest_id)
-{
-	QuestDB_TXT* db = (QuestDB_TXT*)self;
-	DBMap* quests = db->quests;
-	int i;
-
-	questlog* log = (questlog*)idb_get(quests, char_id);
-	if( log == NULL )
-	{// no quests, nothing to delete
-		return true;
-	}
-
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id == quest_id);
-	if( i == MAX_QUEST_DB )
-	{// quest not present in list, nothing to delete
-		return true;
-	}
-
-	// erase questlog entry
-	memset(&(*log)[i], 0, sizeof((*log)[i]));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
-}
-
-
-/// @protected
 static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* const count)
 {
 	QuestDB_TXT* db = (QuestDB_TXT*)self;
@@ -441,9 +351,7 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 	db->vtable.p.init      = &quest_db_txt_init;
 	db->vtable.p.destroy   = &quest_db_txt_destroy;
 	db->vtable.p.sync      = &quest_db_txt_sync;
-	db->vtable.add       = &quest_db_txt_add;
-	db->vtable.del       = &quest_db_txt_del;
-	db->vtable.update    = &quest_db_txt_update;
+	db->vtable.remove    = &quest_db_txt_remove;
 	db->vtable.load      = &quest_db_txt_load;
 	db->vtable.save      = &quest_db_txt_save;
 	db->vtable.iterator  = &quest_db_txt_iterator;

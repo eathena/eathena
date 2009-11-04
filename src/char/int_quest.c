@@ -1,7 +1,6 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include "../common/db.h" // ARR_FIND()
 #include "../common/mmo.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -67,41 +66,18 @@ static void mapif_parse_quests_load(int fd)
 static void mapif_parse_quests_save(int fd)
 {
 	int char_id = RFIFOL(fd,4);
-	struct quest qd1[MAX_QUEST_DB]; // new quest log, to be saved
-	struct quest qd2[MAX_QUEST_DB]; // previous quest log
-	int num1 = (RFIFOW(fd,2)-8)/sizeof(struct quest);
-	int num2;
-	int i, j;
-	bool success = true;
+	int size = RFIFOW(fd,2)-8;
+	const struct quest* data = (const struct quest*)RFIFOP(fd,8);
+	int count = size / sizeof(struct quest);
+	questlog tmp_questlog;
+	bool success;
 
-	memset(qd1, 0, sizeof(qd1));
-	memset(qd2, 0, sizeof(qd2));
+	memcpy(&tmp_questlog[0], data, size);
+	memset(&tmp_questlog[count], 0, sizeof(tmp_questlog) - size);
 
-	memcpy(&qd1, RFIFOP(fd,8), num1 * sizeof(struct quest));
-	quests->load(quests, &qd2, char_id, &num2);
-
-	for( i = 0; i < num1; i++ )
-	{
-		ARR_FIND( 0, num2, j, qd1[i].quest_id == qd2[j].quest_id );
-		if( j < num2 ) // Update existed quests
-		{	// Only states and counts are changable.
-			if( qd1[i].state != qd2[j].state || qd1[i].count[0] != qd2[j].count[0] || qd1[i].count[1] != qd2[j].count[1] || qd1[i].count[2] != qd2[j].count[2] )
-				success &= quests->update(quests, &qd1[i], char_id);
-
-			if( j < (--num2) )
-			{
-				memmove(&qd2[j],&qd2[j+1],sizeof(struct quest)*(num2-j));
-				memset(&qd2[num2], 0, sizeof(struct quest));
-			}
-		}
-		else // Add new quests
-			success &= quests->add(quests, &qd1[i], char_id);
-	}
-
-	for( i = 0; i < num2; i++ ) // Quests not in qd1 but in qd2 are to be erased.
-		success &= quests->del(quests, char_id, qd2[i].quest_id);
-
-	// send back list of newly added quest ids
+	success = quests->save(quests, &tmp_questlog, char_id);
+	
+	// send back result
 	WFIFOHEAD(fd,7);
 	WFIFOW(fd,0) = 0x3861;
 	WFIFOL(fd,2) = char_id;
