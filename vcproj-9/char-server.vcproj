@@ -600,6 +600,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\char\csdb_txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\char\csdb_txt.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\char\csdbiterator.h"
 				>
 			</File>

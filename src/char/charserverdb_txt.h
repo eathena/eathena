@@ -94,9 +94,4 @@ struct CharServerDB_TXT
 };
 
 
-/// Constructs a new CSDBIterator interface.
-/// @protected
-extern CSDBIterator* csdb_txt_iterator(DBIterator* db_iterator);
-
-
 #endif /* _CHARSERVERDB_TXT_H_ */
