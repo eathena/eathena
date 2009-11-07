@@ -189,7 +189,7 @@ static bool homun_db_txt_load(HomunDB* self, struct s_homunculus* hd, int homun_
 static CSDBIterator* homun_db_txt_iterator(HomunDB* self)
 {
 	CSDB_TXT* db = ((HomunDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

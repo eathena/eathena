@@ -177,7 +177,7 @@ static bool friend_db_txt_load(FriendDB* self, friendlist* list, const int char_
 static CSDBIterator* friend_db_txt_iterator(FriendDB* self)
 {
 	CSDB_TXT* db = ((FriendDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

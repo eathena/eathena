@@ -392,10 +392,10 @@ static bool csdb_txt_remove(CSDB_TXT* self, int key)
 
 /// Returns an iterator over all entries in the database.
 /// @protected
-static CSDBIterator* csdb_txt_iterator_(CSDB_TXT* self)
+static DBIterator* csdb_txt_iterator_(CSDB_TXT* self)
 {
 	CSDBimpl_TXT* db = (CSDBimpl_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->data));
+	return db_iterator(db->data);
 }
 
 

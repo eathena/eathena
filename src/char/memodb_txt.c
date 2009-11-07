@@ -212,7 +212,7 @@ static bool memo_db_txt_load(MemoDB* self, memolist* list, const int char_id)
 static CSDBIterator* memo_db_txt_iterator(MemoDB* self)
 {
 	CSDB_TXT* db = ((MemoDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

@@ -195,7 +195,7 @@ static bool skill_db_txt_load(SkillDB* self, skilllist* list, const int char_id)
 static CSDBIterator* skill_db_txt_iterator(SkillDB* self)
 {
 	CSDB_TXT* db = ((SkillDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

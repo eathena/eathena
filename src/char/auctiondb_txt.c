@@ -192,24 +192,22 @@ static bool auction_db_txt_load(AuctionDB* self, struct auction_data* ad, const 
 static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], int* pages, int* results, int char_id, int page, int type, int price, const char* searchtext)
 {
 	CSDB_TXT* db = ((AuctionDB_TXT*)self)->db;
-	CSDBIterator* iter = db->iterator(db);
-	int auction_id;
-	struct auction_data auction;
+	DBIterator* iter = db->iterator(db);
+	void* data; 
 	int i = 0, j = 0, p = 1;
 	
-	while( iter->next(iter, &auction_id) )
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
-		if( !db->load(db, auction_id, &auction, sizeof(auction), NULL) )
-			continue;
+		struct auction_data* auction = (struct auction_data*)data; 
 
-		if( (type == 0 && auction.type != IT_ARMOR && auction.type != IT_PETARMOR) || 
-			(type == 1 && auction.type != IT_WEAPON) ||
-			(type == 2 && auction.type != IT_CARD) ||
-			(type == 3 && auction.type != IT_ETC) ||
-			(type == 4 && !stristr(auction.item_name, searchtext)) ||
-			(type == 5 && auction.price > price) ||
-			(type == 6 && auction.seller_id != char_id) ||
-			(type == 7 && auction.buyer_id != char_id) )
+		if( (type == 0 && auction->type != IT_ARMOR && auction->type != IT_PETARMOR) || 
+			(type == 1 && auction->type != IT_WEAPON) ||
+			(type == 2 && auction->type != IT_CARD) ||
+			(type == 3 && auction->type != IT_ETC) ||
+			(type == 4 && !stristr(auction->item_name, searchtext)) ||
+			(type == 5 && auction->price > price) ||
+			(type == 6 && auction->seller_id != char_id) ||
+			(type == 7 && auction->buyer_id != char_id) )
 			continue;
 
 		i++;
@@ -222,7 +220,7 @@ static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], in
 		if( p != page )
 			continue; // this is not the requested page
 
-		memcpy(&ad[j], &auction, sizeof(auction));
+		memcpy(&ad[j], auction, sizeof(*auction));
 
 		j++; // found results
 	}
@@ -240,17 +238,15 @@ static bool auction_db_txt_search(AuctionDB* self, struct auction_data ad[5], in
 static int auction_db_txt_count(AuctionDB* self, const int char_id)
 {
 	CSDB_TXT* db = ((AuctionDB_TXT*)self)->db;
-	CSDBIterator* iter = db->iterator(db);
-	int auction_id;
-	struct auction_data auction;
+	DBIterator* iter = db->iterator(db);
+	void* data; 
 	int result = 0;
 
-	while( iter->next(iter, &auction_id) )
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
-		if( !db->load(db, auction_id, &auction, sizeof(auction), NULL) )
-			continue;
+		const struct auction_data* auction = (struct auction_data*)data;
 
-		if( auction.seller_id == char_id )
+		if( auction->seller_id == char_id )
 			++result;
 	}
 
@@ -264,31 +260,25 @@ static int auction_db_txt_count(AuctionDB* self, const int char_id)
 static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 {
 	CSDB_TXT* db = ((AuctionDB_TXT*)self)->db;
-	CSDBIterator* iter = db->iterator(db);
-	int auction_id;
-	struct auction_data auction;
-	struct auction_data result;
-	bool found = false;
+	DBIterator* iter = db->iterator(db);
+	void* data; 
+	const struct auction_data* result = NULL;
 
 	// find the auction with the lowest timestamp
-	while( iter->next(iter, &auction_id) )
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
-		if( !db->load(db, auction_id, &auction, sizeof(auction), NULL) )
-			continue;
+		const struct auction_data* auction = (struct auction_data*)data;
 
-		if( !found || auction.timestamp < result.timestamp )
-		{
-			memcpy(&result, &auction, sizeof(result));
-			found = true;
-		}
+		if( result == NULL || auction->timestamp < result->timestamp )
+			result = auction;
 	}
 
 	iter->destroy(iter);
 
-	if( !found )
+	if( result == NULL )
 		return false;
 
-	memcpy(ad, &result, sizeof(*ad));
+	memcpy(ad, result, sizeof(*result));
 
 	return true;
 }
@@ -299,7 +289,7 @@ static bool auction_db_txt_first(AuctionDB* self, struct auction_data* ad)
 static CSDBIterator* auction_db_txt_iterator(AuctionDB* self)
 {
 	CSDB_TXT* db = ((AuctionDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

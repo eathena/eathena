@@ -343,8 +343,9 @@ static bool guild_db_txt_tostr(char* str, int key, const void* data, size_t size
 static bool guild_db_txt_init(GuildDB* self)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	CSDBIterator* iter;
-	int guild_id;
+	DBIterator* iter;
+	DBKey key;
+	void* data;
 
 	if( !db->db->init(db->db) )
 		return false;
@@ -354,11 +355,12 @@ static bool guild_db_txt_init(GuildDB* self)
 		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
 	db_clear(db->idx_name);
 	iter = db->db->iterator(db->db);
-	while( iter->next(iter, &guild_id) )
+	for( data = iter->first(iter, &key); iter->exists(iter); data = iter->next(iter,&key) )
 	{
-		struct guild g;
-		db->db->load(db->db, guild_id, &g, sizeof(g), NULL);
-		strdb_put(db->idx_name, g.name, (void*)guild_id);
+		int guild_id = key.i;
+		struct guild* g = (struct guild*)data;
+
+		strdb_put(db->idx_name, g->name, (void*)guild_id);
 	}
 	iter->destroy(iter);
 
@@ -417,9 +419,9 @@ static bool guild_db_txt_create(GuildDB* self, struct guild* g)
 static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 {
 	GuildDB_TXT* db = (GuildDB_TXT*)self;
-	CSDBIterator* iter;
 	struct guild g;
-	int tmp;
+	DBIterator* iter;
+	void* data;
 
 	if( !db->db->load(db->db, guild_id, &g, sizeof(g), NULL) )
 		return true; // nothing to delete
@@ -430,24 +432,25 @@ static bool guild_db_txt_remove(GuildDB* self, const int guild_id)
 
 	// cancel alliances
 	iter = db->db->iterator(db->db);
-	while( iter->next(iter, &tmp) )
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
-		int i;
+		struct guild* g = (struct guild*)data;
 		bool changed = false;
-
-		if( !db->db->load(db->db, tmp, &g, sizeof(g), NULL) )
-			continue;
+		int i;
 
 		for( i = 0; i < MAX_GUILDALLIANCE; i++ )
-			if( g.alliance[i].guild_id == guild_id )
+		{
+			if( g->alliance[i].guild_id == guild_id )
 			{
-				g.alliance[i].guild_id = 0;
+				g->alliance[i].guild_id = 0;
 				changed = true;
 			}
+		}
 
 		if( changed )
-			db->db->update(db->db, tmp, &g, sizeof(g));
+			db->db->update(db->db, g->guild_id, g, sizeof(*g));
 	}
+	iter->destroy(iter);
 
 	return true;
 }
@@ -532,7 +535,7 @@ static bool guild_db_txt_name2id(GuildDB* self, const char* name, int* guild_id)
 static CSDBIterator* guild_db_txt_iterator(GuildDB* self)
 {
 	CSDB_TXT* db = ((GuildDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

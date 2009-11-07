@@ -256,7 +256,7 @@ static int status_db_txt_count(StatusDB* self, int char_id)
 static CSDBIterator* status_db_txt_iterator(StatusDB* self)
 {
 	CSDB_TXT* db = ((StatusDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

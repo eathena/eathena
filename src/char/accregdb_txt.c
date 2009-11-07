@@ -224,7 +224,7 @@ static bool accreg_db_txt_load(AccRegDB* self, struct regs* reg, int account_id)
 static CSDBIterator* accreg_db_txt_iterator(AccRegDB* self)
 {
 	CSDB_TXT* db = ((AccRegDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

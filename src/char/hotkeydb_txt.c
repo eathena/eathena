@@ -161,7 +161,7 @@ static bool hotkey_db_txt_load(HotkeyDB* self, hotkeylist* list, const int char_
 static CSDBIterator* hotkey_db_txt_iterator(HotkeyDB* self)
 {
 	CSDB_TXT* db = ((HotkeyDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

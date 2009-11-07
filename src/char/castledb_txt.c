@@ -175,17 +175,18 @@ static bool castle_db_txt_remove(CastleDB* self, const int castle_id)
 static bool castle_db_txt_remove_gid(CastleDB* self, const int guild_id)
 {
 	CSDB_TXT* db = ((CastleDB_TXT*)self)->db;
-	CSDBIterator* iter = db->iterator(db);
-	int castle_id;
-	struct guild_castle gc;
+	DBIterator* iter = db->iterator(db);
+	void* data;
 
-	while( iter->next(iter, &castle_id) )
+	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
 	{
-		if( !db->load(db, castle_id, &gc, sizeof(gc), NULL) )
-			continue;
+		struct guild_castle* gc = (struct guild_castle*)data;
 
-		if( gc.guild_id == guild_id )
-			db->remove(db, castle_id);
+		if( gc->guild_id == guild_id )
+		{
+			iter->remove(iter);
+			data = NULL; // invalidated
+		}
 	}
 
 	iter->destroy(iter);
@@ -215,7 +216,7 @@ static bool castle_db_txt_load(CastleDB* self, struct guild_castle* gc, int cast
 static CSDBIterator* castle_db_txt_iterator(CastleDB* self)
 {
 	CSDB_TXT* db = ((CastleDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 

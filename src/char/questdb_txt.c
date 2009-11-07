@@ -237,7 +237,7 @@ static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* co
 static CSDBIterator* quest_db_txt_iterator(QuestDB* self)
 {
 	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
-	return db->iterator(db);
+	return csdb_txt_iterator(db->iterator(db));
 }
 
 
