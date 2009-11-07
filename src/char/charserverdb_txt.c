@@ -54,7 +54,7 @@ static void charserver_db_txt_scheduleSync(CharServerDB_TXT* db, int delay)
 		if( delay > db->autosave_max_delay )
 			delay = db->autosave_max_delay;
 		db->dirty_tick = gettick();
-		db->sync_timer = add_timer(db->dirty_tick + delay, charserver_db_txt_sync_timer, 0, (intptr)db);
+		db->sync_timer = add_timer(db->dirty_tick + delay, charserver_db_txt_sync_timer, (int)false, (intptr)db);
 	}
 	else
 	{
@@ -75,30 +75,31 @@ static void charserver_db_txt_scheduleSync(CharServerDB_TXT* db, int delay)
 static int charserver_db_txt_sync_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	CharServerDB_TXT* db = (CharServerDB_TXT*)data;
+	bool force = (bool)id;
 
 	if( db && db->sync_timer == tid )
 	{
 		db->sync_timer = INVALID_TIMER;
 		if( !(
-			db->chardb->p.sync(db->chardb, false) &&
-			db->frienddb->p.sync(db->frienddb, false) &&
-			db->hotkeydb->p.sync(db->hotkeydb, false) &&
-			db->partydb->p.sync(db->partydb, false) &&
-			db->guilddb->p.sync(db->guilddb, false) &&
-			db->castledb->p.sync(db->castledb, false) &&
-			db->petdb->p.sync(db->petdb, false) &&
-			db->homundb->p.sync(db->homundb, false) &&
-			db->mercdb->p.sync(db->mercdb, false) &&
-			db->accregdb->p.sync(db->accregdb, false) &&
-			db->charregdb->p.sync(db->charregdb, false) &&
-			db->skilldb->p.sync(db->skilldb, false) &&
-			db->statusdb->p.sync(db->statusdb, false) &&
-			db->storagedb->p.sync(db->storagedb, false) &&
-			db->maildb->p.sync(db->maildb, false) &&
-			db->memodb->p.sync(db->memodb, false) &&
-			db->questdb->p.sync(db->questdb, false) &&
-			db->rankdb->p.sync(db->rankdb, false) &&
-			db->auctiondb->p.sync(db->auctiondb, false) )
+			db->chardb->p.sync(db->chardb, force) &&
+			db->frienddb->p.sync(db->frienddb, force) &&
+			db->hotkeydb->p.sync(db->hotkeydb, force) &&
+			db->partydb->p.sync(db->partydb, force) &&
+			db->guilddb->p.sync(db->guilddb, force) &&
+			db->castledb->p.sync(db->castledb, force) &&
+			db->petdb->p.sync(db->petdb, force) &&
+			db->homundb->p.sync(db->homundb, force) &&
+			db->mercdb->p.sync(db->mercdb, force) &&
+			db->accregdb->p.sync(db->accregdb, force) &&
+			db->charregdb->p.sync(db->charregdb, force) &&
+			db->skilldb->p.sync(db->skilldb, force) &&
+			db->statusdb->p.sync(db->statusdb, force) &&
+			db->storagedb->p.sync(db->storagedb, force) &&
+			db->maildb->p.sync(db->maildb, force) &&
+			db->memodb->p.sync(db->memodb, force) &&
+			db->questdb->p.sync(db->questdb, force) &&
+			db->rankdb->p.sync(db->rankdb, force) &&
+			db->auctiondb->p.sync(db->auctiondb, force) )
 		)
 			charserver_db_txt_scheduleSync(db, db->autosave_retry_delay);
 	}
@@ -211,7 +212,7 @@ static bool charserver_db_txt_sync(CharServerDB* self, bool force)
 		delete_timer(db->sync_timer, charserver_db_txt_sync_timer);
 		db->sync_timer = INVALID_TIMER;
 	}
-	charserver_db_txt_sync_timer(INVALID_TIMER, gettick(), 0, (intptr)self);
+	charserver_db_txt_sync_timer(INVALID_TIMER, gettick(), (int)force, (intptr)self);
 	return (db->sync_timer == INVALID_TIMER);
 }
 
