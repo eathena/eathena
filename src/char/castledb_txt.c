@@ -18,7 +18,6 @@
 
 /// global defines
 #define CASTLEDB_TXT_DB_VERSION 00000000
-#define START_CASTLE_NUM 1
 
 
 /// Internal structure.
@@ -227,7 +226,7 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	CastleDB_TXT* db = (CastleDB_TXT*)aCalloc(1, sizeof(CastleDB_TXT));
 
 	// call base class constructor and bind abstract methods
-	db->db = csdb_txt(owner, owner->file_castles, CASTLEDB_TXT_DB_VERSION, START_CASTLE_NUM);
+	db->db = csdb_txt(owner, owner->file_castles, CASTLEDB_TXT_DB_VERSION, 0);
 	db->db->p.fromstr = &castle_db_txt_fromstr;
 	db->db->p.tostr   = &castle_db_txt_tostr;
 
