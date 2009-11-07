@@ -145,59 +145,54 @@ int Txt_Bind(Txt* self, size_t idx, TxtDataType buffer_type, void* buffer, size_
 /// @return TXT_SUCCESS or TXT_ERROR
 int Txt_Parse(Txt* self)
 {
-	struct s_svstate sv;
+	struct s_svstate block;
+	struct s_svstate field;
 	size_t i;
 
 	if( self == NULL )
 		return TXT_ERROR;
 
+	if( self->str[self->cursor] == '\0' || self->str[self->cursor] == '\r' || self->str[self->cursor] == '\n' )
+	{// already processed all blocks
+		self->nfields = 0;
+		return TXT_SUCCESS;
+	}
+
 	//TODO: handle the case when self->block_delim is '\0'
 
 	// set up block-level parsing
-	sv.str = self->str;
-	sv.len = self->length;
-	sv.off = self->cursor;
-	sv.opt = SV_ESCAPE_C | SV_TERMINATE_LF | SV_TERMINATE_CRLF;
-	sv.delim = self->block_delim;
-	sv.done = false;
-
-	if( sv.off > 0 )
-	{
-		if( sv.str[sv.off] == '\0' || sv.str[sv.off] == '\r' || sv.str[sv.off] == '\n' )
-		{// already processed all blocks
-			self->nfields = 0;
-			return TXT_SUCCESS;
-		}
-		else
-		if( sv.str[sv.off] == sv.delim )
-			sv.off++; // step to next block
-	}
+	block.str = self->str;
+	block.len = self->length;
+	block.off = self->cursor;
+	block.opt = SV_ESCAPE_C | SV_TERMINATE_LF | SV_TERMINATE_CRLF;
+	block.delim = self->block_delim;
+	block.done = false;
 
 	// locate the start and end of this block
-	if( sv_parse_next(&sv) <= 0 )
+	if( sv_parse_next(&block) <= 0 )
 		return TXT_ERROR;
 
 	// set up field-level parsing
-	sv.str = self->str;
-	sv.len = sv.end;
-	sv.off = sv.start;
-	sv.opt = SV_NOESCAPE_NOTERMINATE;
-	sv.delim = self->field_delim;
-	sv.done = false;
+	field.str = self->str;
+	field.len = block.end;
+	field.off = block.start;
+	field.opt = SV_NOESCAPE_NOTERMINATE;
+	field.delim = self->field_delim;
+	field.done = false;
 
 	// parse fields in this block
 	i = 0;
-	while( !sv.done )
+	while( !field.done )
 	{
-		sv.opt = ( self->bind && self->bind[i].buffer_type != TXTDT_STRING ) ? SV_ESCAPE_C : SV_NOESCAPE_NOTERMINATE;
+		field.opt = ( self->bind && self->bind[i].buffer_type != TXTDT_STRING ) ? SV_ESCAPE_C : SV_NOESCAPE_NOTERMINATE;
 
-		if( sv_parse_next(&sv) <= 0 )
+		if( sv_parse_next(&field) <= 0 )
 			return TXT_ERROR;
 
 		if( self->bind && i < self->max_fields )
 		{
-			const char* str = &self->str[sv.start];
-			size_t size = sv.end - sv.start + 1;
+			const char* str = &self->str[field.start];
+			size_t size = field.end - field.start + 1;
 
 			switch( self->bind[i].buffer_type )
 			{
@@ -227,7 +222,7 @@ int Txt_Parse(Txt* self)
 	}
 
 	self->nfields = i;
-	self->cursor = sv.end;
+	self->cursor = block.off;
 
 	return TXT_SUCCESS;
 }
