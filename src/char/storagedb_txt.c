@@ -312,7 +312,7 @@ static bool storage_db_txt_load(StorageDB* self, struct item* s, size_t size, en
 static CSDBIterator* storage_db_txt_iterator(StorageDB* self, enum storage_type type)
 {
 	CSDB_TXT* db = type2db((StorageDB_TXT*)self, type);
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 

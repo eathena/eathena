@@ -6,7 +6,6 @@
 
 
 #include "../common/cbasetypes.h" // bool
-#include "../common/db.h" // DBIterator
 #include "../common/strlib.h" // StringBuf
 #include "charserverdb_txt.h"
 #include "csdbiterator.h"
@@ -50,7 +49,7 @@ struct CSDB_TXT
 	bool (*remove)(CSDB_TXT* self, int key);
 
 	/// Returns an iterator over all entries in the database.
-	DBIterator* (*iterator)(CSDB_TXT* self);
+	CSDBIterator* (*iterator)(CSDB_TXT* self);
 
 	/// Returns the next unused key value.
 	int (*next_key)(CSDB_TXT* self);

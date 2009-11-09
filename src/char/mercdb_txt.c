@@ -143,7 +143,7 @@ static bool merc_db_txt_load(MercDB* self, struct s_mercenary* md, int merc_id)
 static CSDBIterator* merc_db_txt_iterator(MercDB* self)
 {
 	CSDB_TXT* db = ((MercDB_TXT*)self)->db;
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 

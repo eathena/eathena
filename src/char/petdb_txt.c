@@ -165,7 +165,7 @@ static bool pet_db_txt_load(PetDB* self, struct s_pet* pd, int pet_id)
 static CSDBIterator* pet_db_txt_iterator(PetDB* self)
 {
 	CSDB_TXT* db = ((PetDB_TXT*)self)->db;
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 

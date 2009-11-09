@@ -192,9 +192,8 @@ static bool party_db_txt_tostr(char* str, int key, const void* data, size_t size
 static bool party_db_txt_init(PartyDB* self)
 {
 	PartyDB_TXT* db = (PartyDB_TXT*)self;
-	DBIterator* iter;
-	DBKey key;
-	void* data;
+	CSDBIterator* iter;
+	int party_id;
 
 	if( !db->db->init(db->db) )
 		return false;
@@ -204,12 +203,12 @@ static bool party_db_txt_init(PartyDB* self)
 		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
 	db_clear(db->idx_name);
 	iter = db->db->iterator(db->db);
-	for( data = iter->first(iter,&key); iter->exists(iter); data = iter->next(iter,&key) )
+	while( iter->next(iter, &party_id) )
 	{
-		int party_id = key.i;
-		struct party* p = (struct party*)data;
-
-		strdb_put(db->idx_name, p->name, (void*)party_id);
+		struct party p;
+		if( !db->db->load(db->db, party_id, &p, sizeof(p), NULL) )
+			continue;
+		strdb_put(db->idx_name, p.name, (void*)party_id);
 	}
 	iter->destroy(iter);
 
@@ -360,7 +359,7 @@ static bool party_db_txt_name2id(PartyDB* self, const char* name, int* party_id)
 static CSDBIterator* party_db_txt_iterator(PartyDB* self)
 {
 	CSDB_TXT* db = ((PartyDB_TXT*)self)->db;
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 

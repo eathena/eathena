@@ -196,23 +196,25 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 {
 	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
 	struct mail_message msg;
-	DBIterator* iter = db->iterator(db);
-	void* data;
+	CSDBIterator* iter;
+	int mail_id;
 	int total = 0;
 	int i;
 
 	memset(md, 0, sizeof(*md));
 
-	for( data = iter->first(iter, NULL); iter->exists(iter); data = iter->next(iter, NULL) )
+	iter = db->iterator(db);
+	while( iter->next(iter, &mail_id) )
 	{
-		struct mail_message* msg = (struct mail_message*)data;
+		if( !db->load(db, mail_id, &msg, sizeof(msg), NULL) )
+			continue;
 
-		if( msg->dest_id != char_id )
+		if( msg.dest_id != char_id )
 			continue;
 
 		if( md->amount < MAIL_MAX_INBOX )
 		{
-			memcpy(&md->msg[md->amount], msg, sizeof(*msg));
+			memcpy(&md->msg[md->amount], &msg, sizeof(msg));
 			md->amount++;
 		}
 
@@ -248,7 +250,7 @@ static bool mail_db_txt_loadall(MailDB* self, struct mail_data* md, const int ch
 static CSDBIterator* mail_db_txt_iterator(MailDB* self)
 {
 	CSDB_TXT* db = ((MailDB_TXT*)self)->db;
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 

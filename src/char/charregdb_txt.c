@@ -198,7 +198,7 @@ static bool charreg_db_txt_load(CharRegDB* self, struct regs* reg, int char_id)
 static CSDBIterator* charreg_db_txt_iterator(CharRegDB* self)
 {
 	CSDB_TXT* db = ((CharRegDB_TXT*)self)->db;
-	return csdb_txt_iterator(db->iterator(db));
+	return db->iterator(db);
 }
 
 
