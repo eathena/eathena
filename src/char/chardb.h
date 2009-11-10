@@ -24,31 +24,31 @@ struct CharDB
 	} p;
 
 	/// Creates a character.
-	/// Set status->char_id to -1 to auto-assign an id; it will be updated to the chosen id.
+	/// Set cd->char_id to -1 to auto-assign an id; it will be updated to the chosen id.
 	/// Returns false if the id or name are being used.
 	/// Returns true if successful.
 	///
 	/// @param self Database
-	/// @param status Character data
+	/// @param cd Character data
 	/// @return true if successful
-	bool (*create)(CharDB* self, struct mmo_charstatus* status);
+	bool (*create)(CharDB* self, struct mmo_charstatus* cd);
 
 	bool (*remove)(CharDB* self, const int char_id);
 
-	bool (*save)(CharDB* self, const struct mmo_charstatus* status);
+	bool (*save)(CharDB* self, const struct mmo_charstatus* cd);
 
 	// retrieve data using charid
-	bool (*load_num)(CharDB* self, struct mmo_charstatus* status, int char_id);
+	bool (*load_num)(CharDB* self, struct mmo_charstatus* cd, int char_id);
 
 	/// Retrieve character data by character name.
 	/// Returns true if the name match is exact (case-sensitive) or unique (single case-insensitive).
 	///
 	/// @param self Database
-	/// @param status Variable for the character data
+	/// @param cd Variable for the character data
 	/// @param name Target character name
 	/// @param case_sensitive If the search is case-sensitive
 	/// @return true if exact or unique
-	bool (*load_str)(CharDB* self, struct mmo_charstatus* status, const char* name, bool case_sensitive);
+	bool (*load_str)(CharDB* self, struct mmo_charstatus* cd, const char* name, bool case_sensitive);
 
 	// look up name using charid
 	bool (*id2name)(CharDB* self, int char_id, char* name, size_t size);

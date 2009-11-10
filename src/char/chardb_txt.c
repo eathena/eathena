@@ -11,6 +11,7 @@
 #include "../common/socket.h"
 #include "../common/strlib.h"
 #include "../common/timer.h"
+#include "../common/txt.h"
 #include "charserverdb_txt.h"
 #include "csdb_txt.h"
 #include "char.h"
@@ -32,29 +33,29 @@ typedef struct CharDB_TXT
 	// public interface
 	CharDB vtable;
 
-	// state
-	CharServerDB_TXT* owner;
-	DBMap* chars;// int char_id -> struct mmo_charstatus* cd (releases data)
-	DBMap* idx_name;// char* name -> struct mmo_charstatus* cd (case-sensitive, WARNING: uses data of DBMap chars)
-	int next_char_id;
-	bool dirty;
+	// data provider
+	CSDB_TXT* db;
 
-	// settings
-	const char* char_db;
+	// indexes
+	DBMap* idx_name;// char* name -> int char_id (case-sensitive)
 
 } CharDB_TXT;
 
 
-/// Function to set the character from the line (at read of characters file).
-/// @private
-static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstatus* cd, unsigned int version)
+/// Parses string containing serialized data into the provided data structure.
+/// @protected
+static bool char_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
 	const char* p = str;
-	int col[53+1][2];
+	struct mmo_charstatus* cd = (struct mmo_charstatus*)data;
+	char last_map[MAP_NAME_LENGTH], save_map[MAP_NAME_LENGTH];
 	int n;
-	int tmp_charid;
-	char tmp_name[NAME_LENGTH];
-	char tmp_map[MAP_NAME_LENGTH];
+	Txt* txt;
+
+	*out_size = sizeof(*cd);
+
+	if( size < sizeof(*cd) )
+		return true;
 
 	memset(cd, 0, sizeof(*cd));
 
@@ -68,62 +69,77 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 	p += n + 1;
 
 	// base data
-	if( sv_parse(p, strlen(p), 0, ',', (int*)col, 2*ARRAYLENGTH(col), (e_svopt)(SV_ESCAPE_C|SV_TERMINATE_LF|SV_TERMINATE_CRLF)) != 53 )
+	txt = Txt_Malloc();
+	Txt_Init(txt, (char*)p, strlen(p), 53, ',', '\0', "");
+	Txt_Bind(txt,  0, TXTDT_INT, &cd->account_id, sizeof(cd->account_id));
+	Txt_Bind(txt,  1, TXTDT_UCHAR, &cd->slot, sizeof(cd->slot));
+	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name, sizeof(cd->name));
+	Txt_Bind(txt,  3, TXTDT_SHORT, &cd->class_, sizeof(cd->class_));
+	Txt_Bind(txt,  4, TXTDT_UINT, &cd->base_level, sizeof(cd->base_level));
+	Txt_Bind(txt,  5, TXTDT_UINT, &cd->job_level, sizeof(cd->job_level));
+	Txt_Bind(txt,  6, TXTDT_UINT, &cd->base_exp, sizeof(cd->base_exp));
+	Txt_Bind(txt,  7, TXTDT_UINT, &cd->job_exp, sizeof(cd->job_exp));
+	Txt_Bind(txt,  8, TXTDT_INT, &cd->zeny, sizeof(cd->zeny));
+	Txt_Bind(txt,  9, TXTDT_INT, &cd->hp, sizeof(cd->hp));
+	Txt_Bind(txt, 10, TXTDT_INT, &cd->max_hp, sizeof(cd->max_hp));
+	Txt_Bind(txt, 11, TXTDT_INT, &cd->sp, sizeof(cd->sp));
+	Txt_Bind(txt, 12, TXTDT_INT, &cd->max_sp, sizeof(cd->max_sp));
+	Txt_Bind(txt, 13, TXTDT_SHORT, &cd->str, sizeof(cd->str));
+	Txt_Bind(txt, 14, TXTDT_SHORT, &cd->agi, sizeof(cd->agi));
+	Txt_Bind(txt, 15, TXTDT_SHORT, &cd->vit, sizeof(cd->vit));
+	Txt_Bind(txt, 16, TXTDT_SHORT, &cd->int_, sizeof(cd->int_));
+	Txt_Bind(txt, 17, TXTDT_SHORT, &cd->dex, sizeof(cd->dex));
+	Txt_Bind(txt, 18, TXTDT_SHORT, &cd->luk, sizeof(cd->luk));
+	Txt_Bind(txt, 19, TXTDT_UINT, &cd->status_point, sizeof(cd->status_point));
+	Txt_Bind(txt, 20, TXTDT_UINT, &cd->skill_point, sizeof(cd->skill_point));
+	Txt_Bind(txt, 21, TXTDT_UINT, &cd->option, sizeof(cd->option));
+	Txt_Bind(txt, 22, TXTDT_UCHAR, &cd->karma, sizeof(cd->karma));
+	Txt_Bind(txt, 23, TXTDT_SHORT, &cd->manner, sizeof(cd->manner));
+	Txt_Bind(txt, 24, TXTDT_INT, &cd->party_id, sizeof(cd->party_id));
+	Txt_Bind(txt, 25, TXTDT_INT, &cd->guild_id, sizeof(cd->guild_id));
+	Txt_Bind(txt, 26, TXTDT_INT, &cd->pet_id, sizeof(cd->pet_id));
+	Txt_Bind(txt, 27, TXTDT_INT, &cd->hom_id, sizeof(cd->hom_id));
+	Txt_Bind(txt, 28, TXTDT_INT, &cd->mer_id, sizeof(cd->mer_id));
+	Txt_Bind(txt, 29, TXTDT_SHORT, &cd->hair, sizeof(cd->hair));
+	Txt_Bind(txt, 30, TXTDT_SHORT, &cd->hair_color, sizeof(cd->hair_color));
+	Txt_Bind(txt, 31, TXTDT_SHORT, &cd->clothes_color, sizeof(cd->clothes_color));
+	Txt_Bind(txt, 32, TXTDT_SHORT, &cd->weapon, sizeof(cd->weapon));
+	Txt_Bind(txt, 33, TXTDT_SHORT, &cd->shield, sizeof(cd->shield));
+	Txt_Bind(txt, 34, TXTDT_SHORT, &cd->head_top, sizeof(cd->head_top));
+	Txt_Bind(txt, 35, TXTDT_SHORT, &cd->head_mid, sizeof(cd->head_mid));
+	Txt_Bind(txt, 36, TXTDT_SHORT, &cd->head_bottom, sizeof(cd->head_bottom));
+	Txt_Bind(txt, 37, TXTDT_STRING, last_map, sizeof(last_map));
+	Txt_Bind(txt, 38, TXTDT_SHORT, &cd->last_point.x, sizeof(cd->last_point.x));
+	Txt_Bind(txt, 39, TXTDT_SHORT, &cd->last_point.y, sizeof(cd->last_point.y));
+	Txt_Bind(txt, 40, TXTDT_STRING, save_map, sizeof(save_map));
+	Txt_Bind(txt, 41, TXTDT_SHORT, &cd->save_point.x, sizeof(cd->save_point.x));
+	Txt_Bind(txt, 42, TXTDT_SHORT, &cd->save_point.y, sizeof(cd->save_point.y));
+	Txt_Bind(txt, 43, TXTDT_INT, &cd->partner_id, sizeof(cd->partner_id));
+	Txt_Bind(txt, 44, TXTDT_INT, &cd->father, sizeof(cd->father));
+	Txt_Bind(txt, 45, TXTDT_INT, &cd->mother, sizeof(cd->mother));
+	Txt_Bind(txt, 46, TXTDT_INT, &cd->child, sizeof(cd->child));
+	Txt_Bind(txt, 47, TXTDT_INT, &cd->arch_calls, sizeof(cd->arch_calls));
+	Txt_Bind(txt, 48, TXTDT_INT, &cd->arch_faith, sizeof(cd->arch_faith));
+	Txt_Bind(txt, 49, TXTDT_INT, &cd->spear_calls, sizeof(cd->spear_calls));
+	Txt_Bind(txt, 50, TXTDT_INT, &cd->spear_faith, sizeof(cd->spear_faith));
+	Txt_Bind(txt, 51, TXTDT_INT, &cd->sword_calls, sizeof(cd->sword_calls));
+	Txt_Bind(txt, 52, TXTDT_INT, &cd->sword_faith, sizeof(cd->sword_faith));
+	if( Txt_Parse(txt) != TXT_SUCCESS || Txt_NumFields(txt) != 53 )
+	{
+		Txt_Free(txt);
 		return false;
+	}
+	Txt_Free(txt);
 
-	cd->account_id     = (int)          strtol (&p[col[ 1][0]], NULL, 10);
-	cd->slot           = (unsigned char)strtoul(&p[col[ 2][0]], NULL, 10);
-	sv_unescape_c(cd->name, &p[col[3][0]], col[3][1]-col[3][0]);
-	cd->class_         = (short)        strtol (&p[col[ 4][0]], NULL, 10);
-	cd->base_level     = (unsigned int) strtoul(&p[col[ 5][0]], NULL, 10);
-	cd->job_level      = (unsigned int) strtoul(&p[col[ 6][0]], NULL, 10);
-	cd->base_exp       = (unsigned int) strtoul(&p[col[ 7][0]], NULL, 10);
-	cd->job_exp        = (unsigned int) strtoul(&p[col[ 8][0]], NULL, 10);
-	cd->zeny           = (int)          strtoul(&p[col[ 9][0]], NULL, 10);
-	cd->hp             = (int)          strtoul(&p[col[10][0]], NULL, 10);
-	cd->max_hp         = (int)          strtoul(&p[col[11][0]], NULL, 10);
-	cd->sp             = (int)          strtoul(&p[col[12][0]], NULL, 10);
-	cd->max_sp         = (int)          strtoul(&p[col[13][0]], NULL, 10);
-	cd->str            = (short)        strtol (&p[col[14][0]], NULL, 10);
-	cd->agi            = (short)        strtol (&p[col[15][0]], NULL, 10);
-	cd->vit            = (short)        strtol (&p[col[16][0]], NULL, 10);
-	cd->int_           = (short)        strtol (&p[col[17][0]], NULL, 10);
-	cd->dex            = (short)        strtol (&p[col[18][0]], NULL, 10);
-	cd->luk            = (short)        strtol (&p[col[19][0]], NULL, 10);
-	cd->status_point   = (unsigned int) strtoul(&p[col[20][0]], NULL, 10);
-	cd->skill_point    = (unsigned int) strtoul(&p[col[21][0]], NULL, 10);
-	cd->option         = (unsigned int) strtoul(&p[col[22][0]], NULL, 10);
-	cd->karma          = (unsigned char)strtoul(&p[col[23][0]], NULL, 10);
-	cd->manner         = (short)        strtol (&p[col[24][0]], NULL, 10);
-	cd->party_id       = (int)          strtol (&p[col[25][0]], NULL, 10);
-	cd->guild_id       = (int)          strtol (&p[col[26][0]], NULL, 10);
-	cd->pet_id         = (int)          strtol (&p[col[27][0]], NULL, 10);
-	cd->hom_id         = (int)          strtol (&p[col[28][0]], NULL, 10);
-	cd->mer_id         = (int)          strtol (&p[col[29][0]], NULL, 10);
-	cd->hair           = (short)        strtol (&p[col[30][0]], NULL, 10);
-	cd->hair_color     = (short)        strtol (&p[col[31][0]], NULL, 10);
-	cd->clothes_color  = (short)        strtol (&p[col[32][0]], NULL, 10);
-	cd->weapon         = (short)        strtol (&p[col[33][0]], NULL, 10);
-	cd->shield         = (short)        strtol (&p[col[34][0]], NULL, 10);
-	cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
-	cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
-	cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
-	cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
-	cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
-	cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
-	cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
-	cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
-	cd->father         = (int)          strtol (&p[col[45][0]], NULL, 10);
-	cd->mother         = (int)          strtol (&p[col[46][0]], NULL, 10);
-	cd->child          = (int)          strtol (&p[col[47][0]], NULL, 10);
-	cd->arch_calls     = (int)          strtol (&p[col[48][0]], NULL, 10);
-	cd->arch_faith     = (int)          strtol (&p[col[49][0]], NULL, 10);
-	cd->spear_calls    = (int)          strtol (&p[col[50][0]], NULL, 10);
-	cd->spear_faith    = (int)          strtol (&p[col[51][0]], NULL, 10);
-	cd->sword_calls    = (int)          strtol (&p[col[52][0]], NULL, 10);
-	cd->sword_faith    = (int)          strtol (&p[col[53][0]], NULL, 10);
+	cd->last_point.map = mapindex_name2id(last_map);
+	cd->save_point.map = mapindex_name2id(save_map);
+
+	*key = cd->char_id;
+
+/*
+	int tmp_charid;
+	char tmp_name[NAME_LENGTH];
+	char tmp_map[MAP_NAME_LENGTH];
 
 	// uniqueness checks
 	if( chars->id2name(chars, cd->char_id, tmp_name, sizeof(tmp_name)) )
@@ -136,82 +152,89 @@ static bool mmo_char_fromstr(CharDB* chars, const char* str, struct mmo_charstat
 		ShowError(CL_RED"mmo_char_fromstr: Collision on name '%s' between character %d and existing character %d!\n", cd->name, cd->char_id, tmp_charid);
 		return false;
 	}
+*/
 
 	return true;
 }
 
 
-/// Function to create the character line (for save)
-/// @private
-static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
+/// Serializes the provided data structure into a string.
+/// @protected
+static bool char_db_txt_tostr(char* str, int key, const void* data, size_t size)
 {
-	char esc_name[4*NAME_LENGTH+1];
-	char *str_p = str;
+	char* p = str;
+	struct mmo_charstatus* cd = (struct mmo_charstatus*)data;
+	char last_map[MAP_NAME_LENGTH], save_map[MAP_NAME_LENGTH];
+	bool result;
+	Txt* txt;
 
-	sv_escape_c(esc_name, p->name, strlen(p->name), ",");
+	safestrncpy(last_map, mapindex_id2name(cd->last_point.map), sizeof(last_map));
+	safestrncpy(save_map, mapindex_id2name(cd->save_point.map), sizeof(save_map));
 
 	// key (char id)
-	str_p += sprintf(str_p, "%d", p->char_id);
-	*(str_p++) = '\t';
+	p += sprintf(p, "%d\t", cd->char_id);
 
 	// base character data
-	                  str_p += sprintf(str_p, "%d", p->account_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->slot);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", esc_name);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->class_);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_level);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_level);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_exp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_exp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->zeny);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_hp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_sp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->str);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->agi);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->vit);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->int_);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->dex);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->luk);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->status_point);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->skill_point);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->option);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->karma);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->manner);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->party_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->guild_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->pet_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hom_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mer_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair_color);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->clothes_color);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->weapon);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->shield);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_top);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_mid);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_bottom);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->last_point.map));
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.x);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.y);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->save_point.map));
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.x);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.y);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->partner_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->father);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mother);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->child);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_faith);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_faith);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_faith);
+	txt = Txt_Malloc();
+	Txt_Init(txt, p, SIZE_MAX, 53, ',', '\0', ",\t");
+	Txt_Bind(txt,  0, TXTDT_INT, &cd->account_id, sizeof(cd->account_id));
+	Txt_Bind(txt,  1, TXTDT_UCHAR, &cd->slot, sizeof(cd->slot));
+	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name, sizeof(cd->name));
+	Txt_Bind(txt,  3, TXTDT_SHORT, &cd->class_, sizeof(cd->class_));
+	Txt_Bind(txt,  4, TXTDT_UINT, &cd->base_level, sizeof(cd->base_level));
+	Txt_Bind(txt,  5, TXTDT_UINT, &cd->job_level, sizeof(cd->job_level));
+	Txt_Bind(txt,  6, TXTDT_UINT, &cd->base_exp, sizeof(cd->base_exp));
+	Txt_Bind(txt,  7, TXTDT_UINT, &cd->job_exp, sizeof(cd->job_exp));
+	Txt_Bind(txt,  8, TXTDT_INT, &cd->zeny, sizeof(cd->zeny));
+	Txt_Bind(txt,  9, TXTDT_INT, &cd->hp, sizeof(cd->hp));
+	Txt_Bind(txt, 10, TXTDT_INT, &cd->max_hp, sizeof(cd->max_hp));
+	Txt_Bind(txt, 11, TXTDT_INT, &cd->sp, sizeof(cd->sp));
+	Txt_Bind(txt, 12, TXTDT_INT, &cd->max_sp, sizeof(cd->max_sp));
+	Txt_Bind(txt, 13, TXTDT_SHORT, &cd->str, sizeof(cd->str));
+	Txt_Bind(txt, 14, TXTDT_SHORT, &cd->agi, sizeof(cd->agi));
+	Txt_Bind(txt, 15, TXTDT_SHORT, &cd->vit, sizeof(cd->vit));
+	Txt_Bind(txt, 16, TXTDT_SHORT, &cd->int_, sizeof(cd->int_));
+	Txt_Bind(txt, 17, TXTDT_SHORT, &cd->dex, sizeof(cd->dex));
+	Txt_Bind(txt, 18, TXTDT_SHORT, &cd->luk, sizeof(cd->luk));
+	Txt_Bind(txt, 19, TXTDT_UINT, &cd->status_point, sizeof(cd->status_point));
+	Txt_Bind(txt, 20, TXTDT_UINT, &cd->skill_point, sizeof(cd->skill_point));
+	Txt_Bind(txt, 21, TXTDT_UINT, &cd->option, sizeof(cd->option));
+	Txt_Bind(txt, 22, TXTDT_UCHAR, &cd->karma, sizeof(cd->karma));
+	Txt_Bind(txt, 23, TXTDT_SHORT, &cd->manner, sizeof(cd->manner));
+	Txt_Bind(txt, 24, TXTDT_INT, &cd->party_id, sizeof(cd->party_id));
+	Txt_Bind(txt, 25, TXTDT_INT, &cd->guild_id, sizeof(cd->guild_id));
+	Txt_Bind(txt, 26, TXTDT_INT, &cd->pet_id, sizeof(cd->pet_id));
+	Txt_Bind(txt, 27, TXTDT_INT, &cd->hom_id, sizeof(cd->hom_id));
+	Txt_Bind(txt, 28, TXTDT_INT, &cd->mer_id, sizeof(cd->mer_id));
+	Txt_Bind(txt, 29, TXTDT_SHORT, &cd->hair, sizeof(cd->hair));
+	Txt_Bind(txt, 30, TXTDT_SHORT, &cd->hair_color, sizeof(cd->hair_color));
+	Txt_Bind(txt, 31, TXTDT_SHORT, &cd->clothes_color, sizeof(cd->clothes_color));
+	Txt_Bind(txt, 32, TXTDT_SHORT, &cd->weapon, sizeof(cd->weapon));
+	Txt_Bind(txt, 33, TXTDT_SHORT, &cd->shield, sizeof(cd->shield));
+	Txt_Bind(txt, 34, TXTDT_SHORT, &cd->head_top, sizeof(cd->head_top));
+	Txt_Bind(txt, 35, TXTDT_SHORT, &cd->head_mid, sizeof(cd->head_mid));
+	Txt_Bind(txt, 36, TXTDT_SHORT, &cd->head_bottom, sizeof(cd->head_bottom));
+	Txt_Bind(txt, 37, TXTDT_STRING, last_map, sizeof(last_map));
+	Txt_Bind(txt, 38, TXTDT_SHORT, &cd->last_point.x, sizeof(cd->last_point.x));
+	Txt_Bind(txt, 39, TXTDT_SHORT, &cd->last_point.y, sizeof(cd->last_point.y));
+	Txt_Bind(txt, 40, TXTDT_STRING, save_map, sizeof(save_map));
+	Txt_Bind(txt, 41, TXTDT_SHORT, &cd->save_point.x, sizeof(cd->save_point.x));
+	Txt_Bind(txt, 42, TXTDT_SHORT, &cd->save_point.y, sizeof(cd->save_point.y));
+	Txt_Bind(txt, 43, TXTDT_INT, &cd->partner_id, sizeof(cd->partner_id));
+	Txt_Bind(txt, 44, TXTDT_INT, &cd->father, sizeof(cd->father));
+	Txt_Bind(txt, 45, TXTDT_INT, &cd->mother, sizeof(cd->mother));
+	Txt_Bind(txt, 46, TXTDT_INT, &cd->child, sizeof(cd->child));
+	Txt_Bind(txt, 47, TXTDT_INT, &cd->arch_calls, sizeof(cd->arch_calls));
+	Txt_Bind(txt, 48, TXTDT_INT, &cd->arch_faith, sizeof(cd->arch_faith));
+	Txt_Bind(txt, 49, TXTDT_INT, &cd->spear_calls, sizeof(cd->spear_calls));
+	Txt_Bind(txt, 50, TXTDT_INT, &cd->spear_faith, sizeof(cd->spear_faith));
+	Txt_Bind(txt, 51, TXTDT_INT, &cd->sword_calls, sizeof(cd->sword_calls));
+	Txt_Bind(txt, 52, TXTDT_INT, &cd->sword_faith, sizeof(cd->sword_faith));
 
-	*(str_p++) = '\0';
+	result = ( Txt_Write(txt) == TXT_SUCCESS && Txt_NumFields(txt) == 53 );
+	Txt_Free(txt);
 
-	return 0;
+	return result;
 }
 
 
@@ -219,82 +242,26 @@ static int mmo_char_tostr(char *str, struct mmo_charstatus *p)
 static bool char_db_txt_init(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars;
+	CSDBIterator* iter;
+	int char_id;
 
-	char line[65536];
-	int line_count = 0;
-	FILE* fp;
-	unsigned int version = 0;
+	if( !db->db->init(db->db) )
+		return false;
 
-	// create chars database
-	if( db->chars == NULL )
-		db->chars = idb_alloc(DB_OPT_RELEASE_DATA);
+	// create index
 	if( db->idx_name == NULL )
 		db->idx_name = strdb_alloc(DB_OPT_DUP_KEY, 0);
-	chars = db->chars;
-	db_clear(chars);
 	db_clear(db->idx_name);
-
-	// open data file
-	fp = fopen(db->char_db, "r");
-	if( fp == NULL )
+	iter = db->db->iterator(db->db);
+	while( iter->next(iter, &char_id) )
 	{
-		ShowError("Characters file not found: %s.\n", db->char_db);
-		return false;
+		struct mmo_charstatus cd;
+		if( !db->db->load(db->db, char_id, &cd, sizeof(cd), NULL) )
+			continue;
+		strdb_put(db->idx_name, cd.name, (void*)char_id);
 	}
+	iter->destroy(iter);
 
-	// load data file
-	while( fgets(line, sizeof(line), fp) != NULL )
-	{
-		int char_id, n;
-		unsigned int v;
-		struct mmo_charstatus* ch;
-
-		line_count++;
-
-		if( line[0] == '/' && line[1] == '/' )
-			continue;
-
-		n = 0;
-		if( sscanf(line, "%d%n", &v, &n) == 1 && (line[n] == '\n' || line[n] == '\r') )
-		{// format version definition
-			version = v;
-			continue;
-		}
-
-		n = 0;
-		if( sscanf(line, "%d\t%%newid%%%n", &char_id, &n) == 1 && n > 0 && (line[n] == '\n' || line[n] == '\r') )
-		{// auto-increment
-			if( char_id > db->next_char_id )
-				db->next_char_id = char_id;
-			continue;
-		}
-
-		// allocate memory for the char entry
-		ch = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
-
-		// parse char data
-		if( !mmo_char_fromstr(self, line, ch, version) )
- 		{
-			ShowFatalError("char_db_txt_init: There was a problem processing data in file '%s', line #%d. Please fix manually. Shutting down to avoid data loss.\n", db->char_db, line_count);
-			aFree(ch);
-			exit(EXIT_FAILURE);
-		}
-
-		// record entry in db
-		idb_put(chars, ch->char_id, ch);
-		strdb_put(db->idx_name, ch->name, ch);
-
-		if( ch->char_id >= db->next_char_id )
-			db->next_char_id = ch->char_id + 1;
-	}
-
-	// close data file
-	fclose(fp);
-
-	ShowStatus("mmo_char_init: %d characters read in %s.\n", chars->size(chars), db->char_db);
-
-	db->dirty = false;
 	return true;
 }
 
@@ -303,64 +270,24 @@ static bool char_db_txt_init(CharDB* self)
 static void char_db_txt_destroy(CharDB* self)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
 
 	// delete chars database
+	db->db->destroy(db->db);
+
+	// delete indexes
 	if( db->idx_name != NULL )
-	{
 		db_destroy(db->idx_name);
-		db->idx_name = NULL;
-	}
-	if( chars != NULL )
-	{
-		db_destroy(chars);
-		db->chars = NULL;
-	}
 
 	// delete entire structure
 	aFree(db);
 }
 
 
-/// Dumps the entire char db (+ associated data) to disk
 /// @protected
 static bool char_db_txt_sync(CharDB* self, bool force)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	int lock;
-	FILE *fp;
-	void* data;
-	struct DBIterator* iter;
-
-	if( !force && !db->dirty )
-		return true;// nothing to do
-
-	// Data save
-	fp = lock_fopen(db->char_db, &lock);
-	if( fp == NULL )
-	{
-		ShowWarning("Server cannot save characters.\n");
-		return false;
-	}
-
-	fprintf(fp, "%d\n", CHARDB_TXT_DB_VERSION); // savefile version
-
-	iter = db->chars->iterator(db->chars);
-	for( data = iter->first(iter,NULL); iter->exists(iter); data = iter->next(iter,NULL) )
-	{
-		struct mmo_charstatus* ch = (struct mmo_charstatus*) data;
-		char line[65536]; // ought to be big enough
-
-		mmo_char_tostr(line, ch);
-		fprintf(fp, "%s\n", line);
-	}
-	fprintf(fp, "%d\t%%newid%%\n", db->next_char_id);
-	iter->destroy(iter);
-
-	lock_fclose(fp, db->char_db, &lock);
-
-	db->dirty = false;
-	return true;
+	CSDB_TXT* db = ((CharDB_TXT*)self)->db;
+	return db->sync(db, force);
 }
 
 
@@ -368,34 +295,20 @@ static bool char_db_txt_sync(CharDB* self, bool force)
 static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-	struct mmo_charstatus* tmp;
 
-	// decide on the char id to assign
-	int char_id = ( cd->char_id != -1 ) ? cd->char_id : db->next_char_id;
+	if( cd->char_id == -1 )
+		cd->char_id = db->db->next_key(db->db);
 
 	// data restrictions
-	if( cd->char_id != -1 && self->id2name(self, cd->char_id, NULL, 0) )
+	if( self->id2name(self, cd->char_id, NULL, 0) )
 		return false;// id is being used
 	if( self->name2id(self, cd->name, true, NULL, NULL, NULL) )
 		return false;// name is being used
 
-	// copy the data and store it in the db
-	tmp = (struct mmo_charstatus*)aMalloc(sizeof(struct mmo_charstatus));
-	memcpy(tmp, cd, sizeof(struct mmo_charstatus));
-	tmp->char_id = char_id;
-	idb_put(chars, char_id, tmp);
-	strdb_put(db->idx_name, cd->name, tmp);
+	// store data
+	db->db->insert(db->db, cd->char_id, cd, sizeof(*cd));
+	strdb_put(db->idx_name, cd->name, (void*)cd->char_id);
 
-	// increment the auto_increment value
-	if( char_id >= db->next_char_id )
-		db->next_char_id = char_id + 1;
-
-	// write output
-	cd->char_id = char_id;
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
 	return true;
 }
 
@@ -404,83 +317,64 @@ static bool char_db_txt_create(CharDB* self, struct mmo_charstatus* cd)
 static bool char_db_txt_remove(CharDB* self, const int char_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-	struct mmo_charstatus* tmp;
+	struct mmo_charstatus cd;
 
-	tmp = (struct mmo_charstatus*)idb_get(chars, char_id);
-	if( tmp == NULL )
-		return true;// nothing to do
-	strdb_remove(db->idx_name, tmp->name);
-	idb_remove(chars, char_id);
+	if( !db->db->load(db->db, char_id, &cd, sizeof(cd), NULL) )
+		return true; // nothing to delete
 
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
+	// delete from database and index
+	db->db->remove(db->db, char_id);
+	strdb_remove(db->idx_name, cd.name);
+
 	return true;
 }
 
 
 /// @protected
-static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* ch)
+static bool char_db_txt_save(CharDB* self, const struct mmo_charstatus* cd)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-	int char_id = ch->char_id;
+	struct mmo_charstatus tmp;
 	bool name_changed = false;
 
 	// retrieve previous data
-	struct mmo_charstatus* tmp = idb_get(chars, char_id);
-	if( tmp == NULL )
-	{// error condition - entry not found
-		return false;
-	}
-	if( strcmp(ch->name, tmp->name) != 0 )
-	{// name changed
+	if( !db->db->load(db->db, cd->char_id, &tmp, sizeof(tmp), NULL) )
+		return false; // entry not found
+
+	// check integrity constraints
+	if( strcmp(cd->name, tmp.name) != 0 )
+	{
 		name_changed = true;
-		if( strdb_get(db->idx_name, ch->name) != NULL )
-		{// error condition - name taken
-			return false;
-		}
+		if( strdb_exists(db->idx_name, cd->name) )
+			return false; // name already taken
 	}
 
-	// overwrite with new data
+	// write new data
+	if( !db->db->update(db->db, cd->char_id, cd, sizeof(*cd)) )
+		return false;
+
+	// update index
 	if( name_changed )
 	{
-		strdb_remove(db->idx_name, tmp->name);
-		strdb_put(db->idx_name, ch->name, tmp);
+		strdb_remove(db->idx_name, tmp.name);
+		strdb_put(db->idx_name, cd->name, (void*)cd->char_id);
 	}
-	memcpy(tmp, ch, sizeof(struct mmo_charstatus));
-
-	db->dirty = true;
-	db->owner->p.request_sync(db->owner);
-	return true;
-}
-
-
-/// @protected
-static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
-{
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	RankDB* rankdb = db->owner->rankdb;
-	DBMap* chars = db->chars;
-
-	// retrieve data
-	struct mmo_charstatus* tmp = (struct mmo_charstatus*)idb_get(chars, char_id);
-	if( tmp == NULL )
-	{// entry not found
-		return false;
-	}
-
-	// store it
-	memcpy(ch, tmp, sizeof(struct mmo_charstatus));
 
 	return true;
 }
 
 
 /// @protected
-static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name, bool case_sensitive)
+static bool char_db_txt_load_num(CharDB* self, struct mmo_charstatus* cd, int char_id)
 {
-//	CharDB_TXT* db = (CharDB_TXT*)self;
+	CSDB_TXT* db = ((CharDB_TXT*)self)->db;
+	return db->load(db, char_id, cd, sizeof(*cd), NULL);
+}
+
+
+/// @protected
+static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* cd, const char* name, bool case_sensitive)
+{
 	int char_id;
 	unsigned int n;
 
@@ -492,7 +386,7 @@ static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	}
 
 	// retrieve data
-	return self->load_num(self, ch, char_id);
+	return self->load_num(self, cd, char_id);
 }
 
 
@@ -500,18 +394,14 @@ static bool char_db_txt_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 static bool char_db_txt_id2name(CharDB* self, int char_id, char* name, size_t size)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
+	struct mmo_charstatus cd;
 
-	// retrieve data
-	struct mmo_charstatus* tmp = (struct mmo_charstatus*)idb_get(chars, char_id);
-	if( tmp == NULL )
-	{// entry not found
+	if( !db->db->load(db->db, char_id, &cd, sizeof(cd), NULL) )
 		return false;
-	}
 
 	if( name != NULL )
-		safestrncpy(name, tmp->name, size);
-	
+		safestrncpy(name, cd.name, size);
+
 	return true;
 }
 
@@ -520,8 +410,8 @@ static bool char_db_txt_id2name(CharDB* self, int char_id, char* name, size_t si
 static bool char_db_txt_name2id(CharDB* self, const char* name, bool case_sensitive, int* char_id, int* account_id, unsigned int* count)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
-	struct mmo_charstatus* tmp = NULL;
+	struct mmo_charstatus tmp;
+	bool found = false;
 
 	if( count != NULL )
 		*count = 1;
@@ -529,25 +419,50 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, bool case_sensit
 	// retrieve data
 	if( case_sensitive )
 	{
-		tmp = (struct mmo_charstatus*)strdb_get(db->idx_name, name);
+		int tmp_id;
+
+		if( !strdb_exists(db->idx_name, name) )
+			return false;
+
+		tmp_id = (int)strdb_get(db->idx_name, name);
+
+		if( !db->db->load(db->db, tmp_id, &tmp, sizeof(tmp), NULL) )
+			return false;
+
+		found = true;
 	}
 	else
 	{
-		struct DBIterator* iter = db_iterator(chars);
-		for( tmp = (struct mmo_charstatus*)dbi_first(iter); dbi_exists(iter); tmp = (struct mmo_charstatus*)dbi_next(iter) )
-			if( stricmp(name, tmp->name) == 0 )
+		int tmp_id;
+		CSDBIterator* iter = db->db->iterator(db->db);
+		while( iter->next(iter, &tmp_id) )
+		{
+			if( !db->db->load(db->db, tmp_id, &tmp, sizeof(tmp), NULL) )
+				continue;
+
+			if( stricmp(name, tmp.name) == 0 )
+			{
+				found = true;
 				break;
+			}
+		}
+
 		if( count != NULL )
 		{// count other matches
-			struct mmo_charstatus* tmp2 = NULL;
-			for( tmp2 = (struct mmo_charstatus*)dbi_next(iter); dbi_exists(iter); tmp2 = (struct mmo_charstatus*)dbi_next(iter) )
-				if( stricmp(name, tmp2->name) == 0 )
+			struct mmo_charstatus tmp2;
+			while( iter->next(iter, &tmp_id) )
+			{
+				if( !db->db->load(db->db, tmp_id, &tmp2, sizeof(tmp2), NULL) )
+					continue;
+
+				if( stricmp(name, tmp2.name) == 0 )
 					*count = *count + 1;
+			}
 		}
-		dbi_destroy(iter);
+		iter->destroy(iter);
 	}
 
-	if( tmp == NULL )
+	if( !found )
 	{// entry not found
 		if( count != NULL )
 			*count = 0;
@@ -555,20 +470,20 @@ static bool char_db_txt_name2id(CharDB* self, const char* name, bool case_sensit
 	}
 
 	if( char_id != NULL )
-		*char_id = tmp->char_id;
+		*char_id = tmp.char_id;
 	if( account_id != NULL )
-		*account_id = tmp->account_id;
+		*account_id = tmp.account_id;
 
 	return true;
 }
 
 
-/// Returns an iterator over all the characters.
+/// Returns an iterator over all characters.
 /// @protected
 static CSDBIterator* char_db_txt_iterator(CharDB* self)
 {
-	CharDB_TXT* db = (CharDB_TXT*)self;
-	return csdb_txt_iterator(db_iterator(db->chars));
+	CSDB_TXT* db = ((CharDB_TXT*)self)->db;
+	return db->iterator(db);
 }
 
 
@@ -578,7 +493,8 @@ typedef struct CharDBIterator_TXT
 {
 	CSDBIterator vtable;      // public interface
 
-	DBIterator* iter;
+	CharDB_TXT* owner;
+	CSDBIterator* iter;
 	int account_id;
 
 } CharDBIterator_TXT;
@@ -589,7 +505,7 @@ typedef struct CharDBIterator_TXT
 static void char_db_txt_iter_destroy(CSDBIterator* self)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
-	dbi_destroy(iter->iter);
+	iter->iter->destroy(iter->iter);
 	aFree(iter);
 }
 
@@ -599,19 +515,23 @@ static void char_db_txt_iter_destroy(CSDBIterator* self)
 static bool char_db_txt_iter_next(CSDBIterator* self, int* key)
 {
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)self;
-	struct mmo_charstatus* tmp;
+	struct mmo_charstatus tmp;
+	int char_id;
 
 	while( true )
 	{
-		tmp = (struct mmo_charstatus*)dbi_next(iter->iter);
-		if( tmp == NULL )
+		if( !iter->iter->next(iter->iter, &char_id) )
 			return false;// not found
 
-		if( iter->account_id != tmp->account_id )
+		//FIXME: very expensive
+		if( !iter->owner->db->load(iter->owner->db, char_id, &tmp, sizeof(tmp), NULL) )
+			return false;// failed to load
+
+		if( iter->account_id != tmp.account_id )
 			continue;// wrong account, try next
 
 		if( key )
-			*key = tmp->char_id;
+			*key = tmp.char_id;
 		return true;
 	}
 }
@@ -622,7 +542,6 @@ static bool char_db_txt_iter_next(CSDBIterator* self, int* key)
 static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 {
 	CharDB_TXT* db = (CharDB_TXT*)self;
-	DBMap* chars = db->chars;
 	CharDBIterator_TXT* iter = (CharDBIterator_TXT*)aCalloc(1, sizeof(CharDBIterator_TXT));
 
 	// set up the vtable
@@ -630,7 +549,8 @@ static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 	iter->vtable.next    = &char_db_txt_iter_next;
 
 	// fill data
-	iter->iter = db_iterator(chars);
+	iter->owner = db;
+	iter->iter = db->db->iterator(db->db);
 	iter->account_id = account_id;
 
 	return &iter->vtable;
@@ -642,6 +562,11 @@ static CSDBIterator* char_db_txt_characters(CharDB* self, int account_id)
 CharDB* char_db_txt(CharServerDB_TXT* owner)
 {
 	CharDB_TXT* db = (CharDB_TXT*)aCalloc(1, sizeof(CharDB_TXT));
+
+	// call base class constructor and bind abstract methods
+	db->db = csdb_txt(owner, owner->file_chars, CHARDB_TXT_DB_VERSION, START_CHAR_NUM);
+	db->db->p.fromstr = &char_db_txt_fromstr;
+	db->db->p.tostr   = &char_db_txt_tostr;
 
 	// set up the vtable
 	db->vtable.p.init    = &char_db_txt_init;
@@ -658,14 +583,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->vtable.characters = &char_db_txt_characters;
 
 	// initialize to default values
-	db->owner = owner;
-	db->chars = NULL;
 	db->idx_name = NULL;
-	db->next_char_id = START_CHAR_NUM;
-	db->dirty = false;
-
-	// other settings
-	db->char_db = db->owner->file_chars;
 
 	return &db->vtable;
 }

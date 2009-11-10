@@ -400,29 +400,29 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 
 
 /// @protected
-static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* ch)
+static bool char_db_sql_save(CharDB* self, const struct mmo_charstatus* cd)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
 	int tmp_id;
 
 	// data restrictions
-	if( self->name2id(self, ch->name, true, &tmp_id, NULL, NULL) && tmp_id != ch->char_id )
+	if( self->name2id(self, cd->name, true, &tmp_id, NULL, NULL) && tmp_id != cd->char_id )
 		return false;// name is being used
 
-	return mmo_char_tosql(db, (struct mmo_charstatus*)ch, false);
+	return mmo_char_tosql(db, (struct mmo_charstatus*)cd, false);
 }
 
 
 /// @protected
-static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* ch, int char_id)
+static bool char_db_sql_load_num(CharDB* self, struct mmo_charstatus* cd, int char_id)
 {
 	CharDB_SQL* db = (CharDB_SQL*)self;
-	return mmo_char_fromsql(db, ch, char_id, true);
+	return mmo_char_fromsql(db, cd, char_id, true);
 }
 
 
 /// @protected
-static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const char* name, bool case_sensitive)
+static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* cd, const char* name, bool case_sensitive)
 {
 //	CharDB_SQL* db = (CharDB_SQL*)self;
 	int char_id;
@@ -436,7 +436,7 @@ static bool char_db_sql_load_str(CharDB* self, struct mmo_charstatus* ch, const 
 	}
 
 	// retrieve data
-	return self->load_num(self, ch, char_id);
+	return self->load_num(self, cd, char_id);
 }
 
 
