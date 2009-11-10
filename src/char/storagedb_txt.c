@@ -296,12 +296,15 @@ static bool storage_db_txt_save(StorageDB* self, const struct item* s, size_t si
 static bool storage_db_txt_load(StorageDB* self, struct item* s, size_t size, enum storage_type type, int id)
 {
 	CSDB_TXT* db = type2db((StorageDB_TXT*)self, type);
-	size_t sz = size * sizeof(*s);
+	size_t insize = size * sizeof(*s);
+	size_t outsize;
+	int count;
 
-	if( !db->load(db, id, s, sz, &sz) )
-		sz = 0;
+	if( !db->load(db, id, s, insize, &outsize) )
+		outsize = 0;
 
-	memset(s, 0, size * sizeof(*s) - sz);
+	count = outsize / sizeof(*s);
+	memset(&s[count], 0, insize - outsize);
 
 	return true;
 }
