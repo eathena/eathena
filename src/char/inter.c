@@ -133,9 +133,6 @@ void log_inter(const char* fmt, ...)
 	vfprintf(log_fp, fmt, ap);
 	va_end(ap);
 
-	// write newline
-	fprintf(log_fp, "\n");
-
 	// close log file
 	fclose(log_fp);
 }
