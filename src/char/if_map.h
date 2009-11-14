@@ -16,7 +16,12 @@ struct mmo_map_server
 
 extern struct mmo_map_server server[MAX_MAP_SERVERS];
 
+int parse_frommap(int fd);
 
-extern int parse_frommap(int fd);
+void mapif_server_init(int id);
+void mapif_server_destroy(int id);
+
+void do_init_mapif(void);
+void do_final_mapif(void);
 
 #endif /* _IF_MAP_H_ */

@@ -527,7 +527,8 @@ CharServerDB* charserver_db_txt(void)
 	safestrncpy(db->file_auctions, "save/auction.txt", sizeof(db->file_auctions));
 	safestrncpy(db->file_carts, "save/cart.txt", sizeof(db->file_carts));
 	safestrncpy(db->file_castles, "save/castle.txt", sizeof(db->file_castles));
-	safestrncpy(db->file_chars, "save/char.txt", sizeof(db->file_chars));
+	safestrncpy(db->file_chars, "save/athena.txt", sizeof(db->file_chars));
+	safestrncpy(db->file_charregs, "save/charreg.txt", sizeof(db->file_charregs));
 	safestrncpy(db->file_friends, "save/friends.txt", sizeof(db->file_friends));
 	safestrncpy(db->file_guilds, "save/guild.txt", sizeof(db->file_guilds));
 	safestrncpy(db->file_guild_storages, "save/g_storage.txt", sizeof(db->file_guild_storages));

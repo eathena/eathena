@@ -1,13 +1,8 @@
 #ifndef _IF_LOGIN_H_
 #define _IF_LOGIN_H_
 
-
-int check_connect_login_server(int tid, unsigned int tick, int id, intptr data);
-int ping_login_server(int tid, unsigned int tick, int id, intptr data);
-int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
 int parse_fromlogin(int fd);
 bool loginif_is_connected(void);
-void loginif_disconnect(void);
 
 void loginif_charserver_login(void);
 void loginif_auth_request(int account_id, int login_id1, int login_id2, int sex, int ip, int fd);
@@ -26,5 +21,7 @@ void loginif_online_accounts_list(void);
 void loginif_request_accreg2(int account_id, int char_id);
 void loginif_all_offline(void);
 
+void do_init_loginif(void);
+void do_final_loginif(void);
 
 #endif /* _IF_LOGIN_H_ */

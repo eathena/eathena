@@ -3354,7 +3354,7 @@ void do_final(void)
 #ifndef TXT_ONLY
     map_sql_close();
 #endif /* not TXT_ONLY */
-	ShowStatus("Successfully terminated.\n");
+	ShowStatus("Finished.\n");
 }
 
 static int map_abort_sub(struct map_session_data* sd, va_list ap)

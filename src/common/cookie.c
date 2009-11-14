@@ -7,7 +7,7 @@
 #include "cookie.h"
 
 #include <stdlib.h> // rand
-#include <string.h> // memset,memcpy
+#include <string.h> // memset,memcpy,memcmp
 
 
 /// Timeout timer.
@@ -18,6 +18,8 @@ static int cookie_timeout_timer(int tid, unsigned int tick, int id, intptr data)
 	struct s_cookie* cookie = (struct s_cookie*)data;
 	if( cookie == NULL || cookie->timeout_timer != tid )
 		return 0;// invalid
+	if( cookie->len == 0 )
+		return 0;// already expired
 
 	cookie->timeout_timer = INVALID_TIMER;
 	if( cookie->on_timeout != NULL )
@@ -62,7 +64,7 @@ void cookie_generate(struct s_cookie* cookie)
 
 /// Sets the cookie data.
 /// Truncates the data if too big.
-void cookie_set(struct s_cookie* cookie, uint16 len, char* data)
+void cookie_set(struct s_cookie* cookie, uint16 len, const char* data)
 {
 	if( len > MAX_COOKIE_LEN )
 		len = MAX_COOKIE_LEN;
@@ -95,4 +97,15 @@ void cookie_timeout_stop(struct s_cookie* cookie)
 		return;// not running
 	delete_timer(cookie->timeout_timer, cookie_timeout_timer);
 	cookie->timeout = INVALID_TIMER;
+}
+
+
+/// Compares the data of the cookie.
+int cookie_compare(struct s_cookie* cookie, uint16 len, const char* data)
+{
+	uint16 n = (cookie->len < len? cookie->len: len);
+	int ret = memcmp(cookie->data, data, n);
+	if( ret == 0 )
+		ret = (int)len - (int)cookie->len;
+	return ret;
 }

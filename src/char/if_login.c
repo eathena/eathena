@@ -18,6 +18,10 @@
 #include "online.h"
 #include <stdio.h>
 
+int check_connect_login_server(int tid, unsigned int tick, int id, intptr data);
+int ping_login_server(int tid, unsigned int tick, int id, intptr data);
+int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
+
 //temporary imports
 extern CharServerDB* charserver;
 int login_fd = -1;
@@ -32,26 +36,48 @@ extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reaso
 extern int count_users(void);
 
 
-int parse_fromlogin(int fd)
+/// Called when the connection to Login Server is disconnected.
+void loginif_on_disconnect(void)
 {
-	struct char_session_data* sd;
+	ShowWarning("Connection to Login Server lost.\n\n");
+}
+
+
+/// Called when all the connection steps are completed.
+void loginif_on_ready(void)
+{
 	int i;
 
-	// only login-server can have an access to here.
-	// so, if it isn't the login-server, we disconnect the session.
-	if( fd != login_fd )
-		set_eof(fd);
+	//Send online accounts to login server.
+	send_accounts_tologin(-1, gettick(), 0, 0);
 
-	if(session[fd]->flag.eof) {
-		if (fd == login_fd) {
-			ShowWarning("Connection to login-server lost (connection #%d).\n", fd);
-			login_fd = -1;
-		}
+	// if no map-server already connected, display a message...
+	ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd > 0 && server[i].map[0] );
+	if( i == MAX_MAP_SERVERS )
+		ShowStatus("Awaiting maps from map-server.\n");
+}
+
+
+int parse_fromlogin(int fd)
+{
+	struct char_session_data* sd = NULL;
+	int i;
+
+	// only process data from the login-server
+	if( fd != login_fd )
+	{
+		ShowDebug("parse_fromlogin: Disconnecting invalid session #%d (is not the login-server)\n", fd);
 		do_close(fd);
 		return 0;
 	}
 
-	sd = (struct char_session_data*)session[fd]->session_data;
+	if( session[fd]->flag.eof )
+	{
+		do_close(fd);
+		login_fd = -1;
+		loginif_on_disconnect();
+		return 0;
+	}
 
 	while(RFIFOREST(fd) >= 2)
 	{
@@ -71,16 +97,11 @@ int parse_fromlogin(int fd)
 				ShowError("- the char-server's userid/passwd settings match an existing account\n");
 				ShowError("- the account's gender is set to 'S'\n");
 				ShowError("- the account's id is less than MAX_SERVERS (default:30)\n");
+				set_eof(fd);
+				return 0;
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
-				
-				//Send online accounts to login server.
-				send_accounts_tologin(-1, gettick(), 0, 0);
-
-				// if no map-server already connected, display a message...
-				ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd > 0 && server[i].map[0] );
-				if( i == MAX_MAP_SERVERS )
-					ShowStatus("Awaiting maps from map-server.\n");
+				loginif_on_ready();
 			}
 			RFIFOSKIP(fd,3);
 		break;
@@ -456,7 +477,7 @@ int parse_fromlogin(int fd)
 	return 0;
 }
 
-int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
+static int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 {
 	if( session_isValid(login_fd) )
 		return 0; // already connected
@@ -474,13 +495,13 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 	return 1;
 }
 
-int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
+static int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data)
 {
 	loginif_online_accounts_list();
 	return 0;
 }
 
-int ping_login_server(int tid, unsigned int tick, int id, intptr data)
+static int ping_login_server(int tid, unsigned int tick, int id, intptr data)
 {
 	loginif_ping();
 	return 0;
@@ -489,11 +510,6 @@ int ping_login_server(int tid, unsigned int tick, int id, intptr data)
 bool loginif_is_connected(void)
 {
 	return( session_isActive(login_fd) );
-}
-
-void loginif_disconnect(void)
-{
-	do_close(login_fd);
 }
 
 
@@ -752,4 +768,29 @@ void loginif_all_offline(void)
 	WFIFOHEAD(login_fd,2);
 	WFIFOW(login_fd,0) = 0x2737;
 	WFIFOSET(login_fd,2);
+}
+
+void do_init_loginif(void)
+{
+
+	// establish char-login connection if not present
+	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
+	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
+
+	// keep the char-login connection alive
+	add_timer_func_list(ping_login_server, "ping_login_server");
+	add_timer_interval(gettick() + 1000, ping_login_server, 0, 0, ((int)stall_time-2) * 1000);
+
+	// send a list of all online account IDs to login server
+	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
+	add_timer_interval(gettick() + 1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour
+}
+
+void do_final_loginif(void)
+{
+	if( login_fd != -1 )
+	{
+		do_close(login_fd);
+		login_fd = -1;
+	}
 }

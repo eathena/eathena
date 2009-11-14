@@ -206,6 +206,35 @@ int charif_sendallwos(int sfd, uint8* buf, size_t len)
 }
 
 
+/// Initializes a server structure.
+void chrif_server_init(int id)
+{
+	memset(&server[id], 0, sizeof(server[id]));
+	server[id].fd = -1;
+}
+
+
+/// Destroys a server structure.
+void chrif_server_destroy(int id)
+{
+	if( server[id].fd != -1 )
+	{
+		do_close(server[id].fd);
+		server[id].fd = -1;
+	}
+}
+
+
+/// Called when the connection to Char Server is disconnected.
+void chrif_on_disconnect(int id)
+{
+	ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
+	online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
+	chrif_server_destroy(id);
+	chrif_server_init(id);
+}
+
+
 //-----------------------------------------------------
 // periodic ip address synchronization
 //-----------------------------------------------------
@@ -367,6 +396,7 @@ int parse_fromchar(int fd)
 	ARR_FIND( 0, MAX_SERVERS, id, server[id].fd == fd );
 	if( id == MAX_SERVERS )
 	{// not a char server
+		ShowDebug("parse_fromchar: Disconnecting invalid session #%d (is not a char-server)\n", fd);
 		set_eof(fd);
 		do_close(fd);
 		return 0;
@@ -374,11 +404,9 @@ int parse_fromchar(int fd)
 
 	if( session[fd]->flag.eof )
 	{
-		ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
-		online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
-		memset(&server[id], 0, sizeof(struct mmo_char_server));
-		server[id].fd = -1;
 		do_close(fd);
+		server[id].fd = -1;
+		chrif_on_disconnect(id);
 		return 0;
 	}
 
@@ -1052,8 +1080,8 @@ void login_auth_ok(struct login_session_data* sd)
 	}
 
 	server_num = 0;
-	for( i = 0; i < MAX_SERVERS; ++i )
-		if( session_isValid(server[i].fd) )
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		if( session_isActive(server[i].fd) )
 			server_num++;
 
 	if( server_num == 0 )
@@ -1620,7 +1648,7 @@ static AccountDB* get_account_engine(void)
 //--------------------------------------
 void do_final(void)
 {
-	int i, fd;
+	int i;
 
 	login_log(0, "login server", 100, "login server shutdown");
 	ShowStatus("Terminating...\n");
@@ -1643,14 +1671,14 @@ void do_final(void)
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
 
-	for (i = 0; i < MAX_SERVERS; i++) {
-		if ((fd = server[i].fd) >= 0) {
-			memset(&server[i], 0, sizeof(struct mmo_char_server));
-			server[i].fd = -1;
-			do_close(fd);
-		}
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		chrif_server_destroy(i);
+
+	if( login_fd != -1 )
+	{
+		do_close(login_fd);
+		login_fd = -1;
 	}
-	do_close(login_fd);
 
 	ShowStatus("Finished.\n");
 }
@@ -1686,8 +1714,8 @@ int do_init(int argc, char** argv)
 
 	srand((unsigned int)time(NULL));
 
-	for( i = 0; i < MAX_SERVERS; i++ )
-		server[i].fd = -1;
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		chrif_server_init(i);
 
 	// initialize logging
 	if( login_config.log_login )

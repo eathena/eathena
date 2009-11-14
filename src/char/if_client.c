@@ -210,7 +210,7 @@ int parse_client(int fd)
 			//FIXME: is this case even possible? [ultramage]
 			if ((map_fd = server[i].fd) < 1 || session[map_fd] == NULL)
 			{
-				ShowError("parse_char: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
+				ShowError("parse_client: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
 				memset(&server[i], 0, sizeof(struct mmo_map_server));
 				server[i].fd = -1;
 				//Send server closed.
@@ -502,7 +502,7 @@ int parse_client(int fd)
 
 		// unknown packet received
 		default:
-			ShowError("parse_char: Received unknown packet "CL_WHITE"0x%x"CL_RESET" from ip '"CL_WHITE"%s"CL_RESET"'! Disconnecting!\n", RFIFOW(fd,0), ip2str(ipl, NULL));
+			ShowError("parse_client: Received unknown packet "CL_WHITE"0x%x"CL_RESET" from ip '"CL_WHITE"%s"CL_RESET"'! Disconnecting!\n", RFIFOW(fd,0), ip2str(ipl, NULL));
 			set_eof(fd);
 			return 0;
 		}

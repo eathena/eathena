@@ -914,7 +914,7 @@ static bool init_charserver_engine(void)
 	int i;
 	bool try_all = (strcmp(charserver_engine,"auto") == 0);
 
-	for( i = 0; ARRAYLENGTH(charserver_engines); ++i )
+	for( i = 0; i < ARRAYLENGTH(charserver_engines); ++i )
 	{
 		char name[sizeof(charserver_engine)];
 		CharServerDB* engine = charserver_engines[i].engine;
@@ -954,7 +954,7 @@ void do_final(void)
 {
 	int i;
 
-	ShowInfo("Doing final stage...\n");
+	ShowStatus("Terminating...\n");
 
 	set_all_offline();
 
@@ -965,10 +965,14 @@ void do_final(void)
 
 	flush_fifos();
 
-	if( loginif_is_connected() )
-		loginif_disconnect();
-	if (char_fd > 0)
+	do_final_mapif();
+	do_final_loginif();
+
+	if( char_fd != -1 )
+	{
 		do_close(char_fd);
+		char_fd = -1;
+	}
 
 	mapindex_final();
 
@@ -987,17 +991,15 @@ void do_final(void)
 
 	charlog_final();
 
-	ShowInfo("ok! all done...\n");
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		mapif_server_destroy(i);
+
+	ShowStatus("Finished.\n");
 }
 
 int do_init(int argc, char **argv)
 {
 	int i;
-
-	for(i = 0; i < MAX_MAP_SERVERS; i++) {
-		memset(&server[i], 0, sizeof(struct mmo_map_server));
-		server[i].fd = -1;
-	}
 
 	//Read map indexes
 	mapindex_init();
@@ -1028,13 +1030,11 @@ int do_init(int argc, char **argv)
 	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	if( !init_charserver_engine() )
-		;// TODO stop server
+		exit(EXIT_FAILURE);
 
 	inter_init(charserver);
 	onlinedb_init();
 	charlog_init();
-	
-	set_defaultparse(parse_client);
 
 	if ((naddr_ != 0) && (!login_ip || !char_ip))
 	{
@@ -1057,27 +1057,19 @@ int do_init(int argc, char **argv)
 		}
 	}
 
-	// establish char-login connection if not present
-	add_timer_func_list(check_connect_login_server, "check_connect_login_server");
-	add_timer_interval(gettick() + 1000, check_connect_login_server, 0, 0, 10 * 1000);
-
-	// keep the char-login connection alive
-	add_timer_func_list(ping_login_server, "ping_login_server");
-	add_timer_interval(gettick() + 1000, ping_login_server, 0, 0, ((int)stall_time-2) * 1000);
+	do_init_loginif();
+	do_init_mapif();
 
 	// periodically update the overall user count on all mapservers + login server
 	add_timer_func_list(broadcast_user_count, "broadcast_user_count");
 	add_timer_interval(gettick() + 1000, broadcast_user_count, 0, 0, 5 * 1000);
-
-	// send a list of all online account IDs to login server
-	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
-	add_timer_interval(gettick() + 1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour
 
 	if( char_config.console )
 	{
 		//##TODO invoke a CONSOLE_START plugin event
 	}
 
+	set_defaultparse(parse_client);
 	char_fd = make_listen_bind(bind_ip, char_config.char_port);
 
 	log_char("The char-server is ready (Server is listening on the port %d).\n", char_config.char_port);

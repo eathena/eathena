@@ -29,6 +29,51 @@ extern DBMap* auth_db; // int account_id -> struct auth_node*
 struct mmo_map_server server[MAX_MAP_SERVERS];
 
 
+/// Initializes a server structure.
+void mapif_server_init(int id)
+{
+	memset(&server[id], 0, sizeof(server[id]));
+	server[id].fd = -1;
+}
+
+
+/// Destroys a server structure.
+void mapif_server_destroy(int id)
+{
+	if( server[id].fd == -1 )
+	{
+		do_close(server[id].fd);
+		server[id].fd = -1;
+	}
+}
+
+
+/// Called when the connection to Login Server is disconnected.
+void mapif_on_disconnect(int id)
+{
+	int i,j;
+	unsigned char buf[16384];
+	int fd = server[id].fd;
+	ShowStatus("Map-server #%d has disconnected.\n", id);
+	//Notify other map servers that this one is gone. [Skotlex]
+	WBUFW(buf,0) = 0x2b20;
+	WBUFL(buf,4) = htonl(server[id].ip);
+	WBUFW(buf,8) = htons(server[id].port);
+	j = 0;
+	for(i = 0; i < MAX_MAP_PER_SERVER; i++)
+		if (server[id].map[i])
+			WBUFW(buf,10+(j++)*4) = server[id].map[i];
+	if (j > 0) {
+		WBUFW(buf,2) = j * 4 + 10;
+		mapif_sendallwos(fd, buf, WBUFW(buf,2));
+	}
+	onlinedb_mapserver_unknown(id); //Tag relevant chars as 'in disconnected' server.
+	onlinedb_sync(); // update online list
+	mapif_server_destroy(id);
+	mapif_server_init(id);
+}
+
+
 // sends data to all mapservers
 int mapif_sendall(unsigned char *buf, unsigned int len)
 {
@@ -120,32 +165,19 @@ int parse_frommap(int fd)
 	int i, j;
 	int id;
 
-	ARR_FIND( 0, MAX_MAP_SERVERS, id, server[id].fd == fd );
-	if(id == MAX_MAP_SERVERS)
-		set_eof(fd);
-	if(session[fd]->flag.eof) {
-		if (id < MAX_MAP_SERVERS) {
-			unsigned char buf[16384];
-			ShowStatus("Map-server %d (session #%d) has disconnected.\n", id, fd);
-			//Notify other map servers that this one is gone. [Skotlex]
-			WBUFW(buf,0) = 0x2b20;
-			WBUFL(buf,4) = htonl(server[id].ip);
-			WBUFW(buf,8) = htons(server[id].port);
-			j = 0;
-			for(i = 0; i < MAX_MAP_PER_SERVER; i++)
-				if (server[id].map[i])
-					WBUFW(buf,10+(j++)*4) = server[id].map[i];
-			if (j > 0) {
-				WBUFW(buf,2) = j * 4 + 10;
-				mapif_sendallwos(fd, buf, WBUFW(buf,2));
-			}
-			memset(&server[id], 0, sizeof(struct mmo_map_server));
-			server[id].fd = -1;
-			onlinedb_mapserver_unknown(id); //Tag relevant chars as 'in disconnected' server.
-		}
+	ARR_FIND( 0, ARRAYLENGTH(server), id, server[id].fd == fd );
+	if( id == ARRAYLENGTH(server) )
+	{// not a map server
+		ShowDebug("parse_frommap: Disconnecting invalid session #%d (is not a map-server)\n", fd);
 		do_close(fd);
+		return 0;
+	}
 
-		onlinedb_sync(); // update online list
+	if( session[fd]->flag.eof )
+	{
+		do_close(fd);
+		server[id].fd = -1;
+		mapif_on_disconnect(id);
 		return 0;
 	}
 
@@ -609,4 +641,18 @@ int parse_frommap(int fd)
 	} // while
 	
 	return 0;
+}
+
+void do_init_mapif(void)
+{
+	int i;
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		mapif_server_init(i);
+}
+
+void do_final_mapif(void)
+{
+	int i;
+	for( i = 0; i < ARRAYLENGTH(server); ++i )
+		mapif_server_destroy(i);
 }

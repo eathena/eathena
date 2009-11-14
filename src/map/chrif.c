@@ -94,7 +94,7 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b27: Incoming, chrif_authfail -> 'client authentication failed'
 
 int chrif_connected = 0;
-int char_fd = 0; //Using 0 instead of -1 is safer against crashes. [Skotlex]
+int char_fd = -1;
 static char char_ip_str[128];
 static uint32 char_ip = 0;
 static uint16 char_port = 6121;
@@ -473,6 +473,24 @@ static int chrif_reconnect(DBKey key,void *data,va_list ap)
 	return 0;
 }
 
+
+/// Called when all the connection steps are completed.
+void chrif_on_ready(void)
+{
+	ShowStatus("Map Server is now online.\n");
+	chrif_state = 2;
+
+	//If there are players online, send them to the char-server. [Skotlex]
+	send_users_tochar();
+
+	//Auth db reconnect handling
+	auth_db->foreach(auth_db,chrif_reconnect);
+
+	//Re-save any storages that were modified in the disconnection time. [Skotlex]
+	do_reconnect_storage();
+}
+
+
 /*==========================================
  *
  *------------------------------------------*/
@@ -484,18 +502,7 @@ int chrif_sendmapack(int fd)
 	}
 
 	memcpy(wisp_server_name, RFIFOP(fd,3), NAME_LENGTH);
-	ShowStatus("Map sending complete. Map Server is now online.\n");
-	chrif_state = 2;
-
-	//If there are players online, send them to the char-server. [Skotlex]
-	send_users_tochar();
-
-	//Auth db reconnect handling
-	auth_db->foreach(auth_db,chrif_reconnect);
-
-	//Re-save any storages that were modified in the disconnection time. [Skotlex]
-	do_reconnect_storage();
-
+	chrif_on_ready();
 	return 0;
 }
 
@@ -1192,21 +1199,21 @@ int chrif_char_online(struct map_session_data *sd)
 	return 0;
 }
 
-int chrif_disconnect(int fd)
-{
-	if(fd == char_fd) {
-		char_fd = 0;
-		ShowWarning("Map Server disconnected from Char Server.\n\n");
-		chrif_connected = 0;
-		
-	 	other_mapserver_count=0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
-		map_eraseallipport();
 
-		//Attempt to reconnect in a second. [Skotlex]
-		add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
-	}
-	return 0;
+/// Called when the connection to Char Server is disconnected.
+void chrif_on_disconnect(void)
+{
+	if( chrif_connected != 1 )
+		ShowWarning("Connection to Char Server lost.\n\n");
+	chrif_connected = 0;
+	
+ 	other_mapserver_count = 0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
+	map_eraseallipport();
+
+	//Attempt to reconnect in a second. [Skotlex]
+	add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
 }
+
 
 void chrif_update_ip(int fd)
 {
@@ -1252,10 +1259,9 @@ int chrif_parse(int fd)
 
 	if (session[fd]->flag.eof)
 	{
-		if (chrif_connected == 1)
-			chrif_disconnect(fd);
-
 		do_close(fd);
+		char_fd = -1;
+		chrif_on_disconnect();
 		return 0;
 	}
 
@@ -1396,7 +1402,6 @@ int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
 		char_fd = make_connection(char_ip, char_port);
 		if (char_fd == -1)
 		{	//Attempt to connect later. [Skotlex]
-			char_fd = 0;
 			return 0;
 		}
 
@@ -1428,8 +1433,11 @@ int auth_db_final(DBKey k,void *d,va_list ap)
  *------------------------------------------*/
 int do_final_chrif(void)
 {
-	if (char_fd > 0)
+	if( char_fd != -1 )
+	{
 		do_close(char_fd);
+		char_fd = -1;
+	}
 
 	auth_db->destroy(auth_db, auth_db_final);
 	ers_destroy(auth_db_ers);

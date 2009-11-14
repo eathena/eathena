@@ -18,7 +18,7 @@
 #define START_CHAR_NUM 1
 
 
-const char* file_chars = "char.txt";
+const char* file_chars = "athena.txt";
 const char* file_ranks = "ranks.txt";
 const char* file_memos = "memo.txt";
 const char* file_inventories = "inventory.txt";
