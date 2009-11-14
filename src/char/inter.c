@@ -32,6 +32,7 @@
 static char inter_log_filename[1024] = "log/inter.log";
 static bool log_inter_enabled = true; // interserver logging
 char main_chat_nick[16] = "Main";
+int guild_exp_rate = 100;
 unsigned int party_share_level = 10;
 bool party_break_without_leader = false;
 bool party_auto_reassign_leader = false;
@@ -81,6 +82,9 @@ static int inter_config_read(const char* cfgName)
 
 		if(strcmpi(w1, "main_chat_nick")==0)
 			strcpy(main_chat_nick, w2);
+		else
+		if( strcmpi(w1, "guild_exp_rate") == 0 )
+			guild_exp_rate = atoi(w2);
 		else
 		if (strcmpi(w1, "party_share_level") == 0)
 			party_share_level = atoi(w2);

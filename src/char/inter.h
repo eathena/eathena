@@ -14,6 +14,7 @@ int mapif_disconnectplayer(int fd, int account_id, int char_id, int reason);
 void log_inter(const char* msg, ...);
 
 // shared inter-server config settings
+extern int guild_exp_rate;
 extern unsigned int party_share_level;
 extern bool party_break_without_leader;
 extern bool party_auto_reassign_leader;

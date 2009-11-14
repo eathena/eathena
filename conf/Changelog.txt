@@ -1,5 +1,7 @@
 Date	Added
 
+2009/11/14
+	* Moved setting guild_exp_rate from char_athena.conf to inter_athena.conf.
 2009/??/??
 	* Moved settings char_txt and friends_txt from char_athena.conf to inter_athena.conf.
 	* Removed settings autosave_time and save_log from char_athena.conf.

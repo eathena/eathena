@@ -36,13 +36,6 @@ int char_married(int pl1,int pl2);
 int char_child(int parent_id, int child_id);
 int char_family(int cid1, int cid2, int cid3);
 
-// char config
-extern int guild_exp_rate;
-extern int start_zeny;
-extern int start_weapon;
-extern int start_armor;
-extern struct point start_point;
-
 // auth system
 #define AUTH_TIMEOUT 30000
 
@@ -85,6 +78,10 @@ struct Char_Config {
 	int chars_per_account; // maximum number of characters on a single account (0: unlimited)
 	int char_del_level;   // char deletion prevention using base level (-n: can't delete <= n, +n: can't delete >= n)
 	bool character_name_case_sensitive; // if the character name is case sensitive
+	int start_zeny;
+	int start_weapon;
+	int start_armor;
+	struct point start_point; // starting point for new characters (mapindex, x, y)
 };
 
 extern struct Char_Config char_config;

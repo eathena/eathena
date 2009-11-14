@@ -69,6 +69,9 @@ CharServerDB* charserver = NULL;
 // charserver configuration
 struct Char_Config char_config;
 
+// charserver logging
+static bool log_char_enabled = false;
+
 
 int char_fd=-1;
 uint32 login_ip = 0;
@@ -84,15 +87,6 @@ struct s_subnet {
 	uint32 map_ip;
 } subnet[16];
 int subnet_count = 0;
-
-// char config
-static bool log_char_enabled = false; // charserver logging
-int guild_exp_rate = 100;
-int start_zeny = 500;
-int start_weapon = 1201;
-int start_armor = 2301;
-struct point start_point = { 0, 53, 111 }; // Initial position (it's possible to set it in conf file)
-
 
 // storage-specific options
 //TXT
@@ -282,7 +276,7 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	cd.job_level = 1;
 	cd.base_exp = 0;
 	cd.job_exp = 0;
-	cd.zeny = start_zeny;
+	cd.zeny = char_config.start_zeny;
 	cd.str = str;
 	cd.agi = agi;
 	cd.vit = vit;
@@ -308,20 +302,22 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	cd.head_top = 0;
 	cd.head_mid = 0;
 	cd.head_bottom = 0;
-	memcpy(&cd.last_point, &start_point, sizeof(start_point));
-	memcpy(&cd.save_point, &start_point, sizeof(start_point));
+	memcpy(&cd.last_point, &char_config.start_point, sizeof(char_config.start_point));
+	memcpy(&cd.save_point, &char_config.start_point, sizeof(char_config.start_point));
 
-	if( start_weapon > 0 )
-	{// add Start Weapon (Knife?)
-		cd.inventory[0].nameid = start_weapon; // Knife
+	if( char_config.start_weapon > 0 )
+	{// add start weapon (Knife?)
+		cd.inventory[0].nameid = char_config.start_weapon;
 		cd.inventory[0].amount = 1;
 		cd.inventory[0].identify = 1;
+		cd.inventory[0].equip = 0x0002; // EQP_HAND_R
 	}
-	if( start_armor > 0 )
-	{// Add default armor (cotton shirt?)
-		cd.inventory[1].nameid = start_armor; // Cotton Shirt
+	if( char_config.start_armor > 0 )
+	{// add start armor (Cotton Shirt?)
+		cd.inventory[1].nameid = char_config.start_armor;
 		cd.inventory[1].amount = 1;
 		cd.inventory[1].identify = 1;
+		cd.inventory[1].equip = 0x0010; // EQP_ARMOR
 	}
 
 	if( !chars->create(chars, &cd) )
@@ -692,6 +688,12 @@ void char_set_defaults(void)
 	char_config.chars_per_account = 0;
 	char_config.char_del_level = 0;
 	char_config.character_name_case_sensitive = true;
+	char_config.start_zeny = 500;
+	char_config.start_weapon = 1201;
+	char_config.start_armor = 2301;
+	char_config.start_point.map = mapindex_name2id(MAP_NOVICE);
+	char_config.start_point.x = 53;
+	char_config.start_point.y = 111;
 }
 
 int char_config_read(const char* cfgName)
@@ -813,33 +815,19 @@ int char_config_read(const char* cfgName)
 			int x, y;
 			if (sscanf(w2, "%15[^,],%d,%d", map, &x, &y) < 3)
 				continue;
-			start_point.map = mapindex_name2id(map);
-			if (!start_point.map)
-				ShowError("Specified start_point %s not found in map-index cache.\n", map);
-			start_point.x = x;
-			start_point.y = y;
+			char_config.start_point.map = mapindex_name2id(map);
+			char_config.start_point.x = x;
+			char_config.start_point.y = y;
 		}
 		else
 		if( strcmpi(w1, "start_zeny") == 0 )
-		{
 			start_zeny = atoi(w2);
-			if (start_zeny < 0)
-				start_zeny = 0;
-		}
 		else
 		if( strcmpi(w1, "start_weapon") == 0 )
-		{
 			start_weapon = atoi(w2);
-			if (start_weapon < 0)
-				start_weapon = 0;
-		}
 		else
 		if( strcmpi(w1, "start_armor") == 0 )
-		{
 			start_armor = atoi(w2);
-			if (start_armor < 0)
-				start_armor = 0;
-		}
 		else
 		if( strcmpi(w1,"log_char") == 0 )
 			log_char_enabled = config_switch(w2);
@@ -870,9 +858,6 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "console") == 0 )
 			char_config.console = config_switch(w2);
-		else
-		if( strcmpi(w1, "guild_exp_rate") == 0 )
-			guild_exp_rate = atoi(w2);
 		else
 		if( strcmpi(w1, "character.name.case_sensitive") == 0 )
 			char_config.character_name_case_sensitive = (bool)atoi(w2);
@@ -1003,7 +988,6 @@ int do_init(int argc, char **argv)
 
 	//Read map indexes
 	mapindex_init();
-	start_point.map = mapindex_name2id("new_zone01");
 
 	// create engines (to accept config settings)
 	for( i = 0; i < ARRAYLENGTH(charserver_engines); ++i )

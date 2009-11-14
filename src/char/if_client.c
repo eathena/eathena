@@ -597,11 +597,11 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 	WBUFW(buf,50) = DEFAULT_WALK_SPEED; // p->speed;
 	WBUFW(buf,52) = p->class_;
 	WBUFW(buf,54) = p->hair;
-	WBUFW(buf,56) = p->option&0x20 ? 0 : p->weapon; //When the weapon is sent and your option is riding, the client crashes on login!?
+	WBUFW(buf,56) = 0; // p->weapon;
 	WBUFW(buf,58) = p->base_level;
 	WBUFW(buf,60) = min(p->skill_point, SHRT_MAX);
 	WBUFW(buf,62) = p->head_bottom;
-	WBUFW(buf,64) = p->shield;
+	WBUFW(buf,64) = 0; // p->shield;
 	WBUFW(buf,66) = p->head_top;
 	WBUFW(buf,68) = p->head_mid;
 	WBUFW(buf,70) = p->hair_color;
