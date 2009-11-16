@@ -821,13 +821,13 @@ int char_config_read(const char* cfgName)
 		}
 		else
 		if( strcmpi(w1, "start_zeny") == 0 )
-			start_zeny = atoi(w2);
+			char_config.start_zeny = atoi(w2);
 		else
 		if( strcmpi(w1, "start_weapon") == 0 )
-			start_weapon = atoi(w2);
+			char_config.start_weapon = atoi(w2);
 		else
 		if( strcmpi(w1, "start_armor") == 0 )
-			start_armor = atoi(w2);
+			char_config.start_armor = atoi(w2);
 		else
 		if( strcmpi(w1,"log_char") == 0 )
 			log_char_enabled = config_switch(w2);

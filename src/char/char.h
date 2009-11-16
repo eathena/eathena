@@ -5,6 +5,7 @@
 #define _CHAR_H_
 
 #include "../common/mmo.h" // MAX_CHARS
+#include "if_map.h" //mapif_send*()
 
 struct char_session_data {
 	bool auth; // whether the session is authed or not
@@ -23,10 +24,6 @@ struct char_session_data {
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 
 void log_char(const char* fmt, ...);
-
-int mapif_send(int fd,unsigned char *buf, unsigned int len);
-int mapif_sendallwos(int fd,unsigned char *buf, unsigned int len);
-int mapif_sendall(unsigned char *buf, unsigned int len);
 
 void char_divorce(int partner_id1, int partner_id2);
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);

@@ -75,7 +75,7 @@ void mapif_on_disconnect(int id)
 
 
 // sends data to all mapservers
-int mapif_sendall(unsigned char *buf, unsigned int len)
+int mapif_sendall(const void* buf, unsigned int len)
 {
 	int i, c;
 
@@ -94,7 +94,7 @@ int mapif_sendall(unsigned char *buf, unsigned int len)
 }
 
 // sends data to all mapservers other than the one specified
-int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
+int mapif_sendallwos(int sfd, const void* buf, unsigned int len)
 {
 	int i, c;
 
@@ -113,7 +113,7 @@ int mapif_sendallwos(int sfd, unsigned char *buf, unsigned int len)
 }
 
 // send data to a single mapserver
-int mapif_send(int fd, unsigned char *buf, unsigned int len)
+int mapif_send(int fd, const void* buf, unsigned int len)
 {
 	int i;
 
@@ -199,11 +199,8 @@ int parse_frommap(int fd)
 				j++;
 			}
 
-			ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n",
-						id, j, CONVIP(server[id].ip), server[id].port);
-			ShowStatus("Map-server %d loading complete.\n", id);
-			log_char("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d. Map-server %d loading complete.\n",
-						id, j, CONVIP(server[id].ip), server[id].port, id);
+			ShowStatus("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n", id, j, CONVIP(server[id].ip), server[id].port);
+			log_char("Map-Server %d connected: %d maps, from IP %d.%d.%d.%d port %d.\n", id, j, CONVIP(server[id].ip), server[id].port);
 
 			// send name for wisp to player
 			WFIFOHEAD(fd, 3 + NAME_LENGTH);
