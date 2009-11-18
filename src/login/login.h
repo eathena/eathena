@@ -81,5 +81,8 @@ struct Login_Config {
 extern struct mmo_char_server server[MAX_SERVERS];
 extern struct Login_Config login_config;
 
+void chrif_server_init(int id);
+void chrif_server_destroy(int id);
+void chrif_server_reset(int id);
 
 #endif /* _LOGIN_H_ */

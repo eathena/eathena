@@ -976,9 +976,6 @@ void do_final(void)
 
 	charlog_final();
 
-	for( i = 0; i < ARRAYLENGTH(server); ++i )
-		mapif_server_destroy(i);
-
 	ShowStatus("Finished.\n");
 }
 

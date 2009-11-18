@@ -48,13 +48,12 @@ void mapif_server_destroy(int id)
 }
 
 
-/// Called when the connection to Login Server is disconnected.
-void mapif_on_disconnect(int id)
+/// Resets all the data related to a server.
+void mapif_server_reset(int id)
 {
 	int i,j;
 	unsigned char buf[16384];
 	int fd = server[id].fd;
-	ShowStatus("Map-server #%d has disconnected.\n", id);
 	//Notify other map servers that this one is gone. [Skotlex]
 	WBUFW(buf,0) = 0x2b20;
 	WBUFL(buf,4) = htonl(server[id].ip);
@@ -71,6 +70,14 @@ void mapif_on_disconnect(int id)
 	onlinedb_sync(); // update online list
 	mapif_server_destroy(id);
 	mapif_server_init(id);
+}
+
+
+/// Called when the connection to Login Server is disconnected.
+void mapif_on_disconnect(int id)
+{
+	ShowStatus("Map-server #%d has disconnected.\n", id);
+	mapif_server_reset(id);
 }
 
 
@@ -344,26 +351,37 @@ int parse_frommap(int fd)
 			uint32 ip = RFIFOL(fd,14);
 			RFIFOSKIP(fd,18);
 
-			// create temporary auth entry
-			CREATE(node, struct auth_node, 1);
-			node->account_id = account_id;
-			node->char_id = 0;
-			node->login_id1 = login_id1;
-			node->login_id2 = login_id2;
-			//node->sex = 0;
-			node->ip = ntohl(ip);
-			//node->expiration_time = 0; // unlimited/unknown time by default (not display in map-server)
-			//node->gmlevel = 0;
-			idb_put(auth_db, account_id, node);
+			if( false )
+			{
+				WFIFOHEAD(fd,7);
+				WFIFOW(fd,0) = 0x2b03;
+				WFIFOL(fd,2) = account_id;
+				WFIFOB(fd,6) = 0;// not ok
+				WFIFOSET(fd,7);
+			}
+			else
+			{
+				// create temporary auth entry
+				CREATE(node, struct auth_node, 1);
+				node->account_id = account_id;
+				node->char_id = 0;
+				node->login_id1 = login_id1;
+				node->login_id2 = login_id2;
+				//node->sex = 0;
+				node->ip = ntohl(ip);
+				//node->expiration_time = 0; // unlimited/unknown time by default (not display in map-server)
+				//node->gmlevel = 0;
+				idb_put(auth_db, account_id, node);
 
-			//Set char to "@ char select" in online db [Kevin]
-			set_char_charselect(account_id);
+				//Set char to "@ char select" in online db [Kevin]
+				set_char_charselect(account_id);
 
-			WFIFOHEAD(fd,7);
-			WFIFOW(fd,0) = 0x2b03;
-			WFIFOL(fd,2) = account_id;
-			WFIFOB(fd,6) = 0;
-			WFIFOSET(fd,7);
+				WFIFOHEAD(fd,7);
+				WFIFOW(fd,0) = 0x2b03;
+				WFIFOL(fd,2) = account_id;
+				WFIFOB(fd,6) = 1;// ok
+				WFIFOSET(fd,7);
+			}
 		}
 		break;
 
@@ -392,7 +410,8 @@ int parse_frommap(int fd)
 			if (map_id >= 0)
 				map_fd = server[map_id].fd;
 
-			if( map_fd >= 0 && session[map_fd] != NULL && chars->load_num(chars, &cd, char_id) )
+			if( session_isActive(map_fd) &&
+				chars->load_num(chars, &cd, char_id) )
 			{	//Send the map server the auth of this player.
 				struct auth_node* node;
 

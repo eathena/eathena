@@ -6,6 +6,7 @@
 
 int parse_fromlogin(int fd);
 bool loginif_is_connected(void);
+void loginif_reset(void);
 
 void loginif_charserver_login(void);
 void loginif_auth_request(int account_id, int login_id1, int login_id2, int sex, int ip, int fd);

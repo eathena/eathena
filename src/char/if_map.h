@@ -26,6 +26,7 @@ int mapif_sendall(const void* buf, unsigned int len);
 
 void mapif_server_init(int id);
 void mapif_server_destroy(int id);
+void mapif_server_reset(int id);
 
 void do_init_mapif(void);
 void do_final_mapif(void);

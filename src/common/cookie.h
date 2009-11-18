@@ -30,6 +30,7 @@ void cookie_generate(struct s_cookie* cookie);
 void cookie_set(struct s_cookie* cookie, uint16 len, const char* data);
 void cookie_timeout_start(struct s_cookie* cookie);
 void cookie_timeout_stop(struct s_cookie* cookie);
+bool cookie_expired(struct s_cookie* cookie);
 int cookie_compare(struct s_cookie* cookie, uint16 len, const char* data);
 
 #endif /* _COMMON_COOKIE_H_ */

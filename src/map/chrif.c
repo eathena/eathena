@@ -31,6 +31,8 @@
 #include <sys/types.h>
 #include <time.h>
 
+static int check_connect_char_server(int tid, unsigned int tick, int id, intptr data);
+
 static struct eri *auth_db_ers; //For reutilizing player login structures.
 static DBMap* auth_db; // int id -> struct auth_node*
 
@@ -108,6 +110,15 @@ int other_mapserver_count=0; //Holds count of how many other map servers are onl
 #define UPDATE_INTERVAL 10000
 //This define should spare writing the check in every function. [Skotlex]
 #define chrif_check(a) { if(!chrif_isconnected()) return a; }
+
+
+/// Resets all the data.
+void chrif_reset(void)
+{
+	// TODO kick everyone out and reset everything or wait for connect and try to reaquire locks [FlavioJS]
+	exit(EXIT_FAILURE);
+}
+
 
 struct auth_node* chrif_search(int account_id)
 {
@@ -1299,7 +1310,7 @@ int chrif_parse(int fd)
 		case 0x2afb: chrif_sendmapack(fd); break;
 		case 0x2afd: chrif_authok(fd); break;
 		case 0x2b00: map_setusers(RFIFOL(fd,2)); chrif_keepalive(fd); break;
-		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
+		case 0x2b03: clif_charselectack(RFIFOL(fd,2), RFIFOB(fd,6)); break;
 		case 0x2b04: chrif_recvmap(fd); break;
 		case 0x2b06: chrif_changemapserverack(RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14), RFIFOW(fd,18), RFIFOW(fd,20), RFIFOW(fd,22), RFIFOL(fd,24), RFIFOW(fd,28)); break;
 		case 0x2b09: map_addnickdb(RFIFOL(fd,2), (char*)RFIFOP(fd,6)); break;
@@ -1387,7 +1398,7 @@ int send_users_tochar(void)
  * timer関数
  * char鯖との接続を確認し、もし切れていたら再度接続する
  *------------------------------------------*/
-int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
+static int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
 {
 	static int displayed = 0;
 	if (char_fd <= 0 || session[char_fd] == NULL)

@@ -559,10 +559,10 @@ int clif_authfail_fd(int fd, int type)
 	return 0;
 }
 
-/*==========================================
- *
- *------------------------------------------*/
-int clif_charselectok(int id)
+/// Reply from char-server.
+/// Tells the player if it can connect to the char-server to select a character.
+/// ok=1 : client disconnects and tries to connect to the char-server
+int clif_charselectack(int id, uint8 ok)
 {
 	struct map_session_data* sd;
 	int fd;
@@ -573,7 +573,7 @@ int clif_charselectok(int id)
 	fd = sd->fd;
 	WFIFOHEAD(fd,packet_len(0xb3));
 	WFIFOW(fd,0) = 0xb3;
-	WFIFOB(fd,2) = 1;
+	WFIFOB(fd,2) = ok;
 	WFIFOSET(fd,packet_len(0xb3));
 
 	return 0;

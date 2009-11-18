@@ -225,13 +225,20 @@ void chrif_server_destroy(int id)
 }
 
 
+/// Resets all the data related to a server.
+void chrif_server_reset(int id)
+{
+	online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
+	chrif_server_destroy(id);
+	chrif_server_init(id);
+}
+
+
 /// Called when the connection to Char Server is disconnected.
 void chrif_on_disconnect(int id)
 {
 	ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
-	online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
-	chrif_server_destroy(id);
-	chrif_server_init(id);
+	chrif_server_reset(id);
 }
 
 
@@ -393,8 +400,8 @@ int parse_fromchar(int fd)
 	uint32 ipl;
 	char ip[16];
 
-	ARR_FIND( 0, MAX_SERVERS, id, server[id].fd == fd );
-	if( id == MAX_SERVERS )
+	ARR_FIND( 0, ARRAYLENGTH(server), id, server[id].fd == fd );
+	if( id == ARRAYLENGTH(server) )
 	{// not a char server
 		ShowDebug("parse_fromchar: Disconnecting invalid session #%d (is not a char-server)\n", fd);
 		set_eof(fd);
@@ -1415,7 +1422,10 @@ int parse_login(int fd)
 			login_log(session[fd]->client_addr, sd->userid, 100, message);
 
 			result = mmo_auth(sd);
-			if( result == -1 && sd->sex == 'S' && sd->account_id < MAX_SERVERS && server[sd->account_id].fd == -1 )
+			if( result == -1 &&
+				sd->sex == 'S' &&
+				sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
+				!session_isValid(server[sd->account_id].fd) )
 			{
 				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
 				safestrncpy(server[sd->account_id].name, server_name, sizeof(server[sd->account_id].name));

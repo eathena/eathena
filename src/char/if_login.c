@@ -36,6 +36,18 @@ extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reaso
 extern int count_users(void);
 
 
+/// Resets all the data.
+void loginif_reset(void)
+{
+	int id;
+	// TODO kick everyone out and reset everything or wait for connect and try to reaquire locks [FlavioJS]
+	for( id = 0; id < ARRAYLENGTH(server); ++id )
+		mapif_server_reset(id);
+	flush_fifos();
+	exit(EXIT_FAILURE);
+}
+
+
 /// Called when the connection to Login Server is disconnected.
 void loginif_on_disconnect(void)
 {

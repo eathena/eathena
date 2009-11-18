@@ -4,6 +4,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/md5calc.h"
 #include "../common/timer.h"
+#include "../common/showmsg.h"
 #include "cookie.h"
 
 #include <stdlib.h> // rand
@@ -16,9 +17,11 @@
 static int cookie_timeout_timer(int tid, unsigned int tick, int id, intptr data)
 {
 	struct s_cookie* cookie = (struct s_cookie*)data;
-	if( cookie == NULL || cookie->timeout_timer != tid )
+	if( cookie == NULL || cookie->timeout_timer != tid ) {
+		ShowDebug("cookie_timeout_timer: invalid (cookie=%p timeout_timer=%d tid=%d)\n", cookie, cookie->timeout_timer, tid);
 		return 0;// invalid
-	if( cookie->len == 0 )
+	}
+	if( cookie_expired(cookie) )
 		return 0;// already expired
 
 	cookie->timeout_timer = INVALID_TIMER;
@@ -96,7 +99,14 @@ void cookie_timeout_stop(struct s_cookie* cookie)
 	if( cookie->timeout_timer == INVALID_TIMER )
 		return;// not running
 	delete_timer(cookie->timeout_timer, cookie_timeout_timer);
-	cookie->timeout = INVALID_TIMER;
+	cookie->timeout_timer = INVALID_TIMER;
+}
+
+
+/// Returns if the cookie expired.
+bool cookie_expired(struct s_cookie* cookie)
+{
+	return (cookie->len == 0);
 }
 
 

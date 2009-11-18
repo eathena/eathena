@@ -457,13 +457,18 @@ int parse_client(int fd)
 			char* l_pass = (char*)RFIFOP(fd,26);
 			l_user[23] = '\0';
 			l_pass[23] = '\0';
-			ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd <= 0 );
-			if (i == MAX_MAP_SERVERS || strcmp(l_user, char_config.userid) || strcmp(l_pass, char_config.passwd)) {
+			ARR_FIND( 0, ARRAYLENGTH(server), i, server[i].fd <= 0 );
+			if( i == ARRAYLENGTH(server) ||
+				strcmp(l_user, char_config.userid) != 0 ||
+				strcmp(l_pass, char_config.passwd) != 0 )
+			{
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2af9;
 				WFIFOB(fd,2) = 3;
 				WFIFOSET(fd,3);
-			} else {
+			}
+			else
+			{
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x2af9;
 				WFIFOB(fd,2) = 0;
