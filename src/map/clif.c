@@ -7890,6 +7890,12 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 		return;
 	}
 
+	if( runflag != MAPSERVER_ST_RUNNING )
+	{// not allowed
+		clif_authfail_fd(fd,1);// server closed
+		return;
+	}
+
 	//Check for double login.
 	bl = map_id2bl(account_id);
 	if(bl && bl->type != BL_PC) {

@@ -979,6 +979,25 @@ void do_final(void)
 	ShowStatus("Finished.\n");
 }
 
+
+/// Called when a terminate signal is received.
+void do_shutdown(void)
+{
+	if( runflag != CHARSERVER_ST_SHUTDOWN )
+	{
+		int id;
+		runflag = CHARSERVER_ST_SHUTDOWN;
+		ShowStatus("Shutting down...\n");
+		// TODO proper shutdown procedure; wait for acks?, kick all characters, ... [FlavoJS]
+		for( id = 0; id < ARRAYLENGTH(server); ++id )
+			mapif_server_reset(id);
+		loginif_check_shutdown();
+		flush_fifos();
+		runflag = CORE_ST_STOP;
+	}
+}
+
+
 int do_init(int argc, char **argv)
 {
 	int i;
@@ -1055,6 +1074,12 @@ int do_init(int argc, char **argv)
 
 	log_char("The char-server is ready (Server is listening on the port %d).\n", char_config.char_port);
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_config.char_port);
+
+	if( runflag != CORE_ST_STOP )
+	{
+		shutdown_callback = do_shutdown;
+		runflag = CHARSERVER_ST_RUNNING;
+	}
 
 	return 0;
 }

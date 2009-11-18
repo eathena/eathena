@@ -7,6 +7,7 @@
 int parse_fromlogin(int fd);
 bool loginif_is_connected(void);
 void loginif_reset(void);
+void loginif_check_shutdown(void);
 void loginif_connect_timer_start(void);
 void loginif_connect_timer_stop(void);
 

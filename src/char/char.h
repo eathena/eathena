@@ -4,8 +4,16 @@
 #ifndef _CHAR_H_
 #define _CHAR_H_
 
+#include "../common/core.h" // CORE_ST_LAST
 #include "../common/mmo.h" // MAX_CHARS
 #include "if_map.h" //mapif_send*()
+
+enum E_CHARSERVER_ST
+{
+	CHARSERVER_ST_RUNNING = CORE_ST_LAST,
+	CHARSERVER_ST_SHUTDOWN,
+	CHARSERVER_ST_LAST
+};
 
 struct char_session_data {
 	bool auth; // whether the session is authed or not

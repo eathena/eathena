@@ -74,6 +74,24 @@ void loginif_reset(void)
 }
 
 
+/// Checks the conditions for the server to stop.
+/// Releases the cookie when all characters are saved.
+/// If all the conditions are met, it stops the core loop.
+void loginif_check_shutdown(void)
+{
+	if( runflag != CHARSERVER_ST_SHUTDOWN )
+		return;
+	// TODO wait for locks to be released [FlavioJS]
+	if( !cookie_expired(&cookie) )
+	{
+		if( loginif_is_connected() )
+			loginif_send_cookie_msg(login_fd,2);// release
+		return;
+	}
+	runflag = CORE_ST_STOP;
+}
+
+
 /// Called when the connection to Login Server is disconnected.
 void loginif_on_disconnect(void)
 {
@@ -99,6 +117,7 @@ void loginif_on_ready(void)
 	int i;
 	loginif_state = LOGINIF_READY;
 	loginif_connect_timer_stop();
+	loginif_check_shutdown();
 
 	//Send online accounts to login server.
 	send_accounts_tologin(-1, gettick(), 0, 0);
@@ -264,6 +283,7 @@ int parse_fromlogin(int fd)
 				cookie.timeout = timeout;
 				cookie_set(&cookie, len, data);
 				loginif_send_cookie_msg(fd,0);// ack
+				loginif_check_shutdown();
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
 		}

@@ -26,6 +26,7 @@ void chrif_setport(uint16 port);
 
 int chrif_isconnected(void);
 void chrif_reset(void);
+void chrif_check_shutdown(void);
 void chrif_connect_timer_start(void);
 void chrif_connect_timer_stop(void);
 

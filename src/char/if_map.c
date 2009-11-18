@@ -138,7 +138,7 @@ void mapif_cookie_clear(int id)
 }
 
 
-/// Called when the connection to Map Server is disconnected.
+/// Called when the connection to a Map Server is disconnected.
 void mapif_on_disconnect(int id)
 {
 	if( cookie_expired(&server[id].cookie) )
@@ -424,7 +424,7 @@ int parse_frommap(int fd)
 			uint32 ip = RFIFOL(fd,14);
 			RFIFOSKIP(fd,18);
 
-			if( false )
+			if( runflag != CHARSERVER_ST_RUNNING )
 			{
 				WFIFOHEAD(fd,7);
 				WFIFOW(fd,0) = 0x2b03;
@@ -483,7 +483,8 @@ int parse_frommap(int fd)
 			if (map_id >= 0)
 				map_fd = server[map_id].fd;
 
-			if( session_isActive(map_fd) &&
+			if( runflag == CHARSERVER_ST_RUNNING &&
+				session_isActive(map_fd) &&
 				chars->load_num(chars, &cd, char_id) )
 			{	//Send the map server the auth of this player.
 				struct auth_node* node;
@@ -658,7 +659,8 @@ int parse_frommap(int fd)
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
 
-			if( chars->load_num(chars, &cd, char_id) && //TODO: verify account_id?
+			if( runflag == CHARSERVER_ST_RUNNING &&
+				chars->load_num(chars, &cd, char_id) && //TODO: verify account_id?
 				node != NULL &&
 				node->account_id == account_id &&
 				node->char_id == char_id &&
@@ -719,7 +721,10 @@ int parse_frommap(int fd)
 			}
 			else if( type == 1 )
 			{// request
-				mapif_cookie_generate(id);
+				if( cookie_expired(&server[id].cookie) )
+					mapif_cookie_clear(id);
+				else
+					mapif_cookie_generate(id);
 			}
 			else if( type == 2 )
 			{// release

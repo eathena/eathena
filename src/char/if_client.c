@@ -103,6 +103,15 @@ int parse_client(int fd)
 			WFIFOL(fd,0) = account_id;
 			WFIFOSET(fd,4);
 
+			if( runflag != CHARSERVER_ST_RUNNING )
+			{
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x6c;
+				WFIFOB(fd,2) = 0;// rejected from server
+				WFIFOSET(fd,3);
+				break;
+			}
+
 			// search authentification
 			node = (struct auth_node*)idb_get(auth_db, account_id);
 			if( node != NULL &&
@@ -458,7 +467,8 @@ int parse_client(int fd)
 			l_user[23] = '\0';
 			l_pass[23] = '\0';
 			ARR_FIND( 0, ARRAYLENGTH(server), i, server[i].fd <= 0 );
-			if( i == ARRAYLENGTH(server) ||
+			if( runflag != CHARSERVER_ST_RUNNING ||
+				i == ARRAYLENGTH(server) ||
 				strcmp(l_user, char_config.userid) != 0 ||
 				strcmp(l_pass, char_config.passwd) != 0 )
 			{

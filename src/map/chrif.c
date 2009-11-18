@@ -164,6 +164,7 @@ void chrif_parse_cookie(int fd)
 		cookie.timeout = timeout;
 		cookie_set(&cookie, len, data);
 		chrif_send_cookie_msg(fd,0);// ack
+		chrif_check_shutdown();
 	}
 }
 
@@ -174,6 +175,25 @@ void chrif_reset(void)
 	cookie_set(&cookie, 0, NULL);
 	// TODO kick everyone out and reset everything or wait for connect and try to reaquire locks [FlavioJS]
 	exit(EXIT_FAILURE);
+}
+
+
+/// Checks the conditions for the server to stop.
+/// Releases the cookie when all characters are saved.
+/// If all the conditions are met, it stops the core loop.
+void chrif_check_shutdown(void)
+{
+	if( runflag != MAPSERVER_ST_SHUTDOWN )
+		return;
+	if( auth_db->size(auth_db) > 0 )
+		return;
+	if( !cookie_expired(&cookie) )
+	{
+		if( chrif_isconnected() )
+			chrif_send_cookie_msg(char_fd,2);// release
+		return;
+	}
+	runflag = CORE_ST_STOP;
 }
 
 
@@ -442,6 +462,7 @@ int chrif_removemap(int fd)
 static void chrif_save_ack(int fd)
 {
 	chrif_auth_delete(RFIFOL(fd,2), RFIFOL(fd,6), ST_LOGOUT);
+	chrif_check_shutdown();
 }
 
 // request to move a character between mapservers
@@ -567,6 +588,7 @@ void chrif_on_ready(void)
 	ShowStatus("Map Server is now ready.\n");
 	chrif_state = CHRIF_READY;// ready
 	chrif_connect_timer_stop();
+	chrif_check_shutdown();
 
 	//If there are players online, send them to the char-server. [Skotlex]
 	send_users_tochar();
@@ -687,7 +709,8 @@ void chrif_authok(int fd)
 	}
 
 	sd = node->sd;
-	if(node->char_dat == NULL &&
+	if( runflag == MAPSERVER_ST_RUNNING &&
+		node->char_dat == NULL &&
 		node->account_id == account_id &&
 		node->char_id == char_id &&
 		node->login_id1 == login_id1 )

@@ -514,8 +514,9 @@ int parse_fromchar(int fd)
 			RFIFOSKIP(fd,23);
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
-			if( node != NULL &&
-			    node->account_id == account_id &&
+			if( runflag == LOGINSERVER_ST_RUNNING &&
+				node != NULL &&
+				node->account_id == account_id &&
 				node->login_id1  == login_id1 &&
 				node->login_id2  == login_id2 &&
 				node->sex        == sex_num2str(sex) &&
@@ -652,7 +653,10 @@ int parse_fromchar(int fd)
 			}
 			else if( type == 1 )
 			{// request
-				chrif_cookie_generate(id);
+				if( cookie_expired(&server[id].cookie) )
+					chrif_cookie_clear(id);
+				else
+					chrif_cookie_generate(id);
 			}
 			else if( type == 2 )
 			{// release
@@ -1169,6 +1173,16 @@ void login_auth_ok(struct login_session_data* sd)
 	struct auth_node* node;
 	int i;
 
+	if( runflag != LOGINSERVER_ST_RUNNING )
+	{
+		// players can only login while running
+		WFIFOHEAD(fd,3);
+		WFIFOW(fd,0) = 0x81;
+		WFIFOB(fd,2) = 1;// server closed
+		WFIFOSET(fd,3);
+		return;
+	}
+
 	if( sd->level < login_config.min_level_to_connect )
 	{
 		ShowStatus("Connection refused: the minimum GM level for connection is %d (account: %s, GM level: %d).\n", login_config.min_level_to_connect, sd->userid, sd->level);
@@ -1515,7 +1529,8 @@ int parse_login(int fd)
 			login_log(session[fd]->client_addr, sd->userid, 100, message);
 
 			result = mmo_auth(sd);
-			if( result == -1 &&
+			if( runflag == LOGINSERVER_ST_RUNNING &&
+				result == -1 &&
 				sd->sex == 'S' &&
 				sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
 				!session_isValid(server[sd->account_id].fd) &&
@@ -1857,6 +1872,24 @@ void set_server_type(void)
 	SERVER_TYPE = ATHENA_SERVER_LOGIN;
 }
 
+
+/// Called when a terminate signal is received.
+void do_shutdown(void)
+{
+	if( runflag != LOGINSERVER_ST_SHUTDOWN )
+	{
+		int id;
+		runflag = LOGINSERVER_ST_SHUTDOWN;
+		ShowStatus("Shutting down...\n");
+		// TODO proper shutdown procedure; kick all characters, wait for acks, ...  [FlavioJS]
+		for( id = 0; id < ARRAYLENGTH(server); ++id )
+			chrif_server_reset(id);
+		flush_fifos();
+		runflag = CORE_ST_STOP;
+	}
+}
+
+
 //------------------------------
 // Login server initialization
 //------------------------------
@@ -1926,6 +1959,12 @@ int do_init(int argc, char** argv)
 
 	// server port open & binding
 	login_fd = make_listen_bind(login_config.login_ip, login_config.login_port);
+
+	if( runflag != CORE_ST_STOP )
+	{
+		shutdown_callback = do_shutdown;
+		runflag = LOGINSERVER_ST_RUNNING;
+	}
 
 	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %u).\n\n", login_config.login_port);
 	login_log(0, "login server", 100, "login server started");
