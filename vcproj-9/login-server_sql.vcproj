@@ -250,6 +250,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\common\cookie.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\cookie.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\common\core.c"
 				>
 			</File>

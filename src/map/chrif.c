@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/cookie.h"
 #include "../common/malloc.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
@@ -31,18 +32,17 @@
 #include <sys/types.h>
 #include <time.h>
 
-static int check_connect_char_server(int tid, unsigned int tick, int id, intptr data);
-
 static struct eri *auth_db_ers; //For reutilizing player login structures.
 static DBMap* auth_db; // int id -> struct auth_node*
 
-static const int packet_len_table[0x3d] = { // U - used, F - free
+static const int packet_len_table[] = { // U - used, F - free
 	60, 3,-1,27,10,-1, 6,-1,	// 2af8-2aff: U->2af8, U->2af9, U->2afa, U->2afb, U->2afc, U->2afd, U->2afe, U->2aff
 	 6,-1,18, 7,-1,35,30,-1,	// 2b00-2b07: U->2b00, U->2b01, U->2b02, U->2b03, U->2b04, U->2b05, U->2b06, F->2b07
 	 6,30, 0, 0,86, 7,44,34,	// 2b08-2b0f: U->2b08, U->2b09, F->2b0a, F->2b0b, U->2b0c, U->2b0d, U->2b0e, U->2b0f
 	 0,10,10, 6,11, 0,266,10,	// 2b10-2b17: F->2b10, U->2b11, U->2b12, U->2b13, U->2b14, F->2b15, U->2b16, U->2b17
 	 2,10, 0, 0,-1,-1, 2, 7,	// 2b18-2b1f: U->2b18, U->2b19, F->2b1a, F->2b1b, U->2b1c, U->2b1d, U->2b1e, U->2b1f
 	-1,10, 0, 2, 2,14,19,19,	// 2b20-2b27: U->2b20, U->2b21, F->2b22, U->2b23, U->2b24, U->2b25, U->2b26, U->2b27
+	-1,-1, 3, 0, 0, 0, 0, 0,	// 2b28-2b2f: U->2b28, U->2b29, U->2b2a, F->2b2b, F->2b2c, F->2b2d, F->2b2e, F->2b2f
 };
 
 //Used Packets:
@@ -94,6 +94,14 @@ static const int packet_len_table[0x3d] = { // U - used, F - free
 //2b25: Incoming, chrif_deadopt -> 'Removes baby from Father ID and Mother ID'
 //2b26: Outgoing, chrif_authreq -> 'client authentication request'
 //2b27: Incoming, chrif_authfail -> 'client authentication failed'
+//2b28: Outgoing, chrif_connect -> 'reconnect to charserver with cookie'
+//2b29: Incoming, chrif_parse_cookie -> 'cookie'
+//2b2a: Outgoing, chrif_send_cookie_msg -> 'cookie ack/request/release'
+//2b2b: FREE
+//2b2c: FREE
+//2b2d: FREE
+//2b2e: FREE
+//2b2f: FREE
 
 int chrif_connected = 0;
 int char_fd = -1;
@@ -101,7 +109,9 @@ static char char_ip_str[128];
 static uint32 char_ip = 0;
 static uint16 char_port = 6121;
 static char userid[NAME_LENGTH], passwd[NAME_LENGTH];
-static int chrif_state = 0;
+static enum{CHRIF_NOT_READY, CHRIF_LOGIN, CHRIF_MAPS, CHRIF_READY} chrif_state = CHRIF_NOT_READY;
+static int chrif_connect_timer = INVALID_TIMER; //< check_connect_char_server
+static struct s_cookie cookie; //< session cookie from char-server
 int other_mapserver_count=0; //Holds count of how many other map servers are online (apart of this instance) [Skotlex]
 
 //Interval at which map server updates online listing. [Valaris]
@@ -112,9 +122,56 @@ int other_mapserver_count=0; //Holds count of how many other map servers are onl
 #define chrif_check(a) { if(!chrif_isconnected()) return a; }
 
 
+/// Cookie timeout timer.
+/// Starts when the char-server disconnects, if we have a session cookie.
+/// Canceled when a successfull reconnect is achieved.
+void chrif_cookie_timeout_callback(intptr data)
+{
+	ShowWarning("Char-server session expired...");
+	cookie_set(&cookie, 0, NULL);
+	chrif_reset();
+}
+
+
+/// Sends a cookie-related message to the char-server.
+/// 0=ack, 1=request, 2=release
+void chrif_send_cookie_msg(int fd, int msg)
+{
+	WFIFOHEAD(fd,3);
+	WFIFOW(fd,0) = 0x2b2a;
+	WFIFOB(fd,2) = msg;
+	WFIFOSET(fd,3);
+}
+
+
+/// Receives a cookie from the char-server.
+/// Allows the server to reconnect and resume normal operation.
+void chrif_parse_cookie(int fd)
+{
+	uint16 len = RFIFOW(fd,2)-8;
+	uint32 timeout = RFIFOL(fd,4);
+	const char* data = (const char*)RFIFOP(fd,8);
+
+	if( len > MAX_COOKIE_LEN )
+	{
+		ShowDebug("chrif_parse_cookie: cookie is too long (len=%d max=%d).\n", len, MAX_COOKIE_LEN);
+		cookie.timeout = 0;
+		cookie_set(&cookie, 0, NULL);
+		chrif_send_cookie_msg(fd,1);// request
+	}
+	else
+	{
+		cookie.timeout = timeout;
+		cookie_set(&cookie, len, data);
+		chrif_send_cookie_msg(fd,0);// ack
+	}
+}
+
+
 /// Resets all the data.
 void chrif_reset(void)
 {
+	cookie_set(&cookie, 0, NULL);
 	// TODO kick everyone out and reset everything or wait for connect and try to reaquire locks [FlavioJS]
 	exit(EXIT_FAILURE);
 }
@@ -242,7 +299,7 @@ void chrif_setport(uint16 port)
 // says whether the char-server is connected or not
 int chrif_isconnected(void)
 {
-	return (char_fd > 0 && session[char_fd] != NULL && chrif_state == 2);
+	return (char_fd > 0 && session[char_fd] != NULL && chrif_state == CHRIF_READY);
 }
 
 /*==========================================
@@ -307,16 +364,28 @@ int chrif_save(struct map_session_data *sd, int flag)
 // connects to char-server (plaintext)
 int chrif_connect(int fd)
 {
-	ShowStatus("Logging in to char server...\n", char_fd);
-	WFIFOHEAD(fd,60);
-	WFIFOW(fd,0) = 0x2af8;
-	memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
-	memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
-	WFIFOL(fd,50) = 0;
-	WFIFOL(fd,54) = htonl(clif_getip());
-	WFIFOW(fd,58) = htons(clif_getport());
-	WFIFOSET(fd,60);
-
+	chrif_state = CHRIF_LOGIN;
+	if( cookie_expired(&cookie) )
+	{
+		ShowStatus("Connecting to Char Server...\n");
+		WFIFOHEAD(fd,60);
+		WFIFOW(fd,0) = 0x2af8;
+		memcpy(WFIFOP(fd,2), userid, NAME_LENGTH);
+		memcpy(WFIFOP(fd,26), passwd, NAME_LENGTH);
+		WFIFOL(fd,50) = 0;
+		WFIFOL(fd,54) = htonl(clif_getip());
+		WFIFOW(fd,58) = htons(clif_getport());
+		WFIFOSET(fd,60);
+	}
+	else
+	{
+		ShowStatus("Reconnecting to Char Server...\n");
+		WFIFOHEAD(fd,4+cookie.len);
+		WFIFOW(fd,0) = 0x2b28;
+		WFIFOW(fd,2) = 4+cookie.len;
+		memcpy(WFIFOP(fd,4), cookie.data, cookie.len);
+		WFIFOSET(fd,4+cookie.len);
+	}
 	return 0;
 }
 
@@ -324,7 +393,7 @@ int chrif_connect(int fd)
 int chrif_sendmap(int fd)
 {
 	int i;
-	ShowStatus("Sending maps to char server...\n");
+	ShowStatus("Sending maps to Char Server...\n");
 	// Sending normal maps, not instances
 	WFIFOHEAD(fd, 4 + instance_start * 4);
 	WFIFOW(fd,0) = 0x2afa;
@@ -432,16 +501,23 @@ int chrif_connectack(int fd)
 {
 	static bool char_init_done = false;
 
-	if (RFIFOB(fd,2)) {
-		ShowFatalError("Connection to char-server failed %d.\n", RFIFOB(fd,2));
-		exit(EXIT_FAILURE);
+	if( RFIFOB(fd,2) != 0 )
+	{
+		if( cookie_expired(&cookie) )
+			ShowError("Connection to char-server failed (error=%d).\n", RFIFOB(fd,2));
+		else
+			ShowError("Reconnection to char-server failed (error=%d).\n", RFIFOB(fd,2));
+		chrif_state = CHRIF_NOT_READY;
+		set_eof(fd);
+		return 0;
 	}
 
 	ShowStatus("Successfully logged on to Char Server (Connection: '"CL_WHITE"%d"CL_RESET"').\n",fd);
-	chrif_state = 1;
+	cookie_timeout_stop(&cookie);
 	chrif_connected = 1;
 
 	chrif_sendmap(fd);
+	chrif_state = CHRIF_MAPS;// waiting for map ack
 	intif_request_fame_list();
 
 	ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
@@ -488,8 +564,9 @@ static int chrif_reconnect(DBKey key,void *data,va_list ap)
 /// Called when all the connection steps are completed.
 void chrif_on_ready(void)
 {
-	ShowStatus("Map Server is now online.\n");
-	chrif_state = 2;
+	ShowStatus("Map Server is now ready.\n");
+	chrif_state = CHRIF_READY;// ready
+	chrif_connect_timer_stop();
 
 	//If there are players online, send them to the char-server. [Skotlex]
 	send_users_tochar();
@@ -1214,15 +1291,23 @@ int chrif_char_online(struct map_session_data *sd)
 /// Called when the connection to Char Server is disconnected.
 void chrif_on_disconnect(void)
 {
-	if( chrif_connected != 1 )
-		ShowWarning("Connection to Char Server lost.\n\n");
+	chrif_state = CHRIF_NOT_READY;
 	chrif_connected = 0;
-	
+
  	other_mapserver_count = 0; //Reset counter. We receive ALL maps from all map-servers on reconnect.
 	map_eraseallipport();
 
-	//Attempt to reconnect in a second. [Skotlex]
-	add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
+	chrif_connect_timer_start();
+	if( cookie_expired(&cookie) )
+	{
+		ShowStatus("Connection to Char Server lost.\n");
+		chrif_reset();
+	}
+	else
+	{
+		ShowWarning("Connection to Char Server lost, trying to resume...\n");
+		cookie_timeout_start(&cookie);
+	}
 }
 
 
@@ -1327,6 +1412,7 @@ int chrif_parse(int fd)
 		case 0x2b24: chrif_keepalive_ack(fd); break;
 		case 0x2b25: chrif_deadopt(RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
 		case 0x2b27: chrif_authfail(fd); break;
+		case 0x2b29: chrif_parse_cookie(fd); break;
 		default:
 			ShowError("chrif_parse : unknown packet (session #%d): 0x%x. Disconnecting.\n", fd, cmd);
 			set_eof(fd);
@@ -1394,39 +1480,59 @@ int send_users_tochar(void)
 	return 0;
 }
 
-/*==========================================
- * timer関数
- * char鯖との接続を確認し、もし切れていたら再度接続する
- *------------------------------------------*/
+
+/// Timer function.
+/// When triggered, it tries to connect/reconnect to the char-server.
 static int check_connect_char_server(int tid, unsigned int tick, int id, intptr data)
 {
-	static int displayed = 0;
-	if (char_fd <= 0 || session[char_fd] == NULL)
-	{
-		if (!displayed)
-		{
-			ShowStatus("Attempting to connect to Char Server. Please wait.\n");
-			displayed = 1;
-		}
+	if( chrif_connect_timer != tid )
+		return 0;// invalid
 
-		chrif_state = 0;
+	if( chrif_isconnected() )
+		chrif_connect_timer = INVALID_TIMER;
+	else// try again in 10 seconds
+		chrif_connect_timer = add_timer(gettick() + 10 * 1000, check_connect_char_server, 0, 0);
+
+	if( char_fd == -1 )
+	{
 		char_fd = make_connection(char_ip, char_port);
 		if (char_fd == -1)
-		{	//Attempt to connect later. [Skotlex]
 			return 0;
-		}
 
 		session[char_fd]->func_parse = chrif_parse;
 		session[char_fd]->flag.server = 1;
 		realloc_fifo(char_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
 		chrif_connect(char_fd);
-		chrif_connected = (chrif_state == 2);
 	}
-
-	if (chrif_isconnected()) displayed = 0;
 	return 0;
 }
+
+
+/// Starts the connect timer.
+void chrif_connect_timer_start(void)
+{
+	static bool is_registered = false;
+	if( !is_registered )
+	{
+		add_timer_func_list(check_connect_char_server, "check_connect_char_server");
+		is_registered = true;
+	}
+	if( chrif_connect_timer == INVALID_TIMER )
+		chrif_connect_timer = add_timer(gettick() + 1000, check_connect_char_server, 0, 0);
+}
+
+
+/// Stops the connect timer.
+void chrif_connect_timer_stop(void)
+{
+	if( chrif_connect_timer != INVALID_TIMER )
+	{
+		delete_timer(chrif_connect_timer, check_connect_char_server);
+		chrif_connect_timer = INVALID_TIMER;
+	}
+}
+
 
 int auth_db_final(DBKey k,void *d,va_list ap)
 {
@@ -1444,6 +1550,8 @@ int auth_db_final(DBKey k,void *d,va_list ap)
  *------------------------------------------*/
 int do_final_chrif(void)
 {
+	chrif_connect_timer_stop();
+	cookie_destroy(&cookie);
 	if( char_fd != -1 )
 	{
 		do_close(char_fd);
@@ -1463,12 +1571,8 @@ int do_init_chrif(void)
 	auth_db = idb_alloc(DB_OPT_BASE);
 	auth_db_ers = ers_new(sizeof(struct auth_node));
 
-	add_timer_func_list(check_connect_char_server, "check_connect_char_server");
 	add_timer_func_list(ping_char_server, "ping_char_server");
 	add_timer_func_list(auth_db_cleanup, "auth_db_cleanup");
-
-	// establish map-char connection if not present
-	add_timer_interval(gettick() + 1000, check_connect_char_server, 0, 0, 10 * 1000);
 
 	// keep the map-char connection alive
 	add_timer_interval(gettick() + 1000, ping_char_server, 0, 0, ((int)stall_time-2) * 1000);
@@ -1479,5 +1583,8 @@ int do_init_chrif(void)
 	// send the user count every 10 seconds, to hide the charserver's online counting problem
 	add_timer_interval(gettick() + 1000, send_usercount_tochar, 0, 0, UPDATE_INTERVAL);
 
+	cookie_init(&cookie);
+	cookie.on_timeout = chrif_cookie_timeout_callback;
+	chrif_connect_timer_start();
 	return 0;
 }

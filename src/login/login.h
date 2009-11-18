@@ -5,6 +5,7 @@
 #define _LOGIN_H_
 
 #include "../common/mmo.h" // NAME_LENGTH,SEX_*
+#include "../common/cookie.h" // struct s_cookie
 
 #define LOGIN_CONF_NAME "conf/login_athena.conf"
 #define LAN_CONF_NAME "conf/subnet_athena.conf"
@@ -33,6 +34,7 @@ struct login_session_data {
 	int fd;
 };
 
+#define CHARSERVER_TIMEOUT 60000
 struct mmo_char_server {
 
 	char name[20];
@@ -42,6 +44,7 @@ struct mmo_char_server {
 	uint16 users;       // user count on this server
 	uint16 type;        // 0=normal, 1=maintenance, 2=over 18, 3=paying, 4=P2P
 	uint16 new_;        // should display as 'new'?
+	struct s_cookie cookie; //< session cookie
 };
 
 struct Login_Config {
@@ -84,5 +87,7 @@ extern struct Login_Config login_config;
 void chrif_server_init(int id);
 void chrif_server_destroy(int id);
 void chrif_server_reset(int id);
+void chrif_cookie_generate(int id);
+void chrif_cookie_clear(int id);
 
 #endif /* _LOGIN_H_ */

@@ -206,11 +206,29 @@ int charif_sendallwos(int sfd, uint8* buf, size_t len)
 }
 
 
+/// Triggered when the cookie expires.
+/// Resets the target server.
+static void chrif_cookie_timeout_callback(intptr data)
+{
+	int id = (int)data;
+	if( id < 0 || id >= ARRAYLENGTH(server) )
+		return;// invalid
+
+	ShowWarning("Session expired for char-server '%s'.\n", server[id].name);
+	cookie_set(&server[id].cookie, 0, NULL);
+	chrif_server_reset(id);
+}
+
+
 /// Initializes a server structure.
 void chrif_server_init(int id)
 {
 	memset(&server[id], 0, sizeof(server[id]));
 	server[id].fd = -1;
+	cookie_init(&server[id].cookie);
+	server[id].cookie.timeout = CHARSERVER_TIMEOUT;
+	server[id].cookie.callback_data = (intptr)id;
+	server[id].cookie.on_timeout = chrif_cookie_timeout_callback;
 }
 
 
@@ -222,6 +240,7 @@ void chrif_server_destroy(int id)
 		do_close(server[id].fd);
 		server[id].fd = -1;
 	}
+	cookie_destroy(&server[id].cookie);
 }
 
 
@@ -229,16 +248,69 @@ void chrif_server_destroy(int id)
 void chrif_server_reset(int id)
 {
 	online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
+	chrif_cookie_clear(id);
 	chrif_server_destroy(id);
 	chrif_server_init(id);
+}
+
+
+/// Sends the cookie.
+void chrif_cookie_send(int id)
+{
+	int fd = server[id].fd;
+	uint32 timeout = server[id].cookie.timeout;
+	uint16 cookielen = server[id].cookie.len;
+	const char* cookie = server[id].cookie.data;
+
+	uint16 packet_len = 8 + cookielen;
+	WFIFOHEAD(fd,packet_len);
+	WFIFOW(fd,0) = 0x271b;
+	WFIFOW(fd,2) = packet_len;
+	WFIFOL(fd,4) = timeout;
+	memcpy(WFIFOP(fd,8), cookie, cookielen);
+	WFIFOSET(fd,packet_len);
+}
+
+
+/// Generates a new unique cookie and assigns it a server.
+/// The cookie allows the server to reconnect and continue normally.
+void chrif_cookie_generate(int id)
+{
+	size_t i;
+	do
+	{
+		cookie_generate(&server[id].cookie);
+		ARR_FIND(0, ARRAYLENGTH(server), i, i != id && cookie_compare(&server[i].cookie, server[id].cookie.len, server[id].cookie.data) == 0);
+	} while( i != ARRAYLENGTH(server) );// cookie must be unique
+
+	if( session_isActive(server[id].fd) )
+		chrif_cookie_send(id);
+}
+
+
+/// Clears the cookie of a server.
+void chrif_cookie_clear(int id)
+{
+	cookie_set(&server[id].cookie, 0, NULL);
+
+	if( session_isActive(server[id].fd) )
+		chrif_cookie_send(id);
 }
 
 
 /// Called when the connection to Char Server is disconnected.
 void chrif_on_disconnect(int id)
 {
-	ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
-	chrif_server_reset(id);
+	if( cookie_expired(&server[id].cookie) )
+	{
+		ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
+		chrif_server_reset(id);
+	}
+	else
+	{
+		ShowWarning("Char-server '%s' has disconnected, waiting for reconnect...\n", server[id].name);
+		cookie_timeout_start(&server[id].cookie);
+	}
 }
 
 
@@ -566,6 +638,27 @@ int parse_fromchar(int fd)
 			WFIFOHEAD(fd,2);
 			WFIFOW(fd,0) = 0x2718;
 			WFIFOSET(fd,2);
+		break;
+
+		case 0x271c:	// cookie ack/request/release
+			if (RFIFOREST(fd) < 3)
+				return 0;
+		{
+			uint8 type = RFIFOB(fd,2);
+			RFIFOSKIP(fd,3);
+
+			if( type == 0 )
+			{// ack
+			}
+			else if( type == 1 )
+			{// request
+				chrif_cookie_generate(id);
+			}
+			else if( type == 2 )
+			{// release
+				chrif_cookie_clear(id);
+			}
+		}
 		break;
 
 		// Map server send information to change an email of an account via char-server
@@ -1425,7 +1518,8 @@ int parse_login(int fd)
 			if( result == -1 &&
 				sd->sex == 'S' &&
 				sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
-				!session_isValid(server[sd->account_id].fd) )
+				!session_isValid(server[sd->account_id].fd) &&
+				cookie_expired(&server[sd->account_id].cookie) )
 			{
 				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
 				safestrncpy(server[sd->account_id].name, server_name, sizeof(server[sd->account_id].name));
@@ -1445,6 +1539,8 @@ int parse_login(int fd)
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
+
+				chrif_cookie_generate(sd->account_id);
 			}
 			else
 			{
@@ -1454,6 +1550,61 @@ int parse_login(int fd)
 				WFIFOB(fd,2) = 3;
 				WFIFOSET(fd,3);
 			}
+		}
+		return 0; // processing will continue elsewhere
+
+		case 0x271a:	// Reconnection request of a char-server
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+		{
+			uint16 cookielen;
+			const char* cookie;
+			int id;
+
+			if( RFIFOW(fd,2) < 4 )
+			{// invalid dynamic packet
+				set_eof(fd);
+				return 0;
+			}
+			cookielen = RFIFOW(fd,2)-4;
+			cookie = (const char*)RFIFOP(fd,4);
+
+			ARR_FIND(0, ARRAYLENGTH(server), id, cookie_compare(&server[id].cookie, cookielen, cookie) == 0);
+			if( cookielen == 0 || id == ARRAYLENGTH(server) )
+			{// invalid, reject
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x2711;
+				WFIFOB(fd,2) = 3;
+				WFIFOSET(fd,3);
+			}
+			else if( session_isValid(server[id].fd) )
+			{// already connected, reject
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x2711;
+				WFIFOB(fd,2) = 3;
+				WFIFOSET(fd,3);
+				// new cookie... not required, but better safe than sorry
+				if( session_isActive(server[id].fd) )
+					chrif_cookie_generate(id);
+			}
+			else
+			{// all ok, accept
+				ShowStatus("Reconnection of the char-server '%s' accepted.\n", server[id].name);
+				server[id].fd = fd;
+
+				session[fd]->func_parse = parse_fromchar;
+				session[fd]->flag.server = 1;
+				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+
+				// send connection success
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x2711;
+				WFIFOB(fd,2) = 0;
+				WFIFOSET(fd,3);
+
+				cookie_timeout_stop(&server[id].cookie);
+			}
+			RFIFOSKIP(fd,RFIFOW(fd,2));
 		}
 		return 0; // processing will continue elsewhere
 
