@@ -1666,14 +1666,19 @@ int count_users(void)
 	return users;
 }
 
-/// Writes char data to the buffer in the format used by the client.
-/// Used in packets 0x6b (chars info) and 0x6d (new char info)
-/// Returns the size (106 or 108)
-int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
+// Writes char data to the buffer in the format used by the client.
+// Used in packets 0x6b (chars info) and 0x6d (new char info)
+// Returns the size
+#define MAX_CHAR_BUF 110 //Max size (for WFIFOHEAD calls)
+int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 {
-	if( buf == NULL || p == NULL )
+	unsigned short offset = 0;
+	uint8* buf;
+
+	if( buffer == NULL || p == NULL )
 		return 0;
 
+	buf = WBUFP(buffer,0);
 	WBUFL(buf,0) = p->char_id;
 	WBUFL(buf,4) = min(p->base_exp, LONG_MAX);
 	WBUFL(buf,8) = p->zeny;
@@ -1685,8 +1690,15 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 	WBUFL(buf,32) = p->karma;
 	WBUFL(buf,36) = p->manner;
 	WBUFW(buf,40) = min(p->status_point, SHRT_MAX);
+#if PACKETVER > 20081217
+	WBUFL(buf,42) = p->hp;
+	WBUFL(buf,46) = p->max_hp;
+	offset+=4;
+	buf = WBUFP(buffer,offset);
+#else
 	WBUFW(buf,42) = min(p->hp, SHRT_MAX);
 	WBUFW(buf,44) = min(p->max_hp, SHRT_MAX);
+#endif
 	WBUFW(buf,46) = min(p->sp, SHRT_MAX);
 	WBUFW(buf,48) = min(p->max_sp, SHRT_MAX);
 	WBUFW(buf,50) = DEFAULT_WALK_SPEED; // p->speed;
@@ -1711,10 +1723,9 @@ int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p)
 	WBUFW(buf,104) = p->slot;
 	if (char_rename) {
 		WBUFW(buf,106) = 1;// Rename bit (0=rename,1=no rename)
-		return 108;
-	} else {
-		return 106;
+		offset+2;
 	}
+	return 106+offset;
 }
 
 //----------------------------------------
@@ -1736,7 +1747,7 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 		sd->found_char[i] = -1;
 
 	j = 24; // offset
-	WFIFOHEAD(fd,j + found_num*108); // or 106(!)
+	WFIFOHEAD(fd,j + found_num*MAX_CHAR_BUF);
 	WFIFOW(fd,0) = 0x6b;
 	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
 	for(i = 0; i < found_num; i++)
@@ -3281,10 +3292,10 @@ int parse_char(int fd)
 		if( sd != NULL && sd->auth )
 		{
 			struct online_char_data* data = (struct online_char_data*)idb_get(online_char_db, sd->account_id);
-			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]
-				set_char_offline(-1,sd->account_id);
 			if( data != NULL && data->fd == fd)
 				data->fd = -1;
+			if( data == NULL || data->server == -1) //If it is not in any server, send it offline. [Skotlex]
+				set_char_offline(-1,sd->account_id);
 		}
 		do_close(fd);
 		return 0;
@@ -3533,7 +3544,7 @@ int parse_char(int fd)
 			{
 				int len;
 				// send to player
-				WFIFOHEAD(fd,110);
+				WFIFOHEAD(fd,MAX_CHAR_BUF+2);
 				WFIFOW(fd,0) = 0x6d;
 				len = 2 + mmo_char_tobuf(WFIFOP(fd,2), &char_dat[i].status);
 				WFIFOSET(fd,len);
@@ -3671,6 +3682,28 @@ int parse_char(int fd)
 			FIFOSD_CHECK(34);
 			//not implemented
 			RFIFOSKIP(fd,34);
+		break;
+
+		// captcha code request (not implemented)
+		// R 07e5 <?>.w <aid>.l
+		case 0x7e5:
+			WFIFOHEAD(fd,5);
+			WFIFOW(fd,0) = 0x7e9;
+			WFIFOW(fd,2) = 5;
+			WFIFOB(fd,4) = 1;
+			WFIFOSET(fd,5);
+			RFIFOSKIP(fd,8);
+			break;
+
+		// captcha code check (not implemented)
+		// R 07e7 <len>.w <aid>.l <code>.b10 <?>.b14
+		case 0x7e7:
+			WFIFOHEAD(fd,5);
+			WFIFOW(fd,0) = 0x7e9;
+			WFIFOW(fd,2) = 5;
+			WFIFOB(fd,4) = 1;
+			WFIFOSET(fd,5);
+			RFIFOSKIP(fd,32);
 		break;
 
 		// login as map-server
