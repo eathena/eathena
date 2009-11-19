@@ -1723,7 +1723,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	WBUFW(buf,104) = p->slot;
 	if (char_rename) {
 		WBUFW(buf,106) = 1;// Rename bit (0=rename,1=no rename)
-		offset+2;
+		offset+=2;
 	}
 	return 106+offset;
 }
