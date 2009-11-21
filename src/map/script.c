@@ -3213,7 +3213,7 @@ int mapreg_setreg(int num, int val)
 
 	if( val != 0 ) {
 		if(idb_put(mapreg_db,num,(void*)val))
-			;
+			mapreg_dirty = 1;
 		else if(name[1] != '@') {
 			char tmp_str[32*2+1];
 			Sql_EscapeStringLen(mmysql_handle, tmp_str, name, strnlen(name, 32));
@@ -3232,9 +3232,9 @@ int mapreg_setreg(int num, int val)
 		idb_put(mapreg_db,num,(void*)val);
 	else
 		idb_remove(mapreg_db,num);
+	mapreg_dirty = 1;
 #endif
 
-	mapreg_dirty = 1;
 	return 1;
 }
 /*==========================================
@@ -3252,12 +3252,11 @@ int mapreg_setregstr(int num, const char* str)
 				Sql_ShowDebug(mmysql_handle);
 		}
 		idb_remove(mapregstr_db,num);
-		mapreg_dirty = 1;
 		return 1;
 	}
 	
 	if (idb_put(mapregstr_db,num, aStrdup(str)))
-		;
+		mapreg_dirty = 1;
 	else if(name[1] != '@') { //put returned null, so we must insert.
 		// Someone is causing a database size infinite increase here without name[1] != '@' [Lance]
 		char tmp_str[32*2+1];
@@ -3272,9 +3271,9 @@ int mapreg_setregstr(int num, const char* str)
 		idb_remove(mapregstr_db,num);
 	else
 		idb_put(mapregstr_db,num,aStrdup(str));
+	mapreg_dirty = 1;
 #endif
 
-	mapreg_dirty = 1;
 	return 1;
 }
 
