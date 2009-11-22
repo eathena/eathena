@@ -1153,7 +1153,7 @@ int login_ip_ban_check(uint32 ip)
 	char* data = NULL;
 	int matches;
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT count(*) FROM `ipbanlist` WHERE `list` = '%u.*.*.*' OR `list` = '%u.%u.*.*' OR `list` = '%u.%u.%u.*' OR `list` = '%u.%u.%u.%u'",
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT count(*) FROM `ipbanlist` WHERE `rtime` > NOW() AND (`list` = '%u.*.*.*' OR `list` = '%u.%u.*.*' OR `list` = '%u.%u.%u.*' OR `list` = '%u.%u.%u.%u')",
 		p[3], p[3], p[2], p[3], p[2], p[1], p[3], p[2], p[1], p[0]) )
 	{
 		Sql_ShowDebug(sql_handle);
@@ -1792,6 +1792,8 @@ int login_config_read(const char* cfgName)
 			login_config.use_dnsbl = (bool)config_switch(w2);
 		else if(!strcmpi(w1, "dnsbl_servers"))
 			safestrncpy(login_config.dnsbl_servs, w2, sizeof(login_config.dnsbl_servs));
+		else if(!strcmpi(w1, "ipban_cleanup_interval"))
+			login_config.ipban_cleanup_interval = (unsigned int)atoi(w2);
 		else if(!strcmpi(w1, "ip_sync_interval"))
 			login_config.ip_sync_interval = (unsigned int)1000*60*atoi(w2); //w2 comes in minutes.
 		else if(!strcmpi(w1, "import"))
@@ -1857,6 +1859,7 @@ void login_set_defaults()
 {
 	login_config.login_ip = INADDR_ANY;
 	login_config.login_port = 6900;
+	login_config.ipban_cleanup_interval = 60;
 	login_config.ip_sync_interval = 0;
 	login_config.log_login = true;
 	safestrncpy(login_config.date_format, "%Y-%m-%d %H:%M:%S", sizeof(login_config.date_format));
@@ -1887,6 +1890,7 @@ void do_final(void)
 	int i, fd;
 	ShowStatus("Terminating...\n");
 
+	ip_ban_flush(0,0,0,0); // always clean up on login-server stop
 	mmo_db_close();
 	online_db->destroy(online_db, NULL);
 	auth_db->destroy(auth_db, NULL);
@@ -1952,9 +1956,12 @@ int do_init(int argc, char** argv)
 	// set default parser as parse_login function
 	set_defaultparse(parse_login);
 
-	// ban deleter timer
-	add_timer_func_list(ip_ban_flush, "ip_ban_flush");
-	add_timer_interval(gettick()+10, ip_ban_flush, 0, 0, 60*1000);
+	if( login_config.ipban_cleanup_interval > 0 )
+	{ // ban deleter timer
+		add_timer_func_list(ip_ban_flush, "ip_ban_flush");
+		add_timer_interval(gettick()+10, ip_ban_flush, 0, 0, login_config.ipban_cleanup_interval*1000);
+	} else // make sure it gets cleaned up on login-server start regardless of interval-based cleanups
+		ip_ban_flush(0,0,0,0);
 
 	// every 10 minutes cleanup online account db.
 	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
