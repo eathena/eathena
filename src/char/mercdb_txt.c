@@ -66,7 +66,7 @@ static bool merc_db_txt_fromstr(const char* str, int* key, void* data, size_t si
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool merc_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool merc_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	const struct s_mercenary* md = (const struct s_mercenary*)data;

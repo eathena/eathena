@@ -88,7 +88,7 @@ static bool friend_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool friend_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool friend_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int char_id = key;
@@ -96,7 +96,7 @@ static bool friend_db_txt_tostr(char* str, int key, const void* data, size_t siz
 	int i;
 	int count = 0;
 
-	if( size != sizeof(*list) )
+	if( datasize != sizeof(*list) )
 		return false;
 
 	// write char id

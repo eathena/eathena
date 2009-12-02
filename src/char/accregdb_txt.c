@@ -122,7 +122,7 @@ static bool accreg_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 
 /// Serializes the provided data structure into a string.
 /// @protected
-static bool accreg_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool accreg_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int account_id = key;
@@ -131,7 +131,7 @@ static bool accreg_db_txt_tostr(char* str, int key, const void* data, size_t siz
 	int count = 0;
 	Txt* txt;
 
-	if( size != sizeof(*reg) )
+	if( datasize != sizeof(*reg) )
 		return false;
 
 	// write account id

@@ -68,7 +68,12 @@ struct CSDB_TXT
 		bool (*fromstr)(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version);
 
 		/// Serializes the provided data structure into a string.
-		bool (*tostr)(char* str, int key, const void* data, size_t size);
+		/// @param str Ouptut string [NOT NULL]
+		/// @param strsize Capacity of the 'str' buffer
+		/// @param key Key associated with the data
+		/// @param data Data to serialize [NOT NULL]
+		/// @param datasize Amount of data in the 'data' buffer
+		bool (*tostr)(char* str, size_t strsize, int key, const void* data, size_t datasize);
 	} p;
 };
 

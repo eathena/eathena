@@ -266,7 +266,7 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 
 /// Serializes the provided data structure into a string.
 /// @protected
-static bool guild_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool guild_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	const struct guild* g = (const struct guild*)data;
 	int i, c;

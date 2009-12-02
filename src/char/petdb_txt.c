@@ -87,7 +87,7 @@ static bool pet_db_txt_fromstr(const char* str, int* key, void* data, size_t siz
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool pet_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool pet_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	const struct s_pet* p = (const struct s_pet*)data;
 

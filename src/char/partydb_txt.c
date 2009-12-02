@@ -158,7 +158,7 @@ static bool party_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 
 /// Serializes the provided data structure into a string.
 /// @protected
-static bool party_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool party_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	const struct party* p = (const struct party*)data;
 	char esc_name[sizeof(p->name)*4+1];

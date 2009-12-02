@@ -174,7 +174,7 @@ static bool storage_db_txt_fromstr(const char* str, int* key, void* data, size_t
 
 /// Serializes the provided data structure into a string.
 /// @protected
-static bool storage_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool storage_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int id = key;
@@ -188,7 +188,7 @@ static bool storage_db_txt_tostr(char* str, int key, const void* data, size_t si
 	txt = Txt_Malloc();
 	Txt_Init(txt, p, SIZE_MAX, 7+MAX_SLOTS, ',', ' ', ", ");
 
-	for( i = 0; i < size / sizeof(struct item); i++ )
+	for( i = 0; i < datasize / sizeof(struct item); i++ )
 	{
 		if( s[i].nameid == 0 || s[i].amount == 0 )
 			continue;

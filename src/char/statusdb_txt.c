@@ -140,7 +140,7 @@ static bool status_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool status_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool status_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int char_id = key;
@@ -154,7 +154,7 @@ static bool status_db_txt_tostr(char* str, int key, const void* data, size_t siz
 	txt = Txt_Malloc();
 	Txt_Init(txt, p, SIZE_MAX, 6, ',', ' ', ", ");
 
-	for( i = 0; i < size / sizeof(struct status_change_data); i++ )
+	for( i = 0; i < datasize / sizeof(struct status_change_data); i++ )
 	{
 		if( sc[i].type == (unsigned short)-1 )
 			continue;

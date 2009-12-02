@@ -78,7 +78,7 @@ static bool castle_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool castle_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool castle_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	struct guild_castle* gc = (struct guild_castle*)data;
 	bool result;

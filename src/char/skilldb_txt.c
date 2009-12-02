@@ -99,7 +99,7 @@ static bool skill_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool skill_db_txt_tostr(char* str, int key, const void* data, size_t size)
+static bool skill_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int char_id = key;
@@ -108,7 +108,7 @@ static bool skill_db_txt_tostr(char* str, int key, const void* data, size_t size
 	int count = 0;
 	bool first = true;
 
-	if( size != sizeof(*list) )
+	if( datasize != sizeof(*list) )
 		return false;
 
 	// write char id

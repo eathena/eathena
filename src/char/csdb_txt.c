@@ -107,8 +107,6 @@ static bool csdb_txt_init(CSDB_TXT* self)
 			void* ptr = ( data != NULL ) ? &data->bytes : NULL;
 			size_t out_size;
 
-			key = 0xCCCCCCCC; // debug
-
 			if( !db->vtable.p.fromstr(line, &key, ptr, size, &out_size, version) )
 			{// parsing failed
 				ShowFatalError("csdb_txt_init: There was a problem processing data in file '%s', line #%d.\nPlease fix manually. Shutting down to prevent data loss.\n", db->savefile, lines);
@@ -136,17 +134,6 @@ static bool csdb_txt_init(CSDB_TXT* self)
 			size = out_size;
 		}
 
-		if( key == 0xCCCCCCCC ) // debug
-		{
-			ShowFatalError("csdb_txt_init: fromstr() forgot to initialize key!\n");
-			exit(EXIT_FAILURE);
-			return false;
-		}
-		if( size == 0 ) // suspicious
-		{
-			size = size;
-		}
-		
 		// record entry in dbmap
 		if( idb_put(db->data, key, data) != NULL )
 		{
@@ -218,7 +205,7 @@ static bool csdb_txt_sync(CSDB_TXT* self, bool force)
 		char line[65536];
 		CSDBdata* ptr = (CSDBdata*)data;
 
-		db->vtable.p.tostr(line, key.i, ptr->bytes, ptr->size);
+		db->vtable.p.tostr(line, sizeof(line), key.i, ptr->bytes, ptr->size);
 		if( line[0] == '\0' )
 			continue;
 
