@@ -118,7 +118,7 @@ static bool mmo_pet_tosql(PetDB_SQL* db, struct s_pet* pd, bool is_new)
 	else
 	{
 		StringBuf_Printf(&buf,
-			"UPDATE `%s` SET `class`='%d',`name`='%s',`account_id`='%d',`char_id`='%d',`level`='%d',`egg_id`='%d',`equip`='%d',`intimate`='%d',`hungry`='%d',`rename_flag`='%d',`incuvate`='%d' WHERE `pet_id`='%d'"
+			"UPDATE `%s` SET `class`=?,`name`=?,`account_id`=?,`char_id`=?,`level`=?,`egg_id`=?,`equip`=?,`intimate`=?,`hungry`=?,`rename_flag`=?,`incuvate`=? WHERE `pet_id`=?"
 			, db->pet_db);
 	}
 
