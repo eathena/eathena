@@ -561,16 +561,15 @@ int intif_guild_addmember(int guild_id,struct guild_member *m)
 	return 0;
 }
 
-int intif_guild_change_gm(int guild_id, const char* name, int len)
+int intif_guild_change_gm(int guild_id, int char_id)
 {
 	if (CheckForCharServer())
 		return 0;
-	WFIFOHEAD(inter_fd, len + 8);
+	WFIFOHEAD(inter_fd, 10);
 	WFIFOW(inter_fd, 0)=0x3033;
-	WFIFOW(inter_fd, 2)=len+8;
-	WFIFOL(inter_fd, 4)=guild_id;
-	memcpy(WFIFOP(inter_fd,8),name,len);
-	WFIFOSET(inter_fd,len+8);
+	WFIFOL(inter_fd, 2)=guild_id;
+	WFIFOL(inter_fd, 6)=char_id;
+	WFIFOSET(inter_fd, 10);
 	return 0;
 }
 

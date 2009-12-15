@@ -6006,48 +6006,29 @@ BUILDIN_FUNC(getguildname)
 /*==========================================
  *w’èID‚ÌGuildMaster–¼æ“¾
  *------------------------------------------*/
-char *buildin_getguildmaster_sub(int guild_id)
-{
-	struct guild *g=NULL;
-	g=guild_search(guild_id);
-
-	if(g!=NULL){
-		char *buf;
-		buf=(char *)aMallocA(NAME_LENGTH*sizeof(char));
-		memcpy(buf, g->master, NAME_LENGTH);
-		buf[NAME_LENGTH-1] = '\0';
-		return buf;
-	}
-
-	return 0;
-}
 BUILDIN_FUNC(getguildmaster)
 {
-	char *master;
-	int guild_id=script_getnum(st,2);
-	master=buildin_getguildmaster_sub(guild_id);
-	if(master!=0)
-		script_pushstr(st,master);
+	int guild_id = script_getnum(st,2);
+	struct guild* g = guild_search(guild_id);
+
+	if( g != NULL )
+		script_pushstrcopy(st,g->member[0].name);
 	else
 		script_pushconststr(st,"null");
+
 	return 0;
 }
 
 BUILDIN_FUNC(getguildmasterid)
 {
-	char *master;
-	TBL_PC *sd=NULL;
-	int guild_id=script_getnum(st,2);
-	master=buildin_getguildmaster_sub(guild_id);
-	if(master!=0){
-		if((sd=map_nick2sd(master)) == NULL){
-			script_pushint(st,0);
-			return 0;
-		}
-		script_pushint(st,sd->status.char_id);
-	}else{
+	int guild_id = script_getnum(st,2);
+	struct guild* g = guild_search(guild_id);
+
+	if( g != NULL )
+		script_pushint(st,g->member[0].char_id);
+	else
 		script_pushint(st,0);
-	}
+
 	return 0;
 }
 

@@ -405,7 +405,7 @@ struct guild {
 	short guild_lv, connect_member, max_member, average_lv;
 	unsigned int exp,next_exp;
 	int skill_point;
-	char name[NAME_LENGTH],master[NAME_LENGTH];
+	char name[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];
 	char mes1[60],mes2[120];

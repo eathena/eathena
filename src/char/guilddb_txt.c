@@ -53,7 +53,7 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 	{// load guild base info
 		int guildid;
 		char name[256]; // only 24 used
-		char master[256]; // only 24 used
+		char master[256]; // unused
 		int guildlv;
 		int max_member;
 		unsigned int exp;
@@ -76,7 +76,6 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 		g->exp = exp;
 		g->skill_point = skpoint;
 		safestrncpy(g->name, name, sizeof(g->name));
-		safestrncpy(g->master, master, sizeof(g->master));
 		safestrncpy(g->mes1, mes1, sizeof(g->mes1));
 		safestrncpy(g->mes2, mes2, sizeof(g->mes2));
 
@@ -274,7 +273,7 @@ static bool guild_db_txt_tostr(char* str, size_t strsize, int key, const void* d
 
 	// save guild base info
 	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%u,%d,%d\t%s#\t%s#\t",
-	              g->guild_id, g->name, g->master, g->guild_lv, g->max_member, g->exp, g->skill_point, 0, g->mes1, g->mes2);
+	              g->guild_id, g->name, g->member[0].name, g->guild_lv, g->max_member, g->exp, g->skill_point, 0, g->mes1, g->mes2);
 
 	// save guild member info
 	for( i = 0; i < g->max_member; i++ )

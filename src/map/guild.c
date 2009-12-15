@@ -537,7 +537,7 @@ int guild_recv_info(struct guild *sg)
 
 		// 最初のロードなのでユーザーのチェックを行う
 		guild_check_member(sg);
-		if ((sd = map_nick2sd(sg->master)) != NULL)
+		if ((sd = map_charid2sd(sg->member[0].char_id)) != NULL)
 		{
 			//If the guild master is online the first time the guild_info is received,
 			//that means he was the first to join, so apply guild skill blocking here.
@@ -730,7 +730,7 @@ void guild_member_joined(struct map_session_data *sd)
 		guild_request_info(sd->status.guild_id);
 		return;
 	}
-	if (strcmp(sd->status.name,g->master) == 0)
+	if( sd->status.char_id == g->member[0].char_id )
 	{	// set the Guild Master flag
 		sd->state.gmaster_flag = g;
 		// prevent Guild Skills from being used directly after relog
@@ -838,9 +838,12 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 
 	// find the member and perform expulsion
 	i = guild_getindex(g, account_id, char_id);
-	if( i != -1 && strcmp(g->member[i].name,g->master) != 0 ) //Can't expel the GL!
-		intif_guild_leave(g->guild_id,account_id,char_id,1,mes);
+	if( i == -1 )
+		return 0; // not found
+	if( i == 0 )
+		return 0; //Can't expel the GL!
 
+	intif_guild_leave(g->guild_id,account_id,char_id,1,mes);
 	return 0;
 }
 
@@ -1234,8 +1237,8 @@ int guild_skillup(TBL_PC* sd, int skill_num)
 	nullpo_retr(0, sd);
 
 	if( idx < 0 || idx >= MAX_GUILDSKILL || // not a guild skill
-			sd->status.guild_id == 0 || (g=guild_search(sd->status.guild_id)) == NULL || // no guild
-			strcmp(sd->status.name, g->master) ) // not the guild master
+	    sd->status.guild_id == 0 || (g=guild_search(sd->status.guild_id)) == NULL || // no guild
+	    sd->status.char_id != g->member[0].char_id ) // not the guild master
 		return 0;
 
 	if( g->skill_point > 0 &&
@@ -1636,11 +1639,11 @@ int guild_gm_change(int guild_id, struct map_session_data *sd)
 
 	nullpo_retr(0, g);
 
-	if (strcmp(g->master, sd->status.name) == 0) //Nothing to change.
+	if( sd->status.char_id == g->member[0].char_id ) //Nothing to change.
 		return 0;
 
 	//Notify servers that master has changed.
-	intif_guild_change_gm(guild_id, sd->status.name, strlen(sd->status.name)+1);
+	intif_guild_change_gm(guild_id, sd->status.char_id);
 	return 1;
 }
 
@@ -1669,7 +1672,6 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 
 	g->member[pos].position = g->member[0].position;
 	g->member[0].position = 0; //Position 0: guild Master.
-	strcpy(g->master, g->member[0].name);
 
 	if (g->member[pos].sd && g->member[pos].sd->fd)
 	{

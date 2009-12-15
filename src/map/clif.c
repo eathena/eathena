@@ -6354,7 +6354,7 @@ int clif_guild_basicinfo(struct map_session_data *sd)
 	WFIFOL(fd,38)=0;	// Tendency: (down) Wicked [-100,100] Righteous (up)
 	WFIFOL(fd,42)=g->emblem_id;
 	memcpy(WFIFOP(fd,46),g->name, NAME_LENGTH);
-	memcpy(WFIFOP(fd,70),g->master, NAME_LENGTH);
+	memcpy(WFIFOP(fd,70),g->member[0].name, NAME_LENGTH);
 
 	for(i = 0, t = 0; i < MAX_GUILDCASTLE; i++)
 	{

@@ -408,7 +408,6 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	memset(&g, 0, sizeof(g));
 
 	memcpy(g.name, name, NAME_LENGTH);
-	memcpy(g.master, master->name, NAME_LENGTH);
 	memcpy(&g.member[0], master, sizeof(struct guild_member));
 	g.member[0].modified = GS_MEMBER_MODIFIED;
 
@@ -436,7 +435,7 @@ int mapif_parse_CreateGuild(int fd, int account_id, char *name, struct guild_mem
 	mapif_guild_created(fd, account_id, g.guild_id);
 	mapif_guild_info(fd, &g);
 
-	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g.guild_id, g.name, g.master);
+	ShowInfo("Created Guild %d - %s (Guild Master: %s)\n", g.guild_id, g.name, master->name);
 	log_inter("guild %s (id=%d) created by master %s (id=%d)\n", name, g.guild_id, master->name, master->account_id);
 
 	return 0;
@@ -943,7 +942,7 @@ void mapif_parse_GuildCastleDataSave(int fd, int castle_id, int index, int value
 	mapif_guild_castle_datasave(gc.castle_id, index, value);
 }
 
-void mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int len)
+void mapif_parse_GuildMasterChange(int fd, int guild_id, int char_id)
 {
 	struct guild g;
 	struct guild_member m;
@@ -951,11 +950,9 @@ void mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int l
 
 	if( !guilds->load(guilds, &g, guild_id) )
 		return;
-	if( len > NAME_LENGTH )
-		return;
 
 	// Find member (name)
-	ARR_FIND( 0, g.max_member, pos, strncmp(g.member[pos].name, name, len) == 0 );
+	ARR_FIND( 0, g.max_member, pos, g.member[pos].char_id == char_id );
 	if( pos == g.max_member )
 		return; //Character not found??
 
@@ -970,13 +967,10 @@ void mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int l
 	g.member[pos].modified = GS_MEMBER_MODIFIED;
 	g.member[0].modified = GS_MEMBER_MODIFIED;
 
-	// Write new leader name
-	safestrncpy(g.master, name, NAME_LENGTH);
+	// update info
+	guilds->save(guilds, &g, GS_BASIC|GS_MEMBER); // GS_BASIC here for backwards compatibility only
 
-	// update base info
-	guilds->save(guilds, &g, GS_BASIC|GS_MEMBER);
-
-	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n", g.master, guild_id, g.name);
+	ShowInfo("int_guild: Guildmaster Changed to %s (Guild %d - %s)\n", g.member[0].name, guild_id, g.name);
 	mapif_guild_master_changed(g.guild_id, g.member[0].account_id, g.member[0].char_id);
 }
 
@@ -992,7 +986,7 @@ int inter_guild_parse_frommap(int fd)
 	case 0x3030: mapif_parse_CreateGuild(fd, RFIFOL(fd,4), (char*)RFIFOP(fd,8), (struct guild_member *)RFIFOP(fd,32)); break;
 	case 0x3031: mapif_parse_GuildInfoRequest(fd, RFIFOL(fd,2)); break;
 	case 0x3032: mapif_parse_GuildAddMember(fd, RFIFOL(fd,4), (struct guild_member *)RFIFOP(fd,8)); break;
-	case 0x3033: mapif_parse_GuildMasterChange(fd,RFIFOL(fd,4),(const char*)RFIFOP(fd,8),RFIFOW(fd,2)-8); break;
+	case 0x3033: mapif_parse_GuildMasterChange(fd,RFIFOL(fd,2),RFIFOL(fd,6)); break;
 	case 0x3034: mapif_parse_GuildLeave(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOB(fd,14), (const char*)RFIFOP(fd,15)); break;
 	case 0x3035: mapif_parse_GuildChangeMemberInfoShort(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOB(fd,14), RFIFOW(fd,15), RFIFOW(fd,17)); break;
 	case 0x3036: mapif_parse_BreakGuild(fd, RFIFOL(fd,2)); break;

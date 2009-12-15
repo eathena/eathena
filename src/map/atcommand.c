@@ -3056,7 +3056,7 @@ int atcommand_guildlevelup(const int fd, struct map_session_data* sd, const char
 		clif_displaymessage(fd, msg_txt(43)); // You're not in a guild.
 		return -1;
 	}
-	//if (strcmp(sd->status.name, guild_info->master) != 0) {
+	//if( sd->status.char_id != guild_info->member[0].char_id ) {
 	//	clif_displaymessage(fd, msg_txt(44)); // You're not the master of your guild.
 	//	return -1;
 	//}
@@ -5879,7 +5879,7 @@ int atcommand_changegm(const int fd, struct map_session_data* sd, const char* co
 	struct map_session_data *pl_sd;
 	nullpo_retr(-1, sd);
 
-	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL || strcmp(g->master,sd->status.name))
+	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL || sd->status.char_id != g->member[0].char_id)
 	{
 		clif_displaymessage(fd, "You need to be a Guild Master to use this command.");
 		return -1;
