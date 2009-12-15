@@ -3,6 +3,645 @@ Date	Added
 AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO INTO TRUNK.
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 
+2009/12/03
+	* Prevented online user count from going negative. (bugreport:3913) [Paradox924X]
+2009/12/02
+	* Rev. 14183 Semi-revert of 14182, moved ALL_WEWISH up under SA_GRAVITY instead, as I hadn't noticed it does exactly what the new case did. [L0ne_W0lf]
+	* Rev. 14182 Added skill ALL_WEWISH. This skill in older clients plays a song, however in current clients it does not. The effect (AL_ANGELUS) still shows. [L0ne_W0lf]
+2009/11/26
+	* Moved log_sql_init() call up in map-server-init to after after map_sql_init() call to prevent unnecessary processing before a potential quit. [Paradox924X]
+	* NPC event code cleanups. [Inkfish]
+	- removed the 'OnMyMobDead' dead code. It's never supported though documented.
+	- removed the 'feature' that events only trigger when the player is in the OnTouch area IF it's specified. 
+		It's never documented and breaks official scripts.
+	- some cleanups and bug fixes to OnTouch_.
+	* Fixed warping in OnPCDieEvent revives people with 0 hp.
+2009/11/25
+	* Fixed strnpcinfo(1) returning blank strings when NPC names did not have a hidden portion of the display name. (bugreport:3758) [Paradox924X]
+2009/11/23
+	* Fixed player keeps bleeding when dead. [Inkfish]
+	- If battle_config.invincible_nodamage is true, reflected damage to targets in invincible status is now 1.
+2009/11/22
+	* Added 'ipban_cleanup_interval' option which determines how often expired IP bans are cleaned from the database. (bugreport:3734) [Paradox924X]
+	* Modified ipban_check() to only include ipbans that haven't already expired. (bugreport:3734) [Paradox924X]
+2009/11/20
+	* Cleaned up mapreg dirty-marking code to only mark the mapreg as dirty when it actually is. (bugreport:3735) [Paradox924X]
+2009/11/19
+	* Applied the renewal client support patch from Diablo (eA forum topic 222623).
+	  By default eA still supports sakexe/ragexe clients. In order to support the 
+	  renewal clients you must:
+	- 1: Change the default packet version to "default" in db/packet_db.txt
+	- 2: Change the supported PACKETVER in src/common/mmo.h to the most recent one 
+	- 3: recompile. [Skotlex]
+	* Added support for strcharinfo(3) to retrieve the player's map, as getmapxy 
+	  can be a bit unwieldy when you just want this information. [Skotlex]
+	* Added script command "searchitem" which enables scripts to do item searches 
+	  based on name (can be useful for creating query NPCs). [Skotlex]
+09/11/09
+	* Fixed mob is removed from map right after his rebirth. [Inkfish]
+	* Fixed dead event does not trigger when a mob has rebirth skill and dies for the second time. [Inkfish]
+09/11/08
+	* Added a flag to indicate if the script of an autobonus was parsed for the sake of resourse saving. [Inkfish]
+09/11/04
+	* All Songs/Dances now create a 3 second delay before Adaption can be used. [Inkfish]
+	* Fixed unit still not being able to move when fiberlock is removed by Magnetic Earth. [Inkfish]
+09/11/02
+	* Rev. 14119 Added battle_config.mob_slave_keep_target config option (monster.conf) [L0ne_W0lf]
+	- When yes (default) MVP slaves will always keep their prior targets.
+	- When no the old behavior of switching to the closest target is enabled.
+	* Updated MAX_MOB_DB to 4000 (Monsters are starting to appear in the 2k ranges)
+	* Changed default respawn time (when 0) to 500 from 5000.
+	* Quick fix to char command checking gm level of the target player instead of the command user (bugreport:3255). [Inkfish]
+	* Disalbed @jump/@jumpto usage when dead. [Inkfish]
+09/11/01
+	* Rev. 14115 Implemented the fix for Slim Pitcher working on WoESE objects (bugreport:3618). [L0ne_W0lf]
+	* Added SC_SPIRIT to the list of buffs that are dispelled when the player logs out.
+09/10/27
+	* Fixed quest will never get erased when it's the only quest you have. [Inkfish]
+	* Cast time of Emergency Call is doubled if you master of High Jump. [Inkfish]
+	* High Jump can't be used on PvP maps. [Inkfish]
+09/10/26
+	* Implemented NPC_VAMPIREGIFT and NPC_WIDESOULDRAIN. [Inkfish]
+09/10/25
+	* Rev. 14101 The status SC_INVINCIBLE now reduces all damage to 1. [L0ne_W0lf]
+	- Official behavior, and allows players to cancel NPC_ALLHEAL casts.
+	- If battle_config.invincible_nodamage is true, reflected damage is still 0.
+09/10/25
+	* Implemented the official version of 'OnTouch' named as 'OnTouch_' and it can be defined in script_athena.conf. [Inkfish]
+	* Adapted 'map_foreachinarea' to 'map_forsomeinarea' so that it allows you to specify the count of bl you wanna operate on. [Inkfish]
+09/10/24
+	* Reverted the previous change to OnTouch not triggering for invisible chars [ultramage]
+	* 'OnTouch' script shouldn't trigger when you are invisible.(same as warps) [Inkfish]
+	* Fixed character doesn't stop walking when walking into OnTouch area of an NPC who doesn't have an OnTouch label. [Inkfish]
+09/10/18
+	* Removed the char_rename setting in favor of a PACKETVER define [ultramage]
+	* Inverted the way renames are counted: '0' now means 'no renames left' (the default)
+	* Please make sure your database matches this new behavior before starting the server.
+09/10/10
+	* Added character rename function. [Inkfish]
+	* NPCs' names should only be 24 characters long including EOS. [Inkfish]
+09/10/06
+	* Fixed rental items can be moved into guild storage from cart. [Inkfish]
+09/10/04
+	* Implemented new packets for rental items (from Jobbie and Natz and fixed by me). [zephyrus]
+	* Rental items now can be moved to storage and cart. [zephyrus]
+	* Autotrade cannot be used when user is dead, and it's not dispelled if user dies to prevent abuse. [zephyrus]
+	* Fixed pc_checkitem to do a proper item check and remove. [zephyrus]
+09/10/02
+	* Fixed a damage underflow.(bugreport:3624) [Inkfish]
+	* Marionette Control now has an infinite duration.(bugreport:2542) [Inkfish]
+09/09/23
+	* Added supports for Soul Bound. [Inkfish]
+09/09/21
+	* Disabled ip checking during auth, since it lead to a lot of confusion. [ultramage]
+09/09/17
+	* Duration of SC_STONE is not reduced by MDEF. [Inkfish]
+	* LexAeterna is allowed to be used on petrifying targets. [Inkfish]
+	* Mobs won't attack back if StoneCurse fails. [Inkfish]
+09/09/13
+	* Progressbar aborts when player is attacked. [Inkfish]
+	* Do not stand if damage is from yourself or has no source.(bugreport:3582) [Inkfish]
+	* Any mobs killed by party members within view range are taken into account in questlog. [Inkfish]
+	* 'unit_walktobl' now uses at least 1 as the range since 'unit_can_reach_bl' always sets the target coordinates 1 cell away from the target block. [Inkfish]
+09/09/12
+	* Clarified the names of some questlog functions and eventually implemented kill counts updating. [Inkfish]
+09/09/04
+	* QuestLog Fix. [Inkfish]
+	- mob id no longer stores in sql.
+	- counts won't increase if you have killed sufficient mobs.
+09/08/25
+	* Implemented Progress Bar.(topic:207933) [Inkfish]
+09/08/21
+	* Fixed Teleport through Hocus-Pocus skips menu. (bugreport:3513) [Inkfish]
+09/08/20
+	* Added bMagicHPGainValue and bMagicSPGainValue. [Inkfish]
+	* Fixed the wrong packet length makes client choke when add_quest packets are sent. [Inkfish]
+09/08/18
+	* Some fixes for Heat [Inkfish]
+	- Heat and other ground skills' activation won't cancel combo wait. (bugreport:3228)
+	- Heat should work with hp/sp drain bonus. (bugreport:3507)
+	- Heat consumes 10 sp if the attack doesn't connect. (bugreport:3038)
+09/08/17
+	* Equipment DEF penalty shouldn't be applied to players in Mental Strength. (bugreport:3454) [Inkfish]
+09/08/14
+	* Fixed self skills affecting target unit when used within combo delay for Asura and Flying Kick. (bugreport:3495) [Inkfish]
+09/08/11
+	* Fixed changequest behavior(before: completequest+setquest, now: erasequest+setquest) [Inkfish]
+09/08/10
+	* Fixed autospell and autobonus will still trigger even if the chance is 0. [Inkfish]
+	* Disabled "show_party_share_picker" functioning on client older than 20071002 to prevent from disconnection. (bugreport:3457) [Inkfish]
+	* Fixed units other than players and mercenaries using Devotion will cause crashes. (bugreport:3475) [Inkfish]
+09/08/01
+	* Questlog code cleanup. [Inkfish]
+	* Fixed range check on autospell and autospell2. [Inkfish]
+	* Implemented official behavior of party_show_share_picker. [Inkfish]
+	* Fixed a typo on reading no_equip list. [Inkfish]
+09/07/28
+	* Kaahi heals no matter if attack connects. (bugreport:2440) [Inkfish]
+	* Fixed a typo causing skillitem always resets skill delay. (bugreport:3431) [Inkfish]
+	* Fixed damage_level is not calculated properly on normal attack. [Inkfish]
+	* Kaahi is supposed to be canceled on logout. [Inkfish]
+09/07/25
+	* Rewrote Quest Log system. [Inkfish]
+	* Fixed message display for FullStrip and SelfProvoke. (bugreport: 3011, bugreport: 3415) [Inkfish]
+09/07/21
+	* Added proper bounds of INT_MIN to INT_MAX for hp/sp when being sent to/from status_damage/status_heal for negative values because of INT_MAX being (-INT_MIN - 1). [Paradox924X]
+09/07/17
+	* Dead branches no longer check for players' level. (bugreport:3378) [Inkfish]
+	* The Lovers Card won't teleport anyone on PVP/WoE/BG maps. (bugreport:3371) [Inkfish]
+09/07/11
+	* Some updates for range check. (bugreport:3339) [Inkfish]
+	- Monsters shouldn't use skills if the target is within its attack range but is out of the skill range.
+	- Monsters' skill range is no longer 9 by default. 
+	- Range for players' attacks and skills should always have a circular check.
+09/07/07
+	* Skills with multiple hits should do 1 damage per hit to plants. [Inkfish]
+09/07/04
+	* TK_POWER shouldn't count the player him/herself for the skill. [Inkfish]
+	* Fixed a wrong check of Intimidate on hp. (bugreport:3305)[Inkfish]
+	* Extended ATF_SKILL to ATF_MAGIC and ATF_MISC. [Inkfish]
+09/07/03
+	* Martyr's Reckoning can be perfect dodged. [Inkfish]
+	* Casting Flying Kick while running and in the spurt status doubles the damage dealt without spurt status. (bugreport:1898) [Inkfish]
+	- TODO: bonus on running is still not correct.
+09/07/02
+	* Updated autobonus [Inkfish]
+	- added documentation for autobonus.
+	- invoke status_calc_pc after execution so that client display gets refreshed if neccessary.
+09/06/30
+	* Fixed when dynamic_mobs is active, reloading script right after the last player having left a map leads to permanet mobs not spawning on that map. [Inkfish]
+09/06/29
+	* Fixed attack not counted as connect when dodged and got damage from skill bonus like Weaponry Research. [Inkfish]
+09/06/28
+	* Implemented script command "autobonus". [Inkfish]
+	- "autobonus" is similar to "bonusautoscript", however it has a timer of its own.
+	- Updated itemdb changing items bonus using "bonusautoscript + sc_start" mode to "autobonus + bonus" mode.
+	- Remove bonusautoscript and status changes that was needed by bonusautoscript and is no longer in use.
+09/06/23
+	* Minor update to atcommand_jailfor and atcommand_char_ban's modif_p var incrementation for minute-based bans/jails. [Paradox924X]
+09/06/20
+	* Changed Asura Strike/Jump Kick to target skill to get rid of the "target delay". (bugreport:2174) [Inkfish]
+09/06/19
+	* Implemented script command "areamobuseskill" and skill NPC_INVINCIBLE and NPC_INVINCIBLEOFF. (topic:217330) [Inkfish]
+	* Using items no longer cancels invincibility(but using target and ground skills through items does). (bugreport:3259) [Inkfish]
+	* Fixed Butterfly Wings not working during GVG. (bugreport:3264) [Inkfish]
+09/06/16
+	* Fixed an exploit that makes guild skill get higher level than the max defined in guild_skill_tree. (bugreport:3241) [Inkfish]
+	* Turn Undead won't apply aftercast delay when casted on a "living" entity. (bugreport:1740) [Inkfish]
+	* Autocasts should always fail if the target is outside the skill range or an obstacle is in between. (bugreport:3201) [Inkfish]
+	* The Lovers should affect the target instead of the caster. (bugreport:3252)[Inkfish]
+09/06/15
+	* Skill through items will not be blocked when 90% overweight. (bugreport:3246) [Inkfish]
+	* Now you can drop items when hiding. [Inkfish]
+	* Now you can't logout when hiding, cloaking or chase walking. [Inkfish]
+09/06/14
+	* Fixed a crash due to group being redeleted when players are performing an ensemble and one of the partner's sp run out. [Inkfish]
+09/06/13
+	* If both Double Attack and critical attack have chance to trigger within one attack, Double Attack takes priority. (bugreport:3231) [Inkfish]
+	* Fixed Butterfly Wings not working on maps blocking Teleport. (bugreport:3236) [Inkfish]
+09/06/12
+	* Fixed "arrow_atk" flag never being reset results in arrow consumption on itemskills and autocasts. (bugreport:3233) [Inkfish]
+	* Fixed itemskill not bypassing Silence, SteelBody, Berserk and the like. (bugreport:3232) [Inkfish]
+	* Fury and Asura no longer disable SP regen on any other classes than Monk/Champion.(bugreport:3200) [Inkfish]
+09/06/11
+	* Fixed TaTaMiGaEShi(Improvised Defense) not working. [Inkfish]
+	* Implemented new cooking success formula. Now cooking experience starts at 0.(bugreport:2439) [Inkfish]
+09/06/09
+	* Fixed applying autocasts with negative rate before the positive one made it fail to remove the autocast. [Inkfish]
+09/06/08
+	* Rev. 13869 Follow up to r13867, corrected the newly added MD_TARGETWEAK. Monsters with this mode will now only target players five level LOWER than itself. [L0ne_W0lf]
+09/06/08
+	* Fixed bHPGainValue and bSPGainValue worked on all types of attacks and was only activated on mob's death.(bugreport:3193) [Inkfish]
+	* Added a configuration for whether damage of EarthQuake with single target can be reflected. [Inkfish]
+	* Fixed Wizard Spirit can block reflected magical damage other than Kaite's.(bugreport:3161) [Inkfish]
+	* Fixed Kaite works against bosses.(follow up to r13857) [Inkfish]
+09/06/07
+	* Magical damage reflection now works against boss monsters and only on target skill(but EarthQuake with one target is an exception). [Inkfish]
+	* Changed hardcoded "5" to MAX_ARROW_RESOURCE in skill_arrow_create preventing proper usage. (bugreport:3025) [Paradox924X]
+	* Implemented "cooking exp" that increases the success chance of cooking by 0.05% per try and the max bonus is 20%. [Inkfish]
+09/06/05
+	* Job_Battle_Manual and Battle_Manual can be used simultaneously. [Inkfish]
+	* Fixed "sleep" after "attachrid" (a different rid) halts the script. [Inkfish]
+09/06/04
+	* Fixed turning off a skill needed to meet the requirements. [Inkfish]
+	* Skills used through items which don't have aftercast delay or cast time now don't overwrite the former canact_tick. [Inkfish]
+	* Multiple autoscripts now can trigger at once. [Inkfish]
+	* Applied a temp fix for autoscripts crashing server. [Inkfish]
+	* Implemented SC_JEXPBOOST (thanks to GMJobbie for the diff) and SC_IGNOREDEF. [Inkfish]
+	* SC_DEFRATIOATK won't affect boss monsters. [Inkfish]
+	* Fixed skip_teleport_lv1_menu made lv2 skip menu as well. [Inkfish]
+	* Rev. 13843 Updates to ST_PRESERVE and a few other minor details! [L0ne_W0lf]
+	- Recasting Preserve no longer toggles the skill off while active.
+	- Preserve is no longer saved on log-out or mapserver changes.
+	* Added SC_CRITICALWOUND and SC_SLOWCAST to negative statuses not saved with battle_config.debuff_on_logout&1
+	* Implemented the skills NPC_HELLPOWER and NPC_WIDEHELLDIGNITY, as per my personal experiences with the skill on iRO.
+	* Increased MAX_MOBSKILL to 50, as Satan Morroc has over 40 active skills now.
+09/06/03
+	* Some clean ups on autocast and itemskill code. (see topic:220921 for some info) [Inkfish]
+	- Autocasted Teleport now skips the menu.
+	- Fixed nullpo info when defensive autocasts are triggered. (follow up to r13815)
+	- Fixed Warp portal used in item script never worked.
+	- Item skills now bypass skill delay check.
+	- Implemented SM_SELFPROVOKE. 
+	- Updated item db using 'itemskill' for some items.
+	* Basic skills will never be reset. [Inkfish]
+09/06/02
+	* Rev. 13840 Implemented the Party Buff cash skills. [L0ne_W0lf]
+	* Fixed Mystical Amplification having unlimited duration [Playtester]
+	* Fixed skills used through items and Hocus-pocus consume requirements if you have them. (bugreport:3164) [Inkfish]
+09/06/01
+	* Fixed Fiberlock sometimes fails due to the long interval of skill_unit_timer. It may never fail now, though this may not be official. (bugreport:3136) [Inkfish]
+09/05/30
+	* Fixed gemstones are still required when players equipped Mistress Card. (bugreport:3147, follow up to: r13815) [Inkfish]
+	* Fiberlock only catches targets the moment its casted. [Inkfish]
+	* Multiple autocasts can go off at a time now. [Inkfish]
+	* Splash damage doesn't get modified by percentual modifier now. [Inkfish]
+	* Monster's Spiral Pierce is again...elemental. [Inkfish]
+	* Fixed Hocus-pocus always fails. (bugreport:3143, follow up to: r13815) [Inkfish]
+09/05/29
+	* Added new bonuses bHealPower and bHealPower2. [Inkfish]
+	* Heal skills code clean up. [Inkfish]
+	- bSkillHeal can affect offensive heal now. 
+	- bSkillHeal2 can affect AppleIdun and SlimPitcher now.
+	* Added new bonuses bUnbreakableGarment and bUnbreakableShoes. [Inkfish]
+	* Some more fixes to skill condition issues. [Inkfish]
+	- Fixed skills fail when MAX_INVENTORY reached.
+	- Fixed spiritballs not being removed correctly in some situation.
+09/05/28
+	* Fixed some skill condition issues. [Inkfish]
+	- HP is now checked at the end of cast.
+	- Lv 6-10 StoneCurse doesn't consume gems when it fails.
+	- Tarotcard's aftercast delay will still be applied if it fails.
+09/05/26
+	* skill_check_condition clean up (bugreport:2770, bugreport:2957, bugreport:3010) [Inkfish]
+	- Weapon, SP, HP and state are checked at the beginning of cast.
+	- Required items and ammos are checked at the end of cast.
+	- SP and status change required are removed at the end of cast without checking again.
+	- Required items are removed only if the skill is successfully used.
+	- Autocasts won't check for requirements but will remove them if you have them(except for SP/HP).
+09/05/25
+	* Fixed losing skill list after base change. (bugreport:3106) [Inkfish]
+	* Now we can use 'boss_monster' to summon whatever monsters that need to be radared by Convex Mirror. (bugreport:2653) [Inkfish]
+09/05/24
+	* Taro Card can now break shoes and garment and won't affect dead target. (bugreport:2513) [Inkfish]
+09/05/23
+	* Splash attacks do cause additional effects except for autocasts. (bugreport:2661) [Inkfish]
+09/05/22
+	* Fixed some behaviors of additional effects (bugreport:3100,bugreport:2661) [Inkfish]
+	- Coma can now be blocked by such skills as SafetyWall, Pneuma and Basilica.
+	- Equipment breaking behaves exactly like coma.
+	- Skill's self damage may now causes coma, equipment breaking and autospell/autoscript.
+	- GrandCross now allows you to drain hp/sp.
+	- Splash attack doesn't cause any status effects or autocasts any more.
+	* The delay icon doesn't appear during casting now.
+	* Status icon of ASPD potions doesn't overriding each other now.
+	* NPC_STOP now stops both sides and will be canceled if either side teleports or dies.(bugreport:3099)
+09/05/20
+	* Now fiberlocking a fiberlocked target doesn't renew the timer but instead increases its fireweakness [Inkfish]
+	- This makes doublecasting firebolts on a double fiberlocked target having double damage from both 2 bolts possible = =(bugreport:3061)
+09/05/19
+	* Added missing packet 0x2c9 and fixed 0x2da's length error. [Inkfish]
+	* Fiberlock now can trap multiple enemies on the same cell and its triggering area was reduced to 1x1. [Inkfish]
+	* Miracle should only be dispelled on map change. [Inkfish]
+	* Fixed the three hits of EarthQuake not being calculated seperately. [Inkfish]
+09/05/18
+	* Item-bonuses now use the official default durations for status changes [Playtester]
+	* status calc code cleanup [ultramage]
+	- Inverted the status calc code order, so that status_calc_bl optionally invokes status_calc_pc/mob/whatever instead of every status_calc_* calling status_calc_bl.
+	- Inlined functions status_calc_bl_sub_pc, status_calc_bl_sub_hom and status_calc_bl_sub_mer into status_calc_bl.
+	- Restructured status_calc_bl to require as little bl type-specific branching as possible.
+	- Split status_calc_bl into two layers - the inner does the battle status calculations, while the outer deals with running appropriate base status calculations, remembering old values and handling client updates.
+	- The status_calc_bl function is now the single entry-point for all status calculations.
+	- status_calc_bl will now trigger a client update only on attributes that actually changed.
+	- If hp or sp changes during status_calc_bl, it will now properly refresh on the client.
+	- Removed SCB_PC, now SCB_ALL should be used instead.
+	- Revived the unused status calc flag SCB_BASE to indicate that a base status recalculation should be done first (that's what the status_calc_* functions are for).
+	- Defined a new symbolic bitmask SCB_BATTLE (SCB_ALL - SCB_BASE) in case someone needs to only calculate the battle status (currently unused).
+09/05/17
+	* Monocell, Instant Death and Class Change will now fail on bosses (bugreport:2907) [Playtester]
+	* Eske and Eska now affect friendly guardians and slaves. (bugreport:2131) [Inkfish]
+09/05/15
+	* AutoSpellWhenHit now triggers on normal+skill by default (bugreport:1652) [Playtester]
+	* Removed the undocumented custom level feature from monster spawn lines (bugreport:3076) [ultramage]
+09/05/13
+	* Fixed combo wait was not canceled when TK's Kick skill was successfully used. (bugreport:1345) [Inkfish]
+	* PNEUMA, BASILICA and SAFETYWALL no longer protect you from such negative status changes as COMA, STUN, FREEZE and etc. (bugreport:1346) [Inkfish]
+09/05/12
+	* Fixed Aid Potion can heal the Emperium (bugreport:164) [Inkfish]
+09/05/11
+	* Fixed a crash when mob uses self-destruct skill (bugreport:2874) [Inkfish]
+09/05/10
+	* Magnetic Earth will never stack (bugreport:2568) [Inkfish]
+	* Fixed Joint Beat incorrect DEF reduction (bugreport:3051) [Inkfish]
+09/05/09
+	* Fixed GX's skill level modifier is missing [Inkfish]
+	* Fixed some known and unknown player attached NPC timer problems [Inkfish]
+	- Attached timer now can be stopped properly.
+	- Attached timer will now stop if the NPC is unloaded. (bugreport:2510)
+09/05/07
+	* Fixed up the base success rate of normal strip skills [Playtester]
+	- normal strip skills: 5% + 5%*level
+	- Full Strip: 5% + 2%*level
+	* Fixed splash damage from Baphomet Card might miss. [Inkfish]
+	* Check if group unit is expired before processing it. (bugreport:3054) [Inkfish]
+	* Fixed Grand Corss outdated behavior (bugreport:1590) [Inkfish]
+	- use new damage formula
+	- DEF is reduced to 2/3 during cast time
+	- block shields switching within attack duration
+	- monsters don't damage themselves any more
+	- intervals between hits are 300ms
+	* Added check on stackable items to 'checkweight' (bugreport:1569, bugreport:2756, bugreport:2994) [Inkfish]
+	* Fixed flee penalty wasn't applied for battleground and wouldn't be restored on map change [Inkfish]
+	* Fixed players can pull water from ME cell (follow up to r13730) [Inkfish]
+2009/05/04
+	* Added the md5() script command. [brianluau]
+	* Now if a dead player is moved for whatever reason, he'll be alive with 1 HP. (bugreport:70) [Inkfish]
+	* Players now are allowed to copy the skills the level which is beyond the skill_db max. [Inkfish]
+	* Fixed some behaviors for Waterball (bugreport:3024) [Inkfish]
+	- High level Waterball used by players doesn't increase the number of balls.
+	- Monsters can't pull water from cells with Magnetic Earth.
+2009/05/03
+	* Updated item_db.sql and mob_db.sql from recent changes to both. Thanks to Peter once again! [Jguy]
+	* Do not log damage if it's done by mob itself (bugreport:2933) [Inkfish]
+	* Fix 'awake' not working (bugreport:2580) [Inkfish]
+	* Fix several npctimer issues (bugreport:1619, bugreport:1730) [Inkfish]
+	* Players now cannot be revived during pvp respawn delay [Inkfish]
+	* Block equipments switching for some skills (bugreport:2900) [Inkfish]
+	- cannot change equipments during Arrow Vulcan's cast time
+	- cannot change equipments within Desperado's attack duration
+2009/05/02
+	* Spirit of Bard and Dancer now only works for mastered skills (bugreport:3037) [Playtester]
+	- also fixed an outdated comment in the source code
+2009/04/27
+	* Fixed break equipment debuff working on bosses (bugreport:3023) [Playtester]
+2009/04/25
+	* Fixed Monster Spiral Pierce not being reduced by Ghostring Card (bugreport:3013) [Playtester]
+	- it is forced neutral as its a MISC skill for monsters and doesn't take weapon element
+	* First attempt to fix up the strip skills, please make sure these fixes work (bugreport:3011) [Playtester]
+	- the minimum rate of strip skills is now 5% for all levels
+	- duration of strip skills depends on the dex difference between target and caster and can be reduced to 0
+	- strip skills can now affect bosses (if duration doesn't get reduced to 0 due to their high dex)
+	- strip skills do a fixed -25% ATK, -15% DEF, -40% VIT or -40% INT independant of skill level
+	- autocasting Full Strip has a duration now (if dex is high enough)
+2009/04/20
+	* Fixed safestrncpy trashing the memory before dst when n == 0. (since r10667) [FlavioJS]
+2009/04/15
+	* Monster Spiral Pierce is now a ranged misc attack [Playtester]
+	- it always gets blocked by Pneuma, but never by Safety Wall
+	- Defender doesn't reduce its damage
+	- Range-Def item bonuses reduce its damage
+2009/04/14
+	* Cooking success chance is now affected by DEX and LUK [Playtester]
+	- "cooking exp" still needs to be implemented
+	- also fixed a small issue when whispering to someone in autotrade
+2009/04/01
+	* Removed online_check config options. (always active now) [FlavioJS]
+	* Clarified char_maintenance config option.
+	* Changed packet 0x2712. (added request_id)
+	* Changed packet 0x2713. (added sex, request_id, version, clienttype; removed email, expiration time, gmlevel)
+	* Delayed user count check and mmo_char_send006b to when the account data arrives.
+	* Created auxiliary function MD5_Salt.
+2009/03/31
+	* Gunslinger Tracking can be canceled if you get hit.
+	* Gunslinger Disarm always shows skill animation.
+	* Removed custom firetrap effect from Gunslinger mines. [ultramage]
+2009/03/27
+	* Fixed a problem that blockskill timer failed when there was more than one on a skill [Playtester]
+	- please test this, now Asura should be blocked 2 seconds after EVERY Snap
+2009/03/26
+	* Fixed Spirit of Assassin not reducing the aftercast delay of Sonic Blow [Playtester]
+	* Assumptio can neither be cast nor dispelled on monsters anymore [Playtester]
+2009/03/23
+	* Added support for new status change packet, uses new setting display_status_timers in client.conf. [Sara]
+2009/03/18
+	* Updated item_db.sql with the perl script [Playtester]
+2009/03/08
+	* Fixed a couple bugs with marionette control [Brainstorm]
+	- Reduces caster max hp by 1000.
+	- Job and Equipment bonuses counts toward the 99 limit.
+	- Fixed stat overflow on baby targets with stats over 80 (bugreport:2232).
+	- Fixed clowns being able to cast it on another bard/clown (same for gypsy/dancer) (bugreport:166).
+	- Caster is no longer blocked from using items.
+	* Added several mail id checks to prevent a map server crash (bugreport:2837)
+2009/03/02
+	* Blade Stop status no longer prevents item use and equip changing.
+	* Against non-players, Blade Stop skill will now only activate if the attacker is at most 2 cells away (1 if barehanded).
+2009/03/01
+	* Fixes from 2008/10/13 bugreport:2077 (Only commiting because nobody did until now and those bugs would get lost)
+	* Fixed monster's Spiral Pierce, now it is always blocked by Pneuma.
+ 	* Fixed Monk Absorb Spirits mana recovery per spirit absorbed, 7, not 10.
+ 	* Fixed Monk spirit balls not being removed on death (like happens with gunslingers).
+ 	* Fixed Swordman Auto-Berserk sp cost, 1, not 5. Should be 0, but eA wont allow the skill to work.
+2009/03/01
+	* Ankle Snare cannot be knocked back anymore (bugreport:2804) [ultramage]
+2009/02/25
+	* Wrong variable being used in StringBuf_Vprintf. (follow up to r13386, fixes bugreport:2798) [FlavioJS]
+2009/02/23
+	* Made mob_delayspawn check the spawn_timer in the mob. [FlavioJS]
+	* Added missing delete_timer's every time spawn_timer is being set. (except when allocating)
+	* Made mob_timer_delete check the deletetimer in the mob.
+	* Added missing delete_timer's every time deletetimer is being set. (except when allocating)
+	* Consolidated is_atcommand() and is_atcommand_sub() [SketchyPhoenix]
+	- replaced gmlvl arg with a flag arg for internal/player generated checks. (dummy sds that used this arg are given gm levels)
+	- each command check runs through is_atcommand() and is checked for its origin (internal or player generated)
+	- charcommands are also parsed in this function.
+	- script atcommand/charcommand function calls to is_atcommand() have been updated
+	- also updated some clif/map functions calls to is_atcommand()
+	* charcommands should now log properly with the target of the command included.
+2009/02/20
+	* Increased variable size for status/skill points to remove the 65k cap (bugreport:1579) [ultramage]
+	* Modified WFIFOSET to trigger a fatal error when trying to send a packet that is too big. [FlavioJS]
+2009/02/19
+	* Fixed improper filling of w4 in npc_parsesrcfile when there are less than 4 fields. (bugreport:1063) [FlavioJS]
+	* Simplified atcommand_spiritball. (deprecated msg_txt 204 and 205)
+2009/02/06
+	* Follow up to r13485. (bugreport:2741) [FlavioJS]
+	- @spiritball creates spiritballs without timer (limited to the array size instead of 500)
+2009/01/25
+	* Changes to the configure script: [FlavioJS]
+	- added option --enable-profiler (supports gprof)
+	- added option --enable-64bit (don't force 32bit)
+2009/01/24
+	* Changed pc_spiritball_timer and pc_addspiritball: (bugreport:2705)
+	- don't make assumptions about the calling order of timers
+	- ensure that sd->spirit_timer is ordered by expiration time
+	* Changed the variables of the mapcache structs to fixed size equivalents.
+	* Changed all uses of struct skill_unit_group* to group_id in status_change_entry's. [FlavioJS]
+2009/01/23
+	* Changed npc_get_new_npc_id to ensure that it never returns invalid/used ids. [FlavioJS]
+	- npc_get_new_npc_id is used to generate ids for npcs/mobs/homunculus/mercenaries/pets.
+	  If the server runs for long enough (years to months or less, depending on settings),
+	  the auxiliary variable npc_id will eventually overflow and go negative, then go 
+	  through the range of object ids, then through the range of account ids.
+	  This can lead to all sorts of random crashes and memory leaks.
+2009/01/22
+	* Changed val4 of SC_BLADESTOP from a block_list pointer to an id. [FlavioJS]
+2009/01/21
+	* Added a limit of 1MB of pending data in the write fifo for non-server sockets.
+	  Connections that go over the limit are closed.
+	* Replaced the fake timer heap (sorted array) with a real heap. (improves performance) [FlavioJS]
+2009/01/20
+	* Added a generic binary heap implementation based on defines. [FlavioJS]
+	* Fixed pc_statusup2 to correctly update the client's stat window [ultramage]
+2009/01/15
+	* Updated script_commands.txt with the book reading command. [SketchyPhoenix]
+	* Added/reworded/removed comments out of r13450
+2009/01/14
+	* Added client login packets 0x01fa and 0x027c. [FlavioJS]
+	* Other minor cleanups.
+	* #commands used by nonGM players now appear in the chat like normal rather 
+	  than being processed and ultimately failed, printing out failed command messages 
+	  that should be visible to only GMs.
+2009/01/13
+	* Cleaned up command @users/#users: [FlavioJS]
+	- displays everything on the target user (self for @users)
+	- uses a static array instead of a temporary DBMap
+	- displays percentages with precision of 0.01%
+	- uses safesnprintf instead of sprintf
+2009/01/12
+	* Mobs with nonzero spawn time can now be cached as well (bugreport:1197)
+	* Fixed dynamic mobs being unloaded without stopping their respawn timer
+	* Added regen_db to reduce hp/sp processing delays (bugreport:2256) [ultramage]
+	* #command parsing cleaned up. [SketchyPhoenix]
+	- Fixed charname reading problems from r13441 
+	- Corrected agitend typo to agitend2 (bugreport:2654)
+2009/01/05
+	* Fixed @mobsearch and @showmobs (bugreport:2481) [ultramage]
+	- now only search for mobs on the same map as the caller
+	- now properly distinguish between dead and alive mobs
+	* Added @charcommands to return a list of available charcommands (bugreport:2630) [SketchyPhoenix]
+2008/12/31
+	* Changes to the script engine: [FlavioJS]
+	- new stack datatype script_retinfo for C_RETINFO to hold all the return state info 
+	  that was being stored in the stack. (the script engine in 64bit-ready now)
+	- pop_stack is responsible for adjusting all the stack pointers.
+	- push_* returns the created script_data.
+	- 'return' only converts to value scope variables of the current scope.
+2008/12/30
+	* Changes to the script engine: [FlavioJS]
+	- script ends when run_func can't find the buildin command. (script engine error)
+	- run_script_main doesn't change RERUNLINE to RUN automatically,
+	  the buildin command that set it is responsible for that now.
+	  The buildin command can use this to detect a rerun.
+	- created functions to alloc/free a script_state.
+2008/12/28
+	* Added missing command #delitem. [SketchyPhoenix]
+	* Fixed charcommand behavior where those that can accept a name with no additional parameters 
+	  being able to execute under said player's name with the name as a parameter. (bugreport:2601)
+2008/12/25
+	* Extended sv_escape_c to escape '\a','\b','\t','\v','\f','\?' characters 
+	  to their respective representations instead of octal. [FlavioJS]
+2008/12/22
+	* Added a few missing atcommands. [SketchyPhoenix]
+	* Added more commands to configurations (bugreport:2565)
+	* Added a missing charcommand symbol config to atcommand configs.
+	* GM command configs under the old format will have a warning printed back to the console as being deprecated.
+	* Other fixes/cleaning partially resolving bugreport:2549
+2008/12/20
+	* Extended how duplicates work: (based on Orcao's work in bugreport:2361) [FlavioJS]
+	- you can duplicate warps/shops/cashshops/npcs (before only npcs could be duplicated)
+	- warp duplicates inherit the target location
+	- shop/cashshop duplicates inherit the item list
+	- npc duplicates inherit the script code (backward compatible behaviour)
+	- updated script_commands.txt with the information
+2008/12/17
+	* Removed charcommand code and allowed atcommand code to support its functionality. [SketchyPhoenix]
+	- Charcommands still retain their '#' symbol but now looks for a character name as the first parameter instead of last.
+	- Atcommand configs now support charcommand level configurations by comma seperation (e.g. 60,99).
+	- As a result of this, all atcommands that don't affect multiple users already (@kickall, @doom, @mapexit) are capable of remote usage.
+2008/12/01
+	* Fixed rare crash when using Flying Kick on clones (bugreport:2506) [ultramage]
+	* Corrected Flying Kick's debuff rules to match official servers
+	- only works on players
+	- soul linkers and stalkers with Preserve active are immune
+	- only removes Berserk Potion, Kaahi, Kaite, 1HQ, AAR and Soul Links
+2008/11/27
+	* Fixed a memory leak when returning a string variable in the script engine. [FlavioJS]
+	  (since r9864/r9865, fixes bugreport:2488)
+2008/11/24
+	* Fixed a va_end using the wrong variable. (from r13383, fixes bugreport:2483) [FlavioJS]
+2008/11/22
+	* Readded code that was removed from atcommand_showmobs by mistake in the previous commit. (r13383)
+	* Hunted down improper uses of va_list variables.
+	* Hunted down the simpler 64bit pointer truncations. [FlavioJS]
+2008/11/18
+	* Rev. 13375 Autotrade characters will no longer get caught by Urgent Recall. (bugreport:2447) [L0ne_W0lf]
+2008/11/11
+	* Updated script_commands.txt [FlavioJS]
+	* Made scripts terminate with an error: (fixes bugreport:2429)
+	- when getitem/getitem2 tries to delete more items than the player has
+	- when trying to set Zeny to a negative number.
+2008/11/09
+	* Added a check to make sure killed monster's level was greater than half of the mercenary owner's level before incrementing mercenary's killcount. (bugreport:2410) [Paradox924X]
+2008/11/07
+	* Rev. 13358 Changed how mobcount works since it wasn't counting last mob death. (bugreport:2419) [L0ne_W0lf]
+2008/11/06
+	* Fixed 'Char creation denied' message not being sent properly. [FlavioJS]
+	- Number 2 didn't exist in old clients so it used the default message,
+	  now it exists so the wrong message is displayed.
+	- Changed 2 to 0xFF to get the default message.
+2008/11/05
+	* Fixed issue preventing you from changing to the original cart when using Change Cart. (bugreport:2383) [Sara]
+2008/10/29
+	* Novice skill, Trick Dead, will no longer be granted to classes upon reset (save for Novice and Baby) (bugreport:2312) [SketchyPhoenix]
+2008/10/28
+	* Made script command "unequip" call status_calc_pc. Thanks to Orcao. (bugreport:2368). [Paradox924X]
+2008/10/27
+	* Fixed all overflow checks and made the code a bit cleaner from r13322. [Paradox924X]
+	* Removed leftovers of "bLoseSPWhenUnequip" and "bDamageWhenUnequip". [Paradox924X]
+2008/10/24
+	* Added protection from segfault by int overflow in charcommand heal and fixed a typo in atcommand heal. (Follow-up to r13321) [Paradox924X]
+	* Added protection from segfault by int overflow in atcommand heal. (bugreport:1886) [Paradox924X]
+	* Commented out unused function clif_marriage_process. [Paradox924X]
+2008/10/21
+	* Added a check to make sure a player wasn't in a guild when they accepted a guild invitation. [Paradox924X]
+2008/10/18
+	* Corrected a target checking problem brought about with Kaizel/Osiris combination. [SketchyPhoenix]
+2008/10/16
+	* Added missing char_sql/int_mercenary files to txt-converter's Makefile.in. [FlavioJS]
+2008/10/15
+	* Fixed ipban sql connecting to the sql server when disabled. [FlavioJS]
+2008/10/11
+	* Using Kaizel in conjunction with Osiris Card should now work. (bugreport:2251) [SketchyPhoenix]
+	* #monsterignore should turn off now. (bugreport:2306) [SketchyPhoenix]
+2008/10/09
+	* Rev. 13272 Updated NPC_REBIRTH. Has it's own values, and no longer leeches off SL_KAIZEL. [L0ne_W0lf]
+2008/10/06
+	* Rev. 13264 Damage count on rebirthed mobs is now reset. (Valaris)  [L0ne_W0lf]
+	* Rev. 13263 voided out clif_blown as per Valaris' instruction.  [L0ne_W0lf]
+	* Rev. 13262 SC_WEIGHT50 and 90 are no longer removed on death. (bugreport:2316) [L0ne_W0lf]
+2008/10/04
+	* Delete ST_LOGIN auth in chrif_disconnectplayer (followup to r13256, bugreport:2292) [FlavioJS]
+2008/10/03
+	* Fix for "yet another online check bypass technique". (bugreport:2292) [FlavioJS]
+2008/10/01
+	* Rev. 13252 Kaupe will now trigger from mobs, homuns and mercenaries, as well. (bugreport:2297) [L0ne_W0lf]
+	* Rev. 13251 Removed 'casttime' adjustment from offensive ressurection. Follow up to r13225. [L0ne_W0lf]
+	* Kaahi will now override override higher existing levels previously casted. (bugreport:2296)
+2008/09/27
+	* Fixed clif_changelook betraying the presence of gm-hidden players (bugreport:2283) [ultramage]
+2008/09/11
+	* Rev. 13226 Corrected Lex Divina not showing animation on fail. (bugreport:1740) [L0ne_W0lf]
+	* Rev. 13225 Corrected Offensive Res using Turn Undead cast time. (bugreport:1704) [L0ne_W0lf]
+2008/09/11
+	* Rev. 13204 Made the mail check on login read from msg_athena.conf. [L0ne_W0lf]
+2008/09/09
+	* Rev. 13202 Added commands related to WoE SE, allowing it to run independantly of WoE. [L0ne_W0lf]
+	- Added: @agitstart2, @agitend2, agitstart2, agitend2, and agitcheck2.
+2008/09/05
+	* Rev. 13192 Updated mmo.h, increased merc max count to 36. [L0ne_W0lf]
+	* Fixed save crash related to non-guilded mercenaries.
+2008/09/01
+	* Removed hardcoded equip position names from getequipname (bugreport:2156)
+	- now it's the npc's responsibility to store and display the names
+2008/08/28
+	* Fixed @cash/@points not handling negative values properly (bugreport:2132) [ultramage]
+2008/08/26
+	* Fixed @agjgmlvl bug preventing its use on other players. (bugreport:2124) [SketchyPhoenix]
+	* pc_isGM() checks in gm_cant_party config checks will now check against being lower or higher than lowest_gm_level config.
+2008/08/25
+	* Fixed homun sp regen bug introduced on r12953 bugreport:2071 [Brain]
+	* Fixed: several compiler warnings [akrus]
 2008/08/20
 	* Rev. 13098 Implemented Brainstorm's and SketchyPhoenix's fixes for Flying side kick. [L0ne_W0lf]
 	- Skill will now remove KA-type statuses and not remove stalker's link while preserved.
@@ -180,7 +819,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 	* Moved the mob killmonster flag to a more appropriate area. (bugreport:1795) [SketchyPhoenix]
 2008/07/04
 	* Fixed AM_PHARMACY produce chances based on info gathered by flaviojs, aegis zone ep 11.2, of 20070629 [Brain/FlavioJS]
-	* Rev. 12911 Homunculus will no longer auto-vaporize on master death. [L0ne_W0lf]
+	* Rev. 12912 Homunculus will no longer auto-vaporize on master death. [L0ne_W0lf]
 	- Added config option to allow for this to be turned on or off.
 	* Added missing 'E' logs to mail system [Lupus]
 2008/07/03
@@ -3338,7 +3977,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 	* Added parse_console to the plugin API.
 	* Added plugin for parsing the console. (working with cygwin)
 	* Copied the parse_console code form login txt to login sql and char.
-	* Added propper plugin version compatibility tests.
+	* Added proper plugin version compatibility tests.
 	* Better output when a plugin fails to load. [FlavioJS]
 2007/01/07
 	* Fixed the sleep timers not being removed when the an npc was being 

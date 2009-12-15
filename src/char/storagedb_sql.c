@@ -77,7 +77,7 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct item* items, size_t si
 	memset(items, 0, size * sizeof(struct item)); //clean up memory
 
 	StringBuf_Init(&buf);
-	StringBuf_AppendStr(&buf, "SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`");
+	StringBuf_AppendStr(&buf, "SELECT `id`,`nameid`,`amount`,`equip`,`identify`,`refine`,`attribute`,`expire_time`");
 	for( j = 0; j < MAX_SLOTS; ++j )
 		StringBuf_Printf(&buf, ",`card%d`", j);
 	StringBuf_Printf(&buf, " FROM `%s` WHERE `%s`='%d' ORDER BY `nameid`", tablename, selectoption, id);
@@ -98,9 +98,10 @@ static bool mmo_storage_fromsql(StorageDB_SQL* db, struct item* items, size_t si
 		Sql_GetData(sql_handle, 4, &data, NULL); items[i].identify = atoi(data);
 		Sql_GetData(sql_handle, 5, &data, NULL); items[i].refine = atoi(data);
 		Sql_GetData(sql_handle, 6, &data, NULL); items[i].attribute = atoi(data);
+		Sql_GetData(sql_handle, 7, &data, NULL); items[i].expire_time = (unsigned int)atoi(data);
 		for( j = 0; j < MAX_SLOTS; ++j )
 		{
-			Sql_GetData(sql_handle, 7+j, &data, NULL); items[i].card[j] = atoi(data);
+			Sql_GetData(sql_handle, 8+j, &data, NULL); items[i].card[j] = atoi(data);
 		}
 	}
 

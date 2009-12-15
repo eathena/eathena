@@ -525,7 +525,13 @@ int atcommand_jumpto(const int fd, struct map_session_data* sd, const char* comm
 		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
 		return -1;
 	}
-	
+
+	if( pc_isdead(sd) )
+	{
+		clif_displaymessage(fd, "You cannot use this command when dead.");
+		return -1;
+	}
+
 	pc_setpos(sd, pl_sd->mapindex, pl_sd->bl.x, pl_sd->bl.y, 3);
 	sprintf(atcmd_output, msg_txt(4), pl_sd->status.name); // Jumped to %s
  	clif_displaymessage(fd, atcmd_output);
@@ -548,6 +554,12 @@ int atcommand_jump(const int fd, struct map_session_data* sd, const char* comman
 
 	if (map[sd->bl.m].flag.noteleport && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
 		clif_displaymessage(fd, msg_txt(248));	// You are not authorized to warp from your current map.
+		return -1;
+	}
+
+	if( pc_isdead(sd) )
+	{
+		clif_displaymessage(fd, "You cannot use this command when dead.");
 		return -1;
 	}
 
@@ -1474,7 +1486,7 @@ int atcommand_kami(const int fd, struct map_session_data* sd, const char* comman
 		}
 
 		sscanf(message, "%199[^\n]", atcmd_output);
-		intif_GMmessage(atcmd_output, strlen(atcmd_output) + 1, (*(command + 5) == 'b' || *(command + 5) == 'B') ? 0x10 : 0);
+		intif_broadcast(atcmd_output, strlen(atcmd_output) + 1, (*(command + 5) == 'b' || *(command + 5) == 'B') ? 0x10 : 0);
 	
 	} else {
 	
@@ -1488,7 +1500,7 @@ int atcommand_kami(const int fd, struct map_session_data* sd, const char* comman
 			return -1;
 		}
 	
-		intif_announce(atcmd_output, strlen(atcmd_output) + 1, color, 0);
+		intif_broadcast2(atcmd_output, strlen(atcmd_output) + 1, color, 0x190, 12, 0, 0);
 	}
 	return 0;
 }
@@ -2710,8 +2722,7 @@ int atcommand_produce(const int fd, struct map_session_data* sd, const char* com
 	if ((item_data = itemdb_searchname(item_name)) == NULL &&
 	    (item_data = itemdb_exists(atoi(item_name))) == NULL)
 	{
-		strcpy(atcmd_output, msg_txt(170)); // The item is not equipable.
-		clif_displaymessage(fd, atcmd_output);
+		clif_displaymessage(fd, msg_txt(170)); //This item is not an equipment.
 		return -1;
 	}
 	item_id = item_data->nameid;
@@ -4605,7 +4616,7 @@ int atcommand_nuke(const int fd, struct map_session_data* sd, const char* comman
  *------------------------------------------*/
 int atcommand_tonpc(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char npcname[NAME_LENGTH];
+	char npcname[NAME_LENGTH+1];
 	struct npc_data *nd;
 
 	nullpo_retr(-1, sd);
@@ -4635,7 +4646,7 @@ int atcommand_tonpc(const int fd, struct map_session_data* sd, const char* comma
  *------------------------------------------*/
 int atcommand_shownpc(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char NPCname[NAME_LENGTH];
+	char NPCname[NAME_LENGTH+1];
 	nullpo_retr(-1, sd);
 
 	memset(NPCname, '\0', sizeof(NPCname));
@@ -4661,7 +4672,7 @@ int atcommand_shownpc(const int fd, struct map_session_data* sd, const char* com
  *------------------------------------------*/
 int atcommand_hidenpc(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char NPCname[NAME_LENGTH];
+	char NPCname[NAME_LENGTH+1];
 	nullpo_retr(-1, sd);
 
 	memset(NPCname, '\0', sizeof(NPCname));
@@ -4710,12 +4721,12 @@ int atcommand_loadnpc(const int fd, struct map_session_data* sd, const char* com
 int atcommand_unloadnpc(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	struct npc_data *nd;
-	char NPCname[NAME_LENGTH];
+	char NPCname[NAME_LENGTH+1];
 	nullpo_retr(-1, sd);
 
 	memset(NPCname, '\0', sizeof(NPCname));
 
-	if (!message || !*message || sscanf(message, "%23[^\n]", NPCname) < 1) {
+	if (!message || !*message || sscanf(message, "%24[^\n]", NPCname) < 1) {
 		clif_displaymessage(fd, "Please, enter a NPC name (usage: @npcoff <NPC_name>).");
 		return -1;
 	}
@@ -5262,7 +5273,7 @@ int atcommand_broadcast(const int fd, struct map_session_data* sd, const char* c
 	}
 
 	sprintf(atcmd_output, "%s: %s", sd->status.name, message);
-	intif_GMmessage(atcmd_output, strlen(atcmd_output) + 1, 0);
+	intif_broadcast(atcmd_output, strlen(atcmd_output) + 1, 0);
 
 	return 0;
 }
@@ -5283,7 +5294,7 @@ int atcommand_localbroadcast(const int fd, struct map_session_data* sd, const ch
 
 	sprintf(atcmd_output, "%s: %s", sd->status.name, message);
 
-	clif_GMmessage(&sd->bl, atcmd_output, strlen(atcmd_output) + 1, 1); // 1: ALL_SAMEMAP
+	clif_broadcast(&sd->bl, atcmd_output, strlen(atcmd_output) + 1, 0, ALL_SAMEMAP);
 
 	return 0;
 }
@@ -5850,6 +5861,12 @@ int atcommand_autotrade(const int fd, struct map_session_data* sd, const char* c
 	nullpo_retr(-1, sd);
 	if( sd->vender_id ) //check if player's vending
 	{
+		if( pc_isdead(sd) )
+		{
+			clif_displaymessage(fd, "Cannot Autotrade if you are dead.");
+			return -1;
+		}
+
 		if( map[sd->bl.m].flag.autotrade == battle_config.autotrade_mapflag )
 		{
 			sd->state.autotrade = 1;
@@ -5912,62 +5929,17 @@ int atcommand_changegm(const int fd, struct map_session_data* sd, const char* co
  *------------------------------------------*/
 int atcommand_changeleader(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	struct party_data *p;
-	struct map_session_data *pl_sd;
-	int mi, pl_mi;
 	nullpo_retr(-1, sd);
-
-	if (sd->status.party_id == 0 || (p = party_search(sd->status.party_id)) == NULL)
-	{	//Need to be a party leader.
-		clif_displaymessage(fd, msg_txt(282));
-		return -1;
-	}
-	
-	if( map[sd->bl.m].flag.partylock )
-	{
-		clif_displaymessage(fd, "You cannot change party leaders on this map.");
-		return -1;
-	}
-
-	ARR_FIND( 0, MAX_PARTY, mi, p->data[mi].sd == sd );
-	if (mi == MAX_PARTY)
-		return -1; //Shouldn't happen
-
-	if (!p->party.member[mi].leader)
-	{	//Need to be a party leader.
-		clif_displaymessage(fd, msg_txt(282));
-		return -1;
-	}
 	
 	if (strlen(message)==0)
 	{
 		clif_displaymessage(fd, "Command usage: @changeleader <party member name>");
 		return -1;
 	}
-	
-	if((pl_sd=map_nick2sd((char *) message)) == NULL || pl_sd->status.party_id != sd->status.party_id) {
-		clif_displaymessage(fd, msg_txt(283));
-		return -1;
-	}
 
-	for (pl_mi = 0; pl_mi < MAX_PARTY && p->data[pl_mi].sd != pl_sd; pl_mi++);
-	
-	if (pl_mi == MAX_PARTY)
-		return -1; //Shouldn't happen
-
-	//Change leadership.
-	p->party.member[mi].leader = 0;
-	if (p->data[mi].sd->fd)
-		clif_displaymessage(p->data[mi].sd->fd, msg_txt(284));
-	p->party.member[pl_mi].leader = 1;
-	if (p->data[pl_mi].sd->fd)
-		clif_displaymessage(p->data[pl_mi].sd->fd, msg_txt(285));
-
-	intif_party_leaderchange(p->party.party_id,p->party.member[pl_mi].account_id,p->party.member[pl_mi].char_id);
-	//Update info.
-	clif_party_info(p,NULL);
-
-	return 0;
+	if (party_changeleader(sd, map_nick2sd((char *) message)))
+		return 0;
+	return -1;
 }
 
 /*==========================================
@@ -6817,7 +6789,7 @@ int atcommand_gmotd(const int fd, struct map_session_data* sd, const char* comma
 						break;
 					}
 				}
-				intif_GMmessage(buf,strlen(buf)+1,8);
+				intif_broadcast(buf, strlen(buf)+1, 0);
 			}
 			fclose(fp);
 		}
@@ -8047,7 +8019,7 @@ int atcommand_main(const int fd, struct map_session_data* sd, const char* comman
 			// I use 0xFE000000 color for signalizing that this message is
 			// main chat message. 0xFE000000 is invalid color, same using
 			// 0xFF000000 for simple (not colored) GM messages. [LuzZza]
-			intif_announce(atcmd_output, strlen(atcmd_output) + 1, 0xFE000000, 0);
+			intif_broadcast2(atcmd_output, strlen(atcmd_output) + 1, 0xFE000000, 0, 0, 0, 0);
 
 			// Chat logging type 'M' / Main Chat
 			if( log_config.chat&1 || (log_config.chat&32 && !((agit_flag || agit2_flag) && log_config.chat&64)) )
@@ -8864,6 +8836,7 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	char command[100];
 	char output[200];
 	int x, y, z;
+	int lv = 0;
 	
 	//Reconstructed message
 	char atcmd_msg[200];
@@ -8969,11 +8942,13 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	}
 	
 	//Attempt to use the command
+	if( strcmpi("adjgmlvl",command+1) && ssd ) { lv = ssd->gmlevel; ssd->gmlevel = sd->gmlevel; }
 	if ( (info->func(fd, (*atcmd_msg == atcommand_symbol) ? sd : ssd, command, params) != 0) )
 	{
 		sprintf(output,msg_txt(154), command); // %s failed.
 		clif_displaymessage(fd, output);
 	}
+	if( strcmpi("adjgmlvl",command+1) && ssd ) ssd->gmlevel = lv;
 	
 	//Log atcommands
 	if( log_config.gm && info->level >= log_config.gm && *atcmd_msg == atcommand_symbol )

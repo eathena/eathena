@@ -10,6 +10,7 @@ struct item;
 //#include "map.h"
 struct map_session_data;
 
+int storage_delitem(struct map_session_data* sd, int n, int amount);
 int storage_storageopen(struct map_session_data *sd);
 int storage_storageadd(struct map_session_data *sd,int index,int amount);
 int storage_storageget(struct map_session_data *sd,int index,int amount);

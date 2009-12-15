@@ -25,6 +25,7 @@ struct char_session_data {
 	uint8 clienttype;
 	int chars_num;// total number of characters in the account
 	int slots[MAX_CHARS];// client view of the characters/slots (array of char_id's, 0=free)
+	char new_name[NAME_LENGTH];
 };
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
@@ -32,6 +33,9 @@ struct char_session_data {
 #define INTER_CONF_NAME "conf/inter_athena.conf"
 
 void log_char(const char* fmt, ...);
+
+/// Validates a character name and checks if it's available.
+int check_char_name(const char* name);
 
 void char_divorce(int partner_id1, int partner_id2);
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);

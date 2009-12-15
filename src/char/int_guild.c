@@ -1021,11 +1021,12 @@ int inter_guild_leave(int guild_id, int account_id, int char_id)
 	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
 }
 
-int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
+int inter_guild_sex_changed(int guild_id, int account_id, int char_id, int gender)
 {
 	mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
 	return 0;
 }
+
 void inter_guild_init(GuildDB* gdb, CastleDB* cdb)
 {
 	guilds = gdb;

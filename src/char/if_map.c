@@ -665,8 +665,8 @@ int parse_frommap(int fd)
 				node->account_id == account_id &&
 				node->char_id == char_id &&
 				node->login_id1 == login_id1 &&
-				node->sex == sex &&
-				node->ip == ip )
+				node->sex == sex /*&&
+				node->ip == ip*/ )
 			{// auth ok
 				cd.sex = sex; //FIXME: is this ok?
 

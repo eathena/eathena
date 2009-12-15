@@ -182,7 +182,7 @@ static int storage_additem(struct map_session_data* sd, struct item* item_data, 
 /*==========================================
  * Internal del-item function
  *------------------------------------------*/
-static int storage_delitem(struct map_session_data* sd, int n, int amount)
+int storage_delitem(struct map_session_data* sd, int n, int amount)
 {
 	if( sd->status.storage[n].nameid == 0 || sd->status.storage[n].amount < amount )
 		return 1;
@@ -196,9 +196,9 @@ static int storage_delitem(struct map_session_data* sd, int n, int amount)
 	{
 		memset(&sd->status.storage[n],0,sizeof(sd->status.storage[0]));
 		sd->storage_amount--;
-		clif_updatestorageamount(sd,sd->storage_amount);
+		if( sd->state.storage_flag == 1 ) clif_updatestorageamount(sd,sd->storage_amount);
 	}
-	clif_storageitemremoved(sd,n,amount);
+	if( sd->state.storage_flag == 1 ) clif_storageitemremoved(sd,n,amount);
 	return 0;
 }
 
@@ -218,9 +218,6 @@ int storage_storageadd(struct map_session_data* sd, int index, int amount)
 	if( sd->status.inventory[index].nameid <= 0 )
 		return 0; // No item on that spot
 
-	if( sd->status.inventory[index].expire_time )
-		return 0; // Cannot Store Rental Items
-	
 	if( amount < 1 || amount > sd->status.inventory[index].amount )
   		return 0;
 
@@ -270,9 +267,6 @@ int storage_storageaddfromcart(struct map_session_data* sd, int index, int amoun
 	if( sd->status.cart[index].nameid <= 0 )
 		return 0; //No item there.
 	
-	if( sd->status.inventory[index].expire_time )
-		return 0; // Cannot Store Rental Items
-
 	if( amount < 1 || amount > sd->status.cart[index].amount )
 		return 0;
 
@@ -404,7 +398,7 @@ int guild_storage_additem(struct map_session_data* sd, struct guild_storage* sto
 	if(item_data->nameid <= 0 || amount <= 0)
 		return 1;
 
-	if (!itemdb_canguildstore(item_data, pc_isGM(sd)))
+	if( !itemdb_canguildstore(item_data, pc_isGM(sd)) || item_data->expire_time )
 	{	//Check if item is storable. [Skotlex]
 		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
@@ -481,9 +475,6 @@ int storage_guild_storageadd(struct map_session_data* sd, int index, int amount)
 	if( amount < 1 || amount > sd->status.inventory[index].amount )
 		return 0;
 
-	if( sd->status.inventory[index].expire_time )
-		return 0;
-
 //	log_tostorage(sd, index, 1);
 	if(guild_storage_additem(sd,stor,&sd->status.inventory[index],amount)==0)
 		pc_delitem(sd,index,amount,0);
@@ -537,9 +528,6 @@ int storage_guild_storageaddfromcart(struct map_session_data* sd, int index, int
 		return 0;
 	
 	if( amount < 1 || amount > sd->status.cart[index].amount )
-		return 0;
-
-	if( sd->status.inventory[index].expire_time )
 		return 0;
 
 	if(guild_storage_additem(sd,stor,&sd->status.cart[index],amount)==0)

@@ -70,8 +70,7 @@ struct s_add_drop {
 struct s_autobonus {
 	short rate,atk_type;
 	unsigned int duration;
-	struct script_code *bonus_script;
-	struct script_code *other_script;
+	char *bonus_script, *other_script;
 	int active;
 	unsigned short pos;
 };
@@ -130,7 +129,7 @@ struct map_session_data {
 		unsigned int bg_id;
 		unsigned skillonskill : 1;
 		unsigned short user_font;
-		unsigned short autobonus;
+		unsigned short autobonus; //flag to indicate if an autobonus is activated. [Inkfish]
 	} state;
 	struct {
 		unsigned char no_weapon_damage, no_magic_damage, no_misc_damage;
@@ -160,7 +159,7 @@ struct map_session_data {
 	unsigned short mapindex;
 	unsigned char head_dir; //0: Look forward. 1: Look right, 2: Look left.
 	unsigned int client_tick;
-	int npc_id,areanpc_id,npc_shopid;
+	int npc_id,areanpc_id,npc_shopid,touching_id;
 	int npc_item_flag; //Marks the npc_id with which you can use items during interactions with said npc (see script command enable_itemuse)
 	int npc_menu; // internal variable, used in npc menu handling
 	int npc_amount;
@@ -353,7 +352,7 @@ struct map_session_data {
 	unsigned short pvp_rank, pvp_lastusers;
 	unsigned short pvp_won, pvp_lost;
 
-	char eventqueue[MAX_EVENTQUEUE][50];
+	char eventqueue[MAX_EVENTQUEUE][NAME_LENGTH*2+3];
 	int eventtimer[MAX_EVENTTIMER];
 	unsigned short eventcount; // [celest]
 
@@ -389,6 +388,7 @@ struct map_session_data {
 	int avail_quests;
 	int quest_index[MAX_QUEST_DB];
 	struct quest quest_log[MAX_QUEST_DB];
+	bool save_quest;
 
 	// temporary debug [flaviojs]
 	const char* debug_file;
@@ -585,7 +585,7 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 
 int pc_updateweightstatus(struct map_session_data *sd);
 
-int pc_addautobonus(struct s_autobonus *bonus,char max,struct script_code *script,short rate,unsigned int dur,short atk_type,struct script_code *other_script,unsigned short pos,bool onskill);
+int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short atk_type,const char *o_script,unsigned short pos,bool onskill);
 int pc_exeautobonus(struct map_session_data* sd,struct s_autobonus *bonus);
 int pc_endautobonus(int tid, unsigned int tick, int id, intptr data);
 int pc_delautobonus(struct map_session_data* sd,struct s_autobonus *bonus,char max,bool restore);

@@ -33,6 +33,10 @@
 #include <stdarg.h>
 #include <time.h>
 
+
+struct s_quest_db quest_db[MAX_QUEST_DB];
+
+
 int quest_search_db(int quest_id)
 {
 	int i;
@@ -92,6 +96,7 @@ int quest_add(TBL_PC * sd, int quest_id)
 	sd->quest_index[i] = j;
 	sd->num_quests++;
 	sd->avail_quests++;
+	sd->save_quest = true;
 
 	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
 
@@ -138,6 +143,7 @@ int quest_change(TBL_PC * sd, int qid1, int qid2)
 	sd->quest_log[i].state = Q_ACTIVE;
 
 	sd->quest_index[i] = j;
+	sd->save_quest = true;
 
 	clif_quest_delete(sd, qid1);
 	clif_quest_add(sd, &sd->quest_log[i], sd->quest_index[i]);
@@ -169,6 +175,7 @@ int quest_delete(TBL_PC * sd, int quest_id)
 	}
 	memset(&sd->quest_log[sd->num_quests], 0, sizeof(struct quest));
 	sd->quest_index[sd->num_quests] = 0;
+	sd->save_quest = true;
 
 	clif_quest_delete(sd, quest_id);
 
@@ -213,6 +220,7 @@ void quest_update_objective(TBL_PC * sd, int mob)
 			if( quest_db[sd->quest_index[i]].mob[j] == mob && sd->quest_log[i].count[j] < quest_db[sd->quest_index[i]].count[j] ) 
 			{
 				sd->quest_log[i].count[j]++;
+				sd->save_quest = true;
 				clif_quest_update_objective(sd,&sd->quest_log[i],sd->quest_index[i]);
 			}
 	}
@@ -231,6 +239,7 @@ int quest_update_status(TBL_PC * sd, int quest_id, quest_state status)
 	}
 
 	sd->quest_log[i].state = status;
+	sd->save_quest = true;
 
 	if( status < Q_COMPLETE )
 	{

@@ -8,13 +8,50 @@
 	1475 Equestrian's Spear:	NEED INFO.
 	13005 Angelic Wing Dagger:	NEED INFO.
 =======================
+2009/12/10
+	* Rev. 14195 Uncommented the item 5374 (L_Magestic_Goat) as it's a quest reward given by an NPC assosiated with sealed shrine. (bugreport:3924) [L0ne_W0lf]
+	* Rev. 14194 Minor update to the Orc Instance mobs stats, very incomplete still. [L0ne_W0lf]
+2009/12/04
+	* Rev. 14188 A rather hefty updates to the mob_skill_db and added some more info for newer pets. [L0ne_W0lf]
+	- Added official skills for 13.1 monsters. (Orc instance, 13.1 field, WoESE Guild dungeon.)
+	- Added new skills for some older monsters (mostly alternate types of pre-existing ones.)
+	- Uncommented some mob_db entries as there are now skills assosiated with those mobs.
+	- Rearranged some skills/commented out others to match official files better.
+	- Updated existing pet data, most data should now be official.
+2009/12/02
+	* Rev. 14184 Added customized iRO Christmas 2008 Event mob overrides to mob_db2.txt. [L0ne_W0lf]
+	* Rev. 14182 Added ALL_WEWISH to the skill databases, and enabled the Christmas Musicbox item. [L0ne_W0lf]
+2009/11/24
+	* Rev. 14165 Changed Talkie Box to trap type, and removed the UF_NOREITERRATION flag. (Partial fix for Bugreport:3748) [L0ne_W0lf]
+2009/11/03
+	* Rev. 14147 Added Ifrit, Beelzebub, and Hibram to mob_boss, and a second Atroce. [L0ne_W0lf]
+2009/11/03
+	* Rev. 14123 Added known info for WoE SE Guild Dungeon monsters. [L0ne_W0lf]
+	- Movement speed, and attack delays are not official. (copy/pasted)
+	- Skills are, like above, copy, pasted, edited. Not official.
+	- Decided not to drops added for the mentioned monsters.
+	* Rev. 14122 Added font weight constants, although they don't seem to do anything. [L0ne_W0lf]
+2009/11/02
+	* Rev. 14112 Fixed overlapped HW2009 even mobs IDs [Lupus]
+2009/10/26
+	* Rev. 14103 Forgot to add the splash range for HT_LANDMINE (skill_db) in r14101. [L0ne_W0lf]
+2009/10/25
+	* Rev. 14101 Minor updates and supporting data for Sealed Shrine. [L0ne_W0lf]
+	- Zone 5 is now designated for sealed shrine restricted skills.
+	- Added new quest_db entries for Sealed Shine cooldown.
+	- Updated mob_db entries for Orc's Memory Instance. (improper stats)
+	- Updated Land Mine to have a splash effect. (Provided by Daegaladh)
+2009/10/02
+	* Rev. 14080 Updated Crystal 6 through 9 monsters for Valkyie Gift event. [L0ne_W0lf]
+2009/09/27
+	* Rev. 14076 Fixed typos in skill_nocast_db from r13840 (Extra ';' and spelled assumptio wrong.) [L0ne_W0lf]
 2009/09/19
 	* Stone Curse's petrify duration should be 20 seconds at any levels. [Inkfish]
 2009/09/18
 	* Storm Gust's freeze duration should be 12 seconds at any levels. [Inkfish]
 2009/09/16
 	* Rev, 14061 Re-added missing mercenary scrolls to item_trade database, must have gotten lost while diffing. [L0ne_W0lf]
-	* Rev. 14060 Fixed the AI mode for Zombie, change I made while testing new the Luciola AI. [L0ne_W0lf]
+	* Rev. 14060 Fixed the AI mode for Zombie, change I made while testing the Luciola AI. [L0ne_W0lf]
 	* Updated item_trade with several new items, hopefully retaining most white space.
 2009/09/10
 	* Rev. 14052 Updated monster info 13.1 mobs. [L0ne_W0lf]

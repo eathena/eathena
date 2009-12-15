@@ -222,38 +222,32 @@ int parse_console(char* buf)
 }
 
 
-//-----------------------------------
-// Function to create a new character
-//-----------------------------------
-int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id)
+/// Validates a character name and checks if it's available.
+int check_char_name(const char* name)
 {
 	CharDB* chars = charserver->chardb(charserver);
-	StorageDB* storages = charserver->storagedb(charserver);
-	struct mmo_charstatus cd;
-	char name[NAME_LENGTH];
 	int i;
-
-	safestrncpy(name, name_, NAME_LENGTH);
-	normalize_name(name, "\032\t\x0A\x0D "); //The following characters are always substituted and trimmed because they cause confusion and problems on the servers. [Skotlex]
 
 	// check length of character name
 	if( name[0] == '\0' )
 		return -2; // empty character name
 
-	// check content of character name
-	if( remove_control_chars(name) )
-		return -2; // control chars in name
-
 	// check for reserved names
 	if( strcmpi(name, main_chat_nick) == 0 || strcmpi(name, char_config.wisp_server_name) == 0 )
 		return -1; // nick reserved for internal server messages
+
+	// check content of character name
+	for( i = 0; i < NAME_LENGTH && name[i]; i++ )
+		if( ISCNTRL(name[i]) )
+			return -2; // control chars in name
 
 	// Check Authorised letters/symbols in the name of the character
 	if( char_config.char_name_option == 1 ) { // only letters/symbols in char_name_letters are authorised
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_config.char_name_letters, name[i]) == NULL )
 				return -2;
-	} else
+	}
+	else
 	if( char_config.char_name_option == 2 ) { // letters/symbols in char_name_letters are forbidden
 		for( i = 0; i < NAME_LENGTH && name[i]; i++ )
 			if( strchr(char_config.char_name_letters, name[i]) != NULL )
@@ -263,6 +257,28 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 	// check name (already in use?)
 	if( chars->name2id(chars, name, char_config.character_name_case_sensitive, NULL, NULL, NULL) )
 		return -1; // name already exists
+
+	return 0;
+}
+
+
+//-----------------------------------
+// Function to create a new character
+//-----------------------------------
+int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id)
+{
+	CharDB* chars = charserver->chardb(charserver);
+	StorageDB* storages = charserver->storagedb(charserver);
+	struct mmo_charstatus cd;
+	char name[NAME_LENGTH];
+	int result;
+
+	safestrncpy(name, name_, NAME_LENGTH);
+	normalize_name(name, "\032\t\x0A\x0D "); //The following characters are always substituted and trimmed because they cause confusion and problems on the servers. [Skotlex]
+
+	result = check_char_name(name);
+	if( result < 0 )
+		return result;
 
 	// insert new char to database
 	memset(&cd, 0, sizeof(cd));
@@ -511,7 +527,7 @@ int char_delete(int char_id)
 	// delete the character and all associated data
 	chars->remove(chars, cd.char_id);
 
-	charlog_log(cd.char_id, cd.account_id, -1, cd.name, "Deleted char");
+	charlog_log(cd.char_id, cd.account_id, cd.slot, cd.name, "Deleted char");
 
 	return 0;
 }

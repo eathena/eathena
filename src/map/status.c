@@ -628,6 +628,7 @@ int status_charge(struct block_list* bl, int hp, int sp)
 //If flag&1, damage is passive and does not triggers cancelling status changes.
 //If flag&2, fail if target does not has enough to substract.
 //If flag&4, if killed, mob must not give exp/loot.
+//If flag&8, sp loss on dead target.
 int status_damage(struct block_list *src,struct block_list *target,int hp, int sp, int walkdelay, int flag)
 {
 	struct status_data *status;
@@ -653,9 +654,11 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 		return skill_unit_ondamaged((struct skill_unit *)target, src, hp, gettick());
 
 	status = status_get_status_data(target);
+	if( status == &dummy_status )
+		return 0;
 
-	if (status == &dummy_status || !status->hp)
-		return 0; //Invalid targets: no damage or dead
+	if( !status->hp )
+		flag |= 8;
 
 // Let through. battle.c/skill.c have the whole logic of when it's possible or
 // not to hurt someone (and this check breaks pet catching) [Skotlex]
@@ -663,15 +666,10 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 //		return 0; //Cannot damage a bl not on a map, except when "charging" hp/sp
 
 	sc = status_get_sc(target);
-
 	if( battle_config.invincible_nodamage && src && sc && sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
-	{
-		if( !sp )
-			return 0;
-		hp = 0;
-	}
+		hp = 1;
 
-	if( hp && !(flag&1) ) {
+	if( hp && !(flag&(1|8)) ) {
 		if( sc ) {
 			struct status_change_entry *sce;
 			if( (sce = sc->data[SC_DEVOTION]) && src && battle_getcurrentskill(src) != PA_PRESSURE )
@@ -751,8 +749,8 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 		case BL_MER: mercenary_damage((TBL_MER*)target,src,hp,sp); break;
 	}
 
-	if (status->hp)
-  	{	//Still lives!
+	if( status->hp || flag&8 )
+  	{	//Still lives or has been dead before this damage.
 		if (walkdelay)
 			unit_set_walkdelay(target, gettick(), walkdelay, 0);
 		return hp+sp;
@@ -1387,6 +1385,8 @@ int status_calc_mob_(struct mob_data* md, bool first)
 
 	if (md->guardian_data && md->guardian_data->guardup_lv)
 		flag|=4;
+	if (md->class_ == MOBID_EMPERIUM)
+		flag|=4;
 
 	if (battle_config.slaves_inherit_speed && md->master_id)
 		flag|=8;
@@ -1499,15 +1499,30 @@ int status_calc_mob_(struct mob_data* md, bool first)
 		if (!gc)
 			ShowError("status_calc_mob: No castle set at map %s\n", map[md->bl.m].name);
 		else {
-			status->max_hp += 2000 * gc->defense;
-			status->max_sp += 200 * gc->defense;
-			status->hp = status->max_hp;
-			status->sp = status->max_sp;
+			if(gc->castle_id > 23) {
+				if(md->class_ == MOBID_EMPERIUM) {
+					status->max_hp += 1000 * gc->defense;
+					status->max_sp += 200 * gc->defense;
+					status->hp = status->max_hp;
+					status->sp = status->max_sp;
+					status->def += (gc->defense+2)/3;
+					status->mdef += (gc->defense+2)/3;
+				}
+			}else{
+				status->max_hp += 1000 * gc->defense;
+				status->max_sp += 200 * gc->defense;
+				status->hp = status->max_hp;
+				status->sp = status->max_sp;
+				status->def += (gc->defense+2)/3;
+				status->mdef += (gc->defense+2)/3;
+			}
 		}
-		status->batk += status->batk * 10*md->guardian_data->guardup_lv/100;
-		status->rhw.atk += status->rhw.atk * 10*md->guardian_data->guardup_lv/100;
-		status->rhw.atk2 += status->rhw.atk2 * 10*md->guardian_data->guardup_lv/100;
-		status->aspd_rate -= 100*md->guardian_data->guardup_lv;
+		if(md->class_ != MOBID_EMPERIUM) {
+			status->batk += status->batk * 10*md->guardian_data->guardup_lv/100;
+			status->rhw.atk += status->rhw.atk * 10*md->guardian_data->guardup_lv/100;
+			status->rhw.atk2 += status->rhw.atk2 * 10*md->guardian_data->guardup_lv/100;
+			status->aspd_rate -= 100*md->guardian_data->guardup_lv;
+		}
 	}
 
 	if( first ) //Initial battle status
@@ -1949,7 +1964,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 			//Card script execution.
 			if(itemdb_isspecial(sd->status.inventory[index].card[0]))
 				continue;
-			for(j=0;j<sd->inventory_data[index]->slot;j++){	
+			for(j=0;j<MAX_SLOTS;j++){ // Uses MAX_SLOTS to support Soul Bound system [Inkfish]
 				current_equip_card_id= c= sd->status.inventory[index].card[j];
 				if(!c)
 					continue;
@@ -5516,7 +5531,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		{
 			int stat;
 
-			val2 = tick / 1000;
 			val3 = 0;
 			val4 = 0;
 			stat = ( sd ? sd->status.str : status_get_base_status(bl)->str ) / 2; val3 |= cap_value(stat,0,0xFF)<<16;
@@ -5525,7 +5539,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			stat = ( sd ? sd->status.int_: status_get_base_status(bl)->int_) / 2; val4 |= cap_value(stat,0,0xFF)<<16;
 			stat = ( sd ? sd->status.dex : status_get_base_status(bl)->dex ) / 2; val4 |= cap_value(stat,0,0xFF)<<8;
 			stat = ( sd ? sd->status.luk : status_get_base_status(bl)->luk ) / 2; val4 |= cap_value(stat,0,0xFF);
-			tick = 1000;
 			break;
 		}
 		case SC_MARIONETTE2:
@@ -5541,7 +5554,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			if (!psce)
 				return 0;
 
-			val2 = tick / 1000;
 			val3 = 0;
 			val4 = 0;
 			max_stat = battle_config.max_parameter; //Cap to 99 (default)
@@ -5551,7 +5563,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			stat = (psce->val4 >>16)&0xFF; stat = min(stat, max_stat - status->int_); val4 |= cap_value(stat,0,0xFF)<<16;
 			stat = (psce->val4 >> 8)&0xFF; stat = min(stat, max_stat - status->dex ); val4 |= cap_value(stat,0,0xFF)<<8;
 			stat = (psce->val4 >> 0)&0xFF; stat = min(stat, max_stat - status->luk ); val4 |= cap_value(stat,0,0xFF);
-			tick = 1000;
 			break;
 		}
 		case SC_REJECTSWORD:
@@ -5845,7 +5856,6 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		case SC_SPIDERWEB:
 			if( bl->type == BL_PC )
 				tick /= 2;
-			val1 = val2 = 1;
 			break;
 		case SC_ARMOR:
 			//NPC_DEFENDER:
@@ -6099,12 +6109,15 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 		//OPTION
 		case SC_HIDING:
 			sc->option |= OPTION_HIDE;
+			opt_flag = 2;
 			break;
 		case SC_CLOAKING:
 			sc->option |= OPTION_CLOAK;
+			opt_flag = 2;
 			break;
 		case SC_CHASEWALK:
 			sc->option |= OPTION_CHASEWALK|OPTION_CLOAK;
+			opt_flag = 2;
 			break;
 		case SC_SIGHT:
 			sc->option |= OPTION_SIGHT;
@@ -6204,6 +6217,9 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			break;
 	}
 
+	if( opt_flag&2 && sd && sd->touching_id )
+		npc_touchnext_areanpc(sd,false);
+
 	return 1;
 }
 /*==========================================
@@ -6250,6 +6266,7 @@ int status_change_clear(struct block_list* bl, int type)
 		case SC_ITEMBOOST:
 		case SC_HELLPOWER:
 		case SC_JEXPBOOST:
+		case SC_AUTOTRADE:
 			continue;
 		}
 
@@ -7114,7 +7131,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr data)
 	case SC_MARIONETTE2:
 		{
 			struct block_list *pbl = map_id2bl(sce->val1);
-			if (pbl && check_distance_bl(bl, pbl, 7) && (sce->val2)-->0)
+			if( pbl && check_distance_bl(bl, pbl, 7) )
 			{
 				sc_timer_next(1000 + tick, status_change_timer, bl->id, data);
 				return 0;

@@ -792,8 +792,8 @@ int mob_setdelayspawn(struct mob_data *md)
 	if (md->spawn->delay2) //random variance
 		spawntime+= rand()%md->spawn->delay2;
 
-	if (spawntime < 5000) //Min respawn time (is it needed?)
-		spawntime = 5000;
+	if (spawntime < 500) //Min respawn time (is it needed?)
+		spawntime = 500;
 
 	if( md->spawn_timer != INVALID_TIMER )
 		delete_timer(md->spawn_timer, mob_delayspawn);
@@ -1837,14 +1837,13 @@ void mob_log_damage(struct mob_data *md, struct block_list *src, int damage)
 		case BL_PET:
 		{
 			struct pet_data *pd = (TBL_PET*)src;
-			if( battle_config.pet_attack_exp_to_master && pd->msd )
+			flag = 2;
+			if( pd->msd )
 			{
 				char_id = pd->msd->status.char_id;
-				damage = (damage*battle_config.pet_attack_exp_rate)/100; //Modify logged damage accordingly.
+				if( damage ) //Let mobs retaliate against the pet's master [Skotlex]
+					md->attacked_id = pd->msd->bl.id;
 			}
-			//Let mobs retaliate against the pet's master [Skotlex]
-			if( pd->msd && damage )
-				md->attacked_id = pd->msd->bl.id;
 			break;
 		}
 		case BL_MOB:
@@ -1954,6 +1953,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	int i,temp,count,pnum=0,m=md->bl.m;
 	unsigned int mvp_damage, tick = gettick();
 	unsigned short flaghom = 1; // [Zephyrus] Does the mob only received damage from homunculus?
+	bool rebirth;
 
 	status = &md->status;
 
@@ -2013,8 +2013,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		count++; //Only logged into same map chars are counted for the total.
 		if (pc_isdead(tsd))
 			continue; // skip dead players
-		if(md->dmglog[i].flag && !merc_is_hom_active(tsd->hd))
+		if(md->dmglog[i].flag == 1 && !merc_is_hom_active(tsd->hd))
 			continue; // skip homunc's share if inactive
+		if( md->dmglog[i].flag == 2 && (!tsd->status.pet_id || !tsd->pd) )
+			continue; // skip pet's share if inactive
 
 		if(md->dmglog[i].dmg > mvp_damage)
 		{
@@ -2026,7 +2028,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 		tmpsd[i] = tsd; // record as valid damage-log entry
 
-		if(!md->dmglog[i].flag && flaghom)
+		if(!md->dmglog[i].flag == 1 && flaghom)
 			flaghom = 0; // Damage received from other Types != Homunculus
 	}
 
@@ -2091,8 +2093,10 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			per /=2.;
 		else if(md->special_state.size==2)
 			per *=2.;
-		
-	
+
+		if( md->dmglog[i].flag == 2 )
+			per *= battle_config.pet_attack_exp_rate/100.;
+
 		if(battle_config.zeny_from_mobs && md->level) {
 			 // zeny calculation moblv + random moblv [Valaris]
 			zeny=(int) ((md->level+rand()%md->level)*per*bonus/100.);
@@ -2105,12 +2109,12 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 		else
 			base_exp = (unsigned int)cap_value(md->db->base_exp * per * bonus/100. * map[m].bexp/100., 1, UINT_MAX);
 		
-		if (map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag) //Homun earned job-exp is always lost.
+		if (map[m].flag.nojobexp || !md->db->job_exp || md->dmglog[i].flag == 1) //Homun earned job-exp is always lost.
 			job_exp = 0; 
 		else
 			job_exp = (unsigned int)cap_value(md->db->job_exp * per * bonus/100. * map[m].jexp/100., 1, UINT_MAX);
  		
-		if((temp = tmpsd[i]->status.party_id )>0 && !md->dmglog[i].flag) //Homun-done damage (flag 1) is not given to party
+		if((temp = tmpsd[i]->status.party_id )>0 && !md->dmglog[i].flag == 1) //Homun-done damage (flag 1) is not given to party
 		{
 			int j;
 			for(j=0;j<pnum && pt[j].id!=temp;j++); //Locate party.
@@ -2142,10 +2146,13 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			}
 		}
 		if(flag) {
-			if(base_exp && md->dmglog[i].flag) //tmpsd[i] is null if it has no homunc.
+			if(base_exp && md->dmglog[i].flag == 1) //tmpsd[i] is null if it has no homunc.
 				merc_hom_gainexp(tmpsd[i]->hd, base_exp);
 			if(base_exp || job_exp)
-				pc_gainexp(tmpsd[i], &md->bl, base_exp, job_exp);
+			{
+				if( md->dmglog[i].flag != 2 || battle_config.pet_attack_exp_to_master )
+					pc_gainexp(tmpsd[i], &md->bl, base_exp, job_exp);
+			}
 			if(zeny) // zeny from mobs [Valaris]
 				pc_getzeny(tmpsd[i], zeny);
 		}
@@ -2220,7 +2227,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				i_data = itemdb_search(ditem->item_data.nameid);
 				sprintf (message, msg_txt(541), (mvp_sd?mvp_sd->status.name:"???"), md->name, i_data->jname, (float)drop_rate/100);
 				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
-				intif_GMmessage(message,strlen(message)+1,0);
+				intif_broadcast(message,strlen(message)+1,0);
 			}
 			// Announce first, or else ditem will be freed. [Lance]
 			// By popular demand, use base drop rate for autoloot code. [Skotlex]
@@ -2346,7 +2353,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				i_data = itemdb_exists(item.nameid);
 				sprintf (message, msg_txt(541), mvp_sd->status.name, md->name, i_data->jname, temp/100.);
 				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
-				intif_GMmessage(message,strlen(message)+1,0);
+				intif_broadcast(message,strlen(message)+1,0);
 			}
 
 			if((temp = pc_additem(mvp_sd,&item,1)) != 0) {
@@ -2370,7 +2377,8 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 	  	//Emperium destroyed by script. Discard mvp character. [Skotlex]
 		mvp_sd = NULL;
 
-	if( !md->sc.data[SC_KAIZEL] && !md->sc.data[SC_REBIRTH] )
+	rebirth =  ( md->sc.data[SC_KAIZEL] || (md->sc.data[SC_REBIRTH] && !md->state.rebirth) );
+	if( !rebirth )
 	{ // Only trigger event on final kill
 		md->status.hp = 0; //So that npc_event invoked functions KNOW that mob is dead
 		if( src )
@@ -2424,8 +2432,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 	if(!md->spawn) //Tell status_damage to remove it from memory.
 		return 5; // Note: Actually, it's 4. Oh well...
-	
-	mob_setdelayspawn(md); //Set respawning.
+
+	if( !rebirth )
+		mob_setdelayspawn(md); //Set respawning.
 	return 3; //Remove from map.
 }
 

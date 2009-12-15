@@ -332,7 +332,7 @@ void pc_inventory_rentals(struct map_session_data *sd)
 	unsigned int expire_tick, next_tick = UINT_MAX;
 
 	for( i = 0; i < MAX_INVENTORY; i++ )
-	{
+	{ // Check for Rentals on Inventory
 		if( sd->status.inventory[i].nameid == 0 )
 			continue; // Nothing here
 		if( sd->status.inventory[i].expire_time == 0 )
@@ -347,6 +347,48 @@ void pc_inventory_rentals(struct map_session_data *sd)
 		{
 			expire_tick = (unsigned int)(sd->status.inventory[i].expire_time - time(NULL)) * 1000;
 			clif_rental_time(sd->fd, sd->status.inventory[i].nameid, (int)(expire_tick / 1000));
+			next_tick = min(expire_tick, next_tick);
+			c++;
+		}
+	}
+
+	for( i = 0; i < MAX_CART; i++ )
+	{ // Check for Rentals on Cart
+		if( sd->status.cart[i].nameid == 0 )
+			continue; // Nothing here
+		if( sd->status.cart[i].expire_time == 0 )
+			continue;
+
+		if( sd->status.cart[i].expire_time <= time(NULL) )
+		{
+			clif_rental_expired(sd->fd, sd->status.cart[i].nameid);
+			pc_cart_delitem(sd, i, 1, 0);
+		}
+		else
+		{
+			expire_tick = (unsigned int)(sd->status.cart[i].expire_time - time(NULL)) * 1000;
+			clif_rental_time(sd->fd, sd->status.cart[i].nameid, (int)(expire_tick / 1000));
+			next_tick = min(expire_tick, next_tick);
+			c++;
+		}
+	}
+
+	for( i = 0; i < MAX_STORAGE; i++ )
+	{ // Check for Rentals on Storage
+		if( sd->status.storage[i].nameid == 0 )
+			continue;
+		if( sd->status.storage[i].expire_time == 0 )
+			continue;
+
+		if( sd->status.storage[i].expire_time <= time(NULL) )
+		{
+			clif_rental_expired(sd->fd, sd->status.storage[i].nameid);
+			storage_delitem(sd, i, 1);
+		}
+		else
+		{
+			expire_tick = (unsigned int)(sd->status.storage[i].expire_time - time(NULL)) * 1000;
+			clif_rental_time(sd->fd, sd->status.storage[i].nameid, (int)(expire_tick / 1000));
 			next_tick = min(expire_tick, next_tick);
 			c++;
 		}
@@ -376,7 +418,7 @@ void pc_inventory_rental_add(struct map_session_data *sd, int seconds)
 		}
 	}
 	else
-		sd->rental_timer = add_timer(gettick() + tick, pc_inventory_rental_end, sd->bl.id, 0);
+		sd->rental_timer = add_timer(gettick() + min(tick,3600000), pc_inventory_rental_end, sd->bl.id, 0);
 }
 
 /*==========================================
@@ -1049,7 +1091,7 @@ int pc_reg_received(struct map_session_data *sd)
 	intif_Mail_requestinbox(sd->status.char_id, 0); // MAIL SYSTEM - Request Mail Inbox
 	intif_request_questlog(sd);
 
-	if (!sd->state.connect_new && sd->fd)
+	if (sd->state.connect_new == 0 && sd->fd)
 	{	//Character already loaded map! Gotta trigger LoadEndAck manually.
 		sd->state.connect_new = 1;
 		clif_parse_LoadEndAck(sd->fd, sd);
@@ -1585,7 +1627,7 @@ static int pc_bonus_item_drop(struct s_add_drop *drop, const short max, short id
 	return 1;
 }
 
-int pc_addautobonus(struct s_autobonus *bonus,char max,struct script_code *script,short rate,unsigned int dur,short flag,struct script_code *other_script,unsigned short pos,bool onskill)
+int pc_addautobonus(struct s_autobonus *bonus,char max,const char *script,short rate,unsigned int dur,short flag,const char *other_script,unsigned short pos,bool onskill)
 {
 	int i;
 
@@ -1616,8 +1658,8 @@ int pc_addautobonus(struct s_autobonus *bonus,char max,struct script_code *scrip
 	bonus[i].active = INVALID_TIMER;
 	bonus[i].atk_type = flag;
 	bonus[i].pos = pos;
-	bonus[i].bonus_script = script;
-	bonus[i].other_script = other_script;
+	bonus[i].bonus_script = aStrdup(script);
+	bonus[i].other_script = other_script?aStrdup(other_script):NULL;
 	return 1;
 }
 
@@ -1628,28 +1670,30 @@ int pc_delautobonus(struct map_session_data* sd, struct s_autobonus *autobonus,c
 
 	for( i = 0; i < max; i++ )
 	{
-		if( autobonus[i].active != INVALID_TIMER && ( !restore || (autobonus[i].pos && !(sd->state.autobonus&autobonus[i].pos)) ) )
-		{ // Logout / Unequipped an item with an activated bonus
-			delete_timer(autobonus[i].active,pc_endautobonus);
-			autobonus[i].active = INVALID_TIMER;
-		}
-
-		if( restore && sd->state.autobonus&autobonus[i].pos )
+		if( autobonus[i].active != INVALID_TIMER )
 		{
-			if( autobonus[i].active != INVALID_TIMER && autobonus[i].bonus_script )
-				run_script(autobonus[i].bonus_script,0,sd->bl.id,0);
-			continue;
+			if( restore && sd->state.autobonus&autobonus[i].pos )
+			{
+				if( autobonus[i].bonus_script )
+				{
+					int j;
+					ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus[i].pos );
+					if( j < EQI_MAX-1 )
+						script_run_autobonus(autobonus[i].bonus_script,sd->bl.id,sd->equip_index[j]);
+				}
+				continue;
+			}
+			else
+			{ // Logout / Unequipped an item with an activated bonus
+				delete_timer(autobonus[i].active,pc_endautobonus);
+				autobonus[i].active = INVALID_TIMER;
+			}
 		}
 
-		if( sd->state.autocast )
-			continue;
-
-		if( autobonus[i].bonus_script )
-			script_free_code(autobonus[i].bonus_script);
-		if( autobonus[i].other_script )
-			script_free_code(autobonus[i].other_script);
-		autobonus[i].rate = autobonus[i].atk_type = autobonus[i].duration = autobonus[i].pos = 0;
+		if( autobonus[i].bonus_script ) aFree(autobonus[i].bonus_script);
+		if( autobonus[i].other_script ) aFree(autobonus[i].other_script);
 		autobonus[i].bonus_script = autobonus[i].other_script = NULL;
+		autobonus[i].rate = autobonus[i].atk_type = autobonus[i].duration = autobonus[i].pos = 0;
 		autobonus[i].active = INVALID_TIMER;
 	}
 
@@ -1663,9 +1707,10 @@ int pc_exeautobonus(struct map_session_data *sd,struct s_autobonus *autobonus)
 
 	if( autobonus->other_script )
 	{
-		sd->state.autocast = 1;
-		run_script(autobonus->other_script,0,sd->bl.id,0);
-		sd->state.autocast = 0;
+		int j;
+		ARR_FIND( 0, EQI_MAX-1, j, sd->equip_index[j] >= 0 && sd->status.inventory[sd->equip_index[j]].equip == autobonus->pos );
+		if( j < EQI_MAX-1 )
+			script_run_autobonus(autobonus->other_script,sd->bl.id,sd->equip_index[j]);
 	}
 
 	autobonus->active = add_timer(gettick()+autobonus->duration, pc_endautobonus, sd->bl.id, (intptr)autobonus);
@@ -3297,7 +3342,7 @@ int pc_dropitem(struct map_session_data *sd,int n,int amount)
 		return 0; //Can't drop items in nodrop mapflag maps.
 	}
 	
-	if( !pc_candrop(sd,&sd->status.inventory[n]) || sd->status.inventory[n].expire_time )
+	if( !pc_candrop(sd,&sd->status.inventory[n]) )
 	{
 		clif_displaymessage (sd->fd, msg_txt(263));
 		return 0;
@@ -3608,7 +3653,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 		return 1;
 	data = itemdb_search(item_data->nameid);
 
-	if( item_data->expire_time || !itemdb_cancartstore(item_data, pc_isGM(sd)) )
+	if( !itemdb_cancartstore(item_data, pc_isGM(sd)) )
 	{ // Check item trade restrictions	[Skotlex]
 		clif_displaymessage (sd->fd, msg_txt(264));
 		return 1;
@@ -3691,7 +3736,7 @@ int pc_putitemtocart(struct map_session_data *sd,int idx,int amount)
 	
 	item_data = &sd->status.inventory[idx];
 
-	if( item_data->nameid == 0 || amount < 1 || item_data->amount < amount || sd->vender_id || item_data->expire_time )
+	if( item_data->nameid == 0 || amount < 1 || item_data->amount < amount || sd->vender_id )
 		return 1;
 
 	if( pc_cart_additem(sd,item_data,amount) == 0 )
@@ -3841,7 +3886,7 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 		i_data = itemdb_search(itemid);
 		sprintf (message, msg_txt(542), (sd->status.name != NULL)?sd->status.name :"GM", md->db->jname, i_data->jname, (float)md->db->dropitem[i].p/100);
 		//MSG: "'%s' stole %s's %s (chance: %0.02f%%)"
-		intif_GMmessage(message,strlen(message)+1,0);
+		intif_broadcast(message,strlen(message)+1,0);
 	}
 	return 1;
 }
@@ -5440,15 +5485,6 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			duel_reject(sd->duel_invite, sd);
 	}
 
-	pc_setdead(sd);
-	//Reset menu skills/item skills
-	if (sd->skillitem)
-		sd->skillitem = sd->skillitemlv = 0;
-	if (sd->menuskill_id)
-		sd->menuskill_id = sd->menuskill_val = 0;
-	//Reset ticks.
-	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
-
 	pc_setglobalreg(sd,"PC_DIE_COUNTER",sd->die_counter+1);
 	pc_setglobalreg(sd,"killerrid",src?src->id:0);
 	if( sd->state.bg_id )
@@ -5457,8 +5493,16 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 		if( (bg = bg_team_search(sd->state.bg_id)) != NULL && bg->die_event[0] )
 			npc_event(sd, bg->die_event, 0);
 	}
-
 	npc_script_event(sd,NPCE_DIE);
+
+	pc_setdead(sd);
+	//Reset menu skills/item skills
+	if (sd->skillitem)
+		sd->skillitem = sd->skillitemlv = 0;
+	if (sd->menuskill_id)
+		sd->menuskill_id = sd->menuskill_val = 0;
+	//Reset ticks.
+	sd->hp_loss.tick = sd->sp_loss.tick = sd->hp_regen.tick = sd->sp_regen.tick = 0;
 
 	if ( sd && sd->spiritball )
 		pc_delspiritball(sd,sd->spiritball,0);
@@ -6340,7 +6384,9 @@ int pc_setriding(TBL_PC* sd, int flag)
 int pc_candrop(struct map_session_data *sd,struct item *item)
 {
 	int level = pc_isGM(sd);
-	if ( !pc_can_give_items(level) ) //check if this GM level can drop items
+	if( item && item->expire_time )
+		return 0;
+	if( !pc_can_give_items(level) ) //check if this GM level can drop items
 		return 0;
 	return (itemdb_isdropable(item, level));
 }
@@ -7077,83 +7123,89 @@ int pc_checkitem(struct map_session_data *sd)
 
 	nullpo_retr(0, sd);
 
-	if (sd->vender_id) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
+	if( sd->vender_id ) //Avoid reorganizing items when we are vending, as that leads to exploits (pointed out by End of Exam)
 		return 0;
 	
-	// 所持品空き詰め
-	for(i=j=0;i<MAX_INVENTORY;i++){
-		if( (id=sd->status.inventory[i].nameid)==0)
+	for( i = j = 0; i < MAX_INVENTORY; i++ )
+	{
+		if( (id = sd->status.inventory[i].nameid) == 0 )
 			continue;
-		if( battle_config.item_check && !itemdb_available(id) ){
+
+		if( battle_config.item_check && !itemdb_available(id) )
+		{
 			ShowWarning("illegal item id %d in %d[%s] inventory.\n",id,sd->bl.id,sd->status.name);
 			pc_delitem(sd,i,sd->status.inventory[i].amount,3);
 			continue;
 		}
-		if(i>j){
-			memcpy(&sd->status.inventory[j],&sd->status.inventory[i],sizeof(struct item));
+		if( i > j )
+		{
+			memcpy(&sd->status.inventory[j], &sd->status.inventory[i], sizeof(struct item));
 			sd->inventory_data[j] = sd->inventory_data[i];
 		}
 		j++;
 	}
-	if(j < MAX_INVENTORY)
-		memset(&sd->status.inventory[j],0,sizeof(struct item)*(MAX_INVENTORY-j));
-	for(k=j;k<MAX_INVENTORY;k++)
+
+	if( j < MAX_INVENTORY )
+		memset(&sd->status.inventory[j], 0, sizeof(struct item)*(MAX_INVENTORY-j));
+	for( k = j ; k < MAX_INVENTORY; k++ )
 		sd->inventory_data[k] = NULL;
 
-	// カ?ト?空き詰め
-	for(i=j=0;i<MAX_CART;i++){
-		if( (id=sd->status.cart[i].nameid)==0 )
+	for( i = j = 0; i < MAX_CART; i++ )
+	{
+		if( (id=sd->status.cart[i].nameid) == 0 )
 			continue;
 		if( battle_config.item_check &&  !itemdb_available(id) ){
 			ShowWarning("illegal item id %d in %d[%s] cart.\n",id,sd->bl.id,sd->status.name);
 			pc_cart_delitem(sd,i,sd->status.cart[i].amount,1);
 			continue;
 		}
-		if(i>j){
+		if( i > j )
+		{
 			memcpy(&sd->status.cart[j],&sd->status.cart[i],sizeof(struct item));
 		}
 		j++;
 	}
-	if(j < MAX_CART)
+	if( j < MAX_CART )
 		memset(&sd->status.cart[j],0,sizeof(struct item)*(MAX_CART-j));
 
-	// ? 備位置チェック
+	for( i = 0; i < MAX_INVENTORY; i++)
+	{
+		it = sd->inventory_data[i];
 
-	for(i=0;i<MAX_INVENTORY;i++){
-
-		it=sd->inventory_data[i];
-
-		if(sd->status.inventory[i].nameid==0)
+		if( sd->status.inventory[i].nameid == 0 )
 			continue;
 
-		if(!sd->status.inventory[i].equip)
+		if( !sd->status.inventory[i].equip )
 			continue;
 
-		if(sd->status.inventory[i].equip&~pc_equippoint(sd,i)) {
-			sd->status.inventory[i].equip=0;
+		if( sd->status.inventory[i].equip&~pc_equippoint(sd,i) )
+		{
+			pc_unequipitem(sd, i, 2);
 			calc_flag = 1;
 			continue;
 		}
-		if(it) {
-			//check for forbiden items.
+
+		if( it )
+		{ // check for forbiden items.
 			int flag =
 					(map[sd->bl.m].flag.restricted?map[sd->bl.m].zone:0)
 					| (map[sd->bl.m].flag.pvp?1:0)
 					| (map_flag_gvg(sd->bl.m)?2:0);
-			if (flag && (it->flag.no_equip&flag || !pc_isAllowedCardOn(sd,it->slot,i,flag)))
+			if( flag && (it->flag.no_equip&flag || !pc_isAllowedCardOn(sd,it->slot,i,flag)) )
 			{
-				sd->status.inventory[i].equip=0;
+				pc_unequipitem(sd, i, 2);
 				calc_flag = 1;
 			}
 		}
 	}
 
 	pc_setequipindex(sd);
-	if(calc_flag && sd->state.active)
+	if( calc_flag && sd->state.active )
 	{
+		pc_checkallowskill(sd);
 		status_calc_pc(sd,0);
-		pc_equiplookall(sd);
 	}
+
 	return 0;
 }
 
@@ -7310,6 +7362,9 @@ void pc_bleeding (struct map_session_data *sd, unsigned int diff_tick)
 {
 	int hp = 0, sp = 0;
 
+	if( pc_isdead(sd) )
+		return;
+
 	if (sd->hp_loss.value) {
 		sd->hp_loss.tick += diff_tick;
 		while (sd->hp_loss.tick >= sd->hp_loss.rate) {
@@ -7408,6 +7463,7 @@ int pc_autosave(int tid, unsigned int tick, int id, intptr data)
 		save_flag = 2;
 
 		chrif_save(sd,0);
+		break;
 	}
 	mapit_free(iter);
 
@@ -7446,7 +7502,7 @@ int map_day_timer(int tid, unsigned int tick, int id, intptr data)
 	night_flag = 0; // 0=day, 1=night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
 	strcpy(tmp_soutput, (data == 0) ? msg_txt(502) : msg_txt(60)); // The day has arrived!
-	intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);
+	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, 0);
 	return 0;
 }
 
@@ -7467,7 +7523,7 @@ int map_night_timer(int tid, unsigned int tick, int id, intptr data)
 	night_flag = 1; // 0=day, 1=night [Yor]
 	map_foreachpc(pc_daynight_timer_sub);
 	strcpy(tmp_soutput, (data == 0) ? msg_txt(503) : msg_txt(59)); // The night has fallen...
-	intif_GMmessage(tmp_soutput, strlen(tmp_soutput) + 1, 0);
+	intif_broadcast(tmp_soutput, strlen(tmp_soutput) + 1, 0);
 	return 0;
 }
 
@@ -7580,7 +7636,7 @@ int duel_invite(const unsigned int did, struct map_session_data* sd, struct map_
 	
 	// "Blue -- Player %s invites you to PVP duel (@accept/@reject) --"
 	sprintf(output, msg_txt(374), sd->status.name);
-	clif_GMmessage((struct block_list *)target_sd, output, strlen(output)+1, 3);
+	clif_broadcast((struct block_list *)target_sd, output, strlen(output)+1, 0x10, SELF);
 	return 0;
 }
 

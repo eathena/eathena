@@ -519,13 +519,10 @@ int parse_fromchar(int fd)
 				node->account_id == account_id &&
 				node->login_id1  == login_id1 &&
 				node->login_id2  == login_id2 &&
-				node->sex        == sex_num2str(sex) &&
-				node->ip         == ip_ )
+				node->sex        == sex_num2str(sex) /*&&
+				node->ip         == ip_*/ )
 			{// found
 				//ShowStatus("Char-server '%s': authentication of the account %d accepted (ip: %s).\n", server[id].name, account_id, ip);
-
-				// each auth entry can only be used once
-				idb_remove(auth_db, account_id);
 
 				// send ack
 				WFIFOHEAD(fd,25);
@@ -539,6 +536,9 @@ int parse_fromchar(int fd)
 				WFIFOL(fd,20) = node->version;
 				WFIFOB(fd,24) = node->clienttype;
 				WFIFOSET(fd,25);
+
+				// each auth entry can only be used once
+				idb_remove(auth_db, account_id);
 			}
 			else
 			{// authentication not found
@@ -1678,6 +1678,7 @@ void login_set_defaults()
 {
 	login_config.login_ip = INADDR_ANY;
 	login_config.login_port = 6900;
+	login_config.ipban_cleanup_interval = 60;
 	login_config.ip_sync_interval = 0;
 	login_config.log_login = true;
 	safestrncpy(login_config.date_format, "%Y-%m-%d %H:%M:%S", sizeof(login_config.date_format));
@@ -1763,6 +1764,8 @@ int login_config_read(const char* cfgName)
 			login_config.use_dnsbl = (bool)config_switch(w2);
 		else if(!strcmpi(w1, "dnsbl_servers"))
 			safestrncpy(login_config.dnsbl_servs, w2, sizeof(login_config.dnsbl_servs));
+		else if(!strcmpi(w1, "ipban_cleanup_interval"))
+			login_config.ipban_cleanup_interval = (unsigned int)atoi(w2);
 		else if(!strcmpi(w1, "ip_sync_interval"))
 			login_config.ip_sync_interval = (unsigned int)1000*60*atoi(w2); //w2 comes in minutes.
 

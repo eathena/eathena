@@ -102,6 +102,29 @@ struct view_data* npc_get_viewdata(int class_)
 		return &npc_viewdb[class_];
 	return NULL;
 }
+
+int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd)
+{
+	char name[NAME_LENGTH*2+3];
+
+	if( nd->touching_id || pc_ishiding(sd) )
+		return 0;
+
+	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch_name);
+	return npc_event(sd,name,1);
+}
+
+int npc_ontouch2_event(struct map_session_data *sd, struct npc_data *nd)
+{
+	char name[NAME_LENGTH*2+3];
+
+	if( sd->areanpc_id == nd->bl.id )
+		return 0;
+
+	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch2_name);
+	return npc_event(sd,name,2);
+}
+
 /*==========================================
  * NPCの無効化/有効化
  * npc_enable
@@ -116,19 +139,17 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 	nullpo_retr(0, nd=va_arg(ap,struct npc_data *));
 	if(bl->type == BL_PC && (sd=(struct map_session_data *)bl))
 	{
-		char name[NAME_LENGTH*2+3];
+		TBL_PC *sd = (TBL_PC*)bl;
 
-		if (nd->sc.option&OPTION_INVISIBLE)	// 無効化されている
+		if (nd->sc.option&OPTION_INVISIBLE)
 			return 1;
 
-		if(sd->areanpc_id==nd->bl.id)
-			return 1;
-		sd->areanpc_id=nd->bl.id;
-
-		snprintf(name, ARRAYLENGTH(name), "%s::OnTouch", nd->exname); // exname to be specific. exname is the unique identifier for script events. [Lance]
-		npc_event(sd,name,0);
+		if( npc_ontouch_event(sd,nd) > 0 && npc_ontouch2_event(sd,nd) > 0 )
+		{ // failed to run OnTouch event, so just click the npc
+			pc_stop_walking(sd,1);
+			npc_click(sd,nd);
+		}
 	}
-	//aFree(name);
 	return 0;
 }
 
@@ -695,10 +716,12 @@ int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char
 		int i;
 		ARR_FIND( 0, MAX_EVENTQUEUE, i, sd->eventqueue[i][0] == '\0' );
 		if( i < MAX_EVENTQUEUE )
+		{
 			safestrncpy(sd->eventqueue[i],eventname,50); //Event enqueued.
-		else
-			ShowWarning("npc_event: player's event queue is full, can't add event '%s' !\n", eventname);
-		
+			return 0;
+		}
+
+		ShowWarning("npc_event: player's event queue is full, can't add event '%s' !\n", eventname);
 		return 1;
 	}
 	if( ev->nd->sc.option&OPTION_INVISIBLE )
@@ -714,52 +737,80 @@ int npc_event_sub(struct map_session_data* sd, struct event_data* ev, const char
 /*==========================================
  * イベント型のNPC処理
  *------------------------------------------*/
-int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill)
+int npc_event(struct map_session_data* sd, const char* eventname, int ontouch)
 {
 	struct event_data* ev = (struct event_data*)strdb_get(ev_db, eventname);
 	struct npc_data *nd;
-	int xs,ys;
-	char mobevent[100];
 
-	if (sd == NULL) {
-		nullpo_info(NLP_MARK);
-		return 0;
+	nullpo_retr(0,sd);
+
+	if( ev == NULL || (nd = ev->nd) == NULL )
+	{
+		if( !ontouch )
+			ShowError("npc_event: event not found [%s]\n", eventname);
+		return ontouch;
 	}
 
-	if (ev == NULL && eventname && strcmp(((eventname)+strlen(eventname)-9),"::OnTouch") == 0)
+	switch(ontouch)
+	{
+	case 1:
+		nd->touching_id = sd->bl.id;
+		sd->touching_id = nd->bl.id;
+		break;
+	case 2:
+		sd->areanpc_id = nd->bl.id;
+		break;
+	}
+
+	return npc_event_sub(sd,ev,eventname);
+}
+
+int npc_touch_areanpc_sub(struct block_list *bl, va_list ap)
+{
+	struct map_session_data *sd;
+	int pc_id,npc_id;
+	char *name;
+
+	nullpo_retr(0,bl);
+	nullpo_retr(0,(sd = map_id2sd(bl->id)));
+
+	pc_id = va_arg(ap,int);
+	npc_id = va_arg(ap,int);
+	name = va_arg(ap,char*);
+
+	if( pc_ishiding(sd) )
+		return 0;
+	if( pc_id == sd->bl.id )
+		return 0;
+
+	npc_event(sd,name,1);
+
+	return 1;
+}
+
+int npc_touchnext_areanpc(struct map_session_data* sd, bool leavemap)
+{
+	struct npc_data *nd = map_id2nd(sd->touching_id);
+	short xs, ys;
+
+	if( !nd || nd->touching_id != sd->bl.id )
 		return 1;
 
-	if (ev == NULL || (nd = ev->nd) == NULL) {
-		if (mob_kill) {
-			strcpy( mobevent, eventname);
-			strcat( mobevent, "::OnMyMobDead");
-			ev = (struct event_data*)strdb_get(ev_db, mobevent);
-			if (ev == NULL || (nd = ev->nd) == NULL) {
-				ShowError("npc_event: (mob_kill) event not found [%s]\n", mobevent);
-				return 0;
-			}
-		} else {
-			ShowError("npc_event: event not found [%s]\n", eventname);
-			return 0;
-		}
-	}
+	xs = nd->u.scr.xs;
+	ys = nd->u.scr.ys;
 
-	xs=nd->u.scr.xs;
-	ys=nd->u.scr.ys;
-	if( xs >= 0 && ys >= 0 && strcmp(((eventname)+strlen(eventname)-6),"Global") != 0 )
+	if( sd->bl.m != nd->bl.m || 
+		sd->bl.x < nd->bl.x - xs || sd->bl.x > nd->bl.x + xs ||
+		sd->bl.y < nd->bl.y - ys || sd->bl.y > nd->bl.y + ys ||
+		pc_ishiding(sd) || leavemap )
 	{
-		if( nd->bl.m >= 0 )
-		{// Non-invisible npc
-		  	if( nd->bl.m != sd->bl.m )
-				return 1;
-			if( sd->bl.x < nd->bl.x-xs || sd->bl.x > nd->bl.x+xs )
-				return 1;
-			if( sd->bl.y < nd->bl.y-ys || sd->bl.y > nd->bl.y+ys )
-				return 1;
-		}
+		char name[NAME_LENGTH*2+3];
+
+		nd->touching_id = sd->touching_id = 0;
+		snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch_name);
+		map_forcountinarea(npc_touch_areanpc_sub,nd->bl.m,nd->bl.m - xs,nd->bl.y - ys,nd->bl.x + xs,nd->bl.y + ys,1,BL_PC,sd->bl.id,nd->bl.id,name);
 	}
-	
-	return npc_event_sub(sd,ev,eventname);
+	return 0;
 }
 
 /*==========================================
@@ -773,8 +824,9 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 
 	nullpo_retr(1, sd);
 
-	if(sd->npc_id)
-		return 1;
+	// Why not enqueue it? [Inkfish]
+	//if(sd->npc_id)
+	//	return 1;
 
 	for(i=0;i<map[m].npc_num;i++)
 	{
@@ -807,29 +859,23 @@ int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y)
 	}
 	switch(map[m].npc[i]->subtype) {
 		case WARP:
-			// hidden chars cannot use warps -- is it the same for scripts too?
-			if (sd->sc.option&(OPTION_HIDE|OPTION_CLOAK|OPTION_CHASEWALK))
-				break;
+			if( pc_ishiding(sd) )
+				break; // hidden chars cannot use warps
 			pc_setpos(sd,map[m].npc[i]->u.warp.mapindex,map[m].npc[i]->u.warp.x,map[m].npc[i]->u.warp.y,0);
 			break;
 		case SCRIPT:
-		{
-			char name[NAME_LENGTH*2+3];
-
-			if(sd->areanpc_id == map[m].npc[i]->bl.id)
-				return 1;
-			sd->areanpc_id = map[m].npc[i]->bl.id;
-
-			snprintf(name, ARRAYLENGTH(name), "%s::OnTouch", map[m].npc[i]->exname); // It goes here too. exname being the unique identifier. [Lance]
-
-			if( npc_event(sd,name,0) > 0 )
-			{// failed to run OnTouch event, so just click the npc
+			if( npc_ontouch_event(sd,map[m].npc[i]) > 0 && npc_ontouch2_event(sd,map[m].npc[i]) > 0 )
+			{ // failed to run OnTouch event, so just click the npc
+				struct unit_data *ud = unit_bl2ud(&sd->bl);
+				if( ud && ud->walkpath.path_pos < ud->walkpath.path_len )
+				{ // Since walktimer always == -1 at this time, we stop walking manually. [Inkfish]
+					clif_fixpos(&sd->bl);
+					ud->walkpath.path_pos = ud->walkpath.path_len;
+				}
+				sd->areanpc_id = map[m].npc[i]->bl.id;
 				npc_click(sd,map[m].npc[i]);
 			}
-
-			pc_stop_walking(sd,1); //Make it stop walking!
 			break;
-		}
 	}
 	return 0;
 }
@@ -2307,7 +2353,6 @@ const char* npc_parse_duplicate(char* w1, char* w2, char* w3, char* w4, const ch
 int npc_duplicate4instance(struct npc_data *snd, int m)
 {
 	char newname[NAME_LENGTH];
-	int i = 0;
 
 	if( map[m].instance_id == 0 )
 		return 1;
@@ -2553,7 +2598,7 @@ void npc_parse_mob2(struct spawn_data* mob)
 
 static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const char* start, const char* buffer, const char* filepath)
 {
-	int num, class_, mode, x,y,xs,ys, i,j;
+	int num, class_, mode, m,x,y,xs,ys, i,j;
 	char mapname[32];
 	struct spawn_data mob, *data;
 	struct mob_db* db;
@@ -2575,10 +2620,10 @@ static const char* npc_parse_mob(char* w1, char* w2, char* w3, char* w4, const c
 		ShowError("npc_parse_mob: Unknown map '%s' in file '%s', line '%d'.\n", mapname, filepath, strline(buffer,start-buffer));
 		return strchr(start,'\n');// skip and continue
 	}
-	mode =  map_mapname2mapid(mapname);
-	if( mode < 0 )//Not loaded on this map-server instance.
+	m =  map_mapname2mapid(mapname);
+	if( m < 0 )//Not loaded on this map-server instance.
 		return strchr(start,'\n');// skip and continue
-	mob.m = (unsigned short)mode;
+	mob.m = (unsigned short)m;
 
 	if( x < 0 || x >= map[mob.m].xs || y < 0 || y >= map[mob.m].ys )
 	{
@@ -3260,7 +3305,7 @@ int npc_reload(void)
 		npc_id - npc_new_min, npc_warp, npc_shop, npc_script, npc_mob, npc_cache_mob, npc_delay_mob);
 
 	for( i = 0; i < ARRAYLENGTH(instance); ++i )
-		if( instance[i].instance_id ) instance_init(instance[i].instance_id);
+		instance_init(instance[i].instance_id);
 
 	//Re-read the NPC Script Events cache.
 	npc_read_event_script();

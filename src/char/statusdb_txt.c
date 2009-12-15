@@ -61,10 +61,10 @@ static bool status_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 		Txt_Init(txt, (char*)str, strlen(str), 6, ',', ' ', "");
 		Txt_Bind(txt, 0, TXTDT_USHORT, &tmp.type, sizeof(tmp.type));
 		Txt_Bind(txt, 1, TXTDT_INT, &tmp.tick, sizeof(tmp.tick));
-		Txt_Bind(txt, 2, TXTDT_INT, &tmp.val1, sizeof(tmp.val1));
-		Txt_Bind(txt, 3, TXTDT_INT, &tmp.val2, sizeof(tmp.val2));
-		Txt_Bind(txt, 4, TXTDT_INT, &tmp.val3, sizeof(tmp.val3));
-		Txt_Bind(txt, 5, TXTDT_INT, &tmp.val4, sizeof(tmp.val4));
+		Txt_Bind(txt, 2, TXTDT_LONG, &tmp.val1, sizeof(tmp.val1));
+		Txt_Bind(txt, 3, TXTDT_LONG, &tmp.val2, sizeof(tmp.val2));
+		Txt_Bind(txt, 4, TXTDT_LONG, &tmp.val3, sizeof(tmp.val3));
+		Txt_Bind(txt, 5, TXTDT_LONG, &tmp.val4, sizeof(tmp.val4));
 
 		i = 0;
 		while( !done )
@@ -114,7 +114,7 @@ static bool status_db_txt_fromstr(const char* str, int* key, void* data, size_t 
 
 		for( i = 0; i < count; i++ )
 		{
-			if( sscanf(str, "%hu,%d,%d,%d,%d,%d%n", &tmp.type, &tmp.tick, &tmp.val1, &tmp.val2, &tmp.val3, &tmp.val4, &n) < 6 || str[n] != '\t' )
+			if( sscanf(str, "%hu,%d,%ld,%ld,%ld,%ld%n", &tmp.type, &tmp.tick, &tmp.val1, &tmp.val2, &tmp.val3, &tmp.val4, &n) < 6 || str[n] != '\t' )
 				return false;
 
 			str += n + 1;
@@ -161,10 +161,10 @@ static bool status_db_txt_tostr(char* str, size_t strsize, int key, const void* 
 
 		Txt_Bind(txt, 0, TXTDT_USHORT, &sc[i].type, sizeof(sc[i].type));
 		Txt_Bind(txt, 1, TXTDT_INT, &sc[i].tick, sizeof(sc[i].tick));
-		Txt_Bind(txt, 2, TXTDT_INT, &sc[i].val1, sizeof(sc[i].val1));
-		Txt_Bind(txt, 3, TXTDT_INT, &sc[i].val2, sizeof(sc[i].val2));
-		Txt_Bind(txt, 4, TXTDT_INT, &sc[i].val3, sizeof(sc[i].val3));
-		Txt_Bind(txt, 5, TXTDT_INT, &sc[i].val4, sizeof(sc[i].val4));
+		Txt_Bind(txt, 2, TXTDT_LONG, &sc[i].val1, sizeof(sc[i].val1));
+		Txt_Bind(txt, 3, TXTDT_LONG, &sc[i].val2, sizeof(sc[i].val2));
+		Txt_Bind(txt, 4, TXTDT_LONG, &sc[i].val3, sizeof(sc[i].val3));
+		Txt_Bind(txt, 5, TXTDT_LONG, &sc[i].val4, sizeof(sc[i].val4));
 
 		if( Txt_Write(txt) != TXT_SUCCESS )
 		{
