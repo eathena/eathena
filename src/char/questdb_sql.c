@@ -77,17 +77,20 @@ static bool quest_db_sql_del(QuestDB_SQL* db, const int char_id, const int quest
 }
 
 
+/// @param size Capacity of the array, in fields.
 /// @private
-static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int* const count)
+static bool mmo_quests_fromsql(QuestDB_SQL* db, struct quest* log, size_t size, int char_id)
 {
 	Sql* sql_handle = db->quests;
 	struct quest tmp_quest;
 	SqlStmt* stmt;
-	int i;
+	size_t i;
 	bool result = false;
 
+	// zero out the destination first
+	memset(log, 0, size * sizeof(struct quest));
+
 	memset(&tmp_quest, 0, sizeof(tmp_quest));
-	*count = 0;
 
 	stmt = SqlStmt_Malloc(sql_handle);
 
@@ -107,10 +110,8 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 		break;
 	}
 
-	for( i = 0; i < MAX_QUEST_DB && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
-		memcpy(&(*log)[i], &tmp_quest, sizeof(tmp_quest));
-
-	*count = i;
+	for( i = 0; i < size && SQL_SUCCESS == SqlStmt_NextRow(stmt); ++i )
+		memcpy(&log[i], &tmp_quest, sizeof(tmp_quest));
 
 	// if we got here, everything succeeded
 	result = true;
@@ -124,18 +125,25 @@ static bool mmo_quests_fromsql(QuestDB_SQL* db, questlog* log, int char_id, int*
 }
 
 
+/// @param size Number of fields in the array to process.
 /// @private
-static bool mmo_quests_tosql(QuestDB_SQL* db, questlog* log, int char_id)
+static bool mmo_quests_tosql(QuestDB_SQL* db, const struct quest* log, size_t size, int char_id)
 {
-	questlog qd1; // new quest log, to be saved
-	questlog qd2; // previous quest log
+	struct quest qd1[MAX_QUEST_DB]; // new quest log, to be saved
+	struct quest qd2[MAX_QUEST_DB]; // previous quest log
 	int num2;
 	int i, j;
 	bool result = true;
 
-	memcpy(&qd1, log, sizeof(qd1));
-	memset(&qd2, 0, sizeof(qd2));
-	mmo_quests_fromsql(db, &qd2, char_id, &num2);
+	size = min(size, MAX_QUEST_DB); // temporary safety check
+
+	memset(qd1, 0, sizeof(qd1));
+	memset(qd2, 0, sizeof(qd2));
+	memcpy(qd1, log, size * sizeof(struct quest));
+	mmo_quests_fromsql(db, qd2, ARRAYLENGTH(qd2), char_id);
+
+	// determine number of entries in array
+	ARR_FIND(0, MAX_QUEST_DB, num2, qd2[num2].quest_id == 0);
 
 	for( i = 0; i < ARRAYLENGTH(qd1); i++ )
 	{
@@ -196,9 +204,7 @@ static bool quest_db_sql_remove(QuestDB* self, const int char_id)
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
 	Sql* sql_handle = db->quests;
 
-	if( SQL_SUCCESS != Sql_Query(sql_handle,
-		"DELETE FROM `%s` WHERE `char_id` = '%d'",
-		db->quest_db, char_id) )
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id` = '%d'",	db->quest_db, char_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return false;
@@ -209,18 +215,40 @@ static bool quest_db_sql_remove(QuestDB* self, const int char_id)
 
 
 /// @protected
-static bool quest_db_sql_load(QuestDB* self, questlog* log, int char_id, int* const count)
+static bool quest_db_sql_save(QuestDB* self, const struct quest* log, size_t size, int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
-	return mmo_quests_fromsql(db, log, char_id, count);
+	return mmo_quests_tosql(db, log, size, char_id);
 }
 
 
 /// @protected
-static bool quest_db_sql_save(QuestDB* self, questlog* log, int char_id)
+static bool quest_db_sql_load(QuestDB* self, struct quest* log, size_t size, int char_id)
 {
 	QuestDB_SQL* db = (QuestDB_SQL*)self;
-	return mmo_quests_tosql(db, log, char_id);
+	return mmo_quests_fromsql(db, log, size, char_id);
+}
+
+
+/// @protected
+static int quest_db_sql_count(QuestDB* self, int char_id)
+{
+	QuestDB_SQL* db = (QuestDB_SQL*)self;
+	char* data;
+	int result;
+
+	if( SQL_SUCCESS != Sql_Query(db->quests, "SELECT COUNT(*) FROM `%s` WHERE `char_id` = %d", db->quest_db, char_id)
+	||  SQL_SUCCESS != Sql_NextRow(db->quests)
+	) {
+		Sql_ShowDebug(db->quests);
+		Sql_FreeResult(db->quests);
+		return 0;
+	}
+
+	Sql_GetData(db->quests, 0, &data, NULL);
+	result = atoi(data);
+
+	return result;
 }
 
 
@@ -244,8 +272,9 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	db->vtable.p.destroy = &quest_db_sql_destroy;
 	db->vtable.p.sync    = &quest_db_sql_sync;
 	db->vtable.remove    = &quest_db_sql_remove;
-	db->vtable.load      = &quest_db_sql_load;
 	db->vtable.save      = &quest_db_sql_save;
+	db->vtable.load      = &quest_db_sql_load;
+	db->vtable.count     = &quest_db_sql_count;
 	db->vtable.iterator  = &quest_db_sql_iterator;
 
 	// initialize to default values

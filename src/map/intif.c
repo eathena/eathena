@@ -1421,36 +1421,52 @@ int intif_request_questlog(TBL_PC *sd)
 
 int intif_parse_questlog(int fd)
 {
-	int char_id = RFIFOL(fd, 4);
-	TBL_PC * sd = map_charid2sd(char_id);
-	int count = (RFIFOW(fd, 2) - 8) / sizeof(struct quest);
+	int count = (RFIFOW(fd,2) - 8) / sizeof(struct quest);
+	int char_id = RFIFOL(fd,4);
+	const struct quest* log = (struct quest*)RFIFOP(fd,8);
+	TBL_PC* sd = map_charid2sd(char_id);
 	int i;
 
 	//User not online anymore
 	if(!sd)
 		return -1;
 
-	sd->avail_quests = sd->num_quests = count;
-
 	memset(&sd->quest_log, 0, sizeof(sd->quest_log));
+	sd->avail_quests = 0;
+	sd->num_quests = 0;
 
-	for( i = 0; i < sd->num_quests; i++ )
+	// load active quests
+	for( i = 0; i < count; ++i )
 	{
-		memcpy(&sd->quest_log[i], RFIFOP(fd, i*sizeof(struct quest)+8), sizeof(struct quest));
+		if( log[i].quest_id == 0 || log[i].state == Q_COMPLETE )
+			continue; // skip these
 
-		sd->quest_index[i] = quest_search_db(sd->quest_log[i].quest_id);
-
-		if( sd->quest_index[i] < 0 )
+		sd->quest_index[sd->num_quests] = quest_search_db(log[i].quest_id);
+		if( sd->quest_index[sd->num_quests] < 0 )
 		{  
-			ShowError("intif_parse_questlog: quest %d not found in DB.\n",sd->quest_log[i].quest_id);
-			sd->avail_quests--;
-			sd->num_quests--;
-			i--;
+			ShowError("intif_parse_questlog: quest %d not found in DB.\n", log[i].quest_id);
 			continue;
 		}
 
-		if( sd->quest_log[i].state == Q_COMPLETE )
-			sd->avail_quests--;
+		memcpy(&sd->quest_log[sd->num_quests], &log[i], sizeof(log[i]));
+		sd->avail_quests++;
+		sd->num_quests++;
+	}
+	// load finished quests
+	for( i = 0; i < count; ++i )
+	{
+		if( log[i].quest_id == 0 || log[i].state != Q_COMPLETE )
+			continue; // skip these
+
+		sd->quest_index[sd->num_quests] = quest_search_db(log[i].quest_id);
+		if( sd->quest_index[sd->num_quests] < 0 )
+		{  
+			ShowError("intif_parse_questlog: quest %d not found in DB.\n", log[i].quest_id);
+			continue;
+		}
+
+		memcpy(&sd->quest_log[sd->num_quests], &log[i], sizeof(log[i]));
+		sd->num_quests++;
 	}
 
 	quest_pc_login(sd);

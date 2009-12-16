@@ -8,6 +8,7 @@
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/txt.h"
 #include "../common/utils.h"
 #include "charserverdb_txt.h"
 #include "csdb_txt.h"
@@ -36,79 +37,124 @@ typedef struct QuestDB_TXT
 
 /// Parses string containing serialized data into the provided data structure.
 /// @protected
-static bool skill_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
+static bool quest_db_txt_fromstr(const char* str, int* key, void* data, size_t size, size_t* out_size, unsigned int version)
 {
-	questlog* log = (questlog*)data;
-
-	*out_size = sizeof(*log);
-
-	if( size < sizeof(*log) )
-		return true;
+	struct quest* log = (struct quest*)data;
 
 	if( version == 20090920 )
 	{// quest blocks separated by tabs, quest fields separated by commas, 6 fields total
-		char* quests[MAX_QUEST_DB+1];
+		Txt* txt;
 		int char_id, n, i;
-		int count;
+		struct quest qd;
+		bool done = false;
 
 		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
 			return false;
 
-		// zero out the destination first
-		memset(log, 0, sizeof(*log));
+		str += n + 1;
 
-		// extract tab-separated columns from str
-		count = sv_split(str, strlen(str), n + 1, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		memset(&qd, 0, sizeof(qd));
+		*out_size = 0;
 
-		for( i = 0; i < count; ++i )
+		txt = Txt_Malloc();
+		Txt_Init(txt, (char*)str, strlen(str), 6, ',', '\t', "");
+		Txt_Bind(txt, 0, TXTDT_INT, &qd.quest_id, sizeof(qd.quest_id));
+		Txt_Bind(txt, 1, TXTDT_ENUM, &qd.state, sizeof(qd.state));
+		Txt_Bind(txt, 2, TXTDT_UINT, &qd.time, sizeof(qd.time));
+		Txt_Bind(txt, 3, TXTDT_INT, &qd.count[0], sizeof(qd.count[0]));
+		Txt_Bind(txt, 4, TXTDT_INT, &qd.count[1], sizeof(qd.count[1]));
+		Txt_Bind(txt, 5, TXTDT_INT, &qd.count[2], sizeof(qd.count[2]));
+
+		i = 0;
+		while( !done )
 		{
-			char* fields[6+1];
-			if( sv_split(quests[i+1], strlen(quests[i+1]), 0, ',', fields, ARRAYLENGTH(fields), SV_NOESCAPE_NOTERMINATE) != 6 )
-				return false;
+			if( Txt_Parse(txt) != TXT_SUCCESS )
+				break;
 
-			(*log)[i].quest_id = strtol(fields[1], NULL, 10);
-			(*log)[i].state = strtol(fields[2], NULL, 10);
-			(*log)[i].time = strtoul(fields[3], NULL, 10);
-			(*log)[i].count[0] = strtol(fields[4], NULL, 10);
-			(*log)[i].count[1] = strtol(fields[5], NULL, 10);
-			(*log)[i].count[2] = strtol(fields[6], NULL, 10);
+			if( Txt_NumFields(txt) == 0 )
+			{// no more data
+				done = true;
+				break;
+			}
+
+			if( Txt_NumFields(txt) != 6 )
+				break; // parsing failure
+
+			*out_size += sizeof(qd);
+
+			if( (i + 1) * sizeof(qd) > size )
+				continue; // discard entries over max
+
+			memcpy(&log[i], &qd, sizeof(qd));
+			memset(&qd, 0, sizeof(qd));
+			i++;
 		}
+
+		Txt_Free(txt);
+
+		if( !done )
+			return false;
 
 		*key = char_id;
 	}
 	else
 	if( version == 20090801 )
 	{// quest blocks separated by tabs, quest fields separated by commas, 10 fields total
-		char* quests[MAX_QUEST_DB+1];
+		Txt* txt;
 		int char_id, n, i;
-		int count;
+		struct quest qd;
+		bool done = false;
 
 		if( sscanf(str, "%d%n", &char_id, &n) != 1 || str[n] != '\t' )
 			return false;
 
-		// zero out the destination first
-		memset(log, 0, sizeof(*log));
+		str += n + 1;
 
-		// extract tab-separated columns from str
-		count = sv_split(str, strlen(str), n + 1, '\t', quests, ARRAYLENGTH(quests), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		memset(&qd, 0, sizeof(qd));
+		*out_size = 0;
 
-		for( i = 0; i < count; ++i )
+		txt = Txt_Malloc();
+		Txt_Init(txt, (char*)str, strlen(str), 6, ',', '\t', "");
+		Txt_Bind(txt, 0, TXTDT_INT, &qd.quest_id, sizeof(qd.quest_id));
+		Txt_Bind(txt, 1, TXTDT_ENUM, &qd.state, sizeof(qd.state));
+		Txt_Bind(txt, 2, TXTDT_UINT, &qd.time, sizeof(qd.time));
+		//Txt_Bind(txt, 3, TXTDT_INT, &qd.num_objectives, sizeof(qd.num_objectives));
+		//Txt_Bind(txt, 4, TXTDT_INT, &dq.mob[0], sizeof(qd.mob[0]));
+		Txt_Bind(txt, 5, TXTDT_INT, &qd.count[0], sizeof(qd.count[0]));
+		//Txt_Bind(txt, 6, TXTDT_INT, &dq.mob[1], sizeof(qd.mob[1]));
+		Txt_Bind(txt, 7, TXTDT_INT, &qd.count[1], sizeof(qd.count[1]));
+		//Txt_Bind(txt, 8, TXTDT_INT, &dq.mob[2], sizeof(qd.mob[2]));
+		Txt_Bind(txt, 9, TXTDT_INT, &qd.count[2], sizeof(qd.count[2]));
+
+		i = 0;
+		while( !done )
 		{
-			char* fields[10+1];
-			if( sv_split(quests[i+1], strlen(quests[i+1]), 0, ',', fields, ARRAYLENGTH(fields), SV_NOESCAPE_NOTERMINATE) != 10 )
-				return false;
+			if( Txt_Parse(txt) != TXT_SUCCESS )
+				break;
 
-			(*log)[i].quest_id = strtol(fields[1], NULL, 10);
-			(*log)[i].state = strtol(fields[2], NULL, 10);
-			(*log)[i].time = strtoul(fields[3], NULL, 10);
-			//(*log)[i].num_objectives = strtol(fields[4], NULL, 10);
-			//(*log)[i].mob[0] = strtol(fields[5], NULL, 10);
-			(*log)[i].count[0] = strtol(fields[6], NULL, 10);
-			//(*log)[i].mob[1] = strtol(fields[7], NULL, 10);
-			(*log)[i].count[1] = strtol(fields[8], NULL, 10);
-			//(*log)[i].mob[2] = strtol(fields[9], NULL, 10);
-			(*log)[i].count[2] = strtol(fields[10], NULL, 10);
+			if( Txt_NumFields(txt) == 0 )
+			{// no more data
+				done = true;
+				break;
+			}
+
+			if( Txt_NumFields(txt) != 10 )
+				break; // parsing failure
+
+			*out_size += sizeof(qd);
+
+			if( (i + 1) * sizeof(qd) > size )
+				continue; // discard entries over max
+
+			memcpy(&log[i], &qd, sizeof(qd));
+			memset(&qd, 0, sizeof(qd));
+			i++;
 		}
+
+		Txt_Free(txt);
+
+		if( !done )
+			return false;
 
 		*key = char_id;
 	}
@@ -123,36 +169,42 @@ static bool skill_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 
 /// Serializes the provided data structure into a string.
 /// @private
-static bool skill_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
+static bool quest_db_txt_tostr(char* str, size_t strsize, int key, const void* data, size_t datasize)
 {
 	char* p = str;
 	int char_id = key;
-	questlog* log = (questlog*)data;
-	int i;
+	struct quest* log = (struct quest*)data;
+	size_t i;
 	int count = 0;
-	bool first = true;
-
-	if( datasize != sizeof(*log) )
-		return false;
+	Txt* txt;
 
 	p += sprintf(p, "%d\t", char_id);
 
-	for( i = 0; i < MAX_QUEST_DB; ++i )
-	{
-		const struct quest* qd = &(*log)[i];
+	txt = Txt_Malloc();
+	Txt_Init(txt, p, SIZE_MAX, 7+MAX_SLOTS, ',', '\t', ",\t");
 
-		if( qd->quest_id == 0 )
+	for( i = 0; i < datasize / sizeof(*log); ++i )
+	{
+		if( log[i].quest_id == 0 )
 			continue;
 
-		if( first )
-			first = false;
-		else
-			p += sprintf(p, "\t");
+		Txt_Bind(txt, 0, TXTDT_INT,  &log[i].quest_id, sizeof(log[i].quest_id));
+		Txt_Bind(txt, 1, TXTDT_ENUM, &log[i].state,    sizeof(log[i].state)   );
+		Txt_Bind(txt, 2, TXTDT_UINT, &log[i].time,     sizeof(log[i].time)    );
+		Txt_Bind(txt, 3, TXTDT_INT,  &log[i].count[0], sizeof(log[i].count[0]));
+		Txt_Bind(txt, 4, TXTDT_INT,  &log[i].count[1], sizeof(log[i].count[1]));
+		Txt_Bind(txt, 5, TXTDT_INT,  &log[i].count[2], sizeof(log[i].count[2]));
 
-		p += sprintf(p, "%d,%d,%u,%d,%d,%d", qd->quest_id, qd->state, qd->time, qd->count[0], qd->count[1], qd->count[2]);
-	
+		if( Txt_Write(txt) != TXT_SUCCESS )
+		{
+			Txt_Free(txt);
+			return false;
+		}
+
 		count++;
 	}
+
+	Txt_Free(txt);
 
 	if( count == 0 )
 		str[0] = '\0';
@@ -194,41 +246,53 @@ static bool quest_db_txt_remove(QuestDB* self, const int char_id)
 }
 
 
+/// Saves the questlog.
+/// @param size Number of fields in the array to process.
 /// @protected
-static bool quest_db_txt_save(QuestDB* self, questlog* log, int char_id)
+static bool quest_db_txt_save(QuestDB* self, const struct quest* log, size_t size, int char_id)
 {
 	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
-	int i;
+	size_t i;
 
-	ARR_FIND(0, MAX_QUEST_DB, i, (*log)[i].quest_id > 0);
-	if( i < MAX_QUEST_DB )
-		return db->replace(db, char_id, log, sizeof(*log));
+	ARR_FIND(0, size, i, log[i].quest_id > 0);
+	if( i < size )
+		return db->replace(db, char_id, log, size * sizeof(*log));
 	else
 		return db->remove(db, char_id);
 }
 
 
+/// Loads a character's questlog into the provided array.
+/// @param size Capacity of the array, in fields.
 /// @protected
-static bool quest_db_txt_load(QuestDB* self, questlog* log, int char_id, int* const count)
+static bool quest_db_txt_load(QuestDB* self, struct quest* log, size_t size, int char_id)
 {
 	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
-	int i;
+	size_t insize = size * sizeof(*log);
+	size_t outsize;
+	int count;
 
-	if( db->load(db, char_id, log, sizeof(*log), NULL) )
-	{
-		// calculate and update 'count'
-		*count = 0;
-		for( i = 0; i < MAX_QUEST_DB; ++i )
-			if( (*log)[i].quest_id > 0 )
-				(*count)++;
-	}
-	else
-	{
-		memset(log, 0, sizeof(*log));
-		*count = 0;
-	}
+	if( !db->load(db, char_id, log, insize, &outsize) )
+		outsize = 0;
+
+	count = outsize / sizeof(*log);
+	memset(&log[count], 0, insize - outsize);
 
 	return true;
+}
+
+
+/// Gives the number of questlog entries stored for this character.
+/// @protected
+static int quest_db_txt_count(QuestDB* self, int char_id)
+{
+	CSDB_TXT* db = ((QuestDB_TXT*)self)->db;
+	size_t size;
+
+	if( !db->load(db, char_id, NULL, 0, &size) )
+		size = 0;
+
+	return size / sizeof(struct quest);
 }
 
 
@@ -249,16 +313,17 @@ QuestDB* quest_db_txt(CharServerDB_TXT* owner)
 
 	// call base class constructor and bind abstract methods
 	db->db = csdb_txt(owner, owner->file_quests, QUESTDB_TXT_DB_VERSION, 0);
-	db->db->p.fromstr = &skill_db_txt_fromstr;
-	db->db->p.tostr   = &skill_db_txt_tostr;
+	db->db->p.fromstr = &quest_db_txt_fromstr;
+	db->db->p.tostr   = &quest_db_txt_tostr;
 
 	// set up the vtable
 	db->vtable.p.init    = &quest_db_txt_init;
 	db->vtable.p.destroy = &quest_db_txt_destroy;
 	db->vtable.p.sync    = &quest_db_txt_sync;
 	db->vtable.remove    = &quest_db_txt_remove;
-	db->vtable.load      = &quest_db_txt_load;
 	db->vtable.save      = &quest_db_txt_save;
+	db->vtable.load      = &quest_db_txt_load;
+	db->vtable.count     = &quest_db_txt_count;
 	db->vtable.iterator  = &quest_db_txt_iterator;
 
 	return &db->vtable;

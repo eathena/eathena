@@ -394,16 +394,15 @@ int convert_char(void)
 		QuestDB* txt = srcdb->questdb(srcdb);
 		QuestDB* sql = dstdb->questdb(dstdb);
 		CSDBIterator* iter = txt->iterator(txt);
-		questlog data;
+		struct quest data[MAX_QUEST_DB];
 		int key;
-		int count;
 
 		ShowStatus("Converting Quest Data...\n");
 
 		while( iter->next(iter, &key) )
 		{
-			txt->load(txt, &data, key, &count);
-			sql->save(sql, &data, key);
+			txt->load(txt, data, MAX_QUEST_DB, key);
+			sql->save(sql, data, MAX_QUEST_DB, key);
 		}
 
 		iter->destroy(iter);
