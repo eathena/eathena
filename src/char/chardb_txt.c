@@ -22,7 +22,7 @@
 
 
 /// global defines
-#define CHARDB_TXT_DB_VERSION 20090825
+#define CHARDB_TXT_DB_VERSION 20091216
 #define START_CHAR_NUM 1
 
 
@@ -48,7 +48,8 @@ static bool char_db_txt_fromstr(const char* str, int* key, void* data, size_t si
 {
 	const char* p = str;
 	struct mmo_charstatus* cd = (struct mmo_charstatus*)data;
-	char last_map[MAP_NAME_LENGTH], save_map[MAP_NAME_LENGTH];
+	char last_map[MAP_NAME_LENGTH];
+	char save_map[MAP_NAME_LENGTH];
 	int n;
 	Txt* txt;
 
@@ -70,7 +71,7 @@ static bool char_db_txt_fromstr(const char* str, int* key, void* data, size_t si
 
 	// base data
 	txt = Txt_Malloc();
-	Txt_Init(txt, (char*)p, strlen(p), 53, ',', '\0', "");
+	Txt_Init(txt, (char*)p, strlen(p), 54, ',', '\0', "");
 	Txt_Bind(txt,  0, TXTDT_INT,     &cd->account_id,    sizeof(cd->account_id)   );
 	Txt_Bind(txt,  1, TXTDT_UCHAR,   &cd->slot,          sizeof(cd->slot)         );
 	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name,          sizeof(cd->name)         );
@@ -124,7 +125,8 @@ static bool char_db_txt_fromstr(const char* str, int* key, void* data, size_t si
 	Txt_Bind(txt, 50, TXTDT_INT,     &cd->spear_faith,   sizeof(cd->spear_faith)  );
 	Txt_Bind(txt, 51, TXTDT_INT,     &cd->sword_calls,   sizeof(cd->sword_calls)  );
 	Txt_Bind(txt, 52, TXTDT_INT,     &cd->sword_faith,   sizeof(cd->sword_faith)  );
-	if( Txt_Parse(txt) != TXT_SUCCESS || Txt_NumFields(txt) != 53 )
+	Txt_Bind(txt, 53, TXTDT_SHORT,   &cd->rename,        sizeof(cd->rename)       );
+	if( Txt_Parse(txt) != TXT_SUCCESS || Txt_NumFields(txt) != 54 )
 	{
 		Txt_Free(txt);
 		return false;
@@ -164,7 +166,8 @@ static bool char_db_txt_tostr(char* str, size_t strsize, int key, const void* da
 {
 	char* p = str;
 	struct mmo_charstatus* cd = (struct mmo_charstatus*)data;
-	char last_map[MAP_NAME_LENGTH], save_map[MAP_NAME_LENGTH];
+	char last_map[MAP_NAME_LENGTH];
+	char save_map[MAP_NAME_LENGTH];
 	bool result;
 	Txt* txt;
 
@@ -176,7 +179,7 @@ static bool char_db_txt_tostr(char* str, size_t strsize, int key, const void* da
 
 	// base character data
 	txt = Txt_Malloc();
-	Txt_Init(txt, p, SIZE_MAX, 53, ',', '\0', ",\t");
+	Txt_Init(txt, p, SIZE_MAX, 54, ',', '\0', ",\t");
 	Txt_Bind(txt,  0, TXTDT_INT,     &cd->account_id,    sizeof(cd->account_id)   );
 	Txt_Bind(txt,  1, TXTDT_UCHAR,   &cd->slot,          sizeof(cd->slot)         );
 	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name,          sizeof(cd->name)         );
@@ -230,8 +233,9 @@ static bool char_db_txt_tostr(char* str, size_t strsize, int key, const void* da
 	Txt_Bind(txt, 50, TXTDT_INT,     &cd->spear_faith,   sizeof(cd->spear_faith)  );
 	Txt_Bind(txt, 51, TXTDT_INT,     &cd->sword_calls,   sizeof(cd->sword_calls)  );
 	Txt_Bind(txt, 52, TXTDT_INT,     &cd->sword_faith,   sizeof(cd->sword_faith)  );
+	Txt_Bind(txt, 53, TXTDT_SHORT,   &cd->rename,        sizeof(cd->rename)       );
 
-	result = ( Txt_Write(txt) == TXT_SUCCESS && Txt_NumFields(txt) == 53 );
+	result = ( Txt_Write(txt) == TXT_SUCCESS && Txt_NumFields(txt) == 54 );
 	Txt_Free(txt);
 
 	return result;

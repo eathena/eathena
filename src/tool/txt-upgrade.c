@@ -4,6 +4,7 @@
 #include "../common/mapindex.h"
 #include "../common/mmo.h"
 #include "../common/strlib.h" // sv_parse(), sv_escape_c(), safestnrcpy()
+#include "../common/txt.h"
 #include <stdio.h>
 #include <stdlib.h> // strtol(), strtoul()
 #include <string.h> // strlen(), memcpy()
@@ -14,7 +15,7 @@
 #endif
 
 
-#define CHARDB_TXT_DB_VERSION 20090825
+#define CHARDB_TXT_DB_VERSION 20091216
 #define START_CHAR_NUM 1
 
 
@@ -519,10 +520,10 @@ bool load_from_20090810(char* str, struct chardata_20090810* cd)
 	cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
 	cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
 	cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
+	safestrncpy(tmp_map, &p[col[38][0]], min(sizeof(tmp_map),col[38][1]-col[38][0]+1)); cd->last_point.map = mapindex_name2id(tmp_map);
 	cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
 	cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
+	safestrncpy(tmp_map, &p[col[41][0]], min(sizeof(tmp_map),col[41][1]-col[41][0]+1)); cd->save_point.map = mapindex_name2id(tmp_map);
 	cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
 	cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
 	cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
@@ -723,7 +724,7 @@ bool upgrade_00000000_to_20090810(char* str, struct chardata_00000000* d, struct
 	cd->char_id = d->char_id;
 	cd->account_id = d->account_id;
 	cd->slot = d->slot;
-	safestrncpy(cd->name, d->name, NAME_LENGTH);
+	safestrncpy(cd->name, d->name, sizeof(cd->name));
 	cd->class_ = d->class_;
 	cd->base_level = d->base_level;
 	cd->job_level = d->job_level;
@@ -840,77 +841,6 @@ struct chardata_20090825
 	int sword_faith;
 };
 
-bool write_latest(char* str, struct chardata_20090825* p)
-{
-	char esc_name[4*NAME_LENGTH+1];
-	char *str_p = str;
-
-	sv_escape_c(esc_name, p->name, strlen(p->name), ",");
-
-	// key (char id)
-	str_p += sprintf(str_p, "%d", p->char_id);
-	*(str_p++) = '\t';
-
-	// base character data
-	                  str_p += sprintf(str_p, "%d", p->account_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->slot);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", esc_name);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->class_);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_level);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_level);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->base_exp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->job_exp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->zeny);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_hp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->max_sp);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->str);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->agi);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->vit);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->int_);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->dex);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->luk);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->status_point);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->skill_point);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->option);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%u", p->karma);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->manner);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->party_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->guild_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->pet_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hom_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mer_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->hair_color);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->clothes_color);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->weapon);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->shield);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_top);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_mid);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->head_bottom);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->last_point.map));
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.x);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->last_point.y);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%s", mapindex_id2name(p->save_point.map));
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.x);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->save_point.y);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->partner_id);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->father);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->mother);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->child);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->arch_faith);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->spear_faith);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_calls);
-	*(str_p++) = ','; str_p += sprintf(str_p, "%d", p->sword_faith);
-
-	*str_p = '\0';
-
-	return true;
-}
-
 bool load_from_20090825(char* str, struct chardata_20090825* cd)
 {
 	const char* p = str;
@@ -967,10 +897,10 @@ bool load_from_20090825(char* str, struct chardata_20090825* cd)
 	cd->head_top       = (short)        strtol (&p[col[35][0]], NULL, 10);
 	cd->head_mid       = (short)        strtol (&p[col[36][0]], NULL, 10);
 	cd->head_bottom    = (short)        strtol (&p[col[37][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[38][0]], col[38][1]-col[38][0]+1); cd->last_point.map = mapindex_name2id(tmp_map);
+	safestrncpy(tmp_map, &p[col[38][0]], min(sizeof(tmp_map),col[38][1]-col[38][0]+1)); cd->last_point.map = mapindex_name2id(tmp_map);
 	cd->last_point.x   = (short)        strtol (&p[col[39][0]], NULL, 10);
 	cd->last_point.y   = (short)        strtol (&p[col[40][0]], NULL, 10);
-	safestrncpy(tmp_map, &p[col[41][0]], col[41][1]-col[41][0]+1); cd->save_point.map = mapindex_name2id(tmp_map);
+	safestrncpy(tmp_map, &p[col[41][0]], min(sizeof(tmp_map),col[41][1]-col[41][0]+1)); cd->save_point.map = mapindex_name2id(tmp_map);
 	cd->save_point.x   = (short)        strtol (&p[col[42][0]], NULL, 10);
 	cd->save_point.y   = (short)        strtol (&p[col[43][0]], NULL, 10);
 	cd->partner_id     = (int)          strtol (&p[col[44][0]], NULL, 10);
@@ -992,7 +922,7 @@ bool upgrade_20090810_to_20090825(char* str, struct chardata_20090810* d, struct
 	cd->char_id = d->char_id;
 	cd->account_id = d->account_id;
 	cd->slot = d->slot;
-	safestrncpy(cd->name, d->name, NAME_LENGTH);
+	safestrncpy(cd->name, d->name, sizeof(cd->name));
 	cd->class_ = d->class_;
 	cd->base_level = d->base_level;
 	cd->job_level = d->job_level;
@@ -1252,6 +1182,291 @@ bool upgrade_20090810_to_20090825(char* str, struct chardata_20090810* d, struct
 /// version 20090825 end
 //////////////////////////////////////////
 
+//////////////////////////////////////////
+/// version 20091216 start
+//////////////////////////////////////////
+struct chardata_20091216
+{
+	int char_id;
+	int account_id;
+	unsigned char slot;
+	char name[NAME_LENGTH];
+	short class_;
+	unsigned int base_level;
+	unsigned int job_level;
+	unsigned int base_exp;
+	unsigned int job_exp;
+	int zeny;
+	int hp;
+	int max_hp;
+	int sp;
+	int max_sp;
+	short str;
+	short agi;
+	short vit;
+	short int_;
+	short dex;
+	short luk;
+	unsigned int status_point;
+	unsigned int skill_point;
+	unsigned int option;
+	unsigned char karma;
+	short manner;
+	int party_id;
+	int guild_id;
+	int pet_id;
+	int hom_id;
+	int mer_id;
+	short hair;
+	short hair_color;
+	short clothes_color;
+	short weapon;
+	short shield;
+	short head_top;
+	short head_mid;
+	short head_bottom;
+	struct point last_point;
+	struct point save_point;
+	int partner_id;
+	int father;
+	int mother;
+	int child;
+	int arch_calls;
+	int arch_faith;
+	int spear_calls;
+	int spear_faith;
+	int sword_calls;
+	int sword_faith;
+	short rename;
+};
+
+bool load_from_20091216(char* str, struct chardata_20091216* cd)
+{
+	const char* p = str;
+	char last_map[MAP_NAME_LENGTH];
+	char save_map[MAP_NAME_LENGTH];
+	int n;
+	Txt* txt;
+
+	memset(cd, 0, sizeof(*cd));
+
+	// key (char id)
+	if( sscanf(p, "%d%n", &cd->char_id, &n) != 1 || p[n] != '\t' )
+		return false;
+
+	p += n + 1;
+
+	// base data
+	txt = Txt_Malloc();
+	Txt_Init(txt, (char*)p, strlen(p), 54, ',', '\0', "");
+	Txt_Bind(txt,  0, TXTDT_INT,     &cd->account_id,    sizeof(cd->account_id)   );
+	Txt_Bind(txt,  1, TXTDT_UCHAR,   &cd->slot,          sizeof(cd->slot)         );
+	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name,          sizeof(cd->name)         );
+	Txt_Bind(txt,  3, TXTDT_SHORT,   &cd->class_,        sizeof(cd->class_)       );
+	Txt_Bind(txt,  4, TXTDT_UINT,    &cd->base_level,    sizeof(cd->base_level)   );
+	Txt_Bind(txt,  5, TXTDT_UINT,    &cd->job_level,     sizeof(cd->job_level)    );
+	Txt_Bind(txt,  6, TXTDT_UINT,    &cd->base_exp,      sizeof(cd->base_exp)     );
+	Txt_Bind(txt,  7, TXTDT_UINT,    &cd->job_exp,       sizeof(cd->job_exp)      );
+	Txt_Bind(txt,  8, TXTDT_INT,     &cd->zeny,          sizeof(cd->zeny)         );
+	Txt_Bind(txt,  9, TXTDT_INT,     &cd->hp,            sizeof(cd->hp)           );
+	Txt_Bind(txt, 10, TXTDT_INT,     &cd->max_hp,        sizeof(cd->max_hp)       );
+	Txt_Bind(txt, 11, TXTDT_INT,     &cd->sp,            sizeof(cd->sp)           );
+	Txt_Bind(txt, 12, TXTDT_INT,     &cd->max_sp,        sizeof(cd->max_sp)       );
+	Txt_Bind(txt, 13, TXTDT_SHORT,   &cd->str,           sizeof(cd->str)          );
+	Txt_Bind(txt, 14, TXTDT_SHORT,   &cd->agi,           sizeof(cd->agi)          );
+	Txt_Bind(txt, 15, TXTDT_SHORT,   &cd->vit,           sizeof(cd->vit)          );
+	Txt_Bind(txt, 16, TXTDT_SHORT,   &cd->int_,          sizeof(cd->int_)         );
+	Txt_Bind(txt, 17, TXTDT_SHORT,   &cd->dex,           sizeof(cd->dex)          );
+	Txt_Bind(txt, 18, TXTDT_SHORT,   &cd->luk,           sizeof(cd->luk)          );
+	Txt_Bind(txt, 19, TXTDT_UINT,    &cd->status_point,  sizeof(cd->status_point) );
+	Txt_Bind(txt, 20, TXTDT_UINT,    &cd->skill_point,   sizeof(cd->skill_point)  );
+	Txt_Bind(txt, 21, TXTDT_UINT,    &cd->option,        sizeof(cd->option)       );
+	Txt_Bind(txt, 22, TXTDT_UCHAR,   &cd->karma,         sizeof(cd->karma)        );
+	Txt_Bind(txt, 23, TXTDT_SHORT,   &cd->manner,        sizeof(cd->manner)       );
+	Txt_Bind(txt, 24, TXTDT_INT,     &cd->party_id,      sizeof(cd->party_id)     );
+	Txt_Bind(txt, 25, TXTDT_INT,     &cd->guild_id,      sizeof(cd->guild_id)     );
+	Txt_Bind(txt, 26, TXTDT_INT,     &cd->pet_id,        sizeof(cd->pet_id)       );
+	Txt_Bind(txt, 27, TXTDT_INT,     &cd->hom_id,        sizeof(cd->hom_id)       );
+	Txt_Bind(txt, 28, TXTDT_INT,     &cd->mer_id,        sizeof(cd->mer_id)       );
+	Txt_Bind(txt, 29, TXTDT_SHORT,   &cd->hair,          sizeof(cd->hair)         );
+	Txt_Bind(txt, 30, TXTDT_SHORT,   &cd->hair_color,    sizeof(cd->hair_color)   );
+	Txt_Bind(txt, 31, TXTDT_SHORT,   &cd->clothes_color, sizeof(cd->clothes_color));
+	Txt_Bind(txt, 32, TXTDT_SHORT,   &cd->weapon,        sizeof(cd->weapon)       );
+	Txt_Bind(txt, 33, TXTDT_SHORT,   &cd->shield,        sizeof(cd->shield)       );
+	Txt_Bind(txt, 34, TXTDT_SHORT,   &cd->head_top,      sizeof(cd->head_top)     );
+	Txt_Bind(txt, 35, TXTDT_SHORT,   &cd->head_mid,      sizeof(cd->head_mid)     );
+	Txt_Bind(txt, 36, TXTDT_SHORT,   &cd->head_bottom,   sizeof(cd->head_bottom)  );
+	Txt_Bind(txt, 37, TXTDT_STRING,  last_map,           sizeof(last_map)         );
+	Txt_Bind(txt, 38, TXTDT_SHORT,   &cd->last_point.x,  sizeof(cd->last_point.x) );
+	Txt_Bind(txt, 39, TXTDT_SHORT,   &cd->last_point.y,  sizeof(cd->last_point.y) );
+	Txt_Bind(txt, 40, TXTDT_STRING,  save_map,           sizeof(save_map)         );
+	Txt_Bind(txt, 41, TXTDT_SHORT,   &cd->save_point.x,  sizeof(cd->save_point.x) );
+	Txt_Bind(txt, 42, TXTDT_SHORT,   &cd->save_point.y,  sizeof(cd->save_point.y) );
+	Txt_Bind(txt, 43, TXTDT_INT,     &cd->partner_id,    sizeof(cd->partner_id)   );
+	Txt_Bind(txt, 44, TXTDT_INT,     &cd->father,        sizeof(cd->father)       );
+	Txt_Bind(txt, 45, TXTDT_INT,     &cd->mother,        sizeof(cd->mother)       );
+	Txt_Bind(txt, 46, TXTDT_INT,     &cd->child,         sizeof(cd->child)        );
+	Txt_Bind(txt, 47, TXTDT_INT,     &cd->arch_calls,    sizeof(cd->arch_calls)   );
+	Txt_Bind(txt, 48, TXTDT_INT,     &cd->arch_faith,    sizeof(cd->arch_faith)   );
+	Txt_Bind(txt, 49, TXTDT_INT,     &cd->spear_calls,   sizeof(cd->spear_calls)  );
+	Txt_Bind(txt, 50, TXTDT_INT,     &cd->spear_faith,   sizeof(cd->spear_faith)  );
+	Txt_Bind(txt, 51, TXTDT_INT,     &cd->sword_calls,   sizeof(cd->sword_calls)  );
+	Txt_Bind(txt, 52, TXTDT_INT,     &cd->sword_faith,   sizeof(cd->sword_faith)  );
+	Txt_Bind(txt, 53, TXTDT_SHORT,   &cd->rename,        sizeof(cd->rename)       );
+	if( Txt_Parse(txt) != TXT_SUCCESS || Txt_NumFields(txt) != 54 )
+	{
+		Txt_Free(txt);
+		return false;
+	}
+	Txt_Free(txt);
+
+	cd->last_point.map = mapindex_name2id(last_map);
+	cd->save_point.map = mapindex_name2id(save_map);
+
+	return true;
+}
+
+bool upgrade_20090825_to_20091216(char* str, struct chardata_20090825* d, struct chardata_20091216* cd)
+{
+	cd->char_id = d->char_id;
+	cd->account_id = d->account_id;
+	cd->slot = d->slot;
+	safestrncpy(cd->name, d->name, sizeof(cd->name));
+	cd->class_ = d->class_;
+	cd->base_level = d->base_level;
+	cd->job_level = d->job_level;
+	cd->base_exp = d->base_exp;
+	cd->job_exp = d->job_exp;
+	cd->zeny = d->zeny;
+	cd->hp = d->hp;
+	cd->max_hp = d->max_hp;
+	cd->sp = d->sp;
+	cd->max_sp = d->max_sp;
+	cd->str = d->str;
+	cd->agi = d->agi;
+	cd->vit = d->vit;
+	cd->int_ = d->int_;
+	cd->dex = d->dex;
+	cd->luk = d->luk;
+	cd->status_point = d->status_point;
+	cd->skill_point = d->skill_point;
+	cd->option = d->option;
+	cd->karma = d->karma;
+	cd->manner = d->manner;
+	cd->party_id = d->party_id;
+	cd->guild_id = d->guild_id;
+	cd->pet_id = d->pet_id;
+	cd->hom_id = d->hom_id;
+	cd->mer_id = d->mer_id;
+	cd->hair = d->hair;
+	cd->hair_color = d->hair_color;
+	cd->clothes_color = d->clothes_color;
+	cd->weapon = d->weapon;
+	cd->shield = d->shield;
+	cd->head_top = d->head_top;
+	cd->head_mid = d->head_mid;
+	cd->head_bottom = d->head_bottom;
+	cd->last_point = d->last_point;
+	cd->save_point = d->save_point;
+	cd->partner_id = d->partner_id;
+	cd->father = d->father;
+	cd->mother = d->mother;
+	cd->child = d->child;
+	cd->arch_calls = d->arch_calls;
+	cd->arch_faith = d->arch_faith;
+	cd->spear_calls = d->spear_calls;
+	cd->spear_faith = d->spear_faith;
+	cd->sword_calls = d->sword_calls;
+	cd->sword_faith = d->sword_faith;
+	cd->rename = 0;
+
+	return true;
+}
+
+//////////////////////////////////////////
+/// version 20091216 end
+//////////////////////////////////////////
+
+
+/// Serializes the latest version of the structure into the provided string buffer.
+bool write_latest(char* str, struct chardata_20091216* cd)
+{
+	char* p = str;
+	char last_map[MAP_NAME_LENGTH];
+	char save_map[MAP_NAME_LENGTH];
+	bool result;
+	Txt* txt;
+
+	safestrncpy(last_map, mapindex_id2name(cd->last_point.map), sizeof(last_map));
+	safestrncpy(save_map, mapindex_id2name(cd->save_point.map), sizeof(save_map));
+
+	// key (char id)
+	p += sprintf(p, "%d\t", cd->char_id);
+
+	// base character data
+	txt = Txt_Malloc();
+	Txt_Init(txt, p, SIZE_MAX, 54, ',', '\0', ",\t");
+	Txt_Bind(txt,  0, TXTDT_INT,     &cd->account_id,    sizeof(cd->account_id)   );
+	Txt_Bind(txt,  1, TXTDT_UCHAR,   &cd->slot,          sizeof(cd->slot)         );
+	Txt_Bind(txt,  2, TXTDT_CSTRING, &cd->name,          sizeof(cd->name)         );
+	Txt_Bind(txt,  3, TXTDT_SHORT,   &cd->class_,        sizeof(cd->class_)       );
+	Txt_Bind(txt,  4, TXTDT_UINT,    &cd->base_level,    sizeof(cd->base_level)   );
+	Txt_Bind(txt,  5, TXTDT_UINT,    &cd->job_level,     sizeof(cd->job_level)    );
+	Txt_Bind(txt,  6, TXTDT_UINT,    &cd->base_exp,      sizeof(cd->base_exp)     );
+	Txt_Bind(txt,  7, TXTDT_UINT,    &cd->job_exp,       sizeof(cd->job_exp)      );
+	Txt_Bind(txt,  8, TXTDT_INT,     &cd->zeny,          sizeof(cd->zeny)         );
+	Txt_Bind(txt,  9, TXTDT_INT,     &cd->hp,            sizeof(cd->hp)           );
+	Txt_Bind(txt, 10, TXTDT_INT,     &cd->max_hp,        sizeof(cd->max_hp)       );
+	Txt_Bind(txt, 11, TXTDT_INT,     &cd->sp,            sizeof(cd->sp)           );
+	Txt_Bind(txt, 12, TXTDT_INT,     &cd->max_sp,        sizeof(cd->max_sp)       );
+	Txt_Bind(txt, 13, TXTDT_SHORT,   &cd->str,           sizeof(cd->str)          );
+	Txt_Bind(txt, 14, TXTDT_SHORT,   &cd->agi,           sizeof(cd->agi)          );
+	Txt_Bind(txt, 15, TXTDT_SHORT,   &cd->vit,           sizeof(cd->vit)          );
+	Txt_Bind(txt, 16, TXTDT_SHORT,   &cd->int_,          sizeof(cd->int_)         );
+	Txt_Bind(txt, 17, TXTDT_SHORT,   &cd->dex,           sizeof(cd->dex)          );
+	Txt_Bind(txt, 18, TXTDT_SHORT,   &cd->luk,           sizeof(cd->luk)          );
+	Txt_Bind(txt, 19, TXTDT_UINT,    &cd->status_point,  sizeof(cd->status_point) );
+	Txt_Bind(txt, 20, TXTDT_UINT,    &cd->skill_point,   sizeof(cd->skill_point)  );
+	Txt_Bind(txt, 21, TXTDT_UINT,    &cd->option,        sizeof(cd->option)       );
+	Txt_Bind(txt, 22, TXTDT_UCHAR,   &cd->karma,         sizeof(cd->karma)        );
+	Txt_Bind(txt, 23, TXTDT_SHORT,   &cd->manner,        sizeof(cd->manner)       );
+	Txt_Bind(txt, 24, TXTDT_INT,     &cd->party_id,      sizeof(cd->party_id)     );
+	Txt_Bind(txt, 25, TXTDT_INT,     &cd->guild_id,      sizeof(cd->guild_id)     );
+	Txt_Bind(txt, 26, TXTDT_INT,     &cd->pet_id,        sizeof(cd->pet_id)       );
+	Txt_Bind(txt, 27, TXTDT_INT,     &cd->hom_id,        sizeof(cd->hom_id)       );
+	Txt_Bind(txt, 28, TXTDT_INT,     &cd->mer_id,        sizeof(cd->mer_id)       );
+	Txt_Bind(txt, 29, TXTDT_SHORT,   &cd->hair,          sizeof(cd->hair)         );
+	Txt_Bind(txt, 30, TXTDT_SHORT,   &cd->hair_color,    sizeof(cd->hair_color)   );
+	Txt_Bind(txt, 31, TXTDT_SHORT,   &cd->clothes_color, sizeof(cd->clothes_color));
+	Txt_Bind(txt, 32, TXTDT_SHORT,   &cd->weapon,        sizeof(cd->weapon)       );
+	Txt_Bind(txt, 33, TXTDT_SHORT,   &cd->shield,        sizeof(cd->shield)       );
+	Txt_Bind(txt, 34, TXTDT_SHORT,   &cd->head_top,      sizeof(cd->head_top)     );
+	Txt_Bind(txt, 35, TXTDT_SHORT,   &cd->head_mid,      sizeof(cd->head_mid)     );
+	Txt_Bind(txt, 36, TXTDT_SHORT,   &cd->head_bottom,   sizeof(cd->head_bottom)  );
+	Txt_Bind(txt, 37, TXTDT_STRING,  last_map,           sizeof(last_map)         );
+	Txt_Bind(txt, 38, TXTDT_SHORT,   &cd->last_point.x,  sizeof(cd->last_point.x) );
+	Txt_Bind(txt, 39, TXTDT_SHORT,   &cd->last_point.y,  sizeof(cd->last_point.y) );
+	Txt_Bind(txt, 40, TXTDT_STRING,  save_map,           sizeof(save_map)         );
+	Txt_Bind(txt, 41, TXTDT_SHORT,   &cd->save_point.x,  sizeof(cd->save_point.x) );
+	Txt_Bind(txt, 42, TXTDT_SHORT,   &cd->save_point.y,  sizeof(cd->save_point.y) );
+	Txt_Bind(txt, 43, TXTDT_INT,     &cd->partner_id,    sizeof(cd->partner_id)   );
+	Txt_Bind(txt, 44, TXTDT_INT,     &cd->father,        sizeof(cd->father)       );
+	Txt_Bind(txt, 45, TXTDT_INT,     &cd->mother,        sizeof(cd->mother)       );
+	Txt_Bind(txt, 46, TXTDT_INT,     &cd->child,         sizeof(cd->child)        );
+	Txt_Bind(txt, 47, TXTDT_INT,     &cd->arch_calls,    sizeof(cd->arch_calls)   );
+	Txt_Bind(txt, 48, TXTDT_INT,     &cd->arch_faith,    sizeof(cd->arch_faith)   );
+	Txt_Bind(txt, 49, TXTDT_INT,     &cd->spear_calls,   sizeof(cd->spear_calls)  );
+	Txt_Bind(txt, 50, TXTDT_INT,     &cd->spear_faith,   sizeof(cd->spear_faith)  );
+	Txt_Bind(txt, 51, TXTDT_INT,     &cd->sword_calls,   sizeof(cd->sword_calls)  );
+	Txt_Bind(txt, 52, TXTDT_INT,     &cd->sword_faith,   sizeof(cd->sword_faith)  );
+	Txt_Bind(txt, 53, TXTDT_SHORT,   &cd->rename,        sizeof(cd->rename)       );
+
+	result = ( Txt_Write(txt) == TXT_SUCCESS && Txt_NumFields(txt) == 54 );
+	Txt_Free(txt);
+
+	return result;
+}
+
 
 /// Performs an in-place upgrade of the data in 'line'.
 bool upgrade(char* line, unsigned int version)
@@ -1259,6 +1474,7 @@ bool upgrade(char* line, unsigned int version)
 	struct chardata_00000000 cd_00000000;
 	struct chardata_20090810 cd_20090810;
 	struct chardata_20090825 cd_20090825;
+	struct chardata_20091216 cd_20091216;
 
 	switch( version )
 	{
@@ -1267,6 +1483,7 @@ bool upgrade(char* line, unsigned int version)
 	case 00000000: if( !load_from_00000000(line, &cd_00000000) ) return false; break;
 	case 20090810: if( !load_from_20090810(line, &cd_20090810) ) return false; break;
 	case 20090825: if( !load_from_20090825(line, &cd_20090825) ) return false; break;
+	case 20091216: if( !load_from_20091216(line, &cd_20091216) ) return false; break;
 	}
 
 	switch( version )
@@ -1275,7 +1492,8 @@ bool upgrade(char* line, unsigned int version)
 		return false;
 	case 00000000: if( !upgrade_00000000_to_20090810(line, &cd_00000000, &cd_20090810) ) return false;
 	case 20090810: if( !upgrade_20090810_to_20090825(line, &cd_20090810, &cd_20090825) ) return false;
-	case 20090825: if( !write_latest(line, &cd_20090825) ) return false;
+	case 20090825: if( !upgrade_20090825_to_20091216(line, &cd_20090825, &cd_20091216) ) return false;
+	case 20091216: if( !write_latest(line, &cd_20091216) ) return false;
 	}
 
 	return true;

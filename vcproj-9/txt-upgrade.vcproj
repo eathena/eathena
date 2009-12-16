@@ -197,6 +197,14 @@
 				RelativePath="..\src\common\strlib.h"
 				>
 			</File>
+			<File
+				RelativePath="..\src\common\txt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\txt.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath="..\src\tool\txt-upgrade.c"
