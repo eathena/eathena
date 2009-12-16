@@ -202,15 +202,15 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	CastleDB_SQL* db = (CastleDB_SQL*)aCalloc(1, sizeof(CastleDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &castle_db_sql_init;
-	db->vtable.p.destroy   = &castle_db_sql_destroy;
-	db->vtable.p.sync      = &castle_db_sql_sync;
-	db->vtable.create    = &castle_db_sql_create;
-	db->vtable.remove    = &castle_db_sql_remove;
-	db->vtable.remove_gid= &castle_db_sql_remove_gid;
-	db->vtable.save      = &castle_db_sql_save;
-	db->vtable.load      = &castle_db_sql_load;
-	db->vtable.iterator  = &castle_db_sql_iterator;
+	db->vtable.p.init     = &castle_db_sql_init;
+	db->vtable.p.destroy  = &castle_db_sql_destroy;
+	db->vtable.p.sync     = &castle_db_sql_sync;
+	db->vtable.create     = &castle_db_sql_create;
+	db->vtable.remove     = &castle_db_sql_remove;
+	db->vtable.remove_gid = &castle_db_sql_remove_gid;
+	db->vtable.save       = &castle_db_sql_save;
+	db->vtable.load       = &castle_db_sql_load;
+	db->vtable.iterator   = &castle_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

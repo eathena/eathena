@@ -377,9 +377,9 @@ HomunDB* homun_db_sql(CharServerDB_SQL* owner)
 	HomunDB_SQL* db = (HomunDB_SQL*)aCalloc(1, sizeof(HomunDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &homun_db_sql_init;
-	db->vtable.p.destroy   = &homun_db_sql_destroy;
-	db->vtable.p.sync      = &homun_db_sql_sync;
+	db->vtable.p.init    = &homun_db_sql_init;
+	db->vtable.p.destroy = &homun_db_sql_destroy;
+	db->vtable.p.sync    = &homun_db_sql_sync;
 	db->vtable.create    = &homun_db_sql_create;
 	db->vtable.remove    = &homun_db_sql_remove;
 	db->vtable.save      = &homun_db_sql_save;

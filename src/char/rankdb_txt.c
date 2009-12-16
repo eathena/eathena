@@ -305,9 +305,9 @@ RankDB* rank_db_txt(CharServerDB_TXT* owner)
 	RankDB_TXT* db;
 
 	CREATE(db, RankDB_TXT, 1);
-	db->vtable.p.init            = rank_db_txt_init;
-	db->vtable.p.destroy         = rank_db_txt_destroy;
-	db->vtable.p.sync            = rank_db_txt_sync;
+	db->vtable.p.init          = rank_db_txt_init;
+	db->vtable.p.destroy       = rank_db_txt_destroy;
+	db->vtable.p.sync          = rank_db_txt_sync;
 	db->vtable.get_top_rankers = rank_db_txt_get_top_rankers;
 	db->vtable.get_points      = rank_db_txt_get_points;
 	db->vtable.set_points      = rank_db_txt_set_points;

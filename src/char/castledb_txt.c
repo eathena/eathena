@@ -230,15 +230,15 @@ CastleDB* castle_db_txt(CharServerDB_TXT* owner)
 	db->db->p.tostr   = &castle_db_txt_tostr;
 
 	// set up the vtable
-	db->vtable.p.init    = &castle_db_txt_init;
-	db->vtable.p.destroy = &castle_db_txt_destroy;
-	db->vtable.p.sync    = &castle_db_txt_sync;
-	db->vtable.create    = &castle_db_txt_create;
-	db->vtable.remove    = &castle_db_txt_remove;
-	db->vtable.remove_gid= &castle_db_txt_remove_gid;
-	db->vtable.save      = &castle_db_txt_save;
-	db->vtable.load      = &castle_db_txt_load;
-	db->vtable.iterator  = &castle_db_txt_iterator;
+	db->vtable.p.init     = &castle_db_txt_init;
+	db->vtable.p.destroy  = &castle_db_txt_destroy;
+	db->vtable.p.sync     = &castle_db_txt_sync;
+	db->vtable.create     = &castle_db_txt_create;
+	db->vtable.remove     = &castle_db_txt_remove;
+	db->vtable.remove_gid = &castle_db_txt_remove_gid;
+	db->vtable.save       = &castle_db_txt_save;
+	db->vtable.load       = &castle_db_txt_load;
+	db->vtable.iterator   = &castle_db_txt_iterator;
 
 	return &db->vtable;
 }

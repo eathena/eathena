@@ -605,9 +605,9 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	GuildDB_SQL* db = (GuildDB_SQL*)aCalloc(1, sizeof(GuildDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &guild_db_sql_init;
-	db->vtable.p.destroy   = &guild_db_sql_destroy;
-	db->vtable.p.sync      = &guild_db_sql_sync;
+	db->vtable.p.init    = &guild_db_sql_init;
+	db->vtable.p.destroy = &guild_db_sql_destroy;
+	db->vtable.p.sync    = &guild_db_sql_sync;
 	db->vtable.create    = &guild_db_sql_create;
 	db->vtable.remove    = &guild_db_sql_remove;
 	db->vtable.save      = &guild_db_sql_save;

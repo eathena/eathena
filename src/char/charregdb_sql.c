@@ -229,10 +229,10 @@ CharRegDB* charreg_db_sql(CharServerDB_SQL* owner)
 	db->vtable.p.init    = &charreg_db_sql_init;
 	db->vtable.p.destroy = &charreg_db_sql_destroy;
 	db->vtable.p.sync    = &charreg_db_sql_sync;
-	db->vtable.remove  = &charreg_db_sql_remove;
-	db->vtable.save    = &charreg_db_sql_save;
-	db->vtable.load    = &charreg_db_sql_load;
-	db->vtable.iterator = &charreg_db_sql_iterator;
+	db->vtable.remove    = &charreg_db_sql_remove;
+	db->vtable.save      = &charreg_db_sql_save;
+	db->vtable.load      = &charreg_db_sql_load;
+	db->vtable.iterator  = &charreg_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;

@@ -240,9 +240,9 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	QuestDB_SQL* db = (QuestDB_SQL*)aCalloc(1, sizeof(QuestDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &quest_db_sql_init;
-	db->vtable.p.destroy   = &quest_db_sql_destroy;
-	db->vtable.p.sync      = &quest_db_sql_sync;
+	db->vtable.p.init    = &quest_db_sql_init;
+	db->vtable.p.destroy = &quest_db_sql_destroy;
+	db->vtable.p.sync    = &quest_db_sql_sync;
 	db->vtable.remove    = &quest_db_sql_remove;
 	db->vtable.load      = &quest_db_sql_load;
 	db->vtable.save      = &quest_db_sql_save;

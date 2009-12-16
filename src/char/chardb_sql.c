@@ -611,17 +611,17 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	CharDB_SQL* db = (CharDB_SQL*)aCalloc(1, sizeof(CharDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &char_db_sql_init;
-	db->vtable.p.destroy   = &char_db_sql_destroy;
-	db->vtable.p.sync      = &char_db_sql_sync;
-	db->vtable.create    = &char_db_sql_create;
-	db->vtable.remove    = &char_db_sql_remove;
-	db->vtable.save      = &char_db_sql_save;
-	db->vtable.load_num  = &char_db_sql_load_num;
-	db->vtable.load_str  = &char_db_sql_load_str;
-	db->vtable.id2name   = &char_db_sql_id2name;
-	db->vtable.name2id   = &char_db_sql_name2id;
-	db->vtable.iterator  = &char_db_sql_iterator;
+	db->vtable.p.init     = &char_db_sql_init;
+	db->vtable.p.destroy  = &char_db_sql_destroy;
+	db->vtable.p.sync     = &char_db_sql_sync;
+	db->vtable.create     = &char_db_sql_create;
+	db->vtable.remove     = &char_db_sql_remove;
+	db->vtable.save       = &char_db_sql_save;
+	db->vtable.load_num   = &char_db_sql_load_num;
+	db->vtable.load_str   = &char_db_sql_load_str;
+	db->vtable.id2name    = &char_db_sql_id2name;
+	db->vtable.name2id    = &char_db_sql_name2id;
+	db->vtable.iterator   = &char_db_sql_iterator;
 	db->vtable.characters = &char_db_sql_characters;
 
 	// initialize to default values

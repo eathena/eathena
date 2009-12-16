@@ -380,9 +380,9 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	PartyDB_SQL* db = (PartyDB_SQL*)aCalloc(1, sizeof(PartyDB_SQL));
 
 	// set up the vtable
-	db->vtable.p.init      = &party_db_sql_init;
-	db->vtable.p.destroy   = &party_db_sql_destroy;
-	db->vtable.p.sync      = &party_db_sql_sync;
+	db->vtable.p.init    = &party_db_sql_init;
+	db->vtable.p.destroy = &party_db_sql_destroy;
+	db->vtable.p.sync    = &party_db_sql_sync;
 	db->vtable.create    = &party_db_sql_create;
 	db->vtable.remove    = &party_db_sql_remove;
 	db->vtable.save      = &party_db_sql_save;

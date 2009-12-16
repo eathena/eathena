@@ -337,12 +337,12 @@ MailDB* mail_db_sql(CharServerDB_SQL* owner)
 	db->vtable.p.init    = &mail_db_sql_init;
 	db->vtable.p.destroy = &mail_db_sql_destroy;
 	db->vtable.p.sync    = &mail_db_sql_sync;
-	db->vtable.create  = &mail_db_sql_create;
-	db->vtable.remove  = &mail_db_sql_remove;
-	db->vtable.save    = &mail_db_sql_save;
-	db->vtable.load    = &mail_db_sql_load;
-	db->vtable.loadall = &mail_db_sql_loadall;
-	db->vtable.iterator = &mail_db_sql_iterator;
+	db->vtable.create    = &mail_db_sql_create;
+	db->vtable.remove    = &mail_db_sql_remove;
+	db->vtable.save      = &mail_db_sql_save;
+	db->vtable.load      = &mail_db_sql_load;
+	db->vtable.loadall   = &mail_db_sql_loadall;
+	db->vtable.iterator  = &mail_db_sql_iterator;
 
 	// initialize to default values
 	db->owner = owner;
