@@ -65,7 +65,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`hair`,"
 		"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
 		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`"
-		" FROM `%s` WHERE `char_id`=? LIMIT 1", db->char_db)
+		" FROM `%s` WHERE `char_id`=?", db->char_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 0,  SQLDT_INT,    &p->char_id, 0, NULL, NULL)
@@ -173,18 +173,9 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new)
 {
 	Sql* sql_handle = db->chars;
-
-	struct mmo_charstatus tmp;
-	struct mmo_charstatus* cp = &tmp;
 	StringBuf buf;
 	SqlStmt* stmt = NULL;
 	bool result = false;
-
-	// get previous data to diff against
-	if( is_new )
-		memset(cp, 0, sizeof(*cp));
-	else
-		mmo_char_fromsql(db, cp, p->char_id, true);
 
 	if( SQL_SUCCESS != Sql_QueryStr(sql_handle, "START TRANSACTION") )
 	{
@@ -194,27 +185,101 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 
 	StringBuf_Init(&buf);
 
+	if( is_new )
+	{
+		StringBuf_Printf(&buf,
+			"INSERT INTO `%s` "
+			"(`account_id`,`char_num`,`name`,`class`,`base_level`,`job_level`,`base_exp`,`job_exp`,`zeny`,"
+			"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
+			"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`hair`,"
+			"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
+			"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`char_id`)"
+			" VALUES "
+			"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			, db->char_db);
+	}
+	else
+	{
+		StringBuf_Printf(&buf,
+			"UPDATE `%s` SET "
+			"`account_id`=?,`char_num`=?,`name`=?,`class`=?,`base_level`=?,`job_level`=?,`base_exp`=?,`job_exp`=?,`zeny`=?,"
+			"`str`=?,`agi`=?,`vit`=?,`int`=?,`dex`=?,`luk`=?,`max_hp`=?,`hp`=?,`max_sp`=?,`sp`=?,"
+			"`status_point`=?,`skill_point`=?,`option`=?,`karma`=?,`manner`=?,`party_id`=?,`guild_id`=?,`pet_id`=?,`homun_id`=?,`hair`=?,"
+			"`hair_color`=?,`clothes_color`=?,`weapon`=?,`shield`=?,`head_top`=?,`head_mid`=?,`head_bottom`=?,`last_map`=?,`last_x`=?,`last_y`=?,"
+			"`save_map`=?,`save_x`=?,`save_y`=?,`partner_id`=?,`father`=?,`mother`=?,`child`=?"
+			" WHERE `char_id`=?"
+			, db->char_db);
+	}
+
 	// try
 	do
 	{
+	char last_map[MAP_NAME_LENGTH];
+	char save_map[MAP_NAME_LENGTH];
+	safestrncpy(last_map, mapindex_id2name(p->last_point.map), sizeof(last_map));
+	safestrncpy(save_map, mapindex_id2name(p->save_point.map), sizeof(save_map));
+
+	stmt = SqlStmt_Malloc(sql_handle);
+
+	//Save status
+	if( SQL_SUCCESS != SqlStmt_PrepareStr(stmt, StringBuf_Value(&buf))
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0,  SQLDT_INT,    &p->account_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 1,  SQLDT_UCHAR,  &p->slot, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 2,  SQLDT_STRING, &p->name, strnlen(p->name, ARRAYLENGTH(p->name)))
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 3,  SQLDT_SHORT,  &p->class_, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 4,  SQLDT_UINT,   &p->base_level, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 5,  SQLDT_UINT,   &p->job_level, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 6,  SQLDT_UINT,   &p->base_exp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 7,  SQLDT_UINT,   &p->job_exp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 8,  SQLDT_INT,    &p->zeny, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 9,  SQLDT_SHORT,  &p->str, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 10, SQLDT_SHORT,  &p->agi, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 11, SQLDT_SHORT,  &p->vit, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 12, SQLDT_SHORT,  &p->int_, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 13, SQLDT_SHORT,  &p->dex, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 14, SQLDT_SHORT,  &p->luk, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 15, SQLDT_INT,    &p->max_hp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 16, SQLDT_INT,    &p->hp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 17, SQLDT_INT,    &p->max_sp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 18, SQLDT_INT,    &p->sp, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 19, SQLDT_UINT,   &p->status_point, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 20, SQLDT_UINT,   &p->skill_point, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 21, SQLDT_UINT,   &p->option, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 22, SQLDT_UCHAR,  &p->karma, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 23, SQLDT_SHORT,  &p->manner, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 24, SQLDT_INT,    &p->party_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 25, SQLDT_INT,    &p->guild_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 26, SQLDT_INT,    &p->pet_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 27, SQLDT_INT,    &p->hom_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 28, SQLDT_SHORT,  &p->hair, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 29, SQLDT_SHORT,  &p->hair_color, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 30, SQLDT_SHORT,  &p->clothes_color, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 31, SQLDT_SHORT,  &p->weapon, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 32, SQLDT_SHORT,  &p->shield, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 33, SQLDT_SHORT,  &p->head_top, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 34, SQLDT_SHORT,  &p->head_mid, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 35, SQLDT_SHORT,  &p->head_bottom, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 36, SQLDT_STRING, &last_map, strnlen(last_map, ARRAYLENGTH(last_map)))
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 37, SQLDT_SHORT,  &p->last_point.x, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 38, SQLDT_SHORT,  &p->last_point.y, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 39, SQLDT_STRING, &save_map, strnlen(save_map, ARRAYLENGTH(save_map)))
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 40, SQLDT_SHORT,  &p->save_point.x, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 41, SQLDT_SHORT,  &p->save_point.y, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 42, SQLDT_INT,    &p->partner_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 43, SQLDT_INT,    &p->father, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 44, SQLDT_INT,    &p->mother, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 45, SQLDT_INT,    &p->child, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 46, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
+	||  SQL_ERROR == SqlStmt_Execute(stmt) )
+	{
+		SqlStmt_ShowDebug(stmt);
+		break;
+	}
 
 	if( is_new )
-	{// Insert the barebones to then update the rest.
-		int insert_id;
+	{
+		int insert_id = (int)SqlStmt_LastInsertId(stmt);
 
-		SqlStmt* stmt = SqlStmt_Malloc(sql_handle);
-		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "REPLACE INTO `%s` (`char_id`, `account_id`, `char_num`, `name`)  VALUES (?,?,?,?)", db->char_db)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 1, SQLDT_INT, (void*)&p->account_id, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 2, SQLDT_UCHAR, (void*)&p->slot, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 3, SQLDT_STRING, (void*)p->name, strnlen(p->name, ITEM_NAME_LENGTH))
-		||  SQL_SUCCESS != SqlStmt_Execute(stmt) )
-		{
-			SqlStmt_ShowDebug(stmt);
-			break;
-		}
-
-		insert_id = (int)SqlStmt_LastInsertId(stmt);
 		if( p->char_id == -1 )
 			p->char_id = insert_id; // fill in output value
 		else
@@ -222,80 +287,12 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 			break; // error, unexpected value
 	}
 
-	if (
-		(p->base_exp != cp->base_exp) || (p->base_level != cp->base_level) ||
-		(p->job_level != cp->job_level) || (p->job_exp != cp->job_exp) ||
-		(p->zeny != cp->zeny) ||
-		(p->last_point.x != cp->last_point.x) || (p->last_point.y != cp->last_point.y) ||
-		(p->max_hp != cp->max_hp) || (p->hp != cp->hp) ||
-		(p->max_sp != cp->max_sp) || (p->sp != cp->sp) ||
-		(p->status_point != cp->status_point) || (p->skill_point != cp->skill_point) ||
-		(p->str != cp->str) || (p->agi != cp->agi) || (p->vit != cp->vit) ||
-		(p->int_ != cp->int_) || (p->dex != cp->dex) || (p->luk != cp->luk) ||
-		(p->option != cp->option) ||
-		(p->party_id != cp->party_id) || (p->guild_id != cp->guild_id) ||
-		(p->pet_id != cp->pet_id) || (p->weapon != cp->weapon) || (p->hom_id != cp->hom_id) ||
-		(p->shield != cp->shield) || (p->head_top != cp->head_top) ||
-		(p->head_mid != cp->head_mid) || (p->head_bottom != cp->head_bottom)
-	)
-	{	//Save status
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `base_level`='%d', `job_level`='%d',"
-			"`base_exp`='%u', `job_exp`='%u', `zeny`='%d',"
-			"`max_hp`='%d',`hp`='%d',`max_sp`='%d',`sp`='%d',`status_point`='%u',`skill_point`='%u',"
-			"`str`='%d',`agi`='%d',`vit`='%d',`int`='%d',`dex`='%d',`luk`='%d',"
-			"`option`='%d',`party_id`='%d',`guild_id`='%d',`pet_id`='%d',`homun_id`='%d',"
-			"`weapon`='%d',`shield`='%d',`head_top`='%d',`head_mid`='%d',`head_bottom`='%d',"
-			"`last_map`='%s',`last_x`='%d',`last_y`='%d',`save_map`='%s',`save_x`='%d',`save_y`='%d'"
-			" WHERE  `account_id`='%d' AND `char_id` = '%d'",
-			db->char_db, p->base_level, p->job_level,
-			p->base_exp, p->job_exp, p->zeny,
-			p->max_hp, p->hp, p->max_sp, p->sp, p->status_point, p->skill_point,
-			p->str, p->agi, p->vit, p->int_, p->dex, p->luk,
-			p->option, p->party_id, p->guild_id, p->pet_id, p->hom_id,
-			p->weapon, p->shield, p->head_top, p->head_mid, p->head_bottom,
-			mapindex_id2name(p->last_point.map), p->last_point.x, p->last_point.y,
-			mapindex_id2name(p->save_point.map), p->save_point.x, p->save_point.y,
-			p->account_id, p->char_id) )
-		{
-			Sql_ShowDebug(sql_handle);
-		}
-	}
-
-	//Values that will seldom change (to speed up saving)
-	if (
-		(p->hair != cp->hair) || (p->hair_color != cp->hair_color) || (p->clothes_color != cp->clothes_color) ||
-		(p->class_ != cp->class_) ||
-		(p->partner_id != cp->partner_id) || (p->father != cp->father) ||
-		(p->mother != cp->mother) || (p->child != cp->child) ||
- 		(p->karma != cp->karma) || (p->manner != cp->manner)
-	)
-	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `class`='%d',"
-			"`hair`='%d',`hair_color`='%d',`clothes_color`='%d',"
-			"`partner_id`='%d', `father`='%d', `mother`='%d', `child`='%d',"
-			"`karma`='%d',`manner`='%d'"
-			" WHERE  `account_id`='%d' AND `char_id` = '%d'",
-			db->char_db, p->class_,
-			p->hair, p->hair_color, p->clothes_color,
-			p->partner_id, p->father, p->mother, p->child,
-			p->karma, p->manner,
-			p->account_id, p->char_id) )
-		{
-			Sql_ShowDebug(sql_handle);
-		}
-	}
-
 	//mercenary owner data
-	if( (p->mer_id != cp->mer_id) ||
-		(p->arch_calls != cp->arch_calls) || (p->arch_faith != cp->arch_faith) ||
-		(p->spear_calls != cp->spear_calls) || (p->spear_faith != cp->spear_faith) ||
-		(p->sword_calls != cp->sword_calls) || (p->sword_faith != cp->sword_faith) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`char_id`, `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
+		db->mercenary_owner_db, p->char_id, p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith) )
 	{
-		if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`char_id`, `merc_id`, `arch_calls`, `arch_faith`, `spear_calls`, `spear_faith`, `sword_calls`, `sword_faith`) VALUES ('%d', '%d', '%d', '%d', '%d', '%d', '%d', '%d')",
-			db->mercenary_owner_db, p->char_id, p->mer_id, p->arch_calls, p->arch_faith, p->spear_calls, p->spear_faith, p->sword_calls, p->sword_faith) )
-		{
-			Sql_ShowDebug(sql_handle);
-		}
+		Sql_ShowDebug(sql_handle);
+		break;
 	}
 
 	// success
@@ -375,7 +372,7 @@ static bool char_db_sql_remove(CharDB* self, const int char_id)
 	do
 	{
 
-	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `mercenary_owner` WHERE `char_id` = '%d'", char_id) // mercenary owner data
+	if( SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->mercenary_owner_db, char_id) // mercenary owner data
 	||  SQL_SUCCESS != Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `char_id`='%d'", db->char_db, char_id) // character
 	) {
 		Sql_ShowDebug(sql_handle);
