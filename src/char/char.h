@@ -37,6 +37,7 @@ void log_char(const char* fmt, ...);
 /// Validates a character name and checks if it's available.
 int check_char_name(const char* name);
 
+int char_rename(int account_id, int char_id, const char* new_name);
 void char_divorce(int partner_id1, int partner_id2);
 int char_create(int account_id, const char* name_, int str, int agi, int vit, int int_, int dex, int luk, int slot, int hair_color, int hair_style, int* out_char_id);
 int char_delete(int char_id);
@@ -74,7 +75,6 @@ struct Char_Config {
 	int char_maintenance; // defines appearance in server select: 0 =  (%d)#, 1 =  (On the maintenance)#, 2 =  (%d People) - over the age 18#, 3 =  (%d players) - Pay to Play#, 4 =  (%d players) - Free Play Server#
 	int char_new_display; // shows 'new' in server select if set
 	bool char_new;        // new character creation enabled/disabled
-	bool char_rename;     // when enabled, uses extended char data packet w/ char rename bit (kRO sakexe compatibility setting)
 	int char_name_option; // letters/symbols authorized in the name of a character (0: all, 1: only those in char_name_letters, 2: all EXCEPT those in char_name_letters)
 	char char_name_letters[1024]; // list of letters/symbols authorised (or not) in a character name
 	char wisp_server_name[NAME_LENGTH]; // name reserved for sending whispers from server to players

@@ -64,7 +64,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 		"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
 		"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`hair`,"
 		"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
-		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`"
+		"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`rename`"
 		" FROM `%s` WHERE `char_id`=?", db->char_db)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 0, SQLDT_INT, &char_id, 0)
 	||	SQL_ERROR == SqlStmt_Execute(stmt)
@@ -115,6 +115,7 @@ static bool mmo_char_fromsql(CharDB_SQL* db, struct mmo_charstatus* p, int char_
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 44, SQLDT_INT,    &p->father, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 45, SQLDT_INT,    &p->mother, 0, NULL, NULL)
 	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 46, SQLDT_INT,    &p->child, 0, NULL, NULL)
+	||	SQL_ERROR == SqlStmt_BindColumn(stmt, 47, SQLDT_SHORT,  &p->rename, 0, NULL, NULL)
 	) {
 		SqlStmt_ShowDebug(stmt);
 		SqlStmt_Free(stmt);
@@ -193,9 +194,9 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 			"`str`,`agi`,`vit`,`int`,`dex`,`luk`,`max_hp`,`hp`,`max_sp`,`sp`,"
 			"`status_point`,`skill_point`,`option`,`karma`,`manner`,`party_id`,`guild_id`,`pet_id`,`homun_id`,`hair`,"
 			"`hair_color`,`clothes_color`,`weapon`,`shield`,`head_top`,`head_mid`,`head_bottom`,`last_map`,`last_x`,`last_y`,"
-			"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`char_id`)"
+			"`save_map`,`save_x`,`save_y`,`partner_id`,`father`,`mother`,`child`,`rename`,`char_id`)"
 			" VALUES "
-			"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+			"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 			, db->char_db);
 	}
 	else
@@ -206,7 +207,7 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 			"`str`=?,`agi`=?,`vit`=?,`int`=?,`dex`=?,`luk`=?,`max_hp`=?,`hp`=?,`max_sp`=?,`sp`=?,"
 			"`status_point`=?,`skill_point`=?,`option`=?,`karma`=?,`manner`=?,`party_id`=?,`guild_id`=?,`pet_id`=?,`homun_id`=?,`hair`=?,"
 			"`hair_color`=?,`clothes_color`=?,`weapon`=?,`shield`=?,`head_top`=?,`head_mid`=?,`head_bottom`=?,`last_map`=?,`last_x`=?,`last_y`=?,"
-			"`save_map`=?,`save_x`=?,`save_y`=?,`partner_id`=?,`father`=?,`mother`=?,`child`=?"
+			"`save_map`=?,`save_x`=?,`save_y`=?,`partner_id`=?,`father`=?,`mother`=?,`child`=?,`rename`=?"
 			" WHERE `char_id`=?"
 			, db->char_db);
 	}
@@ -269,7 +270,8 @@ static bool mmo_char_tosql(CharDB_SQL* db, struct mmo_charstatus* p, bool is_new
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 43, SQLDT_INT,    &p->father, 0)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 44, SQLDT_INT,    &p->mother, 0)
 	||	SQL_ERROR == SqlStmt_BindParam(stmt, 45, SQLDT_INT,    &p->child, 0)
-	||	SQL_ERROR == SqlStmt_BindParam(stmt, 46, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 46, SQLDT_SHORT,  &p->rename, 0)
+	||	SQL_ERROR == SqlStmt_BindParam(stmt, 47, (p->char_id != -1)?SQLDT_INT:SQLDT_NULL, (void*)&p->char_id, 0)
 	||  SQL_ERROR == SqlStmt_Execute(stmt) )
 	{
 		SqlStmt_ShowDebug(stmt);

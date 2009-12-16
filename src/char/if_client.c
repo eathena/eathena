@@ -449,8 +449,67 @@ int parse_client(int fd)
 		// R 028d <account ID>.l <char ID>.l <new name>.24B
 		case 0x28d:
 			FIFOSD_CHECK(34);
-			//not implemented
+		{
+			int account_id = RFIFOL(fd,2);
+			int char_id = RFIFOL(fd,6);
+			const char* name = (char*)RFIFOP(fd,10);
+			char new_name[NAME_LENGTH];
+			bool success;
+			int i;
+
+			if( account_id != sd->account_id )
+				break;
+
+			ARR_FIND( 0, MAX_CHARS, i, sd->slots[i] == char_id );
+			if( i == MAX_CHARS )
+				break;
+
+			safestrncpy(new_name, name, sizeof(new_name));
+			normalize_name(new_name,"\032\t\x0A\x0D ");
+
+			success = ( check_char_name(name) == 0 );
+
+			if( success )
+				safestrncpy(sd->new_name, name, sizeof(sd->new_name));
+
+			WFIFOHEAD(fd,4);
+			WFIFOW(fd,0) = 0x28e;
+			WFIFOW(fd,2) = success ? 1 : 0;
+			WFIFOSET(fd,4);
+		}
+
 			RFIFOSKIP(fd,34);
+		break;
+
+		//Confirm change name.
+		// 0x28f <char_id>.L
+		// Possible replies:
+		//       0: Sucessful
+		//       1: This character's name has already been changed. You cannot change a character's name more than once.
+		//       2: User information is not correct.
+		//       3: You have failed to change this character's name.
+		//       4: Another user is using this character name, so please select another one.
+		case 0x28f:
+			FIFOSD_CHECK(6);
+		{
+			int char_id = RFIFOL(fd,2);
+			int result;
+			int i;
+
+			ARR_FIND( 0, MAX_CHARS, i, sd->slots[i] == char_id );
+			if( i == MAX_CHARS )
+				break;
+
+			result = char_rename(sd->account_id, char_id, sd->new_name);
+
+			memset(sd->new_name, 0, sizeof(sd->new_name));
+
+			WFIFOHEAD(fd, 4);
+			WFIFOW(fd,0) = 0x290;
+			WFIFOW(fd,2) = result;
+			WFIFOSET(fd,4);
+		}
+			RFIFOSKIP(fd,6);
 		break;
 
 		// captcha code request (not implemented)
@@ -712,7 +771,7 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	WBUFB(buf,103) = min(p->luk, UCHAR_MAX);
 	WBUFW(buf,104) = p->slot;
 #if PACKETVER >= 20061023
-	WBUFW(buf,106) = 1;
+	WBUFW(buf,106) = ( p->rename > 0 ) ? 0 : 1;
 	offset += 2;
 #endif
 

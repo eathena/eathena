@@ -357,6 +357,43 @@ int char_create(int account_id, const char* name_, int str, int agi, int vit, in
 }
 
 
+/// Changes a character's name.
+/// @return 0 on success, 1 if no renames left, 2 on invalid data, 3 on internal error, 4 if name is already taken.
+int char_rename(int account_id, int char_id, const char* new_name)
+{
+	CharDB* chars = charserver->chardb(charserver);
+	struct mmo_charstatus cd;
+	char old_name[NAME_LENGTH]; // for logging purposes
+
+	if( new_name[0] == 0 )
+		return 2; // not ready for rename
+
+	if( chars->name2id(chars, new_name, char_config.character_name_case_sensitive, NULL, NULL, NULL) )
+		return 4; // name already taken
+
+	if( !chars->load_num(chars, &cd, char_id) )
+		return 2; // char not found (or internal error?)
+
+	if( cd.rename == 0 )
+		return 1; // no more renames left
+
+	safestrncpy(old_name, cd.name, NAME_LENGTH);
+	safestrncpy(cd.name, new_name, NAME_LENGTH);
+
+	if( !chars->save(chars, &cd) )
+		return 3; // error
+
+	// Change character's name into guild_db.
+	if( cd.guild_id )
+		inter_guild_charname_changed(cd.guild_id, account_id, char_id, new_name);
+
+	// log change
+	charlog_log(char_id, account_id, cd.slot, new_name, "char renamed from '%s' to '%s'", old_name, new_name);
+
+	return 0;
+}
+
+
 void char_divorce(int partner_id1, int partner_id2)
 {
 	CharDB* chars = charserver->chardb(charserver);
@@ -691,7 +728,6 @@ void char_set_defaults(void)
 	char_config.char_maintenance = 0;
 	char_config.char_new_display = 0;
 	char_config.char_new = true;
-	char_config.char_rename = true;
 	char_config.char_name_option = 0;
 	safestrncpy(char_config.char_name_letters, "", sizeof(char_config.char_name_letters));
 	safestrncpy(char_config.wisp_server_name, "Server", sizeof(char_config.wisp_server_name));
@@ -859,9 +895,6 @@ int char_config_read(const char* cfgName)
 		else
 		if( strcmpi(w1, "char_name_letters") == 0 )
 			safestrncpy(char_config.char_name_letters, w2, sizeof(char_config.char_name_letters));
-		else
-		if( strcmpi(w1, "char_rename") == 0 )
-			char_config.char_rename = (bool)config_switch(w2);
 		else
 		if( strcmpi(w1, "db_path") == 0 )
 			safestrncpy(char_config.db_path, w2, sizeof(char_config.db_path));

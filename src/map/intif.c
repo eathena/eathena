@@ -1211,7 +1211,6 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 	int char_id = RFIFOL(fd,12);
 	int type = RFIFOW(fd,16);
 	void* data = RFIFOP(fd,18);
-	int dd = *((int *)data);
 
 	struct guild* g;
 	int idx;
@@ -1225,14 +1224,17 @@ int intif_parse_GuildMemberInfoChanged(int fd)
 		return 0;
 
 	switch( type ) {
-	case GMI_POSITION:   g->member[idx].position = dd; guild_memberposition_changed(g,idx,dd); break;
-	case GMI_EXP:        g->member[idx].exp = dd; break;
-	case GMI_HAIR:       g->member[idx].hair = dd; break;
-	case GMI_HAIR_COLOR: g->member[idx].hair_color = dd; break;
-	case GMI_GENDER:     g->member[idx].gender = dd; break;
-	case GMI_CLASS:      g->member[idx].class_ = dd; break;
-	case GMI_LEVEL:      g->member[idx].lv = dd; break;
+	case GMI_POSITION:   g->member[idx].position = *(int*)data; guild_memberposition_changed(g,idx,*(int*)data); break;
+	case GMI_EXP:        g->member[idx].exp = *(unsigned int*)data; break;
+	case GMI_HAIR:       g->member[idx].hair = *(int*)data; break;
+	case GMI_HAIR_COLOR: g->member[idx].hair_color = *(int*)data; break;
+	case GMI_GENDER:     g->member[idx].gender = *(int*)data; break;
+	case GMI_CLASS:      g->member[idx].class_ = *(int*)data; break;
+	case GMI_LEVEL:      g->member[idx].lv = *(int*)data; break;
+	case GMI_NAME:       safestrncpy(g->member[idx].name, (char*)data, sizeof(g->member[idx].name)); break;
 	}
+
+	//TODO: notify all members of change (0x154:clif_guild_memberlist, or maybe 0x1f2:clif_guild_memberlogin_notice v2)
 	return 0;
 }
 

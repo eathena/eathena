@@ -692,6 +692,9 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 	case GMI_LEVEL:
 		g.member[i].lv = *((int *)data);
 		break;
+	case GMI_NAME:
+		safestrncpy(g.member[i].name, (char*)data, sizeof(g.member[i].name));
+		break;
 
 	default:
 		ShowError("int_guild: GuildMemberInfoChange: Unknown type %d\n", type);
@@ -1016,15 +1019,19 @@ void inter_guild_mapif_init(int fd)
 }
 
 // サーバーから脱退要求（キャラ削除用）
-int inter_guild_leave(int guild_id, int account_id, int char_id)
+void inter_guild_leave(int guild_id, int account_id, int char_id)
 {
-	return mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
+	mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
 }
 
-int inter_guild_sex_changed(int guild_id, int account_id, int char_id, int gender)
+void inter_guild_sex_changed(int guild_id, int account_id, int char_id, int gender)
 {
-	mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
-	return 0;
+	mapif_parse_GuildMemberInfoChange(-1, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
+}
+
+void inter_guild_charname_changed(int guild_id, int account_id, int char_id, const char* name)
+{
+	mapif_parse_GuildMemberInfoChange(-1, guild_id, account_id, char_id, GMI_NAME, name, strlen(name)+1);
 }
 
 void inter_guild_init(GuildDB* gdb, CastleDB* cdb)
