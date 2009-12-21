@@ -37,4 +37,4 @@ struct FriendDB
 };
 
 
-#endif /* _FRIENDDB_H_ */
+#endif // _FRIENDDB_H_

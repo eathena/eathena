@@ -38,4 +38,4 @@ void set_char_charselect(int account_id);
 void set_char_waitdisconnect(int account_id, unsigned int time);
 
 
-#endif /* _ONLINE_H_ */
+#endif // _ONLINE_H_

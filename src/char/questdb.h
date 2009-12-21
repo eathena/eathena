@@ -48,4 +48,4 @@ struct QuestDB
 };
 
 
-#endif /* _QUESTDB_H_ */
+#endif // _QUESTDB_H_

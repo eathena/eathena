@@ -55,4 +55,4 @@ struct StatusDB
 };
 
 
-#endif /* _STATUSDB_H_ */
+#endif // _STATUSDB_H_

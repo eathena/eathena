@@ -20,4 +20,4 @@ extern bool party_break_without_leader;
 extern bool party_auto_reassign_leader;
 extern char main_chat_nick[16];
 
-#endif /* _INTER_H_ */
+#endif // _INTER_H_

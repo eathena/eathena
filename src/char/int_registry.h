@@ -11,4 +11,4 @@ void inter_registry_init(AccRegDB* accregdb, CharRegDB* charregdb);
 void inter_registry_final(void);
 int inter_registry_parse_frommap(int fd);
 
-#endif /* _INT_REGISTRY_H_ */
+#endif // _INT_REGISTRY_H_

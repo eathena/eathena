@@ -41,4 +41,4 @@ struct CastleDB
 };
 
 
-#endif /* _CASTLEDB_H_ */
+#endif // _CASTLEDB_H_

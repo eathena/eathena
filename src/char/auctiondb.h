@@ -46,4 +46,4 @@ struct AuctionDB
 };
 
 
-#endif /* _AUCTIONDB_H_ */
+#endif // _AUCTIONDB_H_

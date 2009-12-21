@@ -66,4 +66,4 @@ struct PartyDB
 };
 
 
-#endif /* _PARTYDB_H_ */
+#endif // _PARTYDB_H_

@@ -76,4 +76,4 @@ struct RankDB
 };
 
 
-#endif /* _RANKDB_H_ */
+#endif // _RANKDB_H_

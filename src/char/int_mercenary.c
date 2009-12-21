@@ -85,9 +85,7 @@ static void mapif_parse_mercenary_save(int fd, struct s_mercenary* merc)
 }
 
 
-/*==========================================
- * Inter Packets
- *------------------------------------------*/
+/// Inter Packets.
 int inter_mercenary_parse_frommap(int fd)
 {
 	unsigned short cmd = RFIFOW(fd,0);

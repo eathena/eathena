@@ -31,4 +31,4 @@ void loginif_all_offline(void);
 void do_init_loginif(void);
 void do_final_loginif(void);
 
-#endif /* _IF_LOGIN_H_ */
+#endif // _IF_LOGIN_H_

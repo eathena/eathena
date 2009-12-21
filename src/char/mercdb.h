@@ -39,4 +39,4 @@ struct MercDB
 };
 
 
-#endif /* _MERCDB_H_ */
+#endif // _MERCDB_H_

@@ -41,4 +41,4 @@ struct CharRegDB
 };
 
 
-#endif /* _CHARREGDB_H_ */
+#endif // _CHARREGDB_H_

@@ -80,4 +80,4 @@ struct CharDB
 };
 
 
-#endif /* _CHARDB_H_ */
+#endif // _CHARDB_H_

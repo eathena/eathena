@@ -39,4 +39,4 @@ struct HomunDB
 };
 
 
-#endif /* _HOMUNDB_H_ */
+#endif // _HOMUNDB_H_

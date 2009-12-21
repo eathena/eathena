@@ -95,4 +95,4 @@ struct Char_Config {
 
 extern struct Char_Config char_config;
 
-#endif /* _CHAR_H_ */
+#endif // _CHAR_H_

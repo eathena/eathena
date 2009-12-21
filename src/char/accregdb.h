@@ -41,4 +41,4 @@ struct AccRegDB
 };
 
 
-#endif /* _ACCREGDB_H_ */
+#endif // _ACCREGDB_H_

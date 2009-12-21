@@ -55,9 +55,7 @@ int inter_recv_packet_length[] = {
 	-1,10, 6,-1,  0, 0, 0, 0,  0, 0, 0, 0,  0, 0,  0, 0,	// 30C0-  Mercenary
 };
 
-/*==========================================
- * read config file
- *------------------------------------------*/
+/// Read config file.
 static int inter_config_read(const char* cfgName)
 {
 	char line[1024], w1[1024], w2[1024];

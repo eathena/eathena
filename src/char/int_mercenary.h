@@ -10,4 +10,4 @@ void inter_mercenary_init(MercDB* db);
 void inter_mercenary_final(void);
 int inter_mercenary_parse_frommap(int fd);
 
-#endif /* _INT_MERCENARY_H_ */
+#endif // _INT_MERCENARY_H_

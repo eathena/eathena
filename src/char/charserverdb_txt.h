@@ -94,4 +94,4 @@ struct CharServerDB_TXT
 };
 
 
-#endif /* _CHARSERVERDB_TXT_H_ */
+#endif // _CHARSERVERDB_TXT_H_

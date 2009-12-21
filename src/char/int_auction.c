@@ -337,9 +337,7 @@ static void mapif_parse_Auction_bid(int fd)
 }
 
 
-/*==========================================
- * Packets From Map Server
- *------------------------------------------*/
+/// Packets From Map Server.
 int inter_auction_parse_frommap(int fd)
 {
 	switch(RFIFOW(fd,0))

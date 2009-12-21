@@ -37,4 +37,4 @@ struct SkillDB
 };
 
 
-#endif /* _SKILLDB_H_ */
+#endif // _SKILLDB_H_

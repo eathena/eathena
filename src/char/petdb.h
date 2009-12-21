@@ -40,4 +40,4 @@ struct PetDB
 };
 
 
-#endif /* _PETDB_H_ */
+#endif // _PETDB_H_

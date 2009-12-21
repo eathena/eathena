@@ -37,4 +37,4 @@ struct MemoDB
 };
 
 
-#endif /* _MEMODB_H_ */
+#endif // _MEMODB_H_

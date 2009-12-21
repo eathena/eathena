@@ -234,4 +234,4 @@ struct CharServerDB
 };
 
 
-#endif /* _CHARSERVERDB_H_ */
+#endif // _CHARSERVERDB_H_ 

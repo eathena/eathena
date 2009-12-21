@@ -79,4 +79,4 @@ struct GuildDB
 };
 
 
-#endif /* _GUILDDB_H_ */
+#endif // _GUILDDB_H_

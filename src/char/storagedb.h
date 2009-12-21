@@ -47,4 +47,4 @@ struct StorageDB
 };
 
 
-#endif /* _STORAGEDB_H_ */
+#endif // _STORAGEDB_H_

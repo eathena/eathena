@@ -19,9 +19,7 @@ static MailDB* mails = NULL;
 static CharDB* chars = NULL;
 
 
-/*==========================================
- * Client Inbox Request
- *------------------------------------------*/
+/// Client Inbox Request.
 static void mapif_Mail_sendinbox(int fd, int char_id, unsigned char flag)
 {
 	struct mail_data md;
@@ -38,9 +36,8 @@ static void mapif_Mail_sendinbox(int fd, int char_id, unsigned char flag)
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
-/*==========================================
- * Client Attachment Request
- *------------------------------------------*/
+
+/// Client Attachment Request.
 static void mapif_Mail_getattach(int fd, int char_id, int mail_id)
 {
 	struct mail_message msg;
@@ -79,9 +76,8 @@ static void mapif_Mail_getattach(int fd, int char_id, int mail_id)
 	WFIFOSET(fd,WFIFOW(fd,2));
 }
 
-/*==========================================
- * Delete Mail
- *------------------------------------------*/
+
+/// Delete Mail.
 static void mapif_Mail_delete(int fd, int char_id, int mail_id)
 {
 	bool failed = ( mails->remove(mails, mail_id) == false );
@@ -94,9 +90,8 @@ static void mapif_Mail_delete(int fd, int char_id, int mail_id)
 	WFIFOSET(fd,11);
 }
 
-/*==========================================
- * Report New Mail to Map Server
- *------------------------------------------*/
+
+/// Report New Mail to Map Server.
 void mapif_Mail_new(struct mail_message* msg)
 {
 	unsigned char buf[74];	
@@ -108,9 +103,8 @@ void mapif_Mail_new(struct mail_message* msg)
 	mapif_sendall(buf, 74);
 }
 
-/*==========================================
- * Return Mail
- *------------------------------------------*/
+
+/// Return Mail.
 static void mapif_Mail_return(int fd, int char_id, int mail_id)
 {
 	struct mail_message msg;
@@ -161,11 +155,10 @@ static void mapif_Mail_return(int fd, int char_id, int mail_id)
 	WFIFOL(fd,6) = mail_id;
 	WFIFOB(fd,10) = ( result == false );
 	WFIFOSET(fd,11);
+
 }
 
-/*==========================================
- * Send Mail
- *------------------------------------------*/
+/// Send Mail.
 static void mapif_Mail_send(int fd, struct mail_message* msg)
 {
 	int len = 4 + sizeof(struct mail_message);
@@ -176,6 +169,7 @@ static void mapif_Mail_send(int fd, struct mail_message* msg)
 	memcpy(WFIFOP(fd,4), msg, sizeof(struct mail_message));
 	WFIFOSET(fd,len);
 }
+
 
 static void mapif_parse_Mail_send(int fd, int size, int account_id, const void* data)
 {
@@ -212,10 +206,12 @@ static void mapif_parse_Mail_send(int fd, int size, int account_id, const void* 
 	mapif_Mail_send(fd, &msg);
 }
 
+
 static void mapif_parse_Mail_requestinbox(int fd, int char_id, unsigned char flag)
 {
 	mapif_Mail_sendinbox(fd, char_id, flag);
 }
+
 
 static void mapif_parse_Mail_read(int fd, int mail_id)
 {
@@ -227,24 +223,26 @@ static void mapif_parse_Mail_read(int fd, int mail_id)
 	}
 }
 
+
 static void mapif_parse_Mail_getattach(int fd, int char_id, int mail_id)
 {
 	mapif_Mail_getattach(fd, char_id, mail_id);
 }
+
 
 static void mapif_parse_Mail_delete(int fd, int char_id, int mail_id)
 {
 	mapif_Mail_delete(fd, char_id, mail_id);
 }
 
+
 static void mapif_parse_Mail_return(int fd, int char_id, int mail_id)
 {
 	mapif_Mail_return(fd, char_id, mail_id);
 }
 
-/*==========================================
- * Packets From Map Server
- *------------------------------------------*/
+
+/// Packets From Map Server.
 int inter_mail_parse_frommap(int fd)
 {
 	int cmd = RFIFOW(fd,0);
@@ -263,17 +261,20 @@ int inter_mail_parse_frommap(int fd)
 	return 1;
 }
 
+
 void inter_mail_init(MailDB* mdb, CharDB* cdb)
 {
 	mails = mdb;
 	chars = cdb;
 }
 
+
 void inter_mail_final(void)
 {
 	mails = NULL;
 	chars = NULL;
 }
+
 
 void inter_mail_send(int send_id, const char* send_name, int dest_id, const char* dest_name, const char* title, const char* body, int zeny, struct item *item)
 {

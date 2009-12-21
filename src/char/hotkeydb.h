@@ -37,4 +37,4 @@ struct HotkeyDB
 };
 
 
-#endif /* _HOTKEYDB_H_ */
+#endif // _HOTKEYDB_H_

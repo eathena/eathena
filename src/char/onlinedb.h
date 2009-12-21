@@ -35,4 +35,4 @@ OnlineDB* online_db_sql(void);
 #endif
 
 
-#endif /* _ONLINEDB_H_ */
+#endif // _ONLINEDB_H_

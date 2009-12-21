@@ -10,4 +10,4 @@ void inter_status_init(StatusDB* db);
 void inter_status_final(void);
 int inter_status_parse_frommap(int fd);
 
-#endif /* _INT_STATUS_H_ */
+#endif // _INT_STATUS_H_

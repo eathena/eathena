@@ -8,4 +8,4 @@ void inter_message_init(void);
 void inter_message_final(void);
 int inter_message_parse_frommap(int fd);
 
-#endif /* _INT_MESSAGE_H_ */
+#endif // _INT_MESSAGE_H_

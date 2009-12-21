@@ -37,4 +37,4 @@ void do_init_mapif(void);
 void do_final_mapif(void);
 
 
-#endif /* _IF_MAP_H_ */
+#endif // _IF_MAP_H_

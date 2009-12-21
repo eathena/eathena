@@ -16,4 +16,4 @@ void inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender
 void inter_guild_charname_changed(int guild_id, int account_id, int char_id, const char* name);
 void mapif_parse_BreakGuild(int fd, int guild_id);
 
-#endif /* _INT_GUILD_H_ */
+#endif // _INT_GUILD_H_
