@@ -26,7 +26,7 @@ struct guild;
 struct quest;
 #include <stdarg.h>
 // packet DB
-#define MAX_PACKET_DB		0x810
+#define MAX_PACKET_DB		0x900
 #define MAX_PACKET_VER		25
 
 struct s_packet_db {

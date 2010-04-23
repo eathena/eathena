@@ -16,6 +16,7 @@
 //        5 - 2003-12-18aSakexe+   - 0x1ee, 0x1ef, 0x1f0, ?0x1c4, 0x1c5?
 //        6 - 2004-03-02aSakexe+   - 0x1f4, 0x1f5
 //        7 - 2005-04-11aSakexe+   - 0x229, 0x22a, 0x22b, 0x22c
+// 20061023 - 2006-10-23aSakexe+   - 0x6b, 0x6d
 // 20070521 - 2007-05-21aSakexe+   - 0x283
 // 20070821 - 2007-08-21aSakexe+   - 0x2c5
 // 20070918 - 2007-09-18aSakexe+   - 0x2d7, 0x2d9, 0x2da
@@ -28,10 +29,13 @@
 // 20090603 - 2009-06-03aRagexeRE+ - 0x7d7, 0x7d8, 0x7d9, 0x7da
 // 20090617 - 2009-06-17aRagexeRE+ - 0x7d9
 // 20090922 - 2009-09-22aRagexeRE+ - 0x7e5, 0x7e7, 0x7e8, 0x7e9
-// 20100105 - 2010-01-05aRagexeRE+ - 0x801
+// 20091103 - 2009-11-03aRagexeRE+ - 0x7f7, 0x7f8, 0x7f9
+// 20100105 - 2010-01-05aRagexeRE+ - 0x133, 0x800, 0x801
+// 20100223 - 2010-02-23aRagexeRE+ - 0x80f
+
 #ifndef PACKETVER
 	#define PACKETVER	20081126
-	//#define PACKETVER 20100105
+	//#define PACKETVER 20100223
 #endif
 // backward compatible PACKETVER 8 and 9
 #if PACKETVER == 8
