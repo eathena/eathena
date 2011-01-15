@@ -64,7 +64,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	Sql_GetData(sql_handle, 0, &data, NULL); safestrncpy(g->name, data, sizeof(g->name));
 	Sql_GetData(sql_handle, 1, &data, NULL); g->guild_lv = atoi(data);
 	Sql_GetData(sql_handle, 2, &data, NULL); g->max_member = atoi(data);
-	Sql_GetData(sql_handle, 3, &data, NULL); g->exp = (unsigned int)strtoul(data, NULL, 10);
+	Sql_GetData(sql_handle, 3, &data, NULL); g->exp = (uint64)strtoull(data, NULL, 10);
 	Sql_GetData(sql_handle, 4, &data, NULL); g->skill_point = atoi(data);
 	Sql_GetData(sql_handle, 5, &data, NULL); safestrncpy(g->mes1, data, sizeof(g->mes1));
 	Sql_GetData(sql_handle, 6, &data, NULL); safestrncpy(g->mes2, data, sizeof(g->mes2));
@@ -216,7 +216,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  3, SQLDT_STRING, (void*)g->member[0].name, strnlen(g->member[0].name, sizeof(g->member[0].name)))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  4, SQLDT_SHORT, (void*)&g->guild_lv, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  5, SQLDT_SHORT, (void*)&g->max_member, 0)
-		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT, (void*)&g->exp, 0)
+		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  6, SQLDT_UINT64, (void*)&g->exp, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  7, SQLDT_INT, (void*)&g->skill_point, 0)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  8, SQLDT_STRING, (void*)g->mes1, strnlen(g->mes1, sizeof(g->mes1)))
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt,  9, SQLDT_STRING, (void*)g->mes2, strnlen(g->mes2, sizeof(g->mes2)))

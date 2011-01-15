@@ -1,4 +1,4 @@
-//===== Athena Doc ========================================
+﻿//===== Athena Doc ========================================
 //= eAthena Script Commands
 //===== Description =======================================
 //= A reference manual for the eAthena scripting language.
@@ -133,7 +133,7 @@
 //= 3.27.20090725
 //=       Added Quest Log related commands. [Inkfish]
 //= 3.28.20091119
-//=       Added showevent and itemsearch commands [Skotlex]
+//=       Added showevent and searchitem commands [Skotlex]
 //=       Added info on strcharinfo(3) [Skotlex]
 //=========================================================
 
@@ -929,7 +929,7 @@ OnPCBaseLvUpEvent:
 OnPCJobLvUpEvent:
 
 It's pretty obvious when these four special labels will be invoked. For more
-information, see 'npc/sample/PCLoginEvent.txt'
+information, see 'doc/sample/PCLoginEvent.txt'
 
 OnPCDieEvent:
 
@@ -1007,6 +1007,8 @@ From here on, we will have the commands sorted as follow:
 5.- Mob / NPC -related commands.
 6.- Other commands.
 7.- Instance Commands.
+8.- Quest Log Commands.
+9.- Battleground commands.
 
 =====================
 |1.- Basic commands.|
@@ -1124,6 +1126,7 @@ of 'end' stops this, and ends the script.
 ---------------------------------------
 
 *set <variable>,<expression>;
+*set(<variable>,<expression>)
 
 This command will set a variable to the value that the expression results in. 
 This is the only way to set a variable directly.
@@ -2119,6 +2122,7 @@ Type is the kind of associated ID number required:
  1 - Party ID number.
  2 - Guild ID number.
  3 - Account ID number.
+ 4 - Battle ground ID
 
 For most purposes other than printing it, a number is better to have than a name 
 (people do horrifying things to their character names).
@@ -2240,7 +2244,7 @@ Example:
 
 ---------------------------------------
 
-*getpartyleader(<party id>{,<type>});
+*getpartyleader(<party id>{,<type>})
 
 This function returns some information about the given party-id's leader.
 When type is ommitted, the default information retrieved is the leader's name.
@@ -2521,6 +2525,7 @@ recreate these items perfectly if they are destroyed. Here's what you get:
 @inventorylist_card3[]       inscribed on the items, so you can explicitly check
 @inventorylist_card4[]       if the character owns an item made by a specific 
                              craftsman.
+@inventorylist_expire[]    - expire time (Unix timestamp). 0 means never expires.
 @inventorylist_count       - the number of items in these lists.
 
 This could be handy to save/restore a character's inventory, since no other 
@@ -2529,7 +2534,12 @@ correctly handle an NPC trader for carded and named items who could resell them
 - since NPC objects cannot own items, so they have to store item data in 
 variables and recreate the items.
 
-Notice that the variables this command generates are all local and numeric. 
+Notice that the variables this command generates are all temporary, attached to 
+the character, and integer.
+
+Be sure to use @inventorylist_count to go through these arrays, and not 
+'getarraysize', because the arrays are not automatically cleared between runs 
+of 'getinventorylist'.
 
 ---------------------------------------
 
@@ -2578,6 +2588,11 @@ and return the number of slots this kind of items has - 0 if they are not
 slotted. It will also be 0 for all non-equippable items, naturally, unless 
 someone messed up the item database. It will return -1 if there is no such item.
 
+Example(s):
+
+//@slots now has the amount of slots of the item with ID 1205.
+	set @slots, getItemSlots(1205);
+
 ---------------------------------------
 
 *getiteminfo(<item ID>,<type>)
@@ -2592,13 +2607,13 @@ Valid types are:
 		if = 0, then monsters don't drop it at all (rare or a quest item)
 		if = 10000, then this item is sold in NPC shops only
 	4 - sex; 5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range;
-	10 - slot; 11 - look; 12 - elv; 13 - wlv;
+	10 - slot; 11 - look; 12 - elv; 13 - wlv; 14 - view id
 
 Check sample in nps\sample\getiteminfo.txt
 
 ---------------------------------------
 
-*getequipcardid (<equipment slot>,<card slot>);
+*getequipcardid(<equipment slot>,<card slot>)
 
 Returns value from equipped item slot in the indicated slot:
 
@@ -2612,18 +2627,7 @@ This func returns CARD ID, 255,254,-255 (for card 0, if the item is produced) it
 when you want to check item cards or if it's signed. Useful for such quests as 
 "Sign this refined item with players name" etc;
 	Hat[0] +4 -> Player's Hat[0] +4
-	
----------------------------------------
 
-*getitemslots (<item id>);
-
-Returns the amount of slots the item has.
-
-Example(s):
-
-//@slots now has the amount of slots of the item with ID 1205.
-	set @slots, getItemSlots(1205);
-	
 ---------------------------------------
 //
 2,1.- End of item-related commands.
@@ -2911,7 +2915,7 @@ the specified event as in a 'doevent' call.
 
 ---------------------------------------
 
-*getmapguildusers <mapname>,<guild id>;
+*getmapguildusers(<mapname>,<guild id>)
 
 Returns the amount of persons from the given guild that are on the given map.
 Example(s):
@@ -2919,7 +2923,7 @@ Example(s):
 //Will set the @persons variable to the amount of persons from the guild
 //which ID's = 10 and are at prontera.
 
-	set @persons,getMapGuildUsers "prontera",10;
+	set @persons,getMapGuildUsers("prontera",10);
 
 ---------------------------------------
 //
@@ -2992,6 +2996,7 @@ currently has active. Valid types are:
  3 - Pet friendly level (intimacy score). 1000 is full loyalty.
  4 - Pet hungry level. 100 is completely full.
  5 - Pet rename flag. 0 means this pet has not been named yet.
+
 ---------------------------------------
 
 *gethominfo(<type>)
@@ -3004,6 +3009,7 @@ This function works as a direct counterpart of 'getpetinfo':
  4 - Hungry level. 100 is completely full.
  5 - Rename flag. 0 means this homunculus has not been named yet.
  6 - Homunculus level
+
 ---------------------------------------
 
 
@@ -3529,7 +3535,7 @@ See also 'warp'.
 
 ---------------------------------------
  
-*warpparty "<mapname>",<x>,<y>,<party_id>;
+*warpparty "<to_mapname>",<x>,<y>,<party_id>,{"<from_mapname>"};
  
 Warps a party to specified map and coordinate given the party ID, which you can get with
 getcharid(1). You can also request another party id given a member's name with getcharid(1,<player_name>).
@@ -3542,6 +3548,8 @@ SavePoint:    All party members are warped to the save point of the currently
               attached player (will fail if there's no player attached).
 Leader:       All party members are warped to the leader's position. The leader must
               be online and in the current map-server for this to work.
+
+If you specify a from_mapname, warpparty will only affect those on that map.
 
 Example:
 mes "[Party Warper]";
@@ -4550,7 +4558,7 @@ character.
 
 ---------------------------------------
 
-*specialeffect <effect number>{,<send_target>};
+*specialeffect <effect number>{,<send_target>}{,"<NPC Name>"};
 
 This command will display special effect with the given number, centered on the 
 specified NPCs coordinates, if any. For a full list of special effect numbers 
@@ -4558,12 +4566,30 @@ known see 'doc/effect_list.txt'. Some effect numbers are known not to work in
 some client releases. (Notably, rain is absent from any client executables 
 released after April 2005.)
 
+<NPC name> parameter will display <effect number> on another NPC. If the NPC
+specified does not exist, the command will do nothing. When specifying an NPC,
+<send_target> must be specified when specifying an <NPC Name>, specifying AREA 
+will retain the default behavior of the command.
+
+	// this will make the NPC "John Doe#1"
+	// show the effect "EF_HIT1" specified by
+	// Jane Doe. I wonder what John did...
+	mes "[Jane Doe]";
+	mes "Well, I never!";
+	specialeffect EF_HIT1,AREA,"John Doe#1";
+	close;
+
 ---------------------------------------
 
-*specialeffect2 <effect number>{,<send_target>};
+*specialeffect2 <effect number>{,<send_target>}{,"<Player Name>"};
 
 This command behaves identically to the 'specialeffect', but the effect will be 
 centered on the invoking character's sprite.
+
+<Player name> parameter will display <effect number> on another Player than the
+one currently attached to the script. Like with specialeffect, when specifying
+a player, <send_target> must be supplied, specifying AREA will retain the default 
+behavior of the command.
 
 ---------------------------------------
 
@@ -4704,9 +4730,9 @@ The disguise lasts until 'undisguise' is issued or the player logs out.
 
 Example:
 
-disquise 1002; //Yay! You're a Poring!!!
+disguise 1002; //Yay! You're a Poring!!!
 next;
-undisquise; //Yay!!!! You're a human again!!
+undisguise; //Yay!!!! You're a human again!!
 
 ---------------------------------------
 \\
@@ -4743,27 +4769,6 @@ current SVN, which prevents the cases of multi-spouse problems). It will return
 
 This function will also destroy both wedding rings and send a message to both 
 players, telling them they are now divorced.
-
----------------------------------------
-
-*adopt "<parent name>","<parent name>","<novice name>";
-*adopt("<parent name>","<parent name>","<novice name>")
-
-This command will set up a novice as a baby of a married couple. All three are 
-referred to by character name. The correct variables are set on all three 
-characters in the same call. The command will unequip anything the novice has 
-equipped and make them a Job_Baby class, as well as send them a 'your job has 
-been changed' message.
-
-Beware of calling this from inside a 'callfunc' function, cause upon successful 
-adoption, this command returns a zero, as if it were a function. This is likely 
-to screw up execution of a 'return' command. You may try to call it as a 
-function instead, but it doesn't return anything upon an error, which may also 
-cause script execution to throw up errors.
-
-Nothing will happen (and nothing will be returned either) if either future 
-parent is below base level 70 and/or if any of the three characters is not found 
-online.
 
 ---------------------------------------
 //
@@ -4992,7 +4997,7 @@ invoking character.
 
 Timeout is the time in milliseconds the summon lives, and is set default 
 to 60000 (1 minute). Note that also the value 0 will set the timer to default,
-and it is not possible to create a spawn that lastst forever.
+and it is not possible to create a spawn that lasts forever.
 If an event label is given, upon the monster being killed, the event label will
 run as if by 'donpcevent'.
 
@@ -5089,14 +5094,14 @@ invoked by the RID that was active in the script that issued a 'doevent'.
     place,100,100,1%TAB%script%TAB%NPC%TAB%53,{
         mes "This is what you will see when you click me";
         close;
-    Label:
+    OnLabel:
         mes "This is what you will see if the doevent is activated";
         close;
     }
 
     ....
 
-    doevent "NPC::Label";
+    doevent "NPC::OnLabel";
 
 ---------------------------------------
 
@@ -5121,20 +5126,20 @@ something.
     place,100,100,1%TAB%script%TAB%NPC%TAB%53,{
         mes "Hey NPC2 copy what I do";
         close2;
-        set @emo, rand(1,30);
-        donpcevent "NPC2::Emo";
-    Emo:
-        emotion @emo;
+        set .@emote, rand(1,30);
+        donpcevent "NPC2::OnEmote";
+    OnEmote:
+        emotion .@emote;
         end;
     }
 
     place,102,100,1%TAB%script%TAB%NPC2%TAB%53,{
         mes "Hey NPC copy what I do";
         close2;
-        set @emo, rand(1,30);
-        donpcevent "NPC::Emo";
-    Emo:
-        emotion @emo;
+        set .@emote, rand(1,30);
+        donpcevent "NPC::OnEmote";
+    OnEmote:
+        emotion .@emote;
         end;
     }
 
@@ -5450,7 +5455,7 @@ In the OnBuyItem, two arrays are set (@bought_nameid and @bought_quantity), whic
 hold information about the name id (item id) sold and the amount sold of it. Same 
 goes for the OnSellItem label, only the variables are named different 
 (@sold_nameid and @sold_quantity). An example on a shop comes with eAthena, and 
-can be found in the npc/sample/npc_dynamic_shop.txt file.
+can be found in the doc/sample/npc_dynamic_shop.txt file.
  
 This example shows how to use the labels and their set variables to create a dynamic shop.
 
@@ -5623,7 +5628,7 @@ will be warped.
 This command can also keep track of who just got warped. It does this by setting 
 special variables:
 
-$@warpwaitingpc[] is an array containing the character id numbers of the 
+$@warpwaitingpc[] is an array containing the account_id numbers of the 
                   characters who were just warped.
 $@warpwaitingpcnum contains the number of the character it just warped.
 
@@ -6002,7 +6007,7 @@ A full list of pet IDs can be found inside 'db/pet_db.txt'
 
 ---------------------------------------
 
-*emotion <emotion number>{, target};
+*emotion <emotion number>{,<target>}{,"<target name>"};
 
 This command makes an object display an emoticon sprite above their own as 
 if they were doing that emotion. For a full list of emotion numbers, 
@@ -6012,6 +6017,9 @@ and 'e_gasp' (the exclamation mark).
 The optional target parameter specifies who will get the emotion on top of
 their head. If 0 (the default if omitted), the NPC in current use will show
 the emotion, if 1, the player that is running the script will display it.
+
+Target name parameter allows to display emotion on top of other NPC/PC without
+event labels. If specified name is not found, command does nothing.
 
 ---------------------------------------
 
@@ -6047,6 +6055,25 @@ It's certain that giving 0 for the number will play sound files from 'data/wav',
 but where the other numbers will read from is unclear.
 
 You can add your own effects this way, naturally.
+
+---------------------------------------
+
+*playBGM "<BGM filename>"
+*playBGMall "<BGM filename>",{,"<map name>"}{,<x0>,<y0>,<x1>,<y1>}
+
+These two commands will play a Background Music to either the invoking character 
+only ('playBGM') or multiple characters ('playBGMall'). If the running 
+code does not have an object ID (a 'floating' npc) or is not running from an NPC 
+object at all (an item script) the sound will be centered on the character who's 
+RID got attached to the script, if any. If it does, it will be centered on that 
+object. (an NPC sprite)
+
+BGM filename is the filename in /BGM/ folder. It has to be in .mp3 extension.
+
+It's not required to specify the extension inside the script.
+If coordinates are omitted, BGM will be broadcasted on the entire map.
+
+You can add your own BGMs this way, naturally.
 
 ---------------------------------------
 
@@ -6259,10 +6286,30 @@ Example 1:
 
 ---------------------------------------
 
+*setiteminfo(<item id>,<type>,<value>)
+
+This function will set some value of an item.
+Returns the new value on success, or -1 on fail (item_id not found or invalid type).
+
+Valid types are:
+	0 - Buy Price; 1 - Sell Price; 2 - Item Type;
+	3 - maxchance (Max drop chance of this item e.g. 1 = 0.01% , etc..
+		if = 0, then monsters don't drop it at all (rare or a quest item)
+		if = 10000, then this item is sold in NPC shops only
+	4 - sex; 5 - equip; 6 - weight; 7 - atk; 8 - def; 9 - range;
+	10 - slot; 11 - look; 12 - elv; 13 - wlv; 14 - view id
+
+Example:
+
+setiteminfo 7049,6,999; // Stone now weighs 999
+
+---------------------------------------
+
 *setitemscript(<item id>,<"{ new item script }">{,<type>});
 
 Set a new script bonus to the Item. Very useful for game events.
 You can remove an item's itemscript by leaving the itemscript argument empty.
+Returns 1 on success, or 0 on fail (item_id not found or new item script is invalid).
 Type can optionally be used indicates which script to set (default is 0):
  0 - Script
  1 - OnEquip_Script
@@ -6311,6 +6358,7 @@ Example(s):
 
 This function will return 1 if the character number Position in the given string 
 is a letter, 0 if it isn't a letter but a digit or a space.
+The first letter is position 0.
 
 ---------------------------------------
 
@@ -6504,7 +6552,8 @@ Example:
 
 Creates an invisible wall, an array of "setcell" starting from x,y and doing a
 line of the given size in the given direction. The difference with setcell is
-this one update client part too to avoid the glith problem.
+this one update client part too to avoid the glith problem. Directions are the 
+same as NPC sprite facing directions: 0=north, 1=northwest, 2=west, etc.
 
 ---------------------------------------
 
@@ -6671,6 +6720,132 @@ color can be:
 	2 = green
 	3 = blue
 	other values show a transparent mark in the mini-map.
+
+----------------------------------------
+
+===========================
+|9.- Battleground commands.|
+===========================
+---------------------------------------
+
+*waitingroom2bg_single("<mapname>",<x>,<y>,"<On Quit Event>","<On Death Event>");
+*waitingroom2bg("<mapname>",<x>,<y>,"<On Quit Event>","<On Death Event>");
+
+<Mapname> and X Y coordinates refer to where the "respawn" base is, where the player group will respawn when they die.
+<On Quit Event> refers to an NPC label that attaches to the character and is run when they relog.
+<On Death Event> refers to an NPC label that attaches to the character and is run when they die. Can be "" for empty.
+
+Unlike the prior command, the latter will attach a GROUP in a waiting room to the battleground, and 
+sets the array $@arenamembers[0] where 0 holds the IDs of the first group, and 1 holds the IDs of the second.
+
+Example:
+	// Battle Group will be refered to as $@KvM01BG_id1, and when they die, respawn at bat_c01,52,129.
+	set $@KvM01BG_id1, waitingroom2bg("bat_c01",52,129,"KvM01_BG::OnGuillaumeQuit","KvM01_BG::OnGuillaumeDie");
+	end;
+
+----------------------------------------
+
+*bg_team_setxy <Battle Group ID>,<x>,<y>;
+
+Update the respawn point of the given battle group to x, y on the same map. The <Battle Group ID> can be retrieved using getcharid(4)
+
+Example:
+	bg_team_setxy getcharid(4),56,212;
+	mapannounce "bat_a01", "Group [1] has taken the work shop, and will now respawn there.",bc_map,"0xFFCE00";
+	end;
+
+----------------------------------------
+
+*bg_warp <Battle Group>,"<Mapname>",<x>,<y>;
+
+Similar to warp command.
+Place all members of <Battle Group> at <mapname> at x y.
+
+Example:
+	//place the battle group one for Tierra Gorge at starting position.
+	bg_warp $@TierraBG1_id1,"bat_a01",352,342;
+	end;
+
+----------------------------------------
+
+*bg_monster <Battle Group>,"<map name>",<x>,<y>,"<name to show>",<mob id>,"<event label>";
+*bg_monster(<Battle Group>,"<map name>",<x>,<y>,"<name to show>",<mob id>,"<event label>");
+
+Similar to monster script command.
+Spawn a monster with allegiance to the given battle group.
+Does not allow for the summoning of multiple monsters.
+Monsters are similar to that in War of Emperium, in that the specified Battle group is considered friendly.
+
+Example:
+	// It can be used in two different ways.
+	bg_monster $@TierraBG1_id2,"bat_a01",167,50,"Food Depot",1910,"Feed Depot#1::OnMyMobDead";
+	end;
+
+	// Alternatively, you can set an ID for the monster using "set".
+	// This becomes useful when used with the command below.
+	set $@Guardian_3, bg_monster($@TierraBG1_id2,"bat_a01",268,204,"Guardian",1949,"NPCNAME::OnMyMobDead");
+	end;
+
+----------------------------------------
+
+*bg_monster_set_team <GID>,<Battle Group>;
+
+This command will change the allegiance if a monster in a battle ground.
+GID can be set when spawning the monster via the bg_monster command.
+
+Example:
+
+	end;
+
+OnEnable:
+	mapannounce "A guardian has been summoned for Battle Group 2!",bc_map,"0xFFCE00";
+	set $@Guardian, bg_monster($@BG_2,"bat_a01",268,204,"Guardian",1949,"NPCNAME::OnMyMobDead");
+	initnpctimer;
+	end;
+
+OnTimer1000:
+	stopnpctimer;
+	mapannounce "Erm, sorry about that! This monster was meant for Battle Group 1.",bc_map,"0xFFCE00";
+	bg_monster_set_team $@Guardian, $@BG_1;
+	end;
+
+----------------------------------------
+
+*bg_leave;
+
+Removes attached player from their Battle Group.
+
+----------------------------------------
+
+*bg_destroy <Batte Group>;
+
+As the name says, destroys the battle group created for that battle ground.
+
+----------------------------------------
+
+*areapercentheal "<mapname>",<x1>,<y1>,<x2>,<y2>,<hp>,<sp>;
+
+Not exactly limited to battleground use, this will restore HP/SP in a defined area at a percentage.
+
+Example:
+	areapercentheal "bat_a01",52,208,61,217,100,100;
+	end;
+
+----------------------------------------
+
+*bg_get_data(<Battle Group>,<type>);
+
+----------------------------------------
+
+*bg_getareausers
+
+----------------------------------------
+
+*bg_updatescore "<mapname>",<Guillaume Score>,<Croix Score>;
+
+Only usable when the map is defined as type:
+mapflag	<mapname>	battleground	2
+This command will force the update of the displayed scoreboard.
 
 ----------------------------------------
 

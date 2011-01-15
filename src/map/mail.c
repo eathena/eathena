@@ -36,7 +36,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 			if(log_config.enable_logs&0x2000)
 				log_pick_pc(sd, "E", sd->mail.nameid, -sd->mail.amount, &sd->status.inventory[sd->mail.index]);
 
-			pc_delitem(sd, sd->mail.index, sd->mail.amount, 1);
+			pc_delitem(sd, sd->mail.index, sd->mail.amount, 1, 0);
 		}
 		else
 			clif_additem(sd, sd->mail.index, sd->mail.amount, 0);
@@ -116,6 +116,9 @@ bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg)
 			return false;
 
 		if( sd->status.inventory[n].amount < sd->mail.amount )
+			return false;
+
+		if( sd->weight > sd->max_weight )
 			return false;
 
 		memcpy(&msg->item, &sd->status.inventory[n], sizeof(struct item));

@@ -21,6 +21,7 @@
 // 20070821 - 2007-08-21aSakexe+   - 0x2c5
 // 20070918 - 2007-09-18aSakexe+   - 0x2d7, 0x2d9, 0x2da
 // 20071106 - 2007-11-06aSakexe+   - 0x78, 0x7c, 0x22c
+// 20080102 - 2008-01-02aSakexe+   - 0x2ec, 0x2ed , 0x2ee
 // 20081126 - 2008-11-26aSakexe+   - 0x1a2
 // 20090408 - 2009-04-08aSakexe+   - 0x44a (dont use as it overlaps with RE client packets)
 // 20080827 - 2008-08-27aRagexeRE+ - First RE Client
@@ -29,9 +30,18 @@
 // 20090603 - 2009-06-03aRagexeRE+ - 0x7d7, 0x7d8, 0x7d9, 0x7da
 // 20090617 - 2009-06-17aRagexeRE+ - 0x7d9
 // 20090922 - 2009-09-22aRagexeRE+ - 0x7e5, 0x7e7, 0x7e8, 0x7e9
+// 20091103 - 2009-11-03aRagexeRE+ - 0x7f7, 0x7f8, 0x7f9
+// 20100105 - 2010-01-05aRagexeRE+ - 0x133, 0x800, 0x801
+// 20100126 - 2010-01-26aRagexeRE+ - 0x80e
+// 20100223 - 2010-02-23aRagexeRE+ - 0x80f
+// 20100413 - 2010-04-13aRagexeRE+ - 0x6b
+// 20100629 - 2010-06-29aRagexeRE+ - 0x2d0, 0xaa, 0x2d1, 0x2d2
+// 20100721 - 2010-07-21aRagexeRE+ - 0x6b, 0x6d
+// 20100727 - 2010-07-27aRagexeRE+ - 0x6b, 0x6d
+
 #ifndef PACKETVER
 	#define PACKETVER	20081126
-	//#define PACKETVER 20090922
+	//#define PACKETVER 20100629
 #endif
 // backward compatible PACKETVER 8 and 9
 #if PACKETVER == 8
@@ -76,11 +86,11 @@
 #define MAX_FAME 1000000000
 #define MAX_CART 100
 #define MAX_SKILL 1020
-#define GLOBAL_REG_NUM 96
+#define GLOBAL_REG_NUM 256
 #define ACCOUNT_REG_NUM 64
 #define ACCOUNT_REG2_NUM 16
 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (needed for some arrays that hold all three)
-#define MAX_REG_NUM 96
+#define MAX_REG_NUM 256
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0
 #define MAX_WALK_SPEED 1000
@@ -95,7 +105,7 @@
 #define MAX_GUILDCASTLE 34	// Updated to include new entries for WoE:SE. [L0ne_W0lf]
 #define MAX_GUILDLEVEL 50
 #define MAX_GUARDIANS 8	//Local max per castle. [Skotlex]
-#define MAX_QUEST_DB 1200 //Max quests that the server will load
+#define MAX_QUEST_DB 1500 //Max quests that the server will load
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
 
 #define MIN_HAIR_STYLE battle_config.min_hair_style
@@ -150,8 +160,8 @@
 
 //Mercenary System
 #define MC_SKILLBASE 8201
-#define MAX_MERCSKILL 37
-#define MAX_MERCENARY_CLASS 36
+#define MAX_MERCSKILL 40
+#define MAX_MERCENARY_CLASS 38
 
 enum item_types {
 	IT_HEALING = 0,
@@ -415,7 +425,7 @@ struct map_session_data;
 struct guild_member {
 	int account_id, char_id;
 	short hair,hair_color,gender,class_,lv;
-	unsigned int exp;
+	uint64 exp;
 	int exp_payper;
 	short online,position;
 	char name[NAME_LENGTH];

@@ -26,7 +26,7 @@ struct battleground_data;
 struct quest;
 #include <stdarg.h>
 // packet DB
-#define MAX_PACKET_DB		0x800
+#define MAX_PACKET_DB		0x900
 #define MAX_PACKET_VER		25
 
 struct s_packet_db {
@@ -113,7 +113,8 @@ int clif_scriptinputstr(struct map_session_data *sd,int npcid);	// self
 int clif_cutin(struct map_session_data* sd, const char* image, int type);	//self
 int clif_viewpoint(struct map_session_data*,int,int,int,int,int,int);	//self
 int clif_additem(struct map_session_data *sd, int n, int amount, int fail); // self
-int clif_delitem(struct map_session_data*,int,int);	//self
+int clif_dropitem(struct map_session_data*,int,int);	//self
+int clif_delitem(struct map_session_data*,int,int,short); //self
 int clif_updatestatus(struct map_session_data*,int);	//self
 int clif_changestatus(struct block_list*,int,int);	//area
 int clif_damage(struct block_list* src,struct block_list *dst,unsigned int tick,int sdelay,int ddelay,int damage,int div,int type,int damage2);	// area
@@ -155,6 +156,7 @@ void clif_talkiebox(struct block_list* bl, const char* talkie);
 void clif_wedding_effect(struct block_list *bl);
 void clif_divorced(struct map_session_data* sd, const char* name);
 //void clif_callpartner(struct map_session_data *sd);
+void clif_playBGM(struct map_session_data* sd, struct block_list* bl, const char* name);
 void clif_soundeffect(struct map_session_data* sd, struct block_list* bl, const char* name, int type);
 int clif_soundeffectall(struct block_list* bl, const char *name, int type, enum send_target coverage);
 void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, int target_id, unsigned int tick);
@@ -191,6 +193,8 @@ int clif_mob_equip(struct mob_data *md,int nameid); // [Valaris]
 int clif_skillinfo(struct map_session_data *sd,int skillid,int type,int range);
 int clif_skillinfoblock(struct map_session_data *sd);
 int clif_skillup(struct map_session_data *sd,int skill_num);
+int clif_addskill(struct map_session_data *sd, int skill);
+int clif_deleteskill(struct map_session_data *sd, int skill);
 
 int clif_skillcasting(struct block_list* bl,int src_id,int dst_id,int dst_x,int dst_y,int skill_num,int pl,int casttime);
 int clif_skillcastcancel(struct block_list* bl);
@@ -273,7 +277,7 @@ int clif_party_info(struct party_data *p, struct map_session_data *sd);
 int clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd);
 void clif_party_inviteack(struct map_session_data* sd, const char* nick, int flag);
 int clif_party_option(struct party_data *p,struct map_session_data *sd,int flag);
-int clif_party_leaved(struct party_data* p, struct map_session_data* sd, int account_id, const char* name, int flag);
+int clif_party_withdraw(struct party_data* p, struct map_session_data* sd, int account_id, const char* name, int flag);
 int clif_party_message(struct party_data* p, int account_id, const char* mes, int len);
 void clif_party_move(struct party* p, struct map_session_data* sd, int online);
 int clif_party_xy(struct map_session_data *sd);
@@ -281,6 +285,7 @@ int clif_party_xy_single(int fd, struct map_session_data *sd);
 int clif_party_hp(struct map_session_data *sd);
 void clif_hpmeter_single(int fd, int id, unsigned int hp, unsigned int maxhp);
 int clif_hpmeter(struct map_session_data *sd);
+int clif_hpmeter_sub(struct block_list *bl, va_list ap);
 
 // guild
 int clif_guild_created(struct map_session_data *sd,int flag);
@@ -328,8 +333,7 @@ void clif_instance_join(int fd, int instance_id);
 void clif_instance_leave(int fd);
 
 // Custom Fonts
-int clif_font_area(struct map_session_data *sd);
-int clif_font_single(int fd, struct map_session_data *sd);
+int clif_font(struct map_session_data *sd);
 
 // atcommand
 int clif_displaymessage(const int fd,const char* mes);
@@ -368,6 +372,7 @@ int clif_mob_hp(struct mob_data *md);
 void clif_weather(int m); // [Valaris]
 int clif_specialeffect(struct block_list* bl, int type, enum send_target target); // special effects [Valaris]
 void clif_specialeffect_single(struct block_list* bl, int type, int fd);
+int clif_messagecolor(struct block_list* bl, unsigned long color, const char* msg); // Mob/Npc color talk [SnakeDrak]
 int clif_message(struct block_list *bl, const char* msg); // messages (from mobs/npcs) [Valaris]
 
 int clif_GM_kickack(struct map_session_data *sd,int id);
@@ -410,6 +415,7 @@ void clif_quest_delete(struct map_session_data * sd, int quest_id);
 void clif_quest_update_status(struct map_session_data * sd, int quest_id, bool active); 
 void clif_quest_update_objective(struct map_session_data * sd, struct quest * qd, int index); 
 void clif_quest_show_event(struct map_session_data *sd, struct block_list *bl, short state, short color);
+void clif_displayexp(struct map_session_data *sd, unsigned int exp, char type, bool quest);
 
 int clif_send(const uint8* buf, int len, struct block_list* bl, enum send_target type);
 int do_final_clif(void);

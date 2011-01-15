@@ -66,7 +66,7 @@ int atcommand_commands(const int fd, struct map_session_data* sd, const char* co
 /*=========================================
  * Generic variables
  *-----------------------------------------*/
-char atcmd_output[200];
+char atcmd_output[CHAT_SIZE_MAX];
 char atcmd_player_name[NAME_LENGTH];
 char atcmd_temp[100];
 
@@ -997,7 +997,7 @@ int atcommand_whogm(const int fd, struct map_session_data* sd, const char* comma
 	struct s_mapiterator* iter;
 	int j, count;
 	int pl_GM_level, GM_level;
-	char match_text[200];
+	char match_text[CHAT_SIZE_MAX];
 	char player_name[NAME_LENGTH];
 	struct guild *g;
 	struct party_data *p;
@@ -1716,7 +1716,7 @@ int atcommand_itemreset(const int fd, struct map_session_data* sd, const char* c
 			if(log_config.enable_logs&0x400)
 				log_pick_pc(sd, "A", sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
 
-			pc_delitem(sd, i, sd->status.inventory[i].amount, 0);
+			pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0);
 		}
 	}
 	clif_displaymessage(fd, msg_txt(20)); // All of your items have been removed.
@@ -2629,26 +2629,26 @@ int atcommand_refine(const int fd, struct map_session_data* sd, const char* comm
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%d %d", &position, &refine) < 2) {
-		clif_displaymessage(fd, "Please, enter a position and a amount (usage: @refine <equip position> <+/- amount>).");
-		sprintf(atcmd_output, "%d: Left Accessory", EQI_ACC_L);
+		clif_displaymessage(fd, "Please, enter a position and an amount (usage: @refine <equip position> <+/- amount>).");
+		sprintf(atcmd_output, "%d: Lower Headgear", EQP_HEAD_LOW);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Right Accessory", EQI_ACC_R);
+		sprintf(atcmd_output, "%d: Right Hand", EQP_HAND_R);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Shoes", EQI_SHOES);
+		sprintf(atcmd_output, "%d: Garment", EQP_GARMENT);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Garment", EQI_GARMENT);
+		sprintf(atcmd_output, "%d: Left Accessory", EQP_ACC_L);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Lower Headgear", EQI_HEAD_LOW);
+		sprintf(atcmd_output, "%d: Body Armor", EQP_ARMOR);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Mid Headgear", EQI_HEAD_MID);
+		sprintf(atcmd_output, "%d: Left Hand", EQP_HAND_L);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Top Headgear", EQI_HEAD_TOP);
+		sprintf(atcmd_output, "%d: Shoes", EQP_SHOES);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Body Armor", EQI_ARMOR);
+		sprintf(atcmd_output, "%d: Right Accessory", EQP_ACC_R);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Left Hand", EQI_HAND_L);
+		sprintf(atcmd_output, "%d: Top Headgear", EQP_HEAD_TOP);
 		clif_displaymessage(fd, atcmd_output);
-		sprintf(atcmd_output, "%d: Right Hand", EQI_HAND_R);
+		sprintf(atcmd_output, "%d: Mid Headgear", EQP_HEAD_MID);
 		clif_displaymessage(fd, atcmd_output);
 		return -1;
 	}
@@ -2675,7 +2675,7 @@ int atcommand_refine(const int fd, struct map_session_data* sd, const char* comm
 			current_position = sd->status.inventory[i].equip;
 			pc_unequipitem(sd, i, 3);
 			clif_refine(fd, 0, i, sd->status.inventory[i].refine);
-			clif_delitem(sd, i, 1);
+			clif_delitem(sd, i, 1, 3);
 			clif_additem(sd, i, 1, 0);
 			pc_equipitem(sd, i, current_position);
 			clif_misceffect(&sd->bl, 3);
@@ -3702,7 +3702,7 @@ int atcommand_lostskill(const int fd, struct map_session_data* sd, const char* c
 
 	sd->status.skill[skill_id].lv = 0;
 	sd->status.skill[skill_id].flag = 0;
-	clif_skillinfoblock(sd);
+	clif_deleteskill(sd,skill_id);
 	clif_displaymessage(fd, msg_txt(71)); // You have forgotten the skill.
 
 	return 0;
@@ -3719,7 +3719,7 @@ int atcommand_spiritball(const int fd, struct map_session_data* sd, const char* 
 
 	if( !message || !*message || (number = atoi(message)) < 0 || number > max_spiritballs )
 	{
-		char msg[256];
+		char msg[CHAT_SIZE_MAX];
 		safesnprintf(msg, sizeof(msg), "Usage: @spiritball <number: 0-%d>", max_spiritballs);
 		clif_displaymessage(fd, msg);
 		return -1;
@@ -4146,8 +4146,10 @@ int atcommand_reloadbattleconf(const int fd, struct map_session_data* sd, const 
 	||  prev_config.item_drop_use_max      != battle_config.item_drop_use_max
 	||  prev_config.item_drop_treasure_min != battle_config.item_drop_treasure_min
 	||  prev_config.item_drop_treasure_max != battle_config.item_drop_treasure_max
+	||  prev_config.base_exp_rate          != battle_config.base_exp_rate
+	||  prev_config.job_exp_rate           != battle_config.job_exp_rate
 	)
-  	{	//Drop rates changed.
+  	{	// Exp or Drop rates changed.
 		mob_reload(); //Needed as well so rate changes take effect.
 	}
 	clif_displaymessage(fd, msg_txt(255));
@@ -4202,7 +4204,7 @@ int atcommand_reloadscript(const int fd, struct map_session_data* sd, const char
 }
 
 /*==========================================
- * @mapinfo <map name> [0-3] by MC_Cameri
+ * @mapinfo [0-3] <map name> by MC_Cameri
  * => Shows information about the map [map name]
  * 0 = no additional information
  * 1 = Show users in that map and their location
@@ -4259,6 +4261,17 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 	sprintf(atcmd_output, "Map Name: %s | Players In Map: %d | NPCs In Map: %d | Chats In Map: %d", mapname, map[m_id].users, map[m_id].npc_num, chat_num);
 	clif_displaymessage(fd, atcmd_output);
 	clif_displaymessage(fd, "------ Map Flags ------");
+	if (map[m_id].flag.town)
+		clif_displaymessage(fd, "Town Map");
+
+	if (battle_config.autotrade_mapflag == map[m_id].flag.autotrade)
+		clif_displaymessage(fd, "Autotrade Enabled");
+	else
+		clif_displaymessage(fd, "Autotrade Disabled");
+	
+	if (map[m_id].flag.battleground)
+		clif_displaymessage(fd, "Battlegrounds ON");
+		
 	strcpy(atcmd_output,"PvP Flags: ");
 	if (map[m_id].flag.pvp)
 		strcat(atcmd_output, "Pvp ON | ");
@@ -4350,7 +4363,8 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 		strcat(atcmd_output, "NoSkill | ");
 	if (map[m_id].flag.noicewall)
 		strcat(atcmd_output, "NoIcewall | ");
-		
+	if (map[m_id].flag.allowks)
+		strcat(atcmd_output, "AllowKS | ");
 	clif_displaymessage(fd, atcmd_output);
 
 	strcpy(atcmd_output,"Other Flags: ");
@@ -4369,7 +4383,6 @@ int atcommand_mapinfo(const int fd, struct map_session_data* sd, const char* com
 	if (map[m_id].flag.guildlock)
 		strcat(atcmd_output, "GuildLock | ");
 	clif_displaymessage(fd, atcmd_output);
-
 
 	switch (list) {
 	case 0:
@@ -4749,8 +4762,8 @@ int atcommand_unloadnpc(const int fd, struct map_session_data* sd, const char* c
 char* txt_time(unsigned int duration)
 {
 	int days, hours, minutes, seconds;
-	char temp[256];
-	static char temp1[256];
+	char temp[CHAT_SIZE_MAX];
+	static char temp1[CHAT_SIZE_MAX];
 
 	memset(temp, '\0', sizeof(temp));
 	memset(temp1, '\0', sizeof(temp1));
@@ -4792,7 +4805,7 @@ int atcommand_servertime(const int fd, struct map_session_data* sd, const char* 
 	const struct TimerData * timer_data2;
 	time_t time_server;  // variable for number of seconds (used with time() function)
 	struct tm *datetime; // variable for time in structure ->tm_mday, ->tm_sec, ...
-	char temp[256];
+	char temp[CHAT_SIZE_MAX];
 	nullpo_retr(-1, sd);
 
 	memset(temp, '\0', sizeof(temp));
@@ -5239,7 +5252,7 @@ int atcommand_undisguiseall(const int fd, struct map_session_data* sd, const cha
  *------------------------------------------*/
 int atcommand_exp(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char output[200];
+	char output[CHAT_SIZE_MAX];
 	double nextb, nextj;
 	nullpo_retr(-1, sd);
 	memset(output, '\0', sizeof(output));
@@ -5853,36 +5866,36 @@ int atcommand_changelook(const int fd, struct map_session_data* sd, const char* 
 }
 
 /*==========================================
- * @autotrade by durf (changed by Lupus)
+ * @autotrade by durf [Lupus] [Paradox924X]
  * Turns on/off Autotrade for a specific player
  *------------------------------------------*/
 int atcommand_autotrade(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	nullpo_retr(-1, sd);
-	if( sd->vender_id ) //check if player's vending
-	{
-		if( pc_isdead(sd) )
-		{
-			clif_displaymessage(fd, "Cannot Autotrade if you are dead.");
-			return -1;
-		}
-
-		if( map[sd->bl.m].flag.autotrade == battle_config.autotrade_mapflag )
-		{
-			sd->state.autotrade = 1;
-			if( battle_config.at_timeout )
-			{
-				int timeout = atoi(message);
-				status_change_start(&sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
-			}
-
-			clif_authfail_fd(fd, 15);
-		} else
-			clif_displaymessage(fd, "Autotrade is not allowed on this map.");
+	
+	if( map[sd->bl.m].flag.autotrade != battle_config.autotrade_mapflag ) {
+		clif_displaymessage(fd, "Autotrade is not allowed on this map.");
+		return -1;
 	}
-	else
-		clif_displaymessage(fd, msg_txt(549)); // You should be vending to use @Autotrade.
 
+	if( pc_isdead(sd) ) {
+		clif_displaymessage(fd, "Cannot Autotrade if you are dead.");
+		return -1;
+	}
+	
+	if( !sd->vender_id ) { //check if player is vending
+		clif_displaymessage(fd, msg_txt(549)); // You should be vending to use @Autotrade.
+		return -1;
+	}
+	
+	sd->state.autotrade = 1;
+	if( battle_config.at_timeout )
+	{
+		int timeout = atoi(message);
+		status_change_start(&sd->bl, SC_AUTOTRADE, 10000, 0, 0, 0, 0, ((timeout > 0) ? min(timeout,battle_config.at_timeout) : battle_config.at_timeout) * 60000, 0);
+	}
+	clif_authfail_fd(fd, 15);
+		
 	return 0;
 }
 
@@ -6323,20 +6336,31 @@ int atcommand_cleanmap(const int fd, struct map_session_data* sd, const char* co
 
 /*==========================================
  * make a NPC/PET talk
+ * @npctalkc [SnakeDrak]
  *------------------------------------------*/
 int atcommand_npctalk(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char name[NAME_LENGTH],mes[100],temp[100];
 	struct npc_data *nd;
+	bool ifcolor=(*(command + 8) != 'c' && *(command + 8) != 'C')?0:1;
+	unsigned long color=0;
 
 	if (sd->sc.count && //no "chatting" while muted.
 		(sd->sc.data[SC_BERSERK] ||
 		(sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOCHAT)))
 		return -1;
 
-	if (!message || !*message || sscanf(message, "%23[^,], %99[^\n]", name, mes) < 2) {
-		clif_displaymessage(fd, "Please, enter the correct info (usage: @npctalk <npc name>, <message>).");
-		return -1;
+	if(!ifcolor) {
+		if (!message || !*message || sscanf(message, "%23[^,], %99[^\n]", name, mes) < 2) {
+			clif_displaymessage(fd, "Please, enter the correct info (usage: @npctalk <npc name>, <message>).");
+			return -1;
+		}
+	}
+	else {
+		if (!message || !*message || sscanf(message, "%lx %23[^,], %99[^\n]", &color, name, mes) < 3) {
+			clif_displaymessage(fd, "Please, enter the correct info (usage: @npctalkc <color> <npc name>, <message>).");
+			return -1;
+		}
 	}
 
 	if (!(nd = npc_name2id(name))) {
@@ -6346,7 +6370,9 @@ int atcommand_npctalk(const int fd, struct map_session_data* sd, const char* com
 	
 	strtok(name, "#"); // discard extra name identifier if present
 	snprintf(temp, sizeof(temp), "%s : %s", name, mes);
-	clif_message(&nd->bl, temp);
+	
+	if(ifcolor) clif_messagecolor(&nd->bl,color,temp);
+	else clif_message(&nd->bl, temp);
 
 	return 0;
 }
@@ -6403,7 +6429,7 @@ int atcommand_pettalk(const int fd, struct map_session_data* sd, const char* com
 /// #users displays on the target user instead of self
 int atcommand_users(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char buf[256];
+	char buf[CHAT_SIZE_MAX];
 	int i;
 	int users[MAX_MAPINDEX];
 	int users_all;
@@ -6774,7 +6800,7 @@ int atcommand_identify(const int fd, struct map_session_data* sd, const char* co
  *------------------------------------------*/
 int atcommand_gmotd(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-		char buf[256];
+		char buf[CHAT_SIZE_MAX];
 		FILE *fp;
 	nullpo_retr(-1, sd);
 		if((fp = fopen(motd_txt, "r"))!=NULL){
@@ -6828,7 +6854,7 @@ int atcommand_mobinfo(const int fd, struct map_session_data* sd, const char* com
 	unsigned char msize[3][7] = {"Small", "Medium", "Large"};
 	unsigned char mrace[12][11] = {"Formless", "Undead", "Beast", "Plant", "Insect", "Fish", "Demon", "Demi-Human", "Angel", "Dragon", "Boss", "Non-Boss"};
 	unsigned char melement[10][8] = {"Neutral", "Water", "Earth", "Fire", "Wind", "Poison", "Holy", "Dark", "Ghost", "Undead"};
-	char atcmd_output2[200];
+	char atcmd_output2[CHAT_SIZE_MAX];
 	struct item_data *item_data;
 	struct mob_db *mob, *mob_array[MAX_SEARCH];
 	int count;
@@ -7450,7 +7476,7 @@ int atcommand_adopt(const int fd, struct map_session_data* sd, const char* comma
 {
 	struct map_session_data *pl_sd1, *pl_sd2, *pl_sd3;
 	char player1[NAME_LENGTH], player2[NAME_LENGTH], player3[NAME_LENGTH];
-	char output[256];
+	char output[CHAT_SIZE_MAX];
 
 	nullpo_retr(-1, sd);
 
@@ -7547,13 +7573,22 @@ int atcommand_mutearea(const int fd, struct map_session_data* sd, const char* co
 
 int atcommand_rates(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char buf[255];
+	char buf[CHAT_SIZE_MAX];
 	
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
+	memset(buf, '\0', sizeof(buf));
 	
-	sprintf(buf, "Experience rates: Base %.1fx / Job %.1fx",
-	battle_config.base_exp_rate/100., battle_config.job_exp_rate/100.);
-	
+	snprintf(buf, CHAT_SIZE_MAX, "Experience rates: Base %.2fx / Job %.2fx",
+		battle_config.base_exp_rate/100., battle_config.job_exp_rate/100.);
+	clif_displaymessage(fd, buf);
+	snprintf(buf, CHAT_SIZE_MAX, "Normal Drop Rates: Common %.2fx / Healing %.2fx / Usable %.2fx / Equipment %.2fx / Card %.2fx",
+		battle_config.item_rate_common/100., battle_config.item_rate_heal/100., battle_config.item_rate_use/100., battle_config.item_rate_equip/100., battle_config.item_rate_card/100.);
+	clif_displaymessage(fd, buf);
+	snprintf(buf, CHAT_SIZE_MAX, "Boss Drop Rates: Common %.2fx / Healing %.2fx / Usable %.2fx / Equipment %.2fx / Card %.2fx",
+		battle_config.item_rate_common_boss/100., battle_config.item_rate_heal_boss/100., battle_config.item_rate_use_boss/100., battle_config.item_rate_equip_boss/100., battle_config.item_rate_card_boss/100.);
+	clif_displaymessage(fd, buf);
+	snprintf(buf, CHAT_SIZE_MAX, "Other Drop Rates: MvP %.2fx / Card-Based %.2fx / Treasure %.2fx",
+		battle_config.item_rate_mvp/100., battle_config.item_rate_adddrop/100., battle_config.item_rate_treasure/100.);
 	clif_displaymessage(fd, buf);
 	
 	return 0;
@@ -7565,7 +7600,7 @@ int atcommand_rates(const int fd, struct map_session_data* sd, const char* comma
  *------------------------------------------*/
 int atcommand_me(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char tempmes[200];
+	char tempmes[CHAT_SIZE_MAX];
 	nullpo_retr(-1, sd);
 
 	memset(tempmes, '\0', sizeof(tempmes));
@@ -7775,7 +7810,7 @@ int atcommand_invite(const int fd, struct map_session_data* sd, const char* comm
 
 int atcommand_duel(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char output[256];
+	char output[CHAT_SIZE_MAX];
 	unsigned int maxpl=0, newduel;
 	struct map_session_data *target_sd;
 
@@ -7843,7 +7878,7 @@ int atcommand_leave(const int fd, struct map_session_data* sd, const char* comma
 
 int atcommand_accept(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
-	char output[256];
+	char output[CHAT_SIZE_MAX];
 
 	if(!duel_checktime(sd)) {
 		// "Duel: You can take part in duel only one time per %d minutes."
@@ -8235,7 +8270,7 @@ int atcommand_itemlist(const int fd, struct map_session_data* sd, const char* co
 
 		if( it->equip )
 		{
-			char equipstr[200];
+			char equipstr[CHAT_SIZE_MAX];
 			strcpy(equipstr, " | equipped: ");
 			if( it->equip & EQP_GARMENT )
 				strcat(equipstr, "garment, ");
@@ -8337,7 +8372,7 @@ int atcommand_itemlist(const int fd, struct map_session_data* sd, const char* co
 int atcommand_stats(const int fd, struct map_session_data* sd, const char* command, const char* message)
 {
 	char job_jobname[100];
-	char output[200];
+	char output[CHAT_SIZE_MAX];
 	int i;
 	struct {
 		const char* format;
@@ -8400,7 +8435,7 @@ int atcommand_delitem(const int fd, struct map_session_data* sd, const char* com
 	char item_name[100];
 	int i, number = 0, item_id, item_position, count;
 	struct item_data *item_data;
-	char output[200];
+	char output[CHAT_SIZE_MAX];
 
 	nullpo_retr(-1, sd);
 
@@ -8430,7 +8465,7 @@ int atcommand_delitem(const int fd, struct map_session_data* sd, const char* com
 				if(log_config.enable_logs&0x400)
 					log_pick_pc(sd, "A", sd->status.inventory[item_position].nameid, -1, &sd->status.inventory[item_position]);
 
-				pc_delitem(sd, item_position, 1, 0);
+				pc_delitem(sd, item_position, 1, 0, 0);
 				count++;
 				item_position = pc_search_inventory(sd, item_id); // for next loop
 			}
@@ -8470,7 +8505,7 @@ int atcommand_font(const int fd, struct map_session_data *sd, const char *comman
 		{
 			sd->state.user_font = 0;
 			clif_displaymessage(fd, "Returning to normal font.");
-			clif_font_area(sd);
+			clif_font(sd);
 		}
 		else
 		{
@@ -8483,7 +8518,7 @@ int atcommand_font(const int fd, struct map_session_data *sd, const char *comman
 	else if( font_id != sd->state.user_font )
 	{
 		sd->state.user_font = font_id;
-		clif_font_area(sd);
+		clif_font(sd);
 		clif_displaymessage(fd, "Font changed.");
 	}
 	else
@@ -8709,6 +8744,7 @@ AtCommandInfo atcommand_info[] = {
 	{ "mobsearch",         10,10,     atcommand_mobsearch },
 	{ "cleanmap",          40,40,     atcommand_cleanmap },
 	{ "npctalk",           20,20,     atcommand_npctalk },
+	{ "npctalkc",          20,20,     atcommand_npctalk },
 	{ "pettalk",           10,10,     atcommand_pettalk },
 	{ "users",             40,40,     atcommand_users },
 	{ "reset",             40,40,     atcommand_reset },
@@ -8834,12 +8870,12 @@ bool is_atcommand(const int fd, struct map_session_data* sd, const char* message
 	char charname[NAME_LENGTH], params[100];
 	char charname2[NAME_LENGTH], params2[100];
 	char command[100];
-	char output[200];
+	char output[CHAT_SIZE_MAX];
 	int x, y, z;
 	int lv = 0;
 	
 	//Reconstructed message
-	char atcmd_msg[200];
+	char atcmd_msg[CHAT_SIZE_MAX];
 	
 	TBL_PC * ssd = NULL; //sd for target
 	AtCommandInfo * info;

@@ -237,7 +237,7 @@ void mapif_party_optionchanged(int fd, struct party *p, int account_id, int flag
 }
 
 // パーティ脱退通知
-void mapif_party_leaved(int party_id,int account_id, int char_id)
+void mapif_party_withdraw(int party_id,int account_id, int char_id)
 {
 	unsigned char buf[16];
 
@@ -426,14 +426,14 @@ static void mapif_parse_PartyLeave(int fd, int party_id, int account_id, int cha
 		{
 			if( p->party.member[j].account_id != 0 )
 			{
-				mapif_party_leaved(party_id, p->party.member[j].account_id, p->party.member[j].char_id);
+				mapif_party_withdraw(party_id, p->party.member[j].account_id, p->party.member[j].char_id);
 				p->party.member[j].account_id = 0;
 			}
 		}
 	}
 	else
 	{// only remove self
-		mapif_party_leaved(party_id, account_id, char_id);
+		mapif_party_withdraw(party_id, account_id, char_id);
 		memset(&p->party.member[i], 0, sizeof(struct party_member));
 	}
 

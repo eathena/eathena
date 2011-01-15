@@ -56,13 +56,13 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 		char master[256]; // unused
 		int guildlv;
 		int max_member;
-		unsigned int exp;
+		uint64 exp;
 		int skpoint;
 		char mes1[256]; // only 60 used
 		char mes2[256]; // only 120 used
 		int len;
 
-		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%u,%d,%*d\t%[^\t]\t%[^\t]\t%n",
+		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%llu,%d,%*d\t%[^\t]\t%[^\t]\t%n",
 				   &guildid, name, master, &guildlv, &max_member, &exp, &skpoint, mes1, mes2, &len) < 9 )
 			return false;
 
@@ -272,7 +272,7 @@ static bool guild_db_txt_tostr(char* str, size_t strsize, int key, const void* d
 	int len;
 
 	// save guild base info
-	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%u,%d,%d\t%s#\t%s#\t",
+	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%llu,%d,%d\t%s#\t%s#\t",
 	              g->guild_id, g->name, g->member[0].name, g->guild_lv, g->max_member, g->exp, g->skill_point, 0, g->mes1, g->mes2);
 
 	// save guild member info

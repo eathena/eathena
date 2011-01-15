@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= MasterOfMuppets & SinSloth
 //===== Current Version: =====================================
-//= 1.9
+//= 2.0
 //===== Compatible With: =====================================
 //= eAthena
 //===== Description: =========================================
@@ -22,6 +22,7 @@
 //= 1.7 Corrected locations of warpinside#1. (DarkValmir) [L0ne_W0lf]
 //= 1.8 Added missing checkweight. [L0ne_W0lf]
 //= 1.9 Replaced effect numerics with constants. [Samuray22]
+//= 2.0 Commented a break out to fix a script hang.
 //============================================================
 
 //-------------------------------------------------------------------------
@@ -312,7 +313,7 @@ hu_in01,387,245,0	script	Allen Schuwell	849,2,2,{
 			mes "medicine you're";
 			mes "supposed to";
 			mes "need so badly.";
-			donpcevent "Postell Schuwell#D::OnEffect";
+			specialeffect EF_CHANGECOLD,AREA,"Postell Schuwell#D";
 			next;
 			mes "[Allen]";
 			mes "Thank goodness...";
@@ -324,7 +325,7 @@ hu_in01,387,245,0	script	Allen Schuwell	849,2,2,{
 			mes "Something's not";
 			mes "right. Bunkoll A";
 			mes "doesn't taste like this...";
-			donpcevent "Postell Schuwell#D::OnSweat";
+			emotion e_swt,0,"Postell Schuwell#D";
 			next;
 			mes "[Postell]";
 			mes "Bunkoll A...?";
@@ -469,15 +470,6 @@ OnTimer100000:
 	disablenpc "Postell Schuwell#D";
 	stopnpctimer;
 	end;
-	
-OnSweat:
-	emotion e_swt;
-	end;
-
-OnEffect:
-	specialeffect EF_CHANGECOLD;
-	end;
-
 }
 
 hu_fild06,34,123,3	script	Postell Schuwell	97,{
@@ -4467,7 +4459,7 @@ hu_fild06,218,373,1	script	Moks Bugs#Bug4	1053,{
 			mes "- *Whizz Whizz Bzzzz* -";
 			mes "- *Whizz Whizz*-";
 			mes "- *Whizz Whizz*-";
-			specialeffect2 71;
+			specialeffect2 EF_CONE;
 			next;
 			if(rand(1,5) > 4)
 			{
@@ -4566,7 +4558,7 @@ lhz_dun02,244,226,0	script	Unethical Machine	111,{
 			mes "- You threw a Marine Sphere Bottle toward the machine. -";
 			next;
 			mes "BOOM!";
-			specialeffect2 183;
+			specialeffect2 EF_SUI_EXPLOSION;
 			enablenpc "HiddenExplosion";
 			mapannounce "lhz_dun02","Beep------------------ ",1,0x99CCFF;
 			delitem 7138,1; //Marine sphere bottle
@@ -4590,7 +4582,7 @@ OnInit:
 	
 OnTouch:
 	percentheal -10,0;
-	specialeffect 4;
+	specialeffect EF_HIT5;
 	disablenpc "HiddenExplosion";
 	end;
 	
@@ -4644,7 +4636,7 @@ hugel,198,169,0	script	#HugelTree	139,2,2,{
 		}
 		else if(hg_memory == 6)
 		{
-			specialeffect2 57;
+			specialeffect2 EF_BEGINSPELL5;
 			mes "^3355FFWhat's this strange";
 			mes "feeling of dread?";
 			mes "This peculiar chill...";
@@ -5350,7 +5342,7 @@ hugel,196,164,3	script	El Schatt	50,{
 		mes "It's... I'm Manainne...";
 		mes "^333333*Sniff*^000000 She had to go back...";
 		next;
-		specialeffect2 71;
+		specialeffect2 EF_CONE;
 		set hg_memory,12;
 		getexp 50000,0;
 		getitem 603,1; //Old blue box
@@ -5680,7 +5672,7 @@ hu_fild06,190,367,3	script	Torpy's Mom	701,{
 		mes "it's not much, but I hope";
 		mes "you accept this as our thanks.";
 		mes "Goodbye for now, adventurer~";
-		specialeffect2 71;
+		specialeffect2 EF_CONE;
 		set hg_ubu01,8;
 		getitem 12065,3; //Green salad
 		getexp 50000,0;
@@ -5702,7 +5694,7 @@ hu_fild06,190,367,3	script	Torpy's Mom	701,{
 		mes "it's not much, but I hope";
 		mes "you accept this as our thanks.";
 		mes "Goodbye for now, adventurer~";
-		specialeffect2 68;
+		specialeffect2 EF_MVP;
 		set hg_ubu01,8;
 		getitem 12065,3; //Green salad
 		getexp 50000,0;
@@ -7172,7 +7164,7 @@ yuno,111,156,3	script	Euslan	90,{
 		mes "Take care of yourself...";
 		close2;
 		set hg_ma1,13;
-		specialeffect 253;
+		specialeffect EF_ABSORBSPIRITS;
 		getexp 900000,600000;
 		end;
 	}
@@ -7725,7 +7717,7 @@ hugel,56,104,3	script	Kurupe	709,3,3,{
 			close;
 		}
 		set hg_milk,9;
-		specialeffect2 71;
+		specialeffect2 EF_CONE;
 		getexp 100000,0;
 		getitem 12063,3;
 		mes "[Kurupe]";
@@ -8721,7 +8713,7 @@ hu_in01,19,161,0	script	Alex	803,{
 				mes "when you're done and";
 				mes "don't waste my time!";
 				next;
-				donpcevent "Julian::OnEmote";
+				emotion e_ho,0,"Julian";
 				mes "[Julian]";
 				mes "Hey, you know what,";
 				mes "Alex? You can't push";
@@ -8955,7 +8947,7 @@ hu_in01,14,11,4	script	Laura	70,{
 		mes "Milton, is right over";
 		mes "there. Say, 'Hello,' Ashe.";
 		next;
-		donpcevent "Ashe::OnEmote";
+		emotion e_heh,0,"Ashe";
 		mes "[Ashe]";
 		mes "Hello!";
 		next;
@@ -9039,7 +9031,8 @@ hu_in01,14,11,4	script	Laura	70,{
 					case 2:
 						break;
 				}
-				break;
+				// Allow fall-through into the next case statment as this is a minor bug in aegis.
+				//break;
 			
 			case 2:
 				mes "[Laura]";
@@ -9097,7 +9090,7 @@ hu_in01,14,11,4	script	Laura	70,{
 				mes "expedition for the Rune Midgarts^FFFFFF ^000000 Kingdom. Ashe Milton is my";
 				mes "assistant for this excavation.";
 				next;
-				donpcevent "Ashe::OnEmote";
+				emotion e_heh,0,"Ashe";
 				mes "[Ashe]";
 				mes "Hello!";
 				next;
@@ -9273,7 +9266,7 @@ hu_in01,14,11,4	script	Laura	70,{
 				mes "greets me with a fake";
 				mes "smile. I hate her!";
 				next;
-				donpcevent "Ashe::OnEmote2"; //ET_PROFUSELY_SWAT
+				emotion e_swt2,0,"Ashe";
 				mes "[Ashe]";
 				mes "Ms. Laurence...!";
 				mes "Stop it, please!";
@@ -9657,7 +9650,7 @@ hu_in01,14,11,4	script	Laura	70,{
 				mes "Well, have you";
 				mes "ever heard of Ymir's...";
 				next;
-				donpcevent "Ashe::OnEmote3"; //ET_SURPRISE
+				emotion e_gasp,0,"Ashe";
 				mes "[Ashe]";
 				mes "...Heart?";
 				mes "Ymir's Heart, right?";
@@ -9699,7 +9692,7 @@ hu_in01,14,11,4	script	Laura	70,{
 						next;
 						break;
 				}
-				donpcevent "Ashe::OnEmote4"; //ET_OK
+				emotion e_ok,0,"Ashe";
 				mes "[Ashe]";
 				mes "Ymir's Heart?";
 				mes "That's a clothing";
@@ -9853,10 +9846,6 @@ hu_in01,18,167,4	script	Julian	86,{
 		mes "Don't tell them I said that!";
 		close;
 	}
-	
-OnEmote:
-	emotion e_ho,0;
-	end;
 }
 
 hu_in01,16,21,0	script	Ashe#5	139,2,2,{
@@ -10024,22 +10013,6 @@ hu_in01,16,20,4	script	Ashe	95,{
 			mes "you no harm~";
 			close;
 	}
-	
-OnEmote:
-	emotion e_heh,0;
-	end;
-	
-OnEmote2:
-	emotion e_swt2,0;
-	end;
-
-OnEmote3:
-	emotion e_gasp,0;
-	end;
-	
-OnEmote4:
-	emotion e_ok,0;
-	end;
 }
 
 hu_in01,174,90,0	script	Entrance	139,2,2,{
@@ -10060,7 +10033,7 @@ hu_in01,159,84,3	script	Laura#2	70,{
 	if(hg_odin == 22 || hg_odin == 23)
 	{
 		cutin "hu_laura03.bmp",2;
-		donpcevent "Laura#2::OnEmote";
+		emotion e_an,0,"Laura#2";
 		mes "[Laura]";
 		mes "Wh-what...?!";
 		mes "Does this mean";
@@ -10070,7 +10043,7 @@ hu_in01,159,84,3	script	Laura#2	70,{
 		mes "complete lunacy!";
 		next;
 		cutin "hu_alex04.bmp",0;
-		donpcevent "Alex#2::OnEmote";
+		emotion e_an,0,"Alex#2";
 		mes "[Alex]";
 		mes "What are you talking";
 		mes "about, you crazy wench?";
@@ -10127,12 +10100,12 @@ hu_in01,159,84,3	script	Laura#2	70,{
 		mes "waves a thick file";
 		mes "clasped in her hands.^000000";
 		next;
-		donpcevent "Julian#2::OnEmote";
+		emotion e_omg,0,"Julian#2";
 		mes "[Julian]";
 		mes "What...?";
 		mes "Argh, that's--!";
 		next;
-		donpcevent "Laura#2::OnEmote2";
+		emotion e_ag,0,"Laura#2";
 		mes "[Laura]";
 		mes "That's right.";
 		mes "Now tell me, what the";
@@ -10143,7 +10116,7 @@ hu_in01,159,84,3	script	Laura#2	70,{
 		mes "......";
 		mes "Julian!";
 		next;
-		donpcevent "Julian#2::OnEmote2";
+		emotion e_swt2,0,"Julian#2";
 		mes "[Julian]";
 		mes "Uh, this isn't my fault!";
 		mes "Sh-she doesn't have any";
@@ -10167,7 +10140,7 @@ hu_in01,159,84,3	script	Laura#2	70,{
 		mes "what are your true goals?!";
 		next;
 		cutin "hu_alex03.bmp",0;
-		donpcevent "Alex#2::OnEmote3";
+		emotion e_swt2,0,"Alex#2";
 		mes "[Alex]";
 		mes "I-I don't know what you're";
 		mes "talking about! J-Julian must";
@@ -10185,18 +10158,18 @@ hu_in01,159,84,3	script	Laura#2	70,{
 		mes "away, and threateningly";
 		mes "rolled up her sleeves.^000000";
 		next;
-		donpcevent "Ashe#2::OnEmote";
+		emotion e_sob,0,"Ashe#2";
 		mes "[Ashe]";
 		mes "S-stop!";
 		mes "Both of you!";
 		next;
-		donpcevent "Laura#2::OnEmote3";
+		emotion e_swt2,0,"Laura#2";
 		mes "[Laura]";
 		mes "Stay out of";
 		mes "this, Ashe!";
 		next;
 		cutin "hu_alex04.bmp",0;
-		donpcevent "Alex#2::OnEmote";
+		emotion e_an,0,"Alex#2";
 		mes "[Alex]";
 		mes "Yeah, this is none";
 		mes "of your business!";
@@ -10211,31 +10184,20 @@ hu_in01,159,84,3	script	Laura#2	70,{
 	else if(hg_odin > 23)
 	{
 		cutin "hu_laura03.bmp",2;
-		donpcevent "Laura#2::OnEmote";
+		emotion e_an,0,"Laura#2";
 		mes "[Laura]";
 		mes "Hah...!";
 		mes "Did you...";
 		mes "Just hit me?";
 		next;
 		cutin "hu_alex04.bmp",0;
-		donpcevent "Alex#2::OnEmote";
+		emotion e_an,0,"Alex#2";
 		mes "[Alex]";
 		mes "You crazy...!";
 		close2;
 		cutin "hu_alex04.bmp",255;
 		end;
 	}
-OnEmote:
-	emotion e_an,0;
-	end;
-	
-OnEmote2:
-	emotion e_ag,0;
-	end;
-	
-OnEmote3:
-	emotion e_swt2,0;
-	end;
 }
 
 hu_in01,158,84,5	duplicate(Laura#2)	Alex#2	803,0,0
@@ -10289,10 +10251,6 @@ hu_in01,162,85,4	script	Ashe#2	95,{
 		mes "find him as soon as you can!";
 		close;
 	}
-
-OnEmote:
-	emotion e_sob,0;
-	end;
 }
 
 hu_in01,171,90,0	script	Ashe#3	139,2,2,{
@@ -10346,20 +10304,9 @@ hu_in01,155,82,4	script	Julian#2	86,{
 	mes "involved. If you want,";
 	mes "you can try to stop them...";
 	close;
-	
-OnEmote:
-	emotion e_omg,0;
-	end;
-	
-OnEmote2:
-	emotion e_swt2,0;
-	end;
 }
 
 moc_fild12,160,372,0	script	Hit	139,{
-
-OnEffect:
-	specialeffect 122;
 	end;
 }
 
@@ -10378,7 +10325,7 @@ OnTouch:
 		mes "followed. Hold on a sec";
 		mes "while I take care of him.";
 		next;
-		donpcevent "Hit::OnEffect";
+		specialeffect EF_SONICBLOWHIT,AREA,"Hit";
 		mes "[???]";
 		mes "Ha!";
 		next;
@@ -10816,9 +10763,9 @@ OnTouch:
 							mes "What was";
 							mes "that noise?!";
 							next;
-							specialeffect 90;
-							specialeffect 90;
-							specialeffect 90;
+							specialeffect EF_LORD;
+							specialeffect EF_LORD;
+							specialeffect EF_LORD;
 							mes "["+strcharinfo(0)+"]";
 							mes "Wa...waaaahhhh!";
 							close2;

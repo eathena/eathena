@@ -8,6 +8,130 @@
 	1475 Equestrian's Spear:	NEED INFO.
 	13005 Angelic Wing Dagger:	NEED INFO.
 =======================
+2010/08/20
+	* Rev. 13485 Fixed kRO Name for Women's Bundle. (bugreport:4398) [L0ne_W0lf]
+2010/08/18
+	* Rev. 14381 Updated Asprika to use new bonus3 bSubEle. [L0ne_W0lf]
+2010/08/16
+	* Rev. 14378 Flag some skills so they won't be given with @allskills. (bugreport:3933) [L0ne_W0lf]
+2010/07/30
+	* Rev. 14367 Added two new monster mercenaries. [L0ne_W0lf]
+	- Added information for the three new mercenary skills.
+	- Added mercenary skills with cast times to castnodex.
+2010/07/27
+	* Rev. 14365 Updated entry for npc_randomattack in the skill database, now uses the newly added -3 element. [L0ne_W0lf]
+2010/07/16
+	* Rev. 14364 Added two new item groups, and implemented the remaining in the item database. [L0ne_W0lf]
+2010/07/10
+	* Rev. 14363 Fixed a typo in item db. [Inkfish]
+2010/07/05
+	* Rev. 14361 Fixed some typos in item db! [Inkfish]
+2010/06/27
+	* Rev. 14358 Fixed Bubble Gum again. (200 = +100%, 300 = +200%, etc.) [L0ne_W0lf]
+2010/06/27
+	* Rev. 14356 Corrected a view ID and an equip location in the item database. (bugreport:4330) [L0ne_W0lf]
+2010/06/21
+	* Rev. 14352 Minor item database bug fixes! [L0ne_W0lf]
+	- Corrected some lower headgears being able to be refined. (bugreport:4328) 
+	- Fixed wrong view ids for crown of deceit and musical note headband. (bugreport:4328) 
+2010/06/11
+	* Rev. 14342 Added updated 13.2 drops to existing monsters. (Most rates are unknown, and set to 0.1%) [L0ne_W0lf]
+	* And time to squish database bug reports!
+	- Fixed guild event quest log entry time limit. (Bugreport:4204)
+	- Fixed Musika healing while attacking and not when attacked. (Bugreport:4211)
+	- Corrected the Int and HP/SP reduction on the Dead Tree Cane. (Bugreport:4217)
+	- Fixed the non-set bonus for Glorious Ring's heal increase. (Bugreport:4223)
+	- Fixed Death Guidance not casting NPC_HELLPOWER on the user. (Bugreport:4250)
+	- Changed the usable job for Bone Plate from all to thief class. (Bugreport:4286)
+	- Changed the bonus on alternate large bapho horns to subrace. (Bugreport:4291)
+	- Added slots to blu and pink night caps, and a couple others. (Bugreport:4301)
+	- Removed an extra comma from the Mini_Propeller_M headgear. (Bugreport:4307)
+2010/06/11
+	* Rev. 14340 Reduced Robo_Eye bonus from 3 -> 2 (bugreport:4288) [L0ne_W0lf]
+	* Rev. 14339 Teehee, bugfixes! Some I made, some I missed. [L0ne_W0lf]
+	* Fixed missing slot on Power_of_Thor. (bugreport:4168)
+	* Fixed size for HELL_APOCALIPS and ZUKADAM. (bugreport:4293)
+	* Fixed mob modes on ANCIENT_TREE and RYNCHO. (bugreport:4294)
+	* Fixed HP and INT bonuses on the Kronos staff. (bugreport:4297)
+	* Fixed equip location and more on the Ruber sword. (bugreport:4298)
+	* Fixed typo in the Icecream_Hat giving the wrong skill. (bugreport:4299)
+2010/06/10
+	* Rev. 14338 Adjusted the cooldowns on the "Rough Mineral" and "Helping Grenouille" quests. [L0ne_W0lf]
+	* Rev. 14337 Touched up the WoESE Guild Dungeon monster stats and added drops. [L0ne_W0lf]
+	* Rev. 14336 Corrected number of slots on several newer items. [L0ne_W0lf]
+	* Added HE Bubble Gum and adjusted existing gum bonuses.
+	* Removed monster chat for porings npc_emotion skill use.
+	* Updated several modes for monsters episode 13.1+
+2010/06/09
+	* Rev. 14333 Added a lot of headgear this time folks. [L0ne_W0lf]
+	- Several are still missing their bonuses and stats.
+	- Only the ones that crashed me are commented out.
+2010/06/07
+	* Rev. 14332 Item database update! (Again!) [L0ne_W0lf]
+	- Changed a lot of bonuses on headgears and fixed rates of procs.
+	- Added some status effects to some newer consumable items.
+	- Added new a mob group '6', 'Ninja class' monsters into mob_race_db2.
+	- Changed long running typo 'BA_FROSTJOKE' in skill_db to 'BA_FROSTJOKER'.
+2010/06/05
+	* Rev. 14331 Implemented some new items, most 13.2 equipment. [L0ne_W0lf]
+2010/06/01
+	* Rev. 14327 Implemented Manuk and Splendide consumable items. [L0ne_W0lf]
+	* Rev. 14325 Fixed Dark Shadow having Nydhoggr's Shadow's MVP exp reward. (Bugreport:4247) [L0ne_W0lf]
+	* Corrected the races for Dark Pinguicula and Ancient Tree. (bugreport:4265)
+2010/05/31
+	* Rev. 14321 Several updates to the name field in the item_db to follow iRO display names, minus some typos. [L0ne_W0lf]
+	* Rev. 14320 Added a series of new items (commented out) and several missing hats. And there's still more to add. [L0ne_W0lf]
+2010/05/30
+	* Added a missing newline causing issues. [Paradox924X]
+2010/05/25
+	* Rev. 14306 Added some items from 12.1, 13.1. and 13.2 to item_trade. [L0ne_W0lf]
+	* Added the 24 hour time limit on the quests 2182 and 2185.
+2010/05/20
+	* Rev. 14298 Lots of updates. Mostly mob related. [L0ne_W0lf]
+	- Added known stats and drops for 13.2 monsters.
+	- Added custom skills and mobchat for 13.2 mobs.
+	- Added known stats for Brasilis Mobs.
+	- Added new quest entries, and updated some old ones.
+	- Removed Itemskill from Large_spray_of_flowers.
+	- Added known names and ids for more mobs.
+	- Added homunculus IDs to homun database as placeholders.
+	- Added skill ids for 3rd jobs to skill_db as placeholders.
+2010/04/30
+	* Rev. r14293 Updates and additions, bugfixes. [L0ne_W0lf]
+	* Updated some information for new pet feed/taming items.
+	* Added some of the new maps up to episode 13.3 (El Discastes)
+	* Updated the bonuses for Lunakaligo to official. (bugreport:4149)
+	* Changed the the autbonus type forNaga Scale Armor. (bugreport:4151)
+	* Fixed bonuses for Kieger Fumma and Flamberge. (bugreport:4181)
+	* Changed Cordial bonus on Petite Pet to AspdRate. (bugreport:4184)
+2010/03/23
+	* Rev. 14269 Added support for server-side NPC_TALK. [L0ne_W0lf]
+	- New column in the mob_skill_db/2, and new database to hold monster dialog.
+	- Sneaking in a fix to balister_c.
+	* Rev. 14269 More bugfixing here, too! [L0ne_W0lf]
+	- Corrected the mode of the crystal monsters (removed MD_CANATTRACK). (bugreport:3962)
+	- Implemented the full ice pick effect on the BG assassin damascus. (bugreport:4137)
+	- Updated nagan_c, ballista_c, and Muramasa_c, and harp_of_nepenthes. (bugreport:4138)
+2010/03/11
+	* Rev. 14261 Corrected SP requirement for Poison React (bugreport:4116) [L0ne_W0lf]
+2010/03/03
+	* Rev. 14257 Added time limit to "Language translation device" quest. [L0ne_W0lf]
+2010/02/27
+	* Mental Strenth costs 200 sp instead of 50% max sp. [Inkfish]
+2010/01/28
+	* Rev. 14233 Changed the element for SN/MA_SHARPSHOOTING back to -1 (weapon element.) [L0ne_w0lf]
+	* Rev. 14232 Updated skill_db information for the skill SN_SHARPSHOOTING. (Bugreport:3909) [L0ne_w0lf]
+	- Updated the MA_SHARPSHOOTING to match SN_SHARPSHOOTING
+2010/01/22
+	* Rev. 14223 Updating, and just trying to catch up on bug fixing. :P [L0ne_W0lf]
+	- Updated the item scripts for geographer_band_ and vacation_hat_.
+	- Added remaining monster IDs supported up until 2009-11-24aRagexeRE.
+	- Updated afro wig to have one slot. More may be outdated. (Bugreport:3090)
+	- Updated attack ranges for orc dungeon instance monsters. (Bugreport:3935)
+	- Updated Mandragora Cap and Sacred Scripture item scripts. (Bugreport:3950)
+	- Fixed the view IDs for geographer band and vacation hat. (bugreport:3974)
+	- Added INT and AGI bonuses to the Flying Angel headgear. (Bugreport:3991)
+	- Fixed Tournament Shield not reducing Lord Knight ASPD. (Bugreport:4003)
 2009/12/10
 	* Rev. 14195 Uncommented the item 5374 (L_Magestic_Goat) as it's a quest reward given by an NPC assosiated with sealed shrine. (bugreport:3924) [L0ne_W0lf]
 	* Rev. 14194 Minor update to the Orc Instance mobs stats, very incomplete still. [L0ne_W0lf]

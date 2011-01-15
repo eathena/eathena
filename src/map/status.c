@@ -318,7 +318,7 @@ void initChangeTables(void)
 	set_sc( TK_READYTURN         , SC_READYTURN       , SI_READYTURN       , SCB_NONE );
 	set_sc( TK_READYCOUNTER      , SC_READYCOUNTER    , SI_READYCOUNTER    , SCB_NONE );
 	set_sc( TK_DODGE             , SC_DODGE           , SI_DODGE           , SCB_NONE );
-	add_sc( TK_SPTIME            , SC_EARTHSCROLL );
+	set_sc( TK_SPTIME            , SC_EARTHSCROLL     , SI_EARTHSCROLL     , SCB_NONE );
 	add_sc( TK_SEVENWIND         , SC_SEVENWIND ); 
 	set_sc( TK_SEVENWIND         , SC_GHOSTWEAPON     , SI_GHOSTWEAPON     , SCB_ATK_ELE ); 
 	set_sc( TK_SEVENWIND         , SC_SHADOWWEAPON    , SI_SHADOWWEAPON    , SCB_ATK_ELE ); 
@@ -395,6 +395,8 @@ void initChangeTables(void)
 	set_sc( CASH_INCAGI          , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
 	set_sc( CASH_ASSUMPTIO       , SC_ASSUMPTIO       , SI_ASSUMPTIO       , SCB_NONE );
 
+	//set_sc( ALL_PARTYFLEE        , SC_INCFLEE         , SI_PARTYFLEE       , SCB_NONE );
+
 	set_sc( CR_SHRINK            , SC_SHRINK          , SI_SHRINK          , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE2   , SI_CLOSECONFINE2   , SCB_NONE );
 	set_sc( RG_CLOSECONFINE      , SC_CLOSECONFINE    , SI_CLOSECONFINE    , SCB_FLEE );
@@ -432,6 +434,9 @@ void initChangeTables(void)
 	add_sc( ML_SPIRALPIERCE      , SC_STOP            );
 	set_sc( MER_QUICKEN          , SC_MERC_QUICKEN    , SI_BLANK           , SCB_ASPD );
 	add_sc( ML_DEVOTION          , SC_DEVOTION        );
+	set_sc( MER_KYRIE            , SC_KYRIE           , SI_KYRIE           , SCB_NONE );
+	set_sc( MER_BLESSING         , SC_BLESSING        , SI_BLESSING        , SCB_STR|SCB_INT|SCB_DEX );
+	set_sc( MER_INCAGI           , SC_INCREASEAGI     , SI_INCREASEAGI     , SCB_AGI|SCB_SPEED );
 
 	set_sc( GD_LEADERSHIP        , SC_GUILDAURA       , SI_BLANK           , SCB_STR|SCB_AGI|SCB_VIT|SCB_DEX );
 	set_sc( GD_BATTLEORDER       , SC_BATTLEORDERS    , SI_BLANK           , SCB_STR|SCB_INT|SCB_DEX );
@@ -461,8 +466,8 @@ void initChangeTables(void)
 	StatusIconChangeTable[SC_ASPDPOTION1] = SI_ASPDPOTION1;
 	StatusIconChangeTable[SC_ASPDPOTION2] = SI_ASPDPOTION2;
 	StatusIconChangeTable[SC_ASPDPOTION3] = SI_ASPDPOTIONINFINITY;
-	StatusIconChangeTable[SC_SPEEDUP0] = SI_SPEEDPOTION1;
-	StatusIconChangeTable[SC_SPEEDUP1] = SI_SPEEDPOTION2;
+	StatusIconChangeTable[SC_SPEEDUP0] = SI_MOVHASTE_HORSE;
+	StatusIconChangeTable[SC_SPEEDUP1] = SI_SPEEDPOTION1;
 	StatusIconChangeTable[SC_INCSTR] = SI_INCSTR;
 	StatusIconChangeTable[SC_MIRACLE] = SI_SPIRIT;
 	StatusIconChangeTable[SC_INTRAVISION] = SI_INTRAVISION;
@@ -474,6 +479,12 @@ void initChangeTables(void)
 	StatusIconChangeTable[SC_LUKFOOD] = SI_FOODLUK;
 	StatusIconChangeTable[SC_FLEEFOOD]= SI_FOODFLEE;
 	StatusIconChangeTable[SC_HITFOOD] = SI_FOODHIT;
+	StatusIconChangeTable[SC_MANU_ATK] = SI_MANU_ATK;
+	StatusIconChangeTable[SC_MANU_DEF] = SI_MANU_DEF;
+	StatusIconChangeTable[SC_SPL_ATK] = SI_SPL_ATK;
+	StatusIconChangeTable[SC_SPL_DEF] = SI_SPL_DEF;
+	StatusIconChangeTable[SC_MANU_MATK] = SI_MANU_MATK;
+	StatusIconChangeTable[SC_SPL_MATK] = SI_SPL_MATK;
 	//Cash Items
 	StatusIconChangeTable[SC_EXPBOOST] = SI_EXPBOOST;
 	StatusIconChangeTable[SC_ITEMBOOST] = SI_ITEMBOOST;
@@ -629,6 +640,7 @@ int status_charge(struct block_list* bl, int hp, int sp)
 //If flag&2, fail if target does not has enough to substract.
 //If flag&4, if killed, mob must not give exp/loot.
 //If flag&8, sp loss on dead target.
+//If flag&16, reflect damage is done, which can't be absorbed by Devotion. [icescope]
 int status_damage(struct block_list *src,struct block_list *target,int hp, int sp, int walkdelay, int flag)
 {
 	struct status_data *status;
@@ -669,7 +681,7 @@ int status_damage(struct block_list *src,struct block_list *target,int hp, int s
 	if( battle_config.invincible_nodamage && src && sc && sc->data[SC_INVINCIBLE] && !sc->data[SC_INVINCIBLEOFF] )
 		hp = 1;
 
-	if( hp && !(flag&(1|8)) ) {
+	if( hp && !(flag&(1|8|16)) ) {
 		if( sc ) {
 			struct status_change_entry *sce;
 			if( (sce = sc->data[SC_DEVOTION]) && src && battle_getcurrentskill(src) != PA_PRESSURE )
@@ -1164,7 +1176,7 @@ int status_check_skilluse(struct block_list *src, struct block_list *target, int
 	{	
 		if(!skill_num && !(status->mode&MD_BOSS) && tsc->data[SC_TRICKDEAD])
 			return 0;
-		if((skill_num == WZ_STORMGUST || skill_num == NJ_HYOUSYOURAKU)
+		if((skill_num == WZ_STORMGUST || skill_num == WZ_FROSTNOVA || skill_num == NJ_HYOUSYOURAKU)
 			&& tsc->data[SC_FREEZE])
 			return 0;
 		if(skill_num == PR_LEXAETERNA && (tsc->data[SC_FREEZE] || (tsc->data[SC_STONE] && tsc->opt1 == OPT1_STONE)))
@@ -1793,6 +1805,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 		+ sizeof(sd->add_mdmg)
 		+ sizeof(sd->add_drop)
 		+ sizeof(sd->itemhealrate)
+		+ sizeof(sd->subele2)
 	);
 	
 	// vars zeroing. ints, shorts, chars. in that order.
@@ -5941,6 +5954,17 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val2 = 20*val1; //% of life to be revived with
 			break;
 
+		case SC_MANU_DEF:
+		case SC_MANU_ATK:
+		case SC_MANU_MATK:
+			val2 = 1; // Manuk group
+			break;
+		case SC_SPL_DEF:
+		case SC_SPL_ATK:
+		case SC_SPL_MATK:
+			val2 = 2; // Splendide group
+			break;
+
 		default:
 			if( calc_flag == SCB_NONE && StatusSkillChangeTable[type] == 0 && StatusIconChangeTable[type] == 0 )
 			{	//Status change with no calc, no icon, and no skill associated...? 
@@ -6218,7 +6242,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 	}
 
 	if( opt_flag&2 && sd && sd->touching_id )
-		npc_touchnext_areanpc(sd,false);
+		npc_touchnext_areanpc(sd,false); // run OnTouch_ on next char in range
 
 	return 1;
 }
@@ -6953,7 +6977,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr data)
 		break;
 
 	case SC_POISON:
-		if(status->hp <= status->max_hp>>2) //Stop damaging after 25% HP left.
+		if(status->hp <= max(status->max_hp>>2, sce->val4)) //Stop damaging after 25% HP left.
 			break;
 	case SC_DPOISON:
 		if (--(sce->val3) > 0) {
@@ -6990,13 +7014,15 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr data)
 
 	case SC_BLEEDING:
 		if (--(sce->val4) >= 0) {
-			int flag;
+			int flag, hp =  rand()%600 + 200;
 			map_freeblock_lock();
-			status_fix_damage(NULL, bl, rand()%600 + 200, 0);
+			status_fix_damage(NULL, bl, sd||hp<status->hp?hp:status->hp-1, 0);
 			flag = !sc->data[type];
 			map_freeblock_unlock();
-			if (flag) return 0; //SC already ended.
-			sc_timer_next(10000 + tick, status_change_timer, bl->id, data); 
+			if( !flag ) {
+				if( status->hp == 1 ) break;
+				sc_timer_next(10000 + tick, status_change_timer, bl->id, data);
+			}
 			return 0;
 		}
 		break;

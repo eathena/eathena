@@ -51,12 +51,17 @@
 #define MOB_MAX_DELAY (24*3600*1000)
 #define MAX_MINCHASE 30	//Max minimum chase value to use for mobs.
 #define RUDE_ATTACKED_COUNT 2	//After how many rude-attacks should the skill be used?
+#define MAX_MOB_CHAT 250 //Max Skill's messages
 
 //Dynamic mob database, allows saving of memory when there's big gaps in the mob_db [Skotlex]
 struct mob_db *mob_db_data[MAX_MOB_DB+1];
 struct mob_db *mob_dummy = NULL;	//Dummy mob to be returned when a non-existant one is requested.
 
 struct mob_db *mob_db(int index) { if (index < 0 || index > MAX_MOB_DB || mob_db_data[index] == NULL) return mob_dummy; return mob_db_data[index]; }
+
+//Dynamic mob chat database
+struct mob_chat *mob_chat_db[MAX_MOB_CHAT+1];
+struct mob_chat *mob_chat(short id) { if(id<=0 || id>MAX_MOB_CHAT || mob_chat_db[id]==NULL) return (struct mob_chat*)NULL; return mob_chat_db[id]; }
 
 static struct eri *item_drop_ers; //For loot drops delay structures.
 static struct eri *item_drop_list_ers;
@@ -67,6 +72,10 @@ static struct {
 } summon[MAX_RANDOMMONSTER];
 
 #define CLASSCHANGE_BOSS_NUM 21
+
+//Defines the Manuk/Splendide mob groups for the status reductions [Epoque]
+const int mob_manuk[8] = { 1986, 1987, 1988, 1989, 1990, 1997, 1998, 1999 };
+const int mob_splendide[5] = { 1991, 1992, 1993, 1994, 1995 };
 
 /*==========================================
  * Local prototype declaration   (only required thing)
@@ -590,7 +599,7 @@ int mob_spawn_guardian(const char* mapname, short x, short y, const char* mobnam
 		return 0;
 	}
 	
-	if((x<=0 || y<=0) && !map_search_freecell(NULL, m, &x, &y, -1,-1, 0))
+	if((x<=0 || y<=0) && !map_search_freecell(NULL, m, &x, &y, -1,-1, 1))
 	{
 		ShowWarning("mob_spawn_guardian: Couldn't locate a spawn cell for guardian class %d (index %d) at castle map %s\n",class_, guardian, map[m].name);
 		return 0;
@@ -681,7 +690,7 @@ int mob_spawn_bg(const char* mapname, short x, short y, const char* mobname, int
 	}
 
 	data.class_ = class_;
-	if( (x <= 0 || y <= 0) && !map_search_freecell(NULL, m, &x, &y, -1,-1, 0) )
+	if( (x <= 0 || y <= 0) && !map_search_freecell(NULL, m, &x, &y, -1,-1, 1) )
 	{
 		ShowWarning("mob_spawn_bg: Couldn't locate a spawn cell for guardian class %d (bg_id %d) at map %s\n",class_, bg_id, map[m].name);
 		return 0;
@@ -2151,7 +2160,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			if(base_exp || job_exp)
 			{
 				if( md->dmglog[i].flag != 2 || battle_config.pet_attack_exp_to_master )
-					pc_gainexp(tmpsd[i], &md->bl, base_exp, job_exp);
+					pc_gainexp(tmpsd[i], &md->bl, base_exp, job_exp, false);
 			}
 			if(zeny) // zeny from mobs [Valaris]
 				pc_getzeny(tmpsd[i], zeny);
@@ -2210,22 +2219,23 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 				(int)(md->level - sd->status.base_level) >= 20)
 				drop_rate = (int)(drop_rate*1.25); // pk_mode increase drops if 20 level difference [Valaris]
 
+			// Increase drop rate if user has SC_ITEMBOOST
+			if (sd && sd->sc.data[SC_ITEMBOOST]) // now rig the drop rate to never be over 90% unless it is originally >90%.
+				drop_rate = max(drop_rate,cap_value((int)(0.5+drop_rate*(sd->sc.data[SC_ITEMBOOST]->val1)/100.),0,9000));
+
 			// attempt to drop the item
 			if (rand() % 10000 >= drop_rate)
-			{	// Double try by Bubble Gum
-				if (!(mvp_sd && mvp_sd->sc.data[SC_ITEMBOOST] && rand() % 10000 < drop_rate))
 					continue;
-			}
 
 			ditem = mob_setdropitem(md->db->dropitem[i].nameid, 1);
 
 			//A Rare Drop Global Announce by Lupus
-			if( drop_rate <= battle_config.rare_drop_announce )
+			if( mvp_sd && drop_rate <= battle_config.rare_drop_announce )
 			{
 				struct item_data *i_data;
 				char message[128];
 				i_data = itemdb_search(ditem->item_data.nameid);
-				sprintf (message, msg_txt(541), (mvp_sd?mvp_sd->status.name:"???"), md->name, i_data->jname, (float)drop_rate/100);
+				sprintf (message, msg_txt(541), mvp_sd->status.name, md->name, i_data->jname, (float)drop_rate/100);
 				//MSG: "'%s' won %s's %s (chance: %0.02f%%)"
 				intif_broadcast(message,strlen(message)+1,0);
 			}
@@ -2320,7 +2330,7 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 
 		clif_mvp_effect(mvp_sd);
 		clif_mvp_exp(mvp_sd,mexp);
-		pc_gainexp(mvp_sd, &md->bl, mexp,0);
+		pc_gainexp(mvp_sd, &md->bl, mexp,0, false);
 		log_mvp[1] = mexp;
 		if(map[m].flag.nomvploot || type&1)
 			; //No drops.
@@ -2978,6 +2988,16 @@ int mobskill_use(struct mob_data *md, unsigned int tick, int event)
 		if (!flag)
 			continue; //Skill requisite failed to be fulfilled.
 
+		if (ms[i].msg_id){ //Display color message [SnakeDrak]
+			struct mob_chat *mc = mob_chat(ms[i].msg_id);
+			char temp[CHAT_SIZE_MAX];
+ 			char name[NAME_LENGTH];
+ 			snprintf(name, sizeof name,"%s", md->name);
+ 			strtok(name, "#"); // discard extra name identifier if present [Daegaladh]
+ 			snprintf(temp, sizeof temp,"%s : %s", name, mc->msg);
+			clif_messagecolor(&md->bl, mc->color, temp);
+		}
+		
 		//Execute skill	
 		if (skill_get_casttype(ms[i].skill_id) == CAST_GROUND)
 		{	//Ground skill.
@@ -3869,6 +3889,103 @@ static int mob_read_randommonster(void)
 }
 
 /*==========================================
+ * processes one mob_chat_db entry [SnakeDrak]
+ * @param last_msg_id ensures that only one error message per mob id is printed
+ *------------------------------------------*/
+static bool mob_parse_row_chatdb(char** str, const char* source, int line, int* last_msg_id)
+{
+	struct mob_chat *ms;
+	int msg_id;
+
+	msg_id = atoi(str[0]);
+
+	if (msg_id <= 0 || msg_id > MAX_MOB_CHAT)
+	{
+		if (msg_id != *last_msg_id) {
+			ShowError("mob_chat: Invalid chat ID: %d at %s, line %d\n", msg_id, source, line);
+			*last_msg_id = msg_id;
+		}
+		return false;
+	}
+
+	if (mob_chat_db[msg_id] == NULL)
+		mob_chat_db[msg_id] = (struct mob_chat*)aCalloc(1, sizeof (struct mob_chat));
+
+	ms = mob_chat_db[msg_id];
+	//MSG ID
+	ms->msg_id=msg_id;
+	//Color
+	ms->color=strtoul(str[1],NULL,0);
+	//Message
+	if(strlen(str[2])>(CHAT_SIZE_MAX-1)){
+		if (msg_id != *last_msg_id) {
+			ShowError("mob_chat: readdb: Message too long! Line %d, id: %d\n", line, msg_id);
+			*last_msg_id = msg_id;
+		}
+		return false;
+	}
+	strncpy(ms->msg, str[2], CHAT_SIZE_MAX);
+
+	return true;
+}
+
+/*==========================================
+ * mob_chat_db.txt reading [SnakeDrak]
+ *-------------------------------------------------------------------------*/
+static void mob_readchatdb(void)
+{
+	char arc[]="mob_chat_db.txt";
+	uint32 lines=0, count=0;
+	char line[1024], path[256];
+	int i, tmp=0;
+	FILE *fp;
+	sprintf(path, "%s/%s", db_path, arc); 
+	fp=fopen(path, "r");
+	if(fp == NULL)
+	{
+		ShowWarning("mob_readchatdb: File not found \"%s\", skipping.\n", path);
+		return;
+	}
+	
+	while(fgets(line, sizeof(line), fp))
+	{
+		char *str[3], *p, *np;
+		int j=0;
+
+		lines++;
+		if(line[0] == '/' && line[1] == '/')
+			continue;
+		memset(str, 0, sizeof(str));
+
+		p=line;
+		while(ISSPACE(*p))
+			++p;
+		if(*p == '\0')
+			continue;// empty line
+		for(i = 0; i <= 2; i++)
+		{
+			str[i] = p;
+			if(i<2 && (np = strchr(p, ',')) != NULL) {
+				*np = '\0'; p = np + 1; j++;
+			}
+		}
+
+		if( j < 2 || str[2]==NULL)
+		{
+			ShowError("mob_readchatdb: Insufficient number of fields for skill at %s, line %d\n", arc, lines);
+			continue;
+		}
+
+		if( !mob_parse_row_chatdb(str, path, lines, &tmp) )
+			continue;
+
+		count++;
+	}
+	fclose(fp);
+	ShowStatus("Done reading '"CL_WHITE"%s"CL_RESET"'.\n", arc);
+}
+
+/*==========================================
  * processes one mob_skill_db entry
  * @param last_mob_id ensures that only one error message per mob id is printed
  *------------------------------------------*/
@@ -4092,6 +4209,12 @@ static bool mob_parse_row_mobskilldb(char** str, const char* source, int line, i
 		ms->emotion=atoi(str[17]);
 	else
 		ms->emotion=-1;
+		
+	if(str[18]!=NULL && mob_chat_db[atoi(str[18])]!=NULL)
+		ms->msg_id=atoi(str[18]);
+	else
+		ms->msg_id=0;
+
 	if (mob_id < 0)
 	{	//Set this skill to ALL mobs. [Skotlex]
 		mob_id *= -1;
@@ -4156,6 +4279,7 @@ static int mob_readskilldb(void)
 		while(fgets(line, sizeof(line), fp))
 		{
 			char *str[20], *p, *np;
+			int j=0;
 
 			lines++;
 			if(line[0] == '/' && line[1] == '/')
@@ -4167,15 +4291,15 @@ static int mob_readskilldb(void)
 				++p;
 			if( *p == '\0' )
 				continue;// empty line
-			for(i = 0; i < 18; i++)
+			for(i = 0; i < 19; i++)
 			{
 				str[i] = p;
 				if((np = strchr(p, ',')) != NULL) {
-					*np = '\0'; p = np + 1;
+					*np = '\0'; p = np + 1; j++;
 				}
 			}
 			
-			if( i < 18 )
+			if ( j < 18 || str[18]==NULL )
 			{
 				ShowError("mob_readskilldb: Insufficient number of fields for skill at %s, line %d\n", filename[fi], lines);
 				continue;
@@ -4262,6 +4386,7 @@ void mob_reload(void)
 			memset(&mob_db_data[i]->skill,0,sizeof(mob_db_data[i]->skill));
 			mob_db_data[i]->maxskill=0;
 		}
+	mob_readchatdb();
 	mob_readskilldb();
 	mob_readdb_race();
 }
@@ -4294,6 +4419,7 @@ int do_init_mob(void)
 
 	mob_readdb_mobavail();
 	mob_read_randommonster();
+	mob_readchatdb();
 	mob_readskilldb();
 	mob_readdb_race();
 
@@ -4327,6 +4453,14 @@ int do_final_mob(void)
 		{
 			aFree(mob_db_data[i]);
 			mob_db_data[i] = NULL;
+		}
+	}
+	for (i = 0; i <= MAX_MOB_CHAT; i++)
+	{
+		if (mob_chat_db[i] != NULL)
+		{
+			aFree(mob_chat_db[i]);
+			mob_chat_db[i] = NULL;
 		}
 	}
 	ers_destroy(item_drop_ers);

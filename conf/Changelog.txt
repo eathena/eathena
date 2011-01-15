@@ -1,5 +1,7 @@
 Date	Added
 
+2010/05/25
+	* Rev. 14307 Added noteleport flag to nyd_dun02. [L0ne_W0lf]
 2009/11/14
 	* Moved setting guild_exp_rate from char_athena.conf to inter_athena.conf.
 2009/??/??

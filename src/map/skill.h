@@ -99,12 +99,6 @@ struct s_skill_db {
 };
 extern struct s_skill_db skill_db[MAX_SKILL_DB];
 
-struct skill_name_db { 
-	int id;	// skill id
-	char *name;	// search strings
-	char *desc;	// description that shows up for searches
-};
-
 #define MAX_SKILL_UNIT_LAYOUT	50
 #define MAX_SQUARE_LAYOUT		5	// 11*11のユニット配置が最大
 #define MAX_SKILL_UNIT_COUNT ((MAX_SQUARE_LAYOUT*2+1)*(MAX_SQUARE_LAYOUT*2+1))
@@ -971,9 +965,9 @@ enum e_skill {
 	NPC_VAMPIRE_GIFT,
 	NPC_WIDESOULDRAIN,
 
-	ALL_INCCARRY = 681,
-	//NPC_TALK = 682,
-	NPC_HELLPOWER = 683,
+	ALL_INCCARRY,
+	NPC_TALK,
+	NPC_HELLPOWER,
 	NPC_WIDEHELLDIGNITY,
 	NPC_INVINCIBLE,
 	NPC_INVINCIBLEOFF,
@@ -1066,6 +1060,9 @@ enum e_skill {
 	MER_SCAPEGOAT,
 	MER_LEXDIVINA,
 	MER_ESTIMATION,
+	MER_KYRIE,
+	MER_BLESSING,
+	MER_INCAGI,
 };
 
 /// The client view ids for land skills.

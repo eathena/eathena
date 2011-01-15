@@ -445,7 +445,7 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 			return 1;
 		}
 		if (!pet_birth_process(sd,p)) //Pet hatched. Delete egg.
-			pc_delitem(sd,i,1,0);
+			pc_delitem(sd,i,1,0,0);
 	} else {
 		pet_data_init(sd,p);
 		if(sd->pd && sd->bl.prev != NULL) {
@@ -659,7 +659,7 @@ int pet_equipitem(struct map_session_data *sd,int index)
 		return 1;
 	}
 
-	pc_delitem(sd,index,1,0);
+	pc_delitem(sd,index,1,0,0);
 	pd->pet.equip = nameid;
 	status_set_viewdata(&pd->bl, pd->pet.class_); //Updates view_data.
 	clif_pet_equip_area(pd);
@@ -734,7 +734,7 @@ static int pet_food(struct map_session_data *sd, struct pet_data *pd)
 		clif_pet_food(sd,k,0);
 		return 1;
 	}
-	pc_delitem(sd,i,1,0);
+	pc_delitem(sd,i,1,0,0);
 
 	if( pd->pet.hungry > 90 )
 		pet_set_intimate(pd, pd->pet.intimate - pd->petDB->r_full);
@@ -1181,13 +1181,11 @@ int pet_skill_support_timer(int tid, unsigned int tick, int id, intptr data)
 	
 	pet_stop_attack(pd);
 	pet_stop_walking(pd,1);
-	
+	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
 	if (skill_get_inf(pd->s_skill->id) & INF_GROUND_SKILL)
 		unit_skilluse_pos(&pd->bl, sd->bl.x, sd->bl.y, pd->s_skill->id, pd->s_skill->lv);
 	else
 		unit_skilluse_id(&pd->bl, sd->bl.id, pd->s_skill->id, pd->s_skill->lv);
-
-	pd->s_skill->timer=add_timer(tick+pd->s_skill->delay*1000,pet_skill_support_timer,sd->bl.id,0);
 	return 0;
 }
 

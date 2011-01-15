@@ -1714,7 +1714,6 @@ kh_school,178,180,4	script	Elly	895,{
 			mes "Grey Box you found inside";
 			mes "Kiel Hyre's Cottage.^000000";
 			next;
-			next;
 			mes "^3355FFYou successfully open the";
 			mes "Grey Box with the Golden Key,";
 			mes "and find a Blue Keycard, along";
@@ -5941,7 +5940,6 @@ yuno_fild09,158,217,0	script	Wooden Board#kh	111,{
 		mes "^3355FFYou found a long";
 		mes "wooden board carved";
 		mes "with the initials, ''K.H.''^000000";
-		next;
 		next;
 		cutin "kh_kyel_port",2;
 		mes "^3355FFYou find a portrait of";

@@ -666,7 +666,10 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 	struct mmo_charstatus cd;
 	CSDBIterator* it;
 	int char_id;
-	int i,j;
+	int i,j,offset = 0;
+#if PACKETVER >= 20100413
+	offset += 3;
+#endif
 
 	// load characters
 	memset(cd_arr, 0, sizeof(cd_arr));
@@ -702,10 +705,15 @@ int mmo_char_send006b(int fd, struct char_session_data* sd)
 		sd->slots[i] = cd_arr[i].char_id;
 	}
 
-	j = 24; // offset
+	j = 24 + offset; // offset
 	WFIFOHEAD(fd,j + MAX_CHARS*MAX_CHAR_BUF);
 	WFIFOW(fd,0) = 0x6b;
-	memset(WFIFOP(fd,4), 0, 20); // unknown bytes
+#if PACKETVER >= 20100413
+	WFIFOB(fd,4) = MAX_CHARS; // Max slots.
+	WFIFOB(fd,5) = MAX_CHARS; // Available slots.
+	WFIFOB(fd,6) = MAX_CHARS; // Premium slots.
+#endif
+	memset(WFIFOP(fd,4 + offset), 0, 20); // unknown bytes
 	for( i = 0; i < MAX_CHARS; ++i )
 		if( cd_arr[i].account_id == sd->account_id )
 			j += mmo_char_tobuf(WFIFOP(fd,j), &cd_arr[i]);
@@ -773,6 +781,10 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 #if PACKETVER >= 20061023
 	WBUFW(buf,106) = ( p->rename > 0 ) ? 0 : 1;
 	offset += 2;
+#endif
+#if PACKETVER >= 20100721
+	mapindex_getmapname_ext(mapindex_id2name(p->last_point.map), (char*)WBUFP(buf,108));
+	offset += 16;
 #endif
 
 	return 106+offset;

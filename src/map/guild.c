@@ -48,7 +48,7 @@ struct eventlist {
 // ギルドのEXPキャッシュ
 struct guild_expcache {
 	int guild_id, account_id, char_id;
-	unsigned int exp;
+	uint64 exp;
 };
 static struct eri *expcache_ers; //For handling of guild exp payment.
 
@@ -343,8 +343,8 @@ int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 		return 0;
 	}
 
-	if (g->member[i].exp > UINT_MAX - c->exp)
-		g->member[i].exp = UINT_MAX;
+	if (g->member[i].exp > UINT64_MAX - c->exp)
+		g->member[i].exp = UINT64_MAX;
 	else
 		g->member[i].exp+= c->exp;
 
@@ -440,7 +440,7 @@ int guild_created(int account_id,int guild_id)
 	sd->status.guild_id=guild_id;
 	clif_guild_created(sd,0);
 	if(battle_config.guild_emperium_check)
-		pc_delitem(sd,pc_search_inventory(sd,714),1,0);	// エンペリウム消耗
+		pc_delitem(sd,pc_search_inventory(sd,714),1,0,0);	// エンペリウム消耗
 	return 0;
 }
 
@@ -847,7 +847,7 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 	return 0;
 }
 
-int guild_member_leaved(int guild_id, int account_id, int char_id, int flag, const char* name, const char* mes)
+int guild_member_withdraw(int guild_id, int account_id, int char_id, int flag, const char* name, const char* mes)
 {
 	int i;
 	struct guild* g = guild_search(guild_id);
@@ -1196,13 +1196,13 @@ unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 	
 
 	if (per < 100)
-		exp = (unsigned int) exp * per / 100;
+		exp = exp * per / 100;
 	//Otherwise tax everything.
 	
 	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
 
-	if (c->exp > UINT_MAX - exp)
-		c->exp = UINT_MAX;
+	if (c->exp > UINT64_MAX - exp)
+		c->exp = UINT64_MAX;
 	else
 		c->exp += exp;
 	
@@ -1220,8 +1220,8 @@ int guild_getexp(struct map_session_data *sd,int exp)
 		return 0;
 
 	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
-	if (c->exp > UINT_MAX - exp)
-		c->exp = UINT_MAX;
+	if (c->exp > UINT64_MAX - exp)
+		c->exp = UINT64_MAX;
 	else
 		c->exp += exp;
 	return exp;
@@ -1459,6 +1459,8 @@ int guild_opposition(struct map_session_data *sd,struct map_session_data *tsd)
 				clif_guild_oppositionack(sd,2);
 				return 0;
 			}
+			if(agit_flag || agit2_flag) // Prevent the changing of alliances to oppositions during WoE.
+				return 0;
 			//Change alliance to opposition.
 			intif_guild_alliance( sd->status.guild_id,tsd->status.guild_id,
 				sd->status.account_id,tsd->status.account_id,8 );

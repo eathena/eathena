@@ -3,6 +3,159 @@ Date	Added
 AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO INTO TRUNK.
 IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 
+2010/09/06
+	* Rev. 14400 Implemented Icescope's fix for devotion, reflect damage is no longer absorbed by the devoter. (bugreport:3189) [L0ne_W0lf]
+	* As a folow up to r14301, increased MAX_REG_NUM to 256, to prevent possible data loss.
+2010/08/28
+	* Force a map_quit() call on the session data after a block/ban/changesex/acc deletion to remove leftovers of a player's session
+	  caused by when the fd has already been set to eof (player is not connected) but session data is kept (e.g. autotrading). [Paradox924X]
+	* Replaced a map_moveblock() call with a call to unit_movepos() to prevent an exploit. [Paradox924X]
+2010/08/26
+	* Rev. 14395 instance_npcname will now error if the NPC being looked up is not found, care of ramsey. [L0ne_W0lf]
+	* delitem/2 will now send the close button when failing to find all neccecary items to delete.
+	- Still do to, items should not be deleted as-found, and should be deleted once counted
+	  and in the event of delitem failure, nothing should be consumed. This is a design flaw
+	  in eathena, and should be fixed as soon as possible.
+2010/08/21
+	* Rev. 14393 Follow up to r14392, forgot to remove the old snprintf. [L0ne_W0lf]
+	* Rev. 14392 Mob chat now strips "#unique" names off monsters, curtosy of Daegaladh. [L0ne_W0lf]
+2010/08/20
+	* Rev. 14390 Commented out code from r14388, as this breaks NPCs that rely on running global events in duplicates. (IE: WoE scripts) [L0ne_W0lf]
+	* Removed processing for undocumented and unused event 'OnCharIfInit' which is essentially an alias for event 'OnInterIfInit'. [Paradox924X]
+	* Made it so global events don't get executed in duplicates to prevent unnecessary reprocessing of events that only need to be run once.
+	  This potentially reduces the total number of global events by hundreds, even thousands. [Paradox924X]
+	* Added a few missing updates to the last packet update to properly support player clones and disguising. [Skotlex]
+2010/08/19
+	* Rev. 14384 Follow up to r14383, changed use of clif_font_area to clif_font, seems Skotlex forgot them. [L0ne_W0lf]
+	* Added support for packets 0x7fa, 0x7f7, 0x7f8, 0x7f9. These are for renewal
+	  clients and fixes deletion of ammo/displaying of Homunculus HP/SP bars on recent RE clients. [Skotlex]
+2010/08/18
+	* Rev. 14381 Added bonus3 bAdd/SubEle, which allows you to specify a battle flag as well! Dun dun dun! [L0ne_W0lf]
+	- The bonuses are addititive to existing bAdd/SubEles, as that's how it appears to work.
+2010/08/16
+	* Fixed an exploit where unauthorized GMs can give zeny through auction. [Inkfish]
+	* Rev. 14378 Attempting to tackle, and fix some simple errors in skills. [L0ne_W0lf]
+	- Stormgust hit counter no longer resets under new casts of stormgust.
+	- RG_STEALCOIN will now cause the monster to aggro player on success. (bugreport:3547)
+	- SL_WIZARD will now consume one crystal fragment per reflected hit. (bugreport:3603)
+	- WZ_FROSTNOVA will now ignore targets in area that are already frozen. (bugreport:3980)
+	- SL_KAAHI will no longer use SP if player has full health already. (bugreport:3918)
+	- CG_TAROTCARD "The Lovers" will heal source player instead of target. (bugreport:4171)
+	* Merged Shinryo's patch which speeds up map-cache loading (with a few changes, see eA forum thread #253218 for details) [Skotlex]
+2010/08/14
+	* Rev. 14373 Quest log kill count now updated properly. (Added from topic 253813) [L0ne_W0lf]
+2010/08/11
+	* Documented Battleground commands with as much information as I've got. [L0ne_W0lf]
+2010/08/03
+	* Merged quite a bit of the RagexeRE eA Compatibility patch (eA topic 222623) to support the more recent clients. [Skotlex]
+2010/07/27
+	* Rev. 14367 Implemented three new mercenary skills. [L0ne_W0lf]
+2010/07/27
+	* Rev. 14365 Updated npc_randomattack, it now does 100*skillevel percent damage. [L0ne_W0lf]
+	* Added patch from Paradox to allow a skill to use a random element for damage. See skill DB for info.
+2010/06/27
+	* Rev. 14358 Follow up to r14357. Moved where sd is checked for existance in specialeffect2. [L0ne_W0lf]
+	* Rev. 14357 Updated specialeffect2 to accept player names. (follow up to r14353) [L0ne_W0lf]
+	* Bascilica now allows boss-flagged monsters to knock you back as per official.
+2010/06/27
+	* Rev. 14356 Follow up to r13895, added a battle.conf setting to control if ranges should be checked with autocasts. [L0ne_W0lf]
+	  'autospell_check_range', by default is set to no, as this is official behavior. This also affects autospellwhenhit.
+	* Sonic Blow autocast now stops players attacking when it triggers. It's possible there is more depth to this 
+	  on official servers, and should 'stop' attacking on regular casts as well. It appears so far that this is the
+	  only skill that behaves this way.
+	* Modified the default value for homunculus_auto_vapor in source to 1.
+	* pvp_points are no longer calculated in the gvg_dungeon flagged maps.
+2010/06/22
+	* Rev. 14353 Added support for NPC names in the 'specialeffect' script command, go go copy/paste! [L0ne_W0lf]
+2010/06/20
+	* Fixed codepage indicators being included in NPCs' whispervars. [Gepard]
+2010/06/18
+	* Added support for NPC/PC names in 'emotion' script command. [Gepard]
+2010/06/14
+	* Rev. 13442 Blocked being able to use the skill CR_DEVOTION on players under the status SC_HELLPOWER. [L0ne_W0lf]
+	- Additionally, users afflicted by the status can also no longer use Token of Siegfried to self-res.
+	* Added Manuk, Splendide and SC_HELLPOWER statuses to the status effects that can't be dispelled.
+	* Changed SC_SPEEDUP0 to use the correct status icon SI_MOVHASTE_HORSE.
+	* Changed SI_SPEEDUP1 to use the correct status icon SI_SPEEDPOTION1.
+2010/06/13
+	* 'clif_hpmeter' shouldn't send the packet to the player himself. [Inkfish]
+2010/06/10
+	* Rev. 14336 Updated SC_ITEMBOOST to work similar to how it used to in r11351. [L0ne_W0lf]
+	- Will not boost drop rates past 90%, but ignores those already greater than.
+	- Now uses val2 in the sc_start as the drop rate modifier, see item_db for example.
+2010/06/09
+	* Added support for packet 0x7fe which changes the bgm temporarily for a single player [Rikter/Yommy]
+	* Added 2 script commands, playBGM and playBGMall, documented use in doc/script_commands.txt [Rikter/Yommy]
+2010/06/01
+	* Rev. 14329 Corrected warnings (and errors on some compilers) from r14327. [L0ne_W0lf]
+	* Rev. 14327 Implemented the Manuk and Splendide item status effects, thanks to Epoque. [L0ne_W0lf]
+2010/05/31
+	* Added support for using 'town', 'autotrade', 'allowks', 'monster_noteleport', 'pvp_nocalcrank' and 'battleground' mapflags in scripts (bugreport:4226). [Paradox924X]
+	* Replaced all occurrences of 'leaved' with 'withdraw'. [Paradox924X]
+	* Rewrote and optimized clif_hpmeter to employ map_foreachinarea() rather than an iteration over every session (bugreport:3956). [Paradox924X]
+	* Rewrote and reorganized checks in @autotrade to check and display most useful information first (bugreport:4253). [Paradox924X]
+2010/05/30
+	* Damaged reflected from skills will now be shown as multiple hits if the skill used was multi-hit. [Paradox924X]
+2010/05/29
+	* Rev. 14313 Added a pc_isdead check to warpparty. Only warp and mapwarp (moveto, warpallpcinthemap, and warpwaitingpc aegis script equivilents) should revive players when placing them on new maps. [L0ne_W0lf]
+	* Rewrote/optimized script command warpparty. [Paradox924X]
+	- Added support for an optional extra parameter "from_mapname" to restrict effect of warpparty to only those on a specific map.
+2010/05/28
+	* Rev. 14310 Fixed it so you can't add opositions during woe se. [L0ne_W0lf]
+2010/05/20
+	* Rev. 14301 Increased gobal_reg_value to 256 from 96. [L0ne_W0lf]
+	* Upped the max quest db entries allowed to 1500.
+	* Added remaining status icons to status.h (mostly 3rd job icons.)
+2010/04/28
+	* Fixed OnTouch doesn't trigger on hiding character. (bugreport:4208) [Inkfish]
+2010/04/23
+	* Merged a few updates for supporting renewal clients (thanks to Diablo): [Skotlex]
+	- Updated packets for char-select screen, trade item add, guild storage item add, vending list.
+	- Allow client to change item-share party settings
+2010/04/12
+	* Fixed SuccessRemoveCards removing Armor Enchant. (bugreport:4014) [Inkfish]
+2010/03/31
+	* Rev. 14277 Moved /npc/sample/ to /doc/sample. These are examples, not actual npcs. [L0ne_W0lf]
+2010/03/23
+	* Rev. 14270 Implemented NPC_TALK (Credit to SnakeDrak and Daegaladh) [L0ne_W0lf]
+	- Also added in the ability to use '@npctalkc' as a GM command.
+2010/03/21
+	* Added missing checks to stop an infinite free cash point exploit. (bugreport:4139) [ultramage]
+2010/03/02
+	* Fixed an exploit where the buyer can end the auction himself. [Inkfish]
+2010/02/27
+	* Fixed Posion Status killing monsters with low max hp(like plants). [Inkfish]
+2010/02/19
+	* Fixed racial bonuses for RC_NONDEMIHUMAN applying to right cardfix value (cardfix) instead of left cardfix value (cardfix_) in the case of melee attacks where left_cardfix_to_right is set to 'no'. [Paradox924X]
+	* Fixed NPC_INVINCIBLE can be dispelled. (bugreport:4046) [Inkfish]
+	* Fixed a compliation warning. [Inkfish]
+2010/02/09
+	* Expanded range for cached and stored-in-db guild member exp (devotion) from uint32 to uint64. (bugreport:3983) [Paradox924X]
+	* Capped value when sending to client to INT_MAX to prevent confusion. [Paradox924X]
+2010/02/07
+	* Bleeding doesn't kill non-player characters. [Inkfish]
+2010/02/06
+	* Added official packet to display received expirience. [Inkfish]
+2010/01/30
+	* Added support for PACKETVER 20100105, which updates the vending related packets on this and later clients. [Skotlex]
+2010/01/28
+	* Rev. 14232 SN_SHARPSHOOTING is no longer affected by AC_VULTURE. (Bugreport:3909) [L0ne_W0lf]
+	- Removed the mercenary version from there as well, as it's not needed.
+	* Fixed target skill doesn't autocast on hit when hit by AoE. [Inkfish]
+2010/01/24
+	* Prevented the changing of alliances to oppositions during WoE. (bugreport:3923) [Paradox924X]
+2010/01/23
+	* Prevented pc_skill with a value of 2 for 'flag' from granting a skill level that surpasses MAX_SKILL_LEVEL. (bugreport:4022) [Paradox924X]
+2010/01/19
+	* Snatch should warp you anyway even if the target died. [Inkfish]
+	* Snatch now checks the distance between source and target in case it kills the target and then warps the respawned one. [Inkfish]
+2010/01/16
+	* Fixed items don't grant skill if you had this skill before and then changed your job. [Inkfish]
+2010/01/14
+	* Fixed change cart packet doesn't check for skill. [Inkfish]
+	* Added new packets for Plagiarism. [Inkfish]
+2009/12/27
+	* Fixed Meteor Assault and Spread Attack have twice the chance to trigger AutoSpellOnSkill. [Inkfish]
 2009/12/03
 	* Prevented online user count from going negative. (bugreport:3913) [Paradox924X]
 2009/12/02

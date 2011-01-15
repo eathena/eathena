@@ -200,7 +200,7 @@ void mapif_guild_memberadded(int fd, int guild_id, int account_id, int char_id, 
 	WFIFOSET(fd,15);
 }
 
-void mapif_guild_leaved(int guild_id, int account_id, int char_id, int expulsion, const char *name, const char *mes)
+void mapif_guild_withdraw(int guild_id, int account_id, int char_id, int expulsion, const char *name, const char *mes)
 {
 	unsigned char buf[79];
 	WBUFW(buf, 0) = 0x3834;
@@ -533,7 +533,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		save_flag |= GS_EXPULSION;
 	}
 
-	mapif_guild_leaved(guild_id, account_id, char_id, expulsion, g.member[i].name, mes);
+	mapif_guild_withdraw(guild_id, account_id, char_id, expulsion, g.member[i].name, mes);
 
 	g.member[i].modified = GS_MEMBER_DELETED;
 	guilds->save(guilds, &g, GS_MEMBER); // first step with data intact, delete from storage (SQL)

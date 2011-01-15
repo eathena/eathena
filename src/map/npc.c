@@ -107,8 +107,11 @@ int npc_ontouch_event(struct map_session_data *sd, struct npc_data *nd)
 {
 	char name[NAME_LENGTH*2+3];
 
-	if( nd->touching_id || pc_ishiding(sd) )
-		return 0;
+	if( nd->touching_id )
+		return 0; // Attached a player already. Can't trigger on anyone else.
+
+	if( pc_ishiding(sd) )
+		return 1; // Can't trigger 'OnTouch_'. try 'OnTouch' later.
 
 	snprintf(name, ARRAYLENGTH(name), "%s::%s", nd->exname, script_config.ontouch_name);
 	return npc_event(sd,name,1);
@@ -146,6 +149,9 @@ int npc_enable_sub(struct block_list *bl, va_list ap)
 
 		if( npc_ontouch_event(sd,nd) > 0 && npc_ontouch2_event(sd,nd) > 0 )
 		{ // failed to run OnTouch event, so just click the npc
+			if (sd->npc_id != 0)
+				return 0;
+
 			pc_stop_walking(sd,1);
 			npc_click(sd,nd);
 		}
@@ -276,7 +282,7 @@ int npc_event_doall_sub(DBKey key, void* data, va_list ap)
 	rid = va_arg(ap, int);
 
 	p = strchr(p, ':'); // match only the event name
-	if( p && strcmpi(name, p) == 0 )
+	if( p && strcmpi(name, p) == 0 /* && !ev->nd->src_id */ ) // Do not run on duplicates. [Paradox924X]
 	{
 		if(rid) // a player may only have 1 script running at the same time
 			npc_event_sub(map_id2sd(rid),ev,key.str);
@@ -1156,6 +1162,12 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	struct item_data *item;
 	int i, price, w;
 
+	if( amount <= 0 )
+		return 5;
+
+	if( points < 0 )
+		return 6;
+
 	if( !nd || nd->subtype != CASHSHOP )
 		return 1;
 
@@ -1191,6 +1203,13 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 	w = item->weight * amount;
 	if( w + sd->weight > sd->max_weight )
 		return 3;
+
+	if( (double)nd->u.shop.shop_item[i].value * amount > INT_MAX )
+	{
+		ShowWarning("npc_cashshop_buy: Item '%s' (%d) price overflow attempt!\n", item->name, nameid);
+		ShowDebug("(NPC:'%s' (%s,%d,%d), player:'%s' (%d/%d), value:%d, amount:%d)\n", nd->exname, map[nd->bl.m].name, nd->bl.x, nd->bl.y, sd->status.name, sd->status.account_id, sd->status.char_id, nd->u.shop.shop_item[i].value, amount);
+		return 5;
+	}
 
 	price = nd->u.shop.shop_item[i].value * amount;
 	if( points > price )
@@ -1331,7 +1350,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 			z = z * (double)skill * (double)battle_config.shop_exp/10000.;
 			if( z < 1 )
 				z = 1;
-			pc_gainexp(sd,NULL,0,(int)z);
+			pc_gainexp(sd,NULL,0,(int)z, false);
 		}
 	}
 
@@ -1387,7 +1406,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 			pc_setreg(sd,add_str("@sold_nameid")+(i<<24),(int)sd->status.inventory[idx].nameid);
 			pc_setreg(sd,add_str("@sold_quantity")+(i<<24),qty);
 		}
-		pc_delitem(sd,idx,qty,0);
+		pc_delitem(sd,idx,qty,0,6);
 	}
 
 	if (z > MAX_ZENY) z = MAX_ZENY;
@@ -1404,7 +1423,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 			z = z * (double)skill * (double)battle_config.shop_exp/10000.;
 			if (z < 1)
 				z = 1;
-			pc_gainexp(sd,NULL,0,(int)z);
+			pc_gainexp(sd,NULL,0,(int)z, false);
 		}
 	}
 		
@@ -3314,7 +3333,6 @@ int npc_reload(void)
 	ShowStatus("Event '"CL_WHITE"OnInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n",npc_event_doall("OnInit"));
 	// Execute rest of the startup events if connected to char-server. [Lance]
 	if(!CheckForCharServer()){
-		ShowStatus("Event '"CL_WHITE"OnCharIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnCharIfInit"));
 		ShowStatus("Event '"CL_WHITE"OnInterIfInit"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInit"));
 		ShowStatus("Event '"CL_WHITE"OnInterIfInitOnce"CL_RESET"' executed with '"CL_WHITE"%d"CL_RESET"' NPCs.\n", npc_event_doall("OnInterIfInitOnce"));
 	}

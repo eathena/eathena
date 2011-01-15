@@ -19,6 +19,7 @@
 //= 3.1 Corrected time check for Sir Jore. [L0ne_W0lf]
 //= 3.2 Removed mapannounce used while debugging. [L0ne_W0lf]
 //=     Moved the disablewaitingroomevent in dancing portion.
+//= 3.3 Applied Kazukin's fix for the dancing portion. (bugreport:3966) [L0ne_W0lf]
 //============================================================ 
 
 //============================================================ 
@@ -5371,6 +5372,7 @@ OnTimer38000:
 	end;
 
 OnTimer44000:
+	stopnpctimer;
 	donpcevent "s_dance#up::Onreset";
 	donpcevent "s_dance#down::Onreset";
 	donpcevent "s_dance#left::Onreset";
@@ -5378,8 +5380,7 @@ OnTimer44000:
 	donpcevent "s_dance#cen::Onreset";
 	mapannounce "cmd_in01","Well done.",bc_map,"0xFFFF00";
 	enablenpc "Examiner#sd";
-	donpcevent "Examiner#sd::Onreset1";
-	stopnpctimer;
+	donpcevent "Standby Room#sign::Onreset";
 	end;
 }
 
@@ -5738,10 +5739,6 @@ Onup:
 OnDisable:
 	set .s_check,0;
 	disablenpc "Examiner#sd";
-	end;
-
-Onreset1:
-	donpcevent "Standby Room#sign::Onreset";
 	end;
 }
 
@@ -8870,7 +8867,6 @@ himinn,48,86,5	script	Valkyrie#sign	811,{
 		mes "[Valkyrie Sandra]";
 		mes "As a symbol of this promise to invite you to Valhalla, you shall be rewarded with 'The Sign' which will show all others that you are a great warrior whose courage was tested by the gods themselves.";
 		next;
-		set name,PcName;
 		mes "[Valkyrie Sandra]";
 		mes "Congratulations,";
 		mes ""+ strcharinfo(0) +". Verily,";
@@ -8993,10 +8989,6 @@ OnDisable:
 
 OnEnable:
 	enablenpc "Dark Lord#serin";
-	end;
-
-Onemo:
-	emotion e_gg;
 	end;
 }
 
@@ -9128,7 +9120,7 @@ que_sign01,196,39,4	script	Serin#serin	90,{
 			mes "I really don't want to fight you,";
 			mes "but I've come too far to give up now. If you insist on interfering, then you leave me no choice...";
 			next;
-			donpcevent "Dark Lord#serin::Onemo";
+			emotion e_gg,0,"Dark Lord#serin";
 			mes "[Dark Lord]";
 			mes "^330033Insolent mortal!";
 			mes "Do you really think";
@@ -11441,7 +11433,6 @@ que_sign01,45,227,4	script	Queen of the Dead	856,{
 		close;
 	}
 	else if (sign_q == 142) {
-		set name,PcName;
 		mes "[Lady Hell]";
 		mes "^8C1717Ah.";
 		mes "You are the";
