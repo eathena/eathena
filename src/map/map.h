@@ -219,6 +219,17 @@ enum {
 };
 
 enum {
+	RC2_NONE = 0,
+	RC2_GOBLIN,
+	RC2_KOBOLD,
+	RC2_ORC,
+	RC2_GOLEM,
+	RC2_GUARDIAN,
+	RC2_NINJA,
+	RC2_MAX
+};
+
+enum {
 	ELE_NEUTRAL=0,
 	ELE_WATER,
 	ELE_EARTH,
@@ -293,6 +304,8 @@ enum _sp {
 
 	SP_BASEJOB=119,	// 100+19 - celest
 	SP_BASECLASS=120,	//Hmm.. why 100+19? I just use the next one... [Skotlex]
+	SP_KILLERRID=121,
+	SP_KILLEDRID=122,
 
 	// Mercenaries
 	SP_MERCFLEE=165, SP_MERCKILLS=189, SP_MERCFAITH=190,
@@ -461,7 +474,6 @@ struct map_data {
 		unsigned sakura : 1; // [Valaris]
 		unsigned leaves : 1; // [Valaris]
 		unsigned rain : 1; // [Valaris]
-		unsigned indoors : 1; // celest
 		unsigned nogo : 1; // [Valaris]
 		unsigned nobaseexp	: 1; // [Lorky] added by Lupus
 		unsigned nojobexp	: 1; // [Lorky]
@@ -626,6 +638,7 @@ int cleanup_sub(struct block_list *bl, va_list ap);
 
 void map_helpscreen(int flag); // [Valaris]
 int map_delmap(char* mapname);
+void map_flags_init(void);
 
 bool map_iwall_set(int m, int x, int y, int size, int dir, bool shootable, const char* wall_name);
 void map_iwall_get(struct map_session_data *sd);

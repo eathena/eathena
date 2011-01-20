@@ -192,29 +192,19 @@ int broadcast_user_count(int tid, unsigned int tick, int id, intptr data)
 
 
 // Console Command Parser [Wizputer]
-int parse_console(char* buf)
+int parse_console(const char* command)
 {
-	char command[256];
+	ShowNotice("Console command: %s\n", command);
 
-	memset(command, 0, sizeof(command));
-
-	sscanf(buf, "%[^\n]", command);
-
-	log_char("Console command :%s\n", command);
-
-	if( strcmpi("shutdown", command) == 0 ||
-	    strcmpi("exit", command) == 0 ||
-	    strcmpi("quit", command) == 0 ||
-	    strcmpi("end", command) == 0 )
+	if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 || strcmpi("end", command) == 0 )
 		runflag = 0;
-	else if( strcmpi("alive", command) == 0 ||
-	         strcmpi("status", command) == 0 )
+	else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
 		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
-	else if( strcmpi("help", command) == 0 ){
-		ShowInfo(CL_BOLD"Help of commands:"CL_RESET"\n");
-		ShowInfo("  To shutdown the server:\n");
-		ShowInfo("  'shutdown|exit|qui|end'\n");
-		ShowInfo("  To know if server is alive:\n");
+	else if( strcmpi("help", command) == 0 )
+	{
+		ShowInfo("To shutdown the server:\n");
+		ShowInfo("  'shutdown|exit|quit|end'\n");
+		ShowInfo("To know if server is alive:\n");
 		ShowInfo("  'alive|status'\n");
 	}
 
@@ -740,7 +730,7 @@ void char_set_defaults(void)
 	char_config.chars_per_account = 0;
 	char_config.char_del_level = 0;
 	char_config.character_name_case_sensitive = true;
-	char_config.start_zeny = 500;
+	char_config.start_zeny = 0;
 	char_config.start_weapon = 1201;
 	char_config.start_armor = 2301;
 	char_config.start_point.map = mapindex_name2id(MAP_NOVICE);
@@ -771,7 +761,7 @@ int char_config_read(const char* cfgName)
 		remove_control_chars(w2);
 
 		if( strcmpi(w1,"timestamp_format") == 0 )
-			strncpy(timestamp_format, w2, 20);
+			safestrncpy(timestamp_format, w2, sizeof(timestamp_format));
 		else
 		if( strcmpi(w1,"console_silent") == 0 )
 		{

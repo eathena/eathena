@@ -310,8 +310,8 @@ void mapif_guild_notice(struct guild* g)
 	unsigned char buf[186];
 	WBUFW(buf,0) = 0x383e;
 	WBUFL(buf,2) = g->guild_id;
-	memcpy(WBUFP(buf,6), g->mes1, 60);
-	memcpy(WBUFP(buf,66), g->mes2, 120);
+	memcpy(WBUFP(buf,6), g->mes1, MAX_GUILDMES1);
+	memcpy(WBUFP(buf,66), g->mes2, MAX_GUILDMES2);
 	mapif_sendall(buf,186);
 }
 
@@ -648,12 +648,12 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 	switch(type)
 	{
 	case GMI_POSITION:
-		g.member[i].position = *((int *)data);
+		g.member[i].position = *((short *)data);
 		break;
 	case GMI_EXP:
 	{
-		unsigned int exp, old_exp = g.member[i].exp;
-		g.member[i].exp = *((unsigned int *)data);
+		uint64 exp, old_exp = g.member[i].exp;
+		g.member[i].exp = *((uint64 *)data);
 		if( g.member[i].exp > old_exp )
 		{
 			exp = g.member[i].exp - old_exp;
@@ -663,34 +663,34 @@ void mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int
 				exp = exp*guild_exp_rate/100;
 
 			// Update guild exp
-			if (exp > UINT_MAX - g.exp)
-				g.exp = UINT_MAX;
+			if (exp > UINT64_MAX - g.exp)
+				g.exp = UINT64_MAX;
 			else
 				g.exp += exp;
 
 			if( guild_calcinfo(&g) )
 				mapif_guild_info(-1, &g);
 			else
-				mapif_guild_basicinfochanged(guild_id, GBI_EXP, &g.exp, 4);
+				mapif_guild_basicinfochanged(guild_id, GBI_EXP, &g.exp, sizeof(g.exp));
 
 			save_flag |= GS_LEVEL;
 		}
 		break;
 	}
 	case GMI_HAIR:
-		g.member[i].hair = *((int *)data);
+		g.member[i].hair = *((short *)data);
 		break;
 	case GMI_HAIR_COLOR:
-		g.member[i].hair_color = *((int *)data);
+		g.member[i].hair_color = *((short *)data);
 		break;
 	case GMI_GENDER:
-		g.member[i].gender = *((int *)data);
+		g.member[i].gender = *((short *)data);
 		break;
 	case GMI_CLASS:
-		g.member[i].class_ = *((int *)data);
+		g.member[i].class_ = *((short *)data);
 		break;
 	case GMI_LEVEL:
-		g.member[i].lv = *((int *)data);
+		g.member[i].lv = *((short *)data);
 		break;
 	case GMI_NAME:
 		safestrncpy(g.member[i].name, (char*)data, sizeof(g.member[i].name));
@@ -1024,7 +1024,7 @@ void inter_guild_leave(int guild_id, int account_id, int char_id)
 	mapif_parse_GuildLeave(-1, guild_id, account_id, char_id, 0, "** Character Deleted **");
 }
 
-void inter_guild_sex_changed(int guild_id, int account_id, int char_id, int gender)
+void inter_guild_sex_changed(int guild_id, int account_id, int char_id, short gender)
 {
 	mapif_parse_GuildMemberInfoChange(-1, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
 }

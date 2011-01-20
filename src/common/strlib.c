@@ -12,7 +12,6 @@
 #include <errno.h>
 
 
-
 #define J_MAX_MALLOC_SIZE 65535
 
 // escapes a string in-place (' -> \' , \ -> \\ , % -> _)
@@ -253,9 +252,9 @@ size_t strnlen (const char* string, size_t maxlen)
 #endif
 
 #if defined(WIN32) && defined(_MSC_VER) && _MSC_VER <= 1200
-unsigned long long strtoull(const char* str, char** endptr, int base)
+uint64 strtoull(const char* str, char** endptr, int base)
 {
-	unsigned long long result;
+	uint64 result;
 	int count;
 	int n;
 
@@ -266,8 +265,13 @@ unsigned long long strtoull(const char* str, char** endptr, int base)
 		else
 		if( str[0] == '0' )
 			base = 8;
+		else
+			base = 10;
 	}
 
+	if( base == 8 )
+		count = sscanf(str, "%I64o%n", &result, &n);
+	else
 	if( base == 10 )
 		count = sscanf(str, "%I64u%n", &result, &n);
 	else
@@ -694,7 +698,7 @@ int sv_split(char* str, int len, int startoff, char delim, char** out_fields, in
 			end[0] = end[1] = '\0';
 		*out_fields = end + 2;
 	}
-	else if( (opt&SV_TERMINATE_LF) && end[0] == '\r' )
+	else if( (opt&SV_TERMINATE_CR) && end[0] == '\r' )
 	{
 		if( !(opt&SV_KEEP_TERMINATOR) )
 			end[0] = '\0';
@@ -960,17 +964,12 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	FILE* fp;
 	int lines = 0;
 	int entries = 0;
-	char* fields[64]; // room for 63 fields ([0] is reserved)
-	int columns;
+	char** fields; // buffer for fields ([0] is reserved)
+	int columns, fields_length;
 	char path[1024], line[1024];
+	char* match;
 
 	snprintf(path, sizeof(path), "%s/%s", directory, filename);
-
-	if( maxcols > ARRAYLENGTH(fields)-1 )
-	{
-		ShowError("sv_readdb: Insufficient column storage in parser for file \"%s\" (want %d, have only %d). Increase the capacity in the source code please.\n", path, maxcols, ARRAYLENGTH(fields)-1);
-		return false;
-	}
 
 	// open file
 	fp = fopen(path, "r");
@@ -980,18 +979,25 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 		return false;
 	}
 
+	// allocate enough memory for the maximum requested amount of columns plus the reserved one
+	fields_length = maxcols+1;
+	fields = aMalloc(fields_length*sizeof(char*));
+
 	// process rows one by one
 	while( fgets(line, sizeof(line), fp) )
 	{
 		lines++;
-		if( line[0] == '/' && line[1] == '/' )
-			continue;
-		//TODO: strip trailing // comment
+
+		if( ( match = strstr(line, "//") ) != NULL )
+		{// strip comments
+			match[0] = 0;
+		}
+
 		//TODO: strip trailing whitespace
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;
 
-		columns = sv_split(line, strlen(line), 0, delim, fields, ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		columns = sv_split(line, strlen(line), 0, delim, fields, fields_length, (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
 		if( columns < mincols )
 		{
@@ -1020,6 +1026,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 		entries++;
 	}
 
+	aFree(fields);
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, path);
 

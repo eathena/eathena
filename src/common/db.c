@@ -698,7 +698,7 @@ static void db_free_add(DBMap_impl* db, DBNode node, DBNode *root)
 				db->alloc_file, db->alloc_line);
 		exit(EXIT_FAILURE);
 	}
-	if (!(db->options&DB_OPT_DUP_KEY)) { // Make shure we have a key until the node is freed
+	if (!(db->options&DB_OPT_DUP_KEY)) { // Make sure we have a key until the node is freed
 		old_key = node->key;
 		node->key = db_dup_key(db, node->key);
 		db->release(old_key, node->data, DB_RELEASE_KEY);
@@ -2029,13 +2029,13 @@ static int db_obj_vclear(DBMap* self, DBApply func, va_list args)
 				node->deleted = 1;
 			}
 			DB_COUNTSTAT(db_node_free);
-			ers_free(db->nodes, node);
 			if (parent) {
 				if (parent->left == node)
 					parent->left = NULL;
 				else
 					parent->right = NULL;
 			}
+			ers_free(db->nodes, node);
 			node = parent;
 		}
 		db->ht[i] = NULL;
@@ -2282,10 +2282,10 @@ DBComparator db_default_cmp(DBType type)
 {
 	DB_COUNTSTAT(db_default_cmp);
 	switch (type) {
-		case DB_INT:     return db_int_cmp;
-		case DB_UINT:    return db_uint_cmp;
-		case DB_STRING:  return db_string_cmp;
-		case DB_ISTRING: return db_istring_cmp;
+		case DB_INT:     return &db_int_cmp;
+		case DB_UINT:    return &db_uint_cmp;
+		case DB_STRING:  return &db_string_cmp;
+		case DB_ISTRING: return &db_istring_cmp;
 		default:
 			ShowError("db_default_cmp: Unknown database type %u\n", type);
 			return NULL;
@@ -2306,10 +2306,10 @@ DBHasher db_default_hash(DBType type)
 {
 	DB_COUNTSTAT(db_default_hash);
 	switch (type) {
-		case DB_INT:     return db_int_hash;
-		case DB_UINT:    return db_uint_hash;
-		case DB_STRING:  return db_string_hash;
-		case DB_ISTRING: return db_istring_hash;
+		case DB_INT:     return &db_int_hash;
+		case DB_UINT:    return &db_uint_hash;
+		case DB_STRING:  return &db_string_hash;
+		case DB_ISTRING: return &db_istring_hash;
 		default:
 			ShowError("db_default_hash: Unknown database type %u\n", type);
 			return NULL;
@@ -2337,12 +2337,12 @@ DBReleaser db_default_release(DBType type, DBOptions options)
 	options = db_fix_options(type, options);
 	if (options&DB_OPT_RELEASE_DATA) { // Release data, what about the key?
 		if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY))
-			return db_release_both; // Release both key and data
-		return db_release_data; // Only release data
+			return &db_release_both; // Release both key and data
+		return &db_release_data; // Only release data
 	}
 	if (options&(DB_OPT_DUP_KEY|DB_OPT_RELEASE_KEY))
-		return db_release_key; // Only release key
-	return db_release_nothing; // Release nothing
+		return &db_release_key; // Only release key
+	return &db_release_nothing; // Release nothing
 }
 
 /**
@@ -2360,10 +2360,10 @@ DBReleaser db_custom_release(DBRelease which)
 {
 	DB_COUNTSTAT(db_custom_release);
 	switch (which) {
-		case DB_RELEASE_NOTHING: return db_release_nothing;
-		case DB_RELEASE_KEY:     return db_release_key;
-		case DB_RELEASE_DATA:    return db_release_data;
-		case DB_RELEASE_BOTH:    return db_release_both;
+		case DB_RELEASE_NOTHING: return &db_release_nothing;
+		case DB_RELEASE_KEY:     return &db_release_key;
+		case DB_RELEASE_DATA:    return &db_release_data;
+		case DB_RELEASE_BOTH:    return &db_release_both;
 		default:
 			ShowError("db_custom_release: Unknown release options %u\n", which);
 			return NULL;

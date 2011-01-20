@@ -106,6 +106,7 @@ ra_temsky	mapflag	nomemo
 ve_in	mapflag	nomemo
 ve_in02	mapflag	nomemo
 thor_camp	mapflag	nomemo
+moc_para01	mapflag	nomemo
 
 // Fields  ===================
 alb2trea	mapflag	nomemo
@@ -194,6 +195,7 @@ ve_fild02	mapflag	nomemo
 ve_fild03	mapflag	nomemo
 ve_fild04	mapflag	nomemo
 ve_fild06	mapflag	nomemo
+cave	mapflag	nomemo
 
 // Job Quests ================
 // First Job Class
@@ -630,6 +632,7 @@ que_qaru05	mapflag	nomemo
 2@cata	mapflag	nomemo
 
 //Endless Tower ==================
+e_tower	mapflag	nomemo
 1@tower	mapflag	nomemo
 2@tower	mapflag	nomemo
 3@tower	mapflag	nomemo

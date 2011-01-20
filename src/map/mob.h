@@ -12,7 +12,6 @@
 
 
 #define MAX_RANDOMMONSTER 4
-#define MAX_MOB_RACE_DB 6
 
 // Change this to increase the table size in your mob_db to accomodate a larger mob database.
 // Be sure to note that IDs 4001 to 4048 are reserved for advanced/baby/expanded classes.
@@ -54,6 +53,13 @@ enum MobSkillState {
 	MSS_RUSH,    //Mob following a player after being attacked.
 	MSS_FOLLOW,  //Mob following a player without being attacked.
 	MSS_ANYTARGET,
+};
+
+enum MobDamageLogFlag
+{
+	MDLF_NORMAL = 0,
+	MDLF_HOMUN,
+	MDLF_PET,
 };
 
 struct mob_skill {

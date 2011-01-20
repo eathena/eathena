@@ -41,7 +41,7 @@ static int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 	gs->storage_status = 0;
 	gs->storage_amount = 0;
 
-	if( storages->load(storages, gs->storage_, ARRAYLENGTH(gs->storage_), STORAGE_GUILD, guild_id) )
+	if( storages->load(storages, gs->items, ARRAYLENGTH(gs->items), STORAGE_GUILD, guild_id) )
 	{
 		WFIFOW(fd,2) = 12 + sizeof(struct guild_storage);
 		WFIFOL(fd,4) = account_id;
@@ -95,7 +95,7 @@ static void mapif_parse_SaveGuildStorage(int fd)
 		return;
 	}
 
-	if( storages->save(storages, gs->storage_, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
+	if( storages->save(storages, gs->items, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
 		mapif_save_guild_storage_ack(fd,account_id,guild_id,0);
 	else
 		mapif_save_guild_storage_ack(fd,account_id,guild_id,1);
@@ -150,12 +150,12 @@ int inter_guild_storage_delete(int guild_id)
 	struct guild_storage gs;
 	int i;
 
-	if( !storages->load(storages, gs.storage_, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
+	if( !storages->load(storages, gs.items, MAX_GUILD_STORAGE, STORAGE_GUILD, guild_id) )
 		return false;
 
 	for( i = 0; i < MAX_GUILD_STORAGE; i++ )
-		if( gs.storage_[i].card[0] == (short)0xff00 )
-			inter_pet_delete( MakeDWord(gs.storage_[i].card[1],gs.storage_[i].card[2]) );
+		if( gs.items[i].card[0] == (short)0xff00 )
+			inter_pet_delete( MakeDWord(gs.items[i].card[1],gs.items[i].card[2]) );
 
 	storages->remove(storages, STORAGE_GUILD, guild_id);
 

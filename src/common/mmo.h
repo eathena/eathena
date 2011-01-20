@@ -41,7 +41,7 @@
 
 #ifndef PACKETVER
 	#define PACKETVER	20081126
-	//#define PACKETVER 20100629
+	//#define PACKETVER 20100707
 #endif
 // backward compatible PACKETVER 8 and 9
 #if PACKETVER == 8
@@ -105,15 +105,8 @@
 #define MAX_GUILDCASTLE 34	// Updated to include new entries for WoE:SE. [L0ne_W0lf]
 #define MAX_GUILDLEVEL 50
 #define MAX_GUARDIANS 8	//Local max per castle. [Skotlex]
-#define MAX_QUEST_DB 1500 //Max quests that the server will load
+#define MAX_QUEST_DB 2000 //Max quests that the server will load
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
-
-#define MIN_HAIR_STYLE battle_config.min_hair_style
-#define MAX_HAIR_STYLE battle_config.max_hair_style
-#define MIN_HAIR_COLOR battle_config.min_hair_color
-#define MAX_HAIR_COLOR battle_config.max_hair_color
-#define MIN_CLOTH_COLOR battle_config.min_cloth_color
-#define MAX_CLOTH_COLOR battle_config.max_cloth_color
 
 // for produce
 #define MIN_ATTRIBUTE 0
@@ -146,6 +139,10 @@
 #define START_ACCOUNT_NUM 2000000
 #define END_ACCOUNT_NUM 100000000
 
+//Guilds
+#define MAX_GUILDMES1 60
+#define MAX_GUILDMES2 120
+
 //Base Homun skill.
 #define HM_SKILLBASE 8001
 #define MAX_HOMUNSKILL 16
@@ -161,7 +158,7 @@
 //Mercenary System
 #define MC_SKILLBASE 8201
 #define MAX_MERCSKILL 40
-#define MAX_MERCENARY_CLASS 38
+#define MAX_MERCENARY_CLASS 40
 
 enum item_types {
 	IT_HEALING = 0,
@@ -176,6 +173,7 @@ enum item_types {
 	IT_UNKNOWN2,//9
 	IT_AMMO,    //10
 	IT_DELAYCONSUME,//11
+	IT_CASH = 18,
 	IT_MAX 
 };
 
@@ -233,7 +231,7 @@ struct guild_storage {
 	int guild_id;
 	short storage_status;
 	short storage_amount;
-	struct item storage_[MAX_GUILD_STORAGE];
+	struct item items[MAX_GUILD_STORAGE];
 };
 
 struct s_pet {
@@ -459,12 +457,13 @@ struct guild_skill {
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
-	unsigned int exp,next_exp;
+	uint64 exp;
+	unsigned int next_exp;
 	int skill_point;
 	char name[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];
-	char mes1[60],mes2[120];
+	char mes1[MAX_GUILDMES1],mes2[MAX_GUILDMES2];
 	int emblem_len,emblem_id;
 	char emblem_data[2048];
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];

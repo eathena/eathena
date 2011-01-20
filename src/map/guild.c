@@ -61,13 +61,7 @@ struct{
 	}need[6];
 } guild_skill_tree[MAX_GUILDSKILL];
 
-// timer for auto saving guild data during WoE
-#define GUILD_SAVE_INTERVAL 300000
-int guild_save_timer = INVALID_TIMER;
-int guild_save_timer2 = INVALID_TIMER;
-
 int guild_payexp_timer(int tid, unsigned int tick, int id, intptr data);
-int guild_save_sub(int tid, unsigned int tick, int id, intptr data);
 static int guild_send_xy_timer(int tid, unsigned int tick, int id, intptr data);
 
 /*==========================================
@@ -109,46 +103,34 @@ int guild_checkskill(struct guild *g,int id)
 /*==========================================
  * guild_skill_tree.txt reading - from jA [Komurka]
  *------------------------------------------*/
-int guild_read_guildskill_tree_db(void)
-{
-	int i,k,id=0,ln=0;
-	FILE *fp;
-	char line[1024],*p;
+static bool guild_read_guildskill_tree_db(char* split[], int columns, int current)
+{// <skill id>,<max lv>,<req id1>,<req lv1>,<req id2>,<req lv2>,<req id3>,<req lv3>,<req id4>,<req lv4>,<req id5>,<req lv5>
+	int k, id, skillid;
 
-	memset(guild_skill_tree,0,sizeof(guild_skill_tree));
-	sprintf(line, "%s/guild_skill_tree.txt", db_path);
-	if( (fp=fopen(line,"r"))==NULL){
-		ShowError("can't read %s\n", line);
-		return -1;
-	}
-	while(fgets(line, sizeof(line), fp))
+	skillid = atoi(split[0]);
+	id = skillid - GD_SKILLBASE;
+
+	if( id < 0 || id >= MAX_GUILDSKILL )
 	{
-		char *split[50];
-		if(line[0]=='/' && line[1]=='/')
-			continue;
-		for(i=0,p=line;i<12 && p;i++){
-			split[i]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
-		}
-		if(i<12)
-			continue;
-		id = atoi(split[0]) - GD_SKILLBASE;
-		if(id<0 || id>=MAX_GUILDSKILL)
-			continue;
-		guild_skill_tree[id].id=atoi(split[0]);
-		guild_skill_tree[id].max=atoi(split[1]);
-		if (guild_skill_tree[id].id==GD_GLORYGUILD && battle_config.require_glory_guild && guild_skill_tree[id].max==0) guild_skill_tree[id].max=1;
-		for(k=0;k<5;k++){
-			guild_skill_tree[id].need[k].id=atoi(split[k*2+2]);
-			guild_skill_tree[id].need[k].lv=atoi(split[k*2+3]);
-		}
-	ln++;
+		ShowWarning("guild_read_guildskill_tree_db: Invalid skill id %d.\n", skillid);
+		return false;
 	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"guild_skill_tree.txt");
 
-	return 0;
+	guild_skill_tree[id].id = skillid;
+	guild_skill_tree[id].max = atoi(split[1]);
+
+	if( guild_skill_tree[id].id == GD_GLORYGUILD && battle_config.require_glory_guild && guild_skill_tree[id].max == 0 )
+	{// enable guild's glory when required for emblems
+		guild_skill_tree[id].max = 1;
+	}
+
+	for( k = 0; k < 5; k++ )
+	{
+		guild_skill_tree[id].need[k].id = atoi(split[k*2+2]);
+		guild_skill_tree[id].need[k].lv = atoi(split[k*2+3]);
+	}
+
+	return true;
 }
 
 /*==========================================
@@ -174,51 +156,21 @@ int guild_check_skill_require(struct guild *g,int id)
 	return 1;
 }
 
-static int guild_read_castledb(void)
-{
-	FILE *fp;
-	char line[1024];
-	int j,ln=0;
-	char *str[32],*p;
+static bool guild_read_castledb(char* str[], int columns, int current)
+{// <castle id>,<map name>,<castle name>,<castle event>[,<reserved/unused switch flag>]
 	struct guild_castle *gc;
 
-	sprintf(line, "%s/castle_db.txt", db_path);
-	if( (fp=fopen(line,"r"))==NULL){
-		ShowError("can't read %s\n", line);
-		return -1;
-	}
+	CREATE(gc, struct guild_castle, 1);
+	gc->castle_id = atoi(str[0]);
+	gc->mapindex = mapindex_name2id(str[1]);
+	safestrncpy(gc->castle_name, str[2], sizeof(gc->castle_name));
+	safestrncpy(gc->castle_event, str[3], sizeof(gc->castle_event));
 
-	while(fgets(line, sizeof(line), fp))
-	{
-		if(line[0]=='/' && line[1]=='/')
-			continue;
-		memset(str,0,sizeof(str));
-		for(j=0,p=line;j<6 && p;j++){
-			str[j]=p;
-			p=strchr(p,',');
-			if(p) *p++=0;
-		}
-		if (j < 4) //Insufficient data for castle. [Skotlex]
-		{
-			ShowError("castle_db.txt: invalid line '%s'\n", line);
-			continue;
-		}
+	idb_put(castle_db,gc->castle_id,gc);
 
-		gc=(struct guild_castle *)aCalloc(1,sizeof(struct guild_castle));
-		gc->castle_id=atoi(str[0]);
-		gc->mapindex = mapindex_name2id(str[1]);
-		safestrncpy(gc->castle_name,str[2],NAME_LENGTH);
-		safestrncpy(gc->castle_event,str[3],NAME_LENGTH);
+	//intif_guild_castle_info(gc->castle_id);
 
-		idb_put(castle_db,gc->castle_id,gc);
-
-		//intif_guild_castle_info(gc->castle_id);
-
-		ln++;
-	}
-	fclose(fp);
-	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n",ln,"castle_db.txt");
-	return 0;
+	return true;
 }
 
 /// lookup: guild id -> guild*
@@ -368,7 +320,7 @@ int guild_send_xy_timer_sub(DBKey key,void *data,va_list ap)
 	struct guild *g=(struct guild *)data;
 	int i;
 
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	for(i=0;i<g->max_member;i++){
 		//struct map_session_data* sd = g->member[i].sd;
@@ -402,7 +354,7 @@ int guild_create(struct map_session_data *sd, const char *name)
 {
 	char tname[NAME_LENGTH];
 	struct guild_member m;
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	safestrncpy(tname, name, NAME_LENGTH);
 	if( strlen(trim(tname)) == 0 )
@@ -480,7 +432,7 @@ int guild_check_member(struct guild *g)
 	struct map_session_data *sd;
 	struct s_mapiterator* iter;
 
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	iter = mapit_getallusers();
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
@@ -526,7 +478,7 @@ int guild_recv_info(struct guild *sg)
 	struct map_session_data *sd;
 	bool guild_new = false;
 
-	nullpo_retr(0, sg);
+	nullpo_ret(sg);
 
 	if((g = (struct guild*)idb_get(guild_db,sg->guild_id))==NULL)
 	{
@@ -616,7 +568,7 @@ int guild_invite(struct map_session_data *sd,struct map_session_data *tsd)
 	struct guild *g;
 	int i;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	g=guild_search(sd->status.guild_id);
 
@@ -666,7 +618,7 @@ int guild_reply_invite(struct map_session_data* sd, int guild_id, int flag)
 {
 	struct map_session_data* tsd;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	// subsequent requests may override the value
 	if( sd->guild_invite != guild_id )
@@ -794,7 +746,7 @@ int guild_leave(struct map_session_data* sd, int guild_id, int account_id, int c
 {
 	struct guild *g;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	g = guild_search(sd->status.guild_id);
 
@@ -817,7 +769,7 @@ int guild_expulsion(struct map_session_data* sd, int guild_id, int account_id, i
 	struct guild *g;
 	int i,ps;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	g = guild_search(sd->status.guild_id);
 
@@ -895,7 +847,7 @@ int guild_send_memberinfoshort(struct map_session_data *sd,int online)
 { // cleaned up [LuzZza]
 	struct guild *g;
 	
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 		
 	if(sd->status.guild_id <= 0)
 		return 0;
@@ -989,7 +941,7 @@ int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int onlin
 // ƒMƒ‹ƒh‰ï˜b‘—M
 int guild_send_message(struct map_session_data *sd,const char *mes,int len)
 {
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if(sd->status.guild_id==0)
 		return 0;
@@ -1012,14 +964,14 @@ int guild_recv_message(int guild_id,int account_id,const char *mes,int len)
 	return 0;
 }
 // ƒMƒ‹ƒhƒƒ“ƒo‚Ì–ðE•ÏX
-int guild_change_memberposition(int guild_id,int account_id,int char_id,int idx)
+int guild_change_memberposition(int guild_id,int account_id,int char_id,short idx)
 {
 	return intif_guild_change_memberinfo(guild_id,account_id,char_id,GMI_POSITION,&idx,sizeof(idx));
 }
 // ƒMƒ‹ƒhƒƒ“ƒo‚Ì–ðE•ÏX’Ê’m
 int guild_memberposition_changed(struct guild *g,int idx,int pos)
 {
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	g->member[idx].position=pos;
 	clif_guild_memberpositionchanged(g,idx);
@@ -1062,7 +1014,7 @@ int guild_position_changed(int guild_id,int idx,struct guild_position *p)
 // ƒMƒ‹ƒh’m•ÏX
 int guild_change_notice(struct map_session_data *sd,int guild_id,const char *mes1,const char *mes2)
 {
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if(guild_id!=sd->status.guild_id)
 		return 0;
@@ -1077,8 +1029,8 @@ int guild_notice_changed(int guild_id,const char *mes1,const char *mes2)
 	if(g==NULL)
 		return 0;
 
-	memcpy(g->mes1,mes1,60);
-	memcpy(g->mes2,mes2,120);
+	memcpy(g->mes1,mes1,MAX_GUILDMES1);
+	memcpy(g->mes2,mes2,MAX_GUILDMES2);
 
 	for(i=0;i<g->max_member;i++){
 		if((sd=g->member[i].sd)!=NULL)
@@ -1090,7 +1042,7 @@ int guild_notice_changed(int guild_id,const char *mes1,const char *mes2)
 int guild_change_emblem(struct map_session_data *sd,int len,const char *data)
 {
 	struct guild *g;
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if (battle_config.require_glory_guild &&
 		!((g = guild_search(sd->status.guild_id)) && guild_checkskill(g, GD_GLORYGUILD)>0)) {
@@ -1184,7 +1136,7 @@ unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 	struct guild_expcache *c;
 	int per;
 	
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if (!exp) return 0;
 	
@@ -1212,11 +1164,10 @@ unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 // Celest
 int guild_getexp(struct map_session_data *sd,int exp)
 {
-	struct guild *g;
 	struct guild_expcache *c;
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
-	if (sd->status.guild_id == 0 || (g = guild_search(sd->status.guild_id)) == NULL)
+	if (sd->status.guild_id == 0 || guild_search(sd->status.guild_id) == NULL)
 		return 0;
 
 	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, i2key(sd->status.char_id), create_expcache, sd);
@@ -1234,7 +1185,7 @@ int guild_skillup(TBL_PC* sd, int skill_num)
 	int idx = skill_num - GD_SKILLBASE;
 	int max = guild_skill_get_max(skill_num);
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if( idx < 0 || idx >= MAX_GUILDSKILL || // not a guild skill
 	    sd->status.guild_id == 0 || (g=guild_search(sd->status.guild_id)) == NULL || // no guild
@@ -1270,7 +1221,7 @@ int guild_get_alliance_count(struct guild *g,int flag)
 {
 	int i,c;
 
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	for(i=c=0;i<MAX_GUILDALLIANCE;i++){
 		if(	g->alliance[i].guild_id>0 &&
@@ -1316,7 +1267,7 @@ int guild_reqalliance(struct map_session_data *sd,struct map_session_data *tsd)
 	}	// end addition [Valaris]
 
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if(tsd==NULL || tsd->status.guild_id<=0)
 		return 0;
@@ -1364,7 +1315,7 @@ int guild_reply_reqalliance(struct map_session_data *sd,int account_id,int flag)
 {
 	struct map_session_data *tsd;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 	tsd= map_id2sd( account_id );
 	if (!tsd) { //Character left? Cancel alliance.
 		clif_guild_allianceack(sd,3);
@@ -1421,7 +1372,7 @@ int guild_reply_reqalliance(struct map_session_data *sd,int account_id,int flag)
 // ƒMƒ‹ƒhŠÖŒW‰ðÁ
 int guild_delalliance(struct map_session_data *sd,int guild_id,int flag)
 {
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if(agit_flag || agit2_flag)	{	// Disable alliance breaking during woe [Valaris]
 		clif_displaymessage(sd->fd,"Alliances cannot be broken during Guild Wars!");
@@ -1438,7 +1389,7 @@ int guild_opposition(struct map_session_data *sd,struct map_session_data *tsd)
 	struct guild *g;
 	int i;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	g=guild_search(sd->status.guild_id);
 	if(g==NULL || tsd==NULL)
@@ -1558,7 +1509,7 @@ int guild_broken_sub(DBKey key,void *data,va_list ap)
 	int i,j;
 	struct map_session_data *sd=NULL;
 
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	for(i=0;i<MAX_GUILDALLIANCE;i++){	// ŠÖŒW‚ð”jŠü
 		if(g->alliance[i].guild_id==guild_id){
@@ -1578,7 +1529,7 @@ int castle_guild_broken_sub(DBKey key,void *data,va_list ap)
 	struct guild_castle *gc=(struct guild_castle *)data;
 	int guild_id=va_arg(ap,int);
 
-	nullpo_retr(0, gc);
+	nullpo_ret(gc);
 
 	if (gc->guild_id == guild_id)
 	{	//Save the new 'owner', this should invoke guardian clean up and other such things.
@@ -1632,14 +1583,14 @@ int guild_broken(int guild_id,int flag)
 int guild_gm_change(int guild_id, struct map_session_data *sd)
 {
 	struct guild *g;
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if (sd->status.guild_id != guild_id)
 		return 0;
 	
 	g=guild_search(guild_id);
 
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	if( sd->status.char_id == g->member[0].char_id ) //Nothing to change.
 		return 0;
@@ -1697,7 +1648,7 @@ int guild_break(struct map_session_data *sd,char *name)
 	struct guild *g;
 	int i;
 
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if( (g=guild_search(sd->status.guild_id))==NULL )
 		return 0;
@@ -1858,7 +1809,7 @@ int guild_castlealldataload(int len,struct guild_castle *gc)
 	int n = (len-4) / sizeof(struct guild_castle);
 	int ev;
 
-	nullpo_retr(0, gc);
+	nullpo_ret(gc);
 
 	//Last owned castle in the list invokes ::OnAgitinit
 	for( i = n-1; i >= 0 && !(gc[i].guild_id); --i );
@@ -1898,8 +1849,6 @@ int guild_agit_start(void)
 {	// Run All NPC_Event[OnAgitStart]
 	int c = npc_event_doall("OnAgitStart");
 	ShowStatus("NPC_Event:[OnAgitStart] Run (%d) Events by @AgitStart.\n",c);
-	// Start auto saving
-	guild_save_timer = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0, GUILD_SAVE_INTERVAL);
 	return 0;
 }
 
@@ -1907,8 +1856,6 @@ int guild_agit_end(void)
 {	// Run All NPC_Event[OnAgitEnd]
 	int c = npc_event_doall("OnAgitEnd");
 	ShowStatus("NPC_Event:[OnAgitEnd] Run (%d) Events by @AgitEnd.\n",c);
-	// Stop auto saving
-	delete_timer (guild_save_timer, guild_save_sub);
 	return 0;
 }
 
@@ -1916,8 +1863,6 @@ int guild_agit2_start(void)
 {	// Run All NPC_Event[OnAgitStart2]
 	int c = npc_event_doall("OnAgitStart2");
 	ShowStatus("NPC_Event:[OnAgitStart2] Run (%d) Events by @AgitStart2.\n",c);
-	// Start auto saving
-	guild_save_timer2 = add_timer_interval (gettick() + GUILD_SAVE_INTERVAL, guild_save_sub, 0, 0, GUILD_SAVE_INTERVAL);
 	return 0;
 }
 
@@ -1925,27 +1870,6 @@ int guild_agit2_end(void)
 {	// Run All NPC_Event[OnAgitEnd2]
 	int c = npc_event_doall("OnAgitEnd2");
 	ShowStatus("NPC_Event:[OnAgitEnd2] Run (%d) Events by @AgitEnd2.\n",c);
-	// Stop auto saving
-	delete_timer (guild_save_timer2, guild_save_sub);
-	return 0;
-}
-
-int guild_save_sub(int tid, unsigned int tick, int id, intptr data)
-{
-	static int Gid[MAX_GUILDCASTLE]; // previous owning guild
-	struct guild_castle *gc;
-	int i;
-
-	for(i = 0; i < MAX_GUILDCASTLE; i++) {	// [Yor]
-		gc = guild_castle_search(i);
-		if (!gc) continue;
-		if (gc->guild_id != Gid[i]) {
-			// Re-save guild id if its owner guild has changed
-			guild_castledatasave(gc->castle_id, 1, gc->guild_id);
-			Gid[i] = gc->guild_id;
-		}
-	}
-
 	return 0;
 }
 
@@ -1969,7 +1893,7 @@ bool guild_isallied(int guild_id, int guild_id2)
 {
 	int i;
 	struct guild* g = guild_search(guild_id);
-	nullpo_retr(0, g);
+	nullpo_ret(g);
 
 	ARR_FIND( 0, MAX_GUILDALLIANCE, i, g->alliance[i].guild_id == guild_id2 );
 	return( i < MAX_GUILDALLIANCE && g->alliance[i].opposition == 0 );
@@ -2005,12 +1929,12 @@ void do_init_guild(void)
 	expcache_ers = ers_new(sizeof(struct guild_expcache)); 
 	guild_castleinfoevent_db=idb_alloc(DB_OPT_BASE);
 
-	guild_read_castledb();
+	sv_readdb(db_path, "castle_db.txt", ',', 4, 5, -1, &guild_read_castledb);
 
-	guild_read_guildskill_tree_db(); //guild skill tree [Komurka]
+	memset(guild_skill_tree,0,sizeof(guild_skill_tree));
+	sv_readdb(db_path, "guild_skill_tree.txt", ',', 12, 12, -1, &guild_read_guildskill_tree_db); //guild skill tree [Komurka]
 
 	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");
-	add_timer_func_list(guild_save_sub, "guild_save_sub");
 	add_timer_func_list(guild_send_xy_timer, "guild_send_xy_timer");
 	add_timer_interval(gettick()+GUILD_PAYEXP_INVERVAL,guild_payexp_timer,0,0,GUILD_PAYEXP_INVERVAL);
 	add_timer_interval(gettick()+GUILD_SEND_XY_INVERVAL,guild_send_xy_timer,0,0,GUILD_SEND_XY_INVERVAL);

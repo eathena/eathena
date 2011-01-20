@@ -489,8 +489,8 @@ static int Sql_P_BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type,
 		buffer_len = sizeof(long);
 		break;
 	case SQLDT_ULONGLONG: bind->is_unsigned = 1;
-	case SQLDT_LONGLONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(long long));
-		buffer_len = sizeof(long long);
+	case SQLDT_LONGLONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(int64));
+		buffer_len = sizeof(int64);
 		break;
 	// floating point
 	case SQLDT_FLOAT: bind->buffer_type = MYSQL_TYPE_FLOAT;
@@ -920,7 +920,7 @@ void SqlStmt_ShowDebug_(SqlStmt* self, const char* debug_file, const unsigned lo
 {
 	if( self == NULL )
 		ShowDebug("at %s:%lu -  self is NULL\n", debug_file, debug_line);
-	if( StringBuf_Length(&self->buf) > 0 )
+	else if( StringBuf_Length(&self->buf) > 0 )
 		ShowDebug("at %s:%lu - %s\n", debug_file, debug_line, StringBuf_Value(&self->buf));
 	else
 		ShowDebug("at %s:%lu\n", debug_file, debug_line);

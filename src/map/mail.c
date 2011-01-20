@@ -27,7 +27,7 @@ void mail_clear(struct map_session_data *sd)
 
 int mail_removeitem(struct map_session_data *sd, short flag)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
 	if( sd->mail.amount )
 	{
@@ -50,7 +50,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 
 int mail_removezeny(struct map_session_data *sd, short flag)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
 	if (flag && sd->mail.zeny > 0)
 	{  //Zeny send
@@ -158,7 +158,7 @@ void mail_getattachment(struct map_session_data* sd, int zeny, struct item* item
 
 int mail_openmail(struct map_session_data *sd)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
 	if( sd->state.storage_flag || sd->vender_id || sd->state.trading )
 		return 0;
@@ -173,12 +173,15 @@ void mail_deliveryfail(struct map_session_data *sd, struct mail_message *msg)
 	nullpo_retv(sd);
 	nullpo_retv(msg);
 
-	// Item recieve (due to failure)
-	if(log_config.enable_logs&0x2000)
-		log_pick_pc(sd, "E", msg->item.nameid, msg->item.amount, &msg->item);
+	if( msg->item.amount > 0 )
+	{
+		// Item recieve (due to failure)
+		if(log_config.enable_logs&0x2000)
+			log_pick_pc(sd, "E", msg->item.nameid, msg->item.amount, &msg->item);
 
-	pc_additem(sd, &msg->item, msg->item.amount);
-	
+		pc_additem(sd, &msg->item, msg->item.amount);
+	}
+
 	if( msg->zeny > 0 )
 	{
 		//Zeny recieve (due to failure)

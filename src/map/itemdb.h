@@ -8,6 +8,9 @@
 
 #define MAX_RANDITEM	11000
 
+// The maximum number of item delays
+#define MAX_ITEMDELAYS	10
+
 #define MAX_SEARCH	5  //Designed for search functions, species max number of matches to display.
 
 #define ITEMID_YELLOW_GEMSTONE 715
@@ -17,6 +20,7 @@
 #define ITEMID_TRAP 1065
 #define ITEMID_STONE 7049
 #define ITEMID_SKULL_ 7420
+#define itemdb_iscashfood(id) ( (id) >= 12202 && (id) <= 12207 )
 
 //The only item group required by the code to be known. See const.txt for the full list.
 #define IG_FINDINGORE 6
@@ -41,7 +45,7 @@ struct item_data {
 	int value_buy;
 	int value_sell;
 	int type;
-	int maxchance; //For logs, for external game info, for scripts: Max drop chance of this item (e.g. 0.01% , etc.. if it = 0, then monsters don't drop it) [Lupus]
+	int maxchance; //For logs, for external game info, for scripts: Max drop chance of this item (e.g. 0.01% , etc.. if it = 0, then monsters don't drop it, -1 denotes items sold in shops only) [Lupus]
 	int sex;
 	int equip;
 	int weight;
@@ -53,6 +57,7 @@ struct item_data {
 	int elv;
 	int wlv;
 	int view_id;
+	int delay;
 //Lupus: I rearranged order of these fields due to compatibility with ITEMINFO script command
 //		some script commands should be revised as well...
 	unsigned int class_base[3];	//Specifies if the base can wear this item (split in 3 indexes per type: 1-1, 2-1, 2-2)
@@ -66,8 +71,6 @@ struct item_data {
 	struct script_code *unequip_script;//Script executed once when unequipping.
 	struct {
 		unsigned available : 1;
-		unsigned value_notdc : 1;
-		unsigned value_notoc : 1;
 		short no_equip;
 		unsigned no_refine : 1;	// [celest]
 		unsigned delay_consume : 1;	// Signifies items that are not consumed immediately upon double-click [Skotlex]
@@ -103,14 +106,13 @@ struct item_data* itemdb_exists(int nameid);
 #define itemdb_available(n) (itemdb_exists(n) && itemdb_search(n)->flag.available)
 #define itemdb_viewid(n) (itemdb_search(n)->view_id)
 #define itemdb_autoequip(n) (itemdb_search(n)->flag.autoequip)
+const char* itemdb_typename(int type);
 
 int itemdb_group_bonus(struct map_session_data* sd, int itemid);
 int itemdb_searchrandomid(int flags);
 
 #define itemdb_value_buy(n) itemdb_search(n)->value_buy
 #define itemdb_value_sell(n) itemdb_search(n)->value_sell
-#define itemdb_value_notdc(n) itemdb_search(n)->flag.value_notdc
-#define itemdb_value_notoc(n) itemdb_search(n)->flag.value_notoc
 #define itemdb_canrefine(n) itemdb_search(n)->flag.no_refine
 //Item trade restrictions [Skotlex]
 int itemdb_isdropable_sub(struct item_data *, int, int);

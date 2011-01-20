@@ -163,6 +163,10 @@ int parse_client(int fd)
 
 			if( !chars->load_num(chars, &cd, sd->slots[slot]) )
 			{	//Not found?? May be forged packet.
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x6c;
+				WFIFOB(fd,2) = 0; // rejected from server
+				WFIFOSET(fd,3);
 				break;
 			}
 
@@ -284,8 +288,6 @@ int parse_client(int fd)
 			if( !char_config.char_new
 			|| (slot < 0 || slot >= MAX_CHARS || sd->slots[slot] != 0) // invalid slot or in use
 			|| (char_config.chars_per_account > 0 && sd->chars_num >= char_config.chars_per_account) // maximum number of chars reached
-			|| (hairstyle < 0 || hairstyle >= 24) // hair style
-			|| (haircolor < 0 || haircolor >= 9) // hair color
 			|| (str + agi + vit + int_ + dex + luk != 6*5 ) // stats
 			|| (str < 1 || str > 9 || agi < 1 || agi > 9 || vit < 1 || vit > 9 || int_ < 1 || int_ > 9 || dex < 1 || dex > 9 || luk < 1 || luk > 9) // individual stat values
 			|| (str + int_ != 10 || agi + luk != 10 || vit + dex != 10) ) // pairs
@@ -331,13 +333,13 @@ int parse_client(int fd)
 		{
 			int char_id = RFIFOL(fd,2);
 			safestrncpy(email, RFIFOP(fd,6), sizeof(email));
-			RFIFOSKIP(fd, cmd==0x68?46:56);
+			RFIFOSKIP(fd,( cmd == 0x68 ) ? 46 : 56);
 
 			ShowInfo(CL_RED"Request Char Deletion: "CL_GREEN"%d (%d)"CL_RESET"\n", sd->account_id, char_id);
 /*
 #ifdef TXT_ONLY
 			if (e_mail_check(email) == 0)
-				strncpy(email, "a@a.com", 40); // default e-mail
+				safestrncpy(email, "a@a.com", sizeof(email)); // default e-mail
 
 			// BEGIN HACK: "change email using the char deletion 'confirm email' menu"
 			// if we activated email creation and email is default email
@@ -628,22 +630,6 @@ int parse_client(int fd)
 		}
 		return 0; // processing will continue elsewhere
 
-		// Athena info get
-		case 0x7530:
-			WFIFOHEAD(fd,10);
-			WFIFOW(fd,0) = 0x7531;
-			WFIFOB(fd,2) = ATHENA_MAJOR_VERSION;
-			WFIFOB(fd,3) = ATHENA_MINOR_VERSION;
-			WFIFOB(fd,4) = ATHENA_REVISION;
-			WFIFOB(fd,5) = ATHENA_RELEASE_FLAG;
-			WFIFOB(fd,6) = ATHENA_OFFICIAL_FLAG;
-			WFIFOB(fd,7) = ATHENA_SERVER_INTER | ATHENA_SERVER_CHAR;
-			WFIFOW(fd,8) = ATHENA_MOD_VERSION;
-			WFIFOSET(fd,10);
-
-			RFIFOSKIP(fd,2);
-		break;
-
 		// unknown packet received
 		default:
 			ShowError("parse_client: Received unknown packet "CL_WHITE"0x%x"CL_RESET" from ip '"CL_WHITE"%s"CL_RESET"'! Disconnecting!\n", RFIFOW(fd,0), ip2str(ipl, NULL));
@@ -782,9 +768,9 @@ int mmo_char_tobuf(uint8* buffer, struct mmo_charstatus* p)
 	WBUFW(buf,106) = ( p->rename > 0 ) ? 0 : 1;
 	offset += 2;
 #endif
-#if PACKETVER >= 20100721
+#if (PACKETVER >= 20100720 && PACKETVER <= 20100727) || PACKETVER >= 20100803
 	mapindex_getmapname_ext(mapindex_id2name(p->last_point.map), (char*)WBUFP(buf,108));
-	offset += 16;
+	offset += MAP_NAME_LENGTH_EXT;
 #endif
 
 	return 106+offset;

@@ -64,7 +64,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 	Sql_GetData(sql_handle, 0, &data, NULL); safestrncpy(g->name, data, sizeof(g->name));
 	Sql_GetData(sql_handle, 1, &data, NULL); g->guild_lv = atoi(data);
 	Sql_GetData(sql_handle, 2, &data, NULL); g->max_member = atoi(data);
-	Sql_GetData(sql_handle, 3, &data, NULL); g->exp = (uint64)strtoull(data, NULL, 10);
+	Sql_GetData(sql_handle, 3, &data, NULL); g->exp = strtoull(data, NULL, 10);
 	Sql_GetData(sql_handle, 4, &data, NULL); g->skill_point = atoi(data);
 	Sql_GetData(sql_handle, 5, &data, NULL); safestrncpy(g->mes1, data, sizeof(g->mes1));
 	Sql_GetData(sql_handle, 6, &data, NULL); safestrncpy(g->mes2, data, sizeof(g->mes2));
@@ -101,7 +101,7 @@ static bool mmo_guild_fromsql(GuildDB_SQL* db, struct guild* g, int guild_id)
 		Sql_GetData(sql_handle,  4, &data, NULL); m->gender = atoi(data);
 		Sql_GetData(sql_handle,  5, &data, NULL); m->class_ = atoi(data);
 		Sql_GetData(sql_handle,  6, &data, NULL); m->lv = atoi(data);
-		Sql_GetData(sql_handle,  7, &data, NULL); m->exp = (unsigned int)strtoul(data, NULL, 10);
+		Sql_GetData(sql_handle,  7, &data, NULL); m->exp = strtoull(data, NULL, 10);
 		Sql_GetData(sql_handle,  8, &data, NULL); m->exp_payper = (unsigned int)atoi(data);
 		Sql_GetData(sql_handle,  9, &data, NULL); m->online = atoi(data);
 		Sql_GetData(sql_handle, 10, &data, NULL); m->position = atoi(data);
@@ -269,7 +269,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 		}
 		if (flag & GS_LEVEL)
 		{// GS_LEVEL `guild_lv`,`max_member`,`exp`,`skill_point`
-			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->max_member);
+			StringBuf_Printf(&buf, ", `guild_lv`=%d, `skill_point`=%d, `exp`=%"PRIu64", `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->max_member);
 		}
 
 		StringBuf_Printf(&buf, " WHERE `guild_id`=%d", g->guild_id);
@@ -306,7 +306,7 @@ static bool mmo_guild_tosql(GuildDB_SQL* db, struct guild* g, enum guild_save_fl
 				char esc_name[sizeof(m->name)*2+1];
 				Sql_EscapeStringLen(sql_handle, esc_name, m->name, strnlen(m->name, NAME_LENGTH));
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
-					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%u','%d','%d','%d','%s')",
+					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%"PRIu64"','%d','%d','%d','%s')",
 					db->guild_member_db, g->guild_id, m->account_id, m->char_id,
 					m->hair, m->hair_color, m->gender,
 					m->class_, m->lv, m->exp, m->exp_payper, m->online, m->position, esc_name) )

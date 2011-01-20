@@ -62,7 +62,7 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 		char mes2[256]; // only 120 used
 		int len;
 
-		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%llu,%d,%*d\t%[^\t]\t%[^\t]\t%n",
+		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%"SCNu64",%d,%*d\t%[^\t]\t%[^\t]\t%n",
 				   &guildid, name, master, &guildlv, &max_member, &exp, &skpoint, mes1, mes2, &len) < 9 )
 			return false;
 
@@ -87,7 +87,7 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 		int charid;
 		int hair, hair_color, gender;
 		int class_, lv;
-		unsigned int exp;
+		uint64 exp;
 		int exp_payper;
 		int position;
 		char name[256]; // only 24 used
@@ -97,7 +97,7 @@ static bool guild_db_txt_fromstr(const char* str, int* key, void* data, size_t s
 		for( i = 0; i < g->max_member; i++ )
 		{
 			struct guild_member* m = &g->member[i];
-			if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%u,%d,%d\t%[^\t]\t%n",
+			if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%"SCNu64",%d,%d\t%[^\t]\t%n",
 					   &accountid, &charid, &hair, &hair_color, &gender,
 					   &class_, &lv, &exp, &exp_payper, &position,
 					   name, &len) < 11)
@@ -272,14 +272,14 @@ static bool guild_db_txt_tostr(char* str, size_t strsize, int key, const void* d
 	int len;
 
 	// save guild base info
-	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%llu,%d,%d\t%s#\t%s#\t",
+	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%"PRIu64",%d,%d\t%s#\t%s#\t",
 	              g->guild_id, g->name, g->member[0].name, g->guild_lv, g->max_member, g->exp, g->skill_point, 0, g->mes1, g->mes2);
 
 	// save guild member info
 	for( i = 0; i < g->max_member; i++ )
 	{
 		const struct guild_member* m = &g->member[i];
-		len += sprintf(str + len, "%d,%d,%d,%d,%d,%d,%d,%u,%d,%d\t%s\t",
+		len += sprintf(str + len, "%d,%d,%d,%d,%d,%d,%d,%"PRIu64",%d,%d\t%s\t",
 		               m->account_id, m->char_id,
 		               m->hair, m->hair_color, m->gender,
 		               m->class_, m->lv, m->exp, m->exp_payper, m->position,

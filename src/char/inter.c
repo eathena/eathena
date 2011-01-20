@@ -79,7 +79,7 @@ static int inter_config_read(const char* cfgName)
 			continue;
 
 		if(strcmpi(w1, "main_chat_nick")==0)
-			strcpy(main_chat_nick, w2);
+			safestrncpy(main_chat_nick, w2, sizeof(main_chat_nick));
 		else
 		if( strcmpi(w1, "guild_exp_rate") == 0 )
 			guild_exp_rate = atoi(w2);

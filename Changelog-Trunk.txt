@@ -1,8 +1,452 @@
 Date	Added
 
-AS OF SVN REV. 5091, WE ARE NOW USING TRUNK.  ALL UNTESTED BUGFIXES/FEATURES GO INTO TRUNK.
-IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
-
+2011/01/19
+	* Fixed solo dance/star gladiator warm AoE no longer following the owner and cloaking wall rules no longer working (bugreport:4720, since r14671). [Ai4rei]
+2011/01/16
+	* Fixed a map-server crash, when a script attempts to call a local function, which has only a forward declaration. Such functions now count as script parse error (bugreport:4009, since r3422). [Ai4rei]
+	* Fixed definitions of local functions would set a label reference, even when their name was already taken (follow up to r14600, since r3422).
+2011/01/15
+	* Various accumulated insignificant fixes to documentation, examples and comments. [Ai4rei]
+2011/01/14
+	* Added 'birthdate' field to account data. For SQL apply upgrade_svn14672.sql to upgrade table `login`; for TXT no action is necessary, as it upgrades itself. [Ai4rei]
+	- Control panel developers are encouraged to enable players to modify this value, as it is required for new character deletion (2010-08-03aRagexeRE and later, not yet implemented).
+	* Removed unconditional redundant status change checks before status_change_end calls (follow up to r12890). [Ai4rei]
+	* Replaced remaining occurences of '-1' with 'INVALID_TIMER', where appropriate (follow up to r12998). [Ai4rei]
+	* Removed 'gui' plug-in (support plug-in for 3rd party eAthena GUI front-ends) (topic:262934). [Ai4rei]
+2011/01/13
+	* Fixed mapflags 'restricted', 'nocommand', 'bexp' and 'jexp' still not getting completely initialized upon @reloadscript (bugreport:4710, follow up to r14548). [Ai4rei]
+	* Removed ladmin (remote administration tool), all related support code and the checkversion.pl tool with it's support code, which was shared with ladmin (topic:262934, related bugreport:1147, bugreport:1889, r9408 and r9610). [Ai4rei]
+	* Fixed chrif-packet processing considering free/unused packet IDs incorrectly as variable length packets (-1 = variable length, 0 = disabled packet). [Ai4rei]
+	* Added support for creating account through the console-plugin on login-server (replaces ladmin functionality unavailable through atcommands). [Ai4rei]
+	* Reformatting and minor cleanups to console-plugin related code. [Ai4rei]
+2011/01/10
+	* Fixed script command 'cleararray' setting 1 element more, than it is told to (bugreport:2047, since r12253). [Ai4rei]
+	- Fixed 'inaccessible element 127' issue in 'cleararray', 'setarray' (since r10813) and 'copyarray' (since r14608) script commands (bugreport:864, related r12253, follow up to r14608).
+	* Fixed monster level not getting updated in monster name (option 'show_mob_info'), when a monster levels up (option 'mobs_level_up') (follow up to r8644, related r187). [Ai4rei]
+	* Made script command 'charisalpha' always return 1 when 'isaplha' is true, rather than to return the return value of 'isalpha' which is only defined as zero/non-zero and can be different from 1 (bugreport:2024, related r2003). [Ai4rei]
+2011/01/09
+	* Fixed packet_len entry for packet 0x289 (ZC_PC_CASH_POINT_UPDATE) not matching the actual size used in clif_cashshop_ack (bugreport:4701, since r14639, follow up to r12264). [Ai4rei]
+2011/01/08
+	* Fixed script command 'progressbar' resuming fails on second invocation, when there was no script pause between the first and second call (bugreport:4698, since r14024). [Ai4rei]
+	* Fixed kill steal protection result in skill casting (unit_skilluse_id2) not getting evaluated (bugreport:1808, since r12203). [Ai4rei]
+	- Moved kill steal protection in skill casting to be only executed, after the actual target has been determined and validated (since r12203).
+	* Applied fix provided by Valaris to make /pvpinfo actually work. (bugreport:1785, since r1602). [Ai4rei]
+	- Filled-in missing packet fields and documented the packet. Note, that this command does not show anything outside of PvP maps (client-side limitation).
+	* Fixed @homlevel usage message stating, that deleveling is possible, although it is not (bugreport:1485, since r10272). [Ai4rei]
+	- The command now fails, if it is given a zero or negative value.
+2011/01/07
+	* Fixed @alootid using 'autolootitem' (internal name) in it's usage message (bugreport:1445, since r12203). [Ai4rei]
+2011/01/06
+	* Fixed script command 'deletearray' deleting incorrect amount of array elements from arrays with empty elements (bugreport:4628). [Ai4rei]
+2011/01/05
+	* Fixed ends of statement blocks missing script EOL processing, thus causing 'next line' label (-) to misbehave in statement blocks without additional curly braces (bugreport:4417, since r3422). [Ai4rei]
+2011/01/04
+	* Added support for removal of trailing comments to sv_readdb (bugreport:4680). [Ai4rei]
+2011/01/01
+	* Fixed local files could not be aliased with resnametable.txt in grfio (bugreport:2203, since r5152). [Ai4rei]
+	* Cleanups to grfio. [Ai4rei]
+	- Replaced strncpy with safestrncpy (bugreport:3080).
+	- Ensured, that all local paths are normalized and work whether or not the data dir ends with '/'.
+	- Local files are no longer added to the GRF+alias file list (apparently served to cache file size, with no performance gain).
+	- Buffer for files is no longer allocated with 1024 extra bytes, but only 1 for zero-termination of text files.
+	* Updates to map cache generator tool. [Ai4rei]
+	- Removed unmaintained grfio library copy and made the tool use the one in /common instead (related r12726).
+	- Updated makefile to use compile options/libraries determined by configure (bugreport:1109).
+	- Fixed error messages from the tool and grfio library overlapping each other (bugreport:2403).
+2010/12/31
+	* Pending trade requests no longer prevent a character from trading someone else instead (official). [Ai4rei]
+	- This fixes trade window displaying wrong name when attempting to deal multiple characters (bugreport:344).
+2010/12/30
+	* Fixed improper use of itemdb_search. It does not return NULL but a dummy item, if the item id is invalid. [Ai4rei]
+2010/12/29
+	* Made remaining csv databases (guild, castle, homunculus, itemdb, mercenary) use sv_readdb, where applicable (follow up to r14524, r14526 and r14532). [Ai4rei]
+	- Few databases remain unchanged, which have either a custom layout or are otherwise incompatible with sv_readdb.
+	* Collection of random insignificant changes. [Ai4rei]
+	- Added progress indication on map-server shutdown when objects are removed from maps, as it takes significant amount of time to complete.
+	- Moved ers_free in db_obj_vclear, so that the node pointer is not used for comparison after it has been freed.
+	- Some documentation of shop packets.
+	* Fixed 'console' plugin not working on Windows, due to NULL passed to CreateThread instead of required pointer to thread id variable. [Ai4rei]
+	- Fixed 'console' plugin causing delete_timer error when it fails to load, due to uninitialized variable.
+	* Renamed plugin.def to sample.def and added 'sample' plugin exports into it, as it's purpose is nothing than a sample right now.
+	- Also added .def files for 'gui' and 'pid' plugins as MSVC does not export everything automatically and missing event export cause the plugins silently failing.
+	- Added VS6, VS8 and VS9 projects for compiling plug-ins, which can be used on Windows.
+	* The plug-in system will now report, if it cannot import an event function.
+2010/12/28
+	* Fixed char-server making assumptions about RFIFO data length in character deletion packet (since r10909). [Ai4rei]
+	* Fixed login-server discarding RFIFO data, when the length is 1 byte; minimum packet size is 2 bytes (since r5027).
+	- Fixed login-server not skipping packet 0x2728's data on failure (since r12043).
+	* Removed unmaintained and broken 'adduser' tool (topic:262284). [Ai4rei]
+2010/12/27
+	* Fixed skill_can_produce_mix not checking, whether or not the produced goods can actually be stored (bugreport:4674). [Ai4rei]
+2010/12/26
+	* Reverted r14565, as the database version is already properly commented in source and is overwritten upon first sync of account.txt anyway. [Ai4rei]
+	* Cleaned up script command checkweight. [Ai4rei]
+	- Replaced some code parts with calls to pc_checkadditem and pc_inventoryblank (follow up to r13735).
+	- Fixed item id not getting checked for validity properly.
+	* Moved MAX_AMOUNT check in pc_checkadditem to the top of the function, to prevent unnecessary inventory scan before it.
+	* Fixed opening other player's vending terminating currently running NPC conversation. Vending is now unavailable when talking to an NPC (bugreport:2208). [Ai4rei]
+	* Fixed vending not accepting 0 Zeny as sell price. The client asks for confirmation when you attempt to sell items at 0 Zeny (bugreport:2595, since r918 and r11344).
+	* Fixed items, that get dropped at 100% chance, being reported in @iteminfo as 'available in the shops only' (since/replaces r3482). [Ai4rei]
+	* Updated commands @delitem/#delitem. [Ai4rei]
+	- No longer deletes stackable items one by one (bugreport:1914).
+	- Fixed pets not getting deleted when a pet egg was deleted.
+	- Fixed outdated usage message (since r13403).
+2010/12/25
+	* Fixed two-hand weapons not getting recognized as such upon equipping, causing respective one-hand weapon's base ASPD values being used instead (bugreport:4659, related r12599). [Ai4rei]
+	* Updated script commands delitem and delitem2. [Ai4rei]
+	- Items are now deleted only if there is enough of them (as per r14395, related r13368).
+	- Not equipped items are now actually prioritized over equipped ones (related r200).
+	- Fixed item id not getting checked for validity.
+	* Fixed a compile error in txt-converter-char caused by 'save_log' being declared by both SQL and TXT (bugreport:4671, since r14619). [Ai4rei]
+	* Made SQL char-server options 'chars_per_account' and 'char_del_level' work on TXT as well (follow up to r1063 and r8420). [Ai4rei]
+2010/12/24
+	* Added support for new /remove and /recall packets for 2010-08-03aRagexeRE and newer. [Ai4rei]
+	* Synchronized TXT/SQL char-server code a bit. [Ai4rei]
+	* Fixes to char-server. [Ai4rei]
+	- Removed unnecessary #includes from TXT and synchronized them with SQL.
+	- Fixed TXT having start Zeny of 500 instead of 0 by default (follow up to r4409 and r8420).
+	- Fixed TXT using 1024 instead of NAME_LENGTH for 'unknown_char_name' (follow up to r2191).
+	- Fixed SQL potentionally attempting to disconnect a player for account_id == 0 in changesex packet.
+	- Fixed SQL looking for option 'db_path' in 'inter_athena.conf' instead of 'char_athena.conf'.
+	- Fixed char select not sending a reply packet, when selected character was not found.
+	- Made use of safestrncpy instead of strcpy, strncpy and memset for copying strings where appropriate.
+	- Removed unused function 'chardb_final' in TXT (since r4878).
+	- Removed unnecessary WFIFOHEAD in char deletion in SQL (since r11245, related r9307 and r10909).
+2010/12/23
+	* Fixed server processing the sell list (deleting items and giving zeny) for script-controlled shops (OnSellItem), causing the controller script to fail (bugreport:4656, since r6557). [Ai4rei]
+	- This also makes the server first check the sell list and only continue, if all items can be processed, thus no longer causing incomplete deals and the need for client disconnection in such case (since r6557).
+2010/12/22
+	* NPC shop buy list received from the client is now validated for scripted shops (OnBuyItem), before the control is transfered to the script, as well (bugreport:3680, since r5841, related r8525). [Ai4rei]
+	* Resolved random compiler warnings. [Ai4rei]
+	- Silenced pointer size mismatch gcc warning for variables passed to script_setarray_pc (bugreport:4661, since r14613).
+	* Fixed sql mapreg loading code specifying output buffer size for SqlStmt_BindColumn without zero-terminator, leading to truncations of variable names and/or their values when using the maximum length (bugreport:1939, since r11245). [Ai4rei]
+2010/12/21
+	* Added script_setarray_pc for setting temporary character array variables outside of script.c without requiring them to use script-interal code (add_str and reference_uid). [Ai4rei]
+	- Applied script_setarray_pc to assignment of dynamic shop arrays (related r5841).
+	* Replaced in-place generation of uid of script array elements with reference_uid macro (follow up to r10813). [Ai4rei]
+	* Fixed dynamic shop arrays @bought_nameid, @bought_quantity, @sold_nameid and @sold_quantity not getting reset to zero before use, thus providing attached script with wrong/old data, if it did not clear them by itself in previous call (bugreport:1574, since r5841). [Ai4rei]
+	* Removed 'strsignal' forward-declaration from 'sig' plugin to prevent random gcc distributions from failing to compile due to mismatched declaration already present in <string.h> (bugreport:4644, topic:262284, follow up to r14591). [Ai4rei]
+	- Removed WIN32 conditions in non-WIN32 code in 'sig' plugin (follow up to r4380).
+2010/12/19
+	* Fixes to the dynamic shop sample script. [Ai4rei]
+	- Fixed wrong check in ::OnSellItem, causing not-enough-items condition not getting detected (since r11829).
+	- Fixed an exploit in ::OnSellItem, causing Zeny to be given to the player, even if the items fail to delete (since r5842).
+	- Fixed missing 'close' in ::OnSellItem (since r5842).
+	- Replaced 'end' with 'close' in ::OnBuyItem (since r5842, followup to r11829).
+	* Replaced maximum script array size literals with a define (constant). [Ai4rei]
+	- Fixed an off-by-one mistake in copyarray, allowing to copy 1 element more into the target array, than allowed (since r10813).
+2010/12/18
+	* Renamed item array in 'struct guild_storage' from 'storage_' to 'items' to match 'struct storage_data' (related r12933). [Ai4rei]
+	* Bunch of intif_parse_LoadGuildStorage fixes. [Ai4rei]
+	- Fixed guild storage not being sorted, when the storage had to be requested first (follow up to r14605).
+	- Fixed missing check, whether or not the character has already an open storage (follow up to r4562).
+	- Fixed missing GM trust check, whether or not the player is allowed to use guild storage (follow up to r3481).
+	* Fixed character storage no longer being sorted (bugreport:1982, since r12950). [Ai4rei]
+	- Guild storage is now sorted before being displayed rather than after being saved...
+	- Merged storage_gsortitem into storage_sortitem.
+	- Added option 'client_sort_storage' to control storage sorting (disabled by default, like on official servers).
+	* Updates to handling of hair color/style and cloth color of characters. [Ai4rei]
+	- Moved limit shortcut defines from mmo.h to battle.h, as they are only required in files, which include battle.h (since pre-svn 2004/10/15).
+	- Moved hair style/color validation from char-server to map-server. This enables use of non-default limits as specified in battle config, rather than being restricted to hard-coded ones (bugreport:150).
+	- Cleaned up related capping of values in pc_changelook (related r1708).
+	* Fixed usage of literals for map name length in character list packet (since r14368). [Ai4rei]
+2010/12/17
+	* Made the 'player not attached' script error also report the function it occured in, if available. [Ai4rei]
+	* Fixed a crash, when script command 'doevent' is called without an attached player (bugreport:3973). [Ai4rei]
+	* Fixed label definitions silently overwriting built-in script functions (bugreport:2806, follow up to r8027). [Ai4rei]
+	* Added temporary check to skill_delunitgroup to prevent crashes when 'group' is NULL and added some debug messages to track down the source of the crash (bugreport:3504). [Ai4rei]
+	* Spellchecked script_commands.txt. [Ai4rei]
+	* Random script engine clean-ups that have accumulated over time. [Ai4rei]
+	- Resolved unnecessary script_getnum re-evaluation in a loop in script command 'npcshopdelitem' (since r7120).
+	- Script commands 'menu', 'select' and 'prompt' now warn, when there are more menu options, than the client can handle correctly (TODO from r10316).
+2010/12/16
+	* Reverted r14525 (introduction of SV_READDB_MAX_FIELDS) because it causes confusion to certain group of users and depends on MAX_LEVEL since r14526. [Ai4rei]
+	- Made sv_readdb be able to process any amount of columns instead.
+	* Fixed a mistake in sv_split, causing CR being recognized as EOL character, even when only LF was specified (since r12459). [Ai4rei]
+2010/12/15
+	* Corrected type of second argument of script command 'setbattleflag' from string to number (bugreport:4640, topic:261833, since r5407, related r14577). [Ai4rei]
+	* Fixed missing check in cooking, causing cooking kit requirement could be bypassed by sending 0x25b (CZ_REQ_MAKINGITEM) directly (bugreport:4642, since r13628). [Ai4rei]
+2010/12/13
+	* Fixed plugin 'sig' not being compilable on Mac OS X, due to different return value type of 'strsignal' (bugreport:4637). [Ai4rei]
+2010/12/12
+	* Fixed homunculus_autoloot not working with skill/item granted drops and loot (bugreport:4452, since r12203). [Ai4rei]
+	* Fixed killed monsters were assumed to be killed by homunculus only, if no damage log entries were elligible for exp distribution, even when no homunculus took part in damage dealing (bugreport:4452, since r12203). [Ai4rei]
+	* Added enumeration for monster damage log field 'flag'. [Ai4rei]
+	* Removed disabled backup of script command 'isequipped' (since r1605). [Ai4rei]
+	* Made script engine's DEBUG_DISASM block use script_op2name, rather than hardcoding operator names as per TODO from r13083 (related r9569, follow up to r10667). [Ai4rei]
+	* Cleaned up MOTD reading (related r292 and r4552). [Ai4rei]
+	- Added a warning for common client crash caused by the sequence ' :' in MOTD.
+	* Fixed impossible condition in soundeffect script command (since athena-dev-2.1.1-mod1046, related r5841). [Ai4rei]
+	* Updates to the playBGM functionality (since r14335). [Ai4rei]
+	- Removed impossible condition in playBGM script command (from soundeffect).
+	- Removed unused code (retrieving of a bl) in playBGMall (from soundeffectall).
+	- Made playBGMall default to 'entire server' when both map name and coordinates are omitted instead of printing an error.
+	- Updated documentation for playBGM and playBGMall to match actual behavior.
+	- Removed unused parameter 'bl' in clif_playBGM.
+2010/12/11
+	* Fixed script command setd always assuming value parameter to be a string, which causes hexadecimal and octal numbers not being handled properly (topic:261833, followup to r14577 and r14578). [Ai4rei]
+	* Updates to dynamic server information `ragsrvinfo` on SQL. [Ai4rei]
+	- Fixed exp and drop rates (int) getting truncated (short) when sent to char-server.
+	- Removed `motd` from `ragsrvinfo` as it is not dynamically changed by the server and as such can be read by 3rd party applications directly from conf/motd.txt if required.
+	* Added support for checking argument data type of built-in script functions (bugreport:1701, topic:261833, related r14573). [Ai4rei]
+	* Fixed error message in intif_parse_mercenary_received printing wrong struct size (bugreport:4633, since r13116). [Ai4rei]
+2010/12/10
+	* Replaced buildin_getpartyname_sub, buildin_getguildname_sub and buildin_getguildmaster_sub, which create only unnecessary overhead, with equivalent inlined code. [Ai4rei]
+	- Fixed a memory leak in getguildmasterid, when the guild leader was not online (bugreport:2743).
+	- Command getguildmasterid no longer requires the guild leader to be online.
+	* Fixed bAutoSpellOnSkill bonuses not working independently of each other (bugreport:4617, since r13596, related r14536). [Ai4rei]
+	* Revised argument declaration of all script commands according to the actual functions' argument usage. [Ai4rei]
+	- Fixed many script commands with fixed amount of optional parameters to no longer accept any amount of arguments (faulty declaration).
+	- Corrected use of dummy parameter for guildopenstorage in scripts.
+2010/12/09
+	* Removed some of the duplicate, storage-related packet code. [Ai4rei]
+	- Removed clif_guildstoragelist and adjusted clif_storagelist to be able to handle any kind of storage.
+	- Removed clif_guildstorageitemadded in favor of clif_storageitemadded.
+	- This also fixes clif_guildstorageitemadded sending old update packet for clients prior 20090603, although packet 0x1c4 (ZC_ADD_ITEM_TO_STORE2) was added before PACKETVER 5 (before 2003-11-03aSakexe, exact addition date unknown) (since r14286).
+2010/12/08
+	* Applied some script command documentation updates and fixes as already done inside the wiki. [Ai4rei]
+	- Updated description for 'next', 'return', 'attachrid', 'detachrid', 'itemskill', 'openstorage', 'skilleffect', 'donpcevent', 'day', 'night', 'atoi' and 'axtoi' to resolve inaccuracies, missing information or unverified behavior.
+	- Clarified the purpose of the 'jump_zero' and 'getelementofarray' script commands.
+	- Fixed 'changebase' stating, that it only works in item scripts (since r2402).
+	- Fixed 'kickwaitingroomall' stating, that it is not properly linked into the script engine, thus not working (since r13732).
+	- Updated the description for 'cutin' so that it does not give the impression, that the client is able to display multiple illustrations at once, and being less confusing about the maximum size of illustrations.
+2010/12/07
+	* Fixed txt-converter-login was no longer compilable with supplied project/make files, due to missing reference to function exists in utils.c (bugreport:4626, since r14528). [Ai4rei]
+	* Applied svn:eol-style to VS2010 project files (follow up to r14562). [Ai4rei]
+	* Reverted r14563, due to multiple issues which render the source malfunctioning or uncompilable. To be redone later (bugreport:4627). [Ai4rei]
+	* Removed unnecessary reference operator from scanf calls passing character strings as arguments in adduser tool. [Paradox924X]
+	* Revert of r14564. The value wasn't an arbitrary account id but rather the file format version. Added comment specifying this. [Paradox924X]
+	* Removed arbitrary account id from atop account.txt (Since r13000). [Paradox924X]
+	* Changed almost all instances of sprintf() to snprintf(). [Paradox924X]
+	* Further corrections to doc/item_bonus.txt (bugreport:4624). [Ai4rei]
+	- Added documentation for bUnbreakableGarment, bUnbreakableWeapon, bUnbreakableArmor, bUnbreakableHelm, bUnbreakableShield, bUnbreakableShoes, bBreakWeaponRate and bBreakArmorRate (follow up to r485, r915, r1116, r13819).
+	- Fixed bIgnoreDefEle having race constants listed instead of element constants (since r12804).
+	- Fixed bUnstripable* not mentioning, that the bonus parameter is meaningless (follow up to r1382).
+2010/12/06
+	* Corrected description for bonuses bHealPower and bHealPower2 stating skill names being supported, although the bonus does not accept 'skill' as parameter (bugreport:4619, since r13821). [Ai4rei]
+2010/12/05
+	* Rev. 14559 Added support for bonus bAddItemHealRate, which works for all healing items care of Epoque. [L0ne_W0lf]
+2010/12/04
+	* Fixed party booking search increasing result counter, even when no results were found, causing crashes from r14516 onwards (bugreport:4615, since r14412). [Ai4rei]
+2010/12/03
+	* Fixed soul linkers not receiving taekwon angel buffs upon level up (bugreport:3585, since r3657 and r3660, related r6294). [Ai4rei]
+	* Corrected 'chance' in description for bonuses bAddMonsterDropItem and bAddMonsterDropItemGroup (bugreport:4063, partially since r1572). [Ai4rei]
+	* Removed leftovers of the item_value_db.txt feature (bugreport:2031, since athena-dev-2.1.1-mod377, followup to pre-svn 2004/05/29). [Ai4rei]
+2010/12/02
+	* Various code tweaks and updates related to item types. [Ai4rei]
+	- Replaced item type literals with their appropriate constants.
+	- Added itemdb_typename to replace the ugly "BUG!" filled array in @iteminfo (since r1741, follow up to r14550).
+	- Made the item database parser verify item type for validity.
+	- Added item type constants to const.txt for use in scripts (getiteminfo).
+	* Added support for IT_CASH to @iteminfo, logging filters and item drop rate adjustment. Added 'show_picker.item_type'-specific IT_CASH value to it's description (follow up to r14549). [Ai4rei]
+	* Rev. 14549 Added item type IT_CASH (item type 18) Requires user confirmation before using/generating item(s). [L0ne_W0lf]
+	* Fixed mapflags not getting initialized upon @reloadscript (bugreport:2247, since r1275). [Ai4rei]
+	* Removed redundant check in food vs. cash food status change overriding code, partially suggested by xazax (related r14437 and r14510). [Ai4rei]
+	* Added an error message when a client connection exceeds the socket write buffer, so that it does not appear to be closed for no apparent reason (follow up to r13469). [Ai4rei]
+	* Random clif.c fixes and cleanups. [Ai4rei]
+	- Fixed clif_homskillup using sd before nullpo check (since r9297 and r9307).
+	- Merged code responsible for disabling pets in GvG and spawning them as per TODO (related r12002).
+	- Fixed base and job exp not being sent to the client for new connections (follow to r14505).
+	- Fixed Magnifier (item) and Identify (skill) attempting to identify an item, even when cancel is pressed, causing skill failed message.
+	* Added defines for guild notice sizes (MAX_GUILDMES1 and MAX_GUILDMES2). [Ai4rei]
+	* Added clif_starskill (packet 0x20e, ZC_STARSKILL) to host the packet previously implemented by clif_feel_info, clif_hate_info, clif_mission_info and clif_feel_hate_reset (related r4352, r4375 and r9162). [Ai4rei]
+	- This also fixes sd->bl.id being sometimes supplied for monster_id in this packet.
+	* Various additions and updates to the comments and documentation of packets in clif. [Ai4rei]
+	- Renamed clif_01ac to clif_skillunit_update to make it look less 'mysterious'.
+	* Removed clif_weather_sub and clif_misceffect2 in favor of clif_specialeffect_single and clif_specialeffect (all of them are ZC_NOTIFY_EFFECT2). [Ai4rei]
+	* Rev. 14540 Monsters spawned with mob-generating items now have MD_ANGRY applied to them. [L0ne_W0lf]
+2010/12/01
+	* Added packet 0x1b1 (ZC_SHOWDIGIT). [Ai4rei]
+	* Confirmed packet 0x291 (ZC_MSG) to be general-purpose msgstringtable.txt packet and updated all functions using it (related r12245 and r13126). [Ai4rei]
+	* Fixed using main chat nick longer than 15 characters would cause a buffer overflow (bugreport:2671, since r5013). [Ai4rei]
+	* Fixed bAutoSpellOnSkill bonuses could not be chained (bugreport:4421, since r13596). [Ai4rei]
+	* Fixed NPC_TALK message being displayed with EOL character attached (bugreport:4596, since r14270). [Ai4rei]
+	* Reverted change from r14533 and restored the 3rd field of mob_avail.txt being optional (bugreport:4599, since r14532). [Ai4rei]
+	* Monster database reading now utilizes sv_readdb. [Ai4rei]
+2010/11/30
+	* Fixed out-of-bound access to percentrefinery array causing refine bonuses stop working (bugreport:4598, since r14526). [Ai4rei]
+	* Fixed class being used instead of idx in status_readdb_job2 (bugreport:4597, since r14526). [Ai4rei]
+	* Moved function 'exists' (file presense check) to utils.c, so that it is available to code outside of lock.c [Ai4rei]
+	- Fixed associated F_OK and R_OK defines causing 'already defined' warnings on MinGW (since r1361).
+	* Resolved missing script documentation (bugreport:4578). [Ai4rei]
+	- Added documentation for bonus bAutoSpellOnSkill (follow up to r13596).
+	- Added documentation for script command progressbar (follow up to r14024).
+	* Made job_db1.txt, job_db2.txt, size_fix.txt and refine_db.txt reading use sv_readdb. [Ai4rei]
+	- NOTE: Any MAX_LEVEL (map.h) increase requires at least same increase of SV_READDB_MAX_FIELDS (strlib.c) as well.
+	* Added SV_READDB_MAX_FIELDS define for configuration of the sv_readdb limit. [Ai4rei]
+	* Made skill_tree.txt reading use sv_readdb. [Ai4rei]
+	- Added define for skill entry requirements.
+	- Reports duplicate skills within same job class.
+	* Added a define for star gladiator feel/hate info array length (follow up to r8721 and r11840). [Ai4rei]
+	* Fixed script command getusers causing 'player not attached' errors when asking for character count in entire server (bugreport:4591, since r14495). [Ai4rei]
+2010/11/29
+	* Resolved issues with item delay system. [Ai4rei]
+	- Fixed random crashes caused by map_session_data corruption due to out-of-bounds access to item_delay array (bugreport:4568, since r14455).
+	- Fixed item delay database not being compatible with @reloaditemdb. Item delays are now reset upon reloading, much like a restart would do (bugreport:4589).
+	- Fixed trailing commented lines in db/item_delay.txt could cause 'too many entries' error to be displayed.
+	- Fixed last entity of a cash food item not being recognized as cash food, thus not receiving use delay, due to access to deleted inventory slot (since r14426).
+	- These changes also fix a warning regarding variable 'i' in pc_useitem being potentionally uninitialized (bugreport:4559).
+2010/11/28
+	* Added an option to re-roll the /dice emotion server-side, to prevent cheats during events (bugreport:4194). [Ai4rei]
+	* Added emotion_type enumeration for clif_emotion constants. [Ai4rei]
+	- Made clif_parse_Emotion use clif_emotion, rather than having it's code inlined.
+	* Added clr_type enumeration for vanish effect constants. [Ai4rei]
+	* Resolved multiple issues with the party booking system (bugreport:4573, since r14412). [Ai4rei]
+	- Fixed recruitments were limited to party leaders.
+	- Fixed recruitment index was party id instead of an auto-increment value, causing sorting by age not working.
+	- Fixed search result packet being sent on recruitment creation (probably to work-around next problem).
+	- Fixed packet 0x0805 not getting sent, because of commented entries in packet_db.txt (packet ver. restriction of clif_send).
+	- Fixed recruitment creation notice being sent to the recruiter only.
+	* Removed 'negative clrtype is used for skipping unauthed objects from saving' introduced in r9975, as it is no longer required/used (follow up to r12223). [Ai4rei]
+	* Made the party booking search pass results as array of pointers, rather than array of indexes, which require further lookup. [Ai4rei]
+	* Replaced literal constants related to the party booking system with defines. [Ai4rei]
+	* Fixed pets derived from immobile monsters not being able to walk (bugreport:3377, since r13789). [Ai4rei]
+	- This also fixes pets using original monster walk speed, instead of the one defined in pet db.
+	- Fixed pets not being able to attack (pet_attack_support and pet_damage_support) when derived from a monster, which is not able to attack.
+2010/11/27
+	* Fixed a crash uncovered with r14501, caused by outdated local variables when a script is about to suspend or terminate (bugreport:4577). [Ai4rei]
+	* Fixed a crash when using food status bonuses with cash food status bonuses (bugreport:4582, since r14437). [Ai4rei]
+2010/11/26
+	* Fixed description of bCriticalAddRace having 'race' and 'crit' parameters interchanged (bugreport:4383, since r1116 and r1382, related r12804). [Ai4rei]
+	* Changed 'killerrid' and 'killedrid' from player vars to player params (bugreport:3249) [ultramage]
+	- Now stored in player session data, so they don't get saved on logout anymore.
+	- Added sql upgrade script 'upgrade_svn14507.sql' to remove the now unused player variables.
+	* Some updates and fixes to script command documentation. [Ai4rei]
+	- Fixed small inaccuracy in description for homevolution (bugreport:125).
+	- Added ~AnnieRuru~'s fixes to item scripts, variables, and commands addtimer and addnpctimer (bugreport:373).
+	- Fixed documentation for function command in regard of passed arguments and return value. (bugreport:373).
+	- Simplified description for getusers, by hiding internal mechanics of the command, which are irrelevant to a scripter (bugreport:2545).
+	- Added description for setfont and mercenary-related commands (bugreport:3034).
+	- Added documentation for ?: operator and "global" labels provided by Gepard (bugreport:3650).
+	- Added documentation for operators -, ~ and ! (bugreport:3650).
+	* Fixed base and job exp not getting reset on (de)leveling through commands (bugreport:85). [Ai4rei]
+	- Fixed level up related functions not updating client-side exp information, causing the exp percent value display random values.
+	- Fixed party system not getting notified of level-ups through parameter changes.
+	* Fixed auto-generated statpoint table missing 3 status points (since r1107). [Ai4rei]
+2010/11/25
+	* Too large client packets, which would otherwise cause the client to crash, are now dropped and reported (bugreport:4391). [Ai4rei]
+	* Fixed a crash when an unknown map is encountered during parsing a 'script' npc and the script has mismatched curly braces (bugreport:4423, since r11502). [Ai4rei]
+	* Fixed script commands attachrid and detachrid not updating the attached character's information about currently running script, causing errors with dialog-based scripts or preventing characters from walking (bugreport:4571). [Ai4rei]
+2010/11/24
+	* Fixed party booking search not interpreting level 0 as 'all levels' and using level as upper rather than lower bound (bugreport:4537, since r14412). [Ai4rei]
+	* Display a message showing the user where to change MAX_ITEMDELAYS when they have too many entries in the item_delays db. Follow-up to r14455. [Paradox924X]
+	* Fixed pets with player sprites causing the client to crash while looking for non-existing resources (topic:260895, follow up to r14488). [Ai4rei]
+	* Fixed calls to pc_delautobonus assuming map_session_data::autobonus2 and map_session_data::autobonus3 arrays having the same size as map_session_data::autobonus (since r13915). [Ai4rei]
+2010/11/23
+	* Added script command pushpc, which is required by newer scripts. [Ai4rei]
+	- Moved knockback-part of skill_blown into unit_blown, to allow unconditional knockback required by pushpc without copy-pasting code.
+	* Various small cleanups. [Ai4rei]
+	- Fixed truncation warnings in @statuspoint, @skillpoint and @str/@agi/@vit/@int/@dex/@luk (since r14436).
+	- Fixed data type inconsistency in @statuspoint and @skillpoint (since r5762, related r13541).
+	- Silenced truncation warnings in CR_ACIDDEMONSTRATION damage calculation and cardfix application (since r13700).
+	- Reformatted unit_blown to make it look cleaner (follow up to r14492).
+	* Labels longer than 23 characters will no longer cause the server to exit immediately (bugreport:4563, since r1213). [Ai4rei]
+	* Fixed script command getusers causing map server to crash when called with type 0 without attached character (bugreport:4565). [Ai4rei]
+	- Lack of character is now reported like other script commands do. Additionally invalid types are reported as well.
+2010/11/22
+	* mail_deliveryfail no longer attempts to log (since r12910) and give items (since r11855), when there is no item attached to the mail (bugreport:3239). [Ai4rei]
+	* Fixed a crash when shutting down char-server (TXT only), after it failed to load storage save data (since r1275). [Ai4rei]
+	* Batch files (Windows) now detect whether the server crashed, aborted or shutdown cleanly (Ctrl+C or @mapexit) and print appropriate message, instead of always assuming, that the server crashed (bugreport:3476, since r1818). [Ai4rei]
+	* Fixed map server getting notified of hair, hair color, gender, class and level changes from a char server (TXT only) twice (since r2986). [Ai4rei]
+	* Fixed saving/loading errors with compilers (such as VC6, MinGW), which do not recognize %ll format (since r14242). [Ai4rei]
+	- This also fixes guild leader name being displayed and saved as "(null)" in the guild member list.
+	* Fixed guild and guild member exp truncation issue (bugreport:4130, since r14242). [Ai4rei]
+	- Fixed guild member position, hair, hair color, gender, class and level could potentially become corrupted due to shorts being read as ints (partially since r2986).
+	* Fixed disguising as player clone causing the client to crash while looking for non-existing NPC sprites (bugreport:4428, since r14387, related r14383). [Ai4rei]
+	* Fixed Rogue skill Steal Coin working on boss monsters (bugreport:2442). [Ai4rei]
+	* Fixed map-server displaying 'PK Mode' notice only for pk_mode 1 (since r8402). [Ai4rei]
+2010/11/21
+	* Added msinttypes (rev. 26, http://msinttypes.googlecode.com/svn/trunk/) portability framework for Visual C++ compilers (related bugreport:4059). [Ai4rei]
+	* Added 64-bit variants of the socket and buffer I/O macros. [Ai4rei]
+	* Added enumeration RC2_* for mob data 'race2' (bugreport:4561). [Ai4rei]
+	- Fixed race2-related bonus arrays using RC_MAX, rather than race2 maximum (since r6221, related r1277).
+	- Fixed bSubRace2 lacking bounds check (since r1257).
+2010/11/20
+	* Fixed @doom and @doommap spamming packets for the visual effect on invoker unnecessarily over whole map and server respectively. The effect is now displayed on each killed character (bugreport:871, since r311). [Ai4rei]
+	* Fixed login-server account engine initialization not getting checked, whether it succeeds or not (bugreport:4361, since r12700, related r13000). [Ai4rei]
+	- Failure to retrieve account engine and initializing it is now considered fatal and causes the server to exit immediately.
+	- Fixed two data type inconsistencies, while being at it.
+	* Made atcommand declarations use ACMD_FUNC macro (bugreport:4252, related r11607). [Ai4rei]
+2010/11/19
+	* Various VC6-related fixes and tweaks. [Ai4rei]
+	- Fixed a typo in VC6 project files, that prevented login-server from compiling (bugreport:4061, since r12727).
+	- Fixed usage of 'long long' in Sql_P_BindSqlDataType preventing SQL VC6 projects from compiling (bugreport:1741, since r10779).
+	- Fixed usage of 'long long' in strtoull preventing VC6 projects from compiling (bugreport:4059, follow up to r14245).
+	- Made strtoull default to base 10 and actually process base 8, to match the normal behavior of this function (bugreport:4059, follow up to r14245).
+	- Fixed functions in db.c not being returned as pointer, causing warnings on VC6.
+	* Fixed plug-in version getting checked against itself and a wrong operator being used for the check (bugreport:3952, since r9631). [Ai4rei]
+	* Fixed WFIFOL being used instead of WFIFOW for a short field of packet 0x2710 (bugreport:2819). [Ai4rei]
+	* Made script command getmapxy print a warning, if an invalid type is supplied (related r69, r8459). [Ai4rei]
+	* Fixed pc_marriage not checking spouse character job for baby class. [Ai4rei]
+	* Removed ; from INTPTR_* defines (since r13449). [Ai4rei]
+	* Fixed a crash when SqlStmt_ShowDebug is given NULL pointer as statement handle (since r10753, related r10818). [Ai4rei]
+2010/11/16
+	* Added a missing argument to a warning containing a format specifier. [Paradox924X]
+2010/11/15
+	* Follow-up to r14456. Default initialize atk_rate to 0 instead of 100 to match new effect of bonus bAtkRate. [Paradox924X]
+2010/11/14
+	* Rev. 14463 Updated quest_read_db. [L0ne_W0lf]
+	- Reports entries when read by server at start up like other DBs.
+	- Will now skip blank lines instead of reporting false errors.
+	- Will report when entries are > MAX_QUEST_DB.
+2010/11/10
+	* Made bAtkRate add the rate rather than setting it. (bugreport:4499) [Paradox924X]
+	* Added an item_delay database usable for item-specific use delays. [Paradox924X]
+2010/11/09
+	* Use packet 0xe7 instead of 0x1f5 within clif_tradestart() when there is no trade_partner (or an invalid one) specified even for PACKETVER >= 6. (bugreport:4544) [Paradox924X]
+	* Follow-up to r14368. Load last_map from SQL on char load so the information is available during char select for PACKETVER > 20100721. Patch based on Ai4rei's. (bugreport:4429) [Paradox924X]
+2010/11/08
+	* Notify players involved in a trade that it has been canceled when one player changes maps/logs out or otherwise becomes unable to participate in the trade. [Paradox924X]
+	* Send the actual level of the person you're trading with rather than limiting it by the max_lv/aura_lv settings. [Paradox924X]
+2010/11/07
+	* 'Exp gained' packets are now sent regardless of @showexp. @showexp can be enabled regardless of PACKETVER. [Gepard]
+	* Applied clif_equiplist fix by Ai4rei to prevent client crash when equipment is broken/repaired and PACKETVER >= 20100629. Follow-up to r14368. (bugreport:4459) [Gepard]
+2010/11/02
+	* Fixed an issue where two ushorts were being strcmp'd. Follow-up to r14442. (bugreport:4523) [Paradox924X]
+	* Ensured character data is saved even when last map is the only value that has changed during save time. (bugreport:2218) [Paradox924X]
+	* Applied fix by Ai4rei to reintroduce mapName within charinfo packet when PACKETVER >= 20100803. Follow-up to r14432. (bugreport:4413) [Paradox924X]
+	* Updated script doc to appropriately describe the effects of close/close2 when used without a window on screen. (bugreport:898) [Paradox924X]
+	* Applied patch by xazax to clean up various bits of code across mapserver code. (bugreport:4512) [Paradox924X]
+2010/11/01
+	* Changed Normal and Cash Food statuses so they do not stack and overwrite the other if the level (val1) is the same or higher. (bugreport:4519) [Paradox924X]
+	* Modified certain atcommands to use 64 bit arithmetic before capping a value to correct boundary logic for overflowing values. [Paradox924X]
+2010/10/21
+	* Removed unused 'indoors' mapflag. [Gepard]
+2010/10/17
+	* Fixed wrong char info packet size for clients after 2010-07-27. (bugreport:4413) [Gepard]
+2010/10/13
+	* Prevented direct transformation into dummy jobs via @jobchange command. (bugreport:4227) [Paradox924X]
+	* Prevented @stpoint and @skpoint from causing overflows. [Paradox924X]
+2010/10/11
+	* Implemented official cash food behavior, including use delay, not being dispelled (including on death),
+	  distinct status effects and icons from the ordinary food types. (bugreport:2560) [Paradox924X]
+	* Applied ultramage's fix to prevent a segfault when a mob dead event triggered by a land-based skill causes the player to warp. (bugreport:4426) [Paradox924X]
+2010/10/10
+	* Applied Ai4rei's patch to prevent an invalid rid from being attached to the execution of a script. (bugreport:4470) [Paradox924X]
+	* Added NULL initialization to info variable in map_readfromcache() to satiate compiler. (bugreport:4399) [Paradox924X]
+	* Applied Ai4rei's patch to eliminate unnecessary and redundant castle data saving. (bugreport:4471) [Paradox924X]
+	* Added a missing const qualifier to a variable. (bugreport:4472) [Paradox924X]
+	* Rev. 14418 Follow up from r14413, should take care of the errors from bugreport:4472. [L0ne_W0lf]
+	* Pull `name` from character table instead of using `master` from guild table when loading guild data. [Paradox924X]
+	* Use `char_id` rather than `master` when checking if a guild needs to be deleted during character deletion. [Paradox924X]
+2010/10/06
+	* Rev. 14413 Touched up the party booking patch, seems I forgot some lines in clif.c...and managed to duplicate a line in map.c. [L0ne_W0lf]
+2010/10/05
+	* Rev. 14412 Added Spira's Party Booking System implementation [L0ne_W0lf]
+2010/09/20
+	* Fixed when devoter is killed by the redirected damage, devotee takes the whole damage. (follow up to r14406)[Inkfish]
+2010/09/18
+	* Rev. 14409 Added bard/dancer songs and duets to the nodispell list. (bugreport:4411) [L0ne_w0lf]
+	* Applied Ai4rei's patch for the skill WE_CALLPARTNER (bugreport:4437)
+2010/09/12
+	* All direct damages such as reflected damage or Tarot Card damage should not be redirected. (follow up to r14400)[Inkfish]
+2010/09/08
+	* All mobs whose display sprites are those of a job id will now appropriately be identified to the client as players, not mobs. [Paradox924X]
+	* Updated License from GNU GPLv2 to GNU GPLv3. [Paradox924X]
+2010/09/07
+	* Added MD_TARGETWEAK to list of modes not to give a player when calculating player data.
+	- This makes evilclones aggressive towards players. (bugreport:3280) [Paradox924X]
+	* Ensure a pointer is valid within map_readfromcache() before attempting to access its members. [Paradox924X]
 2010/09/06
 	* Rev. 14400 Implemented Icescope's fix for devotion, reflect damage is no longer absorbed by the devoter. (bugreport:3189) [L0ne_W0lf]
 	* As a folow up to r14301, increased MAX_REG_NUM to 256, to prevent possible data loss.
@@ -722,7 +1166,7 @@ IF YOU HAVE A WORKING AND TESTED BUGFIX PUT IT INTO STABLE AS WELL AS TRUNK.
 2008/11/11
 	* Updated script_commands.txt [FlavioJS]
 	* Made scripts terminate with an error: (fixes bugreport:2429)
-	- when getitem/getitem2 tries to delete more items than the player has
+	- when delitem/delitem2 tries to delete more items than the player has
 	- when trying to set Zeny to a negative number.
 2008/11/09
 	* Added a check to make sure killed monster's level was greater than half of the mercenary owner's level before incrementing mercenary's killcount. (bugreport:2410) [Paradox924X]

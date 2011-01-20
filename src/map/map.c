@@ -287,7 +287,7 @@ int map_addblock(struct block_list* bl)
 {
 	int m, x, y, pos;
 
-	nullpo_retr(0, bl);
+	nullpo_ret(bl);
 
 	if (bl->prev != NULL) {
 		ShowError("map_addblock: bl->prev != NULL\n");
@@ -335,7 +335,7 @@ int map_addblock(struct block_list* bl)
 int map_delblock(struct block_list* bl)
 {
 	int pos;
-	nullpo_retr(0, bl);
+	nullpo_ret(bl);
 
 	// ?‚Éblocklist‚©‚ç?‚¯‚Ä‚¢‚é
 	if (bl->prev == NULL) {
@@ -391,19 +391,11 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 	//TODO: Perhaps some outs of bounds checking should be placed here?
 	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,2);
-		sc = status_get_sc(bl);
-		if (sc && sc->count) {
-			if (sc->data[SC_CLOSECONFINE])
-				status_change_end(bl, SC_CLOSECONFINE, -1);
-			if (sc->data[SC_CLOSECONFINE2])
-				status_change_end(bl, SC_CLOSECONFINE2, -1);
-//			if (sc->data[SC_BLADESTOP]) //Won't stop when you are knocked away, go figure...
-//				status_change_end(bl, SC_BLADESTOP, -1);
-			if (sc->data[SC_TATAMIGAESHI])
-				status_change_end(bl, SC_TATAMIGAESHI, -1);
-			if (sc->data[SC_MAGICROD])
-				status_change_end(bl, SC_MAGICROD, -1);
-		}
+		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
+		status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
+//		status_change_end(bl, SC_BLADESTOP, INVALID_TIMER); //Won't stop when you are knocked away, go figure...
+		status_change_end(bl, SC_TATAMIGAESHI, INVALID_TIMER);
+		status_change_end(bl, SC_MAGICROD, INVALID_TIMER);
 	} else
 	if (bl->type == BL_NPC)
 		npc_unsetcells((TBL_NPC*)bl);
@@ -421,6 +413,7 @@ int map_moveblock(struct block_list *bl, int x1, int y1, unsigned int tick)
 
 	if (bl->type&BL_CHAR) {
 		skill_unit_move(bl,tick,3);
+		sc = status_get_sc(bl);
 		if (sc) {
 			if (sc->count) {
 				if (sc->data[SC_CLOAKING])
@@ -1371,7 +1364,7 @@ int map_addflooritem(struct item *item_data,int amount,int m,int x,int y,int fir
 	int r;
 	struct flooritem_data *fitem=NULL;
 
-	nullpo_retr(0, item_data);
+	nullpo_ret(item_data);
 
 	if(!map_searchrandfreecell(m,&x,&y,flags&2?1:0))
 		return 0;
@@ -1564,7 +1557,7 @@ int map_quit(struct map_session_data *sd)
 		return 0;
 	}
 
-	if (sd->npc_timer_id != -1) //Cancel the event timer.
+	if (sd->npc_timer_id != INVALID_TIMER) //Cancel the event timer.
 		npc_timerevent_quit(sd);
 
 	if (sd->npc_id)
@@ -1578,64 +1571,40 @@ int map_quit(struct map_session_data *sd)
 	if( sd->sc.count )
 	{
 		//Status that are not saved...
-		if(sd->sc.data[SC_BOSSMAPINFO])
-			status_change_end(&sd->bl,SC_BOSSMAPINFO,-1);
-		if(sd->sc.data[SC_AUTOTRADE])
-			status_change_end(&sd->bl,SC_AUTOTRADE,-1);
-		if(sd->sc.data[SC_SPURT])
-			status_change_end(&sd->bl,SC_SPURT,-1);
-		if(sd->sc.data[SC_BERSERK])
-			status_change_end(&sd->bl,SC_BERSERK,-1);
-		if(sd->sc.data[SC_TRICKDEAD])
-			status_change_end(&sd->bl,SC_TRICKDEAD,-1);
-		if(sd->sc.data[SC_GUILDAURA])
-			status_change_end(&sd->bl,SC_GUILDAURA,-1);
+		status_change_end(&sd->bl, SC_BOSSMAPINFO, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_AUTOTRADE, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_SPURT, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_BERSERK, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_TRICKDEAD, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_GUILDAURA, INVALID_TIMER);
 		if(sd->sc.data[SC_ENDURE] && sd->sc.data[SC_ENDURE]->val4)
-			status_change_end(&sd->bl,SC_ENDURE,-1); //No need to save infinite endure.
-		if(sd->sc.data[SC_WEIGHT50])
-			status_change_end(&sd->bl,SC_WEIGHT50,-1);
-		if(sd->sc.data[SC_WEIGHT90])
-			status_change_end(&sd->bl,SC_WEIGHT90,-1);
+			status_change_end(&sd->bl, SC_ENDURE, INVALID_TIMER); //No need to save infinite endure.
+		status_change_end(&sd->bl, SC_WEIGHT50, INVALID_TIMER);
+		status_change_end(&sd->bl, SC_WEIGHT90, INVALID_TIMER);
 		if (battle_config.debuff_on_logout&1) {
-			if(sd->sc.data[SC_ORCISH])
-				status_change_end(&sd->bl,SC_ORCISH,-1);
-			if(sd->sc.data[SC_STRIPWEAPON])
-				status_change_end(&sd->bl,SC_STRIPWEAPON,-1);
-			if(sd->sc.data[SC_STRIPARMOR])
-				status_change_end(&sd->bl,SC_STRIPARMOR,-1);
-			if(sd->sc.data[SC_STRIPSHIELD])
-				status_change_end(&sd->bl,SC_STRIPSHIELD,-1);
-			if(sd->sc.data[SC_STRIPHELM])
-				status_change_end(&sd->bl,SC_STRIPHELM,-1);
-			if(sd->sc.data[SC_EXTREMITYFIST])
-				status_change_end(&sd->bl,SC_EXTREMITYFIST,-1);
-			if(sd->sc.data[SC_EXPLOSIONSPIRITS])
-				status_change_end(&sd->bl,SC_EXPLOSIONSPIRITS,-1);
+			status_change_end(&sd->bl, SC_ORCISH, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STRIPWEAPON, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STRIPARMOR, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STRIPSHIELD, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STRIPHELM, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_EXTREMITYFIST, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_EXPLOSIONSPIRITS, INVALID_TIMER);
 			if(sd->sc.data[SC_REGENERATION] && sd->sc.data[SC_REGENERATION]->val4)
-				status_change_end(&sd->bl,SC_REGENERATION,-1);
+				status_change_end(&sd->bl, SC_REGENERATION, INVALID_TIMER);
 			//TO-DO Probably there are way more NPC_type negative status that are removed
-			if(sd->sc.data[SC_CHANGEUNDEAD])
-				status_change_end(&sd->bl,SC_CHANGEUNDEAD,-1);
+			status_change_end(&sd->bl, SC_CHANGEUNDEAD, INVALID_TIMER);
 			// Both these statuses are removed on logout. [L0ne_W0lf]
-			if(sd->sc.data[SC_SLOWCAST])
-				status_change_end(&sd->bl,SC_SLOWCAST,-1);
-			if(sd->sc.data[SC_CRITICALWOUND])
-				status_change_end(&sd->bl,SC_CRITICALWOUND,-1);
+			status_change_end(&sd->bl, SC_SLOWCAST, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_CRITICALWOUND, INVALID_TIMER);
 		}
 		if (battle_config.debuff_on_logout&2)
 		{
-			if(sd->sc.data[SC_MAXIMIZEPOWER])
-				status_change_end(&sd->bl,SC_MAXIMIZEPOWER,-1);
-			if(sd->sc.data[SC_MAXOVERTHRUST])
-				status_change_end(&sd->bl,SC_MAXOVERTHRUST,-1);
-			if(sd->sc.data[SC_STEELBODY])
-				status_change_end(&sd->bl,SC_STEELBODY,-1);
-			if(sd->sc.data[SC_PRESERVE])
-				status_change_end(&sd->bl,SC_PRESERVE,-1);
-			if(sd->sc.data[SC_KAAHI])
-				status_change_end(&sd->bl,SC_KAAHI,-1);
-			if(sd->sc.data[SC_SPIRIT])
-				status_change_end(&sd->bl,SC_SPIRIT,-1);
+			status_change_end(&sd->bl, SC_MAXIMIZEPOWER, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_MAXOVERTHRUST, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_STEELBODY, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_PRESERVE, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_KAAHI, INVALID_TIMER);
+			status_change_end(&sd->bl, SC_SPIRIT, INVALID_TIMER);
 		}
 	}
 	
@@ -1643,7 +1612,7 @@ int map_quit(struct map_session_data *sd)
 	if( sd->pd ) pet_lootitem_drop(sd->pd, sd);
 	if( sd->state.storage_flag == 1 ) sd->state.storage_flag = 0; // No need to Double Save Storage on Quit.
 
-	unit_remove_map_pc(sd,3);
+	unit_remove_map_pc(sd,CLR_TELEPORT);
 	
 	if( map[sd->bl.m].instance_id )
 	{ // Avoid map conflicts and warnings on next login
@@ -1663,6 +1632,7 @@ int map_quit(struct map_session_data *sd)
 		}
 	}	
 
+	party_booking_delete(sd); // Party Booking [Spiria]
 	pc_makesavestatus(sd);
 	pc_clean_skilltree(sd);
 	chrif_save(sd,1);
@@ -2069,7 +2039,7 @@ bool mapit_exists(struct s_mapiterator* mapit)
  *------------------------------------------*/
 bool map_addnpc(int m,struct npc_data *nd)
 {
-	nullpo_retr(0, nd);
+	nullpo_ret(nd);
 
 	if( m < 0 || m >= map_num )
 		return false;
@@ -2106,7 +2076,7 @@ int map_addmobtolist(unsigned short m, struct spawn_data *spawn)
 void map_spawnmobs(int m)
 {
 	int i, k=0;
-	if (map[m].mob_delete_timer != -1)
+	if (map[m].mob_delete_timer != INVALID_TIMER)
 	{	//Mobs have not been removed yet [Skotlex]
 		delete_timer(map[m].mob_delete_timer, map_removemobs_timer);
 		map[m].mob_delete_timer = INVALID_TIMER;
@@ -2128,7 +2098,7 @@ void map_spawnmobs(int m)
 int map_removemobs_sub(struct block_list *bl, va_list ap)
 {
 	struct mob_data *md = (struct mob_data *)bl;
-	nullpo_retr(0, md);
+	nullpo_ret(md);
 
 	//When not to remove mob:
 	// doesn't respawn and is not a slave
@@ -2147,7 +2117,7 @@ int map_removemobs_sub(struct block_list *bl, va_list ap)
 	if( md->db->mexp > 0 )
 		return 0;
 	
-	unit_free(&md->bl,0);
+	unit_free(&md->bl,CLR_OUTSIGHT);
 
 	return 1;
 }
@@ -2181,7 +2151,7 @@ int map_removemobs_timer(int tid, unsigned int tick, int id, intptr data)
 
 void map_removemobs(int m)
 {
-	if (map[m].mob_delete_timer != -1) // should never happen
+	if (map[m].mob_delete_timer != INVALID_TIMER) // should never happen
 		return; //Mobs are already scheduled for removal
 
 	map[m].mob_delete_timer = add_timer(gettick()+battle_config.mob_remove_delay, map_removemobs_timer, m, 0);
@@ -2258,7 +2228,7 @@ uint8 map_calc_dir(struct block_list* src, int x, int y)
 	unsigned char dir = 0;
 	int dx, dy;
 	
-	nullpo_retr(0, src);
+	nullpo_ret(src);
 	
 	dx = x-src->x;
 	dy = y-src->y;
@@ -2670,7 +2640,7 @@ int map_eraseipport(unsigned short mapindex, uint32 ip, uint16 port)
  *------------------------------------------*/
 static char *map_init_mapcache(FILE *fp)
 {
-	size_t size = 0, read_size;
+	size_t size = 0;
 	char *buffer;
 
 	// No file open? Return..
@@ -2688,7 +2658,7 @@ static char *map_init_mapcache(FILE *fp)
 	nullpo_ret(buffer);
 
 	// Read file into buffer..
-	if((read_size = fread(buffer, sizeof(char), size, fp)) != size) {
+	if(fread(buffer, sizeof(char), size, fp) != size) {
 		ShowError("map_init_mapcache: Could not read entire mapcache file\n");
 		return NULL;
 	}
@@ -2704,7 +2674,7 @@ int map_readfromcache(struct map_data *m, char *buffer, char *decode_buffer)
 {
 	int i;
 	struct map_cache_main_header *header = (struct map_cache_main_header *)buffer;
-	struct map_cache_map_info *info;
+	struct map_cache_map_info *info = NULL;
 	unsigned char *p = buffer + sizeof(struct map_cache_main_header);
 
 	for(i = 0; i < header->map_count; i++) {
@@ -2717,7 +2687,7 @@ int map_readfromcache(struct map_data *m, char *buffer, char *decode_buffer)
 		p += sizeof(struct map_cache_map_info) + info->len;
 	}
 
-	if( i < header->map_count ) {
+	if( info && i < header->map_count ) {
 		unsigned long size, xy;
 
 		if( info->xs <= 0 || info->ys <= 0 )
@@ -2792,6 +2762,28 @@ int map_delmap(char* mapname)
 		}
 	}
 	return 0;
+}
+
+/// Initializes map flags and adjusts them depending on configuration.
+void map_flags_init(void)
+{
+	int i;
+
+	for( i = 0; i < map_num; i++ )
+	{
+		// mapflags
+		memset(&map[i].flag, 0, sizeof(map[i].flag));
+
+		// additional mapflag data
+		map[i].zone      = 0;  // restricted mapflag zone
+		map[i].nocommand = 0;  // nocommand mapflag level
+		map[i].bexp      = 100;  // per map base exp multiplicator
+		map[i].jexp      = 100;  // per map job exp multiplicator
+
+		// adjustments
+		if( battle_config.pk_mode )
+			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
+	}
 }
 
 #define NO_WATER 1000000
@@ -2889,7 +2881,7 @@ int map_readallmaps (void)
 	int i;
 	FILE* fp=NULL;
 	int maps_removed = 0;
-	unsigned char *map_cache_buffer; // Has the uncompressed gat data of all maps, so just one allocation has to be made
+	unsigned char *map_cache_buffer = NULL; // Has the uncompressed gat data of all maps, so just one allocation has to be made
 	unsigned char map_cache_decode_buffer[MAX_MAP_SIZE];
 
 	if( enable_grf )
@@ -2955,20 +2947,17 @@ int map_readallmaps (void)
 		map[i].m = i;
 		memset(map[i].moblist, 0, sizeof(map[i].moblist));	//Initialize moblist [Skotlex]
 		map[i].mob_delete_timer = INVALID_TIMER;	//Initialize timer [Skotlex]
-		if(battle_config.pk_mode)
-			map[i].flag.pvp = 1; // make all maps pvp for pk_mode [Valaris]
 
 		map[i].bxs = (map[i].xs + BLOCK_SIZE - 1) / BLOCK_SIZE;
 		map[i].bys = (map[i].ys + BLOCK_SIZE - 1) / BLOCK_SIZE;
-		
-		// default experience multiplicators
-		map[i].jexp = 100;
-		map[i].bexp = 100;
-		
+
 		size = map[i].bxs * map[i].bys * sizeof(struct block_list*);
 		map[i].block = (struct block_list**)aCalloc(size, 1);
 		map[i].block_mob = (struct block_list**)aCalloc(size, 1);
 	}
+
+	// intialization and configuration-dependent adjustments of mapflags
+	map_flags_init();
 
 	if( !enable_grf ) {
 		fclose(fp);
@@ -2994,7 +2983,7 @@ static int char_ip_set = 0;
 /*==========================================
  * Console Command Parser [Wizputer]
  *------------------------------------------*/
-int parse_console(char* buf)
+int parse_console(const char* buf)
 {
 	char type[64];
 	char command[64];
@@ -3008,14 +2997,20 @@ int parse_console(char* buf)
 	memset(&sd, 0, sizeof(struct map_session_data));
 	strcpy(sd.status.name, "console");
 
-	if( (n=sscanf(buf, "%[^:]:%[^:]:%99s %d %d[^\n]",type,command,map,&x,&y)) < 5 )
-		if( (n=sscanf(buf, "%[^:]:%[^\n]",type,command)) < 2 )
-			n = sscanf(buf,"%[^\n]",type);
+	if( ( n = sscanf(buf, "%63[^:]:%63[^:]:%63s %d %d[^\n]", type, command, map, &x, &y) ) < 5 )
+	{
+		if( ( n = sscanf(buf, "%63[^:]:%63[^\n]", type, command) ) < 2 )
+		{
+			n = sscanf(buf, "%63[^\n]", type);
+		}
+	}
 
-	if( n == 5 ) {
+	if( n == 5 )
+	{
 		m = map_mapname2mapid(map);
-		if( m < 0 ){
-			ShowWarning("Console: Unknown map\n");
+		if( m < 0 )
+		{
+			ShowWarning("Console: Unknown map.\n");
 			return 0;
 		}
 		sd.bl.m = m;
@@ -3024,32 +3019,40 @@ int parse_console(char* buf)
 			sd.bl.x = x;
 		if( y > 0 )
 			sd.bl.y = y;
-	} else {
+	}
+	else
+	{
 		map[0] = '\0';
-		if( n < 2 ) command[0] = '\0';
-		if( n < 1 ) type[0] = '\0';
+		if( n < 2 )
+			command[0] = '\0';
+		if( n < 1 )
+			type[0] = '\0';
 	}
 
-	ShowInfo("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
+	ShowNotice("Type of command: '%s' || Command: '%s' || Map: '%s' Coords: %d %d\n", type, command, map, x, y);
 
-	if( n == 5 && strcmpi("admin",type) == 0 ){
-		if( !is_atcommand(sd.fd,&sd,command,0) )
+	if( n == 5 && strcmpi("admin",type) == 0 )
+	{
+		if( !is_atcommand(sd.fd, &sd, command, 0) )
 			ShowInfo("Console: not atcommand\n");
-	} else if( n == 2 && strcmpi("server",type) == 0 ){
-		if( strcmpi("shutdown",command) == 0 ||
-		    strcmpi("exit",command) == 0 ||
-		    strcmpi("quit",command) == 0 ){
+	}
+	else if( n == 2 && strcmpi("server", type) == 0 )
+	{
+		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 )
+		{
 			runflag = 0;
 		}
-	} else if( strcmpi("help",type) == 0 ){
-		ShowNotice("To use GM commands:\n");
-		ShowInfo("admin:<gm command>:<map of \"gm\"> <x> <y>\n");
+	}
+	else if( strcmpi("help", type) == 0 )
+	{
+		ShowInfo("To use GM commands:\n");
+		ShowInfo("  admin:<gm command>:<map of \"gm\"> <x> <y>\n");
 		ShowInfo("You can use any GM command that doesn't require the GM.\n");
 		ShowInfo("No using @item or @warp however you can use @charwarp\n");
 		ShowInfo("The <map of \"gm\"> <x> <y> is for commands that need coords of the GM\n");
 		ShowInfo("IE: @spawn\n");
 		ShowInfo("To shutdown the server:\n");
-		ShowInfo("server:shutdown\n");
+		ShowInfo("  server:shutdown\n");
 	}
 
 	return 0;
@@ -3202,7 +3205,7 @@ int inter_config_read(char *cfgName)
 			continue;
 
 		if(strcmpi(w1, "main_chat_nick")==0)
-			strcpy(main_chat_nick, w2);
+			safestrncpy(main_chat_nick, w2, sizeof(main_chat_nick));
 			
 	#ifndef TXT_ONLY
 		else
@@ -3352,7 +3355,7 @@ int nick_db_final(DBKey key, void *data, va_list args)
 
 int cleanup_sub(struct block_list *bl, va_list ap)
 {
-	nullpo_retr(0, bl);
+	nullpo_ret(bl);
 
 	switch(bl->type) {
 		case BL_PC:
@@ -3362,7 +3365,7 @@ int cleanup_sub(struct block_list *bl, va_list ap)
 			npc_unload((struct npc_data *)bl);
 			break;
 		case BL_MOB:
-			unit_free(bl,0);
+			unit_free(bl,CLR_OUTSIGHT);
 			break;
 		case BL_PET:
 		//There is no need for this, the pet is removed together with the player. [Skotlex]
@@ -3394,9 +3397,14 @@ void do_final(void)
 
 	ShowStatus("Terminating...\n");
 
+	// remove all objects on maps
 	for (i = 0; i < map_num; i++)
+	{
+		ShowStatus("Cleaning up maps [%d/%d]: %s..."CL_CLL"\r", i+1, map_num, map[i].name);
 		if (map[i].m >= 0)
 			map_foreachinmap(cleanup_sub, i, BL_ALL);
+	}
+	ShowStatus("Cleaned up %d maps."CL_CLL"\n", map_num);
 
 	//Scan any remaining players (between maps?) to kick them out. [Skotlex]
 	iter = mapit_getallusers();
@@ -3694,7 +3702,7 @@ int do_init(int argc, char *argv[])
 		//##TODO invoke a CONSOLE_START plugin event
 	}
 
-	if (battle_config.pk_mode == 1)
+	if (battle_config.pk_mode)
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);

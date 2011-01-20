@@ -506,7 +506,7 @@ packet_ver: 9
 0x0214,42
 
 //2004-08-17aSakexe
-0x020f,10
+0x020f,10,pvpinfo,2:6
 0x0210,22
 
 //2004-09-06aSakexe
@@ -679,7 +679,7 @@ packet_ver: 16
 0x0089,8,ticksend,4
 0x008c,11,getcharnamerequest,7
 0x0094,14,movetokafra,7:10
-0x009b,26,wanttoconnection,4:9:17:18:25
+0x009b,26,wanttoconnection,4:9:17:21:25
 0x009f,14,useitem,4:10
 0x00a2,15,solvecharname,11
 0x00a7,8,walktoxy,5
@@ -978,7 +978,7 @@ packet_ver: 22
 0x0089,8,ticksend,4
 0x008c,11,getcharnamerequest,7
 0x0094,14,movetokafra,7:10
-0x009b,26,wanttoconnection,4:9:17:18:25
+0x009b,26,wanttoconnection,4:9:17:21:25
 0x009f,14,useitem,4:10
 0x00a2,15,solvecharname,11
 //0x00a7,8,walktoxy,5
@@ -1452,11 +1452,11 @@ packet_ver: 25
 //0x0801,-1
 
 //2009-12-22aRagexeRE
-0x0802,18		// Booking System
-//0x0803,4
+0x0802,18,bookingregreq,2:4:6		// Booking System
+0x0803,4
 0x0804,8		// Booking System
-//0x0805,-1
-0x0806,4		// Booking System
+0x0805,-1
+0x0806,4,bookingdelreq,2		// Booking System
 //0x0807,2
 0x0808,4		// Booking System
 //0x0809,14
@@ -1465,13 +1465,13 @@ packet_ver: 25
 //0x080C,6
 
 //2009-12-29aRagexeRE
-0x0804,14		// Booking System
-0x0806,2		// Booking System
-//0x0807,4
-0x0808,14		// Booking System
-//0x0809,50
-//0x080A,18
-//0x080B,6
+0x0804,14,bookingsearchreq,2:4:6:8:12		// Booking System
+0x0806,2,bookingdelreq,0		// Booking System
+0x0807,4
+0x0808,14,bookingupdatereq,2		// Booking System
+0x0809,50
+0x080A,18
+0x080B,6		// Booking System
 
 //2010-01-05aRagexeRE
 0x0801,-1,purchasereq2,2:4:8:12
@@ -1581,6 +1581,10 @@ packet_ver: 25
 
 //2010-07-14aRagexeRE
 //0x841,4
+
+//2010-08-03aRagexeRE
+0x0842,6,recall2,2
+0x0843,6,remove2,2
 
 //Add new packets here
 //packet_ver: 26
