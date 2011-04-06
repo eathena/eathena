@@ -5,7 +5,7 @@
 //= DNett123 (1.1 - 1.5)
 //= L0ne_w0lf
 //===== Current Version: =====================================
-//= 3.4
+//= 3.6
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -33,6 +33,8 @@
 //= 3.3 Just a small fix up on the Bartender. [L0ne_W0lf]
 //= 3.3a Just a little typo error. [Samuray22]
 //= 3.4 Added missing checkweights. [L0ne_W0lf]
+//= 3.5 Replaced effect numerics with constants. [L0ne_W0lf]
+//= 3.6 Fixed bartender so he no longer hangs. [L0ne_W0lf]
 //============================================================
 
 // Jawaii
@@ -889,7 +891,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 				percentheal -100,0;
 				end;
 			}
-			set zeny,zeny-100;
+			if (zeny > 99) set zeny,zeny-100;
 			switch(rand(4)) {
 			case 1:
 				mes "[Bartender]";
@@ -914,7 +916,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 				mes "throat is burning.";
 				next;
 				mes "^3355FFYou gulped it down.^000000";
-				specialeffect2 124; //EF_VENOMDUST
+				specialeffect2 EF_VENOMDUST;
 				percentheal -20,0;
 				next;
 				break;
@@ -936,7 +938,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 				mes "^3355FFYou drank it sip by sip,";
 				mes "savoring its rich,";
 				mes "robust flavor.^000000";
-				specialeffect2 118; //EF_FIREIVY
+				specialeffect2 EF_FIREIVY;
 				percentheal -20,0;
 				next;
 				break;
@@ -960,7 +962,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 				mes "Lick the sugar before taking a sip. That will make it taste a little sweeter and will soften the taste.";
 				next;
 				mes "^3355FFYou carefully took a sip.^000000";
-				specialeffect2 38; //EF_DECAGILITY
+				specialeffect2 EF_DECAGILITY;
 				percentheal -20,0;
 				next;
 				break;
@@ -986,7 +988,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 				next;
 				mes "^3355FFYou gulp the delicious";
 				mes "Margarita down in one sip.^000000";
-				specialeffect2 17; //EF_MAGNUMBREAK
+				specialeffect2 EF_MAGNUMBREAK;
 				percentheal -20,0;
 				next;
 			}
@@ -1008,7 +1010,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 			mes "I'm a cowboy hero!";
 			mes "Bang Bang Bang!";
 			next;
-			specialeffect2 18; //EF_STEAL
+			specialeffect2 EF_STEAL;
 			percentheal -10,0;
 			next;
 			break;
@@ -1032,7 +1034,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 			mes "["+strcharinfo(0)+"]";
 			mes "Aaaaaahhhhhh~!";
 			mes "This drink is really good!";
-			specialeffect2 83; //EF_SANCTUARY
+			specialeffect2 EF_SANCTUARY;
 			percentheal -10,0;
 			next;
 			break;
@@ -1052,7 +1054,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 			mes "gulped it down.^000000";
 			next;
 			mes "^3355FFYou feel pretty hammered.^000000";
-			specialeffect2 106; //EF_BLASTMINEBOMB
+			specialeffect2 EF_BLASTMINEBOMB;
 			percentheal -10,0;
 			next;
 			break;
@@ -1074,7 +1076,7 @@ jawaii_in,28,124,0	script	Bartender#jaw	46,{
 			mes "^3355FFYou took a sip of it and sighed.^000000";
 			next;
 			mes "^3355FFAnd promised yourself that you would never drink it ever again.^000000";
-			specialeffect2 5; //EF_HIT6
+			specialeffect2 EF_HIT6;
 			percentheal -10,0;
 			next;
 			break;
@@ -1099,7 +1101,7 @@ S_KillChar:
 		percentheal -100,0;
 		end;
 	}
-	set zeny,zeny-100;
+	if (zeny > 99) set zeny,zeny-100;
 	set .@roof_jaw,.@roof_jaw+getarg(0);
 	mes "[Bartender]";
 	mes "There you go.";
@@ -1235,7 +1237,7 @@ prt_in,173,13,4	script	Customer#SoloHan	86,{
 		next;
 		mes "[Bachewcca]";
 		mes "...!";
-		donpcevent "Customer#Bachewcca::OnEmote";
+		emotion e_no1,0,"Customer#Bachewcca";
 		next;
 		mes "[SoloHan]";
 		mes "It's doesn't really matter whether you're married";
@@ -1264,7 +1266,7 @@ prt_in,173,13,4	script	Customer#SoloHan	86,{
 				next;
 				mes "[Bachewcca]";
 				mes "^666666*Grunt!*^000000";
-				donpcevent "Customer#Bachewcca::OnEffect1";
+				specialeffect EF_TALK_SCREAM,AREA,"Customer#Bachewcca";
 				next;
 				mes "[SoloHan]";
 				mes "To...";
@@ -1370,7 +1372,7 @@ prt_in,173,13,4	script	Customer#SoloHan	86,{
 		next;
 		mes "[Bachewcca]";
 		mes "^666666*Grrr...!*^000000";
-		donpcevent "Customer#Bachewcca::OnEffect2";
+		specialeffect EF_THROWITEM,AREA,"Customer#Bachewcca";
 		close;
 	}
 	mes "Oh man...";
@@ -1388,18 +1390,8 @@ prt_in,170,14,0	script	Customer#Bachewcca	89,{
 	mes "..............";
 	mes "^666666*Gulp....gulp...*^000000";
 	mes "Grrrrr!! That hit the spot!";
-	Emotion e_sob;
+	emotion e_sob;
 	close;
-
-OnEmote:
-	emotion e_no1;
-	end;
-OnEffect1:
-	specialeffect 296; //EF_TALK_SCREAM
-	end;
-OnEffect2:
-	specialeffect 291; //EF_THROWITEM
-	end;
 }
 
 // Izlude

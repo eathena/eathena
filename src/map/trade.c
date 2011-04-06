@@ -56,7 +56,7 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 		}
 	}
 
-	if ((target_sd->trade_partner != 0) || (sd->trade_partner != 0)) {
+	if (target_sd->trade_partner != 0) {
 		clif_tradestart(sd, 2); // person is in another trade
 		return;
 	}
@@ -70,7 +70,7 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 	} 
 	
 	//Fixed. Only real GMs can request trade from far away! [Lupus] 
-	if (level < lowest_gm_level && (sd->bl.m != target_sd->bl.m ||
+	if (level < battle_config.lowest_gm_level && (sd->bl.m != target_sd->bl.m ||
 		!check_distance_bl(&sd->bl, &target_sd->bl, TRADE_DISTANCE)
 	)) {
 		clif_tradestart(sd, 0); // too far
@@ -110,6 +110,7 @@ void trade_tradeack(struct map_session_data *sd, int type)
 	if (tsd->state.trading || tsd->trade_partner != sd->bl.id)
 	{
 		clif_tradestart(sd, 2);
+		sd->trade_partner=0;
 		return; //Already trading or wrong partner.
 	}
 
@@ -127,7 +128,7 @@ void trade_tradeack(struct map_session_data *sd, int type)
 		return; //If client didn't send accept, it's a broken packet?
 
 	//Copied here as well since the original character could had warped.
-	if (pc_isGM(tsd) < lowest_gm_level && (sd->bl.m != tsd->bl.m ||
+	if (pc_isGM(tsd) < battle_config.lowest_gm_level && (sd->bl.m != tsd->bl.m ||
 		!check_distance_bl(&sd->bl, &tsd->bl, TRADE_DISTANCE)
 	)) {
 		clif_tradestart(sd, 0); // too far
@@ -137,8 +138,8 @@ void trade_tradeack(struct map_session_data *sd, int type)
 	}
 
 	//Check if you can start trade.
-	if (sd->npc_id || sd->vender_id || sd->state.storage_flag ||
-		tsd->npc_id || tsd->vender_id || tsd->state.storage_flag)
+	if (sd->npc_id || sd->state.vending || sd->state.buyingstore || sd->state.storage_flag ||
+		tsd->npc_id || tsd->state.vending || tsd->state.buyingstore || tsd->state.storage_flag)
 	{	//Fail
 		clif_tradestart(sd, 2);
 		clif_tradestart(tsd, 2);
@@ -203,7 +204,7 @@ int impossible_trade_check(struct map_session_data *sd)
 				chrif_char_ask_name(-1, sd->status.name, 1, 0, 0, 0, 0, 0, 0); // type: 1 - block
 				set_eof(sd->fd); // forced to disconnect because of the hack
 				// message about the ban
-				sprintf(message_to_gm, msg_txt(540)); //  This player has been definitivly blocked.
+				strcpy(message_to_gm, msg_txt(540)); //  This player has been definitively blocked.
 			// if we ban people
 			} else if (battle_config.ban_hack_trade > 0) {
 				chrif_char_ask_name(-1, sd->status.name, 2, 0, 0, 0, 0, battle_config.ban_hack_trade, 0); // type: 2 - ban (year, month, day, hour, minute, second)
@@ -212,7 +213,7 @@ int impossible_trade_check(struct map_session_data *sd)
 				sprintf(message_to_gm, msg_txt(507), battle_config.ban_hack_trade); //  This player has been banned for %d minute(s).
 			} else
 				// message about the ban
-				sprintf(message_to_gm, msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
+				strcpy(message_to_gm, msg_txt(508)); //  This player hasn't been banned (Ban option is disabled).
 			
 			intif_wis_message_to_gm(wisp_server_name, battle_config.hack_info_GM_level, message_to_gm);
 			return 1;
@@ -354,6 +355,13 @@ void trade_tradeadditem(struct map_session_data *sd, short index, short amount)
 		return;
 	}
 
+	if( item->expire_time )
+	{ // Rental System
+		clif_displaymessage (sd->fd, msg_txt(260));
+		clif_tradeitemok(sd, index+2, 1);
+		return;
+	}
+
 	//Locate a trade position
 	ARR_FIND( 0, 10, trade_i, sd->deal.item[trade_i].index == index || sd->deal.item[trade_i].amount == 0 );
 	if( trade_i == 10 ) //No space left
@@ -448,8 +456,12 @@ void trade_tradecancel(struct map_session_data *sd)
 
 	if(!sd->state.trading)
 	{ // Not trade acepted
-		if( target_sd ) target_sd->trade_partner = 0;
+		if( target_sd ) {
+			target_sd->trade_partner = 0;
+			clif_tradecancelled(target_sd);
+		}
 		sd->trade_partner = 0;
+		clif_tradecancelled(sd);
 		return;
 	}
 	
@@ -547,7 +559,7 @@ void trade_tradecommit(struct map_session_data *sd)
 					log_pick_pc(sd, "T", sd->status.inventory[n].nameid, -(sd->deal.item[trade_i].amount), &sd->status.inventory[n]);
 					log_pick_pc(tsd, "T", sd->status.inventory[n].nameid, sd->deal.item[trade_i].amount, &sd->status.inventory[n]);
 				}
-				pc_delitem(sd, n, sd->deal.item[trade_i].amount, 1);
+				pc_delitem(sd, n, sd->deal.item[trade_i].amount, 1, 6);
 			} else
 				clif_additem(sd, n, sd->deal.item[trade_i].amount, 0);
 			sd->deal.item[trade_i].index = 0;
@@ -566,7 +578,7 @@ void trade_tradecommit(struct map_session_data *sd)
 					log_pick_pc(tsd, "T", tsd->status.inventory[n].nameid, -(tsd->deal.item[trade_i].amount), &tsd->status.inventory[n]);
 					log_pick_pc(sd, "T", tsd->status.inventory[n].nameid, tsd->deal.item[trade_i].amount, &tsd->status.inventory[n]);
 				}
-				pc_delitem(tsd, n, tsd->deal.item[trade_i].amount, 1);
+				pc_delitem(tsd, n, tsd->deal.item[trade_i].amount, 1, 6);
 			} else
 				clif_additem(tsd, n, tsd->deal.item[trade_i].amount, 0);
 			tsd->deal.item[trade_i].index = 0;

@@ -29,7 +29,7 @@ void mail_clear(struct map_session_data *sd)
 
 int mail_removeitem(struct map_session_data *sd, short flag)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
 	if( sd->mail.amount )
 	{
@@ -38,7 +38,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 			if(log_config.enable_logs&0x2000)
 				log_pick_pc(sd, "E", sd->mail.nameid, -sd->mail.amount, &sd->status.inventory[sd->mail.index]);
 
-			pc_delitem(sd, sd->mail.index, sd->mail.amount, 1);
+			pc_delitem(sd, sd->mail.index, sd->mail.amount, 1, 0);
 		}
 		else
 			clif_additem(sd, sd->mail.index, sd->mail.amount, 0);
@@ -52,7 +52,7 @@ int mail_removeitem(struct map_session_data *sd, short flag)
 
 int mail_removezeny(struct map_session_data *sd, short flag)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
 	if (flag && sd->mail.zeny > 0)
 	{  //Zeny send
@@ -69,15 +69,13 @@ int mail_removezeny(struct map_session_data *sd, short flag)
 
 unsigned char mail_setitem(struct map_session_data *sd, int idx, int amount)
 {
-	if (idx == 0)
+	if( idx == 0 )
 	{ // Zeny Transfer
-		if( amount < 0 )
-			return 0;
+		if( amount < 0 || !pc_can_give_items(pc_isGM(sd)) )
+			return 1;
+
 		if( amount > sd->status.zeny )
 			amount = sd->status.zeny;
-
-		if( !pc_can_give_items(pc_isGM(sd)) )
-			amount = 0;
 
 		sd->mail.zeny = amount;
 		// clif_updatestatus(sd, SP_ZENY);
@@ -122,6 +120,9 @@ bool mail_setattachment(struct map_session_data *sd, struct mail_message *msg)
 		if( sd->status.inventory[n].amount < sd->mail.amount )
 			return false;
 
+		if( sd->weight > sd->max_weight )
+			return false;
+
 		memcpy(&msg->item, &sd->status.inventory[n], sizeof(struct item));
 		msg->item.amount = sd->mail.amount;
 	}
@@ -159,9 +160,9 @@ void mail_getattachment(struct map_session_data* sd, int zeny, struct item* item
 
 int mail_openmail(struct map_session_data *sd)
 {
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 
-	if( sd->state.storage_flag || sd->vender_id || sd->state.trading )
+	if( sd->state.storage_flag || sd->state.vending || sd->state.buyingstore || sd->state.trading )
 		return 0;
 
 	clif_Mail_window(sd->fd, 0);
@@ -174,12 +175,15 @@ void mail_deliveryfail(struct map_session_data *sd, struct mail_message *msg)
 	nullpo_retv(sd);
 	nullpo_retv(msg);
 
-	// Item  recieve (due to failure)
-	if(log_config.enable_logs&0x2000)
-		log_pick_pc(sd, "E", msg->item.nameid, msg->item.amount, &msg->item);
+	if( msg->item.amount > 0 )
+	{
+		// Item recieve (due to failure)
+		if(log_config.enable_logs&0x2000)
+			log_pick_pc(sd, "E", msg->item.nameid, msg->item.amount, &msg->item);
 
-	pc_additem(sd, &msg->item, msg->item.amount);
-	
+		pc_additem(sd, &msg->item, msg->item.amount);
+	}
+
 	if( msg->zeny > 0 )
 	{
 		//Zeny recieve (due to failure)

@@ -22,19 +22,11 @@
 //= 1.9 - Moved Umbala Event, Create Essence/Dismantle Stone, and Skeletal Gate to npc/quests/quests_umbala.txt [Evera]
 //= 2.0 - Removed duplicates, max NPC name length is 23, so Utan Tribe Young Adult#1, the 1 is skipped [Toms]
 //= 2.1 - Updated to Aegis 10.3 standards. [L0ne_W0lf]
-//=	- Disabled warping to Niflheim from the bungee jump, uncomment to reenable.
 //============================================================
 
 comodo,170,137,7	script	La Ed#um	84,{
 	end;
 
-OnEmoteHmm:
-	emotion e_hmm;
-	end;
-
-OnEmoteGG:
-	emotion e_gg;
-	end;
 }
 
 comodo,171,137,1	script	Haith#um	92,{
@@ -62,7 +54,7 @@ comodo,171,137,1	script	Haith#um	92,{
 	mes "would tell us about such a";
 	mes "great treasure so easily?";
 	emotion e_hmm;
-	donpcevent "La Ed#um::OnEmoteHmm";
+	emotion e_hmm,0,"La Ed#um";
 	next;
 	select("Hm? What treasure?");
 	mes "[La Ed]";
@@ -83,7 +75,7 @@ comodo,171,137,1	script	Haith#um	92,{
 	mes "[La Ed, Haith]";
 	mes "If you pay us 1,000 zeny, we will tell you!";
 	emotion e_gg;
-	donpcevent "La Ed#um::OnEmoteGG";
+	emotion e_gg,0,"La Ed#um";
 	next;
 	if (select("Pay 1,000 zeny:Refuse to pay") == 1) {
 		if (Zeny > 999) {
@@ -1021,10 +1013,10 @@ OnTouch:
 		mapannounce "umbala","Bungee Jump: "+strcharinfo(0)+" : Wooooooaaaaaaaaaaaaaahhhhhhhhhhhh~~~~~~!",bc_map;
 		end;
 	case 3:
-		//if (rand(1,2) == 2) {
-		//	percentheal -99,0;
-		//	warp "nif_in",69,15;
-		//}
+		if (rand(1,2) == 2) {
+			percentheal -99,0;
+			warp "nif_in",69,15;
+		}
 		end;
 	}
 }

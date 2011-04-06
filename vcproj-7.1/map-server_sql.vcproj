@@ -21,8 +21,8 @@
 				AdditionalOptions="/wd4018
 /wd4100"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;MAPREGSQL;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\zlib\include;..\3rdparty\pcre\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
@@ -41,10 +41,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib pcre.lib zdll.lib"
+				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server_sql.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib;..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
@@ -93,8 +93,8 @@
 				EnableFiberSafeOptimizations="TRUE"
 				OptimizeForProcessor="2"
 				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;MAPREGSQL;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\zlib\include;..\3rdparty\pcre\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="TRUE"
 				RuntimeLibrary="3"
 				DefaultCharIsUnsigned="FALSE"
@@ -107,10 +107,10 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib pcre.lib zdll.lib"
+				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server_sql.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib;..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
@@ -161,10 +161,16 @@
 				RelativePath="..\src\map\battle.h">
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.c">
+				RelativePath="..\src\map\battleground.c">
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.h">
+				RelativePath="..\src\map\battleground.h">
+			</File>
+			<File
+				RelativePath="..\src\map\buyingstore.c">
+			</File>
+			<File
+				RelativePath="..\src\map\buyingstore.h">
 			</File>
 			<File
 				RelativePath="..\src\map\chat.c">
@@ -227,6 +233,24 @@
 				RelativePath="..\src\map\map.h">
 			</File>
 			<File
+				RelativePath="..\src\map\mapreg.h">
+			</File>
+			<File
+				RelativePath="..\src\map\mapreg_sql.c">
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.c">
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.h">
+			</File>
+			<File
+				RelativePath="..\src\map\instance.c">
+			</File>
+			<File
+				RelativePath="..\src\map\instance.h">
+			</File>
+			<File
 				RelativePath="..\src\map\mercenary.c">
 			</File>
 			<File
@@ -266,19 +290,28 @@
 				RelativePath="..\src\map\pc.h">
 			</File>
 			<File
-				RelativePath="..\src\map\pcre.h">
-			</File>
-			<File
 				RelativePath="..\src\map\pet.c">
 			</File>
 			<File
 				RelativePath="..\src\map\pet.h">
 			</File>
 			<File
+				RelativePath="..\src\map\quest.c">
+			</File>
+			<File
+				RelativePath="..\src\map\quest.h">
+			</File>
+			<File
 				RelativePath="..\src\map\script.c">
 			</File>
 			<File
 				RelativePath="..\src\map\script.h">
+			</File>
+			<File
+				RelativePath="..\src\map\searchstore.c">
+			</File>
+			<File
+				RelativePath="..\src\map\searchstore.h">
 			</File>
 			<File
 				RelativePath="..\src\map\skill.c">
@@ -315,12 +348,6 @@
 			</File>
 			<File
 				RelativePath="..\src\map\vending.h">
-			</File>
-			<File
-				RelativePath="..\src\map\quest.c">
-			</File>
-			<File
-				RelativePath="..\src\map\quest.h">
 			</File>
 		</Filter>
 		<Filter
@@ -364,6 +391,12 @@
 			</File>
 			<File
 				RelativePath="..\src\common\malloc.h">
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.c">
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.h">
 			</File>
 			<File
 				RelativePath="..\src\common\mapindex.c">
@@ -427,16 +460,6 @@
 			</File>
 			<File
 				RelativePath="..\src\common\version.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="zlib"
-			Filter="">
-			<File
-				RelativePath="..\src\zlib\zconf.h">
-			</File>
-			<File
-				RelativePath="..\src\zlib\zlib.h">
 			</File>
 		</Filter>
 	</Files>

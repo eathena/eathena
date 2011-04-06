@@ -37,10 +37,11 @@ CREATE TABLE IF NOT EXISTS `cart_inventory` (
   `identify` smallint(6) NOT NULL default '0',
   `refine` tinyint(3) unsigned NOT NULL default '0',
   `attribute` tinyint(4) NOT NULL default '0',
-  `card0` int(11) NOT NULL default '0',
-  `card1` int(11) NOT NULL default '0',
-  `card2` int(11) NOT NULL default '0',
-  `card3` int(11) NOT NULL default '0',
+  `card0` smallint(11) NOT NULL default '0',
+  `card1` smallint(11) NOT NULL default '0',
+  `card2` smallint(11) NOT NULL default '0',
+  `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) ENGINE=MyISAM;
@@ -70,11 +71,11 @@ CREATE TABLE IF NOT EXISTS `char` (
   `hp` mediumint(8) unsigned NOT NULL default '0',
   `max_sp` mediumint(6) unsigned NOT NULL default '0',
   `sp` mediumint(6) unsigned NOT NULL default '0',
-  `status_point` smallint(4) unsigned NOT NULL default '0',
-  `skill_point` smallint(4) unsigned NOT NULL default '0',
+  `status_point` int(11) unsigned NOT NULL default '0',
+  `skill_point` int(11) unsigned NOT NULL default '0',
   `option` int(11) NOT NULL default '0',
   `karma` tinyint(3) NOT NULL default '0',
-  `manner` tinyint(3) NOT NULL default '0',
+  `manner` smallint(6) NOT NULL default '0',
   `party_id` int(11) unsigned NOT NULL default '0',
   `guild_id` int(11) unsigned NOT NULL default '0',
   `pet_id` int(11) unsigned NOT NULL default '0',
@@ -99,6 +100,8 @@ CREATE TABLE IF NOT EXISTS `char` (
   `mother` int(11) unsigned NOT NULL default '0',
   `child` int(11) unsigned NOT NULL default '0',
   `fame` int(11) unsigned NOT NULL default '0',
+  `rename` SMALLINT(3) unsigned NOT NULL default '0',
+  `delete_date` INT(11) UNSIGNED NOT NULL DEFAULT '0',
   PRIMARY KEY  (`char_id`),
   KEY `account_id` (`account_id`),
   KEY `party_id` (`party_id`),
@@ -180,7 +183,7 @@ CREATE TABLE IF NOT EXISTS `guild` (
   `connect_member` tinyint(6) unsigned NOT NULL default '0',
   `max_member` tinyint(6) unsigned NOT NULL default '0',
   `average_lv` smallint(6) unsigned NOT NULL default '1',
-  `exp` int(11) unsigned NOT NULL default '0',
+  `exp` bigint(20) unsigned NOT NULL default '0',
   `next_exp` int(11) unsigned NOT NULL default '0',
   `skill_point` tinyint(11) unsigned NOT NULL default '0',
   `mes1` varchar(60) NOT NULL default '',
@@ -309,6 +312,7 @@ CREATE TABLE IF NOT EXISTS `guild_storage` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `guild_id` (`guild_id`)
 ) ENGINE=MyISAM;
@@ -369,6 +373,7 @@ CREATE TABLE IF NOT EXISTS `inventory` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `char_id` (`char_id`)
 ) ENGINE=MyISAM;
@@ -393,17 +398,16 @@ CREATE TABLE IF NOT EXISTS `login` (
   `account_id` int(11) unsigned NOT NULL auto_increment,
   `userid` varchar(23) NOT NULL default '',
   `user_pass` varchar(32) NOT NULL default '',
-  `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
   `sex` enum('M','F','S') NOT NULL default 'M',
-  `logincount` mediumint(9) unsigned NOT NULL default '0',
   `email` varchar(39) NOT NULL default '',
   `level` tinyint(3) NOT NULL default '0',
-  `error_message` smallint(11) unsigned NOT NULL default '0',
-  `connect_until` int(11) unsigned NOT NULL default '0',
-  `last_ip` varchar(100) NOT NULL default '',
-  `memo` smallint(11) unsigned NOT NULL default '0',
-  `ban_until` int(11) unsigned NOT NULL default '0',
   `state` int(11) unsigned NOT NULL default '0',
+  `unban_time` int(11) unsigned NOT NULL default '0',
+  `expiration_time` int(11) unsigned NOT NULL default '0',
+  `logincount` mediumint(9) unsigned NOT NULL default '0',
+  `lastlogin` datetime NOT NULL default '0000-00-00 00:00:00',
+  `last_ip` varchar(100) NOT NULL default '',
+  `birthdate` DATE NOT NULL DEFAULT '0000-00-00',
   PRIMARY KEY  (`account_id`),
   KEY `name` (`userid`)
 ) ENGINE=MyISAM AUTO_INCREMENT=2000000; 
@@ -440,20 +444,6 @@ CREATE TABLE IF NOT EXISTS `sc_data` (
   `val4` int(11) NOT NULL default '0',
   KEY (`account_id`),
   KEY (`char_id`)
-) ENGINE=MyISAM;
-
---
--- Table structure for table `loginlog`
---
-
-DROP TABLE IF EXISTS `loginlog`;
-CREATE TABLE `loginlog` (
-  `time` datetime NOT NULL default '0000-00-00 00:00:00',
-  `ip` int(10) unsigned NOT NULL default '0',
-  `user` varchar(23) NOT NULL default '',
-  `rcode` tinyint(4) NOT NULL default '0',
-  `log` varchar(255) NOT NULL default '',
-  INDEX (`ip`)
 ) ENGINE=MyISAM;
 
 --
@@ -498,6 +488,37 @@ CREATE TABLE IF NOT EXISTS `memo` (
 ) ENGINE=MyISAM;
 
 --
+-- Table structure for table `mercenary`
+--
+
+CREATE TABLE IF NOT EXISTS `mercenary` (
+  `mer_id` int(11) unsigned NOT NULL auto_increment,
+  `char_id` int(11) NOT NULL,
+  `class` mediumint(9) unsigned NOT NULL default '0',
+  `hp` int(12) NOT NULL default '1',
+  `sp` int(12) NOT NULL default '1',
+  `kill_counter` int(11) NOT NULL,
+  `life_time` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`mer_id`)
+) ENGINE=MyISAM;
+
+--
+-- Table structure for table `mercenary_owner`
+--
+
+CREATE TABLE IF NOT EXISTS `mercenary_owner` (
+  `char_id` int(11) NOT NULL,
+  `merc_id` int(11) NOT NULL default '0',
+  `arch_calls` int(11) NOT NULL default '0',
+  `arch_faith` int(11) NOT NULL default '0',
+  `spear_calls` int(11) NOT NULL default '0',
+  `spear_faith` int(11) NOT NULL default '0',
+  `sword_calls` int(11) NOT NULL default '0',
+  `sword_faith` int(11) NOT NULL default '0',
+  PRIMARY KEY  (`char_id`)
+) ENGINE=MyISAM;
+
+--
 -- Table structure for table `party`
 --
 
@@ -538,21 +559,12 @@ CREATE TABLE IF NOT EXISTS `pet` (
 CREATE TABLE IF NOT EXISTS `quest` (
   `char_id` int(11) unsigned NOT NULL default '0',
   `quest_id` int(10) unsigned NOT NULL,
-  `state` enum('1','0') NOT NULL default '0',
-  PRIMARY KEY  USING BTREE (`char_id`,`quest_id`)
-) ENGINE=MyISAM;
-
---
--- Table structure for table `quest_mob`
---
-
-CREATE TABLE IF NOT EXISTS `quest_objective` (
-  `quest_id` int(11) unsigned NOT NULL,
-  `count` mediumint(8) unsigned NOT NULL default '0',
-  `name` varchar(255) NOT NULL default '',
-  `num` tinyint(3) unsigned NOT NULL,
-  `char_id` int(10) unsigned NOT NULL,
-  PRIMARY KEY  USING BTREE (`quest_id`,`num`,`char_id`)
+  `state` enum('0','1','2') NOT NULL default '0',
+  `time` int(11) unsigned NOT NULL default '0',
+  `count1` mediumint(8) unsigned NOT NULL default '0',
+  `count2` mediumint(8) unsigned NOT NULL default '0',
+  `count3` mediumint(8) unsigned NOT NULL default '0',
+  PRIMARY KEY  (`char_id`,`quest_id`)
 ) ENGINE=MyISAM;
 
 --
@@ -564,8 +576,7 @@ CREATE TABLE IF NOT EXISTS `ragsrvinfo` (
   `name` varchar(255) NOT NULL default '',
   `exp` int(11) unsigned NOT NULL default '0',
   `jexp` int(11) unsigned NOT NULL default '0',
-  `drop` int(11) unsigned NOT NULL default '0',
-  `motd` varchar(255) NOT NULL default ''
+  `drop` int(11) unsigned NOT NULL default '0'
 ) ENGINE=MyISAM;
 
 --
@@ -619,6 +630,7 @@ CREATE TABLE IF NOT EXISTS `storage` (
   `card1` smallint(11) NOT NULL default '0',
   `card2` smallint(11) NOT NULL default '0',
   `card3` smallint(11) NOT NULL default '0',
+  `expire_time` int(11) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`),
   KEY `account_id` (`account_id`)
 ) ENGINE=MyISAM;

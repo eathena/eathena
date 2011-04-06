@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 1.1
+//= 1.6
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -12,12 +12,18 @@
 //===== Additional Comments: =================================
 //= 1.0 First version. [L0ne_W0lf]
 //= 1.1 Fixed small official bug. [L0ne_W0lf]
+//= 1.2 Replaced effect numerics with constants. [L0ne_W0lf]
+//= 1.3 Fixed a little mistake [akrus]
+//= 1.4 Corrected issue with top record setting. [L0ne_W0lf]
+//= 1.5 Fixed name being saved under expert mode. (bugreport:4433) [L0ne_W0lf]
+//= 1.6 Updated 'waitingroom' to support required zeny/lvl. [Kisuka]
 //============================================================
 
 turbo_room,84,135,3	script	Normal mode - 8 person	124,{
+	end;
+
 OnInit:
-	waitingroom "Normal mode - 8 person",60,"Normal mode - 8 person::OnStartArena",8;
-	//SetFeeZeny 1000
+	waitingroom "Normal mode - 8 person",60,"Normal mode - 8 person::OnStartArena",8,1000,10,99;
 	enablewaitingroomevent "Normal mode - 8 person";
 	end;
 
@@ -816,7 +822,7 @@ OnInit:
 
 OnTouch:
 	mapannounce "turbo_n_8","" + strcharinfo(0) +" has just arrived at the Finish Line! Congratulations!",bc_map,"0xFFFF00";
-	set $ttnames$[5],strcharinfo(0);
+	set $ttnames$[2],strcharinfo(0);
 	donpcevent "TBT_Guide#Broadcast::Onwin_n8";
 	if (tt_point < 28951)
 		set tt_point,tt_point+50;
@@ -876,7 +882,7 @@ turbo_n_8,384,167,1	script	Winner Helper#TBT_n_8	47,{
 		next;
 		if (tt_rank > $ttranks[1]) {
 			setarray $ttranks[0],$ttranks[0],tt_rank,$ttranks[1],$ttranks[2],$ttranks[3],$ttranks[4];
-			setarray $ttnames[9],strcharinfo(0);
+			setarray $ttnames$[9],strcharinfo(0);
 			mes "[Guide]";
 			mes "Congratulations!";
 			mes "You are ranked as";
@@ -900,7 +906,7 @@ turbo_n_8,384,167,1	script	Winner Helper#TBT_n_8	47,{
 		}
 		else if (tt_rank > $ttranks[2]) {
 			setarray $ttranks[0],$ttranks[0],$ttranks[1],tt_rank,$ttranks[3],$ttranks[4],$ttranks[5];
-			setarray $ttnames[10],strcharinfo(0);
+			setarray $ttnames$[10],strcharinfo(0);
 			mes "[Guide]";
 			mes "Congratulations!";
 			mes "You've ranked Second";
@@ -924,7 +930,7 @@ turbo_n_8,384,167,1	script	Winner Helper#TBT_n_8	47,{
 		}
 		else if (tt_rank > $ttranks[3]) {
 			setarray $ttranks[0],$ttranks[0],$ttranks[1],$ttranks[2],tt_rank,$ttranks[4],$ttranks[5];
-			setarray $ttnames[11],strcharinfo(0);
+			setarray $ttnames$[11],strcharinfo(0);
 			mes "[Guide]";
 			mes "Congratulations!";
 			mes "You've ranked Third";
@@ -948,7 +954,7 @@ turbo_n_8,384,167,1	script	Winner Helper#TBT_n_8	47,{
 		}
 		else if (tt_rank > $ttranks[4]) {
 			setarray $ttranks[0],$ttranks[0],$ttranks[1],$ttranks[2],$ttranks[3],tt_rank,$ttranks[5];
-			setarray $ttnames[12],strcharinfo(0);
+			setarray $ttnames$[12],strcharinfo(0);
 			mes "[Guide]";
 			mes "Congratulations!";
 			mes "You've ranked Fourth";
@@ -972,7 +978,7 @@ turbo_n_8,384,167,1	script	Winner Helper#TBT_n_8	47,{
 		}
 		else if (tt_rank > $ttranks[5]) {
 			setarray $ttranks[0],$ttranks[0],$ttranks[1],$ttranks[2],$ttranks[3],$ttranks[4],tt_rank;
-			setarray $ttnames[13],strcharinfo(0);
+			setarray $ttnames$[13],strcharinfo(0);
 			mes "[Guide]";
 			mes "Congratulations!";
 			mes "You've ranked Fifth";
@@ -1240,7 +1246,7 @@ turbo_n_8,253,364,0	duplicate(Warp_n_8)	Warp#n_8_7	-1,2,2
 
 turbo_n_8,307,55,0	script	trap_n8#F1::TurboTrap_n8	-1,1,1,{
 OnTouch:
-	specialeffect 106; //"trap_e4#F1" EF_BLASTMINEBOMB
+	specialeffect EF_BLASTMINEBOMB;
 	set .@HitTrap,10;
 	if (.@HitTrap > 0 && .@HitTrap < 4)
 		percentheal -1,0;
@@ -1295,7 +1301,7 @@ turbo_n_8,332,36,0	duplicate(TurboTrap_n8)	trap_n8#F41	139,1,1
 
 turbo_n_8,336,56,0	script	trap_n8#F42::TurboTrap_n8_2	-1,1,1,{
 OnTouch:
-	specialeffect 108; //"trap_e4#F42" EF_FREEZING
+	specialeffect EF_FREEZING;
 	set .@HitTrap,10;
 	if (.@HitTrap > 0 && .@HitTrap < 4)
 		percentheal -1,0;

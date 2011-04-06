@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= Darkchild
 //===== Current Version: ===================================== 
-//= 2.0
+//= 2.2
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -14,10 +14,12 @@
 //===== Additional Comments: ================================= 
 //= 1.9 Rescripted to the Aegis 10.3 Standars. [Samuray22]
 //= 2.0 Rescripted again, this time using an iRO base. [L0ne_W0lf]
+//= 2.1 Swapped use of baseclass for basejob. [L0ne_W0lf]
+//= 2.2 Added Quest Log commands. [Kisuka]
 //============================================================ 
 
 aldeba_in,223,167,3	script	Tzerero#sn	709,{
-	if (BaseClass == Job_SuperNovice) {
+	if (BaseJob == Job_SuperNovice) {
 		mes "[Tzerero]";
 		mes "I trust that you are enjoying";
 		mes "life as a Super Novice? Ah,";
@@ -52,6 +54,7 @@ aldeba_in,223,167,3	script	Tzerero#sn	709,{
 		mes "There's nothing's there.";
 		mes "Something fishy is going on here!^000000";
 		next;
+		completequest 6010;
 		callfunc "F_ClearJobVar";
 		getitem 2339,1; //G_Strings
 		if (Upper==0) jobchange Job_SuperNovice;
@@ -102,7 +105,7 @@ aldeba_in,223,167,3	script	Tzerero#sn	709,{
 		mes "^FF000030 Resin^000000.";
 		close;
 	}
-	if (BaseClass == Job_Novice && upper != 1) {
+	if (BaseJob == Job_Novice && upper != 1) {
 		mes "[Tzerero]";
 		mes "...Hmm?";
 		mes "Stop.";
@@ -137,7 +140,7 @@ aldeba_in,223,167,3	script	Tzerero#sn	709,{
 		next;
 		switch(select("Accept his offer.:Reject his offer.:Listen more carefully.")) {
 		case 1:
-			if (getskilllv(1) < 9) {
+			if (getskilllv("NV_BASIC") < 9) {
 				mes "[Tzerero]";
 				mes "Hmm...But do you truly";
 				mes "appreciate the value of";
@@ -207,6 +210,7 @@ aldeba_in,223,167,3	script	Tzerero#sn	709,{
 			mes "Hahahahaha~";
 			next;
 			set SUPNOV_Q,1;
+			setquest 6010;
 			mes "[Tzerero]";
 			mes "Good luck, my friend.";
 			close;
@@ -269,7 +273,7 @@ aldeba_in,223,167,3	script	Tzerero#sn	709,{
 		}
 	}
 	else {
-		if (BaseClass == Job_SuperNovice) {
+		if (BaseJob == Job_SuperNovice) {
 			mes "[Tzerero]";
 			mes "How do you like living";
 			mes "life simply as a Super";
@@ -420,7 +424,7 @@ aldebaran,54,238,5	script	Kafra Employee#sn	117,{
 				if (Zeny >= 1899) {
 					set RESRVPTS, RESRVPTS + 190;
 					set zeny,zeny-1900;
-					if (getskilllv(39) > 0) setcart;
+					if (getskilllv("MC_PUSHCART") > 0) setcart;
 					mes "[Kafra Employee]";
 					mes "Thank you for using my service.";
 					mes "Although what I am doing might";

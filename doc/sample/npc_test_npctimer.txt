@@ -1,0 +1,33 @@
+
+prontera,156,183,0	script	NPCtimerTest::npctimerX0000	116,{
+	mes "Timer value" + getnpctimer(0);
+	mes "State timer" + getnpctimer(1,"npctimerX0000");
+	mes "Number of events" + getnpctimer(2);
+	menu "Initialization",L_INIT,"Stop",L_STOP,"Start",L_START,"Settings",L_SET;
+	close;
+L_INIT:
+	initnpctimer;
+	close;
+L_STOP:
+	stopnpctimer;
+	close;
+L_START:
+	startnpctimer;
+	close;
+L_SET:
+	input @temp;
+	setnpctimer @temp;
+	close;
+
+OnTimer1000:
+	announce "After a second",0;
+	end;
+
+OnTimer5000:
+	announce "After 5 seconds",0;
+	end;
+
+OnTimer10000:
+	announce "After 10 seconds",0;
+	end;
+}

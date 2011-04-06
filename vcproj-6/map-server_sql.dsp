@@ -38,14 +38,14 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W2 /GX /O2 /I "..\src\common" /I "..\src\zlib" /I "..\src\mysql" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_WIN32" /D "__WIN32" /D "PCRE_SUPPORT" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /Fp"tmp/map_sql/map-server_sql.pch" /YX /Fo"tmp/map_sql/" /Fd"tmp/map_sql/" /FD /c
+# ADD CPP /nologo /W2 /GX /O2 /I "..\3rdparty\mysql\include" /I "..\3rdparty\zlib\include" /I "..\3rdparty\pcre\include" /I "..\3rdparty\msinttypes\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_WIN32" /D "__WIN32" /D "PCRE_SUPPORT" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /Fp"tmp/map_sql/map-server_sql.pch" /YX /Fo"tmp/map_sql/" /Fd"tmp/map_sql/" /FD /c
 # ADD BASE RSC /l 0x409
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 WSOCK32.lib libmysql.lib pcre.lib zdll.lib ws2_32.lib /nologo /subsystem:console /pdb:"tmp/map_sql/map-server_sql.pdb" /machine:I386 /out:"../map-server_sql.exe" /libpath:"../lib"
+# ADD LINK32 WSOCK32.lib libmysql.lib zdll.lib pcre.lib ws2_32.lib /nologo /subsystem:console /pdb:"tmp/map_sql/map-server_sql.pdb" /machine:I386 /out:"../map-server_sql.exe" /libpath:"..\3rdparty\mysql\lib" /libpath:"..\3rdparty\zlib\lib" /libpath:"..\3rdparty\pcre\lib"
 # SUBTRACT LINK32 /pdb:none
 # Begin Target
 
@@ -104,6 +104,14 @@ SOURCE=..\src\common\malloc.c
 # Begin Source File
 
 SOURCE=..\src\common\malloc.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\md5calc.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\md5calc.h
 # End Source File
 # Begin Source File
 
@@ -215,11 +223,19 @@ SOURCE=..\src\map\battle.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\charcommand.c
+SOURCE=..\src\map\battleground.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\charcommand.h
+SOURCE=..\src\map\battleground.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\buyingstore.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\buyingstore.h
 # End Source File
 # Begin Source File
 
@@ -303,6 +319,30 @@ SOURCE=..\src\map\map.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\map\mapreg.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\mapreg_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\homunculus.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\homunculus.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\instance.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\instance.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\map\mercenary.c
 # End Source File
 # Begin Source File
@@ -355,10 +395,6 @@ SOURCE=..\src\map\pc.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\pcre.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\src\map\pet.c
 # End Source File
 # Begin Source File
@@ -367,11 +403,27 @@ SOURCE=..\src\map\pet.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\map\quest.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\quest.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\map\script.c
 # End Source File
 # Begin Source File
 
 SOURCE=..\src\map\script.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\searchstore.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\searchstore.h
 # End Source File
 # Begin Source File
 
@@ -416,26 +468,6 @@ SOURCE=..\src\map\vending.c
 # Begin Source File
 
 SOURCE=..\src\map\vending.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\map\quest.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\map\quest.h
-# End Source File
-# End Group
-# Begin Group "zlib"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\src\zlib\zconf.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\zlib\zlib.h
 # End Source File
 # End Group
 # End Target

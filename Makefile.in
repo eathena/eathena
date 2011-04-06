@@ -2,7 +2,7 @@
 
 HAVE_MYSQL=@HAVE_MYSQL@
 ifeq ($(HAVE_MYSQL),yes)
-	ALL_DEPENDS=common common_sql login login_sql char char_sql map map_sql ladmin tools converters plugins import save
+	ALL_DEPENDS=common common_sql login login_sql char char_sql map map_sql tools converters import save
 	SQL_DEPENDS=common_sql login_sql char_sql map_sql import save
 	COMMON_SQL_DEPENDS=
 	LOGIN_SQL_DEPENDS=common_sql
@@ -10,7 +10,7 @@ ifeq ($(HAVE_MYSQL),yes)
 	MAP_SQL_DEPENDS=common_sql
 	CONVERTERS_DEPENDS=common_sql
 else
-	ALL_DEPENDS=common login char map ladmin tools plugins import save
+	ALL_DEPENDS=common login char map tools import save
 	SQL_DEPENDS=needs_mysql
 	COMMON_SQL_DEPENDS=needs_mysql
 	LOGIN_SQL_DEPENDS=needs_mysql
@@ -19,13 +19,21 @@ else
 	CONVERTERS_DEPENDS=needs_mysql
 endif
 
+WITH_PLUGINS=@WITH_PLUGINS@
+ifeq ($(WITH_PLUGINS),yes)
+	ALL_DEPENDS+=plugins
+	PLUGIN_DEPENDS=common
+else
+	PLUGIN_DEPENDS=no_plugins
+endif
+
 #####################################################################
 .PHONY: txt sql conf \
 	common common_sql \
 	login login_sql \
 	char char_sql \
 	map map_sql \
-	ladmin tools converters plugins addons import save \
+	tools converters plugins addons import save \
 	clean help
 
 all: $(ALL_DEPENDS)
@@ -43,10 +51,10 @@ common_sql: $(COMMON_SQL_DEPENDS)
 	@$(MAKE) -C src/common sql
 
 login: common
-	@$(MAKE) -C src/login
+	@$(MAKE) -C src/login txt
 
 login_sql: $(LOGIN_SQL_DEPENDS)
-	@$(MAKE) -C src/login_sql
+	@$(MAKE) -C src/login sql
 
 char: common
 	@$(MAKE) -C src/char
@@ -60,16 +68,13 @@ map: common
 map_sql: $(MAP_SQL_DEPENDS)
 	@$(MAKE) -C src/map sql
 
-ladmin: common
-	@$(MAKE) -C src/ladmin
-
 tools:
 	@$(MAKE) -C src/tool
 
 converters: $(CONVERTERS_DEPENDS)
 	@$(MAKE) -C src/txt-converter
 
-plugins addons: common
+plugins addons: $(PLUGIN_DEPENDS)
 	@$(MAKE) -C src/plugins
 
 import:
@@ -93,11 +98,9 @@ save:
 clean:
 	@$(MAKE) -C src/common $@
 	@$(MAKE) -C src/login $@
-	@$(MAKE) -C src/login_sql $@
 	@$(MAKE) -C src/char $@
 	@$(MAKE) -C src/char_sql $@
 	@$(MAKE) -C src/map $@
-	@$(MAKE) -C src/ladmin $@
 	@$(MAKE) -C src/plugins $@
 	@$(MAKE) -C src/tool $@
 	@$(MAKE) -C src/txt-converter $@
@@ -113,7 +116,6 @@ help:
 	@echo "'char_sql'    - builds char server (SQL version)"
 	@echo "'map'         - builds map server (TXT version)"
 	@echo "'map_sql'     - builds map server (SQL version)"
-	@echo "'ladmin'      - builds remote administration tool"
 	@echo "'tools'       - builds all the tools in src/tools"
 	@echo "'converters'  - builds the login/char converters"
 	@echo "'plugins'     - builds all the plugins in src/plugins"
@@ -135,6 +137,10 @@ needs_mysql:
 	@echo "MySQL not found or disabled by the configure script"
 	@exit 1
 
+no_plugins:
+	@echo "Plugins disabled by the configure script"
+	@exit 1
+
 #####################################################################
 # TODO
 
@@ -149,7 +155,6 @@ install:	conf/%.conf conf/%.txt
 	$(shell mv npc /opt/eathena/etc/eathena/npc)
 	$(shell mv log/* /opt/eathena/var/log/eathena/)
 	$(shell cp *-server* /opt/eathena/bin/)
-	$(shell cp ladmin /opt/eathena/bin/)
 	$(shell ln -s /opt/eathena/etc/eathena/save/ /opt/eathena/bin/)
 	$(shell ln -s /opt/eathena/etc/eathena/db/ /opt/eathena/bin/)
 	$(shell ln -s /opt/eathena/etc/eathena/conf/ /opt/eathena/bin/)
@@ -160,7 +165,6 @@ bin-clean:
 	$(shell rm /opt/eathena/bin/login-server*)
 	$(shell rm /opt/eathena/bin/char-server*)
 	$(shell rm /opt/eathena/bin/map-server*)
-	$(shell rm /opt/eathena/bin/ladmin)
 
 uninstall:
 	$(shell read -p "WARNING: This target does not work properly yet. Press Ctrl+C to cancel or Enter to continue.")

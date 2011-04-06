@@ -8,8 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-
+#include <errno.h>
 
 
 #define J_MAX_MALLOC_SIZE 65535
@@ -241,13 +240,56 @@ char* _strtok_r(char *s1, const char *s2, char **lasts)
 }
 #endif
 
-#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400) && !defined(CYGWIN)
+#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400) && !defined(HAVE_STRNLEN)
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
 size_t strnlen (const char* string, size_t maxlen)
 {
   const char* end = memchr (string, '\0', maxlen);
   return end ? (size_t) (end - string) : maxlen;
+}
+#endif
+
+#if defined(WIN32) && defined(_MSC_VER) && _MSC_VER <= 1200
+uint64 strtoull(const char* str, char** endptr, int base)
+{
+	uint64 result;
+	int count;
+	int n;
+
+	if( base == 0 )
+	{
+		if( str[0] == '0' && (str[1] == 'x' || str[1] == 'X') )
+			base = 16;
+		else
+		if( str[0] == '0' )
+			base = 8;
+		else
+			base = 10;
+	}
+
+	if( base == 8 )
+		count = sscanf(str, "%I64o%n", &result, &n);
+	else
+	if( base == 10 )
+		count = sscanf(str, "%I64u%n", &result, &n);
+	else
+	if( base == 16 )
+		count = sscanf(str, "%I64x%n", &result, &n);
+	else
+		count = 0; // fail
+
+	if( count < 1 )
+	{
+		errno = EINVAL;
+		result = 0;
+		n = 0;
+	}
+
+	if( endptr )
+		*endptr = (char*)str + n;
+
+	return result;
 }
 #endif
 
@@ -301,14 +343,25 @@ int config_switch(const char* str)
 	return (int)strtol(str, NULL, 0);
 }
 
-/// always nul-terminates the string
+/// strncpy that always nul-terminates the string
 char* safestrncpy(char* dst, const char* src, size_t n)
 {
-	char* ret;
-	ret = strncpy(dst, src, n);
-	if( ret != NULL )
-		ret[n - 1] = '\0';
-	return ret;
+	if( n > 0 )
+	{
+		char* d = dst;
+		const char* s = src;
+		d[--n] = '\0';/* nul-terminate string */
+		for( ; n > 0; --n )
+		{
+			if( (*d++ = *s++) == '\0' )
+			{/* nul-pad remaining bytes */
+				while( --n > 0 )
+					*d++ = '\0';
+				break;
+			}
+		}
+	}
+	return dst;
 }
 
 /// doesn't crash on null pointer
@@ -361,6 +414,28 @@ int strline(const char* str, size_t pos)
 		++str;// skip newline
 	}
 	return line;
+}
+
+/// Produces the hexadecimal representation of the given input.
+/// The output buffer must be at least count*2+1 in size.
+/// Returns true on success, false on failure.
+///
+/// @param output Output string
+/// @param input Binary input buffer
+/// @param count Number of bytes to convert
+bool bin2hex(char* output, unsigned char* input, size_t count)
+{
+	char toHex[] = "0123456789abcdef";
+	size_t i;
+
+	for( i = 0; i < count; ++i )
+	{
+		*output++ = toHex[(*input & 0xF0) >> 4];
+		*output++ = toHex[(*input & 0x0F) >> 0];
+		++input;
+	}
+	*output = '\0';
+	return true;
 }
 
 
@@ -580,7 +655,7 @@ int sv_split(char* str, int len, int startoff, char delim, char** out_fields, in
 			end[0] = end[1] = '\0';
 		*out_fields = end + 2;
 	}
-	else if( (opt&SV_TERMINATE_LF) && end[0] == '\r' )
+	else if( (opt&SV_TERMINATE_CR) && end[0] == '\r' )
 	{
 		if( !(opt&SV_KEEP_TERMINATOR) )
 			end[0] = '\0';
@@ -670,11 +745,22 @@ size_t sv_escape_c(char* out_dest, const char* src, size_t len, const char* esca
 			break;
 		default:
 			if( strchr(escapes,src[i]) )
-			{// escapes to octal
+			{// escape
 				out_dest[j++] = '\\';
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0700)>>6));
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0070)>>3));
-				out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0007)   ));
+				switch( src[i] )
+				{
+				case '\a': out_dest[j++] = 'a'; break;
+				case '\b': out_dest[j++] = 'b'; break;
+				case '\t': out_dest[j++] = 't'; break;
+				case '\v': out_dest[j++] = 'v'; break;
+				case '\f': out_dest[j++] = 'f'; break;
+				case '\?': out_dest[j++] = '?'; break;
+				default:// to octal
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0700)>>6));
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0070)>>3));
+					out_dest[j++] = '0'+((char)(((unsigned char)src[i]&0007)   ));
+					break;
+				}
 			}
 			else
 				out_dest[j++] = src[i];
@@ -835,18 +921,14 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	FILE* fp;
 	int lines = 0;
 	int entries = 0;
-	char* fields[64]; // room for 63 fields ([0] is reserved)
-	int columns;
+	char** fields; // buffer for fields ([0] is reserved)
+	int columns, fields_length;
 	char path[1024], line[1024];
+	char* match;
 
-	if( maxcols > ARRAYLENGTH(fields)-1 )
-	{
-		ShowError("sv_readdb: Insufficient column storage in parser for file \"%s\" (want %d, have only %d). Increase the capacity in the source code please.\n", path, maxcols, ARRAYLENGTH(fields)-1);
-		return false;
-	}
+	snprintf(path, sizeof(path), "%s/%s", directory, filename);
 
 	// open file
-	snprintf(path, sizeof(path), "%s/%s", directory, filename);
 	fp = fopen(path, "r");
 	if( fp == NULL )
 	{
@@ -854,18 +936,25 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 		return false;
 	}
 
+	// allocate enough memory for the maximum requested amount of columns plus the reserved one
+	fields_length = maxcols+1;
+	fields = aMalloc(fields_length*sizeof(char*));
+
 	// process rows one by one
 	while( fgets(line, sizeof(line), fp) )
 	{
 		lines++;
-		if( line[0] == '/' && line[1] == '/' )
-			continue;
-		//TODO: strip trailing // comment
+
+		if( ( match = strstr(line, "//") ) != NULL )
+		{// strip comments
+			match[0] = 0;
+		}
+
 		//TODO: strip trailing whitespace
 		if( line[0] == '\0' || line[0] == '\n' || line[0] == '\r')
 			continue;
 
-		columns = sv_split(line, strlen(line), 0, delim, fields, ARRAYLENGTH(fields), (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
+		columns = sv_split(line, strlen(line), 0, delim, fields, fields_length, (e_svopt)(SV_TERMINATE_LF|SV_TERMINATE_CRLF));
 
 		if( columns < mincols )
 		{
@@ -894,6 +983,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 		entries++;
 	}
 
+	aFree(fields);
 	fclose(fp);
 	ShowStatus("Done reading '"CL_WHITE"%d"CL_RESET"' entries in '"CL_WHITE"%s"CL_RESET"'.\n", entries, path);
 
@@ -942,9 +1032,12 @@ int StringBuf_Vprintf(StringBuf* self, const char* fmt, va_list ap)
 
 	for(;;)
 	{
+		va_list apcopy;
 		/* Try to print in the allocated space. */
 		size = self->max_ - (self->ptr_ - self->buf_);
-		n = vsnprintf(self->ptr_, size, fmt, ap);
+		va_copy(apcopy, ap);
+		n = vsnprintf(self->ptr_, size, fmt, apcopy);
+		va_end(apcopy);
 		/* If that worked, return the length. */
 		if( n > -1 && n < size )
 		{

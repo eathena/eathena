@@ -5,6 +5,7 @@
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
 #include "../common/strlib.h"
+#include "../common/timer.h"
 #include "sql.h"
 
 #ifdef WIN32
@@ -24,6 +25,7 @@ struct Sql
 	MYSQL_RES* result;
 	MYSQL_ROW row;
 	unsigned long* lengths;
+	int keepalive;
 };
 
 
@@ -65,13 +67,20 @@ struct SqlStmt
 Sql* Sql_Malloc(void)
 {
 	Sql* self;
+
 	CREATE(self, Sql, 1);
 	mysql_init(&self->handle);
 	StringBuf_Init(&self->buf);
+	self->lengths = NULL;
+	self->result = NULL;
+	self->keepalive = INVALID_TIMER;
+
 	return self;
 }
 
 
+
+static int Sql_P_Keepalive(Sql* self);
 
 /// Establishes a connection.
 int Sql_Connect(Sql* self, const char* user, const char* passwd, const char* host, uint16 port, const char* db)
@@ -85,6 +94,14 @@ int Sql_Connect(Sql* self, const char* user, const char* passwd, const char* hos
 		ShowSQL("%s\n", mysql_error(&self->handle));
 		return SQL_ERROR;
 	}
+
+	self->keepalive = Sql_P_Keepalive(self);
+	if( self->keepalive == INVALID_TIMER )
+	{
+		ShowSQL("Failed to establish keepalive for DB connection!\n");
+		return SQL_ERROR;
+	}
+
 	return SQL_SUCCESS;
 }
 
@@ -145,7 +162,7 @@ int Sql_GetColumnNames(Sql* self, const char* table, char* out_buf, size_t buf_l
 /// Changes the encoding of the connection.
 int Sql_SetEncoding(Sql* self, const char* encoding)
 {
-	if( self && mysql_set_character_set(&self->handle, encoding) )
+	if( self && mysql_set_character_set(&self->handle, encoding) == 0 )
 		return SQL_SUCCESS;
 	return SQL_ERROR;
 }
@@ -158,6 +175,44 @@ int Sql_Ping(Sql* self)
 	if( self && mysql_ping(&self->handle) == 0 )
 		return SQL_SUCCESS;
 	return SQL_ERROR;
+}
+
+
+
+/// Wrapper function for Sql_Ping.
+///
+/// @private
+static int Sql_P_KeepaliveTimer(int tid, unsigned int tick, int id, intptr data)
+{
+	Sql* self = (Sql*)data;
+	ShowInfo("Pinging SQL server to keep connection alive...\n");
+	Sql_Ping(self);
+	return 0;
+}
+
+
+
+/// Establishes keepalive (periodic ping) on the connection.
+///
+/// @return the keepalive timer id, or INVALID_TIMER
+/// @private
+static int Sql_P_Keepalive(Sql* self)
+{
+	uint32 timeout, ping_interval;
+
+	// set a default value first
+	timeout = 28800; // 8 hours
+
+	// request the timeout value from the mysql server
+	Sql_GetTimeout(self, &timeout);
+
+	if( timeout < 60 )
+		timeout = 60;
+
+	// establish keepalive
+	ping_interval = timeout - 30; // 30-second reserve
+	//add_timer_func_list(Sql_P_KeepaliveTimer, "Sql_P_KeepaliveTimer");
+	return add_timer_interval(gettick() + ping_interval*1000, Sql_P_KeepaliveTimer, 0, (intptr)self, ping_interval*1000);
 }
 
 
@@ -356,6 +411,7 @@ void Sql_Free(Sql* self)
 	{
 		Sql_FreeResult(self);
 		StringBuf_Destroy(&self->buf);
+		if( self->keepalive != INVALID_TIMER ) delete_timer(self->keepalive, Sql_P_KeepaliveTimer);
 		aFree(self);
 	}
 }
@@ -433,8 +489,8 @@ static int Sql_P_BindSqlDataType(MYSQL_BIND* bind, enum SqlDataType buffer_type,
 		buffer_len = sizeof(long);
 		break;
 	case SQLDT_ULONGLONG: bind->is_unsigned = 1;
-	case SQLDT_LONGLONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(long long));
-		buffer_len = sizeof(long long);
+	case SQLDT_LONGLONG: bind->buffer_type = Sql_P_SizeToMysqlIntType(sizeof(int64));
+		buffer_len = sizeof(int64);
 		break;
 	// floating point
 	case SQLDT_FLOAT: bind->buffer_type = MYSQL_TYPE_FLOAT;
@@ -864,7 +920,7 @@ void SqlStmt_ShowDebug_(SqlStmt* self, const char* debug_file, const unsigned lo
 {
 	if( self == NULL )
 		ShowDebug("at %s:%lu -  self is NULL\n", debug_file, debug_line);
-	if( StringBuf_Length(&self->buf) > 0 )
+	else if( StringBuf_Length(&self->buf) > 0 )
 		ShowDebug("at %s:%lu - %s\n", debug_file, debug_line, StringBuf_Value(&self->buf));
 	else
 		ShowDebug("at %s:%lu\n", debug_file, debug_line);

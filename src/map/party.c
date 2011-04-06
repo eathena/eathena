@@ -14,6 +14,7 @@
 #include "atcommand.h"	//msg_txt()
 #include "pc.h"
 #include "map.h"
+#include "instance.h"
 #include "battle.h"
 #include "intif.h"
 #include "clif.h"
@@ -28,7 +29,9 @@
 
 
 static DBMap* party_db; // int party_id -> struct party_data*
-int party_share_level = 10;
+static DBMap* party_booking_db; // Party Booking [Spiria]
+static unsigned long party_booking_nextid = 1;
+
 int party_send_xy_timer(int tid, unsigned int tick, int id, intptr data);
 
 /*==========================================
@@ -45,6 +48,17 @@ static void party_fill_member(struct party_member *member, struct map_session_da
 	member->lv         = sd->status.base_level;
 	member->online     = 1;
 	member->leader     = 0;
+}
+
+/*==========================================
+ * Request an available sd of this party
+ *------------------------------------------*/
+struct map_session_data* party_getavailablesd(struct party_data *p)
+{
+	int i;
+	nullpo_retr(NULL, p);
+	ARR_FIND(0, MAX_PARTY, i, p->data[i].sd != NULL);
+	return( i < MAX_PARTY ) ? p->data[i].sd : NULL;
 }
 
 /*==========================================
@@ -73,11 +87,13 @@ static TBL_PC* party_sd_check(int party_id, int account_id, int char_id)
 void do_final_party(void)
 {
 	party_db->destroy(party_db,NULL);
+	party_booking_db->destroy(party_booking_db,NULL); // Party Booking [Spiria]
 }
 // ‰Šú‰»
 void do_init_party(void)
 {
 	party_db = idb_alloc(DB_OPT_RELEASE_DATA);
+	party_booking_db = idb_alloc(DB_OPT_RELEASE_DATA); // Party Booking [Spiria]
 	add_timer_func_list(party_send_xy_timer, "party_send_xy_timer");
 	add_timer_interval(gettick()+battle_config.party_update_interval, party_send_xy_timer, 0, 0, battle_config.party_update_interval);
 }
@@ -112,7 +128,9 @@ int party_create(struct map_session_data *sd,char *name,int item,int item2)
 	char tname[NAME_LENGTH];
 
 	safestrncpy(tname, name, NAME_LENGTH);
-	if( strlen(trim(tname)) == 0 )
+	trim(tname);
+
+	if( !tname[0] )
 	{// empty name
 		return 0;
 	}
@@ -170,7 +188,7 @@ int party_check_member(struct party *p)
 	struct map_session_data *sd;
 	struct s_mapiterator* iter;
 
-	nullpo_retr(0, p);
+	nullpo_ret(p);
 
 	iter = mapit_getallusers();
 	for( sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); sd = (TBL_PC*)mapit_next(iter) )
@@ -247,7 +265,7 @@ int party_recv_info(struct party *sp)
 	int i;
 	bool party_new = false;
 	
-	nullpo_retr(0, sp);
+	nullpo_ret(sp);
 
 	p = (struct party_data*)idb_ensure(party_db, sp->party_id, create_party);
 	if (!p->party.party_id) //party just received.
@@ -282,17 +300,26 @@ int party_recv_info(struct party *sp)
 
 int party_invite(struct map_session_data *sd,struct map_session_data *tsd)
 {
-	struct party_data *p=party_search(sd->status.party_id);
+	struct party_data *p;
 	int i,flag=0;
 	
-	nullpo_retr(0, sd);
-	if (p==NULL)
+	nullpo_ret(sd);
+	if( ( p = party_search(sd->status.party_id) ) == NULL )
 		return 0;
-
-	if(tsd==NULL) {	//TODO: Find the correct reply packet.
+	if( tsd == NULL) {	//TODO: Find the correct reply packet.
 		clif_displaymessage(sd->fd, msg_txt(3));
 		return 0;
 	}
+	
+	if ( (pc_isGM(sd) >= battle_config.lowest_gm_level && pc_isGM(tsd) < battle_config.lowest_gm_level && !battle_config.gm_can_party && pc_isGM(sd) < battle_config.gm_cant_party_min_lv)
+		|| ( pc_isGM(sd) < battle_config.lowest_gm_level && pc_isGM(tsd) >= battle_config.lowest_gm_level && !battle_config.gm_can_party && pc_isGM(tsd) < battle_config.gm_cant_party_min_lv) )
+	{
+		//GMs can't invite non GMs to the party if not above the invite trust level
+		//Likewise, as long as gm_can_party is off, players can't invite GMs.
+		clif_displaymessage(sd->fd, msg_txt(81));
+		return 0;
+	}
+	
 	//Only leader can invite.
 	ARR_FIND(0, MAX_PARTY, i, p->data[i].sd == sd);
 	if (i == MAX_PARTY || !p->party.member[i].leader)
@@ -377,7 +404,11 @@ void party_member_joined(struct map_session_data *sd)
 	}
 	ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == sd->status.account_id && p->party.member[i].char_id == sd->status.char_id );
 	if (i < MAX_PARTY)
+	{
 		p->data[i].sd = sd;
+		if( p->instance_id )
+			clif_instance_join(sd->fd,p->instance_id);
+	}
 	else
 		sd->status.party_id = 0; //He does not belongs to the party really?
 }
@@ -442,6 +473,9 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 	clif_party_xy(sd);
 	clif_charnameupdate(sd); //Update char name's display [Skotlex]
 
+	if( p->instance_id )
+		clif_instance_join(sd->fd, p->instance_id);
+
 	return 0;
 }
 
@@ -489,7 +523,7 @@ int party_leave(struct map_session_data *sd)
 }
 
 /// Invoked (from char-server) when a party member leaves the party.
-int party_member_leaved(int party_id, int account_id, int char_id)
+int party_member_withdraw(int party_id, int account_id, int char_id)
 {
 	struct map_session_data* sd = map_id2sd(account_id);
 	struct party_data* p = party_search(party_id);
@@ -500,7 +534,7 @@ int party_member_leaved(int party_id, int account_id, int char_id)
 		ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id );
 		if( i < MAX_PARTY )
 		{
-			clif_party_leaved(p,sd,account_id,p->party.member[i].name,0x00);
+			clif_party_withdraw(p,sd,account_id,p->party.member[i].name,0x00);
 			memset(&p->party.member[i], 0, sizeof(p->party.member[0]));
 			memset(&p->data[i], 0, sizeof(p->data[0]));
 			p->party.count--;
@@ -513,7 +547,10 @@ int party_member_leaved(int party_id, int account_id, int char_id)
 		sd->status.party_id = 0;
 		clif_charnameupdate(sd); //Update name display [Skotlex]
 		//TODO: hp bars should be cleared too
+		if( p->instance_id )
+			instance_check_kick(sd);
 	}
+
 	return 0;
 }
 
@@ -526,20 +563,29 @@ int party_broken(int party_id)
 	p = party_search(party_id);
 	if( p == NULL )
 		return 0;
+		
+	if( p->instance_id )
+	{
+		instance[p->instance_id].party_id = 0;
+		instance_destroy( p->instance_id );
+	}
 
-	for(i=0;i<MAX_PARTY;i++){
-		if(p->data[i].sd!=NULL){
-			clif_party_leaved(p,p->data[i].sd,p->party.member[i].account_id,p->party.member[i].name,0x10);
+	for( i = 0; i < MAX_PARTY; i++ )
+	{
+		if( p->data[i].sd!=NULL )
+		{
+			clif_party_withdraw(p,p->data[i].sd,p->party.member[i].account_id,p->party.member[i].name,0x10);
 			p->data[i].sd->status.party_id=0;
 		}
 	}
+
 	idb_remove(party_db,party_id);
 	return 0;
 }
 
 int party_changeoption(struct map_session_data *sd,int exp,int item)
 {
-	nullpo_retr(0, sd);
+	nullpo_ret(sd);
 
 	if( sd->status.party_id==0)
 		return 0;
@@ -720,7 +766,7 @@ int party_send_message(struct map_session_data *sd,const char *mes,int len)
 	party_recv_message(sd->status.party_id,sd->status.account_id,mes,len);
 
 	// Chat logging type 'P' / Party Chat
-	if( log_config.chat&1 || (log_config.chat&8 && !(agit_flag && log_config.chat&64)) )
+	if( log_config.chat&1 || (log_config.chat&8 && !((agit_flag || agit2_flag) && log_config.chat&64)) )
 		log_chat("P", sd->status.party_id, sd->status.char_id, sd->status.account_id, mapindex_id2name(sd->mapindex), sd->bl.x, sd->bl.y, NULL, mes);
 
 	return 0;
@@ -824,7 +870,7 @@ int party_send_xy_clear(struct party_data *p)
 {
 	int i;
 
-	nullpo_retr(0, p);
+	nullpo_ret(p);
 
 	for(i=0;i<MAX_PARTY;i++){
 		if(!p->data[i].sd) continue;
@@ -841,7 +887,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 	struct map_session_data* sd[MAX_PARTY];
 	unsigned int i, c;
 
-	nullpo_retr(0, p);
+	nullpo_ret(p);
 
 	// count the number of players eligible for exp sharing
 	for (i = c = 0; i < MAX_PARTY; i++) {
@@ -869,7 +915,7 @@ int party_exp_share(struct party_data* p, struct block_list* src, unsigned int b
 
 	for (i = 0; i < c; i++)
 	{
-		pc_gainexp(sd[i], src, base_exp, job_exp);
+		pc_gainexp(sd[i], src, base_exp, job_exp, false);
 		if (zeny) // zeny from mobs [Valaris]
 			pc_getzeny(sd[i],zeny);
 	}
@@ -939,11 +985,9 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 	if(log_config.enable_logs&0x8) //Logs items, taken by (P)layers [Lupus]
 		log_pick_pc(target, "P", item_data->nameid, item_data->amount, item_data);
 	
-	if(battle_config.party_show_share_picker && target != sd) {
-		char output[80];
-		sprintf(output, "%s acquired %s.",target->status.name, itemdb_jname(item_data->nameid));
-		clif_disp_onlyself(sd,output,strlen(output));
-	}
+	if( p && battle_config.party_show_share_picker && battle_config.show_picker_item_type&(1<<itemdb_type(item_data->nameid)) )
+		clif_party_show_picker(target, item_data);
+
 	return 0;
 }
 
@@ -974,14 +1018,13 @@ int party_sub_count(struct block_list *bl, va_list ap)
 int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_session_data *sd,int range,...)
 {
 	struct party_data *p;
-	va_list ap;
 	int i;
 	int x0,y0,x1,y1;
 	struct block_list *list[MAX_PARTY];
 	int blockcount=0;
 	int total = 0; //Return value.
 	
-	nullpo_retr(0,sd);
+	nullpo_ret(sd);
 	
 	if((p=party_search(sd->status.party_id))==NULL)
 		return 0;
@@ -991,8 +1034,6 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 	x1=sd->bl.x+range;
 	y1=sd->bl.y+range;
 
-	va_start(ap,range);
-	
 	for(i=0;i<MAX_PARTY;i++)
 	{
 		struct map_session_data *psd = p->data[i].sd;
@@ -1009,10 +1050,122 @@ int party_foreachsamemap(int (*func)(struct block_list*,va_list),struct map_sess
 	map_freeblock_lock();
 	
 	for(i=0;i<blockcount;i++)
-		total += func(list[i],ap);
+	{
+		va_list ap;
+		va_start(ap, range);
+		total += func(list[i], ap);
+		va_end(ap);
+	}
 
 	map_freeblock_unlock();
 
-	va_end(ap);
 	return total;
+}
+
+/*==========================================
+ * Party Booking in KRO [Spiria]
+ *------------------------------------------*/
+
+static struct party_booking_ad_info* create_party_booking_data(void)
+{
+	struct party_booking_ad_info *pb_ad;
+	CREATE(pb_ad, struct party_booking_ad_info, 1);
+	pb_ad->index = party_booking_nextid++;
+	return pb_ad;
+}
+
+void party_booking_register(struct map_session_data *sd, short level, short mapid, short* job)
+{
+	struct party_booking_ad_info *pb_ad;
+	int i;
+
+	pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id);
+
+	if( pb_ad == NULL )
+	{
+		pb_ad = create_party_booking_data();
+		idb_put(party_booking_db, sd->status.char_id, pb_ad);
+	}
+	
+	memcpy(pb_ad->charname,sd->status.name,NAME_LENGTH);
+	pb_ad->starttime = (int)time(NULL);
+	pb_ad->p_detail.level = level;
+	pb_ad->p_detail.mapid = mapid;
+
+	for(i=0;i<PARTY_BOOKING_JOBS;i++)
+		if(job[i] != 0xFF)
+			pb_ad->p_detail.job[i] = job[i];
+		else pb_ad->p_detail.job[i] = -1;
+
+	clif_PartyBookingRegisterAck(sd, 0);
+	clif_PartyBookingInsertNotify(sd, pb_ad); // Notice
+}
+
+void party_booking_update(struct map_session_data *sd, short* job)
+{
+	int i;
+	struct party_booking_ad_info *pb_ad;
+
+	pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id);
+	
+	if( pb_ad == NULL )
+		return;
+	
+	pb_ad->starttime = (int)time(NULL);// Update time.
+
+	for(i=0;i<PARTY_BOOKING_JOBS;i++)
+		if(job[i] != 0xFF)
+			pb_ad->p_detail.job[i] = job[i];
+		else pb_ad->p_detail.job[i] = -1;
+
+	clif_PartyBookingUpdateNotify(sd, pb_ad);
+}
+
+void party_booking_search(struct map_session_data *sd, short level, short mapid, short job, unsigned long lastindex, short resultcount)
+{
+	struct party_booking_ad_info *pb_ad;
+	int i, count=0;
+	struct party_booking_ad_info* result_list[PARTY_BOOKING_RESULTS];
+	bool more_result = false;
+	DBIterator* iter = party_booking_db->iterator(party_booking_db);
+	
+	memset(result_list, 0, sizeof(result_list));
+	
+	for( pb_ad = (struct party_booking_ad_info*)iter->first(iter,NULL);	iter->exists(iter);	pb_ad = (struct party_booking_ad_info*)iter->next(iter,NULL) )
+	{
+		if (pb_ad->index < lastindex || (level && (pb_ad->p_detail.level < level-15 || pb_ad->p_detail.level > level)))
+			continue;
+		if (count >= PARTY_BOOKING_RESULTS){
+			more_result = true;
+			break;
+		}
+		if (mapid == 0 && job == -1)
+			result_list[count] = pb_ad;
+		else if (mapid == 0) {
+			for(i=0; i<PARTY_BOOKING_JOBS; i++)
+				if (pb_ad->p_detail.job[i] == job && job != -1)
+					result_list[count] = pb_ad;
+		} else if (job == -1){
+			if (pb_ad->p_detail.mapid == mapid)
+				result_list[count] = pb_ad;
+		}
+		if( result_list[count] )
+		{
+			count++;
+		}
+	}
+	iter->destroy(iter);
+	clif_PartyBookingSearchAck(sd->fd, result_list, count, more_result);
+}
+
+bool party_booking_delete(struct map_session_data *sd)
+{
+	struct party_booking_ad_info* pb_ad;
+
+	if((pb_ad = (struct party_booking_ad_info*)idb_get(party_booking_db, sd->status.char_id))!=NULL)
+	{
+		clif_PartyBookingDeleteNotify(sd, pb_ad->index);
+		idb_remove(party_booking_db,sd->status.char_id);
+	}
+	return true;
 }

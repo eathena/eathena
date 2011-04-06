@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="login-server_sql"
 	ProjectGUID="{D356871D-58E1-450B-967A-E5E9646175AF}"
 	RootNamespace="login-server_sql"
@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_SQL"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -52,9 +52,9 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4100;4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -67,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -95,9 +95,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -136,8 +133,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib;..\src\mysql"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
+				AdditionalIncludeDirectories="..\3rdparty\mysql\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION;WITH_SQL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
@@ -145,9 +142,9 @@
 				PrecompiledHeaderThrough=""
 				PrecompiledHeaderFile=""
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				DisableSpecificWarnings="4100;4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -160,10 +157,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\lib"
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -171,7 +168,6 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
@@ -194,9 +190,6 @@
 				Name="VCAppVerifierTool"
 			/>
 			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -208,11 +201,35 @@
 			Name="login_sql"
 			>
 			<File
-				RelativePath="..\src\login_sql\login.c"
+				RelativePath="..\src\login\account.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\login_sql\login.h"
+				RelativePath="..\src\login\account_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\ipban.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\ipban_sql.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\login.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\login.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\loginlog.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\login\loginlog_sql.c"
 				>
 			</File>
 		</Filter>

@@ -10,6 +10,8 @@ extern char mapindex_cfgfile[80];
 //whether to enable auto-adding of maps during run. Not so secure as the map indexes will vary!
 //#define MAPINDEX_AUTOADD
 
+#define MAX_MAPINDEX 2000
+
 //Some definitions for the mayor city maps.
 #define MAP_PRONTERA "prontera"
 #define MAP_GEFFEN "geffen"
@@ -44,5 +46,8 @@ unsigned short mapindex_name2id(const char*);
 const char* mapindex_id2name(unsigned short);
 void mapindex_init(void);
 void mapindex_final(void);
+
+int mapindex_addmap(int index, const char* name);
+int mapindex_removemap(int index);
 
 #endif /* _MAPINDEX_H_ */

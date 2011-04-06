@@ -56,7 +56,7 @@ void guild_member_joined(struct map_session_data *sd);
 int guild_member_added(int guild_id,int account_id,int char_id,int flag);
 int guild_leave(struct map_session_data *sd,int guild_id,
 	int account_id,int char_id,const char *mes);
-int guild_member_leaved(int guild_id,int account_id,int char_id,int flag,
+int guild_member_withdraw(int guild_id,int account_id,int char_id,int flag,
 	const char *name,const char *mes);
 int guild_expulsion(struct map_session_data *sd,int guild_id,
 	int account_id,int char_id,const char *mes);
@@ -73,7 +73,7 @@ int guild_check_alliance(int guild_id1, int guild_id2, int flag);
 
 int guild_send_memberinfoshort(struct map_session_data *sd,int online);
 int guild_recv_memberinfoshort(int guild_id,int account_id,int char_id,int online,int lv,int class_);
-int guild_change_memberposition(int guild_id,int account_id,int char_id,int idx);
+int guild_change_memberposition(int guild_id,int account_id,int char_id,short idx);
 int guild_memberposition_changed(struct guild *g,int idx,int pos);
 int guild_change_position(int guild_id,int idx,int mode,int exp_mode,const char *name);
 int guild_position_changed(int guild_id,int idx,struct guild_position *p);
@@ -99,6 +99,9 @@ int guild_castlealldataload(int len,struct guild_castle *gc);
 
 int guild_agit_start(void);
 int guild_agit_end(void);
+
+int guild_agit2_start(void);
+int guild_agit2_end(void);
 
 void do_final_guild(void);
 

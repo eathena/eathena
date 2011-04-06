@@ -3,7 +3,7 @@
 //===== By ===================================================
 //= MasterOfMuppets
 //===== Version ==============================================
-//= 1.5
+//= 1.7
 //===== Compatible With ======================================
 //= eAthena SVN
 //===== Description ==========================================
@@ -20,6 +20,8 @@
 //= 1.3b Minor updates to juperos elevator NPCs. [L0ne_W0lf]
 //= 1.4 Fixed Elevator not working after failing once. [L0ne_W0lf]
 //= 1.5 Lots of Fixes, missing stopnpctimers, cleanup. [Zephyrus]
+//= 1.6 Added missing close in "Popular Feats" [L0ne_W0lf]
+//= 1.7 Replaced effect numerics with constants. [L0ne_W0lf]
 //============================================================
 
 yuno_in04,190,125,4	script	Scholar	700,{
@@ -1499,6 +1501,7 @@ yuno_in04,102,106,1	script	Popular Feasts	111,{
 			mes "I guess Poring Salad is";
 			mes "the most popular feast";
 			mes "in this entire book.";
+			close;
 
 		case 3:
 			mes "^8B6914...";
@@ -1775,10 +1778,11 @@ OnTouch:
 		mes "Ahhhh...";
 		mes "It feels like";
 		mes "I'm floating...";
-		specialeffect2 348; // EF_LIGHTSPHERE
+		specialeffect2 EF_LIGHTSPHERE;
 		close2;
 		stopnpctimer;
 		warp "juperos_02",128,278;
+		break;
 	case 2:
 		mes "^777777["+ strcharinfo(0) +"]^000000";
 		mes "N-No! This is";
@@ -1788,6 +1792,7 @@ OnTouch:
 		close2;
 		stopnpctimer;
 		warp "juperos_01",96,91;
+		break;
 	}
 	end;
 
@@ -1853,7 +1858,7 @@ OnMyMobDead:
 		mapannounce "juperos_02","Have you come seeking Juperos?! It no longer exists...",bc_map,"0xFF0000";
 	else if (.MyMobs == 0) {
 		mapannounce "juperos_02","Have you come to see me? Fine! Find me first!",bc_map,"0xFF0000";
-		specialeffect2 563; // 563
+		specialeffect2 563;
 		soundeffectall "earth_quake.wav",0;
 		disablenpc "3F Gate Switch#jupe";
 		donpcevent "Restricted Area#jupe::OnEnable";
@@ -1907,7 +1912,7 @@ OnTimer483000:
 OnTimer506000:
 OnTimer529000:
 OnTimer552000:
-	specialeffect 561; //"Restricted Area#jupe" 561
+	specialeffect 561;
 	end;
 
 OnTimer556000:
@@ -1919,7 +1924,7 @@ OnTimer561000:
 	end;
 
 OnTimer598000:
-	specialeffect 561; //"Restricted Area#jupe" 561
+	specialeffect 561;
 	end;
 
 OnTimer600000:
@@ -1977,7 +1982,7 @@ jupe_area1,88,224,0	script	#hole#1-1	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#1-1" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "1-1",2;
 				next;
 				if ($@JupreArea1InUse == 1) {
@@ -2062,7 +2067,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#1-1";
-	specialeffect 561; //"Warp#1-1" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -2269,7 +2274,7 @@ jupe_area1,25,238,0	script	#hole#1-2	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#1-2" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "2-1",2;
 				next;
 				if ($@JupreArea1InUse == 1) {
@@ -2356,7 +2361,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#1-2";
-	specialeffect 561; //"Warp#1-2" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -2558,7 +2563,7 @@ jupe_area1,36,146,0	script	#hole#1-3	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#1-3" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "3-1",2;
 				next;
 				if ($@JupreArea1InUse == 1) {
@@ -2643,7 +2648,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#1-3";
-	specialeffect 561; //"Warp#1-3" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -2846,7 +2851,7 @@ jupe_area1,50,49,0	script	#hole#1-4	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#1-4" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "4-1",2;
 				next;
 				if ($@JupreArea1InUse == 1) {
@@ -2932,7 +2937,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#1-4";
-	specialeffect 561; //"Warp#1-4" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -3138,7 +3143,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "LeverWarp#ufe";
-	specialeffect 561; //"LeverWarp#ufe" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -3186,7 +3191,7 @@ jupe_area2,74,224,0	script	#hole#2-1	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#2-1" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "1-1",2;
 				next;
 				if ($@JupreArea2InUse == 1) {
@@ -3271,7 +3276,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#2-1";
-	specialeffect 561; //"Warp#2-1" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -3478,7 +3483,7 @@ jupe_area2,138,238,0	script	#hole#2-2	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#2-2" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "2-1",2;
 				next;
 				if ($@JupreArea2InUse == 1) {
@@ -3565,7 +3570,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#2-2";
-	specialeffect 561; //"Warp#2-2" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -3767,7 +3772,7 @@ jupe_area2,127,146,0	script	#hole#2-3	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#2-3" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "3-1",2;
 				next;
 				if ($@JupreArea2InUse == 1) {
@@ -3852,7 +3857,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#2-3";
-	specialeffect 561; //"Warp#2-3" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -4057,7 +4062,7 @@ jupe_area2,113,49,0	script	#hole#2-4	844,{
 				mes "Crest Piece and place";
 				mes "it into the slot where it";
 				mes "happens to fit perfectly.^000000";
-				specialeffect 159; //"#hole#2-4" EF_TOPRANK
+				specialeffect EF_TOPRANK;
 				cutin "4-1",2;
 				next;
 				if ($@JupreArea2InUse == 1) {
@@ -4143,7 +4148,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "Warp#2-4";
-	specialeffect 561; //"Warp#2-4" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -4351,7 +4356,7 @@ OnInit:
 
 OnEnable:
 	enablenpc "LeverWarp#ufe2";
-	specialeffect 561; //"LeverWarp#ufe2" 561
+	specialeffect 561;
 	soundeffectall "jupe_warp.wav",0;
 	initnpctimer;
 	end;
@@ -4404,7 +4409,7 @@ jupe_ele_r,51,98,0	script	Switch#ufe	844,{
 					mes "the slots and begin to";
 					mes "emit a strange light.^000000";
 					cutin "5-1",2;
-					specialeffect 72; //"Switch#ufe" EF_SPHERE
+					specialeffect EF_SPHERE;
 					delitem 7356,1; //Piece_Of_Crest1
 					delitem 7359,1; //Piece_Of_Crest4
 					delitem 7357,1; //Piece_Of_Crest2
@@ -4445,7 +4450,7 @@ jupe_ele_r,51,98,0	script	Switch#ufe	844,{
 							disablenpc "Switch#ufe";
 							enablenpc "Switch On#ufe";
 							initnpctimer;
-							specialeffect2 563; // 563
+							specialeffect2 563;
 							soundeffectall "earth_quake.wav",0;
 							close2;
 							cutin "5-1",255;
@@ -5061,10 +5066,11 @@ OnTouch:
 	next;
 	switch(select("Use it.:Ignore it.")) {
 	case 1:
-		specialeffect2 348; // EF_LIGHTSPHERE
+		specialeffect2 EF_LIGHTSPHERE;
 		close2;
 		stopnpctimer;
 		warp "juperos_02",130,142;
+		break;
 	case 2:
 		mes "[" + strcharinfo(0) + "]";
 		mes "Not now!";
@@ -5072,6 +5078,7 @@ OnTouch:
 		close2;
 		stopnpctimer;
 		warp "jupe_gate",50,168;
+		break;
 	}
 	end;
 

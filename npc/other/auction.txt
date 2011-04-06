@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 1.0
+//= 1.3
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -11,12 +11,14 @@
 //= Auction house releated NPCs, and warps
 //===== Additional Comments: =================================
 //= 1.0 First version, place holders only. [L0ne_W0lf]
-//= 1.0a Typo fix [Yommy]
+//= 1.1 Moved Morroc Auction NPCs to Morroc Ruins. [L0ne_W0lf]
+//= 1.2 Warp fixed. Dialog in Ruins/Lighthalzen changed. [Kisuka]
+//= 1.3 Duplicates now spawn from floating NPCs. [L0ne_W0lf]
 //============================================================
 
 // Auction House warpers
 //============================================================
-morocc,182,95,6	script	Auction Hall Guide#moc	98,{
+moc_ruins,78,173,6	script	Auction Hall Guide#moc	98,{
 	callfunc "F_AuctionWarper",1;
 }
 
@@ -38,9 +40,16 @@ function	script	F_AuctionWarper	{
 	mes "like to enter the";
 	mes "Auction Hall?";
 	next;
-	if (select("Yes.:No.") == 1) {
-		mes "[Auction Hall Guide]";
-		mes "Enjoy your auction.";
+	if (select("Yes:No") == 1) {
+		if (getarg(0) == 1 || getarg(0) == 4) {
+			mes "[Auction Hall Guide]";
+			mes "Great! Well then,";
+			mes "I hope you have fun";
+			mes "and enjoy the auction~";
+		}else{
+			mes "[Auction Hall Guide]";
+			mes "Enjoy your auction.";
+		}
 		close2;
 		switch(getarg(0)) {
 		case 1:
@@ -55,7 +64,7 @@ function	script	F_AuctionWarper	{
 	}
 	mes "[Auction Hall Guide]";
 	mes "Alright then,";
-	mes "See you later.";
+	mes "see you later.";
 	mes "If you change your";
 	mes "mind, please come";
 	mes "and enjoy the auctions~";
@@ -64,31 +73,32 @@ function	script	F_AuctionWarper	{
 
 // Sign posts
 //============================================================
-morocc,180,97,6	script	Information Post#moc::AuctionSign	837,{
+-	script	Information Post#dum::AuctionSign	-1,{
 	mes "[Information]";
 	mes "Auction Warp Guide";
 	close;
 }
 
-prontera,216,120,4	duplicate(AuctionSign)	Information Post#prt	837,{
-yuno,131,116,0	duplicate(AuctionSign)	Information Post#yuno	837,{
+moc_ruins,76,176,6	duplicate(AuctionSign)	Information Post#moc	837
+prontera,216,120,4	duplicate(AuctionSign)	Information Post#prt	837
+yuno,131,116,0	duplicate(AuctionSign)	Information Post#yuno	837
 lighthalzen,207,169,6	duplicate(AuctionSign)	Information Post#lhz	837
 
 // Warps
 //============================================================
-auction_01,180,49,0	warp	auction_entrance_moc	1,1,morocc,182,92
+auction_01,180,49,0	warp	auction_entrance_moc	1,1,moc_ruins,78,171
 auction_01,22,37,0	warp	auction_entrance_prt	1,1,prontera,214,120
 auction_02,151,17,0	warp	auction_enterance_juno	1,1,yuno,132,119
 auction_02,43,17,0	warp	auction_enterance_lhz	1,1,lighthalzen,209,169
 
 // Auction House NPCs
 //============================================================
-auction_01,182,68,6	script	Auction Broker#moc1::AuctionBroker	98,{
+-	script	Auction Broker#dum::AuctionBroker	-1,{
 	mes "[Auction Broker]";
 	mes "Welcome to the Auction Hall.";
 	mes "Would you like to view the goods?";
 	next;
-	if (select("Yes.:No.") == 1) {
+	if (select("Yes:No") == 1) {
 		mes "[Auction Broker]";
 		mes "Very well.";
 		mes "Please take";
@@ -98,7 +108,7 @@ auction_01,182,68,6	script	Auction Broker#moc1::AuctionBroker	98,{
 		close;
 	}
 	mes "[Auction Broker]";
-	mes "Very well then.";
+	mes "Very well, then.";
 	mes "If you change your";
 	mes "mind, then please";
 	mes "come and check";
@@ -106,6 +116,7 @@ auction_01,182,68,6	script	Auction Broker#moc1::AuctionBroker	98,{
 	close;
 }
 
+auction_01,182,68,6	duplicate(AuctionBroker)	Auction Broker#moc1	98
 auction_01,182,75,0	duplicate(AuctionBroker)	Auction Broker#moc2	99
 auction_01,177,75,2	duplicate(AuctionBroker)	Auction Broker#moc3	98
 auction_01,177,68,4	duplicate(AuctionBroker)	Auction Broker#moc4	99

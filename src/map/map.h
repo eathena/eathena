@@ -38,12 +38,19 @@ struct item_data;
 #define MAX_EVENTQUEUE 2
 #define MAX_EVENTTIMER 32
 #define NATURAL_HEAL_INTERVAL 500
-#define MAX_FLOORITEM 500000
+#define MIN_FLOORITEM 2
+#define MAX_FLOORITEM START_ACCOUNT_NUM
 #define MAX_LEVEL 99
 #define MAX_DROP_PER_MAP 48
 #define MAX_IGNORE_LIST 20 // official is 14
 #define MAX_VENDING 12
+#define MAX_MAP_SIZE 512*512 // Wasn't there something like this already? Can't find it.. [Shinryo]
 #define MOBID_EMPERIUM 1288
+// Added definitions for WoESE objects. [L0ne_W0lf]
+#define MOBID_BARRICADE1 1905
+#define MOBID_BARRICADE2 1906
+#define MOBID_GUARIDAN_STONE1 1907
+#define MOBID_GUARIDAN_STONE2 1908
 
 //The following system marks a different job ID system used by the map server,
 //which makes a lot more sense than the normal one. [Skotlex]
@@ -156,13 +163,13 @@ enum {
 #define DEFAULT_AUTOSAVE_INTERVAL 5*60*1000
 
 //Specifies maps where players may hit each other
-#define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
+#define map_flag_vs(m) (map[m].flag.pvp || map[m].flag.gvg_dungeon || map[m].flag.gvg || ((agit_flag || agit2_flag) && map[m].flag.gvg_castle) || map[m].flag.battleground)
 //Specifies maps that have special GvG/WoE restrictions
-#define map_flag_gvg(m) (map[m].flag.gvg || (agit_flag && map[m].flag.gvg_castle))
+#define map_flag_gvg(m) (map[m].flag.gvg || ((agit_flag || agit2_flag) && map[m].flag.gvg_castle))
 //Specifies if the map is tagged as GvG/WoE (regardless of agit_flag status)
 #define map_flag_gvg2(m) (map[m].flag.gvg || map[m].flag.gvg_castle)
 // No Kill Steal Protection
-#define map_flag_ks(m) (map[m].flag.town || map[m].flag.pvp || map[m].flag.gvg)
+#define map_flag_ks(m) (map[m].flag.town || map[m].flag.pvp || map[m].flag.gvg || map[m].flag.battleground)
 
 //This stackable implementation does not means a BL can be more than one type at a time, but it's 
 //meant to make it easier to check for multiple types at a time on invocations such as map_foreach* calls [Skotlex]
@@ -172,16 +179,17 @@ enum bl_type {
 	BL_MOB   = 0x002,
 	BL_PET   = 0x004,
 	BL_HOM   = 0x008,
-	BL_ITEM  = 0x010,
-	BL_SKILL = 0x020,
-	BL_NPC   = 0x040,
-	BL_CHAT  = 0x080,
+	BL_MER   = 0x010,
+	BL_ITEM  = 0x020,
+	BL_SKILL = 0x040,
+	BL_NPC   = 0x080,
+	BL_CHAT  = 0x100,
 
 	BL_ALL   = 0xFFF,
 };
 
 //For common mapforeach calls. Since pets cannot be affected, they aren't included here yet.
-#define BL_CHAR (BL_PC|BL_MOB|BL_HOM)
+#define BL_CHAR (BL_PC|BL_MOB|BL_HOM|BL_MER)
 
 enum npc_subtype { WARP, SHOP, SCRIPT, CASHSHOP };
 
@@ -198,7 +206,19 @@ enum {
 	RC_DRAGON,
 	RC_BOSS,
 	RC_NONBOSS,
+	RC_NONDEMIHUMAN,
 	RC_MAX
+};
+
+enum {
+	RC2_NONE = 0,
+	RC2_GOBLIN,
+	RC2_KOBOLD,
+	RC2_ORC,
+	RC2_GOLEM,
+	RC2_GUARDIAN,
+	RC2_NINJA,
+	RC2_MAX
 };
 
 enum {
@@ -221,7 +241,8 @@ enum auto_trigger_flag {
 	ATF_SHORT=0x04,
 	ATF_LONG=0x08,
 	ATF_WEAPON=0x10,
-	ATF_SKILL=0x20,
+	ATF_MAGIC=0x20,
+	ATF_MISC=0x40,
 };
 
 struct block_list {
@@ -236,11 +257,11 @@ struct block_list {
 // Expanded to specify all mob-related spawn data by [Skotlex]
 struct spawn_data {
 	short class_; //Class, used because a mob can change it's class
+	unsigned boss : 1;
 	unsigned short m,x,y;	//Spawn information (map, point, spawn-area around point)
 	signed short xs,ys;
 	unsigned short num; //Number of mobs using this structure
 	unsigned short active; //Number of mobs that are already spawned (for mob_remove_damaged: no)
-	unsigned int level; //Custom level.
 	unsigned int delay1,delay2; //Min delay before respawning after spawn/death
 	struct {
 		unsigned size :2; //Holds if mob has to be tiny/large
@@ -275,6 +296,11 @@ enum _sp {
 
 	SP_BASEJOB=119,	// 100+19 - celest
 	SP_BASECLASS=120,	//Hmm.. why 100+19? I just use the next one... [Skotlex]
+	SP_KILLERRID=121,
+	SP_KILLEDRID=122,
+
+	// Mercenaries
+	SP_MERCFLEE=165, SP_MERCKILLS=189, SP_MERCFAITH=190,
 	
 	// original 1000-
 	SP_ATTACKRANGE=1000,	SP_ATKELE,SP_DEFELE,	// 1000-1002
@@ -315,7 +341,7 @@ enum _sp {
 	SP_SP_GAIN_RACE, SP_SUBRACE2, SP_UNBREAKABLE_SHOES,	// 2031-2033
 	SP_UNSTRIPABLE_WEAPON,SP_UNSTRIPABLE_ARMOR,SP_UNSTRIPABLE_HELM,SP_UNSTRIPABLE_SHIELD,  // 2034-2037
 	SP_INTRAVISION, SP_ADD_MONSTER_DROP_ITEMGROUP, SP_SP_LOSS_RATE, // 2038-2040
-	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE //2041
+	SP_ADD_SKILL_BLOW, SP_SP_VANISH_RATE, SP_MAGIC_SP_GAIN_VALUE, SP_MAGIC_HP_GAIN_VALUE //2041-2044
 };
 
 enum _look {
@@ -401,6 +427,7 @@ struct map_data {
 	int m;
 	short xs,ys; // map dimensions (in cells)
 	short bxs,bys; // map dimensions (in blocks)
+	short bgscore_lion, bgscore_eagle; // Battleground ScoreBoard
 	int npc_num;
 	int users;
 	int iwall_num; // Total of invisible walls in this map
@@ -424,6 +451,7 @@ struct map_data {
 		unsigned gvg : 1; // Now it identifies gvg versus maps that are active 24/7
 		unsigned gvg_dungeon : 1; // Celest
 		unsigned gvg_noparty : 1;
+		unsigned battleground : 2; // [BattleGround System]
 		unsigned nozenypenalty : 1;
 		unsigned notrade : 1;
 		unsigned noskill : 1;
@@ -438,7 +466,6 @@ struct map_data {
 		unsigned sakura : 1; // [Valaris]
 		unsigned leaves : 1; // [Valaris]
 		unsigned rain : 1; // [Valaris]
-		unsigned indoors : 1; // celest
 		unsigned nogo : 1; // [Valaris]
 		unsigned nobaseexp	: 1; // [Lorky] added by Lupus
 		unsigned nojobexp	: 1; // [Lorky]
@@ -452,6 +479,7 @@ struct map_data {
 		unsigned nochat :1;
 		unsigned partylock :1;
 		unsigned guildlock :1;
+		unsigned src4instance : 1; // To flag this map when it's used as a src map for instances
 	} flag;
 	struct point save;
 	struct npc_data *npc[MAX_NPC_PER_MAP];
@@ -467,6 +495,9 @@ struct map_data {
 	int jexp;	// map experience multiplicator
 	int bexp;	// map experience multiplicator
 	int nocommand; //Blocks @/# commands for non-gms. [Skotlex]
+	// Instance Variables
+	int instance_id;
+	int instance_src_map;
 };
 
 /// Stores information about a remote map (for multi-mapserver setups).
@@ -491,6 +522,7 @@ extern int autosave_interval;
 extern int minsave_interval;
 extern int save_settings;
 extern int agit_flag;
+extern int agit2_flag;
 extern int night_flag; // 0=day, 1=night [Yor]
 extern int enable_spy; //Determines if @spy commands are active.
 extern char db_path[256];
@@ -517,6 +549,7 @@ int map_moveblock(struct block_list *, int, int, unsigned int);
 int map_foreachinrange(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int type, ...);
 int map_foreachinshootrange(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int type, ...);
 int map_foreachinarea(int (*func)(struct block_list*,va_list), int m, int x0, int y0, int x1, int y1, int type, ...);
+int map_forcountinarea(int (*func)(struct block_list*,va_list), int m, int x0, int y0, int x1, int y1, int count, int type, ...);
 int map_foreachinmovearea(int (*func)(struct block_list*,va_list), struct block_list* center, int range, int dx, int dy, int type, ...);
 int map_foreachincell(int (*func)(struct block_list*,va_list), int m, int x, int y, int type, ...);
 int map_foreachinpath(int (*func)(struct block_list*,va_list), int m, int x0, int y0, int x1, int y1, int range, int length, int type, ...);
@@ -525,10 +558,7 @@ int map_foreachinmap(int (*func)(struct block_list*,va_list), int m, int type, .
 int map_count_oncell(int m,int x,int y,int type);
 struct skill_unit *map_find_skill_unit_oncell(struct block_list *,int x,int y,int skill_id,struct skill_unit *);
 // ˆêŽž“IobjectŠÖ˜A
-int map_addobject(struct block_list *);
-int map_delobject(int);
-int map_delobjectnofree(int id);
-void map_foreachobject(int (*)(struct block_list*,va_list),int,...);
+int map_get_new_object_id(void);
 int map_search_freecell(struct block_list *src, int m, short *x, short *y, int rx, int ry, int flag);
 //
 int map_quit(struct map_session_data *);
@@ -564,7 +594,8 @@ void map_addiddb(struct block_list *);
 void map_deliddb(struct block_list *bl);
 void map_foreachpc(int (*func)(struct map_session_data* sd, va_list args), ...);
 void map_foreachmob(int (*func)(struct mob_data* md, va_list args), ...);
-void map_foreachnpc(int (*func)(struct npc_data* bl, va_list args), ...);
+void map_foreachnpc(int (*func)(struct npc_data* nd, va_list args), ...);
+void map_foreachregen(int (*func)(struct block_list* bl, va_list args), ...);
 void map_foreachiddb(int (*func)(struct block_list* bl, va_list args), ...);
 struct map_session_data * map_nick2sd(const char*);
 struct mob_data * map_getmob_boss(int m);
@@ -599,6 +630,7 @@ int cleanup_sub(struct block_list *bl, va_list ap);
 
 void map_helpscreen(int flag); // [Valaris]
 int map_delmap(char* mapname);
+void map_flags_init(void);
 
 bool map_iwall_set(int m, int x, int y, int size, int dir, bool shootable, const char* wall_name);
 void map_iwall_get(struct map_session_data *sd);
@@ -608,13 +640,14 @@ int map_addmobtolist(unsigned short m, struct spawn_data *spawn);	// [Wizputer]
 void map_spawnmobs(int); // [Wizputer]
 void map_removemobs(int); // [Wizputer]
 void do_reconnect_map(void); //Invoked on map-char reconnection [Skotlex]
+void map_addmap2db(struct map_data *m);
+void map_removemapdb(struct map_data *m);
 
 extern char *INTER_CONF_NAME;
 extern char *LOG_CONF_NAME;
 extern char *MAP_CONF_NAME;
 extern char *BATTLE_CONF_FILENAME;
 extern char *ATCOMMAND_CONF_FILENAME;
-extern char *CHARCOMMAND_CONF_FILENAME;
 extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
 extern char *GRF_PATH_FILENAME;
@@ -630,12 +663,12 @@ typedef struct chat_data        TBL_CHAT;
 typedef struct skill_unit       TBL_SKILL;
 typedef struct pet_data         TBL_PET;
 typedef struct homun_data       TBL_HOM;
+typedef struct mercenary_data   TBL_MER;
 
 #define BL_CAST(type_, bl) \
 	( ((bl) == (struct block_list*)NULL || (bl)->type != (type_)) ? (T ## type_ *)NULL : (T ## type_ *)(bl) )
 
 
-extern int lowest_gm_level;
 extern char main_chat_nick[16];
 
 #ifndef TXT_ONLY
@@ -651,7 +684,6 @@ extern char item_db_db[32];
 extern char item_db2_db[32];
 extern char mob_db_db[32];
 extern char mob_db2_db[32];
-extern char char_db[32];
 
 #endif /* not TXT_ONLY */
 

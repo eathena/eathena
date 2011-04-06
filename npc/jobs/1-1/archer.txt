@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88; L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 1.7a
+//= 1.9
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -20,11 +20,13 @@
 //=	Arrow reward is now equal to the type sof trunks brought.
 //=	No longer uses function "F_ToHigh"
 //= 1.7a Fixed minor dialogue bug at Grade==25 [Lupus]
+//= 1.8 Fixed mistake in condition check. [L0ne_W0lf]
+//= 1.9 Added Quest Log commands. [L0ne_W0lf]
 //============================================================ 
 
 payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 	if (Upper == 1) {
-		if (Class == Job_Novice_High && ADVJOB == Job_Sniper || ADVJOB == Job_Clown || ADVJOB == Job_Gypsy) {
+		if (Class == Job_Novice_High && (ADVJOB == Job_Sniper || ADVJOB == Job_Clown || ADVJOB == Job_Gypsy)) {
 			mes "[Archer Guildsman]";
 			mes "Hey, I know you.";
 			mes "You took this test";
@@ -35,7 +37,7 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 			mes "to Valhalla and been reborn.";
 			mes "Wow, that's so impressive!";
 			next;
-			if (getskilllv(1) < 9) {
+			if (getskilllv("NV_BASIC") < 9) {
 				mes "[Archer Guildsman]";
 				mes "Err...";
 				mes "You'd better learn all the Basic Skills first before you can become an Archer.";
@@ -96,6 +98,7 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 			next;
 			if (select("Apply.:Cancel") == 1) {
 				set job_archer_q,1;
+				setquest 1004;
 				mes "[Archer Guildsman]";
 				mes "Okay, sign here. Alright, um, I'll promote you once you meet the requirements.";
 				next;
@@ -122,7 +125,7 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 		mes "[Archer Guildsman]";
 		mes "Are you..." + strcharinfo(0) + "?";
 		next;
-		if (getskilllv(1) < 9) {
+		if (getskilllv("NV_BASIC") < 9) {
 			mes "[Archer Guildsman]";
 			mes "Well, you're not at the right job level. Please check the requirements again.";
 			next;
@@ -190,6 +193,7 @@ payon_in02,64,71,4	script	Archer Guildsman#archer	85,{
 		next;
 		callfunc "Job_Change",Job_Archer;
 		callfunc "F_ClearJobVar";
+		completequest 1004;
 		mes "[Archer Guildsman]";
 		mes "Congratulations!";
 		mes "You are now an Archer!";

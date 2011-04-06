@@ -199,11 +199,19 @@ time_t stall_time = 60;
 uint32 addr_[16];   // ip addresses of local host (host byte order)
 int naddr_ = 0;   // # of ip addresses
 
+// Maximum packet size in bytes, which the client is able to handle.
+// Larger packets cause a buffer overflow and stack corruption.
+static size_t socket_max_client_packet = 20480;
+
 // initial recv buffer size (this will also be the max. size)
 // biggest known packet: S 0153 <len>.w <emblem data>.?B -> 24x24 256 color .bmp (0153 + len.w + 1618/1654/1756 bytes)
 #define RFIFO_SIZE (2*1024)
 // initial send buffer size (will be resized as needed)
 #define WFIFO_SIZE (16*1024)
+
+// Maximum size of pending data in the write fifo. (for non-server connections)
+// The connection is closed if it goes over the limit.
+#define WFIFO_MAX (1*1024*1024)
 
 struct socket_data* session[FD_SETSIZE];
 
@@ -535,18 +543,16 @@ static int create_session(int fd, RecvFunc func_recv, SendFunc func_send, ParseF
 	return 0;
 }
 
-static int delete_session(int fd)
+static void delete_session(int fd)
 {
-	if (fd <= 0 || fd >= FD_SETSIZE)
-		return -1;
-	if (session[fd]) {
+	if( session_isValid(fd) )
+	{
 		aFree(session[fd]->rdata);
 		aFree(session[fd]->wdata);
 		aFree(session[fd]->session_data);
 		aFree(session[fd]);
 		session[fd] = NULL;
 	}
-	return 0;
 }
 
 int realloc_fifo(int fd, unsigned int rfifo_size, unsigned int wfifo_size)
@@ -576,7 +582,7 @@ int realloc_writefifo(int fd, size_t addition)
 	if( session[fd]->wdata_size + addition  > session[fd]->max_wdata )
 	{	// grow rule; grow in multiples of WFIFO_SIZE
 		newsize = WFIFO_SIZE;
-		while( session[fd]->wdata_size + addition > newsize ) newsize += newsize;
+		while( session[fd]->wdata_size + addition > newsize ) newsize += WFIFO_SIZE;
 	}
 	else
 	if( session[fd]->max_wdata >= (size_t)2*(session[fd]->flag.server?FIFOSIZE_SERVERLINK:WFIFO_SIZE)
@@ -625,10 +631,31 @@ int WFIFOSET(int fd, size_t len)
 	if(s->wdata_size+len > s->max_wdata)
 	{	// actually there was a buffer overflow already
 		uint32 ip = s->client_addr;
-		ShowFatalError("WFIFOSET: Write Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %d bytes on a %d/%d bytes buffer.\n", fd, CONVIP(ip), len, s->wdata_size, s->max_wdata);
-		ShowDebug("Likely command that caused it: 0x%x\n", (*(unsigned short*)(s->wdata + s->wdata_size)));
+		ShowFatalError("WFIFOSET: Write Buffer Overflow. Connection %d (%d.%d.%d.%d) has written %u bytes on a %u/%u bytes buffer.\n", fd, CONVIP(ip), (unsigned int)len, (unsigned int)s->wdata_size, (unsigned int)s->max_wdata);
+		ShowDebug("Likely command that caused it: 0x%x\n", (*(uint16*)(s->wdata + s->wdata_size)));
 		// no other chance, make a better fifo model
 		exit(EXIT_FAILURE);
+	}
+
+	if( len > 0xFFFF )
+	{
+		// dynamic packets allow up to UINT16_MAX bytes (<packet_id>.W <packet_len>.W ...)
+		// all known fixed-size packets are within this limit, so use the same limit
+		ShowFatalError("WFIFOSET: Packet 0x%x is too big. (len=%u, max=%u)\n", (*(uint16*)(s->wdata + s->wdata_size)), (unsigned int)len, 0xFFFF);
+		exit(EXIT_FAILURE);
+	}
+
+	if( !s->flag.server && len > socket_max_client_packet )
+	{// see declaration of socket_max_client_packet for details
+		ShowError("WFIFOSET: Dropped too large client packet 0x%04x (length=%u, max=%u).\n", WFIFOW(fd,0), len, socket_max_client_packet);
+		return 0;
+	}
+
+	if( !s->flag.server && s->wdata_size+len > WFIFO_MAX )
+	{// reached maximum write fifo size
+		ShowError("WFIFOSET: Maximum write buffer size for client connection %d exceeded, most likely caused by packet 0x%04x (len=%u, ip=%lu.%lu.%lu.%lu).\n", fd, WFIFOW(fd,0), len, CONVIP(s->client_addr));
+		set_eof(fd);
+		return 0;
 	}
 
 	s->wdata_size += len;
@@ -638,9 +665,9 @@ int WFIFOSET(int fd, size_t len)
 
 	// always keep a WFIFO_SIZE reserve in the buffer
 	// For inter-server connections, let the reserve be 1/4th of the link size.
-	newreserve = s->wdata_size + ( s->flag.server ? FIFOSIZE_SERVERLINK / 4 : WFIFO_SIZE);
+	newreserve = s->flag.server ? FIFOSIZE_SERVERLINK / 4 : WFIFO_SIZE;
 
-	// readjust the buffer to the newly chosen size
+	// readjust the buffer to include the chosen reserve
 	realloc_writefifo(fd, newreserve);
 
 #ifdef SEND_SHORTLIST
@@ -967,10 +994,10 @@ int access_ipmask(const char* str, AccessControl* acc)
 				(n == 5 && m[0] > 32) ){ // invalid bit mask
 			return 0;
 		}
-		ip = (uint32)(a[0] | (a[1] << 8) | (a[2] << 16) | (a[3] << 24));
+		ip = MAKEIP(a[0],a[1],a[2],a[3]);
 		if( n == 8 )
 		{// standard mask
-			mask = (uint32)(a[0] | (a[1] << 8) | (a[2] << 16) | (a[3] << 24));
+			mask = MAKEIP(m[0],m[1],m[2],m[3]);
 		} else if( n == 5 )
 		{// bit mask
 			mask = 0;
@@ -978,7 +1005,6 @@ int access_ipmask(const char* str, AccessControl* acc)
 				mask = (mask >> 1) | 0x80000000;
 				--m[0];
 			}
-			mask = ntohl(mask);
 		} else
 		{// just this ip
 			mask = 0xFFFFFFFF;
@@ -1046,6 +1072,8 @@ int socket_config_read(const char* cfgName)
 			ddos_autoreset = atoi(w2);
 		else if (!strcmpi(w1,"debug"))
 			access_debug = config_switch(w2);
+		else if (!strcmpi(w1,"socket_max_client_packet"))
+			socket_max_client_packet = strtoul(w2, NULL, 0);
 #endif
 		else if (!strcmpi(w1, "import"))
 			socket_config_read(w2);
@@ -1303,10 +1331,12 @@ void send_shortlist_add_fd(int fd)
 	int i;
 	int bit;
 
-	if( fd < 0 || fd >= FD_SETSIZE )
+	if( !session_isValid(fd) )
 		return;// out of range
+
 	i = fd/32;
 	bit = fd%32;
+
 	if( (send_shortlist_set[i]>>bit)&1 )
 		return;// already in the list
 

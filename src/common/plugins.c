@@ -160,8 +160,8 @@ static int plugin_iscompatible(char* version)
 	if( version == NULL )
 		return 0;
 	sscanf(version, "%d.%d", &req_major, &req_minor);
-	sscanf(version, "%d.%d", &major, &minor);
-	return ( req_major == major || req_minor <= minor );
+	sscanf(PLUGIN_VERSION, "%d.%d", &major, &minor);
+	return ( req_major == major && req_minor <= minor );
 }
 
 Plugin* plugin_open(const char* filename)
@@ -251,6 +251,8 @@ Plugin* plugin_open(const char* filename)
 				func = (Plugin_Event_Func*)DLL_SYM(plugin->dll, events[i].func_name);
 				if (func)
 					register_plugin_event(func, events[i].event_name);
+				else
+					ShowError("Failed to locate function '%s' in '%s'.\n", events[i].func_name, filename);
 			}
 			i++;
 		}
@@ -287,7 +289,7 @@ char *DLL_ERROR(void)
 {
 	static char dllbuf[80];
 	DWORD dw = GetLastError();
-	FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw, 0, dllbuf, 80, NULL);
+	FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM, NULL, dw, 0, dllbuf, 80, NULL);
 	return dllbuf;
 }
 #endif

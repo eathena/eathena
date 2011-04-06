@@ -241,7 +241,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 				StringBuf_AppendStr(&buf, ", ");
 			else
 				add_comma = true;
-			StringBuf_Printf(&buf, "`guild_lv`=%d, `skill_point`=%d, `exp`=%u, `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
+			StringBuf_Printf(&buf, "`guild_lv`=%d, `skill_point`=%d, `exp`=%"PRIu64", `next_exp`=%u, `max_member`=%d", g->guild_lv, g->skill_point, g->exp, g->next_exp, g->max_member);
 		}
 		StringBuf_Printf(&buf, " WHERE `guild_id`=%d", g->guild_id);
 		if( SQL_ERROR == Sql_Query(sql_handle, "%s", StringBuf_Value(&buf)) )
@@ -265,7 +265,7 @@ int inter_guild_tosql(struct guild *g,int flag)
 				//Since nothing references guild member table as foreign keys, it's safe to use REPLACE INTO
 				Sql_EscapeStringLen(sql_handle, esc_name, m->name, strnlen(m->name, NAME_LENGTH));
 				if( SQL_ERROR == Sql_Query(sql_handle, "REPLACE INTO `%s` (`guild_id`,`account_id`,`char_id`,`hair`,`hair_color`,`gender`,`class`,`lv`,`exp`,`exp_payper`,`online`,`position`,`name`) "
-					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%u','%d','%d','%d','%s')",
+					"VALUES ('%d','%d','%d','%d','%d','%d','%d','%d','%"PRIu64"','%d','%d','%d','%s')",
 					guild_member_db, g->guild_id, m->account_id, m->char_id,
 					m->hair, m->hair_color, m->gender,
 					m->class_, m->lv, m->exp, m->exp_payper, m->online, m->position, esc_name) )
@@ -382,8 +382,8 @@ struct guild * inter_guild_fromsql(int guild_id)
 	ShowInfo("Guild load request (%d)...\n", guild_id);
 #endif
 
-	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT `name`,`master`,`guild_lv`,`connect_member`,`max_member`,`average_lv`,`exp`,`next_exp`,`skill_point`,`mes1`,`mes2`,`emblem_len`,`emblem_id`,`emblem_data` "
-		"FROM `%s` WHERE `guild_id`='%d'", guild_db, guild_id) )
+	if( SQL_ERROR == Sql_Query(sql_handle, "SELECT g.`name`,c.`name`,g.`guild_lv`,g.`connect_member`,g.`max_member`,g.`average_lv`,g.`exp`,g.`next_exp`,g.`skill_point`,g.`mes1`,g.`mes2`,g.`emblem_len`,g.`emblem_id`,g.`emblem_data` "
+		"FROM `%s` g LEFT JOIN `%s` c ON c.`char_id` = g.`char_id` WHERE g.`guild_id`='%d'", guild_db, char_db, guild_id) )
 	{
 		Sql_ShowDebug(sql_handle);
 		return NULL;
@@ -406,7 +406,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		g->max_member = MAX_GUILD;
 	}
 	Sql_GetData(sql_handle,  5, &data, NULL); g->average_lv = atoi(data);
-	Sql_GetData(sql_handle,  6, &data, NULL); g->exp = (unsigned int)strtoul(data, NULL, 10);
+	Sql_GetData(sql_handle,  6, &data, NULL); g->exp = strtoull(data, NULL, 10);
 	Sql_GetData(sql_handle,  7, &data, NULL); g->next_exp = (unsigned int)strtoul(data, NULL, 10);
 	Sql_GetData(sql_handle,  8, &data, NULL); g->skill_point = atoi(data);
 	Sql_GetData(sql_handle,  9, &data, &len); memcpy(g->mes1, data, min(len, sizeof(g->mes1)));
@@ -455,7 +455,7 @@ struct guild * inter_guild_fromsql(int guild_id)
 		Sql_GetData(sql_handle,  4, &data, NULL); m->gender = atoi(data);
 		Sql_GetData(sql_handle,  5, &data, NULL); m->class_ = atoi(data);
 		Sql_GetData(sql_handle,  6, &data, NULL); m->lv = atoi(data);
-		Sql_GetData(sql_handle,  7, &data, NULL); m->exp = (unsigned int)strtoul(data, NULL, 10);
+		Sql_GetData(sql_handle,  7, &data, NULL); m->exp = strtoull(data, NULL, 10);
 		Sql_GetData(sql_handle,  8, &data, NULL); m->exp_payper = (unsigned int)atoi(data);
 		Sql_GetData(sql_handle,  9, &data, NULL); m->online = atoi(data);
 		Sql_GetData(sql_handle, 10, &data, NULL); m->position = atoi(data);
@@ -995,7 +995,7 @@ int mapif_guild_memberadded(int fd,int guild_id,int account_id,int char_id,int f
 }
 
 // ACK member leave
-int mapif_guild_leaved(int guild_id,int account_id,int char_id,int flag, const char *name, const char *mes)
+int mapif_guild_withdraw(int guild_id,int account_id,int char_id,int flag, const char *name, const char *mes)
 {
 	unsigned char buf[55+NAME_LENGTH];
 	WBUFW(buf, 0)=0x3834;
@@ -1006,7 +1006,7 @@ int mapif_guild_leaved(int guild_id,int account_id,int char_id,int flag, const c
 	memcpy(WBUFP(buf,15),mes,40);
 	memcpy(WBUFP(buf,55),name,NAME_LENGTH);
 	mapif_sendall(buf,55+NAME_LENGTH);
-	ShowInfo("int_guild: guild leaved (%d - %d: %s - %s)\n",guild_id,account_id,name,mes);
+	ShowInfo("int_guild: guild withdraw (%d - %d: %s - %s)\n",guild_id,account_id,name,mes);
 	return 0;
 }
 
@@ -1131,8 +1131,8 @@ int mapif_guild_notice(struct guild *g)
 	unsigned char buf[256];
 	WBUFW(buf,0)=0x383e;
 	WBUFL(buf,2)=g->guild_id;
-	memcpy(WBUFP(buf,6),g->mes1,60);
-	memcpy(WBUFP(buf,66),g->mes2,120);
+	memcpy(WBUFP(buf,6),g->mes1,MAX_GUILDMES1);
+	memcpy(WBUFP(buf,66),g->mes2,MAX_GUILDMES2);
 	mapif_sendall(buf,186);
 	return 0;
 }
@@ -1376,7 +1376,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		// Unknown guild, just update the player
 		if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `guild_id`='0' WHERE `account_id`='%d' AND `char_id`='%d'", char_db, account_id, char_id) )
 			Sql_ShowDebug(sql_handle);
-		// mapif_guild_leaved(guild_id,account_id,char_id,flag,g->member[i].name,mes);
+		// mapif_guild_withdraw(guild_id,account_id,char_id,flag,g->member[i].name,mes);
 		return 0;
 	}
 
@@ -1405,7 +1405,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		safestrncpy(g->expulsion[j].mes, mes, 40);
 	}
 
-	mapif_guild_leaved(guild_id,account_id,char_id,flag,g->member[i].name,mes);
+	mapif_guild_withdraw(guild_id,account_id,char_id,flag,g->member[i].name,mes);
 	inter_guild_removemember_tosql(g->member[i].account_id,g->member[i].char_id);
 
 	memset(&g->member[i],0,sizeof(struct guild_member));
@@ -1588,7 +1588,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 	{
 		case GMI_POSITION:
 		  {
-			g->member[i].position=*((int *)data);
+			g->member[i].position=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER;
@@ -1596,8 +1596,8 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		  }
 		case GMI_EXP:
 		{	// EXP
-			unsigned int exp, old_exp=g->member[i].exp;
-			g->member[i].exp=*((unsigned int *)data);
+			uint64 exp, old_exp=g->member[i].exp;
+			g->member[i].exp=*((uint64 *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			if (g->member[i].exp > old_exp)
 			{
@@ -1608,13 +1608,13 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 					exp = exp*guild_exp_rate/100;
 
 				// Update guild exp
-				if (exp > UINT_MAX - g->exp)
-					g->exp = UINT_MAX;
+				if (exp > UINT64_MAX - g->exp)
+					g->exp = UINT64_MAX;
 				else
 					g->exp+=exp;
 
 				guild_calcinfo(g);
-				mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,4);
+				mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,sizeof(g->exp));
 				g->save_flag |= GS_LEVEL;
 			}
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
@@ -1623,7 +1623,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		}
 		case GMI_HAIR:
 		{
-			g->member[i].hair=*((int *)data);
+			g->member[i].hair=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER; //Save new data.
@@ -1631,7 +1631,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		}
 		case GMI_HAIR_COLOR:
 		{
-			g->member[i].hair_color=*((int *)data);
+			g->member[i].hair_color=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER; //Save new data.
@@ -1639,7 +1639,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		}
 		case GMI_GENDER:
 		{
-			g->member[i].gender=*((int *)data);
+			g->member[i].gender=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER; //Save new data.
@@ -1647,7 +1647,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		}
 		case GMI_CLASS:
 		{
-			g->member[i].class_=*((int *)data);
+			g->member[i].class_=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER; //Save new data.
@@ -1655,7 +1655,7 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 		}
 		case GMI_LEVEL:
 		{
-			g->member[i].lv=*((int *)data);
+			g->member[i].lv=*((short *)data);
 			g->member[i].modified = GS_MEMBER_MODIFIED;
 			mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 			g->save_flag |= GS_MEMBER; //Save new data.
@@ -1668,9 +1668,45 @@ int mapif_parse_GuildMemberInfoChange(int fd,int guild_id,int account_id,int cha
 	return 0;
 }
 
-int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
+int inter_guild_sex_changed(int guild_id,int account_id,int char_id, short gender)
 {
 	return mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
+}
+
+int inter_guild_charname_changed(int guild_id,int account_id, int char_id, char *name)
+{
+	struct guild *g;
+	int i, flag = 0;
+
+	g = inter_guild_fromsql(guild_id);
+	if( g == NULL )
+	{
+		ShowError("inter_guild_charrenamed: Can't find guild %d.\n", guild_id);
+		return 0;
+	}
+
+	ARR_FIND(0, g->max_member, i, g->member[i].char_id == char_id);
+	if( i == g->max_member )
+	{
+		ShowError("inter_guild_charrenamed: Can't find character %d in the guild\n", char_id);
+		return 0;
+	}
+
+	if( !strcmp(g->member[i].name, g->master) )
+	{
+		safestrncpy(g->master, name, NAME_LENGTH);
+		flag |= GS_BASIC;
+	}
+	safestrncpy(g->member[i].name, name, NAME_LENGTH);
+	g->member[i].modified = GS_MEMBER_MODIFIED;
+	flag |= GS_MEMBER;
+
+	if( !inter_guild_tosql(g, flag) )
+		return 0;			
+
+	mapif_guild_info(-1,g);
+	
+	return 0;
 }
 
 // Change a position desc
@@ -1691,7 +1727,7 @@ int mapif_parse_GuildPosition(int fd,int guild_id,int idx,struct guild_position 
 }
 
 // Guild Skill UP
-int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id)
+int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id,int max)
 {
 	struct guild * g;
 	int idx = skill_num - GD_SKILLBASE;
@@ -1700,7 +1736,7 @@ int mapif_parse_GuildSkillUp(int fd,int guild_id,int skill_num,int account_id)
 	if(g == NULL || idx < 0 || idx >= MAX_GUILDSKILL)
 		return 0;
 
-	if(g->skill_point>0 && g->skill[idx].id>0 && g->skill[idx].lv<10 )
+	if(g->skill_point>0 && g->skill[idx].id>0 && g->skill[idx].lv<max )
 	{
 		g->skill[idx].lv++;
 		g->skill_point--;
@@ -1790,8 +1826,8 @@ int mapif_parse_GuildNotice(int fd,int guild_id,const char *mes1,const char *mes
 	if(g==NULL)
 		return 0;
 
-	memcpy(g->mes1,mes1,60);
-	memcpy(g->mes2,mes2,120);
+	memcpy(g->mes1,mes1,MAX_GUILDMES1);
+	memcpy(g->mes2,mes2,MAX_GUILDMES2);
 	g->save_flag |= GS_MES;	//Change mes of guild
 	return mapif_guild_notice(g);
 }
@@ -1949,7 +1985,7 @@ int inter_guild_parse_frommap(int fd)
 	case 0x3039: mapif_parse_GuildBasicInfoChange(fd,RFIFOL(fd,4),RFIFOW(fd,8),(const char*)RFIFOP(fd,10),RFIFOW(fd,2)-10); break;
 	case 0x303A: mapif_parse_GuildMemberInfoChange(fd,RFIFOL(fd,4),RFIFOL(fd,8),RFIFOL(fd,12),RFIFOW(fd,16),(const char*)RFIFOP(fd,18),RFIFOW(fd,2)-18); break;
 	case 0x303B: mapif_parse_GuildPosition(fd,RFIFOL(fd,4),RFIFOL(fd,8),(struct guild_position *)RFIFOP(fd,12)); break;
-	case 0x303C: mapif_parse_GuildSkillUp(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10)); break;
+	case 0x303C: mapif_parse_GuildSkillUp(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOL(fd,14)); break;
 	case 0x303D: mapif_parse_GuildAlliance(fd,RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOL(fd,14),RFIFOB(fd,18)); break;
 	case 0x303E: mapif_parse_GuildNotice(fd,RFIFOL(fd,2),(const char*)RFIFOP(fd,6),(const char*)RFIFOP(fd,66)); break;
 	case 0x303F: mapif_parse_GuildEmblem(fd,RFIFOW(fd,2)-12,RFIFOL(fd,4),RFIFOL(fd,8),(const char*)RFIFOP(fd,12)); break;

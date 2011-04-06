@@ -4,11 +4,14 @@
 #ifndef _SCRIPT_H_
 #define _SCRIPT_H_
 
+struct map_session_data;
+
 extern int potion_flag; //For use on Alchemist improved potions/Potion Pitcher. [Skotlex]
 extern int potion_hp, potion_per_hp, potion_sp, potion_per_sp;
 extern int potion_target;
 
 extern struct Script_Config {
+	unsigned warn_func_mismatch_argtypes : 1;
 	unsigned warn_func_mismatch_paramnum : 1;
 	int check_cmdcount;
 	int check_gotocount;
@@ -23,6 +26,9 @@ extern struct Script_Config {
 	const char *loadmap_event_name;
 	const char *baselvup_event_name;
 	const char *joblvup_event_name;
+
+	const char* ontouch_name;
+	const char* ontouch2_name;
 } script_config;
 
 typedef enum c_op {
@@ -65,11 +71,20 @@ typedef enum c_op {
 	C_L_SHIFT // a << b
 } c_op;
 
+struct script_retinfo {
+	struct linkdb_node** var_function;// scope variables
+	struct script_code* script;// script code
+	int pos;// script location
+	int nargs;// argument count
+	int defsp;// default stack pointer
+};
+
 struct script_data {
 	enum c_op type;
 	union script_data_val {
 		int num;
 		char *str;
+		struct script_retinfo* ri;
 	} u;
 	struct linkdb_node** ref;
 };
@@ -87,7 +102,7 @@ struct script_stack {
 	int sp_max;// capacity of the stack
 	int defsp;
 	struct script_data *stack_data;// stack
-	struct linkdb_node **var_function;	// ŠÖ”ˆË‘¶•Ï”
+	struct linkdb_node** var_function;// scope variables
 };
 
 
@@ -106,6 +121,10 @@ struct script_state {
 	struct sleep_data {
 		int tick,timer,charid;
 	} sleep;
+	int instance_id;
+	//For backing up purposes
+	struct script_state *bk_st;
+	int bk_npcid;
 };
 
 struct script_reg {
@@ -134,25 +153,31 @@ void run_script(struct script_code*,int,int,int);
 int set_var(struct map_session_data *sd, char *name, void *val);
 int conv_num(struct script_state *st,struct script_data *data);
 const char* conv_str(struct script_state *st,struct script_data *data);
-void setd_sub(struct script_state *st, struct map_session_data *sd, char *varname, int elem, void *value, struct linkdb_node **ref);
 int run_script_timer(int tid, unsigned int tick, int id, intptr data);
 void run_script_main(struct script_state *st);
 
 void script_stop_sleeptimers(int id);
 struct linkdb_node* script_erase_sleepdb(struct linkdb_node *n);
-void script_free_stack(struct script_stack*); 
 void script_free_code(struct script_code* code);
 void script_free_vars(struct linkdb_node **node);
+struct script_state* script_alloc_state(struct script_code* script, int pos, int rid, int oid);
+void script_free_state(struct script_state* st);
 
 struct DBMap* script_get_label_db(void);
 struct DBMap* script_get_userfunc_db(void);
+void script_run_autobonus(const char *autobonus,int id, int pos);
+
+bool script_get_constant(const char* name, int* value);
+void script_set_constant(const char* name, int value, bool isparameter);
+
+void script_cleararray_pc(struct map_session_data* sd, const char* varname, void* value);
+void script_setarray_pc(struct map_session_data* sd, const char* varname, uint8 idx, void* value, int* refcache);
 
 int script_config_read(char *cfgName);
 int do_init_script(void);
 int do_final_script(void);
-int add_str(const char *p);
+int add_str(const char* p);
+const char* get_str(int id);
 int script_reload(void);
-
-extern char mapreg_txt[];
 
 #endif /* _SCRIPT_H_ */

@@ -1,6 +1,12 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
+#include "../common/cbasetypes.h"
+#include "../common/grfio.h"
+#include "../common/malloc.h"
+#include "../common/mmo.h"
+#include "../common/showmsg.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -9,10 +15,6 @@
 #include <unistd.h>
 #endif
 
-#include "grfio.h"
-
-#define MAP_NAME_LENGTH 12
-#define MAP_NAME_LENGTH_EXT 16
 #define NO_WATER 1000000
 
 char grf_list_file[256] = "conf/grf-files.txt";
@@ -26,23 +28,23 @@ unsigned long file_size;
 
 // Used internally, this structure contains the physical map cells
 struct map_data {
-	short xs;
-	short ys;
+	int16 xs;
+	int16 ys;
 	unsigned char *cells;
 };
 
 // This is the main header found at the very beginning of the file
 struct main_header {
-	unsigned long file_size;
-	unsigned short map_count;
+	uint32 file_size;
+	uint16 map_count;
 } header;
 
 // This is the header appended before every compressed map cells info
 struct map_info {
 	char name[MAP_NAME_LENGTH];
-	short xs;
-	short ys;
-	long len;
+	int16 xs;
+	int16 ys;
+	int32 len;
 };
 
 
@@ -50,55 +52,52 @@ struct map_info {
 * Big-endian compatibility functions *
 *************************************/
 
-// Converts a short (16 bits) from current machine order to little-endian
-short MakeShortLE(short val)
+// Converts an int16 from current machine order to little-endian
+int16 MakeShortLE(int16 val)
 {
 	unsigned char buf[2];
 	buf[0] = (unsigned char)( (val & 0x00FF)         );
 	buf[1] = (unsigned char)( (val & 0xFF00) >> 0x08 );
-	return *((short*)buf);
+	return *((int16*)buf);
 }
 
-// Converts a long (32 bits) from current machine order to little-endian
-long MakeLongLE(long val)
+// Converts an int32 from current machine order to little-endian
+int32 MakeLongLE(int32 val)
 {
 	unsigned char buf[4];
 	buf[0] = (unsigned char)( (val & 0x000000FF)         );
 	buf[1] = (unsigned char)( (val & 0x0000FF00) >> 0x08 );
 	buf[2] = (unsigned char)( (val & 0x00FF0000) >> 0x10 );
 	buf[3] = (unsigned char)( (val & 0xFF000000) >> 0x18 );
-	return *((long*)buf);
+	return *((int32*)buf);
 }
 
-// Reads an unsigned short (16 bits) in little-endian from the buffer
-unsigned short GetUShort(const unsigned char *buf)
+// Reads an uint16 in little-endian from the buffer
+uint16 GetUShort(const unsigned char* buf)
 {
-	return	 ( ((unsigned short)(buf[0]))         )
-			|( ((unsigned short)(buf[1])) << 0x08 );
+	return	 ( ((uint16)(buf[0]))         )
+			|( ((uint16)(buf[1])) << 0x08 );
 }
 
-// Reads a long (32 bits) in little-endian from the buffer
-long GetLong(const unsigned char *buf)
+// Reads an uint32 in little-endian from the buffer
+uint32 GetULong(const unsigned char* buf)
 {
-	return	 ( ((long)(buf[0]))         )
-			|( ((long)(buf[1])) << 0x08 )
-			|( ((long)(buf[2])) << 0x10 )
-			|( ((long)(buf[3])) << 0x18 );
+	return	 ( ((uint32)(buf[0]))         )
+			|( ((uint32)(buf[1])) << 0x08 )
+			|( ((uint32)(buf[2])) << 0x10 )
+			|( ((uint32)(buf[3])) << 0x18 );
 }
 
-// Reads an unsigned long (32 bits) in little-endian from the buffer
-unsigned long GetULong(const unsigned char *buf)
+// Reads an int32 in little-endian from the buffer
+int32 GetLong(const unsigned char* buf)
 {
-	return	 ( ((unsigned long)(buf[0]))         )
-			|( ((unsigned long)(buf[1])) << 0x08 )
-			|( ((unsigned long)(buf[2])) << 0x10 )
-			|( ((unsigned long)(buf[3])) << 0x18 );
+	return (int32)GetULong(buf);
 }
 
 // Reads a float (32 bits) from the buffer
-float GetFloat(const unsigned char *buf)
+float GetFloat(const unsigned char* buf)
 {
-	unsigned long val = GetULong(buf);
+	uint32 val = GetULong(buf);
 	return *((float*)&val);
 }
 
@@ -111,7 +110,7 @@ int read_map(char *name, struct map_data *m)
 	int water_height;
 	size_t xy, off, num_cells;
 	float height;
-	unsigned long type;
+	uint32 type;
 
 	// Open map GAT
 	sprintf(filename,"data\\%s.gat", name);
@@ -126,15 +125,19 @@ int read_map(char *name, struct map_data *m)
 	// Read water height
 	if (rsw) { 
 		water_height = (int)GetFloat(rsw+166);
-		free(rsw);
+		aFree(rsw);
 	} else
 		water_height = NO_WATER;
 
 	// Read map size and allocate needed memory
-	m->xs = (short)GetULong(gat+6);
-	m->ys = (short)GetULong(gat+10);
-	num_cells = (size_t)m->xs*m->ys;
-	m->cells = (unsigned char *)malloc(num_cells);
+	m->xs = (int16)GetULong(gat+6);
+	m->ys = (int16)GetULong(gat+10);
+	if (m->xs <= 0 || m->ys <= 0) {
+		aFree(gat);
+		return 0;
+	}
+	num_cells = (size_t)m->xs*(size_t)m->ys;
+	m->cells = (unsigned char *)aMalloc(num_cells);
 
 	// Set cell properties
 	off = 14;
@@ -152,7 +155,7 @@ int read_map(char *name, struct map_data *m)
 		m->cells[xy] = (unsigned char)type;
 	}
 
-	free(gat);
+	aFree(gat);
 
 	return 1;
 }
@@ -165,8 +168,8 @@ void cache_map(char *name, struct map_data *m)
 	unsigned char *write_buf;
 
 	// Create an output buffer twice as big as the uncompressed map... this way we're sure it fits
-	len = m->xs*m->ys*2;
-	write_buf = (unsigned char *)malloc(len);
+	len = (unsigned long)m->xs*(unsigned long)m->ys*2;
+	write_buf = (unsigned char *)aMalloc(len);
 	// Compress the cells and get the compressed length
 	encode_zip(write_buf, &len, m->cells, m->xs*m->ys);
 
@@ -183,8 +186,8 @@ void cache_map(char *name, struct map_data *m)
 	header.file_size += sizeof(struct map_info) + len;
 	header.map_count++;
 
-	free(write_buf);
-	free(m->cells);
+	aFree(write_buf);
+	aFree(m->cells);
 
 	return;
 }
@@ -243,7 +246,7 @@ void process_args(int argc, char *argv[])
 
 }
 
-int main(int argc, char *argv[])
+int do_init(int argc, char *argv[])
 {
 	FILE *list;
 	char line[1024];
@@ -253,15 +256,15 @@ int main(int argc, char *argv[])
 	// Process the command-line arguments
 	process_args(argc, argv);
 
-	printf("Initializing grfio with %s\n", grf_list_file);
+	ShowStatus("Initializing grfio with %s\n", grf_list_file);
 	grfio_init(grf_list_file);
 
 	// Attempt to open the map cache file and force rebuild if not found
-	printf("Opening map cache: %s\n", map_cache_file);
+	ShowStatus("Opening map cache: %s\n", map_cache_file);
 	if(!rebuild) {
 		map_cache_fp = fopen(map_cache_file, "rb");
 		if(map_cache_fp == NULL) {
-			printf("Existing map cache not found, forcing rebuild mode\n");
+			ShowNotice("Existing map cache not found, forcing rebuild mode\n");
 			rebuild = 1;
 		} else
 			fclose(map_cache_fp);
@@ -271,15 +274,15 @@ int main(int argc, char *argv[])
 	else
 		map_cache_fp = fopen(map_cache_file, "r+b");
 	if(map_cache_fp == NULL) {
-		printf("Failure when opening map cache file %s\n", map_cache_file);
+		ShowError("Failure when opening map cache file %s\n", map_cache_file);
 		exit(EXIT_FAILURE);
 	}
 
 	// Open the map list
-	printf("Opening map list: %s\n", map_list_file);
+	ShowStatus("Opening map list: %s\n", map_list_file);
 	list = fopen(map_list_file, "r");
 	if(list == NULL) {
-		printf("Failure when opening maps list file %s\n", map_list_file);
+		ShowError("Failure when opening maps list file %s\n", map_list_file);
 		exit(EXIT_FAILURE);
 	}
 
@@ -307,30 +310,33 @@ int main(int argc, char *argv[])
 
 		name[MAP_NAME_LENGTH_EXT-1] = '\0';
 		remove_extension(name);
-		printf("%s", name);
 		if(find_map(name))
-			printf(" already in cache!\n");
+			ShowInfo("Map '"CL_WHITE"%s"CL_RESET"' already in cache.\n", name);
 		else if(read_map(name, &map)) {
 			cache_map(name, &map);
-			printf(" successfully cached\n");
+			ShowInfo("Map '"CL_WHITE"%s"CL_RESET"' successfully cached.\n", name);
 		} else
-			printf(" not found in GRF!\n");
+			ShowError("Map '"CL_WHITE"%s"CL_RESET"' not found!\n", name);
 
 	}
 
-	printf("Closing map list: %s\n", map_list_file);
+	ShowStatus("Closing map list: %s\n", map_list_file);
 	fclose(list);
 
 	// Write the main header and close the map cache
-	printf("Closing map cache: %s\n", map_cache_file);
+	ShowStatus("Closing map cache: %s\n", map_cache_file);
 	fseek(map_cache_fp, 0, SEEK_SET);
 	fwrite(&header, sizeof(struct main_header), 1, map_cache_fp);
 	fclose(map_cache_fp);
 
-	printf("Finalizing grfio\n");
+	ShowStatus("Finalizing grfio\n");
 	grfio_final();
 
-	printf("%d maps now in cache\n", header.map_count);
+	ShowInfo("%d maps now in cache\n", header.map_count);
 
 	return 0;
+}
+
+void do_final(void)
+{
 }

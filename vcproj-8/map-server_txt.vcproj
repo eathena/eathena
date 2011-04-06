@@ -39,9 +39,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
+				AdditionalIncludeDirectories="..\3rdparty\zlib\include;..\3rdparty\pcre\include;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -52,9 +51,9 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4018;4100;4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -71,7 +70,7 @@
 				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\map-server.pdb"
@@ -128,7 +127,6 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018&#x0D;&#x0A;/wd4100"
 				Optimization="2"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
@@ -136,7 +134,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
+				AdditionalIncludeDirectories="..\3rdparty\zlib\include;..\3rdparty\pcre\include;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -144,9 +142,9 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				DisableSpecificWarnings="4018;4100;4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -162,14 +160,13 @@
 				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib zdll.lib pcre.lib"
 				OutputFile="$(OutDir)\map-server.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\zlib\lib;..\3rdparty\pcre\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\map-server.pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
@@ -222,11 +219,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.c"
+				RelativePath="..\src\map\battleground.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\charcommand.h"
+				RelativePath="..\src\map\battleground.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\buyingstore.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\buyingstore.h"
 				>
 			</File>
 			<File
@@ -270,6 +275,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\homunculus.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\instance.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\instance.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\intif.c"
 				>
 			</File>
@@ -307,6 +328,14 @@
 			</File>
 			<File
 				RelativePath="..\src\map\map.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapreg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\mapreg_txt.c"
 				>
 			</File>
 			<File
@@ -362,10 +391,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\pcre.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\map\pet.c"
 				>
 			</File>
@@ -374,11 +399,27 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\quest.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\quest.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\script.c"
 				>
 			</File>
 			<File
 				RelativePath="..\src\map\script.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\searchstore.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\searchstore.h"
 				>
 			</File>
 			<File
@@ -427,26 +468,6 @@
 			</File>
 			<File
 				RelativePath="..\src\map\vending.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\quest.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\quest.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="zlib"
-			>
-			<File
-				RelativePath="..\src\zlib\zconf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\zlib\zlib.h"
 				>
 			</File>
 		</Filter>
@@ -503,6 +524,14 @@
 			</File>
 			<File
 				RelativePath="..\src\common\malloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\md5calc.h"
 				>
 			</File>
 			<File

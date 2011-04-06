@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= eAthena dev team
 //===== Current Version: =====================================
-//= 1.7
+//= 1.8
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -19,6 +19,7 @@
 //= 1.6 Merged back JFunc [Lupus] 1.6a typos
 //= 1.7 Rescripted to Aegis 10.3 stadards. [L0ne_W0lf]
 //=	No longer uses function "F_ToHigh"
+//= 1.8 Added Quest Log commands. [L0ne_W0lf]
 //============================================================
 
 moc_prydb1,39,129,2	script	Thief Guide	69,{
@@ -28,7 +29,7 @@ moc_prydb1,39,129,2	script	Thief Guide	69,{
 				mes "[Thief Guide]";
 				mes "Huh? Do I know you? It's creepy that you seem so familiar. You don't have a twin, do you?";
 				next;
-				if (getskilllv(1) < 9) {
+				if (getskilllv("NV_BASIC") < 9) {
 					mes "[Thief Guide]";
 					mes "What, do you want to be a Thief? I'm sorry, but you look like you need more training.";
 					next;
@@ -289,7 +290,7 @@ moc_prydb1,39,129,2	script	Thief Guide	69,{
 		mes strcharinfo(0) + "? Um, where is it? Ah, here it is. Let's see...";
 		next;
 		mes "[Thief Guide]";
-		if (getskilllv(1) < 9) {
+		if (getskilllv("NV_BASIC") < 9) {
 			mes "Isn't that cute? I can see you're ambitious, but you gotta learn all of the Basic Skills before you can become a Thief.";
 			close;
 		}
@@ -298,6 +299,7 @@ moc_prydb1,39,129,2	script	Thief Guide	69,{
 		mes "[Thief Guide]";
 		mes "Because I feel like it, I now decree that you have passed this interview. Good work!";
 		set job_thief_q,2;
+		setquest 1013;
 		next;
 		mes "[Thief Guide]";
 		mes "Now, your actual abilities will need to be tested. Do you know anything about the test?";
@@ -430,6 +432,7 @@ moc_prydb1,42,133,2	script	Comrade	118,{
 		if (countitem(1070) != 0) delitem 1070,countitem(1070); //Mushroom_Of_Thief_2
 		callfunc "Job_Change",Job_Thief;
 		callfunc "F_ClearJobVar";
+		completequest 1013;
 		next;
 		mes "[Comrade]";
 		mes "Congratulations on becoming a Thief! From now, be an honorable representative of the Thief's Guild.";
@@ -534,8 +537,3 @@ job_thief1,0,0,0,0	monster	Spore	1014,30,0,0,0
 //============================================================
 // mapflag
 //============================================================
-job_thief1	mapflag	nomemo
-job_thief1	mapflag	noteleport
-job_thief1	mapflag	nosave	SavePoint
-job_thief1	mapflag	nopenalty
-job_thief1	mapflag	nobranch

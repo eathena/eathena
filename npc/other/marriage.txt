@@ -389,39 +389,39 @@ prt_church,97,100,4	script	Wedding Staff#w	71,{
 		mes "^CC9933You have to refine";
 		mes "items on your own to";
 		mes "make great equipment!^000000";
-		donpcevent "Single Army#Prontera::OnEmote";
+		emotion e_rock,0,"Single Army#Prontera";
 		next;
 		mes "[Single Army]";
 		mes "^330099It's a waste to";
 		mes "form parties in";
 		mes "dungeons! I can";
 		mes "make it on my own!^000000";
-		donpcevent "Single Army#Geffen::OnEmote";
+		emotion e_rock,0,"Single Army#Geffen";
 		next;
 		mes "[Single Army]";
 		mes "^666666Hell, I've trained";
 		mes "all by myself since";
 		mes "birth, all the way";
 		mes "to my job change!^000000";
-		donpcevent "Single Army#Morocc::OnEmote";
+		emotion e_rock,0,"Single Army#Morocc";
 		next;
 		mes "[Single Army]";
 		mes "^666600I CHOOSE to spend";
 		mes "Christmas alone...";
 		mes "playing Solitaire and";
 		mes "doing crossword puzzles!^000000";
-		donpcevent "Single Army#Payon::OnEmote";
+		emotion e_rock,0,"Single Army#Payon";
 		next;
 		mes "[Single Army]";
 		mes "^CC9966Women may break my";
 		mes "spirit, but they'll never";
 		mes "take... my FREEDOM!^000000";
-		donpcevent "Single Army#Amatsu::OnEmote";
+		emotion e_rock,0,"Single Army#Amatsu";
 		next;
 		mes "[Single Army]";
 		mes "^669900...We're the free! We're";
 		mes "the Invincible Single Army!^000000";
-		donpcevent "Single Army#Gonryun::OnEmote";
+		emotion e_rock,0,"Single Army#Gonryun";
 		close2;
 		cutin "wedding_marry01",255;
 		Emotion e_swt;
@@ -451,16 +451,12 @@ prt_church,97,102,0	script	Single Army#Prontera	105,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Prontera";
+	hideonnpc "Single Army#Prontera";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Prontera";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Prontera";
+	emotion e_go;
 	end;
 }
 
@@ -473,16 +469,12 @@ prt_church,98,102,0	script	Single Army#Geffen	705,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Geffen";
+	hideonnpc "Single Army#Geffen";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Geffen";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Geffen";
+	emotion e_go;
 	end;
 }
 
@@ -495,16 +487,12 @@ prt_church,99,102,0	script	Single Army#Morocc	707,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Morocc";
+	hideonnpc "Single Army#Morocc";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Morocc";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Morocc";
+	emotion e_go;
 	end;
 }
 
@@ -517,16 +505,12 @@ prt_church,100,102,0	script	Single Army#Payon	708,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Payon";
+	hideonnpc "Single Army#Payon";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Payon";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Payon";
+	emotion e_go;
 	end;
 }
 
@@ -538,16 +522,12 @@ prt_church,101,102,0	script	Single Army#Amatsu	767,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Amatsu";
+	hideonnpc "Single Army#Amatsu";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Amatsu";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Amatsu";
+	emotion e_go;
 	end;
 }
 
@@ -558,16 +538,12 @@ prt_church,102,102,0	script	Single Army#Gonryun	780,{
 	close;
 
 OnInit:
-	disablenpc "Single Army#Gonryun";
+	hideonnpc "Single Army#Gonryun";
 	end;
 
 OnEnable:
-	enablenpc "Single Army#Gonryun";
-	Emotion e_go;
-	end;
-
-OnEmote:
-	emotion e_rock;
+	hideoffnpc "Single Army#Gonryun";
+	emotion e_go;
 	end;
 }
 

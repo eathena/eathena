@@ -284,8 +284,6 @@ int convert_init(void)
 		fclose(fp);
 	}
 
-	//FIXME: CONVERT MAPREG HERE! (after enforcing MAPREGSQL for sql)
-
 	return 0;
 }
 

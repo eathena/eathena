@@ -9,6 +9,10 @@
 #endif
 #include <stdarg.h>
 
+#define __USE_GNU  // required to enable strnlen on some platforms
+#include <string.h>
+#undef __USE_GNU
+
 char* jstrescape (char* pt);
 char* jstrescapecpy (char* pt, const char* spt);
 int jmemescapecpy (char* pt, const char* spt, int size);
@@ -24,14 +28,18 @@ const char *stristr(const char *haystack, const char *needle);
 char* _strtok_r(char* s1, const char* s2, char** lasts);
 #endif
 
-#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400) && !defined(CYGWIN)
+#if !(defined(WIN32) && defined(_MSC_VER) && _MSC_VER >= 1400) && !defined(HAVE_STRNLEN)
 size_t strnlen (const char* string, size_t maxlen);
+#endif
+
+#if defined(WIN32) && defined(_MSC_VER) && _MSC_VER <= 1200
+uint64 strtoull(const char* str, char** endptr, int base);
 #endif
 
 int e_mail_check(char* email);
 int config_switch(const char* str);
 
-/// always nul-terminates the string
+/// strncpy that always nul-terminates the string
 char* safestrncpy(char* dst, const char* src, size_t n);
 
 /// doesn't crash on null pointer
@@ -46,6 +54,10 @@ int safesnprintf(char* buf, size_t sz, const char* fmt, ...);
 /// Lines start at 1.
 int strline(const char* str, size_t pos);
 
+/// Produces the hexadecimal representation of the given input.
+/// The output buffer must be at least count*2+1 in size.
+/// Returns true on success, false on failure.
+bool bin2hex(char* output, unsigned char* input, size_t count);
 
 
 /// Bitfield determining the behaviour of sv_parse and sv_split.

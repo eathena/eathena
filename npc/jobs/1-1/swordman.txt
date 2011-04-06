@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88; L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.1
+//= 2.3
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -33,12 +33,14 @@
 //= 1.9 Dialog is official, but the Script is now custom as far as maps go. [L0ne_W0lf]
 //= 1.9b Fixed usage of wrong jobchange func messing up baby classes [ultramage]
 //= 2.0 Corrected NPC names to fall within proper resctrictions. [L0ne_W0lf]
-//= 2.1 Warp portals dont end with ; [Yommy]
+//= 2.1 Fixed mistake in condition check. [L0ne_W0lf]
+//= 2.2 Warp portals dont end with ; [Yommy]
+//= 2.3 Added Quest Log commands. [L0ne_W0lf]
 //============================================================ 
 
 izlude_in,74,172,4	script	Swordman#swd_1	119,{
 	if (Upper == 1) {
-		if (Class == Job_Novice_High && ADVJOB == Job_Lord_Knight || ADVJOB == Job_Paladin) {
+		if (Class == Job_Novice_High && (ADVJOB == Job_Lord_Knight || ADVJOB == Job_Paladin)) {
 			mes "[Swordman]";
 			mes "It...";
 			mes "Can't be...";
@@ -47,7 +49,7 @@ izlude_in,74,172,4	script	Swordman#swd_1	119,{
 			mes "[Swordman]";
 			mes "I see you're retreading the path of the Swordman! Once you've gotten used to brandishing a sword, you can never go back!!";
 			next;
-			if (getskilllv(1) < 9) {
+			if (getskilllv("NV_BASIC") < 9) {
 				mes "[Swordman]";
 				mes "Hmm? Ah, you must first master the Basic Skills before you are ready to become a Swordman.";
 				next;
@@ -111,6 +113,7 @@ izlude_in,74,172,4	script	Swordman#swd_1	119,{
 			if (select("Sign up.:Cancel.") == 1) {
 				savepoint "izlude_in",65,165;
 				set job_sword_q,1;
+				setquest 1014;
 				mes "[Swordman]";
 				mes "Ah, yes. Your application will be reviewed as soon as possible.";
 				next;
@@ -136,7 +139,7 @@ izlude_in,74,172,4	script	Swordman#swd_1	119,{
 			}
 		}
 		mes "[Swordman]";
-		if (getskilllv(1) < 9) {
+		if (getskilllv("NV_BASIC") < 9) {
 			mes "Hm, you still haven't learned all of the Basic Skills. You need to do that before you can become a Swordman.";
 			next;
 			mes "[Swordman]";
@@ -155,6 +158,7 @@ izlude_in,74,172,4	script	Swordman#swd_1	119,{
 			next;
 			callfunc "Job_Change",Job_Swordman;
 			set job_sword_q,0;
+			completequest 1014;
 			mes "[Swordman]";
 			mes "Once again, congratulations. I expect that you will be a good representative of the Swordman Association.";
 			close;
@@ -210,7 +214,7 @@ izlude_in,62,170,6	script	Swordman#swd_2	85,{
 		mes "Who the hell are you?! Nobody, other than Novices, is permitted to come in here!";
 		close;
 	}
-	else if (getskilllv(1) < 9) {
+	else if (getskilllv("NV_BASIC") < 9) {
 		mes "Stop! I can't let you in until you learn all of the Basic Skills. The Test Hall isn't for goofing off!";
 		close;
 	}
@@ -394,10 +398,10 @@ job_sword1,193,168,0	script	Test Hall Staff#swd_9	45,1,3,{
 
 // Pitfalls (Set 1)
 //============================================================ 
-job_sword1,65,117,0	warp	ÇÔÁ¤01-01	1,1,job_sword1,10,245
-job_sword1,98,27,0	warp	ÇÔÁ¤02-01	1,1,job_sword1,11,207
-job_sword1,161,27,0	warp	ÇÔÁ¤02-02	1,1,job_sword1,11,207
-job_sword1,239,117,0	warp	ÇÔÁ¤03-01	1,1,job_sword1,11,169
+job_sword1,65,117,0	warp	ï¿½ï¿½ï¿½ï¿½01-01	1,1,job_sword1,10,245
+job_sword1,98,27,0	warp	ï¿½ï¿½ï¿½ï¿½02-01	1,1,job_sword1,11,207
+job_sword1,161,27,0	warp	ï¿½ï¿½ï¿½ï¿½02-02	1,1,job_sword1,11,207
+job_sword1,239,117,0	warp	ï¿½ï¿½ï¿½ï¿½03-01	1,1,job_sword1,11,169
 
 job_sword1,16,251,0	script	1_blank_1_a::SwdTrap1	-1,0,1,{
 OnTouch:
@@ -642,8 +646,3 @@ job_sword1,200,63,0,0	monster	Fabre	1184,2,60000,30000,0
 //============================================================ 
 // mapflag
 //============================================================ 
-job_sword1	mapflag	nomemo
-job_sword1	mapflag	noteleport
-job_sword1	mapflag	nosave	SavePoint
-job_sword1	mapflag	nopenalty
-job_sword1	mapflag	nobranch

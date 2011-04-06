@@ -34,12 +34,14 @@ struct npc_data {
 	char name[NAME_LENGTH+1];// display name
 	char exname[NAME_LENGTH+1];// unique npc name
 	int chat_id;
+	int touching_id;
 	unsigned int next_walktime;
 
 	unsigned size : 2;
 
 	void* chatdb; // pointer to a npc_parse struct (see npc_chat.c)
 	enum npc_subtype subtype;
+	int src_id;
 	union {
 		struct {
 			struct script_code *script;
@@ -50,7 +52,6 @@ struct npc_data {
 			struct npc_timerevent_list *timer_event;
 			int label_list_num;
 			struct npc_label_list *label_list;
-			int src_id;
 		} scr;
 		struct {
 			struct npc_item_list* shop_item;
@@ -97,10 +98,11 @@ enum npce_event {
 struct view_data* npc_get_viewdata(int class_);
 int npc_chat_sub(struct block_list* bl, va_list ap);
 int npc_event_dequeue(struct map_session_data* sd);
-int npc_event(struct map_session_data* sd, const char* eventname, int mob_kill);
+int npc_event(struct map_session_data* sd, const char* eventname, int ontouch);
 int npc_touch_areanpc(struct map_session_data* sd, int m, int x, int y);
 int npc_touch_areanpc2(struct mob_data *md); // [Skotlex]
 int npc_check_areanpc(int flag, int m, int x, int y, int range);
+int npc_touchnext_areanpc(struct map_session_data* sd,bool leavemap);
 int npc_click(struct map_session_data* sd, struct npc_data* nd);
 int npc_scriptcont(struct map_session_data* sd, int id);
 struct npc_data* npc_checknear(struct map_session_data* sd, struct block_list* bl);
@@ -145,6 +147,7 @@ int npc_reload(void);
 void npc_read_event_script(void);
 int npc_script_event(struct map_session_data* sd, enum npce_event type);
 
+int npc_duplicate4instance(struct npc_data *snd, int m);
 int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int points);
 
 extern struct npc_data* fake_nd;

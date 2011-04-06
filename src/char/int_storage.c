@@ -23,8 +23,8 @@
 char storage_txt[1024]="save/storage.txt";
 char guild_storage_txt[1024]="save/g_storage.txt";
 
-static DBMap* storage_db; // int account_id -> struct storage_data*
-static DBMap* guild_storage_db; // int guild_id -> struct guild_storage*
+static DBMap* storage_db = NULL; // int account_id -> struct storage_data*
+static DBMap* guild_storage_db = NULL; // int guild_id -> struct guild_storage*
 
 // 倉庫データを文字列に変換
 bool storage_tostr(char* str, int account_id, struct storage_data* p)
@@ -80,7 +80,7 @@ bool storage_fromstr(char* str, int* account_id, struct storage_data* p)
 		p->items[i].refine = tmp_int[5];
 		p->items[i].attribute = tmp_int[6];
 			
-		for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
+		for(j = 0; j < MAX_SLOTS && tmp_str[0] && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
 			p->items[i].card[j] = tmp_int[0];
 			
 		next += len;
@@ -101,12 +101,12 @@ int guild_storage_tostr(char *str,struct guild_storage *p)
 	str_p+=sprintf(str,"%d,%d\t",p->guild_id,p->storage_amount);
 
 	for(i=0;i<MAX_GUILD_STORAGE;i++)
-		if( (p->storage_[i].nameid) && (p->storage_[i].amount) ){
+		if( (p->items[i].nameid) && (p->items[i].amount) ){
 			str_p += sprintf(str_p,"%d,%d,%d,%d,%d,%d,%d",
-				p->storage_[i].id,p->storage_[i].nameid,p->storage_[i].amount,p->storage_[i].equip,
-				p->storage_[i].identify,p->storage_[i].refine,p->storage_[i].attribute);
+				p->items[i].id,p->items[i].nameid,p->items[i].amount,p->items[i].equip,
+				p->items[i].identify,p->items[i].refine,p->items[i].attribute);
 			for(j=0; j<MAX_SLOTS; j++)
-				str_p += sprintf(str_p,",%d",p->storage_[i].card[j]);
+				str_p += sprintf(str_p,",%d",p->items[i].card[j]);
 			str_p += sprintf(str_p," ");
 			f++;
 		}
@@ -138,15 +138,15 @@ int guild_storage_fromstr(char *str,struct guild_storage *p)
 			&tmp_int[0], &tmp_int[1], &tmp_int[2], &tmp_int[3],
 			&tmp_int[4], &tmp_int[5], &tmp_int[6], tmp_str, &len) == 8)
 		{
-			p->storage_[i].id = tmp_int[0];
-			p->storage_[i].nameid = tmp_int[1];
-			p->storage_[i].amount = tmp_int[2];
-			p->storage_[i].equip = tmp_int[3];
-			p->storage_[i].identify = tmp_int[4];
-			p->storage_[i].refine = tmp_int[5];
-			p->storage_[i].attribute = tmp_int[6];
-			for(j = 0; j < MAX_SLOTS && tmp_str && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
-				p->storage_[i].card[j] = tmp_int[0];
+			p->items[i].id = tmp_int[0];
+			p->items[i].nameid = tmp_int[1];
+			p->items[i].amount = tmp_int[2];
+			p->items[i].equip = tmp_int[3];
+			p->items[i].identify = tmp_int[4];
+			p->items[i].refine = tmp_int[5];
+			p->items[i].attribute = tmp_int[6];
+			for(j = 0; j < MAX_SLOTS && tmp_str[0] && sscanf(tmp_str, ",%d%[0-9,-]",&tmp_int[0], tmp_str) > 0; j++)
+				p->items[i].card[j] = tmp_int[0];
 			next += len;
 			if (str[next] == ' ')
 				next++;
@@ -280,8 +280,14 @@ int inter_storage_init()
 }
 
 void inter_storage_final() {
-	storage_db->destroy(storage_db, NULL);
-	guild_storage_db->destroy(guild_storage_db, NULL);
+	if(storage_db)
+	{
+		storage_db->destroy(storage_db, NULL);
+	}
+	if(guild_storage_db)
+	{
+		guild_storage_db->destroy(guild_storage_db, NULL);
+	}
 	return;
 }
 
@@ -365,8 +371,8 @@ int inter_guild_storage_delete(int guild_id)
 	if(gs) {
 		int i;
 		for(i=0;i<gs->storage_amount;i++){
-			if(gs->storage_[i].card[0] == (short)0xff00)
-				inter_pet_delete( MakeDWord(gs->storage_[i].card[1],gs->storage_[i].card[2]) );
+			if(gs->items[i].card[0] == (short)0xff00)
+				inter_pet_delete( MakeDWord(gs->items[i].card[1],gs->items[i].card[2]) );
 		}
 		idb_remove(guild_storage_db,guild_id);
 	}

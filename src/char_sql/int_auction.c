@@ -109,6 +109,7 @@ unsigned int auction_create(struct auction_data *auction)
 
 		auction->item.amount = 1;
 		auction->item.identify = 1;
+		auction->item.expire_time = 0;
 
 		auction->auction_id = (unsigned int)SqlStmt_LastInsertId(stmt);
 		auction->auction_end_timer = add_timer( gettick() + tick , auction_end_timer, auction->auction_id, 0);
@@ -165,7 +166,7 @@ void auction_delete(struct auction_data *auction)
 	if( SQL_ERROR == Sql_Query(sql_handle, "DELETE FROM `%s` WHERE `auction_id` = '%d'", auction_db, auction_id) )
 		Sql_ShowDebug(sql_handle);
 
-	if( auction->auction_end_timer != -1 )
+	if( auction->auction_end_timer != INVALID_TIMER )
 		delete_timer(auction->auction_end_timer, auction_end_timer);
 
 	idb_remove(auction_db_, auction_id);
@@ -216,6 +217,7 @@ void inter_auctions_fromsql(void)
 
 		item->identify = 1;
 		item->amount = 1;
+		item->expire_time = 0;
 
 		for( i = 0; i < MAX_SLOTS; i++ )
 		{
@@ -373,6 +375,12 @@ static void mapif_parse_Auction_close(int fd)
 	if( (auction = (struct auction_data *)idb_get(auction_db_, auction_id)) == NULL )
 	{
 		mapif_Auction_close(fd, char_id, 2); // Bid Number is Incorrect
+		return;
+	}
+
+	if( auction->seller_id != char_id )
+	{
+		mapif_Auction_close(fd, char_id, 1); // You cannot end the auction
 		return;
 	}
 

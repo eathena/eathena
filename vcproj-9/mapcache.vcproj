@@ -41,8 +41,8 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..\3rdparty\zlib\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;MINICORE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
 				ExceptionHandling="0"
@@ -70,7 +70,7 @@
 				AdditionalDependencies="libcmtd.lib oldnames.lib zdll.lib"
 				OutputFile="$(OutDir)\mapcache.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\zlib\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
@@ -133,8 +133,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				AdditionalIncludeDirectories="..\3rdparty\zlib\include;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;MINICORE"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="false"
@@ -158,7 +158,7 @@
 				AdditionalDependencies="libcmt.lib oldnames.lib zdll.lib"
 				OutputFile="$(OutDir)\mapcache.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories="..\3rdparty\zlib\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
@@ -197,30 +197,74 @@
 	</References>
 	<Files>
 		<Filter
-			Name="mapcache"
+			Name="common"
 			>
 			<File
-				RelativePath="..\src\tool\grfio.c"
+				RelativePath="..\src\common\cbasetypes.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\tool\grfio.h"
+				RelativePath="..\src\common\core.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\tool\mapcache.c"
+				RelativePath="..\src\common\core.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\grfio.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\grfio.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\malloc.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\malloc.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\mmo.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\showmsg.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\showmsg.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\strlib.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\strlib.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\utils.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\utils.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\common\version.h"
 				>
 			</File>
 		</Filter>
 		<Filter
-			Name="zlib"
+			Name="mapcache"
 			>
 			<File
-				RelativePath="..\src\zlib\zconf.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\zlib\zlib.h"
+				RelativePath="..\src\tool\mapcache.c"
 				>
 			</File>
 		</Filter>

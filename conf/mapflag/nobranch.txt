@@ -6,9 +6,10 @@
 //= 1.3 [massdriller]
 //= 1.6a [Lupus]
 //= 1.7 Added all novice maps. [L0ne_W0lf]
+//= 1.8 Removed restriction on PVP maps. [L0ne_W0lf]
 //===== Current Version: =====================================
 
-// Cities ================>\\
+// Cities ======================
 ayo_in01	mapflag	nobranch
 ayo_in02	mapflag	nobranch
 alb_ship	mapflag	nobranch
@@ -86,8 +87,6 @@ lhz_cube	mapflag	nobranch
 hu_in01	mapflag	nobranch
 auction_01	mapflag	nobranch
 auction_02	mapflag	nobranch
-p_track01	mapflag	nobranch
-p_track02	mapflag	nobranch
 ra_in01	mapflag	nobranch
 ra_temin	mapflag	nobranch
 ra_temple	mapflag	nobranch
@@ -95,8 +94,9 @@ ra_temsky	mapflag	nobranch
 ve_in	mapflag	nobranch
 ve_in02	mapflag	nobranch
 thor_camp	mapflag	nobranch
+cave	mapflag	nobranch
 
-// Job Quests ====================
+// Job Quests ==================
 job_sword1	mapflag	nobranch
 job_thief1	mapflag	nobranch
 // 2-1
@@ -119,7 +119,7 @@ que_ng	mapflag	nobranch
 job_soul	mapflag	nobranch
 job_star	mapflag	nobranch
 
-// Special Quests Places =========
+// Special Quests Places =======
 que_god01	mapflag	nobranch
 que_god02	mapflag	nobranch
 que_bingo	mapflag	nobranch
@@ -136,7 +136,7 @@ que_rachel	mapflag	nobranch
 que_san04	mapflag	nobranch
 que_thor	mapflag	nobranch
 
-// Guild Castles ==================
+// Guild Castles ===============
 //alde_gld	mapflag	nobranch
 aldeg_cas01	mapflag	nobranch
 aldeg_cas02	mapflag	nobranch
@@ -179,14 +179,14 @@ nguild_gef	mapflag	nobranch
 nguild_pay	mapflag	nobranch
 nguild_prt	mapflag	nobranch
 
-// GvG Arenas =====================
+// GvG Arenas ==================
 guild_vs1	mapflag	nobranch
 guild_vs2	mapflag	nobranch
 guild_vs3	mapflag	nobranch
 guild_vs4	mapflag	nobranch
 guild_vs5	mapflag	nobranch
 
-// Arenas ================>\\
+// Arenas ======================
 arena_room	mapflag	nobranch
 force_1-1	mapflag	nobranch
 force_1-2	mapflag	nobranch
@@ -220,92 +220,11 @@ prt_are01	mapflag	nobranch
 //wizard_2-1	mapflag	nobranch
 //wizard_3-1	mapflag	nobranch
 
-// PvP Arenas =========================
+// PvP Arenas ==================
 pvp_y_room	mapflag	nobranch
-pvp_y_1-1	mapflag	nobranch
-pvp_y_1-2	mapflag	nobranch
-pvp_y_1-3	mapflag	nobranch
-pvp_y_1-4	mapflag	nobranch
-pvp_y_1-5	mapflag	nobranch
-pvp_y_2-1	mapflag	nobranch
-pvp_y_2-2	mapflag	nobranch
-pvp_y_2-3	mapflag	nobranch
-pvp_y_2-4	mapflag	nobranch
-pvp_y_2-5	mapflag	nobranch
-pvp_y_3-1	mapflag	nobranch
-pvp_y_3-2	mapflag	nobranch
-pvp_y_3-3	mapflag	nobranch
-pvp_y_3-4	mapflag	nobranch
-pvp_y_3-5	mapflag	nobranch
-pvp_y_4-1	mapflag	nobranch
-pvp_y_4-2	mapflag	nobranch
-pvp_y_4-3	mapflag	nobranch
-pvp_y_4-4	mapflag	nobranch
-pvp_y_4-5	mapflag	nobranch
-pvp_y_5-1	mapflag	nobranch
-pvp_y_5-2	mapflag	nobranch
-pvp_y_5-3	mapflag	nobranch
-pvp_y_5-4	mapflag	nobranch
-pvp_y_5-5	mapflag	nobranch
-pvp_y_6-1	mapflag	nobranch
-pvp_y_6-2	mapflag	nobranch
-pvp_y_6-3	mapflag	nobranch
-pvp_y_6-4	mapflag	nobranch
-pvp_y_6-5	mapflag	nobranch
-pvp_y_7-1	mapflag	nobranch
-pvp_y_7-2	mapflag	nobranch
-pvp_y_7-3	mapflag	nobranch
-pvp_y_7-4	mapflag	nobranch
-pvp_y_7-5	mapflag	nobranch
-pvp_y_8-1	mapflag	nobranch
-pvp_y_8-2	mapflag	nobranch
-pvp_y_8-3	mapflag	nobranch
-pvp_y_8-4	mapflag	nobranch
-pvp_y_8-5	mapflag	nobranch
 pvp_n_room	mapflag	nobranch
-pvp_n_1-1	mapflag	nobranch
-pvp_n_1-2	mapflag	nobranch
-pvp_n_1-3	mapflag	nobranch
-pvp_n_1-4	mapflag	nobranch
-pvp_n_1-5	mapflag	nobranch
-pvp_n_2-1	mapflag	nobranch
-pvp_n_2-2	mapflag	nobranch
-pvp_n_2-3	mapflag	nobranch
-pvp_n_2-4	mapflag	nobranch
-pvp_n_2-5	mapflag	nobranch
-pvp_n_3-1	mapflag	nobranch
-pvp_n_3-2	mapflag	nobranch
-pvp_n_3-3	mapflag	nobranch
-pvp_n_3-4	mapflag	nobranch
-pvp_n_3-5	mapflag	nobranch
-pvp_n_4-1	mapflag	nobranch
-pvp_n_4-2	mapflag	nobranch
-pvp_n_4-3	mapflag	nobranch
-pvp_n_4-4	mapflag	nobranch
-pvp_n_4-5	mapflag	nobranch
-pvp_n_5-1	mapflag	nobranch
-pvp_n_5-2	mapflag	nobranch
-pvp_n_5-3	mapflag	nobranch
-pvp_n_5-4	mapflag	nobranch
-pvp_n_5-5	mapflag	nobranch
-pvp_n_6-1	mapflag	nobranch
-pvp_n_6-2	mapflag	nobranch
-pvp_n_6-3	mapflag	nobranch
-pvp_n_6-4	mapflag	nobranch
-pvp_n_6-5	mapflag	nobranch
-pvp_n_7-1	mapflag	nobranch
-pvp_n_7-2	mapflag	nobranch
-pvp_n_7-3	mapflag	nobranch
-pvp_n_7-4	mapflag	nobranch
-pvp_n_7-5	mapflag	nobranch
-pvp_n_8-1	mapflag	nobranch
-pvp_n_8-2	mapflag	nobranch
-pvp_n_8-3	mapflag	nobranch
-pvp_n_8-4	mapflag	nobranch
-pvp_n_8-5	mapflag	nobranch
-pvp_2vs2	mapflag	nobranch
 
-//Main City maps
+// Main City maps ==============
 alberta	mapflag	nobranch
 aldebaran	mapflag	nobranch
 amatsu	mapflag	nobranch
@@ -341,18 +260,11 @@ turbo_e_4	mapflag	nobranch
 turbo_e_8	mapflag	nobranch
 turbo_e_16	mapflag	nobranch
 
-//Monster Races ================
+// Monster Races ===============
 p_track01	mapflag	nobranch
 p_track02	mapflag	nobranch
 
-//Battle Fields ================
-bat_room	mapflag	nobranch
-bat_a01	mapflag	nobranch
-bat_a02	mapflag	nobranch
-bat_b01	mapflag	nobranch
-bat_b02	mapflag	nobranch
-
-//Vision of Okolnir ============
+// Vision of Okolnir ===========
 que_qsch01	mapflag	nobranch
 que_qsch02	mapflag	nobranch
 que_qsch03	mapflag	nobranch
@@ -363,3 +275,68 @@ que_qaru02	mapflag	nobranch
 que_qaru03	mapflag	nobranch
 que_qaru04	mapflag	nobranch
 que_qaru05	mapflag	nobranch
+
+1@cata	mapflag	nobranch
+2@cata	mapflag	nobranch
+e_tower	mapflag	nobranch
+1@tower	mapflag	nobranch
+2@tower	mapflag	nobranch
+3@tower	mapflag	nobranch
+4@tower	mapflag	nobranch
+5@tower	mapflag	nobranch
+6@tower	mapflag	nobranch
+
+mid_camp	mapflag	nobranch
+mid_campin	mapflag	nobranch
+man_fild01	mapflag	nobranch
+moc_fild22b	mapflag	nobranch
+que_dan01	mapflag	nobranch
+que_dan02	mapflag	nobranch
+schg_que01	mapflag	nobranch
+arug_que01	mapflag	nobranch
+1@orcs	mapflag	nobranch
+2@orcs	mapflag	nobranch
+
+// Battle Grounds ==============
+bat_c01	mapflag	nobranch
+bat_c02	mapflag	nobranch
+bat_c03	mapflag	nobranch
+bat_room	mapflag	nobranch
+bat_b01	mapflag	nobranch
+bat_b02	mapflag	nobranch
+bat_a01	mapflag	nobranch
+bat_a02	mapflag	nobranch
+
+1@nyd	mapflag	nobranch
+2@nyd	mapflag	nobranch
+manuk	mapflag	nobranch
+man_fild02	mapflag	nobranch
+man_in01	mapflag	nobranch
+splendide	mapflag	nobranch
+spl_in01	mapflag	nobranch
+spl_in02	mapflag	nobranch
+
+moc_para01	mapflag	nobranch
+job3_arch01	mapflag	nobranch
+job3_arch02	mapflag	nobranch
+job3_arch03	mapflag	nobranch
+job3_guil01	mapflag	nobranch
+job3_guil02	mapflag	nobranch
+job3_guil03	mapflag	nobranch
+job3_rang01	mapflag	nobranch
+job3_rang02	mapflag	nobranch
+job3_rune01	mapflag	nobranch
+job3_rune02	mapflag	nobranch
+job3_rune03	mapflag	nobranch
+job3_war01	mapflag	nobranch
+job3_war02	mapflag	nobranch
+jupe_core2	mapflag	nobranch
+
+brasilis	mapflag	nobranch
+bra_in01	mapflag	nobranch
+
+//evt_zombie	mapflag	nobranch
+
+// Poring War ==================
+poring_w01	mapflag	nobranch
+poring_w02	mapflag	nobranch

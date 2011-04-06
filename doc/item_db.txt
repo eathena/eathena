@@ -21,6 +21,8 @@ Type:
 	10	Ammo (Arrows/Bullets/etc)
 	11	Usable with delayed consumption (item is lost from inventory
 		after selecting a target, for use with skills and pet lures)
+	18	Another delayed consume that requires user confirmation before
+		using item.
 
 Buy: Default buying price. When not specified, becomes double the sell price.
 
@@ -115,8 +117,8 @@ View: For normal items, defines a replacement view-sprite for the item (eg:
 		16: Katars
 		17: Revolvers
 		18: Rifles
-		19: Shotguns
-		20: Gatling guns
+		19: Gatling guns
+		20: Shotguns
 		21: Grenade launchers
 		22: Fuuma Shurikens
 

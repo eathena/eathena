@@ -21,6 +21,7 @@
 // 20070821 - 2007-08-21aSakexe+   - 0x2c5
 // 20070918 - 2007-09-18aSakexe+   - 0x2d7, 0x2d9, 0x2da
 // 20071106 - 2007-11-06aSakexe+   - 0x78, 0x7c, 0x22c
+// 20080102 - 2008-01-02aSakexe+   - 0x2ec, 0x2ed , 0x2ee
 // 20081126 - 2008-11-26aSakexe+   - 0x1a2
 // 20090408 - 2009-04-08aSakexe+   - 0x44a (dont use as it overlaps with RE client packets)
 // 20080827 - 2008-08-27aRagexeRE+ - First RE Client
@@ -31,11 +32,17 @@
 // 20090922 - 2009-09-22aRagexeRE+ - 0x7e5, 0x7e7, 0x7e8, 0x7e9
 // 20091103 - 2009-11-03aRagexeRE+ - 0x7f7, 0x7f8, 0x7f9
 // 20100105 - 2010-01-05aRagexeRE+ - 0x133, 0x800, 0x801
+// 20100126 - 2010-01-26aRagexeRE+ - 0x80e
 // 20100223 - 2010-02-23aRagexeRE+ - 0x80f
+// 20100413 - 2010-04-13aRagexeRE+ - 0x6b
+// 20100629 - 2010-06-29aRagexeRE+ - 0x2d0, 0xaa, 0x2d1, 0x2d2
+// 20100721 - 2010-07-21aRagexeRE+ - 0x6b, 0x6d
+// 20100727 - 2010-07-27aRagexeRE+ - 0x6b, 0x6d
+// 20100803 - 2010-08-03aRagexeRE+ - 0x6b, 0x6d, 0x827, 0x828, 0x829, 0x82a, 0x82b, 0x82c, 0x842, 0x843
 
 #ifndef PACKETVER
 	#define PACKETVER	20081126
-	//#define PACKETVER 20100223
+	//#define PACKETVER 20100707
 #endif
 // backward compatible PACKETVER 8 and 9
 #if PACKETVER == 8
@@ -46,8 +53,6 @@
 #undef PACKETVER
 #define PACKETVER 20071106
 #endif
-
-#define FIFOSIZE_SERVERLINK	256*1024
 
 //Remove/Comment this line to disable sc_data saving. [Skotlex]
 #define ENABLE_SC_SAVING 
@@ -67,7 +72,7 @@
 	#define MAX_HOTKEYS 38
 #endif
 
-#define MAX_MAP_PER_SERVER 1024
+#define MAX_MAP_PER_SERVER 1500 // Increased to allow creation of Instance Maps
 #define MAX_INVENTORY 100
 //Max number of characters per account. Note that changing this setting alone is not enough if the client is not hexed to support more characters as well.
 #define MAX_CHARS 9
@@ -79,17 +84,17 @@
 #define MAX_ZENY 1000000000
 #define MAX_FAME 1000000000
 #define MAX_CART 100
-#define MAX_SKILL 1100 // Bumped to 1100 for new quest skills, will need to further increase one day... [DracoRPG]
-#define GLOBAL_REG_NUM 96
+#define MAX_SKILL 2536
+#define GLOBAL_REG_NUM 256
 #define ACCOUNT_REG_NUM 64
 #define ACCOUNT_REG2_NUM 16
 //Should hold the max of GLOBAL/ACCOUNT/ACCOUNT2 (needed for some arrays that hold all three)
-#define MAX_REG_NUM 96
+#define MAX_REG_NUM 256
 #define DEFAULT_WALK_SPEED 150
 #define MIN_WALK_SPEED 0
 #define MAX_WALK_SPEED 1000
 #define MAX_STORAGE 600
-#define MAX_GUILD_STORAGE 1000
+#define MAX_GUILD_STORAGE 600
 #define MAX_PARTY 12
 #define MAX_GUILD 16+10*6	// increased max guild members +6 per 1 extension levels [Lupus]
 #define MAX_GUILDPOSITION 20	// increased max guild positions to accomodate for all members [Valaris] (removed) [PoW]
@@ -99,15 +104,8 @@
 #define MAX_GUILDCASTLE 34	// Updated to include new entries for WoE:SE. [L0ne_W0lf]
 #define MAX_GUILDLEVEL 50
 #define MAX_GUARDIANS 8	//Local max per castle. [Skotlex]
-#define MAX_QUEST 25 //Max quests for a PC
+#define MAX_QUEST_DB 2000 //Max quests that the server will load
 #define MAX_QUEST_OBJECTIVES 3 //Max quest objectives for a quest
-
-#define MIN_HAIR_STYLE battle_config.min_hair_style
-#define MAX_HAIR_STYLE battle_config.max_hair_style
-#define MIN_HAIR_COLOR battle_config.min_hair_color
-#define MAX_HAIR_COLOR battle_config.max_hair_color
-#define MIN_CLOTH_COLOR battle_config.min_cloth_color
-#define MAX_CLOTH_COLOR battle_config.max_cloth_color
 
 // for produce
 #define MIN_ATTRIBUTE 0
@@ -139,6 +137,11 @@
 //Limits to avoid ID collision with other game objects
 #define START_ACCOUNT_NUM 2000000
 #define END_ACCOUNT_NUM 100000000
+#define START_CHAR_NUM 150000
+
+//Guilds
+#define MAX_GUILDMES1 60
+#define MAX_GUILDMES2 120
 
 //Base Homun skill.
 #define HM_SKILLBASE 8001
@@ -151,6 +154,11 @@
 #define MAIL_MAX_INBOX 30
 #define MAIL_TITLE_LENGTH 40
 #define MAIL_BODY_LENGTH 200
+
+//Mercenary System
+#define MC_SKILLBASE 8201
+#define MAX_MERCSKILL 40
+#define MAX_MERCENARY_CLASS 40
 
 enum item_types {
 	IT_HEALING = 0,
@@ -165,28 +173,19 @@ enum item_types {
 	IT_UNKNOWN2,//9
 	IT_AMMO,    //10
 	IT_DELAYCONSUME,//11
+	IT_CASH = 18,
 	IT_MAX 
 };
 
 
-//Questlog system [Kevin]
-typedef enum quest_state { Q_INACTIVE, Q_ACTIVE } quest_state;
-
-struct quest_objective {
-
-	char name[NAME_LENGTH];
-	int count;
-
-};
+//Questlog system [Kevin] [Inkfish]
+typedef enum quest_state { Q_INACTIVE, Q_ACTIVE, Q_COMPLETE } quest_state;
 
 struct quest {
-
 	int quest_id;
+	unsigned int time;
+	int count[MAX_QUEST_OBJECTIVES];
 	quest_state state;
-	int num_objectives;
-	int time;
-	struct quest_objective objectives[MAX_QUEST_OBJECTIVES];
-
 };
 
 struct item {
@@ -198,6 +197,7 @@ struct item {
 	char refine;
 	char attribute;
 	short card[MAX_SLOTS];
+	unsigned int expire_time;
 };
 
 struct point {
@@ -205,7 +205,7 @@ struct point {
 	short x,y;
 };
 
-struct skill {
+struct s_skill {
 	unsigned short id,lv,flag;
 };
 
@@ -237,7 +237,7 @@ struct guild_storage {
 	int guild_id;
 	short storage_status;
 	short storage_amount;
-	struct item storage_[MAX_GUILD_STORAGE];
+	struct item items[MAX_GUILD_STORAGE];
 };
 
 struct s_pet {
@@ -263,7 +263,7 @@ struct s_homunculus {	//[orn]
 	int hp,max_hp,sp,max_sp;
 	unsigned int intimacy;	//[orn]
 	short hunger;
-	struct skill hskill[MAX_HOMUNSKILL]; //albator
+	struct s_skill hskill[MAX_HOMUNSKILL]; //albator
 	short skillpts;
 	short level;
 	unsigned int exp;
@@ -275,6 +275,15 @@ struct s_homunculus {	//[orn]
 	int int_ ;
 	int dex ;
 	int luk ;
+};
+
+struct s_mercenary {
+	int mercenary_id;
+	int char_id;
+	short class_;
+	int hp, sp;
+	unsigned int kill_count;
+	unsigned int life_time;
 };
 
 struct s_friend {
@@ -303,14 +312,19 @@ struct mmo_charstatus {
 	int zeny;
 
 	short class_;
-	unsigned short status_point,skill_point;
+	unsigned int status_point,skill_point;
 	int hp,max_hp,sp,max_sp;
 	unsigned int option;
 	short manner;
 	unsigned char karma;
 	short hair,hair_color,clothes_color;
-	int party_id,guild_id,pet_id,hom_id;
+	int party_id,guild_id,pet_id,hom_id,mer_id;
 	int fame;
+
+	// Mercenary Guilds Rank
+	int arch_faith, arch_calls;
+	int spear_faith, spear_calls;
+	int sword_faith, sword_calls;
 
 	short weapon; // enum weapon_type
 	short shield; // view-id
@@ -327,13 +341,16 @@ struct mmo_charstatus {
 	struct point last_point,save_point,memo_point[MAX_MEMOPOINTS];
 	struct item inventory[MAX_INVENTORY],cart[MAX_CART];
 	struct storage_data storage;
-	struct skill skill[MAX_SKILL];
+	struct s_skill skill[MAX_SKILL];
 
 	struct s_friend friends[MAX_FRIENDS]; //New friend system [Skotlex]
 #ifdef HOTKEY_SAVING
 	struct hotkey hotkeys[MAX_HOTKEYS];
 #endif
 	bool show_equip;
+	short rename;
+
+	time_t delete_date;
 };
 
 typedef enum mail_status {
@@ -360,7 +377,7 @@ struct mail_message {
 
 struct mail_data {
 	short amount;
-	bool changed, full;
+	bool full;
 	short unchecked, unread;
 	struct mail_message msg[MAIL_MAX_INBOX];
 };
@@ -392,11 +409,6 @@ struct registry {
 	struct global_reg account2[ACCOUNT_REG2_NUM];
 };
 
-struct gm_account {
-	int account_id;
-	int level;
-};
-
 struct party_member {
 	int account_id;
 	int char_id;
@@ -421,7 +433,7 @@ struct map_session_data;
 struct guild_member {
 	int account_id, char_id;
 	short hair,hair_color,gender,class_,lv;
-	unsigned int exp;
+	uint64 exp;
 	int exp_payper;
 	short online,position;
 	char name[NAME_LENGTH];
@@ -455,20 +467,20 @@ struct guild_skill {
 struct guild {
 	int guild_id;
 	short guild_lv, connect_member, max_member, average_lv;
-	unsigned int exp,next_exp;
+	uint64 exp;
+	unsigned int next_exp;
 	int skill_point;
 	char name[NAME_LENGTH],master[NAME_LENGTH];
 	struct guild_member member[MAX_GUILD];
 	struct guild_position position[MAX_GUILDPOSITION];
-	char mes1[60],mes2[120];
+	char mes1[MAX_GUILDMES1],mes2[MAX_GUILDMES2];
 	int emblem_len,emblem_id;
 	char emblem_data[2048];
 	struct guild_alliance alliance[MAX_GUILDALLIANCE];
 	struct guild_expulsion expulsion[MAX_GUILDEXPULSION];
 	struct guild_skill skill[MAX_GUILDSKILL];
-#ifndef TXT_ONLY
-	unsigned short save_flag;
-#endif
+
+	unsigned short save_flag; // for TXT saving
 };
 
 struct guild_castle {
@@ -626,6 +638,12 @@ enum {
 	JOB_STAR_GLADIATOR2,
 	JOB_SOUL_LINKER,
 	JOB_MAX,
+};
+
+enum {
+	SEX_FEMALE = 0,
+	SEX_MALE,
+	SEX_SERVER
 };
 
 // sanity checks...

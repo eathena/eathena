@@ -12,6 +12,9 @@ struct item;
 
 #include <stdarg.h>
 
+#define PARTY_BOOKING_JOBS 6
+#define PARTY_BOOKING_RESULTS 10
+
 struct party_member_data {
 	struct map_session_data *sd;
 	unsigned int hp; //For HP,x,y refreshing.
@@ -22,6 +25,7 @@ struct party_data {
 	struct party party;
 	struct party_member_data data[MAX_PARTY];
 	uint8 itemc; //For item distribution, position of last picker in party
+	unsigned int instance_id;
 	struct {
 		unsigned monk : 1; //There's at least one monk in party?
 		unsigned sg : 1;	//There's at least one Star Gladiator in party?
@@ -30,13 +34,24 @@ struct party_data {
 	} state;
 };
 
+struct party_booking_detail {
+	short level;
+    short mapid;
+    short job[PARTY_BOOKING_JOBS];
+};
 
-extern int party_share_level;
+struct party_booking_ad_info {
+	unsigned long index;
+	char charname[NAME_LENGTH];
+	long starttime;
+	struct party_booking_detail p_detail;
+};
 
 void do_init_party(void);
 void do_final_party(void);
 struct party_data* party_search(int party_id);
 struct party_data* party_searchname(const char* str);
+struct map_session_data* party_getavailablesd(struct party_data *p);
 
 int party_create(struct map_session_data *sd,char *name, int item, int item2);
 void party_created(int account_id,int char_id,int fail,int party_id,char *name);
@@ -46,7 +61,7 @@ void party_member_joined(struct map_session_data *sd);
 int party_member_added(int party_id,int account_id,int char_id,int flag);
 int party_leave(struct map_session_data *sd);
 int party_removemember(struct map_session_data *sd,int account_id,char *name);
-int party_member_leaved(int party_id,int account_id,int char_id);
+int party_member_withdraw(int party_id,int account_id,int char_id);
 void party_reply_invite(struct map_session_data *sd,int account_id,int flag);
 int party_recv_noinfo(int party_id);
 int party_recv_info(struct party *sp);
@@ -67,5 +82,13 @@ int party_share_loot(struct party_data* p, struct map_session_data* sd, struct i
 int party_send_dot_remove(struct map_session_data *sd);
 int party_sub_count(struct block_list *bl, va_list ap);
 int party_foreachsamemap(int (*func)(struct block_list *,va_list),struct map_session_data *sd,int range,...);
+
+/*==========================================
+ * Party Booking in KRO [Spiria]
+ *------------------------------------------*/
+void party_booking_register(struct map_session_data *sd, short level, short mapid, short* job);
+void party_booking_update(struct map_session_data *sd, short* job);
+void party_booking_search(struct map_session_data *sd, short level, short mapid, short job, unsigned long lastindex, short resultcount);
+bool party_booking_delete(struct map_session_data *sd);
 
 #endif /* _PARTY_H_ */

@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
+				AdditionalIncludeDirectories="..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -52,9 +52,9 @@
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -67,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib zdll.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib"
 				OutputFile="$(OutDir)\char-server.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\char-server.pdb"
@@ -94,9 +94,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -135,16 +132,16 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\src\zlib"
+				AdditionalIncludeDirectories="..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;DB_MANUAL_CAST_TO_UNION"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				DisableSpecificWarnings="4800"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -157,17 +154,16 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib zdll.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib"
 				OutputFile="$(OutDir)\char-server.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(OutDir)\char-server.pdb"
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
 				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
@@ -188,9 +184,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"

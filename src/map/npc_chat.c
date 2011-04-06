@@ -14,7 +14,7 @@
 #include "pc.h" // struct map_session_data
 #include "script.h" // set_var()
 
-#include "pcre.h"
+#include <pcre.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -389,7 +389,7 @@ int npc_chat_sub(struct block_list* bl, va_list ap)
 				lst = nd->u.scr.label_list;
 				ARR_FIND(0, nd->u.scr.label_list_num, i, strncmp(lst[i].name, e->label, sizeof(lst[i].name)) == 0);
 				if (i == nd->u.scr.label_list_num) {
-					ShowWarning("Unable to find label: %s", e->label);
+					ShowWarning("Unable to find label: %s\n", e->label);
 					return 0;
 				}
 				

@@ -9,6 +9,7 @@
 #endif
 
 #ifdef WIN32
+	#define WIN32_LEAN_AND_MEAN  // otherwise winsock2.h includes full windows.h
 	#include <winsock2.h>
 	typedef long in_addr_t;
 #else
@@ -19,6 +20,7 @@
 
 #include <time.h>
 
+#define FIFOSIZE_SERVERLINK 256*1024
 
 // socket I/O macros
 #define RFIFOHEAD(fd)
@@ -32,6 +34,8 @@
 #define WFIFOW(fd,pos) (*(uint16*)WFIFOP(fd,pos))
 #define RFIFOL(fd,pos) (*(uint32*)RFIFOP(fd,pos))
 #define WFIFOL(fd,pos) (*(uint32*)WFIFOP(fd,pos))
+#define RFIFOQ(fd,pos) (*(uint64*)RFIFOP(fd,pos))
+#define WFIFOQ(fd,pos) (*(uint64*)WFIFOP(fd,pos))
 #define RFIFOSPACE(fd) (session[fd]->max_rdata - session[fd]->rdata_size)
 #define WFIFOSPACE(fd) (session[fd]->max_wdata - session[fd]->wdata_size)
 
@@ -52,11 +56,13 @@
 #define RBUFB(p,pos) (*(uint8*)RBUFP((p),(pos)))
 #define RBUFW(p,pos) (*(uint16*)RBUFP((p),(pos)))
 #define RBUFL(p,pos) (*(uint32*)RBUFP((p),(pos)))
+#define RBUFQ(p,pos) (*(uint64*)RBUFP((p),(pos)))
 
 #define WBUFP(p,pos) (((uint8*)(p)) + (pos))
 #define WBUFB(p,pos) (*(uint8*)WBUFP((p),(pos)))
 #define WBUFW(p,pos) (*(uint16*)WBUFP((p),(pos)))
 #define WBUFL(p,pos) (*(uint32*)WBUFP((p),(pos)))
+#define WBUFQ(p,pos) (*(uint64*)WBUFP((p),(pos)))
 
 #define TOB(n) ((uint8)((n)&UINT8_MAX))
 #define TOW(n) ((uint16)((n)&UINT16_MAX))
@@ -131,6 +137,7 @@ uint32 host2ip(const char* hostname);
 const char* ip2str(uint32 ip, char ip_str[16]);
 uint32 str2ip(const char* ip_str);
 #define CONVIP(ip) ((ip)>>24)&0xFF,((ip)>>16)&0xFF,((ip)>>8)&0xFF,((ip)>>0)&0xFF
+#define MAKEIP(a,b,c,d) (uint32)( ( ( (a)&0xFF ) << 24 ) | ( ( (b)&0xFF ) << 16 ) | ( ( (c)&0xFF ) << 8 ) | ( ( (d)&0xFF ) << 0 ) )
 uint16 ntows(uint16 netshort);
 
 int socket_getips(uint32* ips, int max);
@@ -148,12 +155,6 @@ void set_eof(int fd);
 #define SEND_SHORTLIST
 
 #ifdef SEND_SHORTLIST
-struct send_shortlist_node {
-	struct send_shortlist_node *next; // Next node in the linked list
-	struct send_shortlist_node *prev; // Previous node in the linked list
-	int fd; // FD that needs sending.
-};
-
 // Add a fd to the shortlist so that it'll be recognized as a fd that needs
 // sending done on it.
 void send_shortlist_add_fd(int fd);

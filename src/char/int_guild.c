@@ -42,14 +42,14 @@ int inter_guild_tostr(char* str, struct guild* g)
 	int i, c, len;
 
 	// save guild base info
-	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%u,%d,%d\t%s#\t%s#\t",
+	len = sprintf(str, "%d\t%s\t%s\t%d,%d,%"PRIu64",%d,%d\t%s#\t%s#\t",
 		g->guild_id, g->name, g->master, g->guild_lv, g->max_member, g->exp, g->skill_point, 0, g->mes1, g->mes2);
 
 	// save guild member info
 	for(i = 0; i < g->max_member; i++)
 	{
 		struct guild_member *m = &g->member[i];
-		len += sprintf(str + len, "%d,%d,%d,%d,%d,%d,%d,%u,%d,%d\t%s\t",
+		len += sprintf(str + len, "%d,%d,%d,%d,%d,%d,%d,%"PRIu64",%d,%d\t%s\t",
 		               m->account_id, m->char_id,
 		               m->hair, m->hair_color, m->gender,
 		               m->class_, m->lv, m->exp, m->exp_payper, m->position,
@@ -118,13 +118,13 @@ int inter_guild_fromstr(char* str, struct guild* g)
 		char master[256]; // only 24 used
 		int guildlv;
 		int max_member;
-		unsigned int exp;
+		uint64 exp;
 		int skpoint;
 		char mes1[256]; // only 60 used
 		char mes2[256]; // only 120 used
 		int len;
 
-		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%u,%d,%*d\t%[^\t]\t%[^\t]\t%n",
+		if( sscanf(str, "%d\t%[^\t]\t%[^\t]\t%d,%d,%"SCNu64",%d,%*d\t%[^\t]\t%[^\t]\t%n",
 				   &guildid, name, master, &guildlv, &max_member, &exp, &skpoint, mes1, mes2, &len) < 9 )
 			return 1;
 
@@ -150,7 +150,7 @@ int inter_guild_fromstr(char* str, struct guild* g)
 		int charid;
 		int hair, hair_color, gender;
 		int class_, lv;
-		unsigned int exp;
+		uint64 exp;
 		int exp_payper;
 		int position;
 		char name[256]; // only 24 used
@@ -160,7 +160,7 @@ int inter_guild_fromstr(char* str, struct guild* g)
 		for( i = 0; i < g->max_member; i++ )
 		{
 			struct guild_member* m = &g->member[i];
-			if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%u,%d,%d\t%[^\t]\t%n",
+			if (sscanf(str, "%d,%d,%d,%d,%d,%d,%d,%"SCNu64",%d,%d\t%[^\t]\t%n",
 					   &accountid, &charid, &hair, &hair_color, &gender,
 					   &class_, &lv, &exp, &exp_payper, &position,
 					   name, &len) < 11)
@@ -714,7 +714,7 @@ int mapif_guild_memberadded(int fd, int guild_id, int account_id, int char_id, i
 }
 
 // 脱退/追放通知
-int mapif_guild_leaved(int guild_id, int account_id, int char_id, int flag, const char *name, const char *mes)
+int mapif_guild_withdraw(int guild_id, int account_id, int char_id, int flag, const char *name, const char *mes)
 {
 	unsigned char buf[79];
 
@@ -865,8 +865,8 @@ int mapif_guild_notice(struct guild *g)
 
 	WBUFW(buf,0) = 0x383e;
 	WBUFL(buf,2) = g->guild_id;
-	memcpy(WBUFP(buf,6), g->mes1, 60);
-	memcpy(WBUFP(buf,66), g->mes2, 120);
+	memcpy(WBUFP(buf,6), g->mes1, MAX_GUILDMES1);
+	memcpy(WBUFP(buf,66), g->mes2, MAX_GUILDMES2);
 	mapif_sendall(buf, 186);
 
 	return 0;
@@ -1096,7 +1096,7 @@ int mapif_parse_GuildLeave(int fd, int guild_id, int account_id, int char_id, in
 		safestrncpy(g->expulsion[j].mes, mes, 40);
 	}
 
-	mapif_guild_leaved(guild_id, account_id, char_id, flag, g->member[i].name, mes);
+	mapif_guild_withdraw(guild_id, account_id, char_id, flag, g->member[i].name, mes);
 
 	memset(&g->member[i], 0, sizeof(struct guild_member));
 
@@ -1236,53 +1236,55 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 	}
 	switch(type) {
 	case GMI_POSITION:	// 役職
-		g->member[i].position = *((int *)data);
+		g->member[i].position = *((short *)data);
+		mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data, len);
 		break;
 	case GMI_EXP:	// EXP
 	{
-		unsigned int exp, old_exp=g->member[i].exp;
-		g->member[i].exp=*((unsigned int *)data);
+		uint64 exp, old_exp=g->member[i].exp;
+		g->member[i].exp=*((uint64 *)data);
 		if (g->member[i].exp > old_exp)
 		{
 			exp = g->member[i].exp - old_exp;
 			if (guild_exp_rate != 100)
 				exp = exp*guild_exp_rate/100;
-			if (exp > UINT_MAX - g->exp)
-				g->exp = UINT_MAX;
+			if (exp > UINT64_MAX - g->exp)
+				g->exp = UINT64_MAX;
 			else
 				g->exp+=exp;
 			guild_calcinfo(g);
-			mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,4);
+			mapif_guild_basicinfochanged(guild_id,GBI_EXP,&g->exp,sizeof(g->exp));
 		}
+		mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data, len);
 		break;
 	}
 	case GMI_HAIR:
 	{
-		g->member[i].hair=*((int *)data);
+		g->member[i].hair=*((short *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 		break;
 	}
 	case GMI_HAIR_COLOR:
 	{
-		g->member[i].hair_color=*((int *)data);
+		g->member[i].hair_color=*((short *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 		break;
 	}
 	case GMI_GENDER:
 	{
-		g->member[i].gender=*((int *)data);
+		g->member[i].gender=*((short *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 		break;
 	}
 	case GMI_CLASS:
 	{
-		g->member[i].class_=*((int *)data);
+		g->member[i].class_=*((short *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 		break;
 	}
 	case GMI_LEVEL:
 	{
-		g->member[i].lv=*((int *)data);
+		g->member[i].lv=*((short *)data);
 		mapif_guild_memberinfochanged(guild_id,account_id,char_id,type,data,len);
 		break;
 	}
@@ -1291,12 +1293,11 @@ int mapif_parse_GuildMemberInfoChange(int fd, int guild_id, int account_id, int 
 		ShowError("int_guild: GuildMemberInfoChange: Unknown type %d\n", type);
 		break;
 	}
-	mapif_guild_memberinfochanged(guild_id, account_id, char_id, type, data, len);
 
 	return 0;
 }
 
-int inter_guild_sex_changed(int guild_id,int account_id,int char_id, int gender)
+int inter_guild_sex_changed(int guild_id,int account_id,int char_id, short gender)
 {
 	return mapif_parse_GuildMemberInfoChange(0, guild_id, account_id, char_id, GMI_GENDER, (const char*)&gender, sizeof(gender));
 }
@@ -1317,7 +1318,7 @@ int mapif_parse_GuildPosition(int fd, int guild_id, int idx, struct guild_positi
 }
 
 // ギルドスキルアップ要求
-int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id)
+int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id, int max)
 {
 	struct guild *g = (struct guild*)idb_get(guild_db, guild_id);
 	int idx = skill_num - GD_SKILLBASE;
@@ -1325,7 +1326,7 @@ int mapif_parse_GuildSkillUp(int fd, int guild_id, int skill_num, int account_id
 	if (g == NULL || idx < 0 || idx >= MAX_GUILDSKILL)
 		return 0;
 
-	if (g->skill_point > 0 && g->skill[idx].id > 0 && g->skill[idx].lv < 10) {
+	if (g->skill_point > 0 && g->skill[idx].id > 0 && g->skill[idx].lv < max) {
 		g->skill[idx].lv++;
 		g->skill_point--;
 		if (guild_calcinfo(g) == 0)
@@ -1403,8 +1404,8 @@ int mapif_parse_GuildNotice(int fd, int guild_id, const char *mes1, const char *
 	g = (struct guild*)idb_get(guild_db, guild_id);
 	if (g == NULL)
 		return 0;
-	memcpy(g->mes1, mes1, 60);
-	memcpy(g->mes2, mes2, 120);
+	memcpy(g->mes1, mes1, MAX_GUILDMES1);
+	memcpy(g->mes2, mes2, MAX_GUILDMES2);
 
 	return mapif_guild_notice(g);
 }
@@ -1551,7 +1552,7 @@ int inter_guild_parse_frommap(int fd)
 	case 0x3039: mapif_parse_GuildBasicInfoChange(fd, RFIFOL(fd,4), RFIFOW(fd,8), (const char*)RFIFOP(fd,10), RFIFOW(fd,2)-10); break;
 	case 0x303A: mapif_parse_GuildMemberInfoChange(fd, RFIFOL(fd,4), RFIFOL(fd,8), RFIFOL(fd,12), RFIFOW(fd,16), (const char*)RFIFOP(fd,18), RFIFOW(fd,2)-18); break;
 	case 0x303B: mapif_parse_GuildPosition(fd, RFIFOL(fd,4), RFIFOL(fd,8), (struct guild_position *)RFIFOP(fd,12)); break;
-	case 0x303C: mapif_parse_GuildSkillUp(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10)); break;
+	case 0x303C: mapif_parse_GuildSkillUp(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14)); break;
 	case 0x303D: mapif_parse_GuildAlliance(fd, RFIFOL(fd,2), RFIFOL(fd,6), RFIFOL(fd,10), RFIFOL(fd,14), RFIFOB(fd,18)); break;
 	case 0x303E: mapif_parse_GuildNotice(fd, RFIFOL(fd,2), (const char*)RFIFOP(fd,6), (const char*)RFIFOP(fd,66)); break;
 	case 0x303F: mapif_parse_GuildEmblem(fd, RFIFOW(fd,2)-12, RFIFOL(fd,4), RFIFOL(fd,8), (const char*)RFIFOP(fd,12)); break;
