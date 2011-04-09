@@ -6419,20 +6419,15 @@ BUILDIN_FUNC(getguildmaster)
 
 BUILDIN_FUNC(getguildmasterid)
 {
-	int guild_id;
-	struct guild* g;
+	int guild_id = script_getnum(st,2);
+	struct guild* g = guild_search(guild_id);
 
-	guild_id = script_getnum(st,2);
-
-	if( ( g = guild_search(guild_id) ) != NULL )
-	{
+	if( g != NULL )
 		script_pushint(st,g->member[0].char_id);
-	}
 	else
-	{
 		script_pushint(st,0);
-	}
-	return 0;
+
+ 	return 0;
 }
 
 /*==========================================

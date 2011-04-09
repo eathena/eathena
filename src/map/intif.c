@@ -1050,7 +1050,7 @@ int intif_parse_LoadGuildStorage(int fd)
 
 	gstor->storage_amount = 0;
 	for( i = 0; i < MAX_GUILD_STORAGE; ++i )
-		if( gstor->storage_[i].id > 0 )
+		if( gstor->items[i].id > 0 )
 			gstor->storage_amount++;
 
 	storage_guild_storageopen(sd);
