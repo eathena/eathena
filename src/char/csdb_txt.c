@@ -99,39 +99,40 @@ static bool csdb_txt_init(CSDB_TXT* self)
 			continue;
 		}
 
-		// parse data
-		data = NULL;
-		size = 0;
-		while( !done )
+		// call with zeroes to determine the required buffer size
+		if( !db->vtable.p.fromstr(line, &key, NULL, 0, &size, version) )
+		{// parsing failed
+			ShowFatalError("csdb_txt_init: There was a problem processing data in file '%s', line #%d.\nPlease fix manually. Shutting down to prevent data loss.\n", db->savefile, lines);
+			exit(EXIT_FAILURE);
+			return false;
+		}
+
+		// allocate enough space
+		data = (CSDBdata*)aMalloc(sizeof(size_t) + size);
+		if( data == NULL )
 		{
-			void* ptr = ( data != NULL ) ? &data->bytes : NULL;
-			size_t out_size;
+			ShowFatalError("csdb_txt_init: Out of memory while processing data in file '%s', line #%d!\n", db->savefile, lines);
+			exit(EXIT_FAILURE);
+			return false;
+		}
+		data->size = size;
 
-			if( !db->vtable.p.fromstr(line, &key, ptr, size, &out_size, version) )
-			{// parsing failed
-				ShowFatalError("csdb_txt_init: There was a problem processing data in file '%s', line #%d.\nPlease fix manually. Shutting down to prevent data loss.\n", db->savefile, lines);
-				if( data )
-					aFree(data);
-				exit(EXIT_FAILURE);
-				return false;
-			}
+		// call again to actually retrieve the data
+		if( !db->vtable.p.fromstr(line, &key, data->bytes, data->size, &size, version) )
+		{// parsing failed
+			ShowFatalError("csdb_txt_init: There was a problem processing data in file '%s', line #%d.\nPlease fix manually. Shutting down to prevent data loss.\n", db->savefile, lines);
+			aFree(data);
+			exit(EXIT_FAILURE);
+			return false;
+		}
 
-			if( size >= out_size )
-				done = true; // parsing completed
-
-			if( size != out_size )
-			{// readjust the allocated size (expand if too little, shrink if too much)
-				data = (CSDBdata*)aRealloc(data, sizeof(size_t) + out_size);
-				if( data == NULL )
-				{
-					ShowFatalError("csdb_txt_init: Out of memory while processing data in file '%s', line #%d!\n", db->savefile, lines);
-					exit(EXIT_FAILURE);
-					return false;
-				}
-			}
-
-			data->size = out_size;
-			size = out_size;
+		// consistency check
+		if( size != data->size )
+		{
+			ShowFatalError("csdb_txt_init: Size mismatch while processing data in file '%s', line #%d.\nPlease report this. Shutting down to prevent data loss.\n", db->savefile, lines);
+			aFree(data);
+			exit(EXIT_FAILURE);
+			return false;
 		}
 
 		// record entry in dbmap
