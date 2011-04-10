@@ -13,10 +13,6 @@
 #include <string.h> // memcpy()
 
 
-// TODO:
-// * update db->max_key inside insert()/replace()
-
-
 /// Internal structure.
 /// @private
 typedef struct CSDBimpl_TXT
@@ -283,6 +279,9 @@ static bool csdb_txt_insert(CSDB_TXT* self, int key, const void* data, size_t si
 	ptr->size = size;
 
 	idb_put(db->data, key, ptr);
+
+	if( db->max_key < key )
+		db->max_key = key;
 
 	db->dirty = true;
 	db->owner->p.request_sync(db->owner);
