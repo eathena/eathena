@@ -1,5 +1,7 @@
 Date		Added
 ======
+2011/05/23
+	* Rev. 14833 Fixed a possible exploit in guild castle investment. (bugreport:4929, topic:272783) [Brian]
 2011/03/21
 	* Fixed and commented out old Anthell entrance warps (bugreport:3589). Moved entrance to cmd_fild08 to match mapcache updates [Gepard]
 	- Fixed an issue in Resurrection of Satan Morroc (Continental Guard Quest) when player dying/logging out during conversation
