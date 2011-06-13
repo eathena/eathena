@@ -2,7 +2,6 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
-#include "../common/cookie.h"
 #include "../common/db.h"
 #include "../common/mmo.h"
 #include "../common/showmsg.h"
@@ -27,7 +26,6 @@ extern CharServerDB* charserver;
 int login_fd = -1;
 static enum{LOGINIF_NOT_READY, LOGINIF_LOGIN, LOGINIF_READY} loginif_state = LOGINIF_NOT_READY;
 static int loginif_connect_timer = INVALID_TIMER; //< check_connect_login_server
-static struct s_cookie cookie; //< session cookie from login-server
 
 #include "char.h"
 extern uint32 login_ip;
@@ -39,34 +37,11 @@ extern int mapif_disconnectplayer(int fd, int account_id, int char_id, int reaso
 extern int count_users(void);
 
 
-/// Cookie timeout timer.
-/// Starts when the char-server disconnects, if we have a session cookie.
-/// Canceled when a successfull reconnect is achieved.
-void loginif_cookie_timeout_callback(intptr data)
-{
-	ShowWarning("Login-server session expired...");
-	cookie_set(&cookie, 0, NULL);
-	loginif_reset();
-}
-
-
-/// Sends a cookie-related message to the login-server.
-/// 0=ack, 1=request, 2=release
-void loginif_send_cookie_msg(int fd, int msg)
-{
-	WFIFOHEAD(fd,3);
-	WFIFOW(fd,0) = 0x271c;
-	WFIFOB(fd,2) = msg;
-	WFIFOSET(fd,3);
-}
-
-
 /// Resets all the data.
 void loginif_reset(void)
 {
 	int id;
-	cookie_set(&cookie, 0, NULL);
-	// TODO kick everyone out and reset everything or wait for connect and try to reaquire locks [FlavioJS]
+	// TODO kick everyone out and reset everything [FlavioJS]
 	for( id = 0; id < ARRAYLENGTH(server); ++id )
 		mapif_server_reset(id);
 	flush_fifos();
@@ -75,19 +50,11 @@ void loginif_reset(void)
 
 
 /// Checks the conditions for the server to stop.
-/// Releases the cookie when all characters are saved.
 /// If all the conditions are met, it stops the core loop.
 void loginif_check_shutdown(void)
 {
 	if( runflag != CHARSERVER_ST_SHUTDOWN )
 		return;
-	// TODO wait for locks to be released [FlavioJS]
-	if( !cookie_expired(&cookie) )
-	{
-		if( loginif_is_connected() )
-			loginif_send_cookie_msg(login_fd,2);// release
-		return;
-	}
 	runflag = CORE_ST_STOP;
 }
 
@@ -98,16 +65,8 @@ void loginif_on_disconnect(void)
 	loginif_state = LOGINIF_NOT_READY;
 
 	loginif_connect_timer_start();
-	if( cookie_expired(&cookie) )
-	{
-		ShowStatus("Connection to Login Server lost.\n");
-		loginif_reset();
-	}
-	else
-	{
-		ShowWarning("Connection to Login Server lost, trying to resume...\n");
-		cookie_timeout_start(&cookie);
-	}
+	ShowStatus("Connection to Login Server lost.\n");
+	loginif_reset();
 }
 
 
@@ -163,23 +122,16 @@ int parse_fromlogin(int fd)
 				return 0;
 
 			if( RFIFOB(fd,2) ) {
-				if( cookie_expired(&cookie) ) {
-					ShowError("Connection to login-server failed (error=%d).\n"
-						"Please make sure that\n"
-						"- the char-server's userid/passwd settings match an existing account\n"
-						"- the account's gender is set to 'S'\n"
-						"- the account's id is less than MAX_SERVERS (default:30)\n", RFIFOB(fd,2));
-				}
-				else
-				{
-					ShowError("Reconnection to login-server failed (error=%d).\n", RFIFOB(fd,2));
-				}
+				ShowError("Connection to login-server failed (error=%d).\n"
+					"Please make sure that\n"
+					"- the char-server's userid/passwd settings match an existing account\n"
+					"- the account's gender is set to 'S'\n"
+					"- the account's id is less than MAX_SERVERS (default:30)\n", RFIFOB(fd,2));
 				loginif_state = LOGINIF_NOT_READY;
 				set_eof(fd);
 				return 0;
 			} else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
-				cookie_timeout_stop(&cookie);
 				loginif_on_ready();
 			}
 			RFIFOSKIP(fd,3);
@@ -256,37 +208,6 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 2)
 				return 0;
 			RFIFOSKIP(fd,2);
-		break;
-
-		case 0x271b: // receive session cookie
-			if( RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2) )
-				return 0;
-			if( RFIFOW(fd,2) < 8 )
-			{// invalid packet
-				set_eof(fd);
-				return 0;
-			}
-		{
-			uint16 len = RFIFOW(fd,2)-8;
-			uint32 timeout = RFIFOL(fd,4);
-			const char* data = (const char*)RFIFOP(fd,8);
-
-			if( len > MAX_COOKIE_LEN )
-			{
-				ShowDebug("parse_fromlogin: cookie is too long (len=%d max=%d).\n", len, MAX_COOKIE_LEN);
-				cookie.timeout = 0;
-				cookie_set(&cookie, 0, NULL);
-				loginif_send_cookie_msg(fd,1);// request
-			}
-			else
-			{
-				cookie.timeout = timeout;
-				cookie_set(&cookie, len, data);
-				loginif_send_cookie_msg(fd,0);// ack
-				loginif_check_shutdown();
-			}
-			RFIFOSKIP(fd,RFIFOW(fd,2));
-		}
 		break;
 
 		// changesex reply
@@ -568,31 +489,19 @@ bool loginif_is_connected(void)
 void loginif_charserver_login(void)
 {
 	loginif_state = LOGINIF_LOGIN;
-	if( cookie_expired(&cookie) )
-	{// connect
-		ShowStatus("Connecting to Login Server...\n");
-		WFIFOHEAD(login_fd,86);
-		WFIFOW(login_fd,0) = 0x2710;
-		memcpy(WFIFOP(login_fd,2), char_config.userid, 24);
-		memcpy(WFIFOP(login_fd,26), char_config.passwd, 24);
-		WFIFOL(login_fd,50) = 0;
-		WFIFOL(login_fd,54) = htonl(char_ip);
-		WFIFOW(login_fd,58) = htons(char_config.char_port);
-		memcpy(WFIFOP(login_fd,60), char_config.server_name, 20);
-		WFIFOW(login_fd,80) = 0;
-		WFIFOW(login_fd,82) = char_config.char_maintenance;
-		WFIFOW(login_fd,84) = char_config.char_new_display;
-		WFIFOSET(login_fd,86);
-	}
-	else
-	{// reconnect
-		ShowStatus("Reconnecting to Login Server...\n");
-		WFIFOHEAD(login_fd,4+cookie.len);
-		WFIFOW(login_fd,0) = 0x271a;
-		WFIFOW(login_fd,2) = 4+cookie.len;
-		memcpy(WFIFOP(login_fd,4), cookie.data, cookie.len);
-		WFIFOSET(login_fd,4+cookie.len);
-	}
+	ShowStatus("Connecting to Login Server...\n");
+	WFIFOHEAD(login_fd,86);
+	WFIFOW(login_fd,0) = 0x2710;
+	memcpy(WFIFOP(login_fd,2), char_config.userid, 24);
+	memcpy(WFIFOP(login_fd,26), char_config.passwd, 24);
+	WFIFOL(login_fd,50) = 0;
+	WFIFOL(login_fd,54) = htonl(char_ip);
+	WFIFOW(login_fd,58) = htons(char_config.char_port);
+	memcpy(WFIFOP(login_fd,60), char_config.server_name, 20);
+	WFIFOW(login_fd,80) = 0;
+	WFIFOW(login_fd,82) = char_config.char_maintenance;
+	WFIFOW(login_fd,84) = char_config.char_new_display;
+	WFIFOSET(login_fd,86);
 }
 
 
@@ -842,15 +751,12 @@ void do_init_loginif(void)
 	add_timer_func_list(send_accounts_tologin, "send_accounts_tologin");
 	add_timer_interval(gettick() + 1000, send_accounts_tologin, 0, 0, 3600 * 1000); //Sync online accounts every hour
 
-	cookie_init(&cookie);
-	cookie.on_timeout = loginif_cookie_timeout_callback;
 	loginif_connect_timer_start();
 }
 
 void do_final_loginif(void)
 {
 	loginif_connect_timer_stop();
-	cookie_destroy(&cookie);
 	if( login_fd != -1 )
 	{
 		do_close(login_fd);

@@ -572,63 +572,12 @@ int parse_client(int fd)
 				session[fd]->flag.server = 1;
 				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
 
-				mapif_cookie_generate(i);
 				inter_mapif_init(fd);
 			}
 
 			RFIFOSKIP(fd,60);
 		}
 		return 0; // avoid processing of followup packets here
-
-		case 0x2b28:	// Reconnection request of a map-server
-			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
-				return 0;
-		{
-			uint16 cookielen;
-			const char* cookiedata;
-			int id;
-
-			cookielen = RFIFOW(fd,2)-4;
-			cookiedata = (const char*)RFIFOP(fd,4);
-
-			ARR_FIND(0, ARRAYLENGTH(server), id, cookie_compare(&server[id].cookie, cookielen, cookiedata) == 0);
-			if( cookielen == 0 || id == ARRAYLENGTH(server) )
-			{// invalid, reject
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x2af9;
-				WFIFOB(fd,2) = 3;
-				WFIFOSET(fd,3);
-			}
-			else if( session_isValid(server[id].fd) )
-			{// already connected, reject
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x2af9;
-				WFIFOB(fd,2) = 3;
-				WFIFOSET(fd,3);
-				// new cookie... not required, but better safe than sorry
-				if( session_isActive(server[id].fd) )
-					mapif_cookie_generate(id);
-			}
-			else
-			{// all ok, accept
-				server[id].fd = fd;
-
-				session[fd]->func_parse = parse_frommap;
-				session[fd]->flag.server = 1;
-				realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
-
-				// send connection success
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x2af9;
-				WFIFOB(fd,2) = 0;
-				WFIFOSET(fd,3);
-
-				cookie_timeout_stop(&server[id].cookie);
-				inter_mapif_init(fd);
-			}
-			RFIFOSKIP(fd,RFIFOW(fd,2));
-		}
-		return 0; // processing will continue elsewhere
 
 		// unknown packet received
 		default:

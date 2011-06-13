@@ -30,29 +30,11 @@ extern DBMap* auth_db; // int account_id -> struct auth_node*
 struct mmo_map_server server[MAX_MAP_SERVERS];
 
 
-/// Triggered when the cookie expires.
-/// Resets the target server.
-void mapif_cookie_timeout_callback(intptr data)
-{
-	int id = (int)data;
-	if( id < 0 || id >= ARRAYLENGTH(server) )
-		return;// invalid
-
-	ShowWarning("Session expired for map-server %d.\n", id);
-	cookie_set(&server[id].cookie, 0, NULL);
-	mapif_server_reset(id);
-}
-
-
 /// Initializes a server structure.
 void mapif_server_init(int id)
 {
 	memset(&server[id], 0, sizeof(server[id]));
 	server[id].fd = -1;
-	cookie_init(&server[id].cookie);
-	server[id].cookie.timeout = MAPSERVER_TIMEOUT;
-	server[id].cookie.callback_data = (intptr)id;
-	server[id].cookie.on_timeout = mapif_cookie_timeout_callback;
 }
 
 
@@ -64,7 +46,6 @@ void mapif_server_destroy(int id)
 		do_close(server[id].fd);
 		server[id].fd = -1;
 	}
-	cookie_destroy(&server[id].cookie);
 }
 
 
@@ -88,69 +69,16 @@ void mapif_server_reset(int id)
 	}
 	onlinedb_mapserver_unknown(id); //Tag relevant chars as 'in disconnected' server.
 	onlinedb_sync(); // update online list
-	mapif_cookie_clear(id);
 	mapif_server_destroy(id);
 	mapif_server_init(id);
-}
-
-
-/// Sends a cookie.
-void mapif_cookie_send(int id)
-{
-	int fd = server[id].fd;
-	uint32 timeout = server[id].cookie.timeout;
-	uint16 cookielen = server[id].cookie.len;
-	const char* cookie = server[id].cookie.data;
-
-	uint16 packet_len = 8 + cookielen;
-	WFIFOHEAD(fd,packet_len);
-	WFIFOW(fd,0) = 0x2b29;
-	WFIFOW(fd,2) = packet_len;
-	WFIFOL(fd,4) = timeout;
-	memcpy(WFIFOP(fd,8), cookie, cookielen);
-	WFIFOSET(fd,packet_len);
-}
-
-
-/// Generates a new unique cookie and assigns it to a server.
-/// The cookie allows the server to reconnect and continue normally.
-void mapif_cookie_generate(int id)
-{
-	size_t i;
-	do
-	{
-		cookie_generate(&server[id].cookie);
-		ARR_FIND(0, ARRAYLENGTH(server), i, i != id && cookie_compare(&server[i].cookie, server[id].cookie.len, server[id].cookie.data) == 0);
-	} while( i != ARRAYLENGTH(server) );// cookie must be unique
-
-	if( session_isActive(server[id].fd) )
-		mapif_cookie_send(id);
-}
-
-
-/// Clears the cookie of a server.
-void mapif_cookie_clear(int id)
-{
-	cookie_set(&server[id].cookie, 0, NULL);
-
-	if( session_isActive(server[id].fd) )
-		mapif_cookie_send(id);
 }
 
 
 /// Called when the connection to a Map Server is disconnected.
 void mapif_on_disconnect(int id)
 {
-	if( cookie_expired(&server[id].cookie) )
-	{
-		ShowStatus("Map-server #%d has disconnected.\n", id);
-		mapif_server_reset(id);
-	}
-	else
-	{
-		ShowWarning("Map-server #%d has disconnected, waiting for reconnect...\n", id);
-		cookie_timeout_start(&server[id].cookie);
-	}
+	ShowStatus("Map-server #%d has disconnected.\n", id);
+	mapif_server_reset(id);
 }
 
 
@@ -705,30 +633,6 @@ int parse_frommap(int fd)
 				WFIFOB(fd,14) = sex;
 				WFIFOL(fd,15) = htonl(ip);
 				WFIFOSET(fd,19);
-			}
-		}
-		break;
-
-		case 0x2b2a:	// cookie ack/request/release
-			if (RFIFOREST(fd) < 3)
-				return 0;
-		{
-			uint8 type = RFIFOB(fd,2);
-			RFIFOSKIP(fd,3);
-
-			if( type == 0 )
-			{// ack
-			}
-			else if( type == 1 )
-			{// request
-				if( cookie_expired(&server[id].cookie) )
-					mapif_cookie_clear(id);
-				else
-					mapif_cookie_generate(id);
-			}
-			else if( type == 2 )
-			{// release
-				mapif_cookie_clear(id);
 			}
 		}
 		break;
