@@ -441,13 +441,28 @@ int parse_frommap(int fd)
 				//Reply with an ack.
 				WFIFOHEAD(fd,30);
 				WFIFOW(fd,0) = 0x2b06;
-				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+				WFIFOL(fd,2) = account_id;
+				WFIFOL(fd,6) = login_id1;
+				WFIFOL(fd,10) = login_id2;
+				WFIFOL(fd,14) = char_id;
+				WFIFOW(fd,18) = mapindex;
+				WFIFOW(fd,20) = x;
+				WFIFOW(fd,22) = y;
+				WFIFOL(fd,24) = server_ip;
+				WFIFOW(fd,28) = server_port;
 				WFIFOSET(fd,30);
 			} else { //Reply with nak
 				WFIFOHEAD(fd,30);
 				WFIFOW(fd,0) = 0x2b06;
-				memcpy(WFIFOP(fd,2), RFIFOP(fd,2), 28);
+				WFIFOL(fd,2) = account_id;
 				WFIFOL(fd,6) = 0; //Set login1 to 0.
+				WFIFOL(fd,10) = login_id2;
+				WFIFOL(fd,14) = char_id;
+				WFIFOW(fd,18) = mapindex;
+				WFIFOW(fd,20) = x;
+				WFIFOW(fd,22) = y;
+				WFIFOL(fd,24) = server_ip;
+				WFIFOW(fd,28) = server_port;
 				WFIFOSET(fd,30);
 			}
 		}
