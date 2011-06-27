@@ -616,7 +616,7 @@ GuildDB* guild_db_sql(CharServerDB_SQL* owner)
 	db->vtable.name2id   = &guild_db_sql_name2id;
 	db->vtable.iterator  = &guild_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->guilds = NULL;
 

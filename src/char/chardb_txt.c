@@ -586,7 +586,7 @@ CharDB* char_db_txt(CharServerDB_TXT* owner)
 	db->vtable.iterator   = &char_db_txt_iterator;
 	db->vtable.characters = &char_db_txt_characters;
 
-	// initialize to default values
+	// initialize state
 	db->idx_name = NULL;
 
 	return &db->vtable;

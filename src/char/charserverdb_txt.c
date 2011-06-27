@@ -514,7 +514,7 @@ CharServerDB* charserver_db_txt(void)
 	db->accregdb = accreg_db_txt(db);
 	db->charregdb = charreg_db_txt(db);
 
-	// initialize to default values
+	// initialize state
 	db->initialized = false;
 	db->dirty_tick = gettick();
 	db->sync_timer = INVALID_TIMER;

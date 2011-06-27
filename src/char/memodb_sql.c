@@ -210,7 +210,7 @@ MemoDB* memo_db_sql(CharServerDB_SQL* owner)
 	db->vtable.load      = &memo_db_sql_load;
 	db->vtable.iterator  = &memo_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->memos = NULL;
 

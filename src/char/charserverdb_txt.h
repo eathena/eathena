@@ -61,6 +61,7 @@ struct CharServerDB_TXT
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
 
+	// state
 	bool initialized;
 	unsigned int dirty_tick;//< when it first became dirty
 	int sync_timer;//< triggers sync attempts

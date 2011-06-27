@@ -495,7 +495,7 @@ CharServerDB* charserver_db_sql(void)
 	db->accregdb = accreg_db_sql(db);
 	db->charregdb = charreg_db_sql(db);
 
-	// initialize to default values
+	// initialize state
 	db->sql_handle = NULL;
 	db->initialized = false;
 

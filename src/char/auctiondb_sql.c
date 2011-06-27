@@ -398,7 +398,7 @@ AuctionDB* auction_db_sql(CharServerDB_SQL* owner)
 	db->vtable.first     = &auction_db_sql_first;
 	db->vtable.iterator  = &auction_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->auctions = NULL;
 

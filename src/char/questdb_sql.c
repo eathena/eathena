@@ -277,7 +277,7 @@ QuestDB* quest_db_sql(CharServerDB_SQL* owner)
 	db->vtable.count     = &quest_db_sql_count;
 	db->vtable.iterator  = &quest_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->quests = NULL;
 

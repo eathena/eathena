@@ -47,6 +47,7 @@ struct CharServerDB_SQL
 	AccRegDB* accregdb;
 	CharRegDB* charregdb;
 
+	// state
 	Sql* sql_handle;// SQL connection handle
 	bool initialized;
 

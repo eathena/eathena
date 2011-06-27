@@ -212,7 +212,7 @@ CastleDB* castle_db_sql(CharServerDB_SQL* owner)
 	db->vtable.load       = &castle_db_sql_load;
 	db->vtable.iterator   = &castle_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->castles = NULL;
 

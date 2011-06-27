@@ -186,7 +186,7 @@ MercDB* merc_db_sql(CharServerDB_SQL* owner)
 	db->vtable.load      = &merc_db_sql_load;
 	db->vtable.iterator  = &merc_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->mercs = NULL;
 

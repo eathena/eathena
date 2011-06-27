@@ -200,7 +200,7 @@ HotkeyDB* hotkey_db_sql(CharServerDB_SQL* owner)
 	db->vtable.load      = &hotkey_db_sql_load;
 	db->vtable.iterator  = &hotkey_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->hotkeys = NULL;
 

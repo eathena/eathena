@@ -344,7 +344,7 @@ MailDB* mail_db_sql(CharServerDB_SQL* owner)
 	db->vtable.loadall   = &mail_db_sql_loadall;
 	db->vtable.iterator  = &mail_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->mails = NULL;
 

@@ -559,7 +559,7 @@ GuildDB* guild_db_txt(CharServerDB_TXT* owner)
 	db->vtable.name2id   = &guild_db_txt_name2id;
 	db->vtable.iterator  = &guild_db_txt_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->idx_name = NULL;
 
 	return &db->vtable;

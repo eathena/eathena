@@ -391,7 +391,7 @@ PartyDB* party_db_sql(CharServerDB_SQL* owner)
 	db->vtable.name2id   = &party_db_sql_name2id;
 	db->vtable.iterator  = &party_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->parties = NULL;
 

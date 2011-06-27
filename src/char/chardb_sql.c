@@ -624,7 +624,7 @@ CharDB* char_db_sql(CharServerDB_SQL* owner)
 	db->vtable.iterator   = &char_db_sql_iterator;
 	db->vtable.characters = &char_db_sql_characters;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->chars = NULL;
 

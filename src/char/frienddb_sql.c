@@ -235,7 +235,7 @@ FriendDB* friend_db_sql(CharServerDB_SQL* owner)
 	db->vtable.load      = &friend_db_sql_load;
 	db->vtable.iterator  = &friend_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->friends = NULL;
 

@@ -229,7 +229,7 @@ StatusDB* status_db_sql(CharServerDB_SQL* owner)
 	db->vtable.count     = &status_db_sql_count;
 	db->vtable.iterator  = &status_db_sql_iterator;
 
-	// initialize to default values
+	// initialize state
 	db->owner = owner;
 	db->statuses = NULL;
 
