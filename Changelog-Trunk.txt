@@ -1,5 +1,14 @@
 Date	Added
 
+2011/07/02
+	* Fixed minor stuff in login/char converter VS6 project files (since r14858). [Ai4rei]
+2011/06/19
+	* Fixed various sorts of issues with VS6 project files (since r6929, follow up to r14466 and r14638). [Ai4rei]
+	- Debug configuration was missing and release had _DEBUG defined (indicates debug configuration).
+	- Login-server (SQL) defined PACKETVER=6 (overrides mmo.h).
+	- Warning Level was 2, which hides a lot of actual errors.
+	- Added projects for mapcache and TXT converter.
+	- Removed references unneeded/obsolete libraries/source files.
 2011/01/19
 	* Fixed solo dance/star gladiator warm AoE no longer following the owner and cloaking wall rules no longer working (bugreport:4720, since r14671). [Ai4rei]
 2011/01/16

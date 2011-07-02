@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=char_txt - Win32 Release
+CFG=char_txt - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,11 +13,12 @@ CFG=char_txt - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "char-server_txt.mak" CFG="char_txt - Win32 Release"
+!MESSAGE NMAKE /f "char-server_txt.mak" CFG="char_txt - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "char_txt - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "char_txt - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -26,6 +27,9 @@ CFG=char_txt - Win32 Release
 # PROP Scc_LocalPath ""
 CPP=cl.exe
 RSC=rc.exe
+
+!IF  "$(CFG)" == "char_txt - Win32 Release"
+
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
@@ -33,23 +37,53 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir ".."
+# PROP Intermediate_Dir "tmp\char_txt\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W2 /GX /O2 /I "..\3rdparty\msinttypes\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_WIN32" /D "TXT_ONLY" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /Fp"tmp/char_txt/char-server_txt.pch" /YX /Fo"tmp/char_txt/" /Fd"tmp/char_txt/" /FD /c
-# ADD BASE RSC /l 0x409
+# ADD CPP /nologo /W3 /Zi /O2 /I "..\3rdparty\msinttypes\include" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_TXT" /FD /GF /c
+# SUBTRACT CPP /YX
+# ADD BASE RSC /l 0x405 /d "NDEBUG"
+# ADD RSC /l 0x417 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 wsock32.lib ws2_32.lib /nologo /subsystem:console /pdb:"tmp/char-txt/char-server_txt.pdb" /machine:I386 /out:"../char-server_txt.exe"
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 kernel32.lib ws2_32.lib /nologo /subsystem:console /debug /machine:I386
+
+!ELSEIF  "$(CFG)" == "char_txt - Win32 Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir ".."
+# PROP Intermediate_Dir "tmp\char_txt\Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\3rdparty\msinttypes\include" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_TXT" /FD /GZ /c
+# SUBTRACT CPP /YX
+# ADD BASE RSC /l 0x405 /d "_DEBUG"
+# ADD RSC /l 0x417 /d "_DEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib ws2_32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+
+!ENDIF 
+
 # Begin Target
 
 # Name "char_txt - Win32 Release"
+# Name "char_txt - Win32 Debug"
 # Begin Group "common"
 
 # PROP Default_Filter ""
@@ -163,6 +197,10 @@ SOURCE=..\src\common\timer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\common\txt.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\common\utils.c
 # End Source File
 # Begin Source File
@@ -174,9 +212,33 @@ SOURCE=..\src\common\utils.h
 SOURCE=..\src\common\version.h
 # End Source File
 # End Group
-# Begin Group "char"
+# Begin Group "char_txt"
 
 # PROP Default_Filter ""
+# Begin Source File
+
+SOURCE=..\src\char\accregdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\accregdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\auctiondb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\auctiondb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\castledb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\castledb_txt.c
+# End Source File
 # Begin Source File
 
 SOURCE=..\src\char\char.c
@@ -184,6 +246,130 @@ SOURCE=..\src\char\char.c
 # Begin Source File
 
 SOURCE=..\src\char\char.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\chardb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\chardb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charlog.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charlog.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charlogdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charlogdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charregdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charregdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charserverdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charserverdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\charserverdb_txt.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\csdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\csdb_txt.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\csdbiterator.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\csdbiterator_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\frienddb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\frienddb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\guilddb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\guilddb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\homundb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\homundb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\hotkeydb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\hotkeydb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_client.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_client.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_login.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_login.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_map.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_map.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_auction.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_auction.h
 # End Source File
 # Begin Source File
 
@@ -203,6 +389,30 @@ SOURCE=..\src\char\int_homun.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\char\int_mail.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mail.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mercenary.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mercenary.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_message.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_message.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\char\int_party.c
 # End Source File
 # Begin Source File
@@ -216,6 +426,30 @@ SOURCE=..\src\char\int_pet.c
 # Begin Source File
 
 SOURCE=..\src\char\int_pet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_quest.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_quest.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_rank.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_rank.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_registry.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_registry.h
 # End Source File
 # Begin Source File
 
@@ -240,6 +474,102 @@ SOURCE=..\src\char\inter.c
 # Begin Source File
 
 SOURCE=..\src\char\inter.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\maildb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\maildb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\memodb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\memodb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\mercdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\mercdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\online.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\online.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\onlinedb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\onlinedb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\partydb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\partydb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\petdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\petdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\questdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\questdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\rankdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\rankdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\skilldb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\skilldb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\statusdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\statusdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb_txt.c
 # End Source File
 # End Group
 # End Target

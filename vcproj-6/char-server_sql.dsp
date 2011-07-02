@@ -4,7 +4,7 @@
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=char_sql - Win32 Release
+CFG=char_sql - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
@@ -13,11 +13,12 @@ CFG=char_sql - Win32 Release
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "char-server_sql.mak" CFG="char_sql - Win32 Release"
+!MESSAGE NMAKE /f "char-server_sql.mak" CFG="char_sql - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
 !MESSAGE "char_sql - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "char_sql - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -26,6 +27,9 @@ CFG=char_sql - Win32 Release
 # PROP Scc_LocalPath ""
 CPP=cl.exe
 RSC=rc.exe
+
+!IF  "$(CFG)" == "char_sql - Win32 Release"
+
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
 # PROP BASE Output_Dir "Release"
@@ -33,23 +37,53 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir "Release"
-# PROP Intermediate_Dir "Release"
+# PROP Output_Dir ".."
+# PROP Intermediate_Dir "tmp\char_sql\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W2 /GX /O2 /I "..\3rdparty\mysql\include" /I "..\3rdparty\msinttypes\include" /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /Fp"tmp/char_sql/char-server_sql.pch" /YX /Fo"tmp/char_sql/" /Fd"tmp/char_sql/" /FD /c
-# ADD BASE RSC /l 0x409
+# ADD CPP /nologo /W3 /Zi /O2 /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\include" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_SQL" /FD /GF /c
+# SUBTRACT CPP /YX
+# ADD BASE RSC /l 0x405 /d "NDEBUG"
+# ADD RSC /l 0x417 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 wsock32.lib libmysql.lib ws2_32.lib /nologo /subsystem:console /pdb:"tmp/char_sql/char-server_sql.pdb" /machine:I386 /out:"../char-server_sql.exe" /libpath:"..\3rdparty\mysql\lib"
-# SUBTRACT LINK32 /pdb:none
+# ADD LINK32 kernel32.lib ws2_32.lib libmysql.lib /nologo /subsystem:console /debug /machine:I386 /libpath:"..\3rdparty\mysql\lib"
+
+!ELSEIF  "$(CFG)" == "char_sql - Win32 Debug"
+
+# PROP BASE Use_MFC 0
+# PROP BASE Use_Debug_Libraries 1
+# PROP BASE Output_Dir "Debug"
+# PROP BASE Intermediate_Dir "Debug"
+# PROP BASE Target_Dir ""
+# PROP Use_MFC 0
+# PROP Use_Debug_Libraries 1
+# PROP Output_Dir ".."
+# PROP Intermediate_Dir "tmp\char_sql\Debug"
+# PROP Ignore_Export_Lib 0
+# PROP Target_Dir ""
+# ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\include" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "WITH_SQL" /FD /GZ /c
+# SUBTRACT CPP /YX
+# ADD BASE RSC /l 0x405 /d "_DEBUG"
+# ADD RSC /l 0x417 /d "_DEBUG"
+BSC32=bscmake.exe
+# ADD BASE BSC32 /nologo
+# ADD BSC32 /nologo
+LINK32=link.exe
+# ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
+# ADD LINK32 kernel32.lib ws2_32.lib libmysql.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\3rdparty\mysql\lib"
+
+!ENDIF 
+
 # Begin Target
 
 # Name "char_sql - Win32 Release"
+# Name "char_sql - Win32 Debug"
 # Begin Group "common"
 
 # PROP Default_Filter ""
@@ -80,14 +114,6 @@ SOURCE=..\src\common\ers.c
 # Begin Source File
 
 SOURCE=..\src\common\ers.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\lock.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\lock.h
 # End Source File
 # Begin Source File
 
@@ -187,91 +213,351 @@ SOURCE=..\src\common\version.h
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\src\char_sql\char.c
+SOURCE=..\src\char\accregdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\char.h
+SOURCE=..\src\char\accregdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_auction.c
+SOURCE=..\src\char\auctiondb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_auction.h
+SOURCE=..\src\char\auctiondb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_guild.c
+SOURCE=..\src\char\castledb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_guild.h
+SOURCE=..\src\char\castledb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_homun.c
+SOURCE=..\src\char\char.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_homun.h
+SOURCE=..\src\char\char.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_mercenary.c
+SOURCE=..\src\char\chardb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_mercenary.h
+SOURCE=..\src\char\chardb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_mail.c
+SOURCE=..\src\char\charlog.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_mail.h
+SOURCE=..\src\char\charlog.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_party.c
+SOURCE=..\src\char\charlogdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_party.h
+SOURCE=..\src\char\charlogdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_pet.c
+SOURCE=..\src\char\charregdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_pet.h
+SOURCE=..\src\char\charregdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_quest.c
+SOURCE=..\src\char\charserverdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_quest.h
+SOURCE=..\src\char\charserverdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_storage.c
+SOURCE=..\src\char\charserverdb_sql.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\int_storage.h
+SOURCE=..\src\char\csdbiterator.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\inter.c
+SOURCE=..\src\char\csdbiterator_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\char_sql\inter.h
+SOURCE=..\src\char\frienddb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\frienddb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\guilddb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\guilddb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\homundb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\homundb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\hotkeydb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\hotkeydb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_client.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_client.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_login.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_login.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_map.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\if_map.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_auction.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_auction.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_guild.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_guild.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_homun.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_homun.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mail.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mail.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mercenary.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_mercenary.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_message.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_message.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_party.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_party.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_pet.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_pet.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_quest.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_quest.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_rank.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_rank.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_registry.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_registry.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_status.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_status.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_storage.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\int_storage.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\inter.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\inter.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\maildb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\maildb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\memodb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\memodb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\mercdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\mercdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\online.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\online.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\onlinedb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\onlinedb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\partydb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\partydb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\petdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\petdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\questdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\questdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\rankdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\rankdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\skilldb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\skilldb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\statusdb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\statusdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb_sql.c
 # End Source File
 # End Group
 # End Target

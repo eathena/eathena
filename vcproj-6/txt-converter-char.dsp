@@ -1,24 +1,24 @@
-# Microsoft Developer Studio Project File - Name="map_txt" - Package Owner=<4>
+# Microsoft Developer Studio Project File - Name="txt_converter_char" - Package Owner=<4>
 # Microsoft Developer Studio Generated Build File, Format Version 6.00
 # ** DO NOT EDIT **
 
 # TARGTYPE "Win32 (x86) Console Application" 0x0103
 
-CFG=map_txt - Win32 Debug
+CFG=txt_converter_char - Win32 Debug
 !MESSAGE This is not a valid makefile. To build this project using NMAKE,
 !MESSAGE use the Export Makefile command and run
 !MESSAGE 
-!MESSAGE NMAKE /f "map-server_txt.mak".
+!MESSAGE NMAKE /f "txt-converter-char.mak".
 !MESSAGE 
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
 !MESSAGE 
-!MESSAGE NMAKE /f "map-server_txt.mak" CFG="map_txt - Win32 Debug"
+!MESSAGE NMAKE /f "txt-converter-char.mak" CFG="txt_converter_char - Win32 Debug"
 !MESSAGE 
 !MESSAGE Possible choices for configuration are:
 !MESSAGE 
-!MESSAGE "map_txt - Win32 Release" (based on "Win32 (x86) Console Application")
-!MESSAGE "map_txt - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "txt_converter_char - Win32 Release" (based on "Win32 (x86) Console Application")
+!MESSAGE "txt_converter_char - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 
 # Begin Project
@@ -28,7 +28,7 @@ CFG=map_txt - Win32 Debug
 CPP=cl.exe
 RSC=rc.exe
 
-!IF  "$(CFG)" == "map_txt - Win32 Release"
+!IF  "$(CFG)" == "txt_converter_char - Win32 Release"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 0
@@ -38,11 +38,11 @@ RSC=rc.exe
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
 # PROP Output_Dir ".."
-# PROP Intermediate_Dir "tmp\map_txt\Release"
+# PROP Intermediate_Dir "tmp\txt_converter_char\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /Zi /O2 /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\pcre\include" /I "..\3rdparty\zlib\include" /D "NDEBUG" /D "TXT_ONLY" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "PCRE_SUPPORT" /FD /GF /c
+# ADD CPP /nologo /W3 /O2 /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\include" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "DB_MANUAL_CAST_TO_UNION" /D "MINICORE" /D "TXT_SQL_CONVERT" /D "WITH_SQL" /D "WITH_TXT" /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x405 /d "NDEBUG"
 # ADD RSC /l 0x417 /d "NDEBUG"
@@ -51,9 +51,9 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 kernel32.lib ws2_32.lib pcre.lib zdll.lib /nologo /subsystem:console /debug /machine:I386 /libpath:"..\3rdparty\pcre\lib" /libpath:"..\3rdparty\zlib\lib"
+# ADD LINK32 kernel32.lib libmysql.lib /nologo /subsystem:console /machine:I386 /libpath:"..\3rdparty\mysql\lib"
 
-!ELSEIF  "$(CFG)" == "map_txt - Win32 Debug"
+!ELSEIF  "$(CFG)" == "txt_converter_char - Win32 Debug"
 
 # PROP BASE Use_MFC 0
 # PROP BASE Use_Debug_Libraries 1
@@ -63,11 +63,11 @@ LINK32=link.exe
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
 # PROP Output_Dir ".."
-# PROP Intermediate_Dir "tmp\map_txt\Debug"
+# PROP Intermediate_Dir "tmp\txt_converter_char\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\pcre\include" /I "..\3rdparty\zlib\include" /D "_DEBUG" /D "TXT_ONLY" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D FD_SETSIZE=4096 /D "DB_MANUAL_CAST_TO_UNION" /D "PCRE_SUPPORT" /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /ZI /Od /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\include" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "DB_MANUAL_CAST_TO_UNION" /D "MINICORE" /D "TXT_SQL_CONVERT" /D "WITH_SQL" /D "WITH_TXT" /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x405 /d "_DEBUG"
 # ADD RSC /l 0x417 /d "_DEBUG"
@@ -76,14 +76,14 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib ws2_32.lib pcre.lib zdll.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\3rdparty\pcre\lib" /libpath:"..\3rdparty\zlib\lib"
+# ADD LINK32 kernel32.lib libmysql.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\3rdparty\mysql\lib"
 
 !ENDIF 
 
 # Begin Target
 
-# Name "map_txt - Win32 Release"
-# Name "map_txt - Win32 Debug"
+# Name "txt_converter_char - Win32 Release"
+# Name "txt_converter_char - Win32 Debug"
 # Begin Group "common"
 
 # PROP Default_Filter ""
@@ -117,14 +117,6 @@ SOURCE=..\src\common\ers.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\common\grfio.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\grfio.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\src\common\lock.c
 # End Source File
 # Begin Source File
@@ -149,35 +141,7 @@ SOURCE=..\src\common\mapindex.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\common\md5calc.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\md5calc.h
-# End Source File
-# Begin Source File
-
 SOURCE=..\src\common\mmo.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\nullpo.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\nullpo.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\plugin.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\plugins.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\plugins.h
 # End Source File
 # Begin Source File
 
@@ -189,11 +153,11 @@ SOURCE=..\src\common\showmsg.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\common\socket.c
+SOURCE=..\src\common\sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\common\socket.h
+SOURCE=..\src\common\sql.h
 # End Source File
 # Begin Source File
 
@@ -213,6 +177,14 @@ SOURCE=..\src\common\timer.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\common\txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\txt.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\common\utils.c
 # End Source File
 # Begin Source File
@@ -224,260 +196,284 @@ SOURCE=..\src\common\utils.h
 SOURCE=..\src\common\version.h
 # End Source File
 # End Group
-# Begin Group "map_txt"
+# Begin Group "char"
 
 # PROP Default_Filter ""
 # Begin Source File
 
-SOURCE=..\src\map\atcommand.c
+SOURCE=..\src\char\accregdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\atcommand.h
+SOURCE=..\src\char\accregdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\battle.c
+SOURCE=..\src\char\accregdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\battle.h
+SOURCE=..\src\char\auctiondb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\battleground.c
+SOURCE=..\src\char\auctiondb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\battleground.h
+SOURCE=..\src\char\auctiondb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\chat.c
+SOURCE=..\src\char\castledb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\chat.h
+SOURCE=..\src\char\castledb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\chrif.c
+SOURCE=..\src\char\castledb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\chrif.h
+SOURCE=..\src\char\chardb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\clif.c
+SOURCE=..\src\char\chardb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\clif.h
+SOURCE=..\src\char\chardb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\date.c
+SOURCE=..\src\char\charregdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\date.h
+SOURCE=..\src\char\charregdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\guild.c
+SOURCE=..\src\char\charregdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\guild.h
+SOURCE=..\src\char\charserverdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\homunculus.c
+SOURCE=..\src\char\charserverdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\homunculus.h
+SOURCE=..\src\char\charserverdb_sql.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\instance.c
+SOURCE=..\src\char\charserverdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\instance.h
+SOURCE=..\src\char\charserverdb_txt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\intif.c
+SOURCE=..\src\char\csdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\intif.h
+SOURCE=..\src\char\csdb_txt.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\itemdb.c
+SOURCE=..\src\char\csdbiterator.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\itemdb.h
+SOURCE=..\src\char\csdbiterator_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\log.c
+SOURCE=..\src\char\csdbiterator_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\log.h
+SOURCE=..\src\char\frienddb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mail.c
+SOURCE=..\src\char\frienddb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mail.h
+SOURCE=..\src\char\frienddb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\map.c
+SOURCE=..\src\char\guilddb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\map.h
+SOURCE=..\src\char\guilddb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mapreg.h
+SOURCE=..\src\char\guilddb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mapreg_txt.c
+SOURCE=..\src\char\homundb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mercenary.c
+SOURCE=..\src\char\homundb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mercenary.h
+SOURCE=..\src\char\homundb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mob.c
+SOURCE=..\src\char\hotkeydb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\mob.h
+SOURCE=..\src\char\hotkeydb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\npc.c
+SOURCE=..\src\char\hotkeydb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\npc.h
+SOURCE=..\src\char\maildb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\npc_chat.c
+SOURCE=..\src\char\maildb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\party.c
+SOURCE=..\src\char\maildb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\party.h
+SOURCE=..\src\char\memodb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\path.c
+SOURCE=..\src\char\memodb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\path.h
+SOURCE=..\src\char\memodb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\pc.c
+SOURCE=..\src\char\mercdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\pc.h
+SOURCE=..\src\char\mercdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\pet.c
+SOURCE=..\src\char\mercdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\pet.h
+SOURCE=..\src\char\partydb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\quest.c
+SOURCE=..\src\char\partydb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\quest.h
+SOURCE=..\src\char\partydb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\script.c
+SOURCE=..\src\char\petdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\script.h
+SOURCE=..\src\char\petdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\skill.c
+SOURCE=..\src\char\petdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\skill.h
+SOURCE=..\src\char\questdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\status.c
+SOURCE=..\src\char\questdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\status.h
+SOURCE=..\src\char\questdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\storage.c
+SOURCE=..\src\char\rankdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\storage.h
+SOURCE=..\src\char\rankdb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\trade.c
+SOURCE=..\src\char\rankdb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\trade.h
+SOURCE=..\src\char\skilldb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\unit.c
+SOURCE=..\src\char\skilldb_sql.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\unit.h
+SOURCE=..\src\char\skilldb_txt.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\vending.c
+SOURCE=..\src\char\statusdb.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\src\map\vending.h
+SOURCE=..\src\char\statusdb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\statusdb_txt.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb_sql.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\char\storagedb_txt.c
+# End Source File
+# End Group
+# Begin Group "converter"
+
+# PROP Default_Filter ""
+# Begin Source File
+
+SOURCE="..\src\txt-converter\char-converter.c"
 # End Source File
 # End Group
 # End Target
