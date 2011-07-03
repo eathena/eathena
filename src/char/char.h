@@ -16,6 +16,7 @@ enum E_CHARSERVER_ST
 };
 
 struct char_session_data {
+	int fd;
 	bool auth; // whether the session is authed or not
 	int account_id, login_id1, login_id2, sex;
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
@@ -26,6 +27,11 @@ struct char_session_data {
 	int chars_num;// total number of characters in the account
 	int slots[MAX_CHARS];// client view of the characters/slots (array of char_id's, 0=free)
 	char new_name[NAME_LENGTH];
+	// data needed to send client to map-server:
+	int char_id;
+	unsigned short mapindex;
+	uint32 map_ip;
+	uint16 map_port;
 };
 
 #define CHAR_CONF_NAME  "conf/char_athena.conf"
@@ -58,6 +64,8 @@ struct auth_node {
 	int sex;
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;
+	int map_id;
+	struct char_session_data* sd;
 };
 
 struct Char_Config {

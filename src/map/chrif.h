@@ -38,8 +38,7 @@ struct auth_node* chrif_auth_check(int account_id, int char_id, enum sd_state st
 bool chrif_auth_delete(int account_id, int char_id, enum sd_state state);
 bool chrif_auth_finished(struct map_session_data* sd);
 
-void chrif_authreq(struct map_session_data* sd);
-void chrif_authok(int fd);
+void chrif_char_load_req(int account_id, int char_id);
 int chrif_scdata_request(int char_id);
 int chrif_save(struct map_session_data* sd, int flag);
 int chrif_charselectreq(struct map_session_data* sd, uint32 s_ip);

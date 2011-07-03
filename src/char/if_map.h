@@ -19,6 +19,7 @@ struct mmo_map_server
 
 extern struct mmo_map_server server[MAX_MAP_SERVERS];
 
+bool mapif_auth_data_send(int id, int account_id, int char_id, int login_id1, uint8 sex);
 int parse_frommap(int fd);
 int mapif_send(int fd, const void* buf, unsigned int len);
 int mapif_sendallwos(int fd, const void* buf, unsigned int len);
@@ -27,6 +28,7 @@ int mapif_sendall(const void* buf, unsigned int len);
 void mapif_server_init(int id);
 void mapif_server_destroy(int id);
 void mapif_server_reset(int id);
+bool mapif_server_isconnected(int id);
 
 void do_init_mapif(void);
 void do_final_mapif(void);

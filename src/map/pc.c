@@ -1097,6 +1097,7 @@ int pc_reg_received(struct map_session_data *sd)
 	if( sd->status.mer_id > 0 )
 		intif_mercenary_request(sd->status.mer_id, sd->status.char_id);
 
+	chrif_char_online(sd);
 	map_addiddb(&sd->bl);
 	map_delnickdb(sd->status.char_id, sd->status.name);
 	if (!chrif_auth_finished(sd))

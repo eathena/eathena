@@ -4,6 +4,7 @@
 #ifndef _IF_CLIENT_H_
 #define _IF_CLIENT_H_
 
+bool clientif_send_to_map(struct char_session_data* sd);
 int mmo_char_send006b(int fd, struct char_session_data* sd);
 int parse_client(int fd);
 

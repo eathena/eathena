@@ -5,6 +5,7 @@
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/mapindex.h"
+#include "../common/nullpo.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
@@ -29,13 +30,35 @@ extern int lan_subnetcheck(uint32 ip);
 int mmo_char_tobuf(uint8* buf, struct mmo_charstatus* p);
 
 
+/// Tell client to go to the map-server.
+bool clientif_send_to_map(struct char_session_data* sd)
+{
+	int fd;
+
+	nullpo_retr(false, sd);
+
+	fd = sd->fd;
+	if( !session_isActive(fd) )
+		return false;
+
+	//Send player to map
+	WFIFOHEAD(fd,28);
+	WFIFOW(fd,0) = 0x71;
+	WFIFOL(fd,2) = sd->char_id;
+	mapindex_getmapname_ext(mapindex_id2name(sd->mapindex), (char*)WFIFOP(fd,6));
+	WFIFOL(fd,22) = htonl(sd->map_ip);
+	WFIFOW(fd,26) = ntows(htons(sd->map_port)); // [!] LE byte order here [!]
+	WFIFOSET(fd,28);
+	return true;
+}
+
+
 int parse_client(int fd)
 {
 	CharDB* chars = charserver->chardb(charserver);
 	int i;
 	char email[40];
 	unsigned short cmd;
-	int map_fd;
 	struct char_session_data* sd;
 	uint32 ipl = session[fd]->client_addr;
 	
@@ -93,6 +116,7 @@ int parse_client(int fd)
 			
 			CREATE(session[fd]->session_data, struct char_session_data, 1);
 			sd = (struct char_session_data*)session[fd]->session_data;
+			sd->fd = fd;
 			sd->account_id = account_id;
 			sd->login_id1 = login_id1;
 			sd->login_id2 = login_id2;
@@ -221,29 +245,11 @@ int parse_client(int fd)
 				cd.last_point.map = j;
 			}
 
-			//FIXME: is this case even possible? [ultramage]
-			if ((map_fd = server[i].fd) < 1 || session[map_fd] == NULL)
-			{
-				ShowError("parse_client: Attempting to write to invalid session %d! Map Server #%d disconnected.\n", map_fd, i);
-				memset(&server[i], 0, sizeof(struct mmo_map_server));
-				server[i].fd = -1;
-				//Send server closed.
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x81;
-				WFIFOB(fd,2) = 1; // 01 = Server closed
-				WFIFOSET(fd,3);
-				break;
-			}
-
-			//Send player to map
-			WFIFOHEAD(fd,28);
-			WFIFOW(fd,0) = 0x71;
-			WFIFOL(fd,2) = cd.char_id;
-			mapindex_getmapname_ext(mapindex_id2name(cd.last_point.map), (char*)WFIFOP(fd,6));
+			sd->char_id = cd.char_id;
+			sd->mapindex = cd.last_point.map;
 			subnet_map_ip = lan_subnetcheck(ipl); // Advanced subnet check [LuzZza]
-			WFIFOL(fd,22) = htonl((subnet_map_ip) ? subnet_map_ip : server[i].ip);
-			WFIFOW(fd,26) = ntows(htons(server[i].port)); // [!] LE byte order here [!]
-			WFIFOSET(fd,28);
+			sd->map_ip = (subnet_map_ip) ? subnet_map_ip : server[i].ip;
+			sd->map_port = server[i].port;
 
 			ShowInfo("Character selection '%s' (account: %d, slot: %d).\n", cd.name, sd->account_id, slot);
 
@@ -257,9 +263,18 @@ int parse_client(int fd)
 			node->expiration_time = sd->expiration_time;
 			node->gmlevel = sd->gmlevel;
 			node->ip = ipl;
+			node->sd = sd;
+			node->map_id = i;
 			idb_put(auth_db, sd->account_id, node);
 
-			set_char_online(-2,node->char_id,sd->account_id);
+			if( !mapif_auth_data_send(i, sd->account_id, cd.char_id, sd->login_id1, sd->sex) )
+			{
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x6c;
+				WFIFOB(fd,2) = 0; // rejected from server
+				WFIFOSET(fd,3);
+				idb_remove(auth_db, sd->account_id);
+			}
 		}
 		break;
 

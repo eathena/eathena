@@ -15,6 +15,7 @@
 #include "int_status.h"
 #include "int_storage.h"
 #include "inter.h"
+#include "if_client.h"
 #include "if_login.h"
 #include "if_map.h"
 #include "online.h"
@@ -71,6 +72,13 @@ void mapif_server_reset(int id)
 	onlinedb_sync(); // update online list
 	mapif_server_destroy(id);
 	mapif_server_init(id);
+}
+
+
+/// Checks if a server is connected.
+bool mapif_server_isconnected(int id)
+{
+	return (id >= 0 && id < ARRAYLENGTH(server) && session_isActive(server[id].fd));
 }
 
 
@@ -158,6 +166,26 @@ int search_mapserver(unsigned short map, uint32 ip, uint16 port)
 	}
 
 	return -1;
+}
+
+
+/// Send auth data to map-server.
+bool mapif_auth_data_send(int id, int account_id, int char_id, int login_id1, uint8 sex)
+{
+	int fd;
+
+	if( !mapif_server_isconnected(id) )
+		return false;
+
+	fd = server[id].fd;
+	WFIFOHEAD(fd,15);
+	WFIFOW(fd,0) = 0x2b15;
+	WFIFOL(fd,2) = account_id;
+	WFIFOL(fd,6) = char_id;
+	WFIFOL(fd,10) = login_id1;
+	WFIFOB(fd,14) = sex;
+	WFIFOSET(fd,15);
+	return true;
 }
 
 
@@ -403,7 +431,7 @@ int parse_frommap(int fd)
 			short y = RFIFOW(fd,22);
 			uint32 server_ip = RFIFOL(fd,24);
 			uint16 server_port = RFIFOW(fd,28);
-			char sex = RFIFOB(fd,30);
+			uint8 sex = RFIFOB(fd,30);
 			uint32 client_ip = RFIFOL(fd,31);
 			RFIFOSKIP(fd,35);
 
@@ -413,7 +441,8 @@ int parse_frommap(int fd)
 
 			if( runflag == CHARSERVER_ST_RUNNING &&
 				session_isActive(map_fd) &&
-				chars->load_num(chars, &cd, char_id) )
+				chars->load_num(chars, &cd, char_id) &&
+				mapif_auth_data_send(map_id, account_id, char_id, login_id1, sex) )
 			{	//Send the map server the auth of this player.
 				struct auth_node* node;
 
@@ -432,6 +461,7 @@ int parse_frommap(int fd)
 				node->sex = sex;
 				//node->expiration_time = 0; // FIXME
 				node->ip = ntohl(client_ip);
+				node->map_id = map_id;
 				idb_put(auth_db, account_id, node);
 
 				data = onlinedb_ensure(account_id);
@@ -555,6 +585,36 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,10);
 		break;
 
+		case 0x2b16: // auth data ack
+			if (RFIFOREST(fd) < 7)
+				return 0;
+		{
+			struct auth_node* node;
+			int account_id;
+			uint8 result;
+
+			account_id = RFIFOL(fd,2);
+			result = RFIFOB(fd,6);
+			RFIFOSKIP(fd,7);
+
+			node = (struct auth_node*)idb_get(auth_db, account_id);
+			if( node && node->sd )
+			{
+				struct char_session_data* sd = node->sd;
+				int client_fd = sd->fd;
+				if( clientif_send_to_map(sd) )
+					set_char_online(-2,node->char_id,node->account_id);
+				else
+				{
+					WFIFOHEAD(client_fd,3);
+					WFIFOW(client_fd,0) = 0x6c;
+					WFIFOB(client_fd,2) = 0; // rejected from server
+					WFIFOSET(client_fd,3);
+				}
+			}
+		}
+		break;
+
 		case 0x2b17: // Character disconnected set online 0 [Wizputer]
 			if (RFIFOREST(fd) < 6)
 				return 0;
@@ -581,37 +641,29 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,2);
 		break;
 
-		case 0x2b26: // auth request from map-server
-			if (RFIFOREST(fd) < 19)
+		case 0x2b26: // character load request
+			if (RFIFOREST(fd) < 10)
 				return 0;
 		{
 			int account_id;
 			int char_id;
-			int login_id1;
-			char sex;
-			uint32 ip;
 			struct auth_node* node;
 			struct mmo_charstatus cd;
 
 			account_id = RFIFOL(fd,2);
 			char_id    = RFIFOL(fd,6);
-			login_id1  = RFIFOL(fd,10);
-			sex        = RFIFOB(fd,14);
-			ip         = ntohl(RFIFOL(fd,15));
-			RFIFOSKIP(fd,19);
+			RFIFOSKIP(fd,10);
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
 
 			if( runflag == CHARSERVER_ST_RUNNING &&
-				chars->load_num(chars, &cd, char_id) && //TODO: verify account_id?
 				node != NULL &&
 				node->account_id == account_id &&
 				node->char_id == char_id &&
-				node->login_id1 == login_id1 &&
-				node->sex == sex /*&&
-				node->ip == ip*/ )
-			{// auth ok
-				cd.sex = sex; //FIXME: is this ok?
+				node->map_id == id &&
+				chars->load_num(chars, &cd, char_id) )
+			{// character load ok
+				cd.sex = node->sex; //FIXME: is this ok?
 
 				// load auxiliary data
 				storages->load(storages, cd.inventory, MAX_INVENTORY, STORAGE_INVENTORY, char_id);
@@ -639,15 +691,12 @@ int parse_frommap(int fd)
 				set_char_online(id, char_id, account_id);
 			}
 			else
-			{// auth failed
-				WFIFOHEAD(fd,19);
+			{// character load failed
+				WFIFOHEAD(fd,10);
 				WFIFOW(fd,0) = 0x2b27;
 				WFIFOL(fd,2) = account_id;
 				WFIFOL(fd,6) = char_id;
-				WFIFOL(fd,10) = login_id1;
-				WFIFOB(fd,14) = sex;
-				WFIFOL(fd,15) = htonl(ip);
-				WFIFOSET(fd,19);
+				WFIFOSET(fd,10);
 			}
 		}
 		break;
