@@ -1,5 +1,6 @@
 Date	Added
-
+2011/10/08	
+	- Updated /npc/mobs/fields folder to meet renewal monster spawn changes.
 2011/10/07
 	* Remove fds from the shortlist before processing. [FlavioJS]
 2011/09/18
