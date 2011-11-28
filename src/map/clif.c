@@ -14329,7 +14329,7 @@ void clif_displayexp(struct map_session_data *sd, unsigned int exp, char type, b
 ///   0: Displays 'value' for 5 seconds.
 ///   1: Incremental counter (1 tick/second), negated 'value' specifies start value (e.g. using -10 lets the counter start at 10).
 ///   2: Decremental counter (1 tick/second), negated 'value' specifies start value (does not stop when reaching 0, but overflows).
-///   3: Decremental counter (2 ticks/second), 'value' specifies start value (stops when reaching 0, displays at most 2 digits).
+///   3: Decremental counter (1 tick/second), 'value' specifies start value (stops when reaching 0, displays at most 2 digits).
 /// value:
 ///   Except for type 3 it is interpreted as seconds for displaying as DD:HH:MM:SS, HH:MM:SS, MM:SS or SS (leftmost '00' is not displayed).
 void clif_showdigit(struct map_session_data* sd, unsigned char type, int value)
