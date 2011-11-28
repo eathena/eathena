@@ -1,6 +1,8 @@
 Date	Added
 
 2011/11/28
+	* Added script command *showdigit (follow up to r14539). [Ai4rei]
+	- Fixed a mistake in the comment for packet 0x1b1 (ZC_SHOWDIGIT).
 	* Fixed novending cell check using misleading error message (bugreport:2592, since r11572 and r14724, related r11580). [Ai4rei]
 	* Fixed removing item scripts through script command *setitemscript not working the way it is stated in script_commands.txt (related r9831). [Ai4rei]
 2011/11/19

@@ -14953,6 +14953,37 @@ BUILDIN_FUNC(searchstores)
 }
 
 
+/// Displays a number as large digital clock.
+/// showdigit <value>[,<type>];
+BUILDIN_FUNC(showdigit)
+{
+	unsigned int type = 0;
+	int value;
+	struct map_session_data* sd;
+
+	if( ( sd = script_rid2sd(st) ) == NULL )
+	{
+		return 0;
+	}
+
+	value = script_getnum(st,2);
+
+	if( script_hasdata(st,3) )
+	{
+		type = script_getnum(st,3);
+
+		if( type > 3 )
+		{
+			ShowError("buildin_showdigit: Invalid type %u.\n", type);
+			return 1;
+		}
+	}
+
+	clif_showdigit(sd, (unsigned char)type, value);
+	return 0;
+}
+
+
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
@@ -15317,6 +15348,7 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(pushpc,"ii"),
 	BUILDIN_DEF(buyingstore,"i"),
 	BUILDIN_DEF(searchstores,"ii"),
+	BUILDIN_DEF(showdigit,"i?"),
 	// WoE SE
 	BUILDIN_DEF(agitstart2,""),
 	BUILDIN_DEF(agitend2,""),
