@@ -1,5 +1,10 @@
 Date	Added
 
+2011/12/03
+	* Preparation clean up in clif.h [Ai4rei]
+	- Synced function declarations and argument names with clif.c including whitespace.
+	- Removed orphaned function declarations.
+	- Removed include to storage.h and put it into .c files that need it instead.
 2011/11/28
 	* Added script command *showdigit (follow up to r14539). [Ai4rei]
 	- Fixed a mistake in the comment for packet 0x1b1 (ZC_SHOWDIGIT).
