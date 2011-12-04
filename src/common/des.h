@@ -4,7 +4,7 @@
 #define	_DES_H_
 
 
-void des_decode(unsigned char* buf);
+void des_decrypt(unsigned char* data, size_t size);
 
 
 #endif // _DES_H_
