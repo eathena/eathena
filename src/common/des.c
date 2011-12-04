@@ -8,10 +8,7 @@
 /// See http://www.eathena.ws/board/index.php?autocom=bugtracker&showbug=5099.
 
 
-typedef struct BIT64
-{
-	uint8_t b[8];
-} BIT64;
+typedef struct BIT64 { uint8_t b[8]; } BIT64;
 
 
 static unsigned char BitMaskTable[8] = {
@@ -66,16 +63,48 @@ static unsigned char NibbleData[4][64]={
 };
 
 
-static void BitConvert(BIT64* src, char* BitSwapTable)
+static void BitConvert1(BIT64* src)
 {
 	BIT64 tmp = {0};
 
 	int i;
 	for( i = 0; i < 64; ++i )
 	{
-		int j = BitSwapTable[i] - 1;
+		int j = BitSwapTable1[i] - 1;
 		if( src->b[(j >> 3) & 7] &  BitMaskTable[j & 7] )
 			tmp .b[(i >> 3) & 7] |= BitMaskTable[i & 7];
+	}
+
+	*src = tmp;
+}
+
+
+static void BitConvert2(BIT64* src)
+{
+	BIT64 tmp = {0};
+
+	int i;
+	for( i = 0; i < 64; ++i )
+	{
+		int j = BitSwapTable2[i] - 1;
+		if( src->b[(j >> 3) & 7] &  BitMaskTable[j & 7] )
+			tmp .b[(i >> 3) & 7] |= BitMaskTable[i & 7];
+	}
+
+	*src = tmp;
+}
+
+
+static void BitConvert3(BIT64* src)
+{
+	BIT64 tmp = {0};
+
+	int i;
+	for( i = 0; i < 32; ++i )
+	{
+		int j = BitSwapTable3[i] - 1;
+		if( src->b[(j >> 3) + 0] &  BitMaskTable[j & 7] )
+			tmp .b[(i >> 3) + 4] |= BitMaskTable[i & 7];
 	}
 
 	*src = tmp;
@@ -101,17 +130,7 @@ static void BitConvert4(BIT64* src)
 		         | (NibbleData[i][tmp.b[i*2+1]] & 0x0f);
 	}
 
-	tmp.b[4] = 0;
-	tmp.b[5] = 0;
-	tmp.b[6] = 0;
-	tmp.b[7] = 0;
-
-	for( i = 0; i < 32; ++i )
-	{
-		int j = BitSwapTable3[i] - 1;
-		if( tmp.b[(j >> 3) + 0] &  BitMaskTable[j & 7] )
-			tmp.b[(i >> 3) + 4] |= BitMaskTable[i & 7];
-	}
+	BitConvert3(&tmp);
 
 	src->b[0] ^= tmp.b[4];
 	src->b[1] ^= tmp.b[5];
@@ -122,9 +141,9 @@ static void BitConvert4(BIT64* src)
 
 void des_decrypt_block(BIT64* block)
 {
-	BitConvert(block,BitSwapTable1);
+	BitConvert1(block);
 	BitConvert4(block);
-	BitConvert(block,BitSwapTable1);
+	BitConvert2(block);
 }
 
 
