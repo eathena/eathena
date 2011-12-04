@@ -28,6 +28,9 @@
     <ClCompile Include="..\src\common\db.c">
       <Filter>common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\common\des.c">
+      <Filter>common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\common\ers.c">
       <Filter>common</Filter>
     </ClCompile>
@@ -187,6 +190,9 @@
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\db.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\common\des.h">
       <Filter>common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\common\ers.h">

@@ -150,6 +150,12 @@
 				RelativePath="..\src\common\core.h">
 			</File>
 			<File
+				RelativePath="..\src\common\des.c">
+			</File>
+			<File
+				RelativePath="..\src\common\des.h">
+			</File>
+			<File
 				RelativePath="..\src\common\grfio.c">
 			</File>
 			<File

@@ -101,6 +101,14 @@ SOURCE=..\src\common\core.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\common\des.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\des.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\common\grfio.c
 # End Source File
 # Begin Source File
