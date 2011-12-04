@@ -121,6 +121,14 @@ SOURCE=..\src\common\db.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\common\des.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\common\des.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\common\ers.c
 # End Source File
 # Begin Source File
