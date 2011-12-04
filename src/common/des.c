@@ -10,10 +10,6 @@
 /// @see http://en.wikipedia.org/wiki/DES_supplementary_material
 
 
-/// One DES block.
-typedef struct BIT64 { uint8_t b[8]; } BIT64;
-
-
 /// Bitmask for accessing individual bits of a byte.
 static const uint8_t mask[8] = {
 	0x80, 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01

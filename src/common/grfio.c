@@ -71,47 +71,88 @@ static void NibbleSwap(unsigned char* Src, int len)
 	}
 }
 
+
+/// Substitutes some specific values for others, leaves rest intact. Obfuscation.
+/// NOTE: Operation is symmetric (calling it twice gives back the original input).
+static uint8_t grf_substitution(uint8_t in)
+{
+	uint8_t out;
+	
+	switch( in )
+	{
+	case 0x00: out = 0x2B; break;
+	case 0x2B: out = 0x00; break;
+	case 0x6C: out = 0x80; break;
+	case 0x01: out = 0x68; break;
+	case 0x68: out = 0x01; break;
+	case 0x48: out = 0x77; break;
+	case 0x60: out = 0xFF; break;
+	case 0x77: out = 0x48; break;
+	case 0xB9: out = 0xC0; break;
+	case 0xC0: out = 0xB9; break;
+	case 0xFE: out = 0xEB; break;
+	case 0xEB: out = 0xFE; break;
+	case 0x80: out = 0x6C; break;
+	case 0xFF: out = 0x60; break;
+	default:   out = in;   break;
+	}
+
+	return out;
+}
+
+
+static void grf_shuffle_enc(BIT64* src)
+{
+	BIT64 out;
+
+	out.b[0] = src->b[3];
+	out.b[1] = src->b[4];
+	out.b[2] = src->b[5];
+	out.b[3] = src->b[0];
+	out.b[4] = src->b[1];
+	out.b[5] = src->b[6];
+	out.b[6] = src->b[2];
+	out.b[7] = grf_substitution(src->b[7]);
+
+	*src = out;
+}
+
+
+static void grf_shuffle_dec(BIT64* src)
+{
+	BIT64 out;
+
+	out.b[0] = src->b[3];
+	out.b[1] = src->b[4];
+	out.b[2] = src->b[6];
+	out.b[3] = src->b[0];
+	out.b[4] = src->b[1];
+	out.b[5] = src->b[2];
+	out.b[6] = src->b[5];
+	out.b[7] = grf_substitution(src->b[7]);
+
+	*src = out;
+}
+
+
 static void decode_des_etc(unsigned char* buf, size_t len, int type, int cycle)
 {
+	BIT64* p = (BIT64*)buf;
+
 	size_t lop,cnt=0;
 	if(cycle<3) cycle=3;
 	else if(cycle<5) cycle++;
 	else if(cycle<7) cycle+=9;
 	else cycle+=15;
 
-	for(lop=0; lop*8<len; lop++, buf+=8)
+	for(lop=0; lop*8<len; lop++)
 	{
 		if(lop<20 || (type==0 && lop%cycle==0)) { // des
-			des_decrypt(buf,8);
+			des_decrypt_block(&p[lop]);
 		} else {
 			if(cnt==7 && type==0) {
-				unsigned char a;
-				unsigned char tmp[8];
-				memcpy(tmp,buf,8);
+				grf_shuffle_dec(&p[lop]);
 				cnt=0;
-				buf[0]=tmp[3];
-				buf[1]=tmp[4];
-				buf[2]=tmp[6];
-				buf[3]=tmp[0];
-				buf[4]=tmp[1];
-				buf[5]=tmp[2];
-				buf[6]=tmp[5];
-				a=tmp[7];
-				if(a==0x00) a=0x2b;
-				else if(a==0x2b) a=0x00;
-				else if(a==0x01) a=0x68;
-				else if(a==0x68) a=0x01;
-				else if(a==0x48) a=0x77;
-				else if(a==0x77) a=0x48;
-				else if(a==0x60) a=0xff;
-				else if(a==0xff) a=0x60;
-				else if(a==0x6c) a=0x80;
-				else if(a==0x80) a=0x6c;
-				else if(a==0xb9) a=0xc0;
-				else if(a==0xc0) a=0xb9;
-				else if(a==0xeb) a=0xfe;
-				else if(a==0xfe) a=0xeb;
-				buf[7]=a;
 			}
 			cnt++;
 		}
