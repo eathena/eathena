@@ -643,7 +643,6 @@ int map_random_dir(struct block_list *bl, short *x, short *y); // [Skotlex]
 
 int cleanup_sub(struct block_list *bl, va_list ap);
 
-void map_helpscreen(int flag); // [Valaris]
 int map_delmap(char* mapname);
 void map_flags_init(void);
 
@@ -666,8 +665,6 @@ extern char *ATCOMMAND_CONF_FILENAME;
 extern char *SCRIPT_CONF_NAME;
 extern char *MSG_CONF_NAME;
 extern char *GRF_PATH_FILENAME;
-
-extern char *map_server_dns;
 
 //Useful typedefs from jA [Skotlex]
 typedef struct map_session_data TBL_PC;
