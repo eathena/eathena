@@ -82,7 +82,7 @@ static void decode_des_etc(unsigned char* buf, size_t len, int type, int cycle)
 	for(lop=0; lop*8<len; lop++, buf+=8)
 	{
 		if(lop<20 || (type==0 && lop%cycle==0)) { // des
-			des_decode(buf);
+			des_decrypt(buf,8);
 		} else {
 			if(cnt==7 && type==0) {
 				unsigned char a;
@@ -382,7 +382,7 @@ static char* decode_filename(unsigned char* buf, int len)
 	int lop;
 	for(lop=0;lop<len;lop+=8) {
 		NibbleSwap(&buf[lop],8);
-		des_decode(&buf[lop]);
+		des_decrypt(&buf[lop],8);
 	}
 	return (char*)buf;
 }

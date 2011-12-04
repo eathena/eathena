@@ -1,6 +1,17 @@
+// Copyright (c) Athena Dev Teams - Licensed under GNU GPL
+// For more information, see LICENCE in the main folder
 #include "../common/cbasetypes.h"
 #include "../common/des.h"
-#include <string.h> //memset()
+
+
+/// DES (Data Encryption Standard) algorithm, modified version.
+/// See http://www.eathena.ws/board/index.php?autocom=bugtracker&showbug=5099.
+
+
+typedef struct BIT64
+{
+	uint8_t b[8];
+} BIT64;
 
 
 static unsigned char BitMaskTable[8] = {
@@ -55,56 +66,73 @@ static unsigned char NibbleData[4][64]={
 };
 
 
-static void BitConvert(unsigned char* Src, char* BitSwapTable)
+static void BitConvert(BIT64* src, char* BitSwapTable)
 {
-	int lop,prm;
-	unsigned char tmp[8];
-	memset(tmp,0,8);
-	for(lop=0;lop!=64;lop++) {
-		prm = BitSwapTable[lop]-1;
-		if (Src[(prm >> 3) & 7] & BitMaskTable[prm & 7]) {
-			tmp[(lop >> 3) & 7] |= BitMaskTable[lop & 7];
-		}
+	BIT64 tmp = {0};
+
+	int i;
+	for( i = 0; i < 64; ++i )
+	{
+		int j = BitSwapTable[i] - 1;
+		if( src->b[(j >> 3) & 7] &  BitMaskTable[j & 7] )
+			tmp .b[(i >> 3) & 7] |= BitMaskTable[i & 7];
 	}
-	memcpy(Src,tmp,8);
+
+	*src = tmp;
 }
 
 
-static void BitConvert4(unsigned char* Src)
+static void BitConvert4(BIT64* src)
 {
-	int lop,prm;
-	unsigned char tmp[8];
-	tmp[0] = ((Src[7]<<5) | (Src[4]>>3)) & 0x3f;	// ..0 vutsr
-	tmp[1] = ((Src[4]<<1) | (Src[5]>>7)) & 0x3f;	// ..srqpo n
-	tmp[2] = ((Src[4]<<5) | (Src[5]>>3)) & 0x3f;	// ..o nmlkj
-	tmp[3] = ((Src[5]<<1) | (Src[6]>>7)) & 0x3f;	// ..kjihg f
-	tmp[4] = ((Src[5]<<5) | (Src[6]>>3)) & 0x3f;	// ..g fedcb
-	tmp[5] = ((Src[6]<<1) | (Src[7]>>7)) & 0x3f;	// ..cba98 7
-	tmp[6] = ((Src[6]<<5) | (Src[7]>>3)) & 0x3f;	// ..8 76543
-	tmp[7] = ((Src[7]<<1) | (Src[4]>>7)) & 0x3f;	// ..43210 v
+	BIT64 tmp = {0};
+	int i;
+	tmp.b[0] = ((src->b[7]<<5) | (src->b[4]>>3)) & 0x3f;	// ..0 vutsr
+	tmp.b[1] = ((src->b[4]<<1) | (src->b[5]>>7)) & 0x3f;	// ..srqpo n
+	tmp.b[2] = ((src->b[4]<<5) | (src->b[5]>>3)) & 0x3f;	// ..o nmlkj
+	tmp.b[3] = ((src->b[5]<<1) | (src->b[6]>>7)) & 0x3f;	// ..kjihg f
+	tmp.b[4] = ((src->b[5]<<5) | (src->b[6]>>3)) & 0x3f;	// ..g fedcb
+	tmp.b[5] = ((src->b[6]<<1) | (src->b[7]>>7)) & 0x3f;	// ..cba98 7
+	tmp.b[6] = ((src->b[6]<<5) | (src->b[7]>>3)) & 0x3f;	// ..8 76543
+	tmp.b[7] = ((src->b[7]<<1) | (src->b[4]>>7)) & 0x3f;	// ..43210 v
 
-	for(lop=0;lop!=4;lop++) {
-		tmp[lop] = (NibbleData[lop][tmp[lop*2]] & 0xf0)
-		         | (NibbleData[lop][tmp[lop*2+1]] & 0x0f);
+	for( i = 0; i < 4; ++i )
+	{
+		tmp.b[i] = (NibbleData[i][tmp.b[i*2+0]] & 0xf0)
+		         | (NibbleData[i][tmp.b[i*2+1]] & 0x0f);
 	}
 
-	memset(tmp+4,0,4);
-	for(lop=0;lop!=32;lop++) {
-		prm = BitSwapTable3[lop]-1;
-		if (tmp[prm >> 3] & BitMaskTable[prm & 7]) {
-			tmp[(lop >> 3) + 4] |= BitMaskTable[lop & 7];
-		}
+	tmp.b[4] = 0;
+	tmp.b[5] = 0;
+	tmp.b[6] = 0;
+	tmp.b[7] = 0;
+
+	for( i = 0; i < 32; ++i )
+	{
+		int j = BitSwapTable3[i] - 1;
+		if( tmp.b[(j >> 3) + 0] &  BitMaskTable[j & 7] )
+			tmp.b[(i >> 3) + 4] |= BitMaskTable[i & 7];
 	}
-	Src[0] ^= tmp[4];
-	Src[1] ^= tmp[5];
-	Src[2] ^= tmp[6];
-	Src[3] ^= tmp[7];
+
+	src->b[0] ^= tmp.b[4];
+	src->b[1] ^= tmp.b[5];
+	src->b[2] ^= tmp.b[6];
+	src->b[3] ^= tmp.b[7];
 }
 
 
-void des_decode(unsigned char* buf)
+void des_decrypt_block(BIT64* block)
 {
-	BitConvert(buf,BitSwapTable1);
-	BitConvert4(buf);
-	BitConvert(buf,BitSwapTable2);
+	BitConvert(block,BitSwapTable1);
+	BitConvert4(block);
+	BitConvert(block,BitSwapTable1);
+}
+
+
+void des_decrypt(unsigned char* data, size_t size)
+{
+	BIT64* p = (BIT64*)data;
+	size_t i;
+
+	for( i = 0; i*8 < size; i += 8 )
+		des_decrypt_block(p);
 }
