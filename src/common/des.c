@@ -76,12 +76,55 @@ static void FP(BIT64* src)
 }
 
 
+/// Expansion (E).
+/// Expands upper four 8-bits (32b) into eight 6-bits (48b).
+static void E(BIT64* src)
+{
+	BIT64 tmp = {0};
+
+if( false )
+{// original
+	static const uint8_t expand_table[48] = {
+		32,  1,  2,  3,  4,  5,
+		 4,  5,  6,  7,  8,  9,
+		 8,  9, 10, 11, 12, 13,
+		12, 13, 14, 15, 16, 17,
+		16, 17, 18, 19, 20, 21,
+		20, 21, 22, 23, 24, 25,
+		24, 25, 26, 27, 28, 29,
+		28, 29, 30, 31, 32,  1,
+	};
+
+	size_t i;
+	for( i = 0; i < ARRAYLENGTH(expand_table); ++i )
+	{
+		uint8_t j = expand_table[i] - 1;
+		if( src->b[j / 8 + 4] &  mask[j % 8] )
+			tmp .b[i / 6 + 0] |= mask[i % 6];
+	}
+}
+else
+{// optimized
+	tmp.b[0] = ((src->b[7]<<5) | (src->b[4]>>3)) & 0x3f;	// ..0 vutsr
+	tmp.b[1] = ((src->b[4]<<1) | (src->b[5]>>7)) & 0x3f;	// ..srqpo n
+	tmp.b[2] = ((src->b[4]<<5) | (src->b[5]>>3)) & 0x3f;	// ..o nmlkj
+	tmp.b[3] = ((src->b[5]<<1) | (src->b[6]>>7)) & 0x3f;	// ..kjihg f
+	tmp.b[4] = ((src->b[5]<<5) | (src->b[6]>>3)) & 0x3f;	// ..g fedcb
+	tmp.b[5] = ((src->b[6]<<1) | (src->b[7]>>7)) & 0x3f;	// ..cba98 7
+	tmp.b[6] = ((src->b[6]<<5) | (src->b[7]>>3)) & 0x3f;	// ..8 76543
+	tmp.b[7] = ((src->b[7]<<1) | (src->b[4]>>7)) & 0x3f;	// ..43210 v
+}
+
+	*src = tmp;
+}
+
+
 /// Transposition (P-BOX).
 static void TP(BIT64* src)
 {
 	BIT64 tmp = {0};
 
-	static char tp_table[32] = {
+	static const uint8_t tp_table[32] = {
 		16,  7, 20, 21,
 		29, 12, 28, 17,
 		 1, 15, 23, 26,
@@ -145,18 +188,12 @@ static void SBOX(BIT64* src)
 }
 
 
-static void BitConvert4(BIT64* src)
+/// DES round function.
+/// XORs src[0..3] with TP(SBOX(E(src[4..7]))).
+static void RoundFunction(BIT64* src)
 {
-	BIT64 tmp = {0};
-	tmp.b[0] = ((src->b[7]<<5) | (src->b[4]>>3)) & 0x3f;	// ..0 vutsr
-	tmp.b[1] = ((src->b[4]<<1) | (src->b[5]>>7)) & 0x3f;	// ..srqpo n
-	tmp.b[2] = ((src->b[4]<<5) | (src->b[5]>>3)) & 0x3f;	// ..o nmlkj
-	tmp.b[3] = ((src->b[5]<<1) | (src->b[6]>>7)) & 0x3f;	// ..kjihg f
-	tmp.b[4] = ((src->b[5]<<5) | (src->b[6]>>3)) & 0x3f;	// ..g fedcb
-	tmp.b[5] = ((src->b[6]<<1) | (src->b[7]>>7)) & 0x3f;	// ..cba98 7
-	tmp.b[6] = ((src->b[6]<<5) | (src->b[7]>>3)) & 0x3f;	// ..8 76543
-	tmp.b[7] = ((src->b[7]<<1) | (src->b[4]>>7)) & 0x3f;	// ..43210 v
-
+	BIT64 tmp = *src;
+	E(&tmp);
 	SBOX(&tmp);
 	TP(&tmp);
 
@@ -170,7 +207,7 @@ static void BitConvert4(BIT64* src)
 void des_decrypt_block(BIT64* block)
 {
 	IP(block);
-	BitConvert4(block);
+	RoundFunction(block);
 	FP(block);
 }
 
