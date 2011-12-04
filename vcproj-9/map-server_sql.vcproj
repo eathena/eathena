@@ -388,19 +388,19 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\battleground.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\map\battleground.c"
 				>
 			</File>
 			<File
-				RelativePath="..\src\map\buyingstore.h"
+				RelativePath="..\src\map\battleground.h"
 				>
 			</File>
 			<File
 				RelativePath="..\src\map\buyingstore.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\buyingstore.h"
 				>
 			</File>
 			<File
@@ -452,6 +452,22 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\map\homunculus.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\homunculus.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\instance.c"
+				>
+			</File>
+			<File
+				RelativePath="..\src\map\instance.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\map\intif.c"
 				>
 			</File>
@@ -497,22 +513,6 @@
 			</File>
 			<File
 				RelativePath="..\src\map\mapreg_sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\homunculus.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\homunculus.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\instance.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\map\instance.h"
 				>
 			</File>
 			<File
