@@ -150,12 +150,16 @@ static void decode_des_etc(unsigned char* buf, size_t len, int mode, int cycle)
 	else if(cycle<7) cycle+=9;
 	else cycle+=15;
 
-	for(lop=0; lop*8<len; lop++)
+	for(lop=0; lop<20 && lop*8<len; lop++)
+		des_decrypt_block(&p[lop]);
+
+	if(mode == 0)
+	for(lop=20; lop*8<len; lop++)
 	{
-		if(lop<20 || (mode==0 && lop%cycle==0)) { // des
+		if(lop%cycle==0) { // des
 			des_decrypt_block(&p[lop]);
 		} else {
-			if(cnt==7 && mode==0) {
+			if(cnt==7) {
 				grf_shuffle_dec(&p[lop]);
 				cnt=0;
 			}
