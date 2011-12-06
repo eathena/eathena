@@ -24,7 +24,6 @@ typedef struct _FILELIST {
 	int		declen;				// original size
 	int		srcpos;				// position of entry in grf
 	int		next;				// index of next filelist entry with same hash (-1: end of entry chain)
-	int		cycle;
 	char	type;
 	char	fn[128-4*5];		// file name
 	char*	fnd;				// if the file was cloned, contains name of original file
@@ -158,11 +157,6 @@ static void grf_decode_full(unsigned char* buf, size_t len, int cycle)
 	for( i = 0; i < 20 && i*8 < len; ++i )
 		des_decrypt_block(&p[i]);
 
-	if(cycle<3) cycle=3;
-	else if(cycle<5) cycle++;
-	else if(cycle<7) cycle+=9;
-	else cycle+=15;
-
 	j = 0;
 	for( i = 20; i*8 < len; ++i )
 	{
@@ -179,6 +173,46 @@ static void grf_decode_full(unsigned char* buf, size_t len, int cycle)
 			}
 			++j;
 		}
+	}
+}
+
+
+/// Decodes grf data.
+/// @param buf data to decode (in-place)
+/// @param len length of the data
+/// @param entry_type flags associated with the data
+/// @param entry_len true (unaligned) length of the data
+static void grf_decode(unsigned char* buf, size_t len, char entry_type, int entry_len)
+{
+	if( entry_type & FILELIST_TYPE_ENCRYPT_MIXED )
+	{// fully encrypted
+		int digits;
+		int cycle;
+		int i;
+
+		// compute number of digits of the entry length
+		digits = 1;
+		for( i = 10; i <= entry_len; i *= 10 )
+			++digits;
+
+		// choose size of gap between two encrypted blocks
+		// digits:  0  1  2  3  4  5  6  7  8  9 ...
+		//  cycle:  1  1  1  4  5 14 15 22 23 24 ...
+		cycle = ( digits < 3 ) ? 1
+		      : ( digits < 5 ) ? digits + 1
+		      : ( digits < 7 ) ? digits + 9
+		      :                  digits + 15;
+
+		grf_decode_full(buf, len, cycle);
+	}
+	else
+	if( entry_type & FILELIST_TYPE_ENCRYPT_HEADER )
+	{// header encrypted
+		grf_decode_header(buf, len);
+	}
+	else
+	{// plaintext
+		;
 	}
 }
 
@@ -390,16 +424,7 @@ void* grfio_reads(const char* fname, int* size)
 			if( entry->type & FILELIST_TYPE_FILE )
 			{// file
 				uLongf len;
-
-				if( entry->cycle == -1 )
-					; // plaintext
-				else
-				if( entry->cycle == 0 )
-					grf_decode_header(buf, entry->srclen_aligned);
-				else
-				if( entry->cycle > 0 )
-					grf_decode_full(buf, entry->srclen_aligned, entry->cycle);
-
+				grf_decode(buf, entry->srclen_aligned, entry->type, entry->srclen);
 				len = entry->declen;
 				decode_zip(buf2, &len, buf, entry->srclen);
 				if (len != (uLong)entry->declen) {
@@ -465,7 +490,7 @@ static int grfio_entryread(const char* grfname, int gentry)
 {
 	long grf_size,list_size;
 	unsigned char grf_header[0x2e];
-	int lop,entry,entrys,ofs,grf_version;
+	int entry,entrys,ofs,grf_version;
 	unsigned char *grf_filelist;
 
 	FILE* fp = fopen(grfname, "rb");
@@ -504,7 +529,6 @@ static int grfio_entryread(const char* grfname, int gentry)
 		// Get an entry
 		for( entry = 0, ofs = 0; entry < entrys; ++entry )
 		{
-			int srccount;
 			FILELIST aentry;
 
 			int ofs2 = ofs+getlong(grf_filelist+ofs)+4;
@@ -523,27 +547,10 @@ static int grfio_entryread(const char* grfname, int gentry)
 
 				type |= ( isFullEncrypt(fname) ) ? FILELIST_TYPE_ENCRYPT_MIXED : FILELIST_TYPE_ENCRYPT_HEADER;
 
-				if( type & FILELIST_TYPE_ENCRYPT_MIXED )
-				{// full encrypt
-					srccount = 1;
-					for( lop = 10; lop <= srclen; lop = lop * 10 )
-						++srccount;
-				}
-				else
-				if( type & FILELIST_TYPE_ENCRYPT_HEADER )
-				{// header encrypt
-					srccount = 0;
-				}
-				else
-				{// plaintext
-					srccount = -1;
-				}
-
 				aentry.srclen         = srclen;
 				aentry.srclen_aligned = getlong(grf_filelist+ofs2+4)-37579;
 				aentry.declen         = getlong(grf_filelist+ofs2+8);
 				aentry.srcpos         = getlong(grf_filelist+ofs2+13)+0x2e;
-				aentry.cycle          = srccount;
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
@@ -606,30 +613,10 @@ static int grfio_entryread(const char* grfname, int gentry)
 
 			if( type & FILELIST_TYPE_FILE )
 			{// file
-				int srclen = getlong(grf_filelist+ofs2);
-
-				int srccount;
-				if( type & FILELIST_TYPE_ENCRYPT_MIXED )
-				{// full encrypt
-					srccount = 1;
-					for( lop = 10; lop <= srclen; lop = lop * 10 )
-						++srccount;
-				}
-				else
-				if( type & FILELIST_TYPE_ENCRYPT_HEADER )
-				{// header encrypt
-					srccount = 0;
-				}
-				else
-				{// plaintext
-					srccount = -1;
-				}
-
-				aentry.srclen         = srclen;
+				aentry.srclen         = getlong(grf_filelist+ofs2+0);
 				aentry.srclen_aligned = getlong(grf_filelist+ofs2+4);
 				aentry.declen         = getlong(grf_filelist+ofs2+8);
 				aentry.srcpos         = getlong(grf_filelist+ofs2+13)+0x2e;
-				aentry.cycle          = srccount;
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
