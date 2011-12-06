@@ -140,30 +140,44 @@ static void grf_shuffle_dec(BIT64* src)
 }
 
 
-static void decode_des_etc(unsigned char* buf, size_t len, int mode, int cycle)
+static void grf_decode_header(unsigned char* buf, size_t len)
 {
 	BIT64* p = (BIT64*)buf;
+	size_t i;
 
-	size_t lop,cnt=0;
+	for( i = 0; i < 20 && i*8 < len; ++i )
+		des_decrypt_block(&p[i]);
+}
+
+
+static void grf_decode_full(unsigned char* buf, size_t len, int cycle)
+{
+	BIT64* p = (BIT64*)buf;
+	size_t i, j;
+
+	for( i = 0; i < 20 && i*8 < len; ++i )
+		des_decrypt_block(&p[i]);
+
 	if(cycle<3) cycle=3;
 	else if(cycle<5) cycle++;
 	else if(cycle<7) cycle+=9;
 	else cycle+=15;
 
-	for(lop=0; lop<20 && lop*8<len; lop++)
-		des_decrypt_block(&p[lop]);
-
-	if(mode == 0)
-	for(lop=20; lop*8<len; lop++)
+	j = 0;
+	for( i = 20; i*8 < len; ++i )
 	{
-		if(lop%cycle==0) { // des
-			des_decrypt_block(&p[lop]);
-		} else {
-			if(cnt==7) {
-				grf_shuffle_dec(&p[lop]);
-				cnt=0;
+		if( i % cycle == 0 )
+		{
+			des_decrypt_block(&p[i]);
+		}
+		else
+		{
+			if( j == 7 )
+			{
+				grf_shuffle_dec(&p[i]);
+				j = 0;
 			}
-			cnt++;
+			++j;
 		}
 	}
 }
@@ -381,10 +395,10 @@ void* grfio_reads(const char* fname, int* size)
 					; // plaintext
 				else
 				if( entry->cycle == 0 )
-					decode_des_etc(buf, entry->srclen_aligned, 1, entry->cycle);
+					grf_decode_header(buf, entry->srclen_aligned);
 				else
 				if( entry->cycle > 0 )
-					decode_des_etc(buf, entry->srclen_aligned, 0, entry->cycle);
+					grf_decode_full(buf, entry->srclen_aligned, entry->cycle);
 
 				len = entry->declen;
 				decode_zip(buf2, &len, buf, entry->srclen);
