@@ -142,37 +142,52 @@ static void grf_shuffle_dec(BIT64* src)
 static void grf_decode_header(unsigned char* buf, size_t len)
 {
 	BIT64* p = (BIT64*)buf;
+	size_t nblocks = len / sizeof(BIT64);
 	size_t i;
 
-	for( i = 0; i < 20 && i*8 < len; ++i )
+	// first 20 blocks are all des-encrypted
+	for( i = 0; i < 20 && i < nblocks; ++i )
 		des_decrypt_block(&p[i]);
+
+	// the rest is plaintext, done.
 }
 
 
 static void grf_decode_full(unsigned char* buf, size_t len, int cycle)
 {
 	BIT64* p = (BIT64*)buf;
+	size_t nblocks = len / sizeof(BIT64);
+	int dcycle, scycle;
 	size_t i, j;
 
-	for( i = 0; i < 20 && i*8 < len; ++i )
+	// first 20 blocks are all des-encrypted
+	for( i = 0; i < 20 && i < nblocks; ++i )
 		des_decrypt_block(&p[i]);
 
-	j = 0;
-	for( i = 20; i*8 < len; ++i )
+	// after that only one of every 'dcycle' blocks is des-encrypted
+	dcycle = cycle;
+
+	// and one of every 'scycle' plaintext blocks is shuffled (starting from the 0th but skipping the 0th)
+	scycle = 7;
+
+	// so decrypt/de-shuffle periodically
+	j = -1; // 0, adjusted to fit the ++j step
+	for( i = 20; i < nblocks; ++i )
 	{
-		if( i % cycle == 0 )
-		{
+		if( i % dcycle == 0 )
+		{// decrypt block
 			des_decrypt_block(&p[i]);
+			continue;
 		}
-		else
-		{
-			if( j == 7 )
-			{
-				grf_shuffle_dec(&p[i]);
-				j = 0;
-			}
-			++j;
+
+		++j;
+		if( j % scycle == 0 && j != 0 )
+		{// de-shuffle block
+			grf_shuffle_dec(&p[i]);
+			continue;
 		}
+
+		// plaintext, do nothing.
 	}
 }
 
