@@ -1,5 +1,7 @@
 Date	Added
 
+2011/12/08
+	* Updated zlib1.dll and related files from 1.2.3 to 1.2.5 (bugreport:4948). [Ai4rei]
 2011/12/04
 	* Random procrastinating in map.c/map.h [Ai4rei]
 	- Rewrote command line option parser. Now reports invalid options and missing option values.
