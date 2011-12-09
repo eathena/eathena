@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="pid"
+	Name="plugin-pid"
 	ProjectGUID="{9509E1B9-DA2B-4153-9EE0-CBCA6597F198}"
+	RootNamespace="plugin-pid"
 	TargetFrameworkVersion="0"
 	>
 	<Platforms>
@@ -16,10 +17,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug/pid"
-			IntermediateDirectory=".\Debug/pid"
+			OutputDirectory="..\plugins"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -53,13 +53,9 @@
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/pid/pid.pch"
-				AssemblerListingLocation=".\Debug/pid/"
-				ObjectFile=".\Debug/pid/"
-				ProgramDataBaseFileName=".\Debug/pid/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -74,15 +70,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../plugins/pid.dll"
-				LinkIncremental="2"
-				SuppressStartupBanner="true"
+				OutputFile="$(OutDir)\pid.dll"
+				LinkIncremental="1"
 				ModuleDefinitionFile="..\src\plugins\pid.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../plugins/pid.pdb"
+				ProgramDatabaseFile="$(IntDir)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=".\Debug/pid/pid.lib"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -96,8 +90,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Debug/pid/pid.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -111,10 +103,9 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release/pid"
-			IntermediateDirectory=".\Release/pid"
+			OutputDirectory="..\plugins"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
@@ -150,12 +141,9 @@
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/pid/pid.pch"
-				AssemblerListingLocation=".\Release/pid/"
-				ObjectFile=".\Release/pid/"
-				ProgramDataBaseFileName=".\Release/pid/"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -170,14 +158,13 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../plugins/pid.dll"
+				OutputFile="$(OutDir)\pid.dll"
 				LinkIncremental="1"
-				SuppressStartupBanner="true"
 				ModuleDefinitionFile="..\src\plugins\pid.def"
-				ProgramDatabaseFile="../plugins/pid.pdb"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\$(TargetName).pdb"
 				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
-				ImportLibrary=".\Release/pid/pid.lib"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -191,8 +178,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Release/pid/pid.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -211,24 +196,6 @@
 		<File
 			RelativePath="..\src\plugins\pid.c"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\src\plugins\pid.def"
