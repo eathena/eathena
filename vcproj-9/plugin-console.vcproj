@@ -20,8 +20,6 @@
 			OutputDirectory="..\plugins"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -38,12 +36,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				GenerateStublessProxies="true"
-				TypeLibraryName=".\Debug/console/console.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -54,7 +46,6 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -106,8 +97,6 @@
 			OutputDirectory="..\plugins"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -124,12 +113,6 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				GenerateStublessProxies="true"
-				TypeLibraryName=".\Release/console/console.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
@@ -142,7 +125,6 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
 				DebugInformationFormat="3"
 			/>
 			<Tool
