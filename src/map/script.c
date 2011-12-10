@@ -13936,6 +13936,7 @@ BUILDIN_FUNC(setcell)
  *------------------------------------------*/
 BUILDIN_FUNC(mercenary_create)
 {
+#ifndef TXT_ONLY
 	struct map_session_data *sd;
 	int class_, contract_time;
 
@@ -13949,7 +13950,7 @@ BUILDIN_FUNC(mercenary_create)
 
 	contract_time = script_getnum(st,3);
 	merc_create(sd, class_, contract_time);
-
+#endif
 	return 0;
 }
 
