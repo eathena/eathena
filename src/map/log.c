@@ -18,8 +18,6 @@
 
 struct Log_Config log_config;
 
-char timestring[255];
-time_t curtime;
 
 //FILTER OPTIONS
 //0 = Don't log
@@ -38,10 +36,10 @@ time_t curtime;
 //12 - Log rare items (if their drop chance <= rare_log )
 
 //check if this item should be logged according the settings
-int should_log_item(int filter, int nameid, int amount)
+bool should_log_item(int filter, int nameid, int amount)
 {
 	struct item_data *item_data;
-	if ((item_data= itemdb_exists(nameid)) == NULL) return 0;
+	if ((item_data= itemdb_exists(nameid)) == NULL) return false;
 	if ((filter&1) || // Filter = 1, we log any item
 		(filter&2 && item_data->type == IT_HEALING ) ||
 		(filter&4 && (item_data->type == IT_ETC || item_data->type == IT_AMMO) ) ||
@@ -53,17 +51,18 @@ int should_log_item(int filter, int nameid, int amount)
 		(filter&256 && item_data->value_buy >= log_config.price_items_log ) ||		//expensive items
 		(filter&512 && abs(amount) >= log_config.amount_items_log ) ||			//big amount of items
 		(filter&2048 && ((item_data->maxchance != -1 && item_data->maxchance <= log_config.rare_items_log) || item_data->nameid == 714) ) //Rare items or Emperium
-	) return item_data->nameid;
+	) return true;
 
-	return 0;
+	return false;
 }
 
-int log_branch(struct map_session_data *sd)
+
+void log_branch(struct map_session_data *sd)
 {
 	if(!log_config.enable_logs)
-		return 0;
+		return;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -76,32 +75,33 @@ int log_branch(struct map_session_data *sd)
 		{
 			SqlStmt_ShowDebug(stmt);
 			SqlStmt_Free(stmt);
-			return 0;
+			return;
 		}
 		SqlStmt_Free(stmt);
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp = fopen(log_config.log_branch, "a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp,"%s - %s[%d:%d]\t%s\n", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, mapindex_id2name(sd->mapindex));
 		fclose(logfp);
 	}
-
-	return 1;
 }
 
 
-int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int amount, struct item *itm)
+void log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int amount, struct item *itm)
 {
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 	if (!should_log_item(log_config.filter, nameid, amount))
-		return 0; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
+		return; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -111,26 +111,28 @@ int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int a
 				log_config.log_pick_db, sd->status.char_id, type, nameid, amount, mapindex_id2name(sd->mapindex)) )
 			{
 				Sql_ShowDebug(logmysql_handle);
-				return 0;
+				return;
 			}
 		} else { //We log Extended item
 			if (SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 				log_config.log_pick_db, sd->status.char_id, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapindex_id2name(sd->mapindex)) )
 			{
 				Sql_ShowDebug(logmysql_handle);
-				return 0;
+				return;
 			}
 		}
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
 
 		if((logfp = fopen(log_config.log_pick, "a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 
 		if( itm == NULL ) { //We log common item
 			fprintf(logfp,"%s - %d\t%s\t%d,%d,%s\n", timestring, sd->status.char_id, type, nameid, amount, mapindex_id2name(sd->mapindex));
@@ -139,19 +141,18 @@ int log_pick_pc(struct map_session_data *sd, const char *type, int nameid, int a
 		}
 		fclose(logfp);
 	}
-	
-	return 1; //Logged
 }
 
+
 //Mob picked item
-int log_pick_mob(struct mob_data *md, const char *type, int nameid, int amount, struct item *itm)
+void log_pick_mob(struct mob_data *md, const char *type, int nameid, int amount, struct item *itm)
 {
 	char* mapname;
 
-	nullpo_ret(md);
+	nullpo_retv(md);
 
 	if (!should_log_item(log_config.filter, nameid, amount))
-		return 0; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
+		return; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
 	//either PLAYER or MOB (here we get map name and objects ID)
 	mapname = map[md->bl.m].name;
@@ -166,26 +167,28 @@ int log_pick_mob(struct mob_data *md, const char *type, int nameid, int amount, 
 				log_config.log_pick_db, md->class_, type, nameid, amount, mapname) )
 			{
 				Sql_ShowDebug(logmysql_handle);
-				return 0;
+				return;
 			}
 		} else { //We log Extended item
 			if (SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%s', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
 				log_config.log_pick_db, md->class_, type, itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname) )
 			{
 				Sql_ShowDebug(logmysql_handle);
-				return 0;
+				return;
 			}
 		}
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE *logfp;
 
 		if((logfp=fopen(log_config.log_pick,"a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 
 		if( itm == NULL ) { //We log common item
 			fprintf(logfp,"%s - %d\t%s\t%d,%d,%s\n", timestring, md->class_, type, nameid, amount, mapname);
@@ -194,16 +197,15 @@ int log_pick_mob(struct mob_data *md, const char *type, int nameid, int amount, 
 		}
 		fclose(logfp);
 	}
-	
-	return 1; //Logged
 }
 
-int log_zeny(struct map_session_data *sd, char *type, struct map_session_data *src_sd, int amount)
+
+void log_zeny(struct map_session_data *sd, char *type, struct map_session_data *src_sd, int amount)
 {
 	if(!log_config.enable_logs || (log_config.zeny != 1 && abs(amount) < log_config.zeny))
-		return 0;
+		return;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -212,30 +214,32 @@ int log_zeny(struct map_session_data *sd, char *type, struct map_session_data *s
 			 log_config.log_zeny_db, sd->status.char_id, src_sd->status.char_id, type, amount, mapindex_id2name(sd->mapindex)) )
 		{
 			Sql_ShowDebug(logmysql_handle);
-			return 0;
+			return;
 		}
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp=fopen(log_config.log_zeny,"a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp, "%s - %s[%d]\t%s[%d]\t%d\t\n", timestring, src_sd->status.name, src_sd->status.account_id, sd->status.name, sd->status.account_id, amount);
 		fclose(logfp);
 	}
-
-	return 1;
 }
 
-int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
+
+void log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 {
 	if(!log_config.enable_logs)
-		return 0;
+		return;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -244,31 +248,32 @@ int log_mvpdrop(struct map_session_data *sd, int monster_id, int *log_mvp)
 			log_config.log_mvpdrop_db, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1], mapindex_id2name(sd->mapindex)) )
 		{
 			Sql_ShowDebug(logmysql_handle);
-			return 0;
+			return;
 		}
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp=fopen(log_config.log_mvpdrop,"a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp,"%s - %s[%d:%d]\t%d\t%d,%d\n", timestring, sd->status.name, sd->status.account_id, sd->status.char_id, monster_id, log_mvp[0], log_mvp[1]);
 		fclose(logfp);
 	}
-
-	return 1;
 }
 
 
-int log_atcommand(struct map_session_data* sd, const char* message)
+void log_atcommand(struct map_session_data* sd, const char* message)
 {
 	if(!log_config.enable_logs)
-		return 0;
+		return;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -283,31 +288,33 @@ int log_atcommand(struct map_session_data* sd, const char* message)
 		{
 			SqlStmt_ShowDebug(stmt);
 			SqlStmt_Free(stmt);
-			return 0;
+			return;
 		}
 		SqlStmt_Free(stmt);
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp = fopen(log_config.log_gm, "a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp, "%s - %s[%d]: %s\n", timestring, sd->status.name, sd->status.account_id, message);
 		fclose(logfp);
 	}
-	
-	return 1;
 }
 
-int log_npc(struct map_session_data* sd, const char* message)
+
+void log_npc(struct map_session_data* sd, const char* message)
 {
 	if(!log_config.enable_logs)
-		return 0;
+		return;
 
-	nullpo_ret(sd);
+	nullpo_retv(sd);
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
@@ -321,26 +328,28 @@ int log_npc(struct map_session_data* sd, const char* message)
 		{
 			SqlStmt_ShowDebug(stmt);
 			SqlStmt_Free(stmt);
-			return 0;
+			return;
 		}
 		SqlStmt_Free(stmt);
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp = fopen(log_config.log_npc, "a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp, "%s - %s[%d]: %s\n", timestring, sd->status.name, sd->status.account_id, message);
 		fclose(logfp);
 	}
-
-	return 1;
 }
 
-int log_chat(const char* type, int type_id, int src_charid, int src_accid, const char* map, int x, int y, const char* dst_charname, const char* message)
+
+void log_chat(const char* type, int type_id, int src_charid, int src_accid, const char* map, int x, int y, const char* dst_charname, const char* message)
 {
 	// Log CHAT (Global, Whisper, Party, Guild, Main chat)
 	// LOGGING FILTERS [Lupus]
@@ -357,13 +366,13 @@ int log_chat(const char* type, int type_id, int src_charid, int src_accid, const
 
 	//Check ON/OFF
 	if(log_config.chat <= 0)
-		return 0; //Deactivated
+		return; //Deactivated
 
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
 	{
 		SqlStmt* stmt;
-		
+
 		stmt = SqlStmt_Malloc(logmysql_handle);
 		if( SQL_SUCCESS != SqlStmt_Prepare(stmt, "INSERT DELAYED INTO `%s` (`time`, `type`, `type_id`, `src_charid`, `src_accountid`, `src_map`, `src_map_x`, `src_map_y`, `dst_charname`, `message`) VALUES (NOW(), '%s', '%d', '%d', '%d', '%s', '%d', '%d', ?, ?)", log_config.log_chat_db, type, type_id, src_charid, src_accid, map, x, y)
 		||  SQL_SUCCESS != SqlStmt_BindParam(stmt, 0, SQLDT_STRING, (char*)dst_charname, safestrnlen(dst_charname, NAME_LENGTH))
@@ -372,23 +381,24 @@ int log_chat(const char* type, int type_id, int src_charid, int src_accid, const
 		{
 			SqlStmt_ShowDebug(stmt);
 			SqlStmt_Free(stmt);
-			return 0;
+			return;
 		}
 		SqlStmt_Free(stmt);
 	}
 	else
 #endif
 	{
+		char timestring[255];
+		time_t curtime;
 		FILE* logfp;
+
 		if((logfp = fopen(log_config.log_chat, "a+")) == NULL)
-			return 0;
+			return;
 		time(&curtime);
-		strftime(timestring, 254, "%m/%d/%Y %H:%M:%S", localtime(&curtime));
+		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
 		fprintf(logfp, "%s - %s,%d,%d,%d,%s,%d,%d,%s,%s\n", timestring, type, type_id, src_charid, src_accid, map, x, y, dst_charname, message);
 		fclose(logfp);
 	}
-
-	return 1;
 }
 
 
@@ -400,8 +410,9 @@ void log_set_defaults(void)
 	log_config.refine_items_log = 5; //log refined items, with refine >= +7
 	log_config.rare_items_log = 100; //log rare items. drop chance <= 1%
 	log_config.price_items_log = 1000; //1000z
-	log_config.amount_items_log = 100;	
+	log_config.amount_items_log = 100;
 }
+
 
 int log_config_read(char *cfgName)
 {
@@ -410,13 +421,13 @@ int log_config_read(char *cfgName)
 	FILE *fp;
 
 	if ((count++) == 0)
-		log_set_defaults();		
+		log_set_defaults();
 
 	if((fp = fopen(cfgName, "r")) == NULL)
 	{
 		ShowError("Log configuration file not found at: %s\n", cfgName);
 		return 1;
-	}	
+	}
 
 	while(fgets(line, sizeof(line), fp))
 	{
@@ -515,7 +526,7 @@ int log_config_read(char *cfgName)
 					ShowNotice("Logging NPC 'logmes' to file `%s`\n", w2);
 			} else if(strcmpi(w1, "log_chat_file") == 0) {
 				strcpy(log_config.log_chat, w2);
-				if(log_config.chat > 0 && !log_config.sql_logs)					
+				if(log_config.chat > 0 && !log_config.sql_logs)
 					ShowNotice("Logging CHAT to file `%s`\n", w2);
 			//support the import command, just like any other config
 			} else if(strcmpi(w1,"import") == 0) {
