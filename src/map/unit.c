@@ -191,7 +191,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			{// replaced redundant foreachinrange call with smaller and much more efficient iteration
 				for( i = 0; i < g->max_member; i++ )
 				{
-					if( g->member[i].online && g->member[i].sd && check_distance_bl(&sd->bl, &g->member[i].sd->bl, 2) )
+					if( g->member[i].online && g->member[i].sd && sd->bl.m == g->member[i].sd->bl.m && check_distance_bl(&sd->bl, &g->member[i].sd->bl, 2) )
 					{// perform the aura on the member as appropriate
 						skill_guildaura_sub(g->member[i].sd, sd->bl.id, strvit, agidex);
 					}
