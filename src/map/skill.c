@@ -2113,23 +2113,10 @@ static int skill_check_unit_range2 (struct block_list *bl, int x, int y, int ski
 		type, skillid);
 }
 
-int skill_guildaura_sub (struct block_list *bl, va_list ap)
+int skill_guildaura_sub (struct map_session_data* sd, int id, int strvit, int agidex)
 {
-	struct map_session_data *sd;
-	int gid, id, strvit, agidex;
-
-	sd = (struct map_session_data *)bl;
-
-	id = va_arg(ap,int);
-	gid = va_arg(ap,int);
-	if (sd->status.guild_id != gid)
-		return 0;
-
 	if(id == sd->bl.id && battle_config.guild_aura&16)
-		return 0;
-
-	strvit = va_arg(ap,int);
-	agidex = va_arg(ap,int);
+		return 0;  // Do not affect guild leader
 
 	if (sd->sc.data[SC_GUILDAURA]) {
 		struct status_change_entry *sce = sd->sc.data[SC_GUILDAURA];
