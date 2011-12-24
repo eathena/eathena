@@ -13,6 +13,7 @@
 
 #define MAX_SEARCH	5  //Designed for search functions, species max number of matches to display.
 
+#define ITEMID_EMPERIUM 714
 #define ITEMID_YELLOW_GEMSTONE 715
 #define ITEMID_RED_GEMSTONE 716
 #define ITEMID_BLUE_GEMSTONE 717
