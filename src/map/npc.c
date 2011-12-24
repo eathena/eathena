@@ -1251,8 +1251,7 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 		pc_additem(sd,&item_tmp, amount);
 	}
 
-	if(log_config.enable_logs&0x20)
-		log_pick_pc(sd, "S", nameid, amount, NULL);
+	log_pick_pc(sd, LOG_TYPE_NPC, nameid, amount, NULL);
 
 	return 0;
 }
@@ -1342,8 +1341,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		return 3;	// Not enough space to store items
 
 	//Logs (S)hopping Zeny [Lupus]
-	if( log_config.zeny > 0 )
-		log_zeny(sd, "S", sd, -(int)z);
+	log_zeny(sd, LOG_TYPE_NPC, sd, -(int)z);
 	//Logs
 
 	pc_payzeny(sd,(int)z);
@@ -1361,8 +1359,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		pc_additem(sd,&item_tmp,amount);
 
 		//Logs items, Bought in NPC (S)hop [Lupus]
-		if( log_config.enable_logs&0x20 )
-			log_pick_pc(sd, "S", item_tmp.nameid, amount, NULL);
+		log_pick_pc(sd, LOG_TYPE_NPC, item_tmp.nameid, amount, NULL);
 		//Logs
 	}
 
@@ -1478,8 +1475,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 		nameid = sd->status.inventory[idx].nameid;
 
 		//Logs items, Sold to NPC (S)hop [Lupus]
-		if( log_config.enable_logs&0x20 )
-			log_pick_pc(sd, "S", nameid, -amount, &sd->status.inventory[idx]);
+		log_pick_pc(sd, LOG_TYPE_NPC, nameid, -amount, &sd->status.inventory[idx]);
 		//Logs
 
 		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET )
@@ -1497,8 +1493,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 		z = MAX_ZENY;
 
 	//Logs (S)hopping Zeny [Lupus]
-	if( log_config.zeny )
-		log_zeny(sd, "S", sd, (int)z);
+	log_zeny(sd, LOG_TYPE_NPC, sd, (int)z);
 	//Logs
 
 	pc_getzeny(sd, (int)z);
