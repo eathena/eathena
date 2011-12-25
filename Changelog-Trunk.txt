@@ -1,6 +1,7 @@
 Date	Added
 
 2011/12/25
+	* Fixed unit_blown not returning actual amount of knocked-back cells, but the requested count (bugreport:4985, since r7721 (skill_blown) and r14492 (unit_blown)). [Ai4rei]
 	* Fixed resnametable parser using 'everything up to next #' (comments, new-lines) for source and alias name, causing bogus aliases to be created when the current line did not start immediately with a filename. [Ai4rei]
 	* Fixed mismatched 'else' in grfio, that caused 'data_dir' config key not being recognized, thus also breaking resnametable.txt reading from data folder (bugreport:5115, since r15016). [Ai4rei]
 2011/12/24
