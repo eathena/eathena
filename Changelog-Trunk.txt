@@ -1,5 +1,7 @@
 Date	Added
 
+2011/12/25
+	* Fixed mismatched 'else' in grfio, that caused 'data_dir' config key not being recognized, thus also breaking resnametable.txt reading from data folder (bugreport:5115, since r15016). [Ai4rei]
 2011/12/24
 	* Fixed GCC warning (missing type forward declaration) in log.h (since r15040). [Ai4rei]
 	* Re-implemented item refine level filter for logging (since r1416, removed r6510, related r3283). [Ai4rei]

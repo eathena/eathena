@@ -822,8 +822,10 @@ void grfio_init(const char* fname)
 
 			// Entry table reading
 			if( strcmp(w1, "grf") == 0 ) // GRF file
+			{
 				if( grfio_add(w2) == 0 )
 					++grf_num;
+			}
 			else
 			if( strcmp(w1,"data_dir") == 0 ) // Data directory
 				safestrncpy(data_dir, w2, sizeof(data_dir));
