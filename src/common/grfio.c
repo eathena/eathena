@@ -828,7 +828,9 @@ void grfio_init(const char* fname)
 			}
 			else
 			if( strcmp(w1,"data_dir") == 0 ) // Data directory
+			{
 				safestrncpy(data_dir, w2, sizeof(data_dir));
+			}
 		}
 
 		fclose(data_conf);
