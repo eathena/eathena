@@ -3157,7 +3157,7 @@ void clif_changeoption2(struct block_list* bl)
 /*==========================================
  *
  *------------------------------------------*/
-void clif_useitemack(struct map_session_data *sd,int index,int amount,int ok)
+void clif_useitemack(struct map_session_data *sd,int index,int amount,bool ok)
 {
 	nullpo_retv(sd);
 
@@ -4431,7 +4431,7 @@ void clif_skillcastcancel(struct block_list* bl)
 /// if(success!=0) doesn't display any of the previous messages
 /// Note: when this packet is received an unknown flag is always set to 0,
 /// suggesting this is an ACK packet for the UseSkill packets and should be sent on success too [FlavioJS]
-void clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype)
+void clif_skill_fail(struct map_session_data *sd,int skill_id,enum useskill_fail_cause cause,int btype)
 {
 	int fd;
 
@@ -4446,7 +4446,7 @@ void clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype
 	if(battle_config.display_skill_fail&1)
 		return; //Disable all skill failed messages
 
-	if(type==0x4 && !sd->state.showdelay)
+	if(cause==USESKILL_FAIL_SKILLINTERVAL && !sd->state.showdelay)
 		return; //Disable delay failed messages
 	
 	if(skill_id == RG_SNATCHER && battle_config.display_skill_fail&4)
@@ -4460,7 +4460,7 @@ void clif_skill_fail(struct map_session_data *sd,int skill_id,int type,int btype
 	WFIFOW(fd,2) = skill_id;
 	WFIFOL(fd,4) = btype;
 	WFIFOB(fd,8) = 0;// success
-	WFIFOB(fd,9) = type;
+	WFIFOB(fd,9) = cause;
 	WFIFOSET(fd,packet_len(0x110));
 }
 
@@ -5408,7 +5408,7 @@ void clif_item_repair_list(struct map_session_data *sd,struct map_session_data *
 		sd->menuskill_id = BS_REPAIRWEAPON;
 		sd->menuskill_val = dstsd->bl.id;
 	}else
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 }
 void clif_item_repaireffect(struct map_session_data *sd,int nameid,int flag)
 {
@@ -8978,13 +8978,13 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd)
 
 	if (battle_config.basic_skill_check == 0 || pc_checkskill(sd, NV_BASIC) >= 2) {
 		if (emoticon == E_MUTE) {// prevent use of the mute emote [Valaris]
-			clif_skill_fail(sd, 1, 0, 1);
+			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
 			return;
 		}
 		// fix flood of emotion icon (ro-proxy): flood only the hacker player
 		if (sd->emotionlasttime >= time(NULL)) {
 			sd->emotionlasttime = time(NULL) + 1; // not more than 1 per second (using /commands the client can spam it)
-			clif_skill_fail(sd, 1, 0, 1);
+			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
 			return;
 		}
 		sd->emotionlasttime = time(NULL) + 1; // not more than 1 per second (using /commands the client can spam it)
@@ -8996,7 +8996,7 @@ void clif_parse_Emotion(int fd, struct map_session_data *sd)
 
 		clif_emotion(&sd->bl, emoticon);
 	} else
-		clif_skill_fail(sd, 1, 0, 1);
+		clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 1);
 }
 
 /*==========================================
@@ -9045,7 +9045,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 
 		if (!battle_config.sdelay_attack_enable && pc_checkskill(sd, SA_FREECAST) <= 0) {
 			if (DIFF_TICK(tick, sd->ud.canact_tick) < 0) {
-				clif_skill_fail(sd, 1, 4, 0);
+				clif_skill_fail(sd, 1, USESKILL_FAIL_SKILLINTERVAL, 0);
 				return;
 			}
 		}
@@ -9056,7 +9056,7 @@ void clif_parse_ActionRequest_sub(struct map_session_data *sd, int action_type, 
 	break;
 	case 0x02: // sitdown
 		if (battle_config.basic_skill_check && pc_checkskill(sd, NV_BASIC) < 3) {
-			clif_skill_fail(sd, 1, 0, 2);
+			clif_skill_fail(sd, 1, USESKILL_FAIL_LEVEL, 2);
 			break;
 		}
 
@@ -9579,7 +9579,7 @@ void clif_parse_CreateChatRoom(int fd, struct map_session_data* sd)
 	if (sd->sc.data[SC_NOCHAT] && sd->sc.data[SC_NOCHAT]->val1&MANNER_NOROOM)
 		return;
 	if(battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 4) {
-		clif_skill_fail(sd,1,0,3);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,3);
 		return;
 	}
 
@@ -9691,7 +9691,7 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 1)
 	{
-		clif_skill_fail(sd,1,0,0);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,0);
 		return;
 	}
 	
@@ -9877,7 +9877,7 @@ static void clif_parse_UseSkillToPos_mercenary(struct mercenary_data *md, struct
 		return;
 	if( DIFF_TICK(tick, md->ud.canact_tick) < 0 )
 	{
-		clif_skill_fail(md->master, skillnum, 4, 0);
+		clif_skill_fail(md->master, skillnum, USESKILL_FAIL_SKILLINTERVAL, 0);
 		return;
 	}
 
@@ -9947,7 +9947,7 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	{
 		if( sd->skillitem != skillnum )
 		{
-			clif_skill_fail(sd, skillnum, 4, 0);
+			clif_skill_fail(sd, skillnum, USESKILL_FAIL_SKILLINTERVAL, 0);
 			return;
 		}
 	}
@@ -10023,7 +10023,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, short skil
 	{
 		if( pc_issit(sd) )
 		{
-			clif_skill_fail(sd, skillnum, 0, 0);
+			clif_skill_fail(sd, skillnum, USESKILL_FAIL_LEVEL, 0);
 			return;
 		}
 		//You can't use Graffiti/TalkieBox AND have a vending open, so this is safe.
@@ -10037,7 +10037,7 @@ void clif_parse_UseSkillToPosSub(int fd, struct map_session_data *sd, short skil
 	{
 		if( sd->skillitem != skillnum )
 		{
-			clif_skill_fail(sd, skillnum, 4, 0);
+			clif_skill_fail(sd, skillnum, USESKILL_FAIL_SKILLINTERVAL, 0);
 			return;
 		}
 	}
@@ -10146,7 +10146,7 @@ void clif_parse_ProduceMix(int fd,struct map_session_data *sd)
 
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
 		return;
 	}
@@ -10168,7 +10168,7 @@ void clif_parse_Cooking(int fd,struct map_session_data *sd)
 
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
 		return;
 	}
@@ -10184,7 +10184,7 @@ void clif_parse_RepairItem(int fd, struct map_session_data *sd)
 		return;
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
 		return;
 	}
@@ -10203,7 +10203,7 @@ void clif_parse_WeaponRefine(int fd, struct map_session_data *sd)
 		return;
 	if (pc_istrading(sd)) {
 		//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
 		return;
 	}
@@ -10306,7 +10306,7 @@ void clif_parse_SelectArrow(int fd,struct map_session_data *sd)
 		return;
 	if (pc_istrading(sd)) {
 	//Make it fail to avoid shop exploits where you sell something different than you see.
-		clif_skill_fail(sd,sd->ud.skillid,0,0);
+		clif_skill_fail(sd,sd->ud.skillid,USESKILL_FAIL_LEVEL,0);
 		sd->menuskill_val = sd->menuskill_id = 0;
 		return;
 	}
@@ -10511,7 +10511,7 @@ void clif_parse_CreateParty(int fd, struct map_session_data *sd)
 	}
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 7 )
 	{
-		clif_skill_fail(sd,1,0,4);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4);
 		return;
 	}
 
@@ -10532,7 +10532,7 @@ void clif_parse_CreateParty2(int fd, struct map_session_data *sd)
 	}
 	if( battle_config.basic_skill_check && pc_checkskill(sd,NV_BASIC) < 7 )
 	{
-		clif_skill_fail(sd,1,0,4);
+		clif_skill_fail(sd,1,USESKILL_FAIL_LEVEL,4);
 		return;
 	}
 
