@@ -1,6 +1,9 @@
 Date	Added
 
 2011/12/30
+	* clif cleanup: Changed return value types to void of all functions, whose return value does not serve any purpose. [Ai4rei]
+	- Removed void returns at the end of functions.
+	- Marked some local functions as static.
 	* Added RFIFOPOS(2) and RBUFPOS(2) as counterparts to WFIFOPOS(2) and WBUFPOS(2) respectively, and used them to replace inlined code that retrieves packet position data. [Ai4rei]
 2011/12/26
 	* Fixed mismatched 'else' in map-server command line argument parser causing all options after 'map-config' not to work (since r15004). [Ai4rei]
