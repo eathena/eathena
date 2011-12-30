@@ -1,6 +1,7 @@
 Date	Added
 
 2011/12/30
+	* clif cleanup: Changed clif_changestatus so that it takes sd instead of bl, since it only accepts BL_PC bls anyway. [Ai4rei]
 	* clif cleanup: Changed return value types to void of all functions, whose return value does not serve any purpose. [Ai4rei]
 	- Removed void returns at the end of functions.
 	- Marked some local functions as static.
