@@ -1,5 +1,7 @@
 Date	Added
 
+2012/01/01
+	* Fixed a very dumb mistake in ZC_SHOWDIGIT packet; all WFIFO* indexes being 0 (topic:282871, since r14539). [Ai4rei]
 2011/12/30
 	* clif cleanup: Changed argument types of some clif functions. [Ai4rei]
 	- Added enumeration for skill failure codes and made clif_skill_fail use it.
