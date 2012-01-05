@@ -535,9 +535,9 @@ void clif_guild_xy_single(int fd, struct map_session_data *sd);
 void clif_guild_xy_remove(struct map_session_data *sd);
 
 // Battleground
-int clif_bg_hp(struct map_session_data *sd);
-int clif_bg_xy(struct map_session_data *sd);
-int clif_bg_xy_remove(struct map_session_data *sd);
+void clif_bg_hp(struct map_session_data *sd);
+void clif_bg_xy(struct map_session_data *sd);
+void clif_bg_xy_remove(struct map_session_data *sd);
 void clif_bg_message(struct battleground_data *bg, int src_id, const char *name, const char *mes, int len);
 void clif_bg_updatescore(int m);
 void clif_bg_updatescore_single(struct map_session_data *sd);
