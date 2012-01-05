@@ -1,5 +1,7 @@
 Date	Added
 
+2012/01/05
+	* clif cleanup: Removed clif_updateguildstorageamount and adjusted clif_updatestorageamount to work with any kind of storage (follow up to r14571). [Ai4rei]
 2012/01/01
 	* Fixed a very dumb mistake in ZC_SHOWDIGIT packet; all WFIFO* indexes being 0 (topic:282871, since r14539). [Ai4rei]
 2011/12/30

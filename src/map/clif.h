@@ -396,11 +396,10 @@ void clif_tradecompleted(struct map_session_data* sd, int fail);
 
 // storage
 void clif_storagelist(struct map_session_data* sd, struct item* items, int items_length);
-void clif_updatestorageamount(struct map_session_data* sd, int amount);
+void clif_updatestorageamount(struct map_session_data* sd, int amount, int max_amount);
 void clif_storageitemadded(struct map_session_data* sd, struct item* i, int index, int amount);
 void clif_storageitemremoved(struct map_session_data* sd, int index, int amount);
 void clif_storageclose(struct map_session_data* sd);
-void clif_updateguildstorageamount(struct map_session_data* sd, int amount);
 
 int clif_insight(struct block_list *bl,va_list ap);	// map_forallinmovearea callback
 int clif_outsight(struct block_list *bl,va_list ap);	// map_forallinmovearea callback

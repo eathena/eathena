@@ -3584,7 +3584,7 @@ void clif_tradecompleted(struct map_session_data* sd, int fail)
 /*==========================================
  * カプラ倉庫のアイテム数を更新
  *------------------------------------------*/
-void clif_updatestorageamount(struct map_session_data* sd, int amount)
+void clif_updatestorageamount(struct map_session_data* sd, int amount, int max_amount)
 {
 	int fd;
 
@@ -3594,7 +3594,7 @@ void clif_updatestorageamount(struct map_session_data* sd, int amount)
 	WFIFOHEAD(fd,packet_len(0xf2));
 	WFIFOW(fd,0) = 0xf2;  // update storage amount
 	WFIFOW(fd,2) = amount;  //items
-	WFIFOW(fd,4) = MAX_STORAGE; //items max
+	WFIFOW(fd,4) = max_amount; //items max
 	WFIFOSET(fd,packet_len(0xf2));
 }
 
@@ -3634,23 +3634,6 @@ void clif_storageitemadded(struct map_session_data* sd, struct item* i, int inde
 	clif_addcards(WFIFOP(fd,14), i);
 	WFIFOSET(fd,packet_len(0x1c4));
 #endif
-}
-
-/*==========================================
- *
- *------------------------------------------*/
-void clif_updateguildstorageamount(struct map_session_data* sd, int amount)
-{
-	int fd;
-
-	nullpo_retv(sd);
-
-	fd=sd->fd;
-	WFIFOHEAD(fd,packet_len(0xf2));
-	WFIFOW(fd,0) = 0xf2;  // update storage amount
-	WFIFOW(fd,2) = amount;  //items
-	WFIFOW(fd,4) = MAX_GUILD_STORAGE; //items max
-	WFIFOSET(fd,packet_len(0xf2));
 }
 
 /*==========================================
