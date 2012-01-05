@@ -1,6 +1,34 @@
 Date	Added
 
 2012/01/05
+	* clif cleanup: Various packet updates. [Ai4rei]
+	- Added support for packet 0x2eb (ZC_ACCEPT_ENTER2).
+	- Added support for packet 0x29a (ZC_ITEM_PICKUP_ACK2).
+	- Added missing field in packet 0x253 (ZC_STARPLACE).
+	- Added trick dead clear type.
+	- Cleaned up clif_changechatstatus to match clif_dispchat.
+	- Fixed clif_updatestatus would not reallocate WFIFO after pc_updateweightstatus in SP_WEIGHT.
+	- Fixed default value for isDisposable being 1 instead of 0 in packet 0x7fb (ZC_USESKILL_ACK2).
+	- Fixed unused material fields in packet 0x18d (ZC_MAKABLEITEMLIST) not being cleared.
+	- Fixed type being fed into an unused field of packet 0x148 (ZC_RESURRECTION).
+	- Fixed src/dst char_id being fed into refine level and card fields of packets 0x1fc (ZC_REPAIRITEMLIST) and 0x221 (ZC_NOTIFY_WEAPONITEMLIST).
+	- Fixed wrong field size being used for fields type/state of packet 0x230 (ZC_CHANGESTATE_MER).
+	- Fixed wrong field size for skill inf fields in skill packets. This also fixes unknown W-fields in such packets.
+	- Fixed wrong size of guild castle count string in packet 0x1b6 (ZC_GUILD_INFO2).
+	- Fixed wrong size of index field of packet 0x222 (CZ_REQ_WEAPONREFINE).
+	- Fixed wrong size of skill ID field of packet 0x1ce (CZ_SELECTAUTOSPELL).
+	- Fixed wrong size of exp share rule field of packet 0x102 (CZ_CHANGE_GROUPEXPOPTION).
+	- Fixed wrong size of result count field of packet 0x804 (CZ_PARTY_BOOKING_REQ_SEARCH).
+	- Fixed wrong size of answer field of packet 0x16b (CZ_JOIN_GUILD).
+	- Fixed wrong size of reply field of packet 0x208 (CZ_ACK_REQ_ADD_FRIENDS) for PACKETVER 6 and newer.
+	- Fixed sender and title fields being reversed in packet 0x24a (ZC_MAIL_RECEIVE).
+	- Removed leading zeros from packet IDs to make them easier to find.
+	- Removed impossible check from clif_process_message, clif_parse already ensures, that there is at least packet_len byte data available (since r11507).
+	- Renamed clif_parse_ReqMarriage (since r1611 and r1645) to clif_marriage_proposal since it is a send packet and added missing fields to it.
+	- Replaced hard-coded packet sizes with packet_len macro and updated packet length table/db to support all packets that use it.
+	- Replaced strcpy with safestrncpy where appropriate (bugreport:3080).
+	- Resolved variable recycling in clif_updatestatus and clif_initialstatus.
+	- Random minor tweaks and cleanups.
 	* clif cleanup: Updated clif_bg_hp, clif_bg_xy and clif_bg_xy_remove to use actual battleground packets, instead of copypasted party packets (since r13550). [Ai4rei]
 	* clif cleanup: Removed clif_updateguildstorageamount and adjusted clif_updatestorageamount to work with any kind of storage (follow up to r14571). [Ai4rei]
 2012/01/01
