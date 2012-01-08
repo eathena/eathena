@@ -1,5 +1,7 @@
 Date	Added
 
+2012/01/08
+	* Registering a party booking advertisment will now fail if there is already one registered (since r14412). [Ai4rei]
 2012/01/05
 	* clif cleanup: Various packet updates. [Ai4rei]
 	- Added support for packet 0x2eb (ZC_ACCEPT_ENTER2).
