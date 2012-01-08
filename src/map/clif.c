@@ -650,6 +650,24 @@ void clif_authok(struct map_session_data *sd)
 	WFIFOSET(fd,packet_len(cmd));
 }
 
+
+/// Notifies the client, that it's connection attempt was refused (ZC_REFUSE_ENTER).
+/// 0074 <error code>.B
+/// error code:
+///     0 = client type mismatch
+///     1 = ID mismatch
+///     2 = mobile - out of available time
+///     3 = mobile - already logged in
+///     4 = mobile - waiting state
+void clif_authrefuse(int fd, uint8 error_code)
+{
+	WFIFOHEAD(fd,packet_len(0x74));
+	WFIFOW(fd,0) = 0x74;
+	WFIFOB(fd,2) = error_code;
+	WFIFOSET(fd,packet_len(0x74));
+}
+
+
 /*==========================================
  * Authentication failed/disconnect client.
  *------------------------------------------
@@ -3597,6 +3615,21 @@ void clif_tradecompleted(struct map_session_data* sd, int fail)
 	WFIFOSET(fd,packet_len(0xf0));
 }
 
+
+/// Resets the trade window on the send side (ZC_EXCHANGEITEM_UNDO).
+/// 00f1
+/// NOTE: Unknown purpose. Items are not removed until the window is
+///       refreshed (ex. by putting another item in there).
+void clif_tradeundo(struct map_session_data* sd)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0xf1));
+	WFIFOW(fd,0) = 0xf1;
+	WFIFOSET(fd,packet_len(0xf1));
+}
+
+
 /*==========================================
  * カプラ倉庫のアイテム数を更新
  *------------------------------------------*/
@@ -6520,6 +6553,22 @@ void clif_mvp_exp(struct map_session_data *sd, unsigned int exp)
 	WFIFOSET(fd,packet_len(0x10b));
 }
 
+
+/// Dropped MVP item reward message (ZC_THROW_MVPITEM).
+/// 010d
+///
+/// "You are the MVP, but cannot obtain the reward because
+///     you are overweight."
+void clif_mvp_noitem(struct map_session_data* sd)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0x10d));
+	WFIFOW(fd,0) = 0x10d;
+	WFIFOSET(fd,packet_len(0x10d));
+}
+
+
 /*==========================================
  * Guild creation result
  * R 0167 <flag>.B
@@ -7536,6 +7585,32 @@ void clif_specialeffect_single(struct block_list* bl, int type, int fd)
 	WFIFOL(fd,6) = type;
 	WFIFOSET(fd,10);
 }
+
+
+/// Notifies clients of an special/visual effect that accepts an value (ZC_NOTIFY_EFFECT3).
+/// 0284 <id>.L <effect id>.L <num data>.L
+/// effect id:
+///     @see doc/effect_list.txt
+/// num data:
+///     effect-dependent value
+void clif_specialeffect_value(struct block_list* bl, int effect_id, int num, send_target target)
+{
+	uint8 buf[14];
+
+	WBUFW(buf,0) = 0x284;
+	WBUFL(buf,2) = bl->id;
+	WBUFL(buf,6) = effect_id;
+	WBUFL(buf,10) = num;
+
+	clif_send(buf, packet_len(0x284), bl, target);
+
+	if( disguised(bl) )
+	{
+		WBUFL(buf,2) = -bl->id;
+		clif_send(buf, packet_len(0x284), bl, SELF);
+	}
+}
+
 
 /******************************************************
  * W.<packet> W.<LENGTH> L.<ID> L.<COLOR> S.<TEXT>
