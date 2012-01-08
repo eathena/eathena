@@ -1,6 +1,8 @@
 Date	Added
 
 2012/01/08
+	* clif cleanup: Removed unused clif_party_move (packet 0x104, ZC_ADD_MEMBER_TO_GROUP), since it's old version of clif_party_member_info (packet 0x1e9, ZC_ADD_MEMBER_TO_GROUP2) (related r4761, r6521, r9871). [Ai4rei]
+	- Fixed compile warnings (void function returning value) on debug builds (since r15057).
 	* Registering a party booking advertisment will now fail if there is already one registered (since r14412). [Ai4rei]
 2012/01/05
 	* clif cleanup: Various packet updates. [Ai4rei]
