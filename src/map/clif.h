@@ -625,6 +625,8 @@ void clif_viewequip_fail(struct map_session_data* sd);
 void clif_equipcheckbox(struct map_session_data* sd);
 
 void clif_msg(struct map_session_data* sd, unsigned short id);
+void clif_msg_value(struct map_session_data* sd, unsigned short id, int value);
+void clif_msg_skill(struct map_session_data* sd, unsigned short skill_id, int msg_id);
 
 //quest system [Kevin] [Inkfish]
 void clif_quest_send_list(struct map_session_data * sd);

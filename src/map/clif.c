@@ -8196,6 +8196,38 @@ void clif_msg(struct map_session_data* sd, unsigned short id)
 	WFIFOSET(fd, packet_len(0x291));
 }
 
+
+/// Display msgstringtable.txt string and fill in a valid for %d format (ZC_MSG_VALUE).
+/// 0x7e2 <message>.W <value>.L
+void clif_msg_value(struct map_session_data* sd, unsigned short id, int value)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd, packet_len(0x7e2));
+	WFIFOW(fd,0) = 0x7e2;
+	WFIFOW(fd,2) = id;
+	WFIFOL(fd,4) = value;
+	WFIFOSET(fd, packet_len(0x7e2));
+}
+
+
+/// Displays msgstringtable.txt string, prefixed with a skill name. (ZC_MSG_SKILL).
+/// 07e6 <skill id>.W <msg id>.L
+///
+/// NOTE: Message has following format and is printed in color 0xCDCDFF (purple):
+///       "[SkillName] Message"
+void clif_msg_skill(struct map_session_data* sd, unsigned short skill_id, int msg_id)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd, packet_len(0x7e6));
+	WFIFOW(fd,0) = 0x7e6;
+	WFIFOW(fd,2) = skill_id;
+	WFIFOL(fd,4) = msg_id;
+	WFIFOSET(fd, packet_len(0x7e6));
+}
+
+
 /// View player equip request denied
 void clif_viewequip_fail(struct map_session_data* sd)
 {
@@ -10545,12 +10577,54 @@ void clif_parse_CloseKafra(int fd, struct map_session_data *sd)
 		storage_guild_storageclose(sd);
 }
 
+
+/// Displays kafra storage password dialog (ZC_REQ_STORE_PASSWORD).
+/// 023a <info>.W
+/// info:
+///     0 = password has not been set yet
+///     1 = storage is password-protected
+///     8 = too many wrong passwords
+///     ? = ignored
+/// NOTE: This packet is only available on certain non-kRO clients.
+void clif_storagepassword(struct map_session_data* sd, short info)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0x23a));
+	WFIFOW(fd,0) = 0x23a;
+	WFIFOW(fd,2) = info;
+	WFIFOSET(fd,packet_len(0x23a));
+}
+
+
 /*==========================================
  * Kafra storage protection password system
  *------------------------------------------*/
 void clif_parse_StoragePassword(int fd, struct map_session_data *sd)
 {
 	//TODO
+}
+
+
+/// Result of kafra storage password validation (ZC_RESULT_STORE_PASSWORD).
+/// 023c <result>.W <error count>.W
+/// result:
+///     4 = password change success
+///     5 = password change failure
+///     6 = password check success
+///     7 = password check failure
+///     8 = too many wrong passwords
+///     ? = ignored
+/// NOTE: This packet is only available on certain non-kRO clients.
+void clif_storagepassword_result(struct map_session_data* sd, short result, short error_count)
+{
+	int fd = sd->fd;
+
+	WFIFOHEAD(fd,packet_len(0x23c));
+	WFIFOW(fd,0) = 0x23c;
+	WFIFOW(fd,2) = result;
+	WFIFOW(fd,4) = error_count;
+	WFIFOSET(fd,packet_len(0x23c));
 }
 
 

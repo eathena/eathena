@@ -6,6 +6,8 @@ Date	Added
 	- Packet for resetting a trade, clif_tradeundo (packet 0xf1, ZC_EXCHANGEITEM_UNDO). Needs further investigation before actually implemented.
 	- Packet for announcing lost MVP item reward, clif_mvp_noitem (packet 0x10d, ZC_THROW_MVPITEM).
 	- Packet for special effects that use a variable, clif_specialeffect_value (packet 0x284, ZC_NOTIFY_EFFECT3).
+	- Packets for displaying msgstringtable.txt strings with a %d parameter (packets 0x7e2, ZC_MSG_VALUE) or skill name (packet 0x7e6, ZC_MSG_SKILL).
+	- Packets for kafra storage (packet 0x23a, ZC_REQ_STORE_PASSWORD and packet 0x23c, ZC_RESULT_STORE_PASSWORD).
 	* Removed atshowmobs_timer and associated code, as type 0 for clif_viewpoint (packet 0x144, ZC_COMPASS) makes the client remove the dot automatically (trade-off: the dot is displayed for 10 seconds longer). [Ai4rei]
 	- Updated documentation for script command *viewpoint to include type 0.
 	* clif cleanup: Removed unused clif_party_move (packet 0x104, ZC_ADD_MEMBER_TO_GROUP), since it's old version of clif_party_member_info (packet 0x1e9, ZC_ADD_MEMBER_TO_GROUP2) (related r4761, r6521, r9871). [Ai4rei]
