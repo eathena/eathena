@@ -1,6 +1,11 @@
 Date	Added
 
 2012/01/08
+	* clif cleanup: Some bits that were missed or not committed before although stated. [Ai4rei]
+	- Upgraded packet 0x16d (ZC_UPDATE_CHARSTAT) to 0x1f2 (ZC_UPDATE_CHARSTAT2) in clif_guild_memberlogin_notice.
+	- Fixed wrong size of result field of packet 0xcd (ZC_ACK_DISCONNECT_CHARACTER).
+	- Missed strcpy -> memcpy fixes (follow up to r15058).
+	- Missed ZC_MAIL_RECEIVE fix (follow up to r15058).
 	* clif cleanup: Added various packet functions. [Ai4rei]
 	- Packet for rejecting incoming client connections, clif_authrefuse (packet 0x74, ZC_REFUSE_ENTER). Will be used to replace use of login/char packets for this purpose.
 	- Packet for resetting a trade, clif_tradeundo (packet 0xf1, ZC_EXCHANGEITEM_UNDO). Needs further investigation before actually implemented.
