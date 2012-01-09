@@ -1,5 +1,7 @@
 Date	Added
 
+2012/01/09
+	* Reverted NPC sprite ID 139 'fix' from r14993, as it based on false information; the sprite gets sent. The actual cause of the crash is being investigated (bugreport:5104). [Ai4rei]
 2012/01/08
 	* clif cleanup: Some bits that were missed or not committed before although stated. [Ai4rei]
 	- Upgraded packet 0x16d (ZC_UPDATE_CHARSTAT) to 0x1f2 (ZC_UPDATE_CHARSTAT2) in clif_guild_memberlogin_notice.
