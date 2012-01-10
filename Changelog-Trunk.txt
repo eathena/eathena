@@ -1,6 +1,11 @@
 Date	Added
 
 2012/01/09
+	* clif cleanup: Documented most of the packets, unified the documentation of existing packets. [Ai4rei]
+	- Documentation of functions that need further work is post-poned.
+	- Packet layouts no longer use S(end)/R(ecv) prefixes as they are inaccurate. Use the AEGIS name for the direction.
+	- Added a doc on packet struct documentation in an attempt to unify it in all source files. Any comments and improvements are appreciated.
+	- This concludes the first round of clif clean-ups.
 	* Reverted NPC sprite ID 139 'fix' from r14993, as it based on false information; the sprite gets sent. The actual cause of the crash is being investigated (bugreport:5104). [Ai4rei]
 2012/01/08
 	* clif cleanup: Some bits that were missed or not committed before although stated. [Ai4rei]
