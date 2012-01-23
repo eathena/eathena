@@ -1,5 +1,7 @@
 Date	Added
 
+2012/01/23
+	* Fixed an offset mistake in ZC_CHANGESTATE_MER (since r15058). [Ai4rei]
 2012/01/09
 	* clif cleanup: Documented most of the packets, unified the documentation of existing packets. [Ai4rei]
 	- Documentation of functions that need further work is post-poned.
