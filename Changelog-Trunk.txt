@@ -1,6 +1,7 @@
 Date	Added
 
 2012/02/04
+	* Changed member 'id' of struct 'mail_message' from unsigned to signed, as it is used as signed value throughout the source and is also a signed value on AEGIS (since r11548). [Ai4rei]
 	* Changed list of ITEMID_* defines into an enum (topic:264007, related r14831). [Ai4rei]
 	* Introduced a constant for Token of Siegfried (follow up to r11307). [Ai4rei]
 2012/01/30
