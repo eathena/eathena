@@ -165,6 +165,7 @@ int mapif_load_guild_storage(int fd,int account_id,int guild_id)
 		Sql_ShowDebug(sql_handle);
 	else if( Sql_NumRows(sql_handle) > 0 )
 	{// guild exists
+		Sql_FreeResult(sql_handle);
 		WFIFOHEAD(fd, sizeof(struct guild_storage)+12);
 		WFIFOW(fd,0) = 0x3818;
 		WFIFOW(fd,2) = sizeof(struct guild_storage)+12;
