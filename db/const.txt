@@ -235,7 +235,7 @@ mf_nodrop	38
 mf_jexp	39
 mf_bexp	40
 mf_novending	41
-mf_loadevent 42
+mf_loadevent	42
 mf_nochat	43
 mf_noexppenalty	44
 mf_guildlock	45
@@ -259,7 +259,7 @@ cell_nochat	7
 cell_chkwall	1
 cell_chkwater	2
 cell_chkcliff	3
-cell_chkpass    4
+cell_chkpass	4
 cell_chkreach	5
 cell_chknopass	6
 cell_chknoreach	7
@@ -586,7 +586,7 @@ IG_Cherish_Box_Ori	52
 IG_Louise_Costume_Box	53
 IG_Xmas_Gift	54
 
-SC_ALL -1
+SC_ALL	-1
 SC_STONE	0
 SC_FREEZE	1
 SC_STUN	2
