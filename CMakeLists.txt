@@ -368,6 +368,17 @@ else()
 endif()
 
 
+#
+# Enable dashboard reports
+#
+option( ENABLE_DASHBOARD_REPORTS "enable reporting build and test results to the dashboard (default=OFF)" OFF )
+if( ENABLE_DASHBOARD_REPORTS )
+	enable_testing()
+	include( CTest )
+	message( STATUS "Enabled dashboard reports" )
+endif()
+
+
 #####################################################################
 # package stuff
 #
@@ -578,3 +589,8 @@ message( STATUS "Available targets:" )
 foreach( _TARGET IN ITEMS ${TARGET_LIST} )
 	message( STATUS "\t${_TARGET}" )
 endforeach()
+
+
+if( ENABLE_DASHBOARD_REPORTs )
+	#TODO show extra info here
+endif()
