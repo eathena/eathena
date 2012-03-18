@@ -1,6 +1,7 @@
 Date	Added
 
 2012/02/18
+	* Fixed wrong packet being sent when dropping an item on newer clients (since r14383, follow up to r15066). [Ai4rei]
 	* Folded log_pick_pc and log_pick_mob into log_pick as both functions were almost identical (follow up to r15040, related r9017). [Ai4rei]
 2012/03/17
 	* Fixed flag emblems not showing correctly for guilds with ID above 65535 (bugreport:3619) [ultramage]
