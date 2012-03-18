@@ -1472,7 +1472,7 @@ static bool mob_ai_sub_hard(struct mob_data *md, unsigned int tick)
 
 		fitem = (struct flooritem_data *)tbl;
 		//Logs items, taken by (L)ooter Mobs [Lupus]
-		log_pick_mob(md, LOG_TYPE_LOOT, fitem->item_data.nameid, fitem->item_data.amount, &fitem->item_data);
+		log_pick(&md->bl, LOG_TYPE_LOOT, fitem->item_data.nameid, fitem->item_data.amount, &fitem->item_data);
 
 		if (md->lootitem_count < LOOTITEM_SIZE) {
 			memcpy (&md->lootitem[md->lootitem_count++], &fitem->item_data, sizeof(md->lootitem[0]));
@@ -1714,9 +1714,9 @@ static void mob_item_drop(struct mob_data *md, struct item_drop_list *dlist, str
 
 	//Logs items, dropped by mobs [Lupus]
 	if (loot)
-		log_pick_mob(md, LOG_TYPE_LOOT, ditem->item_data.nameid, -ditem->item_data.amount, &ditem->item_data);
+		log_pick(&md->bl, LOG_TYPE_LOOT, ditem->item_data.nameid, -ditem->item_data.amount, &ditem->item_data);
 	else
-		log_pick_mob(md, LOG_TYPE_PICKDROP_MONSTER, ditem->item_data.nameid, -ditem->item_data.amount, NULL);
+		log_pick(&md->bl, LOG_TYPE_PICKDROP_MONSTER, ditem->item_data.nameid, -ditem->item_data.amount, NULL);
 
 	sd = map_charid2sd(dlist->first_charid);
 	if( sd == NULL ) sd = map_charid2sd(dlist->second_charid);
@@ -2377,9 +2377,9 @@ int mob_dead(struct mob_data *md, struct block_list *src, int type)
 			}
 			
 			//Logs items, MVP prizes [Lupus]
-			log_pick_mob(md, LOG_TYPE_PICKDROP_MONSTER, item.nameid, -1, NULL);
+			log_pick(&md->bl, LOG_TYPE_PICKDROP_MONSTER, item.nameid, -1, NULL);
 			if (!temp)
-				log_pick_pc(mvp_sd, LOG_TYPE_PICKDROP_PLAYER, item.nameid, 1, NULL);
+				log_pick(&mvp_sd->bl, LOG_TYPE_PICKDROP_PLAYER, item.nameid, 1, NULL);
 			break;
 		}
 
