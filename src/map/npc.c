@@ -1251,7 +1251,7 @@ int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int po
 		pc_additem(sd,&item_tmp, amount);
 	}
 
-	log_pick_pc(sd, LOG_TYPE_NPC, nameid, amount, NULL);
+	log_pick(&sd->bl, LOG_TYPE_NPC, nameid, amount, NULL);
 
 	return 0;
 }
@@ -1359,7 +1359,7 @@ int npc_buylist(struct map_session_data* sd, int n, unsigned short* item_list)
 		pc_additem(sd,&item_tmp,amount);
 
 		//Logs items, Bought in NPC (S)hop [Lupus]
-		log_pick_pc(sd, LOG_TYPE_NPC, item_tmp.nameid, amount, NULL);
+		log_pick(&sd->bl, LOG_TYPE_NPC, item_tmp.nameid, amount, NULL);
 		//Logs
 	}
 
@@ -1475,7 +1475,7 @@ int npc_selllist(struct map_session_data* sd, int n, unsigned short* item_list)
 		nameid = sd->status.inventory[idx].nameid;
 
 		//Logs items, Sold to NPC (S)hop [Lupus]
-		log_pick_pc(sd, LOG_TYPE_NPC, nameid, -amount, &sd->status.inventory[idx]);
+		log_pick(&sd->bl, LOG_TYPE_NPC, nameid, -amount, &sd->status.inventory[idx]);
 		//Logs
 
 		if( sd->inventory_data[idx]->type == IT_PETEGG && sd->status.inventory[idx].card[0] == CARD0_PET )

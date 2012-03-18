@@ -157,10 +157,11 @@ void log_branch(struct map_session_data* sd)
 }
 
 
-/// logs item transactions (players)
-void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int nameid, int amount, struct item* itm)
+/// logs item transactions
+void log_pick(struct block_list* bl, e_log_pick_type type, int nameid, int amount, struct item* itm)
 {
-	nullpo_retv(sd);
+	const char* mapname;
+	int id = 0;
 
 	if( ( log_config.enable_logs&type ) == 0 )
 	{// disabled
@@ -170,13 +171,32 @@ void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int nameid, 
 	if( !should_log_item(nameid, amount, itm ? itm->refine : 0) )
 		return; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
 
+	//either PLAYER or MOB (here we get map name and objects ID)
+	if( bl == NULL )
+	{
+		ShowError("log_pick: bl == NULL\n");
+	}
+	else switch( bl->type )
+	{
+		case BL_PC:
+			id = ((TBL_PC*)bl)->status.char_id;
+			break;
+		case BL_MOB:
+			id = ((TBL_MOB*)bl)->class_;
+			break;
+		default:
+			ShowDebug("log_pick: Unhandled bl type %d.\n", bl->type);
+	}
+
+	mapname = map[bl->m].name;
+
 #ifndef TXT_ONLY
 	if( log_config.sql_logs )
 	{
 		if( itm == NULL )
 		{//We log common item
 			if( SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%c', '%d', '%d', '%s')",
-				log_config.log_pick, sd->status.char_id, log_picktype2char(type), nameid, amount, mapindex_id2name(sd->mapindex)) )
+				log_config.log_pick, id, log_picktype2char(type), nameid, amount, mapname) )
 			{
 				Sql_ShowDebug(logmysql_handle);
 				return;
@@ -185,7 +205,7 @@ void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int nameid, 
 		else
 		{//We log Extended item
 			if( SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%c', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
-				log_config.log_pick, sd->status.char_id, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapindex_id2name(sd->mapindex)) )
+				log_config.log_pick, id, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname) )
 			{
 				Sql_ShowDebug(logmysql_handle);
 				return;
@@ -206,97 +226,13 @@ void log_pick_pc(struct map_session_data* sd, e_log_pick_type type, int nameid, 
 
 		if( itm == NULL )
 		{//We log common item
-			fprintf(logfp,"%s - %d\t%c\t%d,%d,%s\n", timestring, sd->status.char_id, log_picktype2char(type), nameid, amount, mapindex_id2name(sd->mapindex));
+			fprintf(logfp,"%s - %d\t%c\t%d,%d,%s\n", timestring, id, log_picktype2char(type), nameid, amount, mapname);
 		}
 		else
 		{//We log Extended item
-			fprintf(logfp,"%s - %d\t%c\t%d,%d,%d,%d,%d,%d,%d,%s\n", timestring, sd->status.char_id, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapindex_id2name(sd->mapindex));
+			fprintf(logfp,"%s - %d\t%c\t%d,%d,%d,%d,%d,%d,%d,%s\n", timestring, id, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname);
 		}
 		fclose(logfp);
-	}
-}
-
-
-/// logs item transactions (monsters)
-void log_pick_mob(struct mob_data* md, e_log_pick_type type, int nameid, int amount, struct item* itm)
-{
-	char* mapname;
-
-	nullpo_retv(md);
-
-	if( ( log_config.enable_logs&type ) == 0 )
-	{// disabled
-		return;
-	}
-
-	if( !should_log_item(nameid, amount, itm ? itm->refine : 0) )
-		return; //we skip logging this item set - it doesn't meet our logging conditions [Lupus]
-
-	//either PLAYER or MOB (here we get map name and objects ID)
-	mapname = map[md->bl.m].name;
-	if( mapname == NULL )
-		mapname="";
-
-#ifndef TXT_ONLY
-	if( log_config.sql_logs )
-	{
-		if( itm == NULL )
-		{//We log common item
-			if( SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `map`) VALUES (NOW(), '%d', '%c', '%d', '%d', '%s')",
-				log_config.log_pick, md->class_, log_picktype2char(type), nameid, amount, mapname) )
-			{
-				Sql_ShowDebug(logmysql_handle);
-				return;
-			}
-		}
-		else
-		{//We log Extended item
-			if( SQL_ERROR == Sql_Query(logmysql_handle, "INSERT DELAYED INTO `%s` (`time`, `char_id`, `type`, `nameid`, `amount`, `refine`, `card0`, `card1`, `card2`, `card3`, `map`) VALUES (NOW(), '%d', '%c', '%d', '%d', '%d', '%d', '%d', '%d', '%d', '%s')",
-				log_config.log_pick, md->class_, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname) )
-			{
-				Sql_ShowDebug(logmysql_handle);
-				return;
-			}
-		}
-	}
-	else
-#endif
-	{
-		char timestring[255];
-		time_t curtime;
-		FILE *logfp;
-
-		if( ( logfp = fopen(log_config.log_pick, "a") ) == NULL )
-			return;
-		time(&curtime);
-		strftime(timestring, sizeof(timestring), "%m/%d/%Y %H:%M:%S", localtime(&curtime));
-
-		if( itm == NULL )
-		{//We log common item
-			fprintf(logfp,"%s - %d\t%c\t%d,%d,%s\n", timestring, md->class_, log_picktype2char(type), nameid, amount, mapname);
-		}
-		else
-		{//We log Extended item
-			fprintf(logfp,"%s - %d\t%c\t%d,%d,%d,%d,%d,%d,%d,%s\n", timestring, md->class_, log_picktype2char(type), itm->nameid, amount, itm->refine, itm->card[0], itm->card[1], itm->card[2], itm->card[3], mapname);
-		}
-		fclose(logfp);
-	}
-}
-
-
-/// logs item transactions
-void log_pick(struct block_list* bl, e_log_pick_type type, int nameid, int amount, struct item* itm)
-{
-	if( bl == NULL )
-	{
-		ShowError("log_pick: bl == NULL\n");
-	}
-	else switch( bl->type )
-	{
-		case BL_PC:  log_pick_pc((TBL_PC*)bl, type, nameid, amount, itm);   break;
-		case BL_MOB: log_pick_mob((TBL_MOB*)bl, type, nameid, amount, itm); break;
-		default:
-			ShowDebug("log_pick: Unhandled bl type %d.\n", bl->type);
 	}
 }
 

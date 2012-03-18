@@ -182,8 +182,8 @@ void vending_purchasereq(struct map_session_data* sd, int aid, int uid, const ui
 		idx -= 2;
 
 		//Logs sold (V)ending items [Lupus]
-		log_pick_pc(vsd, LOG_TYPE_VENDING, vsd->status.cart[idx].nameid, -amount, &vsd->status.cart[idx]);
-		log_pick_pc( sd, LOG_TYPE_VENDING, vsd->status.cart[idx].nameid,  amount, &vsd->status.cart[idx]);
+		log_pick(&vsd->bl, LOG_TYPE_VENDING, vsd->status.cart[idx].nameid, -amount, &vsd->status.cart[idx]);
+		log_pick( &sd->bl, LOG_TYPE_VENDING, vsd->status.cart[idx].nameid,  amount, &vsd->status.cart[idx]);
 
 		// vending item
 		pc_additem(sd, &vsd->status.cart[idx], amount);

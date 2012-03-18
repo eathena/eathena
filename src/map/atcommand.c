@@ -1623,7 +1623,7 @@ ACMD_FUNC(item)
 	}
 
 	//Logs (A)dmins items [Lupus]
-	log_pick_pc(sd, LOG_TYPE_COMMAND, item_id, number, NULL);
+	log_pick(&sd->bl, LOG_TYPE_COMMAND, item_id, number, NULL);
 
 	clif_displaymessage(fd, msg_txt(18)); // Item created.
 	return 0;
@@ -1697,7 +1697,7 @@ ACMD_FUNC(item2)
 		}
 
 		//Logs (A)dmins items [Lupus]
-		log_pick_pc(sd, LOG_TYPE_COMMAND, item_tmp.nameid, number, &item_tmp);
+		log_pick(&sd->bl, LOG_TYPE_COMMAND, item_tmp.nameid, number, &item_tmp);
 
 		clif_displaymessage(fd, msg_txt(18)); // Item created.
 	} else {
@@ -1720,7 +1720,7 @@ ACMD_FUNC(itemreset)
 		if (sd->status.inventory[i].amount && sd->status.inventory[i].equip == 0) {
 
 			//Logs (A)dmins items [Lupus]
-			log_pick_pc(sd, LOG_TYPE_COMMAND, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
+			log_pick(&sd->bl, LOG_TYPE_COMMAND, sd->status.inventory[i].nameid, -sd->status.inventory[i].amount, &sd->status.inventory[i]);
 
 			pc_delitem(sd, i, sd->status.inventory[i].amount, 0, 0);
 		}
@@ -2750,7 +2750,7 @@ ACMD_FUNC(produce)
 		clif_misceffect(&sd->bl, 3);
 
 		//Logs (A)dmins items [Lupus]
-		log_pick_pc(sd, LOG_TYPE_COMMAND, tmp_item.nameid, 1, &tmp_item);
+		log_pick(&sd->bl, LOG_TYPE_COMMAND, tmp_item.nameid, 1, &tmp_item);
 
 		if ((flag = pc_additem(sd, &tmp_item, 1)))
 			clif_additem(sd, 0, 0, flag);
@@ -5804,7 +5804,7 @@ void getring (struct map_session_data* sd)
 	item_tmp.card[3] = sd->status.partner_id >> 16;
 
 	//Logs (A)dmins items [Lupus]
-	log_pick_pc(sd, LOG_TYPE_COMMAND, item_id, 1, &item_tmp);
+	log_pick(&sd->bl, LOG_TYPE_COMMAND, item_id, 1, &item_tmp);
 
 	if((flag = pc_additem(sd,&item_tmp,1))) {
 		clif_additem(sd,0,0,flag);
@@ -8495,7 +8495,7 @@ ACMD_FUNC(delitem)
 		}
 
 		//Logs (A)dmins items [Lupus]
-		log_pick_pc(sd, LOG_TYPE_COMMAND, nameid, -delamount, &sd->status.inventory[idx]);
+		log_pick(&sd->bl, LOG_TYPE_COMMAND, nameid, -delamount, &sd->status.inventory[idx]);
 
 		pc_delitem(sd, idx, delamount, 0, 0);
 

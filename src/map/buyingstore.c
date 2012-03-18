@@ -10,7 +10,7 @@
 #include "battle.h"  // battle_config.*
 #include "buyingstore.h"  // struct s_buyingstore
 #include "clif.h"  // clif_buyingstore_*
-#include "log.h"  // log_pick_pc, log_zeny
+#include "log.h"  // log_pick, log_zeny
 #include "pc.h"  // struct map_session_data
 
 
@@ -367,8 +367,8 @@ void buyingstore_trade(struct map_session_data* sd, int account_id, unsigned int
 		zeny = amount*pl_sd->buyingstore.items[listidx].price;
 
 		// log
-		log_pick_pc(sd, LOG_TYPE_BUYING_STORE, nameid, -((int)amount), &sd->status.inventory[index]);
-		log_pick_pc(pl_sd, LOG_TYPE_BUYING_STORE, nameid, amount, &sd->status.inventory[index]);
+		log_pick(&sd->bl, LOG_TYPE_BUYING_STORE, nameid, -((int)amount), &sd->status.inventory[index]);
+		log_pick(&pl_sd->bl, LOG_TYPE_BUYING_STORE, nameid, amount, &sd->status.inventory[index]);
 		log_zeny(sd, LOG_TYPE_BUYING_STORE, pl_sd, zeny);
 
 		// move item
