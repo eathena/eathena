@@ -1,5 +1,8 @@
 Date	Added
 
+2012/03/19
+	* Added script command getnpcid() which accepts a parameter (currently only option is 0) and returns an id pertaining to the NPC (currently only supports GID,
+	  for use in making an NPC perform an action using script commands that require a GID (e.g. unit*). [Paradox924X]
 2011/10/26
 	* Rev. 14983 Implemented first version of rebalanced Rune Knight skills. [L0ne_W0lf]
 	* Implemented the rebalancing of most Archbishop skills.
