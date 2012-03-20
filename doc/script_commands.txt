@@ -4,7 +4,7 @@
 //= A reference manual for the eAthena scripting language.
 //= Commands are sorted depending on their functionality.
 //===== Version ===========================================
-//= 3.48.20120108
+//= 3.49.20120319
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -187,6 +187,8 @@
 //=       Added 'showdigit' command. [Ai4rei]
 //= 3.48.20120108
 //=       Updated 'viewpoint' to mention effect of type 0. [Ai4rei]
+//= 3.49.20120319
+//=       Added 'getnpcid' command. [Ai4rei]
 //=========================================================
 
 This document is a reference manual for all the scripting commands and functions 
@@ -2279,6 +2281,19 @@ print "player not attached!" error messages, so it is preferred to use
 "playerattached" to check for the character attached to the script.
 
 if( getcharid(2) == 0 ) mes "Only members of a guild are allowed here!";
+
+---------------------------------------
+
+*getnpcid(<type>{,"<npc name>"});
+
+Retrieves IDs of the currently invoked NPC. If a unique npc name is
+given, IDs of that NPC are retrieved instead. Type specifies what ID
+to retrieve and can be one of the following:
+
+    0 - Unit ID (GID)
+
+If an invalid type is given or the NPC does not exist, return value
+is 0.
 
 ---------------------------------------
 
