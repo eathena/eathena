@@ -13,6 +13,7 @@
 #include "clif.h"
 #include "pc.h"
 #include "intif.h"
+#include "log.h"
 #include "storage.h"
 #include "party.h"
 #include "guild.h"
@@ -1775,9 +1776,14 @@ static void intif_parse_Auction_register(int fd)
 	}
 	else
 	{
+		int zeny = auction.hours*battle_config.auction_feeperhour;
+
 		clif_Auction_message(sd->fd, 4);
+		log_pick(&sd->bl, LOG_TYPE_AUCTION, auction.item.nameid, auction.item.amount, &auction.item);
 		pc_additem(sd, &auction.item, auction.item.amount);
-		pc_getzeny(sd, auction.hours * battle_config.auction_feeperhour);
+
+		log_zeny(sd, LOG_TYPE_AUCTION, sd, zeny);
+		pc_getzeny(sd, zeny);
 	}
 }
 
@@ -1837,6 +1843,7 @@ static void intif_parse_Auction_close(int fd)
 	clif_Auction_close(sd->fd, result);
 	if( result == 0 )
 	{
+		// FIXME: Leeching off a parse function
 		clif_parse_Auction_cancelreg(fd, sd);
 		intif_Auction_requestlist(sd->status.char_id, 6, 0, "", 1);
 	}
@@ -1872,7 +1879,10 @@ static void intif_parse_Auction_bid(int fd)
 
 	clif_Auction_message(sd->fd, result);
 	if( bid > 0 )
+	{
+		log_zeny(sd, LOG_TYPE_AUCTION, sd, bid);
 		pc_getzeny(sd, bid);
+	}
 	if( result == 1 )
 	{ // To update the list, display your buy list
 		clif_parse_Auction_cancelreg(fd, sd);

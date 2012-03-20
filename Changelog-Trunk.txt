@@ -4,6 +4,7 @@ Date	Added
 	* Added script command getnpcid() which accepts a parameter (currently only option is 0) and returns an id pertaining to the NPC (currently only supports GID,
 	  for use in making an NPC perform an action using script commands that require a GID (e.g. unit*). [Paradox924X]
 2012/02/18
+	* Added item/zeny logging to auction transactions. [Ai4rei]
 	* Fixed wrong packet being sent when dropping an item on newer clients (since r14383, follow up to r15066). [Ai4rei]
 	* Folded log_pick_pc and log_pick_mob into log_pick as both functions were almost identical (follow up to r15040, related r9017). [Ai4rei]
 2012/03/17
