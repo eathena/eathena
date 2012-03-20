@@ -40,7 +40,7 @@ typedef enum e_log_pick_type
 	LOG_TYPE_STORAGE          = 0x0800,
 	LOG_TYPE_GSTORAGE         = 0x1000,
 	LOG_TYPE_MAIL             = 0x2000,
-	//LOG_TYPE_AUCTION          = 0x4000,
+	LOG_TYPE_AUCTION          = 0x4000,
 	LOG_TYPE_BUYING_STORE     = 0x8000,
 	// combinations
 	LOG_TYPE_LOOT             = LOG_TYPE_PICKDROP_MONSTER|LOG_TYPE_CONSUME,

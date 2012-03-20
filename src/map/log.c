@@ -60,7 +60,7 @@ static char log_picktype2char(e_log_pick_type type)
 		case LOG_TYPE_STORAGE:          return 'R';  // Sto(R)age
 		case LOG_TYPE_GSTORAGE:         return 'G';  // (G)uild storage
 		case LOG_TYPE_MAIL:             return 'E';  // (E)mail attachment
-		//case LOG_TYPE_AUCTION:          return 'I';  // Auct(I)on
+		case LOG_TYPE_AUCTION:          return 'I';  // Auct(I)on
 		case LOG_TYPE_BUYING_STORE:     return 'B';  // (B)uying Store
 		case LOG_TYPE_LOOT:             return 'L';  // (L)oot (consumed monster pick/drop)
 	}
