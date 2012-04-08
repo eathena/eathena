@@ -4042,8 +4042,8 @@ int pc_steal_item(struct map_session_data *sd,struct block_list *bl, int lv)
 		party_foreachsamemap(pc_show_steal,sd,AREA_SIZE,sd,tmp_item.nameid);
 
 	//Logs items, Stolen from mobs [Lupus]
-	log_pick(&md->bl, LOG_TYPE_PICKDROP_MONSTER, itemid, -1, NULL);
-	log_pick(&sd->bl, LOG_TYPE_PICKDROP_PLAYER, itemid, 1, NULL);
+	log_pick(&md->bl, LOG_TYPE_STEAL, itemid, -1, NULL);
+	log_pick(&sd->bl, LOG_TYPE_STEAL, itemid, 1, NULL);
 		
 	//A Rare Steal Global Announce by Lupus
 	if(md->db->dropitem[i].p<=battle_config.rare_drop_announce) {
@@ -4074,10 +4074,15 @@ int pc_steal_coin(struct map_session_data *sd,struct block_list *target)
 	if( (md->class_ >= 1324 && md->class_ < 1364) || (md->class_ >= 1938 && md->class_ < 1946) )
 		return 0;
 
+	// FIXME: This formula is either custom or outdated.
 	skill = pc_checkskill(sd,RG_STEALCOIN)*10;
 	rate = skill + (sd->status.base_level - md->level)*3 + sd->battle_status.dex*2 + sd->battle_status.luk*2;
-	if(rand()%1000 < rate) {
-		pc_getzeny(sd,md->level*10 + rand()%100);
+	if(rand()%1000 < rate)
+	{
+		int amount = md->level*10 + rand()%100;
+
+		log_zeny(sd, LOG_TYPE_STEAL, sd, amount);
+		pc_getzeny(sd, amount);
 		md->state.steal_coin_flag = 1;
 		return 1;
 	}

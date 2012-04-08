@@ -32,7 +32,7 @@ typedef enum e_log_pick_type
 	LOG_TYPE_PICKDROP_MONSTER = 0x0008,
 	LOG_TYPE_NPC              = 0x0010,
 	LOG_TYPE_SCRIPT           = 0x0020,
-	//LOG_TYPE_STEAL            = 0x0040,
+	LOG_TYPE_STEAL            = 0x0040,
 	LOG_TYPE_CONSUME          = 0x0080,
 	//LOG_TYPE_PRODUCE          = 0x0100,
 	//LOG_TYPE_MVP              = 0x0200,
