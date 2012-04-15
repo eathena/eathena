@@ -1,5 +1,7 @@
 Date	Added
 
+2012/04/15
+	* Fixed charserver's subnet check using char_ip instead of map_ip as the mapserver ip (my mistake in r11333). [ultramage]
 2012/04/08
 	* Applied Shinryo's patch for login packet 0x825 (CA_SSO_LOGIN_REQ) that interprets the token-portion of the packet as password (ref: hAB1JReB). [Ai4rei]
 	- Needs a 3rd party login interface or customized shortcut that passes the username/password pair to the client.
