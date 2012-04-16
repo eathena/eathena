@@ -4,7 +4,7 @@
 //= A reference manual for the eAthena scripting language.
 //= Commands are sorted depending on their functionality.
 //===== Version ===========================================
-//= 3.49.20120319
+//= 3.50.20120416
 //=========================================================
 //= 1.0 - First release, filled will as much info as I could
 //=       remember or figure out, most likely there are errors,
@@ -189,6 +189,8 @@
 //=       Updated 'viewpoint' to mention effect of type 0. [Ai4rei]
 //= 3.49.20120319
 //=       Added 'getnpcid' command. [Ai4rei]
+//= 3.50.20120416
+//=       Allow any type of argument in 'escape_sql' command. [FlavioJS]
 //=========================================================
 
 This document is a reference manual for all the scripting commands and functions 
@@ -6507,10 +6509,10 @@ to query the server log tables.
 
 ---------------------------------------
 
-*escape_sql("<string>")
+*escape_sql(<value>)
 
-Escapes special characters in the string, so that it is safe to use in query_sql(), 
-and returns the escaped form of the given string.
+Converts the value to a string and escapes special characters so that it is safe to use in query_sql().
+Returns the escaped form of the given value.
 
 Example 1:
 	set .@str$, "John's Laptop";
