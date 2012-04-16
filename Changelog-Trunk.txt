@@ -1,5 +1,7 @@
 Date	Added
 
+2012/04/16
+	* Merged script command *setiteminfo documentation fix from rAthena (ra:15867). [Ai4rei]
 2012/04/15
 	* Fixed charserver's subnet check using char_ip instead of map_ip as the mapserver ip (my mistake in r11333). [ultramage]
 2012/04/08
