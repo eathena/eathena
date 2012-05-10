@@ -70,7 +70,7 @@ endif()
 #
 # 3rd party
 #
-add_subdirectory( 3rdparty )
+set( CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/cmake  CACHE INTERNAL "" )
 include( CheckCSourceCompiles )
 include( CheckCSourceRuns )
 include( CheckIncludeFile )
@@ -570,6 +570,7 @@ endif( INSTALL_COMPONENT_RUNTIME )
 # sources
 #
 set( TARGET_LIST  CACHE INTERNAL "" )
+add_subdirectory( 3rdparty )
 add_subdirectory( src )
 
 
