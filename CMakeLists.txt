@@ -510,11 +510,17 @@ else()
 			DESTINATION "."
 			COMPONENT Runtime_base )
 		foreach( DIR IN ITEMS ${RUNTIME_DIRECTORIES} )
-			install( DIRECTORY "${DIR}/"
-				DESTINATION "${DIR}"
-				COMPONENT Runtime_base
-				PATTERN ${SVN_FOLDER_PATTERN} EXCLUDE
-				PATTERN "conf/import-tmpl" EXCLUDE )
+			if( EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${DIR}/" )
+				install( DIRECTORY "${DIR}/"
+					DESTINATION "${DIR}"
+					COMPONENT Runtime_base
+					PATTERN ${SVN_FOLDER_PATTERN} EXCLUDE
+					PATTERN "conf/import-tmpl" EXCLUDE )
+			else()
+				# create empty directory
+				install( CODE "file(MAKE_DIRECTORY \"\${ENV}\${CMAKE_INSTALL_PREFIX}/${DIR}\")"
+					COMPONENT Runtime_base )
+			endif()
 		endforeach()
 	endif( INSTALL_COMPONENT_RUNTIME )
 	if( INSTALL_COMPONENT_DEVELOPMENT )
