@@ -115,7 +115,10 @@ if( SVNVERSION_EXECUTABLE )
 	execute_process( COMMAND ${SVNVERSION_EXECUTABLE} ${PROJECT_SOURCE_DIR}
 		OUTPUT_VARIABLE SVNVERSION
 		OUTPUT_STRIP_TRAILING_WHITESPACE )
-	string( REGEX REPLACE "[^1234567890MSexported]" "_" SVNVERSION ${SVNVERSION} )
+	if( SVNVERSION MATCHES "^Unversioned" )
+		set( SVNVERSION )
+	endif()
+	string( REGEX REPLACE "[^1234567890MSexported]" "_" SVNVERSION "${SVNVERSION}" )
 	message( STATUS "Found version: ${SVNVERSION}" )
 	message( STATUS "Getting svn version - done" )
 endif()
