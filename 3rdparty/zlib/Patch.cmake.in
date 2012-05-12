@@ -1,0 +1,29 @@
+set( CMAKE_SIZEOF_VOID_P @CMAKE_SIZEOF_VOID_P@ )
+set( MSVC @MSVC@ )
+set( _SOURCE_DIR "@_SOURCE_DIR@" )
+
+set( _TARGET "${_SOURCE_DIR}/CMakeLists.txt" )
+if( NOT (EXISTS "${_TARGET}") )
+	message( FATAL_ERROR "Cannot find ${_TARGET}" )
+endif()
+
+file( READ "${_TARGET}" _DATA )
+# Remove CMAKE_DEBUG_POSTFIX
+string( REPLACE "set(CMAKE_DEBUG_POSTFIX \"d\")" "#=== Patch - remove CMAKE_DEBUG_POSTFIX ===" _DATA "${_DATA}" )
+list( APPEND _DATA "#=== Patch - append BEGIN ===\n" )
+# Normalize library name
+list( APPEND _DATA
+	"set_target_properties(zlibstatic PROPERTIES PREFIX \"\")\n"
+	"set_target_properties(zlibstatic PROPERTIES OUTPUT_NAME zlibstatic)\n"
+	"set_target_properties(zlibstatic PROPERTIES SUFFIX .lib)\n" )
+if( CMAKE_SIZEOF_VOID_P EQUAL 8 AND MSVC )
+	# Error detected with generator Visual Studio 10 Win64
+	# > LINK : warning LNK4068: /MACHINE not specified; defaulting to X86
+	# > fatal error LNK1112: module machine type 'x64' conflicts with target machine type 'X86'
+	#
+	# There is no default value for static libraries and cmake isn't setting it either.
+	# We fix this by adding the flag manually.
+	list( APPEND _DATA "set_target_properties(zlibstatic PROPERTIES STATIC_LIBRARY_FLAGS \"/machine:x64\")\n" )
+endif()
+list( APPEND _DATA "#=== Patch - append END ===\n" )
+file( WRITE "${_TARGET}" ${_DATA} )

@@ -1,64 +1,54 @@
 
 #
-# local copy
+# external_zlib
 #
-if( WIN32 )
-message( STATUS "Detecting local ZLIB" )
-find_path( ZLIB_LOCAL_INCLUDE_DIRS "zlib.h"
-	PATHS "${CMAKE_CURRENT_SOURCE_DIR}/include"
-	NO_DEFAULT_PATH )
-find_library( ZLIB_LOCAL_LIBRARIES
-	NAMES zdll
-	PATHS "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-	NO_DEFAULT_PATH )
-mark_as_advanced( ZLIB_LOCAL_LIBRARIES )
-mark_as_advanced( ZLIB_LOCAL_INCLUDE_DIRS )
+message( STATUS "Creating target external_zlib" )
+set( _PREFIX "${CMAKE_BINARY_DIR}/external/zlib" )
+set( _URL "${CMAKE_CURRENT_SOURCE_DIR}/zlib-1.2.7.tar.gz" )
+set( _URL_MD5 "60df6a37c56e7c1366cca812414f7b85" )
+set( _PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/Patch.cmake" )
+set( _SOURCE_DIR "${_PREFIX}/src" )
+set( _INSTALL_DIR "${_PREFIX}/install" )
+set( _CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${_INSTALL_DIR}" )
+set( _LIBRARY "${_INSTALL_DIR}/lib/zlibstatic.lib" )
+set( _INCLUDE_DIR "${_INSTALL_DIR}/include" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/Patch.cmake.in" "${_PATCH_FILE}" @ONLY )
 
-if( ZLIB_LOCAL_LIBRARIES AND ZLIB_LOCAL_INCLUDE_DIRS )
-	file( STRINGS "${ZLIB_LOCAL_INCLUDE_DIRS}/zlib.h" ZLIB_H REGEX "^#define[ \t]+ZLIB_VERSION[ \t]+\"[^\"]+\".*$" )
-	string( REGEX REPLACE "^.*ZLIB_VERSION[ \t]+\"([^\"]+)\".*$" "\\1" ZLIB_VERSION "${ZLIB_H}" )
-	message( STATUS "Found local ZLIB: ${ZLIB_LOCAL_LIBRARIES} (found version ${ZLIB_VERSION})" )
-	set( HAVE_LOCAL_ZLIB ON
-		CACHE BOOL "zlib is available as a local copy" )
-	mark_as_advanced( HAVE_LOCAL_ZLIB )
-else()
-	foreach( _VAR ZLIB_LOCAL_LIBRARIES ZLIB_LOCAL_INCLUDE_DIRS )
-		if( NOT "${_VAR}" )
-			set( MISSING_VARS ${MISSING_VARS} ${_VAR} )
-		endif()
-	endforeach()
-	message( STATUS "Could NOT find local ZLIB (missing: ${MISSING_VARS})" )
-	unset( HAVE_LOCAL_ZLIB CACHE )
-endif()
-message( STATUS "Detecting local ZLIB - done" )
-endif( WIN32 )
-
-
-#
-# system
-#
-message( STATUS "Detecting system ZLIB" )
-unset( ZLIB_LIBRARIES CACHE )
-unset( ZLIB_INCLUDE_DIRS CACHE )
-find_package( ZLIB )
-set( ZLIB_SYSTEM_LIBRARIES ${ZLIB_LIBRARIES}
-	CACHE PATH "system zlib libraries" )
-set( ZLIB_SYSTEM_INCLUDE_DIRS ${ZLIB_INCLUDE_DIRS}
-	CACHE PATH "system zlib include directories" )
-mark_as_advanced( ZLIB_SYSTEM_LIBRARIES )
-mark_as_advanced( ZLIB_SYSTEM_INCLUDE_DIRS )
-
-if( ZLIB_SYSTEM_LIBRARIES AND ZLIB_SYSTEM_INCLUDE_DIRS )
-	set( HAVE_SYSTEM_ZLIB ON
-		CACHE BOOL "zlib is available on the system" )
-	mark_as_advanced( HAVE_SYSTEM_ZLIB )
-else()
-	unset( HAVE_SYSTEM_ZLIB CACHE )
-endif()
-message( STATUS "Detecting system ZLIB - done" )
+message( STATUS "Using URL=${_URL}" )
+message( STATUS "Using URL_MD5=${_URL_MD5}" )
+message( STATUS "Using PATCH_FILE=${_PATCH_FILE}" )
+message( STATUS "Using SOURCE_DIR=${_SOURCE_DIR}" )
+message( STATUS "Using INSTALL_DIR=${_INSTALL_DIR}" )
+message( STATUS "Using CMAKE_ARGS=${_CMAKE_ARGS}" )
+message( STATUS "Using LIBRARY=${_LIBRARY}" )
+message( STATUS "Using INCLUDE_DIR=${_INCLUDE_DIR}" )
+include(ExternalProject)
+ExternalProject_Add( external_zlib
+	URL "${_URL}"
+	URL_MD5 "${_URL_MD5}"
+	PATCH_COMMAND "${CMAKE_COMMAND};-P;${_PATCH_FILE}"
+	SOURCE_DIR "${_SOURCE_DIR}"
+	CMAKE_ARGS "${_CMAKE_ARGS}"
+	BUILD_IN_SOURCE 1
+)
+set( TARGET_LIST ${TARGET_LIST} external_zlib  CACHE INTERNAL "" )
+message( STATUS "Creating target external_zlib - done" )
 
 
 #
 # configure
 #
-CONFIGURE_WITH_LOCAL_OR_SYSTEM( ZLIB )
+set( WITH_ZLIB ON
+	CACHE BOOL "use ZLIB" )
+set( ZLIB_DEPENDENCIES external_zlib
+	CACHE STRING "ZLIB dependencies" )
+set( ZLIB_LIBRARIES "${_LIBRARY}"
+	CACHE PATH "ZLIB libraries" )
+set( ZLIB_INCLUDE_DIRS "${_INCLUDE_DIR}"
+	CACHE PATH "ZLIB include directories" )
+set( ZLIB_DEFINITIONS
+	CACHE STRING "ZLIB definitions" )
+mark_as_advanced( ZLIB_DEPENDENCIES )
+mark_as_advanced( ZLIB_LIBRARIES )
+mark_as_advanced( ZLIB_INCLUDE_DIRS )
+mark_as_advanced( ZLIB_DEFINITIONS )
