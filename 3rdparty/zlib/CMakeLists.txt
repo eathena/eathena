@@ -3,29 +3,21 @@
 # external_zlib
 #
 message( STATUS "Creating target external_zlib" )
-set( _PREFIX "${CMAKE_BINARY_DIR}/external/zlib" )
-set( _URL "${CMAKE_CURRENT_SOURCE_DIR}/zlib-1.2.7.tar.gz" )
-set( _URL_MD5 "60df6a37c56e7c1366cca812414f7b85" )
+set( _URL "${CMAKE_CURRENT_SOURCE_DIR}/zlib-1.2.7" )
 set( _PATCH_FILE "${CMAKE_CURRENT_BINARY_DIR}/Patch.cmake" )
-set( _SOURCE_DIR "${_PREFIX}/src" )
-set( _INSTALL_DIR "${_PREFIX}/install" )
+set( _SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/source" )
+set( _INSTALL_DIR "${CMAKE_BINARY_DIR}/external/zlib" )
 set( _CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${_INSTALL_DIR}" )
 set( _LIBRARY "${_INSTALL_DIR}/lib/zlibstatic.lib" )
 set( _INCLUDE_DIR "${_INSTALL_DIR}/include" )
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/Patch.cmake.in" "${_PATCH_FILE}" @ONLY )
 
 message( STATUS "Using URL=${_URL}" )
-message( STATUS "Using URL_MD5=${_URL_MD5}" )
-message( STATUS "Using PATCH_FILE=${_PATCH_FILE}" )
-message( STATUS "Using SOURCE_DIR=${_SOURCE_DIR}" )
-message( STATUS "Using INSTALL_DIR=${_INSTALL_DIR}" )
-message( STATUS "Using CMAKE_ARGS=${_CMAKE_ARGS}" )
 message( STATUS "Using LIBRARY=${_LIBRARY}" )
 message( STATUS "Using INCLUDE_DIR=${_INCLUDE_DIR}" )
 include(ExternalProject)
 ExternalProject_Add( external_zlib
 	URL "${_URL}"
-	URL_MD5 "${_URL_MD5}"
 	PATCH_COMMAND "${CMAKE_COMMAND};-P;${_PATCH_FILE}"
 	SOURCE_DIR "${_SOURCE_DIR}"
 	CMAKE_ARGS "${_CMAKE_ARGS}"
