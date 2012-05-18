@@ -16,9 +16,9 @@ set( _LIBRARY "${_INSTALL_DIR}/lib/pcre.lib" )
 set( _INCLUDE_DIR "${_INSTALL_DIR}/include" )
 configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/Patch.cmake.in" "${_PATCH_FILE}" @ONLY )
 
-message( STATUS "Using URL=${_URL}" )
-message( STATUS "Using LIBRARY=${_LIBRARY}" )
-message( STATUS "Using INCLUDE_DIR=${_INCLUDE_DIR}" )
+message( STATUS "Using URL: ${_URL}" )
+message( STATUS "Using LIBRARY: ${_LIBRARY}" )
+message( STATUS "Using INCLUDE_DIR: ${_INCLUDE_DIR}" )
 include(ExternalProject)
 ExternalProject_Add( external_pcre
 	URL "${_URL}"
