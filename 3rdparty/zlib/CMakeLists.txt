@@ -23,6 +23,7 @@ ExternalProject_Add( external_zlib
 	CMAKE_ARGS "${_CMAKE_ARGS}"
 	BUILD_IN_SOURCE 1
 )
+set_target_properties( external_zlib PROPERTIES EXCLUDE_FROM_ALL "TRUE" )
 set( TARGET_LIST ${TARGET_LIST} external_zlib  CACHE INTERNAL "" )
 message( STATUS "Creating target external_zlib - done" )
 
