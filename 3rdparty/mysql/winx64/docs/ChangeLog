@@ -1,0 +1,374 @@
+------------------------------------------------------------
+revno: 3313
+tags: clone-5.5.24-build
+committer: Tor Didriksen <tor.didriksen@oracle.com>
+branch nick: 5.5-security
+timestamp: Thu 2012-04-12 15:04:22 +0200
+message:
+  Bug#13871079 RQG_MYISAM_DML_ALTER_VALGRIND FAILS ON VALGRIND PN PB2
+  
+  The class Copy_field contains a String tmp, 
+  which may allocate memory on the heap.
+  That means that all instances of Copy_field
+  must be properly destroyed. Alas they are not.
+  
+  Solution: don't use Copy_field::tmp for copying
+  from_field => tmp => to_field
+  in do_field_string()
+------------------------------------------------------------
+revno: 3312 [merge]
+committer: Georgi Kodinov <Georgi.Kodinov@Oracle.com>
+branch nick: merge-5.5-security
+timestamp: Thu 2012-04-12 14:04:12 +0300
+message:
+  merge mysql-5.5->mysql-5.5-security
+    ------------------------------------------------------------
+    revno: 3097.126.65
+    committer: Sujatha Sivakumar <sujatha.sivakumar@oracle.com>
+    branch nick: Bug12662190
+    timestamp: Thu 2012-04-12 11:07:39 +0530
+    message:
+      BUG#12662190:COM_COMMIT IS NOT INCREMENTED FROM THE BINARY LOGS ON SLAVE, COM_BEGIN IS
+      
+      PROBLEM:
+      
+      --------
+      
+      When binary log statements are replayed on the slave, BEGIN is represented
+      
+      in com_counters but COMMIT is not. Similarly in 'ROW' based replication
+      
+      'INSERT','UPDATE',and 'DELETE' com_counters are not getting incremented
+      
+      when the binary log statements are replayed at slave.
+      
+      ANALYSIS:
+      ---------
+      
+      In 'ROW' based replication for COMMIT,INSERT,UPDATE and DELETE operations
+      following special events are invoked.
+      Xid_log_event,Write_rows_log_event,Update_rows_log_event,Update_rows_log_event.
+      
+      The above mentioned events doesn't go through the parser where the
+      'COM_COUNTERS' are incremented.
+      
+      
+      FIX:
+      -----
+      Increment statements are added at appropriate events.
+      Respective functions are listed below.
+      
+      'Xid_log_event::do_apply_event'
+      'Write_rows_log_event::do_before_row_operations'
+      'Update_rows_log_event::do_before_row_operations'
+      'Delete_rows_log_event::do_before_row_operations' 
+    ------------------------------------------------------------
+    revno: 3097.126.64
+    committer: gopal.shankar@oracle.com
+    branch nick: systemtables-5.5
+    timestamp: Wed 2012-04-11 15:53:17 +0530
+    message:
+      Bug#11815557 60269: MYSQL SHOULD REJECT ATTEMPTS TO CREATE SYSTEM
+                          TABLES IN INCORRECT ENGINE
+      
+      PROBLEM:
+        CREATE/ALTER TABLE currently can move system tables like
+      mysql.db, user, host etc, to engines other than MyISAM. This is not
+      completely supported as of now, by mysqld. When some of system tables
+      like plugin, servers, event, func, *_priv, time_zone* are moved
+      to innodb, mysqld restart crashes. Currently system tables
+      can be moved to BLACKHOLE also!!!.
+      
+      ANALYSIS:
+        The problem is that there is no check before creating or moving
+      a system table to some particular engine.
+      
+        System tables are suppose to be residing in MyISAM. We can think
+      of restricting system tables to exist only in MyISAM. But, there could
+      be future needs of these system tables to be part of other engines
+      by design. For eg, NDB cluster expects some tables to be on innodb
+      or ndb engine. This calls for a solution, by which system
+      tables can be supported by any desired engine, with minimal effort.
+      
+      FIX:
+        The solution provides a handlerton interface using which,
+      mysqld server can query particular storage engine handlerton for
+      system tables that it supports. This way each storage engine
+      layer can define their own system database and system tables.
+      
+        The check_engine() function uses the new handlerton function
+      ha_check_if_supported_system_table() to check if db.tablename
+      provided in the DDL is supported by the SE.
+      
+      Note: This fix has modified a test in help.test, which was moving
+      mysql.help_* to innodb. The primary intention of the test was not
+      to move them between engines.
+    ------------------------------------------------------------
+    revno: 3097.126.63
+    committer: Manish Kumar<manish.4.kumar@oracle.com>
+    branch nick: mysql
+    timestamp: Tue 2012-04-10 16:15:06 +0530
+    message:
+      BUG#13917335 - ASSERTION `REPORT_PORT != 0' FAILED IN NETWORK_INIT ()
+      
+      Problem - The cause of the failure is mainly due to the assert added in
+                the code as a result of the fix of the BUG-13333431. When we
+                start the server with the --skip-networking option enabled
+                we have the mysqld_port explicitly to 0. Since the value of
+                report_port is set to mysqld_port, the assertion that
+                (report_port!= 0) fails.
+      
+      Fix - the fix of the problem is to assert the not zero value of
+            report_port only in the case the --skip-networking option is not
+            used to start the mysqld server.
+------------------------------------------------------------
+revno: 3311 [merge]
+committer: Georgi Kodinov <Georgi.Kodinov@Oracle.com>
+branch nick: merge-5.5-security
+timestamp: Tue 2012-04-10 14:46:21 +0300
+message:
+  empty weave merge mysql-5.1-security->mysql-5.5-security
+    ------------------------------------------------------------
+    revno: 2661.768.80 [merge]
+    committer: Georgi Kodinov <Georgi.Kodinov@Oracle.com>
+    branch nick: merge-5.1-security
+    timestamp: Tue 2012-04-10 14:21:57 +0300
+    message:
+      merge mysql-5.1->mysql-5.1-security
+        ------------------------------------------------------------
+        revno: 2661.800.49
+        committer: Venkata Sidagam <venkata.sidagam@oracle.com>
+        branch nick: mysql-5.1-59107
+        timestamp: Mon 2012-04-09 16:42:41 +0530
+        message:
+          Bug #11766072 59107: MYSQLSLAP CRASHES IF STARTED WITH NO ARGUMENTS ON WINDOWS
+          
+          This bug is a duplicate of Bug #31173, which was pushed to the 
+          mysql-trunk 5.6 on 4th Aug, 2010. This is just a back-port of 
+          the fix
+------------------------------------------------------------
+revno: 3310 [merge]
+committer: Georgi Kodinov <Georgi.Kodinov@Oracle.com>
+branch nick: merge-5.5-security
+timestamp: Tue 2012-04-10 14:23:17 +0300
+message:
+  merge mysql-5.5->mysql-5.5-security
+    ------------------------------------------------------------
+    revno: 3097.126.62
+    committer: Manish Kumar<manish.4.kumar@oracle.com>
+    branch nick: mysql-5.5
+    timestamp: Tue 2012-04-10 11:44:17 +0530
+    message:
+      BUG#13812374 - RPL.RPL_REPORT_PORT FAILS OCCASIONALLY ON PB2
+      
+      Problem - this failure occured in the test added for the fix of the 
+                bug-13333431. The basic problem of the failure was the 
+                value of the report_port which persisted even after the end 
+                of the test (ie. rpl_end.inc). So this causes the assertion 
+                in the test to fail if it is executed again.
+      
+      Fix - restarted the server with the default value being passed to the 
+            report_port after testing the two expected case so that in the 
+            next run of the test we will not encounter the previous value of
+            report_port.
+    ------------------------------------------------------------
+    revno: 3097.126.61 [merge]
+    committer: Venkata Sidagam <venkata.sidagam@oracle.com>
+    branch nick: mysql-5.5-59107
+    timestamp: Mon 2012-04-09 16:43:54 +0530
+    message:
+      Merged from 5.1 to 5.5
+        ------------------------------------------------------------
+        revno: 2661.812.1
+        committer: Venkata Sidagam <venkata.sidagam@oracle.com>
+        branch nick: mysql-5.1-59107
+        timestamp: Mon 2012-04-09 14:51:46 +0530
+        message:
+          Bug #11766072 59107: MYSQLSLAP CRASHES IF STARTED WITH NO ARGUMENTS ON WINDOWS
+          
+          This bug is a duplicate of Bug #31173, which was pushed to the 
+          mysql-trunk 5.6 on 4th Aug, 2010. This is just a back-port of 
+          the fix
+    ------------------------------------------------------------
+    revno: 3097.126.60 [merge]
+    committer: Mayank Prasad <mayank.prasad@oracle.com>
+    branch nick: emb_5.5
+    timestamp: Fri 2012-04-06 17:06:05 +0530
+    message:
+      BUG#13738989 : 62136 : FAILED TO FETCH SELECT RESULT USING EMBEDDED MYSQLD
+      
+      Merge : 5.1->5.5
+        ------------------------------------------------------------
+        revno: 2661.800.48
+        committer: Mayank Prasad <mayank.prasad@oracle.com>
+        branch nick: 5.1
+        timestamp: Fri 2012-04-06 17:03:13 +0530
+        message:
+          BUG#13738989 : 62136 : FAILED TO FETCH SELECT RESULT USING EMBEDDED MYSQLD
+          
+          Background : 
+          In mysql-5.1, in a fix for bug#47485, code has been changed for 
+          mysql client (libmysql/libmysql.c) but corresponding code was not
+          changed for embedded mysql. In that code change, after execution
+          of a statement, mysql_stmt_store_result() checks for mysql->state
+          to be MYSQL_STATUS_STATEMENT_GET_RESULT, instead of
+          MYSQL_STATUS_GET_RESULT (earlier).
+          
+          Reason:
+          In embedded mysql code, after execution, mysql->state was not
+          set to MYSQL_STATUS_STATEMENT_GET_RESULT, so it was throwing
+          OUT_OF_SYNC error.
+          
+          Fix:
+          Fixed the code in libmysqld/lib_sql.cc to have mysql->state
+          to be set to MYSQL_STATUS_STATEMENT_GET_RESULT after execution.
+    ------------------------------------------------------------
+    revno: 3097.126.59
+    committer: Praveenkumar Hulakund <praveenkumar.hulakund@oracle.com>
+    branch nick: mysql_5_5
+    timestamp: Wed 2012-04-04 11:13:42 +0530
+    message:
+      Bug#12762885: 61713: MYSQL WILL NOT BIND TO "LOCALHOST" IF LOCALHOST IS BOTH
+                           IPV4/IPV6 ENABLED
+      
+      Analysis:
+      ----------------------
+      The problem was that if a hostname resolves to more than one IP-address,
+      the server (5.5) does not start due to an error. In 5.1 the server used to
+      take some IP-address and start.
+      
+      It's a regression and should be fixed.
+      
+      5.5 supports IPv6, while 5.1 does not. However, that should not 
+      prevent the server from start -- if a hostname has both IPv4 and IPv6 addresses,
+      the server should choose some IPv4-address and start.
+      
+      It's been decided to prefer IPv4-address to be backward compatible with 5.1.
+      
+      Another problem was that the 5.6 server did not report proper error message
+      when the specified hostname could not be resolved. So, the code has been 
+      changed to report proper error message.
+      
+      Testing
+      ================================
+      5.5
+      =============================
+      invalid hostname (localhos):
+        => Following error message reported.
+           120308 15:52:09 [ERROR] Can't start server: cannot resolve hostname!
+           120308 15:52:09 [ERROR] Aborting
+      
+      invalid ip_address:
+        => Following error message reported.
+            120308 15:56:06 [Note] Server hostname (bind-address): '123.123.123.123'; port: 3306
+            120308 15:56:06 [Note]   - '123.123.123.123' resolves to '123.123.123.123';
+            120308 15:56:06 [Note] Server socket created on IP: '123.123.123.123'.
+            120308 15:56:06 [ERROR] Can't start server: Bind on TCP/IP port: Cannot assign requested address
+      
+      Only ipv4 host configured:
+        => Following message logged 
+          120308 16:02:50 [Note] Server hostname (bind-address): 'localhost'; port: 3306
+          120308 16:02:50 [Note]   - 'localhost' resolves to '127.0.0.1';
+          120308 16:02:50 [Note] Server socket created on IP: '127.0.0.1'
+      
+      Only ipv6 host configured:    
+        => Following message logged 
+          120308 16:04:03 [Note] Server hostname (bind-address): 'localhost'; port: 3306
+          120308 16:04:03 [Note]   - 'localhost' resolves to '::1';
+          120308 16:04:03 [Note] Server socket created on IP: '::1'.
+      
+      ipv4 and ipv6 host configured:
+        => Following message logged
+          120308 16:05:02 [Note] Server hostname (bind-address): 'localhost'; port: 3306
+          120308 16:05:02 [Note]   - 'localhost' resolves to '::1';
+          120308 16:05:02 [Note]   - 'localhost' resolves to '127.0.0.1';
+          120308 16:05:02 [Note] Server socket created on IP: '127.0.0.1'.
+        => Non localhost address  
+          120308 16:08:20 [Note] Server hostname (bind-address): 'mysql_addr'; port: 3306
+          120308 16:08:20 [Note]   - 'mysql_addr' resolves to '10.178.58.216';
+          120308 16:08:20 [Note]   - 'mysql_addr' resolves to 'fe80::120b:a9ff:fe69:59ec';
+          120308 16:08:20 [Note] Server socket created on IP: '10.178.58.216'.
+      
+      More than one entry for ipv4 and ipv6 address:
+        => Following message logged
+          120308 16:06:19 [Note] Server hostname (bind-address): 'localhost'; port: 3306
+          120308 16:06:19 [Note]   - 'localhost' resolves to '::1';
+          120308 16:06:19 [Note]   - 'localhost' resolves to '::1';
+          120308 16:06:19 [Note]   - 'localhost' resolves to '127.0.0.1';
+          120308 16:06:19 [Note]   - 'localhost' resolves to '127.0.0.1';
+          120308 16:06:19 [Note] Server socket created on IP: '127.0.0.1'.
+    ------------------------------------------------------------
+    revno: 3097.126.58
+    committer: Inaam Rana <inaam.rana@oracle.com>
+    branch nick: mysql-5.5
+    timestamp: Tue 2012-04-03 09:45:10 -0400
+    message:
+      Fix Sun Studio compiler warnings due to extra ',' introduced in
+      rev_id: inaam.rana@oracle.com-20120326134501-23554a8vhjg0wqbm
+    ------------------------------------------------------------
+    revno: 3097.126.57
+    committer: Rohit Kalhans <rohit.kalhans@oracle.com>
+    branch nick: mysql-5.5_b11765650
+    timestamp: Tue 2012-04-03 00:35:43 +0530
+    message:
+      BUG#11765650 Follow-up patch for Valgrind failures on PB2.
+    ------------------------------------------------------------
+    revno: 3097.126.56
+    committer: Rohit Kalhans <rohit.kalhans@oracle.com>
+    branch nick: mysql-5.5_b11765650
+    timestamp: Fri 2012-03-30 18:35:53 +0530
+    message:
+      BUG#11765650 - 58637: MARK UPDATES THAT DEPEND ON ORDER OF TWO KEYS UNSAFE
+            
+       Description: When the table has more than one unique or primary key, 
+       INSERT... ON DUP KEY UPDATE statement is sensitive to the order in which
+       the storage engines checks the keys. Depending on this order, the storage
+       engine may determine different rows to mysql, and hence mysql can update
+       different rows on master and slave.
+            
+       Solution: We mark INSERT...ON DUP KEY UPDATE on a table with more than on unique
+       key as unsafe therefore the event will be logged in row format if it is available
+       (ROW/MIXED). If only STATEMENT format is available, a warning will be thrown. 
+    ------------------------------------------------------------
+    revno: 3097.126.55
+    committer: Hery Ramilison <hery.ramilison@oracle.com>
+    branch nick: mysql-5.5
+    timestamp: Thu 2012-03-29 20:29:14 +0200
+    message:
+      Starting 5.5.23 build
+    ------------------------------------------------------------
+    revno: 3097.126.54
+    tags: mysql-5.5.23, clone-5.5.23-build
+    committer: Tor Didriksen <tor.didriksen@oracle.com>
+    branch nick: 5.5
+    timestamp: Thu 2012-03-29 15:07:54 +0200
+    message:
+      Patch for Bug#13805127: Stored program cache produces wrong result in same THD.
+      
+      Background:
+      
+        - as described in MySQL Internals Prepared Stored
+          (http://forge.mysql.com/wiki/MySQL_Internals_Prepared_Stored),
+          the Optimizer sometimes does destructive changes to the parsed
+          LEX-object (Item-tree), which makes it impossible to re-use
+          that tree for PS/SP re-execution.
+      
+        - in order to be able to re-use the Item-tree, the destructive
+          changes are remembered and rolled back after the statement execution.
+      
+      The problem, discovered by this bug, was that the objects representing
+      GROUP-BY clause did not restored after query execution. So, the GROUP-BY
+      part of the statement could not be properly re-initialized for re-execution
+      after destructive changes.
+      
+      Those objects do not take part in the Item-tree, so they can not be saved
+      using the approach for Item-tree.
+      
+      The fix is as follows:
+      
+        - introduce a new array in st_select_lex to store the original
+          ORDER pointers, representing the GROUP-BY clause;
+      
+        - Initialize this array in fix_prepare_information().
+      
+        - restore the list of GROUP-BY items in reinit_stmt_before_use().
