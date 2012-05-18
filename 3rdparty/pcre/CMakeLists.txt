@@ -27,6 +27,7 @@ ExternalProject_Add( external_pcre
 	CMAKE_ARGS "${_CMAKE_ARGS}"
 	BUILD_IN_SOURCE 1
 )
+set_target_properties( external_pcre PROPERTIES EXCLUDE_FROM_ALL "TRUE" )
 set( TARGET_LIST ${TARGET_LIST} external_pcre  CACHE INTERNAL "" )
 message( STATUS "Creating target external_pcre - done" )
 
