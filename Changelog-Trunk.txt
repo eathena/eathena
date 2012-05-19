@@ -1,6 +1,7 @@
 Date	Added
 
 2012/05/19
+	* Added clif_item_damaged (ZC_EQUIPITEM_DAMAGED, 0x2bb), not used for now. [Ai4rei]
 	* Fixed a client-side buffer overflow when clif_displaymessage (ZC_NOTIFY_PLAYERCHAT, 0x8e) sends a message that is longer than 255+1 bytes. [Ai4rei]
 	* Enabled @jumpto and @recall to 'jump to self' as an alternative to @refresh. [Ai4rei]
 2012/04/16
