@@ -934,14 +934,6 @@ bool pc_authok(struct map_session_data *sd, int login_id2, time_t expiration_tim
 		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
 	}
 
-	//Night message
-	if (night_flag)
-	{
-		char tmpstr[1024];
-		strcpy(tmpstr, msg_txt(500)); // Actually, it's the night...
-		clif_wis_message(sd->fd, wisp_server_name, tmpstr, strlen(tmpstr)+1);
-	}
-
 	// Request all registries (auth is considered completed whence they arrive)
 	intif_request_registry(sd,7);
 	return true;
