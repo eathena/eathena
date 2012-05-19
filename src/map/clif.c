@@ -5186,13 +5186,14 @@ void clif_displaymessage(const int fd, const char* mes)
 	if (fd == 0)
 		;
 	else {
-		int len_mes = strlen(mes);
+		// Limit message to 255+1 characters (otherwise it causes a buffer overflow in the client)
+		int len_mes = strnlen(mes, 255);
 
 		if (len_mes > 0) { // don't send a void message (it's not displaying on the client chat). @help can send void line.
 			WFIFOHEAD(fd, 5 + len_mes);
 			WFIFOW(fd,0) = 0x8e;
 			WFIFOW(fd,2) = 5 + len_mes; // 4 + len + NULL teminate
-			memcpy(WFIFOP(fd,4), mes, len_mes + 1);
+			safestrncpy(WFIFOP(fd,4), mes, len_mes + 1);
 			WFIFOSET(fd, 5 + len_mes);
 		}
 	}
