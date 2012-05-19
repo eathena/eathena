@@ -1,5 +1,7 @@
 Date	Added
 
+2012/05/19
+	* Enabled @jumpto and @recall to 'jump to self' as an alternative to @refresh. [Ai4rei]
 2012/04/16
 	* Merged script command *setiteminfo documentation fix from rAthena (ra:15867). [Ai4rei]
 	* Allow any type of argument in 'escape_sql' script command. [FlavioJS]
