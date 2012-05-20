@@ -1,6 +1,7 @@
 Date	Added
 
 2012/05/19
+	* Merged instances of packet 0x8d (ZC_NOTIFY_CHAT) into clif_notify_chat. [Ai4rei]
 	* Fixed clif_item_repaireffect (ZC_ACK_ITEMREPAIR, 0x1fe) using item id for inventory index (since r2070). [Ai4rei]
 	* Fixed conditionally uninitialized value pointed out by gcc in *getnpcid script command (since r15085). [Ai4rei]
 	* Minor swap and bounds-code cleaning in map. [Ai4rei]
