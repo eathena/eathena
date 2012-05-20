@@ -1,6 +1,11 @@
 Date	Added
 
 2012/05/19
+	* Processed some clif.c TODO/FIXME. [Ai4rei]
+	- Added #if PACKETVER for clif_status_change (ZC_MSG_STATE_CHANGE2, 0x43f).
+	- Added check to prevent buffer overflow in clif_party_message (ZC_NOTIFY_CHAT_PARTY, 0x109).
+	- Updated clif_callpartner to initialize the client buffer even when there is no partner, as the client does not initialize it (ZC_COUPLENAME, 0x1e6).
+	- Added/updated some TODO/FIXME.
 	* Removed map-server private message telling players upon login the obvious; that it's night. [Ai4rei]
 	* Added clif_item_damaged (ZC_EQUIPITEM_DAMAGED, 0x2bb), not used for now. [Ai4rei]
 	* Fixed a client-side buffer overflow when clif_displaymessage (ZC_NOTIFY_PLAYERCHAT, 0x8e) sends a message that is longer than 255+1 bytes. [Ai4rei]
