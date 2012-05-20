@@ -5651,20 +5651,21 @@ void clif_item_repair_list(struct map_session_data *sd,struct map_session_data *
 
 /// Notifies the client about the result of a item repair request (ZC_ACK_ITEMREPAIR).
 /// 01fe <index>.W <result>.B
-void clif_item_repaireffect(struct map_session_data *sd,int nameid,int flag)
+/// index:
+///     ignored (inventory index)
+/// result:
+///     0 = Item repair success.
+///     1 = Item repair failure.
+void clif_item_repaireffect(struct map_session_data *sd,int idx,int flag)
 {
-	int view,fd;
+	int fd;
 
 	nullpo_retv(sd);
 	fd=sd->fd;
 
 	WFIFOHEAD(fd,packet_len(0x1fe));
 	WFIFOW(fd, 0)=0x1fe;
-	// FIXME: this is inventory index
-	if((view = itemdb_viewid(nameid)) > 0)
-		WFIFOW(fd, 2)=view;
-	else
-		WFIFOW(fd, 2)=nameid;
+	WFIFOW(fd, 2)=idx+2;
 	WFIFOB(fd, 4)=flag;
 	WFIFOSET(fd,packet_len(0x1fe));
 }
