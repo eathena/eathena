@@ -1,6 +1,7 @@
 Date	Added
 
 2012/05/19
+	* Minor swap and bounds-code cleaning in map. [Ai4rei]
 	* Moved inlined send-packets 0x7f (ZC_NOTIFY_TIME), 0xc2 (ZC_USER_COUNT), 0xd4 (ZC_WHISPER_LIST), 0xca (ZC_PC_PURCHASE_RESULT), 0xcb (ZC_PC_SELL_RESULT), 0x18b (ZC_ACK_REQ_DISCONNECT), 0x1e0 (ZC_ACK_ACCOUNTNAME), 0x207 (ZC_REQ_ADD_FRIENDS), 0x210 (ZC_ACK_PVPPOINT), 0x217 (ZC_BLACKSMITH_RANK), 0x21a (ZC_ALCHEMIST_RANK), 0x226 (ZC_TAEKWON_RANK) and 0x238 (ZC_KILLER_RANK) into their own functions. [Ai4rei]
 	* Processed some clif.c TODO/FIXME. [Ai4rei]
 	- Added #if PACKETVER for clif_status_change (ZC_MSG_STATE_CHANGE2, 0x43f).
