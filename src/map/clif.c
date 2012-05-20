@@ -5192,22 +5192,49 @@ void clif_notify_chat(struct block_list* bl, const char* message, send_target ta
 
 	length = strlen(message);
 
-	if( length > sizeof(buf)-8 )
+	if( length > sizeof(buf)-9 )
 	{
-		ShowWarning("clif_notify_chat: Truncated message '%s' (len=%u, max=%u, id=%d, target=%d).\n", message, length, sizeof(buf)-8, bl ? bl->id : 0, target);
-		length = sizeof(buf)-8;
+		ShowWarning("clif_notify_chat: Truncated message '%s' (len=%u, max=%u, id=%d, target=%d).\n", message, length, sizeof(buf)-9, bl ? bl->id : 0, target);
+		length = sizeof(buf)-9;
 	}
 
 	WBUFW(buf,0) = 0x8d;
-	WBUFW(buf,2) = 8+length;
+	WBUFW(buf,2) = 8+length+1;  // header + message + NUL
 	WBUFL(buf,4) = bl ? bl->id : 0;
 	safestrncpy((char*)WBUFP(buf,8), message, length+1);
 	clif_send(buf, WBUFW(buf,2), bl, target);
 }
 
 
-/// Send message (modified by [Yor]) (ZC_NOTIFY_PLAYERCHAT).
+/// Notification about player's own chat message (ZC_NOTIFY_PLAYERCHAT).
 /// 008e <packet len>.W <message>.?B
+void clif_notify_playerchat(struct map_session_data* sd, const char* message)
+{
+	int fd = sd->fd;
+	size_t length;
+
+	if( !message[0] )
+	{// don't send a void message (it's not displaying on the client chat). @help can send void line.
+		return;
+	}
+
+	length = strlen(message);
+
+	if( length > 255 )
+	{// message is limited to 255+1 characters by the client-side buffer
+		ShowWarning("clif_notify_playerchat: Truncated message '%s' (len=%u, max=%u, char_id=%d).\n", message, length, 255, sd->status.char_id);
+		length = 255;
+	}
+
+	WFIFOHEAD(fd,4+length+1);
+	WFIFOW(fd,0) = 0x8e;
+	WFIFOW(fd,2) = 4+length+1;  // header + message + NUL
+	safestrncpy((char*)WFIFOP(fd,4), message, length+1);
+	WFIFOSET(fd,WFIFOW(fd,2));
+}
+
+
+/// Send message (modified by [Yor])
 void clif_displaymessage(const int fd, const char* mes)
 {
 	// invalid pointer?
@@ -5227,7 +5254,30 @@ void clif_displaymessage(const int fd, const char* mes)
 			safestrncpy(WFIFOP(fd,4), mes, len_mes + 1);
 			WFIFOSET(fd, 5 + len_mes);
 		}
+
+		// clif_notify_playerchat((struct map_session_data*)(session[fd]->session_data), mes);
 	}
+}
+
+
+/// Send formatted message
+void clif_displayformatted(struct map_session_data* sd, const char* fmt, ...)
+{
+	int n;
+	char buf[255+1];
+	va_list args;
+
+	va_start(args, fmt);
+	n = vsnprintf(buf, sizeof(buf), fmt, args);
+	va_end(args);
+
+	if( n < 1 || n >= sizeof(buf) )
+	{
+		ShowError("Too long message with format '%s' (n=%d).\n", fmt, n);
+		return;
+	}
+
+	clif_notify_playerchat(sd, buf);
 }
 
 
@@ -8321,21 +8371,11 @@ void clif_slide(struct block_list *bl, int x, int y)
  *------------------------------------------*/
 void clif_disp_overhead(struct map_session_data *sd, const char* mes)
 {
-	unsigned char buf[256]; //This should be more than sufficient, the theorical max is CHAT_SIZE + 8 (pads and extra inserted crap)
-	int len_mes = strlen(mes)+1; //Account for \0
-
-	if (len_mes > sizeof(buf)-8) {
-		ShowError("clif_disp_overhead: Message too long (length %d)\n", len_mes);
-		len_mes = sizeof(buf)-8; //Trunk it to avoid problems.
-	}
 	// send message to others
 	clif_notify_chat(&sd->bl, mes, AREA_CHAT_WOC);
 
 	// send back message to the speaker
-	WBUFW(buf,0) = 0x8e;
-	WBUFW(buf, 2) = len_mes + 4;
-	safestrncpy((char*)WBUFP(buf,4), mes, len_mes);  
-	clif_send(buf, WBUFW(buf,2), &sd->bl, SELF);
+	clif_notify_playerchat(sd, mes);
 }
 
 /*==========================
@@ -9433,9 +9473,7 @@ void clif_parse_GlobalMessage(int fd, struct map_session_data* sd)
 	clif_notify_chat(&sd->bl, text, sd->chatID ? CHAT_WOS : AREA_CHAT_WOC);
 
 	// send back message to the speaker
-	memcpy(WFIFOP(fd,0), RFIFOP(fd,0), RFIFOW(fd,2));
-	WFIFOW(fd,0) = 0x8e;
-	WFIFOSET(fd, WFIFOW(fd,2));
+	clif_notify_playerchat(sd, text);
 
 #ifdef PCRE_SUPPORT
 	// trigger listening npcs
