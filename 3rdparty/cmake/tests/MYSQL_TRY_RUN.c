@@ -1,4 +1,4 @@
-#ifdef _WINDOWS
+#ifdef HAVE_WINDOWS_H
 #include <windows.h>
 #endif
 #include "mysql.h"
