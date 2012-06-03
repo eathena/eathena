@@ -85,11 +85,49 @@ add_subdirectory( 3rdparty/msinttypes )# setup global variables
 
 
 #
+# Test if include files exist:
+#   inttypes.h - see src/common/cbasetypes.h
+#   stdint.h - see src/common/cbasetypes.h
+#
+foreach( _filename inttypes.h stdint.h )
+	set( _define HAVE_${_filename} )
+	string( TOUPPER "${_define}" _define )
+	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )
+	CHECK_INCLUDE_FILE( "${_filename}" ${_define} )
+	unset( _define )
+endforeach()
+
+
+#
+# Test if functions exist:
+#   setrlimit - used to set the socket limit
+#   strnlen - string length with upper scan bound
+#   getpid - process id
+#   gettid - thread id
+#
+foreach( _function setrlimit strnlen getpid gettid )
+	set( _define HAVE_${_filename} )
+	string( TOUPPER "${_define}" _define )
+	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )
+	CHECK_FUNCTION_EXISTS( "${_function}" ${_define} )
+	unset( _define )
+endforeach()
+
+
+#
+# Test compiler keywords and attributes
+#
+message( STATUS "Testing compiler keywords and attributes" )
+include( TestInline )
+message( STATUS "Testing compiler keywords and attributes - done" )
+
+
+#
 # PACKETVER
 #
 set( PACKETVER ${PACKETVER} CACHE STRING "Sets the PACKETVER define of the servers. (see src/common/mmo.h)" )
 if( PACKETVER )
-	list( APPEND GLOBAL_DEFINITIONS  PACKETVER=${PACKETVER} )
+	message( STATUS "Using PACKETVER: ${PACKETVER}" )
 endif()
 
 
@@ -217,24 +255,6 @@ if( HAVE_MONOTONIC_CLOCK )
 else()
 	message( STATUS "Check for monotonic clock - no" )
 endif()
-
-
-#
-# Test if function exists:
-#   setrlimit - used to set the socket limit
-#   strnlen - string length with upper scan bound
-#   getpid - process id
-#   gettid - thread id
-#
-CHECK_FUNCTION_EXISTS( setrlimit HAVE_SETRLIMIT )
-CHECK_FUNCTION_EXISTS( strnlen HAVE_STRNLEN )
-CHECK_FUNCTION_EXISTS( getpid HAVE_GETPID )
-CHECK_FUNCTION_EXISTS( gettid HAVE_GETTID )
-foreach( define HAVE_SETRLIMIT HAVE_STRNLEN HAVE_GETPID HAVE_GETTID )
-	if( ${define} )
-		set_property( CACHE GLOBAL_DEFINITIONS  PROPERTY VALUE "${GLOBAL_DEFINITIONS} -D${define}" )
-	endif()
-endforeach()
 
 
 #
@@ -558,6 +578,16 @@ if( INSTALL_COMPONENT_RUNTIME )
 	install( SCRIPT "${INSTALL_TEMPLATES_FILE}"
 		COMPONENT Runtime_templates )
 endif( INSTALL_COMPONENT_RUNTIME )
+
+
+#
+# config header
+#
+message( STATUS "Creating config.h" )
+configure_file( "${CMAKE_SOURCE_DIR}/src/common/config.h.cmakein" "${CMAKE_BINARY_DIR}/include/config.h" @ONLY )
+set_property( CACHE GLOBAL_INCLUDE_DIRS  PROPERTY VALUE ${GLOBAL_INCLUDE_DIRS} "${CMAKE_BINARY_DIR}/include" )
+set_property( CACHE GLOBAL_DEFINITIONS  PROPERTY VALUE "${GLOBAL_DEFINITIONS} -DHAVE_CONFIG_H" )
+message( STATUS "Creating config.h - done" )
 
 
 #

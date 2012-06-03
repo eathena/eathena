@@ -1,6 +1,10 @@
 #ifndef _CBASETYPES_H_
 #define _CBASETYPES_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 /*              +--------+-----------+--------+---------+
  *              | ILP32  |   LP64    |  ILP64 | (LL)P64 |
  * +------------+--------+-----------+--------+---------+
