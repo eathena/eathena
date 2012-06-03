@@ -1,0 +1,27 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// compiler keywords and attributes
+#cmakedefine HAVE_INLINE
+#cmakedefine HAVE___INLINE__
+#cmakedefine HAVE___INLINE
+#cmakedefine HAVE___FORCEINLINE
+#cmakedefine HAVE_ATTRIBUTE_NOINLINE
+#cmakedefine HAVE_ATTRIBUTE_ALWAYS_INLINE
+#cmakedefine HAVE_ATTRIBUTE_GNU_INLINE
+
+// headers
+#cmakedefine HAVE_INTTYPES_H
+#cmakedefine HAVE_STDINT_H
+
+// functions
+#cmakedefine HAVE_SETRLIMIT
+#cmakedefine HAVE_STRNLEN
+#cmakedefine HAVE_GETPID
+#cmakedefine HAVE_GETTID
+
+// other
+#cmakedefine SVNVERSION @SVNVERSION@
+#cmakedefine PACKETVER @PACKETVER@
+
+#endif // CONFIG_H
