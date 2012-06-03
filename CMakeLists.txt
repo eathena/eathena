@@ -81,31 +81,13 @@ include( CheckIncludeFile )
 include( CheckFunctionExists )
 include( FindFunctionLibrary )
 include( TestBigEndian )
+add_subdirectory( 3rdparty/msinttypes )# setup global variables
 
-
-#
-# Find svnversion
-#
-message( STATUS "Detecting svnversion" )
-find_program( SVNVERSION_EXECUTABLE svnversion )
-mark_as_advanced( SVNVERSION_EXECUTABLE )
-if( SVNVERSION_EXECUTABLE )
-	message( STATUS "Found svnversion: ${SVNVERSION_EXECUTABLE}" )
-endif()
-message( STATUS "Detecting svnversion - done" )
-
-
-#
-# Find Subversion
-#
-message( STATUS "Detecting Subversion" )
-find_package( Subversion )
-message( STATUS "Detecting Subversion - done" )
 
 #
 # PACKETVER
 #
-set( PACKETVER CACHE STRING "Sets the PACKETVER define of the servers. (see src/common/mmo.h)" )
+set( PACKETVER ${PACKETVER} CACHE STRING "Sets the PACKETVER define of the servers. (see src/common/mmo.h)" )
 if( PACKETVER )
 	list( APPEND GLOBAL_DEFINITIONS  PACKETVER=${PACKETVER} )
 endif()
@@ -114,28 +96,38 @@ endif()
 #
 # SVNVERSION
 #
-if( SVNVERSION_EXECUTABLE )
-	message( STATUS "Getting svn version" )
-	execute_process( COMMAND ${SVNVERSION_EXECUTABLE} ${PROJECT_SOURCE_DIR}
-		OUTPUT_VARIABLE SVNVERSION
-		OUTPUT_STRIP_TRAILING_WHITESPACE )
+message( STATUS "Detecting SVNVERSION" )
+if( NOT DEFINED SVNVERSION )
+	message( STATUS "Detecting svnversion" )
+	find_program( SVNVERSION_EXECUTABLE svnversion )
+	mark_as_advanced( SVNVERSION_EXECUTABLE )
+	message( STATUS "Detecting svnversion - done" )
+	message( STATUS "Detecting Subversion" )
+	find_package( Subversion )
+	message( STATUS "Detecting Subversion - done" )
+	if( SVNVERSION_EXECUTABLE )
+		message( STATUS "Found svnversion: ${SVNVERSION_EXECUTABLE}" )
+		execute_process( COMMAND ${SVNVERSION_EXECUTABLE} ${PROJECT_SOURCE_DIR}
+			OUTPUT_VARIABLE SVNVERSION
+			OUTPUT_STRIP_TRAILING_WHITESPACE )
+		message( STATUS "Found version: ${SVNVERSION}" )
+	endif()
 	if( SVNVERSION MATCHES "^Unversioned" )
-		set( SVNVERSION )
+		set( SVNVERSION )# unversioned, keep empty
+	elseif( SVNVERSION STREQUAL "exported" )
+		# exported, nothing to do
+	else( Subversion_FOUND AND SVNVERSION )
+		Subversion_WC_INFO( ${PROJECT_SOURCE_DIR} eAthena )
+		if( eAthena_WC_URL )
+			string( REGEX MATCH "[^/]+$" BRANCH ${eAthena_WC_URL} )
+			set( SVNVERSION "${BRANCH}-${SVNVERSION}" )
+			message( STATUS "Found branch: ${BRANCH}" )
+		endif()
+		string( REGEX REPLACE "[^0-9a-zA-Z]" "_" SVNVERSION "${SVNVERSION}" )
 	endif()
-	string( REGEX REPLACE "[^1234567890MSexported]" "_" SVNVERSION "${SVNVERSION}" )
-	message( STATUS "Found version: ${SVNVERSION}" )
-	message( STATUS "Getting svn version - done" )
 endif()
-if( Subversion_FOUND AND SVNVERSION )
-	message( STATUS "Getting svn branch" )
-	Subversion_WC_INFO( ${PROJECT_SOURCE_DIR} eAthena )
-	if( eAthena_WC_URL )
-		string( REGEX MATCH "[^/]+$" BRANCH ${eAthena_WC_URL} )
-		set( SVNVERSION "${BRANCH}-${SVNVERSION}" )
-		message( STATUS "Found branch: ${BRANCH}" )
-	endif()
-	message( STATUS "Getting svn branch - done" )
-endif()
+message( STATUS "Using SVNVERSION: ${SVNVERSION}" )
+message( STATUS "Detecting SVNVERSION - done" )
 
 
 #
