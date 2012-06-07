@@ -514,7 +514,7 @@ int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
 void pc_respawn(struct map_session_data* sd, uint8 clrtype);
 int pc_setnewpc(struct map_session_data*,int,int,int,unsigned int,int,int);
-bool pc_authok(struct map_session_data* sd, int, time_t, int gmlevel, struct mmo_charstatus* status);
+bool pc_authok(struct map_session_data* sd, struct mmo_charstatus* status);
 void pc_authfail(struct map_session_data *);
 int pc_reg_received(struct map_session_data *sd);
 

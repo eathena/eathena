@@ -7824,7 +7824,7 @@ static int clif_guess_PacketVer(int fd, int get_previous, int *error)
 /*==========================================
  *
  *------------------------------------------*/
-void clif_parse_WantToConnection(int fd, TBL_PC* sd)
+static void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 {
 	struct block_list* bl;
 	struct auth_node* node;
@@ -7860,23 +7860,31 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 		return;
 	}
 
-	//Check for double login.
-	bl = map_id2bl(account_id);
-	if(bl && bl->type != BL_PC) {
-		ShowError("clif_parse_WantToConnection: a non-player object already has id %d, please increase the starting account number\n", account_id);
-		WFIFOHEAD(fd,packet_len(0x6a));
-		WFIFOW(fd,0) = 0x6a;
-		WFIFOB(fd,2) = 3; // Rejected by server
-		WFIFOSET(fd,packet_len(0x6a));
-		set_eof(fd);
+	// authenticate
+	node = chrif_search(account_id);
+	if( node == NULL || node->char_id != char_id || node->login_id1 != login_id1 || node->sex != sex )
+	{
+		clif_authfail_fd(fd,0);// disconnected
 		return;
 	}
 
-	if (bl || 
-		((node=chrif_search(account_id)) && //An already existing node is valid only if it is for this login.
-			!(node->account_id == account_id && node->char_id == char_id && node->state == ST_LOGIN)))
+	//Check for double login.
+	bl = map_id2bl(account_id);
+	if( bl )
 	{
-		clif_authfail_fd(fd, 8); //Still recognizes last connection
+		if( bl->type == BL_PC )
+		{
+			clif_authfail_fd(fd, 8); //Still recognizes last connection
+		}
+		else
+		{
+			ShowError("clif_parse_WantToConnection: a non-player object already has id %d, please increase the starting account number\n", account_id);
+			WFIFOHEAD(fd,packet_len(0x6a));
+			WFIFOW(fd,0) = 0x6a;
+			WFIFOB(fd,2) = 3; // Rejected by server
+			WFIFOSET(fd,packet_len(0x6a));
+			set_eof(fd);
+		}
 		return;
 	}
 
@@ -7898,7 +7906,8 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 	WFIFOSET(fd,packet_len(0x283));
 #endif
 
-	chrif_authreq(sd);
+	chrif_load(account_id, -1, 0);// account data
+	chrif_load(account_id, char_id, 1);// character data
 	return;
 }
 

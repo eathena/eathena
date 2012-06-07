@@ -14,7 +14,7 @@
 
 struct login_session_data {
 
-	int account_id;
+	int account_id;// -1 before auth
 	long login_id1;
 	long login_id2;
 	char sex;// 'F','M','S'
@@ -42,6 +42,9 @@ struct mmo_char_server {
 	uint16 users;       // user count on this server
 	uint16 type;        // 0=normal, 1=maintenance, 2=over 18, 3=paying, 4=P2P
 	uint16 new_;        // should display as 'new'?
+	int timeout_timer;  // timer to reconnect
+	char cookie[256];
+	uint16 cookielen;
 };
 
 struct Login_Config {

@@ -513,60 +513,54 @@ int chrif_scdata_request(int account_id, int char_id)
 	return 0;
 }
 
-/*==========================================
- * Request auth confirmation
- *------------------------------------------*/
-void chrif_authreq(struct map_session_data *sd)
+/// Request data from the char-server.
+/// what=0 : account data
+/// what=1 : character data (0x2afd)
+void chrif_load(int account_id, int char_id, uint8 what)
 {
-	struct auth_node *node= chrif_search(sd->bl.id);
-
-	if( node != NULL )
-	{
-		set_eof(sd->fd);
-		return;
-	}
-
-	WFIFOHEAD(char_fd,19);
+	WFIFOHEAD(char_fd,11);
 	WFIFOW(char_fd,0) = 0x2b26;
-	WFIFOL(char_fd,2) = sd->status.account_id;
-	WFIFOL(char_fd,6) = sd->status.char_id;
-	WFIFOL(char_fd,10) = sd->login_id1;
-	WFIFOB(char_fd,14) = sd->status.sex;
-	WFIFOL(char_fd,15) = htonl(session[sd->fd]->client_addr);
-	WFIFOSET(char_fd,19);
-	chrif_sd_to_auth(sd, ST_LOGIN);
+	WFIFOL(char_fd,2) = account_id;
+	WFIFOL(char_fd,6) = char_id;
+	WFIFOB(char_fd,10) = what;
+	WFIFOSET(char_fd,11);
 }
 
-/*==========================================
- * Auth confirmation ack
- *------------------------------------------*/
-void chrif_authok(int fd)
+/// Account data.
+void chrif_accountdata(int fd)
 {
 	int account_id;
-	uint32 login_id1;
-	uint32 login_id2;
-	time_t expiration_time;
-	int gmlevel;
-	struct mmo_charstatus* status;
+	char email[40];
+	uint32 expiration_time;
+	uint8 gmlevel;
+
+	account_id = RFIFOL(fd,2);
+	safestrncpy(email, (const char*)RFIFOP(fd,6), 40);
+	expiration_time = RFIFOL(fd,46);
+	gmlevel = RFIFOB(fd,50);
+}
+
+/// Character data.
+void chrif_characterdata(int fd)
+{
+	int account_id;
 	int char_id;
+	struct mmo_charstatus* status;
 	struct auth_node *node;
 	TBL_PC* sd;
 
 	//Check if both servers agree on the struct's size
-	if( RFIFOW(fd,2) - 24 != sizeof(struct mmo_charstatus) )
+	if( RFIFOW(fd,2) - 12 != sizeof(struct mmo_charstatus) )
 	{
-		ShowError("chrif_authok: Data size mismatch! %d != %d\n", RFIFOW(fd,2) - 24, sizeof(struct mmo_charstatus));
+		ShowError("chrif_authok: Data size mismatch! %d != %d\n", RFIFOW(fd,2) - 12, sizeof(struct mmo_charstatus));
 		return;
 	}
 
 	account_id = RFIFOL(fd,4);
-	login_id1 = RFIFOL(fd,8);
-	login_id2 = RFIFOL(fd,12);
-	expiration_time = (time_t)(int32)RFIFOL(fd,16);
-	gmlevel = RFIFOL(fd,20);
-	status = (struct mmo_charstatus*)RFIFOP(fd,24);
+	char_id = RFIFOL(fd,8);
+	status = (struct mmo_charstatus*)RFIFOP(fd,12);
 
-	char_id = status->char_id;
+	if( status->account_id != account_id || status->char_id != char_id )
 
 	//Check if we don't already have player data in our server
 	//Causes problems if the currently connected player tries to quit or this data belongs to an already connected player which is trying to re-auth.
@@ -590,16 +584,10 @@ void chrif_authok(int fd)
 	}
 
 	sd = node->sd;
-	if(node->char_dat == NULL &&
-		node->account_id == account_id &&
-		node->char_id == char_id &&
-		node->login_id1 == login_id1 )
-	{ //Auth Ok
-		if (pc_authok(sd, login_id2, expiration_time, gmlevel, status))
-			return;
-	} else { //Auth Failed
-		pc_authfail(sd);
-	}
+	if( pc_authok(sd, status) )
+		return;
+	// Auth Failed
+	pc_authfail(sd);
 	chrif_char_offline(sd); //Set him offline, the char server likely has it set as online already.
 	chrif_auth_delete(account_id, char_id, ST_LOGIN);
 }
@@ -1434,7 +1422,7 @@ int chrif_parse(int fd)
 		{
 		case 0x2af9: chrif_connectack(fd); break;
 		case 0x2afb: chrif_sendmapack(fd); break;
-		case 0x2afd: chrif_authok(fd); break;
+		case 0x2afd: chrif_characterdata(fd); break;
 		case 0x2b00: map_setusers(RFIFOL(fd,2)); chrif_keepalive(fd); break;
 		case 0x2b03: clif_charselectok(RFIFOL(fd,2)); break;
 		case 0x2b04: chrif_recvmap(fd); break;

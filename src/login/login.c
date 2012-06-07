@@ -5,6 +5,7 @@
 #include "../common/db.h"
 #include "../common/malloc.h"
 #include "../common/md5calc.h"
+#include "../common/nullpo.h"
 #include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
@@ -71,116 +72,187 @@ struct s_subnet {
 int subnet_count = 0;
 
 
-//-----------------------------------------------------
-// Auth database
-//-----------------------------------------------------
-#define AUTH_TIMEOUT 30000
 
-struct auth_node {
+//-----------------------------------------------------
+// Account Locks
+//-----------------------------------------------------
 
+
+/// Timeout of account locks in milliseconds.
+/// @see #acclock_timeout_timer
+#define ACCLOCK_TIMEOUT 60000
+
+
+/// Account lock
+struct s_acclock
+{
+	int timeout_timer;
+	int server_id;// owner (-1 for this server)
 	int account_id;
 	uint32 login_id1;
 	uint32 login_id2;
 	uint32 ip;
-	char sex;
 	uint32 version;
 	uint8 clienttype;
+	uint8 sex;// SEX_*
+	bool is_online;
 };
 
-static DBMap* auth_db; // int account_id -> struct auth_node*
 
 
-//-----------------------------------------------------
-// Online User Database [Wizputer]
-//-----------------------------------------------------
-struct online_login_data {
+static DBMap* acclock_db; // int account_id -> struct s_acclock* (releases data)
 
-	int account_id;
-	int waiting_disconnect;
-	int char_server;
-};
 
-static DBMap* online_db; // int account_id -> struct online_login_data*
-static int waiting_disconnect_timer(int tid, unsigned int tick, int id, intptr data);
 
-static void* create_online_user(DBKey key, va_list args)
+/// Sets the online status of an account lock owned by the target server.
+static void acclock_set_online(int server_id, int account_id, bool is_online)
 {
-	struct online_login_data* p;
-	CREATE(p, struct online_login_data, 1);
-	p->account_id = key.i;
-	p->char_server = -1;
-	p->waiting_disconnect = -1;
-	return p;
-}
-
-struct online_login_data* add_online_user(int char_server, int account_id)
-{
-	struct online_login_data* p;
-	p = (struct online_login_data*)idb_ensure(online_db, account_id, create_online_user);
-	p->char_server = char_server;
-	if( p->waiting_disconnect != -1 )
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+	if( alock && alock->server_id == server_id && alock->is_online != is_online )
 	{
-		delete_timer(p->waiting_disconnect, waiting_disconnect_timer);
-		p->waiting_disconnect = -1;
-	}
-	return p;
-}
+		alock->is_online = is_online;
 
-void remove_online_user(int account_id)
-{
-	struct online_login_data* p;
-	p = (struct online_login_data*)idb_get(online_db, account_id);
-	if( p == NULL )
-		return;
-	if( p->waiting_disconnect != -1 )
-		delete_timer(p->waiting_disconnect, waiting_disconnect_timer);
-
-	idb_remove(online_db, account_id);
-}
-
-static int waiting_disconnect_timer(int tid, unsigned int tick, int id, intptr data)
-{
-	struct online_login_data* p = (struct online_login_data*)idb_get(online_db, id);
-	if( p != NULL && p->waiting_disconnect == tid && p->account_id == id )
-	{
-		p->waiting_disconnect = -1;
-		remove_online_user(id);
-		idb_remove(auth_db, id);
-	}
-	return 0;
-}
-
-static int online_db_setoffline(DBKey key, void* data, va_list ap)
-{
-	struct online_login_data* p = (struct online_login_data*)data;
-	int server = va_arg(ap, int);
-	if( server == -1 )
-	{
-		p->char_server = -1;
-		if( p->waiting_disconnect != -1 )
+		if( alock->server_id != -1 )
 		{
-			delete_timer(p->waiting_disconnect, waiting_disconnect_timer);
-			p->waiting_disconnect = -1;
+			if( is_online )
+				++server[server_id].users;
+			else
+				--server[server_id].users;
 		}
 	}
-	else if( p->char_server == server )
-		p->char_server = -2; //Char server disconnected.
+}
+
+
+
+
+/// Releases the account lock.
+static void acclock_release(int server_id, int account_id)
+{
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+	if( alock && alock->server_id == server_id )
+	{
+		acclock_set_online(server_id, account_id, false);
+		idb_remove(acclock_db, account_id);
+	}
+}
+
+
+
+/// Assigns the account lock to the target server.
+static void acclock_assign(int server_id, int account_id, int new_server_id)
+{
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+	if( alock && alock->server_id == server_id )
+	{// found
+		// stop timeout
+		if( alock->timeout_timer != INVALID_TIMER )
+		{
+			delete_timer(alock->timeout_timer, acclock_timeout_timer);
+			alock->timeout_timer = INVALID_TIMER;
+		}
+
+		// reassign
+		if( alock->server_id != new_server_id )
+		{
+			acclock_set_online(server_id, account_id, false);
+			alock->server_id = new_server_id;
+		}
+	}
+}
+
+
+
+/// Timeout handler for account locks.
+/// Started when:
+/// a) user is traveling from login-server to char-server
+/// b) char-server reconnects (was owner, so needs to reclaim the lock)
+/// c) expiring account locks
+static int acclock_timeout_timer(int tid, unsigned int tick, int id, intptr data)
+{
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, id);
+	if( alock )
+	{
+		if( alock->timeout_timer != tid )
+		{
+			ShowError("acclock_timeout_timer: Timer mismatch: %d != %d\n", tid, alock->timeout_timer);
+			return 0;
+		}
+		idb_remove(acclock_db, id);
+	}
 	return 0;
 }
 
-static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
+
+
+/// Sets the online status of all account locks owned by the target server.
+static void acclock_set_all_online(int server_id, bool is_online)
 {
-	struct online_login_data *character= (struct online_login_data*)data;
-	if (character->char_server == -2) //Unknown server.. set them offline
-		remove_online_user(character->account_id);
+	struct s_acclock* alock;
+	DBIterator* it = db_iterator(acclock_db);
+	while( (alock=(struct s_acclock*)dbi_next(it)) != NULL )
+		if( alock->server_id == server_id )
+			alock->is_online = is_online;
+	dbi_destroy(it);
+}
+
+
+
+/// Starts the timeout timer of an account lock owned by the target server.
+static void acclock_start_timeout_timer(int server_id, int account_id, unsigned int time)
+{
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+	if( alock && alock->server_id == server_id )
+	{
+		if( alock->timeout_timer != INVALID_TIMER )
+			delete_timer(alock->timeout_timer, acclock_timeout_timer);
+		alock->timeout_timer = add_timer(gettick()+time, acclock_timeout_timer, alock->account_id, 0);
+	}
+}
+
+
+
+/// Starts the timeout timers of all account locks owned by the target server.
+static void acclock_start_all_timeout_timers(int server_id, unsigned int time)
+{
+	struct s_acclock* alock;
+	DBIterator* it = db_iterator(acclock_db);
+	while( (alock=(struct s_acclock*)dbi_next(it)) != NULL )
+	{
+		if( alock->server_id == server_id )
+		{
+			if( alock->timeout_timer != INVALID_TIMER )
+				delete_timer(alock->timeout_timer, acclock_timeout_timer);
+			alock->timeout_timer = add_timer(gettick()+time, acclock_timeout_timer, alock->account_id, 0);
+		}
+	}
+	dbi_destroy(it);
+}
+
+
+
+//-----------------------------------------------------
+// Server Locks
+//-----------------------------------------------------
+
+/// Timeout of char-server locks in milliseconds.
+#define SERVER_TIMEOUT 60000
+
+
+
+/// Timeout handler for char-server locks.
+/// Started when: a char-server disconnects and still owns account locks
+static int server_timeout_timer(int tid, unsigned int tick, int id, intptr data)
+{
+	if( server[id].timeout_timer != tid )
+	{
+		ShowError("server_timeout_timer: Timer mismatch: %d != %d\n", tid, server[id].timeout_timer);
+		return 0;
+	}
+	server[id].timeout_timer = INVALID_TIMER;
+	acclock_start_all_timeout_timers(id, 0);// expire all owned account locks
 	return 0;
 }
 
-static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
-{
-	online_db->foreach(online_db, online_data_cleanup_sub);
-	return 0;
-} 
 
 
 //--------------------------------------------------------------------
@@ -204,6 +276,99 @@ int charif_sendallwos(int sfd, uint8* buf, size_t len)
 
 	return c;
 }
+
+
+
+/// Send an account lock to a server.
+static void charif_lock_acquired(int server_id, struct s_acclock* alock, int request_id)
+{
+	int fd = server[server_id].fd;
+
+	nullpo_retv(alock);
+
+	acclock_acquired(int server_id, int account_id);
+
+	WFIFOHEAD(fd,25);
+	WFIFOW(fd,0) = 0x2713;
+	WFIFOL(fd,2) = alock->account_id;
+	WFIFOL(fd,6) = alock->login_id1;
+	WFIFOL(fd,10) = alock->login_id2;
+	WFIFOB(fd,14) = alock->sex;
+	WFIFOB(fd,15) = 0;// acquired
+	WFIFOL(fd,16) = request_id;
+	WFIFOL(fd,20) = alock->version;
+	WFIFOB(fd,24) = alock->clienttype;
+	WFIFOSET(fd,25);
+}
+
+
+
+/// Send an account lock error.
+/// err: 1=auth failed, 2=lock lost
+static void charif_lock_error(int server_id, int account_id, uint32 login_id1, uint32 login_id2, uint8 sex, int request_id, uint8 err)
+{
+	int fd = server[server_id].fd;
+
+	acclock_release(server_id, account_id);
+
+	WFIFOHEAD(fd,25);
+	WFIFOW(fd,0) = 0x2713;
+	WFIFOL(fd,2) = account_id;
+	WFIFOL(fd,6) = login_id1;
+	WFIFOL(fd,10) = login_id2;
+	WFIFOB(fd,14) = sex;
+	WFIFOB(fd,15) = err;
+	WFIFOL(fd,16) = request_id;
+	WFIFOL(fd,20) = -1;
+	WFIFOB(fd,24) = -1;
+	WFIFOSET(fd,25);
+}
+
+
+
+/// Request kick of account.
+static void charif_kick(int account_id)
+{
+	struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+	if( alock && alock->server_id != -1 )
+	{// owned by a char-server
+		int fd = server[alock->server_id].fd;
+		if( session_isActive(fd) )
+		{// kick player from char-server
+			WFIFOHEAD(fd,6);
+			WFIFOW(fd,0) = 0x2734;
+			WFIFOL(fd,2) = account_id;
+			WFIFOSET(fd,6);
+		}
+	}
+}
+
+
+
+/// Generates a new unique cookie and sends it to the target server.
+static void charif_generate_cookie(int id)
+{
+	size_t i;
+	do
+	{
+		memset(server[id].cookie, '\0', sizeof(server[id].cookie));
+		server[id].cookielen = (uint16)(sizeof(server[id].cookie)/2 + rand() % (sizeof(server[id].cookie)/2));
+		MD5_Salt(server[id].cookielen, server[id].cookie);
+		ARR_FIND(0, ARRAYLENGTH(server), i, i != id && server[i].cookielen == server[id].cookielen && memcmp(server[i].cookie, server[id].cookie, server[id].cookielen) == 0);
+	} while( i != ARRAYLENGTH(server) );// cookie must be unique
+
+	if( session_isActive(server[id].fd) )
+	{
+		int fd = server[id].fd;
+		size_t packet_len = 4 + server[id].cookielen;
+		WFIFOHEAD(fd,packet_len);
+		WFIFOW(fd,0) = 0x271b;
+		WFIFOW(fd,2) = packet_len;
+		memcpy(WFIFOP(fd,4), server[id].cookie, server[id].cookielen);
+		WFIFOSET(fd,packet_len);
+	}
+}
+
 
 
 //-----------------------------------------------------
@@ -374,9 +539,25 @@ int parse_fromchar(int fd)
 
 	if( session[fd]->flag.eof )
 	{
+		DBIterator* it;
+		struct s_acclock* alock;
+
 		ShowStatus("Char-server '%s' has disconnected.\n", server[id].name);
-		online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char server to offline.
-		memset(&server[id], 0, sizeof(struct mmo_char_server));
+
+		// TODO track the number of account locks owned [FlavioJS]
+		it = db_iterator(acclock_db);
+		while( (alock=(struct s_acclock*)dbi_next(it)) != NULL )
+		{
+			if( alock->server_id == id )
+			{// owns at least one account lock, start timeout
+				if( server[id].timeout_timer != INVALID_TIMER )
+					delete_timer(server[id].timeout_timer, server_timeout_timer);
+				server[id].timeout_timer = add_timer(gettick()+SERVER_TIMEOUT, server_timeout_timer, id, 0);
+				break;
+			}
+		}
+		dbi_destroy(it);
+
 		server[id].fd = -1;
 		do_close(fd);
 		return 0;
@@ -396,7 +577,7 @@ int parse_fromchar(int fd)
 			if( RFIFOREST(fd) < 23 )
 				return 0;
 		{
-			struct auth_node* node;
+			struct s_acclock* alock;
 
 			int account_id = RFIFOL(fd,2);
 			uint32 login_id1 = RFIFOL(fd,6);
@@ -406,63 +587,52 @@ int parse_fromchar(int fd)
 			int request_id = RFIFOL(fd,19);
 			RFIFOSKIP(fd,23);
 
-			node = (struct auth_node*)idb_get(auth_db, account_id);
-			if( node != NULL &&
-			    node->account_id == account_id &&
-				node->login_id1  == login_id1 &&
-				node->login_id2  == login_id2 &&
-				node->sex        == sex_num2str(sex) &&
-				node->ip         == ip_ )
-			{// found
+			alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+			if( alock != NULL &&
+				alock->account_id == account_id &&
+				alock->login_id1  == login_id1 &&
+				alock->login_id2  == login_id2 &&
+				alock->sex        == sex &&
+				alock->ip         == ip_ &&
+				(alock->server_id == -1 || alock->server_id == id) )
+			{// auth ok
 				//ShowStatus("Char-server '%s': authentication of the account %d accepted (ip: %s).\n", server[id].name, account_id, ip);
 
-				// each auth entry can only be used once
-				idb_remove(auth_db, account_id);
-
-				// send ack
-				WFIFOHEAD(fd,25);
-				WFIFOW(fd,0) = 0x2713;
-				WFIFOL(fd,2) = account_id;
-				WFIFOL(fd,6) = login_id1;
-				WFIFOL(fd,10) = login_id2;
-				WFIFOB(fd,14) = sex;
-				WFIFOB(fd,15) = 0;// ok
-				WFIFOL(fd,16) = request_id;
-				WFIFOL(fd,20) = node->version;
-				WFIFOB(fd,24) = node->clienttype;
-				WFIFOSET(fd,25);
+				charif_lock_acquired(id, alock, request_id);
 			}
 			else
-			{// authentication not found
-				ShowStatus("Char-server '%s': authentication of the account %d REFUSED (ip: %s).\n", server[id].name, account_id, ip);
-				WFIFOHEAD(fd,25);
-				WFIFOW(fd,0) = 0x2713;
-				WFIFOL(fd,2) = account_id;
-				WFIFOL(fd,6) = login_id1;
-				WFIFOL(fd,10) = login_id2;
-				WFIFOB(fd,14) = sex;
-				WFIFOB(fd,15) = 1;// auth failed
-				WFIFOL(fd,16) = request_id;
-				WFIFOL(fd,20) = 0;
-				WFIFOB(fd,24) = 0;
-				WFIFOSET(fd,25);
+			{// auth failed
+				//ShowStatus("Char-server '%s': authentication of the account %d REFUSED (ip: %s).\n", server[id].name, account_id, ip);
+
+				charif_auth_request_ack(fd, account_id, alock, request_id, 1);// auth failed
 			}
 		}
 		break;
 
-		case 0x2714:
-			if( RFIFOREST(fd) < 6 )
+		case 0x2714: // request from char-server to release/request/reclaim an account lock
+			if( RFIFOREST(fd) < 7 )
 				return 0;
 		{
-			int users = RFIFOL(fd,2);
-			RFIFOSKIP(fd,6);
-
-			// how many users on world? (update)
-			if( server[id].users != users )
+			int account_id = RFIFOL(fd,2);
+			uint8 type = RFIFOB(fd,6);
+			RFIFOSKIP(fd,8);
+			switch( type )
 			{
-				ShowStatus("set users %s : %d\n", server[id].name, users);
-
-				server[id].users = users;
+			case 0:// release
+				acclock_release(id, account_id);
+				break;
+			case 1:// request
+				// XXX TODO
+				break;
+			case 2:// reclaim
+				{
+					struct s_acclock* alock = (struct s_acclock*)idb_get(acclock_db, account_id);
+					if( alock && alock->server_id == id )
+						charif_auth_request_ack(fd, account_id, alock, -1, 0);// ok
+					else
+						charif_auth_request_ack(fd, account_id, alock, -1, 2);// lock lost
+				}
+				break;
 			}
 		}
 		break;
@@ -764,14 +934,14 @@ int parse_fromchar(int fd)
 		case 0x272b:    // Set account_id to online [Wizputer]
 			if( RFIFOREST(fd) < 6 )
 				return 0;
-			add_online_user(id, RFIFOL(fd,2));
+			acclock_set_online(id, RFIFOL(fd,2), true);
 			RFIFOSKIP(fd,6);
 		break;
 
 		case 0x272c:   // Set account_id to offline [Wizputer]
 			if( RFIFOREST(fd) < 6 )
 				return 0;
-			remove_online_user(RFIFOL(fd,2));
+			acclock_set_online(id, RFIFOL(fd,2), false);
 			RFIFOSKIP(fd,6);
 		break;
 
@@ -779,20 +949,15 @@ int parse_fromchar(int fd)
 			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
 				return 0;
 			{
-				struct online_login_data *p;
 				int aid;
 				uint32 i, users;
-				online_db->foreach(online_db, online_db_setoffline, id); //Set all chars from this char-server offline first
+
+				acclock_set_all_online(id, false);
+
 				users = RFIFOW(fd,4);
 				for (i = 0; i < users; i++) {
 					aid = RFIFOL(fd,6+i*4);
-					p = (struct online_login_data*)idb_ensure(online_db, aid, create_online_user);
-					p->char_server = id;
-					if (p->waiting_disconnect != -1)
-					{
-						delete_timer(p->waiting_disconnect, waiting_disconnect_timer);
-						p->waiting_disconnect = -1;
-					}
+					acclock_set_online(id, aid, true);
 				}
 			}
 			RFIFOSKIP(fd,RFIFOW(fd,2));
@@ -843,7 +1008,7 @@ int parse_fromchar(int fd)
 
 		case 0x2737: //Request to set all offline.
 			ShowInfo("Setting accounts from char-server %d offline.\n", id);
-			online_db->foreach(online_db, online_db_setoffline, id);
+			acclock_set_all_online(id, false);
 			RFIFOSKIP(fd,2);
 		break;
 
@@ -1038,7 +1203,7 @@ void login_auth_ok(struct login_session_data* sd)
 
 	uint8 server_num, n;
 	uint32 subnet_char_ip;
-	struct auth_node* node;
+	struct s_acclock* alock;
 	int i;
 
 	if( sd->level < login_config.min_level_to_connect )
@@ -1053,7 +1218,7 @@ void login_auth_ok(struct login_session_data* sd)
 
 	server_num = 0;
 	for( i = 0; i < MAX_SERVERS; ++i )
-		if( session_isValid(server[i].fd) )
+		if( session_isActive(server[i].fd) )
 			server_num++;
 
 	if( server_num == 0 )
@@ -1066,36 +1231,36 @@ void login_auth_ok(struct login_session_data* sd)
 		return;
 	}
 
+	alock = (struct s_acclock*)idb_get(acclock_db, sd->account_id);
+	if( alock )
 	{
-		struct online_login_data* data = (struct online_login_data*)idb_get(online_db, sd->account_id);
-		if( data )
-		{// account is already marked as online!
-			if( data->char_server > -1 )
-			{// Request char servers to kick this account out. [Skotlex]
-				uint8 buf[6];
-				ShowNotice("User '%s' is already online - Rejected.\n", sd->userid);
-				WBUFW(buf,0) = 0x2734;
-				WBUFL(buf,2) = sd->account_id;
-				charif_sendallwos(-1, buf, 6);
-				if( data->waiting_disconnect == -1 )
-					data->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, waiting_disconnect_timer, sd->account_id, 0);
-
-				WFIFOHEAD(fd,3);
-				WFIFOW(fd,0) = 0x81;
-				WFIFOB(fd,2) = 8; // 08 = Server still recognizes your last login
-				WFIFOSET(fd,3);
-				return;
-			}
-			else
-			if( data->char_server == -1 )
-			{// client has authed but did not access char-server yet
-				// wipe previous session
-				idb_remove(auth_db, sd->account_id);
-				remove_online_user(sd->account_id);
-				data = NULL;
-			}
+		if( alock->server_id != -1 )
+		{// a char-server owns the lock
+			ShowNotice("Connection refused: server still recognizes last login (account: %s).\n", sd->userid);
+			charif_kick(sd->account_id);
+			WFIFOHEAD(fd,3);
+			WFIFOW(fd,0) = 0x81;
+			WFIFOB(fd,2) = 8; // 08 = Server still recognizes your last login
+			WFIFOSET(fd,3);
+			return;
 		}
+		if( alock->timeout_timer != INVALID_TIMER )
+			delete_timer(alock->timeout_timer, acclock_timeout_timer);
+		idb_remove(acclock_db, sd->account_id);
+		alock = NULL;
 	}
+	CREATE(alock, struct s_acclock, 1);
+	alock->timeout_timer = INVALID_TIMER;
+	alock->server_id = -1;// owned by this server
+	alock->account_id = sd->account_id;
+	alock->login_id1 = sd->login_id1;
+	alock->login_id2 = sd->login_id2;
+	alock->ip = ip;
+	alock->version = sd->version;
+	alock->clienttype = sd->clienttype;
+	alock->sex = sex_str2num(sd->sex);
+	alock->is_online = false;
+	idb_put(acclock_db, sd->account_id, alock);
 
 	login_log(ip, sd->userid, 100, "login ok");
 
@@ -1130,27 +1295,6 @@ void login_auth_ok(struct login_session_data* sd)
 		n++;
 	}
 	WFIFOSET(fd,47+32*server_num);
-
-	// create temporary auth entry
-	CREATE(node, struct auth_node, 1);
-	node->account_id = sd->account_id;
-	node->login_id1 = sd->login_id1;
-	node->login_id2 = sd->login_id2;
-	node->sex = sd->sex;
-	node->ip = ip;
-	node->version = sd->version;
-	node->clienttype = sd->clienttype;
-	idb_put(auth_db, sd->account_id, node);
-
-	{
-		struct online_login_data* data;
-
-		// mark client as 'online'
-		data = add_online_user(-1, sd->account_id);
-
-		// schedule deletion of this node
-		data->waiting_disconnect = add_timer(gettick()+AUTH_TIMEOUT, waiting_disconnect_timer, sd->account_id, 0);
-	}
 }
 
 void login_auth_failed(struct login_session_data* sd, int result)
@@ -1223,6 +1367,8 @@ int parse_login(int fd)
 	if( session[fd]->flag.eof )
 	{
 		ShowInfo("Closed connection from '"CL_WHITE"%s"CL_RESET"'.\n", ip);
+		if( sd && sd->account_id != -1 )
+			acclock_start_timeout_timer(-1, sd->account_id, ACCLOCK_TIMEOUT);// authed, traveling to char-server
 		do_close(fd);
 		return 0;
 	}
@@ -1246,6 +1392,7 @@ int parse_login(int fd)
 		CREATE(session[fd]->session_data, struct login_session_data, 1);
 		sd = (struct login_session_data*)session[fd]->session_data;
 		sd->fd = fd;
+		sd->account_id = -1;
 	}
 
 	while( RFIFOREST(fd) >= 2 )
@@ -1387,8 +1534,15 @@ int parse_login(int fd)
 			login_log(session[fd]->client_addr, sd->userid, 100, message);
 
 			result = mmo_auth(sd);
-			if( result == -1 && sd->sex == 'S' && sd->account_id < MAX_SERVERS && server[sd->account_id].fd == -1 )
+			if( result == -1 && sd->sex == 'S' && sd->account_id < ARRAYLENGTH(server) && !session_isActive(server[sd->account_id].fd) )
 			{
+				if( server[sd->account_id].timeout_timer != INVALID_TIMER )
+				{// was waiting for reconnect, cancel timeout
+					delete_timer(server[sd->account_id].timeout_timer, server_timeout_timer);
+					server[sd->account_id].timeout_timer = INVALID_TIMER;
+					acclock_start_all_timeout_timers(sd->account_id, 0);// expire all owned account locks
+				}
+
 				ShowStatus("Connection of the char-server '%s' accepted.\n", server_name);
 				safestrncpy(server[sd->account_id].name, server_name, sizeof(server[sd->account_id].name));
 				server[sd->account_id].fd = fd;
@@ -1407,6 +1561,9 @@ int parse_login(int fd)
 				WFIFOW(fd,0) = 0x2711;
 				WFIFOB(fd,2) = 0;
 				WFIFOSET(fd,3);
+
+				// generate and send cookie
+				charif_generate_cookie(sd->account_id);
 			}
 			else
 			{
@@ -1418,6 +1575,61 @@ int parse_login(int fd)
 			}
 		}
 		return 0; // processing will continue elsewhere
+
+		case 0x271a:	// Reconnection request of a char-server
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+		{
+			size_t i;
+			uint16 cookielen = RFIFOW(fd,2) - 4;
+			const char* cookie = (const char*)WFIFOP(fd,4);
+
+			for( i = 0; i < ARRAYLENGTH(server); ++i )
+			{
+				if( cookielen == server[i].cookielen && memcmp(cookie, server[i].cookie, cookielen) == 0 )
+				{// found
+					if( session_isActive(server[i].fd) )
+					{// already connected, reject
+						WFIFOHEAD(fd,3);
+						WFIFOW(fd,0) = 0x2711;
+						WFIFOB(fd,2) = 3;
+						WFIFOSET(fd,3);
+						// generate and send a new cookie (not required, but better safe than sorry)
+						charif_generate_cookie(i);
+					}
+					else
+					{// all ok, accept reconnection
+						if( server[i].timeout_timer != INVALID_TIMER )
+						{
+							delete_timer(server[i].timeout_timer, server_timeout_timer);
+							server[i].timeout_timer = INVALID_TIMER;
+						}
+						server[i].fd = fd;
+						acclock_start_all_timeout_timers(i, ACCLOCK_TIMEOUT);// account locks need to be reclaimed
+
+						session[fd]->func_parse = parse_fromchar;
+						session[fd]->flag.server = 1;
+						realloc_fifo(fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
+
+						// send connection success
+						WFIFOHEAD(fd,3);
+						WFIFOW(fd,0) = 0x2711;
+						WFIFOB(fd,2) = 0;
+						WFIFOSET(fd,3);
+					}
+					break;
+				}
+			}
+			if( i == ARRAYLENGTH(server) )
+			{// not found, reject
+				WFIFOHEAD(fd,3);
+				WFIFOW(fd,0) = 0x2711;
+				WFIFOB(fd,2) = 3;
+				WFIFOSET(fd,3);
+			}
+			RFIFOSKIP(fd,RFIFOW(fd,2));
+		}
+		break;
 
 		case 0x7530:	// Server version information request
 			ShowStatus("Sending server version information to ip: %s\n", ip);
@@ -1640,8 +1852,7 @@ void do_final(void)
 		}
 	}
 	accounts = NULL; // destroyed in account_engines
-	online_db->destroy(online_db, NULL);
-	auth_db->destroy(auth_db, NULL);
+	db_destroy(acclock_db);
 
 	for (i = 0; i < MAX_SERVERS; i++) {
 		if ((fd = server[i].fd) >= 0) {
@@ -1686,8 +1897,12 @@ int do_init(int argc, char** argv)
 
 	srand((unsigned int)time(NULL));
 
+	memset(server, 0, sizeof(server));
 	for( i = 0; i < MAX_SERVERS; i++ )
+	{
 		server[i].fd = -1;
+		server[i].timeout_timer = INVALID_TIMER;
+	}
 
 	// initialize logging
 	if( login_config.log_login )
@@ -1696,19 +1911,13 @@ int do_init(int argc, char** argv)
 	// initialize static and dynamic ipban system
 	ipban_init();
 
-	// Online user database init
-	online_db = idb_alloc(DB_OPT_RELEASE_DATA);
-	add_timer_func_list(waiting_disconnect_timer, "waiting_disconnect_timer");
-
 	// Interserver auth init
-	auth_db = idb_alloc(DB_OPT_RELEASE_DATA);
+	acclock_db = idb_alloc(DB_OPT_RELEASE_DATA);
+	add_timer_func_list(acclock_timeout_timer, "acclock_timeout_timer");
+	add_timer_func_list(server_timeout_timer, "server_timeout_timer");
 
 	// set default parser as parse_login function
 	set_defaultparse(parse_login);
-
-	// every 10 minutes cleanup online account db.
-	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
-	add_timer_interval(gettick() + 600*1000, online_data_cleanup, 0, 0, 600*1000);
 
 	// add timer to detect ip address change and perform update
 	if (login_config.ip_sync_interval) {

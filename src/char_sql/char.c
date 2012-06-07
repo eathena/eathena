@@ -162,6 +162,187 @@ struct point start_point = { 0, 53, 111 };
 
 int console = 0;
 
+// the cookie allows the server to reconnect to the login-server and continue normally
+// if the cookie is rejected, data is discarded and we switch to normal connect
+static char cookie[256];
+static uint16 cookielen = 0;
+
+
+
+//-----------------------------------------------------
+// Character Locks
+//-----------------------------------------------------
+
+
+/// Timeout of character locks in milliseconds.
+/// @see #charlock_timeout_timer
+#define CHARLOCK_TIMEOUT 60000
+
+
+/// Character lock (implicit account lock)
+struct s_charlock
+{
+	int timeout_timer;
+	int fd;// socket (while connected to this server)
+	int server_id;// owner (-1 for this server)
+	int char_id;// (-1 for no character (account lock))
+	int account_id;
+	uint32 login_id1;
+	uint32 login_id2;
+	uint32 ip;
+	uint32 version;
+	uint8 clienttype;
+	uint8 sex;// SEX_*
+	bool is_online;
+};
+
+
+
+static DBMap* charlock_db; // int account_id -> struct s_charlock* (releases data, can contain locks that aren't owned)
+
+
+
+/// Sets the online status of a character lock owned by the target server.
+static void charlock_set_online(int server_id, int account_id, bool is_online)
+{
+	struct s_charlock* chlock = (struct s_charlock*)idb_get(charlock_db, account_id);
+	if( chlock && chlock->server_id == server_id && chlock->is_online != is_online )
+	{// online status changed
+		chlock->is_online = is_online;
+
+		if( is_online )
+		{// online
+			if( chlock->char_id != -1 )
+			{
+				// guild cache
+				struct mmo_charstatus* cp = (struct mmo_charstatus*)idb_get(char_db_,chlock->char_id);
+				inter_guild_CharOnline(chlock->char_id, cp?cp->guild_id:-1);
+
+				// db
+				if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='1' WHERE `char_id`='%d'", char_db, chlock->char_id) )
+					Sql_ShowDebug(sql_handle);
+			}
+
+			// update user count
+			if( chlock->server_id != -1 )
+				++server[chlock->server_id].users;
+
+			if( session_isActive(login_fd) )
+			{// update account lock
+				WFIFOHEAD(login_fd,6);
+				WFIFOW(login_fd,0) = 0x272b;
+				WFIFOL(login_fd,2) = account_id;
+				WFIFOSET(login_fd,6);
+			}
+		}
+		else
+		{// offline
+			if ( chlock->char_id != -1 )
+			{
+				// guild cache
+				struct mmo_charstatus* cp = (struct mmo_charstatus*)idb_get(char_db_,chlock->char_id);
+				inter_guild_CharOffline(chlock->char_id, cp?cp->guild_id:-1);
+				if( cp )
+					idb_remove(char_db_,chlock->char_id);
+
+				// db
+				if( SQL_ERROR == Sql_Query(sql_handle, "UPDATE `%s` SET `online`='0' WHERE `char_id`='%d'", char_db, chlock->char_id) )
+					Sql_ShowDebug(sql_handle);
+			}
+
+			// update user count
+			if( chlock->server_id != -1 )
+				--server[chlock->server_id].users;
+
+			if( session_isActive(login_fd) )
+			{// update account lock
+				WFIFOHEAD(login_fd,6);
+				WFIFOW(login_fd,0) = 0x272c;
+				WFIFOL(login_fd,2) = account_id;
+				WFIFOSET(login_fd,6);
+			}
+		}
+	}
+}
+
+
+
+/// Remove a character lock that was lost during reconnect.
+static void charlock_is_lost(int account_id)
+{
+	struct s_charlock* chlock = (struct s_charlock*)idb_get(charlock_db, account_id);
+	if( chlock )
+	{
+		if( chlock->is_online )
+			charlock_set_online(chlock->server_id, account_id, false);
+		if( chlock->server_id != -1 && session_isActive(server[chlock->server_id].fd) )
+			mapif_disconnectplayer(server[chlock->server_id].fd, account_id, chlock->char_id, 0);// TODO reason
+		idb_remove(charlock_db, account_id);
+	}
+}
+
+
+
+/// Reclaim ownership of all account locks.
+static void charlock_reclaim_all(void)
+{
+	if( session_isActive(login_fd) )
+	{
+		struct s_charlock* chlock;
+		DBIterator* it = db_iterator(charlock_db);
+		while( (chlock=(struct s_charlock*)dbi_next(it)) != NULL )
+		{
+			WFIFOHEAD(login_fd,7);
+			WFIFOW(login_fd,0) = 0x2714;
+			WFIFOL(login_fd,2) = chlock->account_id;
+			WFIFOB(login_fd,6) = 2;// reclaim
+			WFIFOSET(login_fd,7);
+		}
+		dbi_destroy(it);
+	}
+}
+
+
+
+/// Request ownership of an account lock.
+static void charlock_request(int account_id)
+{
+	if( idb_get(charlock_db, account_id) == NULL && session_isActive(login_fd) )
+	{
+		WFIFOHEAD(login_fd,7);
+		WFIFOW(login_fd,0) = 0x2714;
+		WFIFOL(login_fd,2) = account_id;
+		WFIFOB(login_fd,6) = 1;// request
+		WFIFOSET(login_fd,7);
+	}
+}
+
+
+
+/// Releases the target character lock and account lock.
+static void charlock_release(int server_id, int account_id)
+{
+	struct s_charlock* chlock = (struct s_charlock*)idb_get(charlock_db, account_id);
+	if( chlock && chlock->server_id == server_id )
+	{
+		// release character lock
+		charlock_set_online(chlock->server_id, account_id, false);
+		idb_remove(charlock_db, account_id);
+
+		// release account lock
+		if( session_isActive(login_fd) )
+		{
+			WFIFOHEAD(login_fd,7);
+			WFIFOW(login_fd,0) = 0x2714;
+			WFIFOL(login_fd,2) = account_id;
+			WFIFOB(login_fd,6) = 0;// release
+			WFIFOSET(login_fd,7);
+		}
+	}
+}
+
+
+
 //-----------------------------------------------------
 // Auth database
 //-----------------------------------------------------
@@ -1650,6 +1831,31 @@ static void char_auth_ok(int fd, struct char_session_data *sd)
 
 int send_accounts_tologin(int tid, unsigned int tick, int id, intptr data);
 
+static void char_request_connect(void)
+{
+	WFIFOHEAD(login_fd,86);
+	WFIFOW(login_fd,0) = 0x2710;
+	memcpy(WFIFOP(login_fd,2), userid, 24);
+	memcpy(WFIFOP(login_fd,26), passwd, 24);
+	WFIFOL(login_fd,50) = 0;
+	WFIFOL(login_fd,54) = htonl(char_ip);
+	WFIFOL(login_fd,58) = htons(char_port);
+	memcpy(WFIFOP(login_fd,60), server_name, 20);
+	WFIFOW(login_fd,80) = 0;
+	WFIFOW(login_fd,82) = char_maintenance;
+	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
+	WFIFOSET(login_fd,86);
+}
+
+static void char_request_reconnect(void)
+{
+	WFIFOHEAD(login_fd,4+cookielen);
+	WFIFOW(login_fd,0) = 0x271a;
+	WFIFOW(login_fd,2) = 4+cookielen;
+	memcpy(WFIFOP(login_fd,4), cookie, cookielen);
+	WFIFOSET(login_fd,4+cookielen);
+}
+
 int parse_fromlogin(int fd)
 {
 	int i;
@@ -1684,17 +1890,29 @@ int parse_fromlogin(int fd)
 				return 0;
 
 			if (RFIFOB(fd,2)) {
-				//printf("connect login server error : %d\n", RFIFOB(fd, 2));
-				ShowError("Can not connect to login-server.\n");
-				ShowError("The server communication passwords (default s1/p1) are probably invalid.\n");
-				ShowError("Also, please make sure your login db has the correct communication username/passwords and the gender of the account is S.\n");
-				ShowError("The communication passwords are set in map_athena.conf and char_athena.conf\n");
+				if( cookielen )
+				{// reconnect failed
+					ShowError("Cookie rejected, discarding data and attempting normal connect...\n");
+					cookielen = 0;
+					// TODO discard data [FlavioJS]
+					char_request_connect();
+				}
+				else
+				{// connect failed
+					ShowError("Can not connect to login-server.\n");
+					ShowError("The server communication passwords (default s1/p1) are probably invalid.\n");
+					ShowError("Also, please make sure your login db has the correct communication username/passwords and the gender of the account is S.\n");
+					ShowError("The communication passwords are set in map_athena.conf and char_athena.conf\n");
+				}
 			}else {
 				ShowStatus("Connected to login-server (connection #%d).\n", fd);
 				
 				//Send online accounts to login server.
 				send_accounts_tologin(-1, gettick(), 0, 0);
-			
+
+				if( cookielen )
+					charlock_reclaim_all();
+
 				// if no map-server already connected, display a message...
 				ARR_FIND( 0, MAX_MAP_SERVERS, i, server[i].fd > 0 && server[i].map[0] );
 				if( i == MAX_MAP_SERVERS )
@@ -1737,36 +1955,74 @@ int parse_fromlogin(int fd)
 					break;
 				}
 			}
+			else if( result == 2 )
+			{// lock lost
+				charlock_is_lost(account_id);
+			}
 		}
 		break;
 
 		case 0x2717: // account data
 			if (RFIFOREST(fd) < 51)
 				return 0;
+		{
+			int account_id;
+			char email[40];
+			uint32 expiration_time;
+			int8 gmlevel;
+			struct s_charlock* chlock;
 
-			// find the authenticated session with this account id
-			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
-			if( i < fd_max )
-			{
-				memcpy(sd->email, RFIFOP(fd,6), 40);
-				sd->expiration_time = (time_t)RFIFOL(fd,46);
-				sd->gmlevel = RFIFOB(fd,50);
+			account_id = RFIFOL(fd,2);
+			safestrncpy(email, (const char*)RFIFOL(fd,6), 40);
+			expiration_time = RFIFOL(fd,46);
+			gmlevel = RFIFOB(fd,50);
+			RFIFOSKIP(fd,51);
+
+			chlock = (struct s_charlock*)idb_get(charlock_db, account_id);
+			if( chlock == NULL )
+				break;
+
+			if( chlock->server_id == -1 )
+			{// to char-server
+				int client_fd = chlock->fd;
+
+				if( !session_isActive(client_fd) )
+					break;
+
+				sd = (struct char_session_data*)session[client_fd]->session_data;
+
+				memcpy(sd->email, email, 40);
+				sd->expiration_time = (time_t)expiration_time;
+				sd->gmlevel = gmlevel;
 
 				// continued from char_auth_ok...
 				if( max_connect_user && count_users() >= max_connect_user && sd->gmlevel < gm_allow_level )
-				{
-					// refuse connection (over populated)
-					WFIFOW(i,0) = 0x6c;
-					WFIFOW(i,2) = 0;
-					WFIFOSET(i,3);
+				{// refuse connection (over populated)
+					WFIFOHEAD(client_fd,3);
+					WFIFOW(client_fd,0) = 0x6c;
+					WFIFOW(client_fd,2) = 0;
+					WFIFOSET(client_fd,3);
+					break;
 				}
-				else
-				{
-					// send characters to player
-					mmo_char_send006b(i, sd);
-				}
+				// send characters to player
+				mmo_char_send006b(client_fd, sd);
 			}
-			RFIFOSKIP(fd,51);
+			else
+			{// to map-server
+				int server_fd = server[chlock->server_id].fd;
+
+				if( !session_isActive(server_fd) )
+					break;
+
+				WFIFOHEAD(server_fd,51);
+				WFIFOW(server_fd,0) = 0x2afe;
+				WFIFOL(server_fd,2) = account_id;
+				safestrncpy((char*)WFIFOP(server_fd,6), email, 40);
+				WFIFOL(server_fd,46) = expiration_time;
+				WFIFOB(server_fd,50) = gmlevel;
+				WFIFOSET(server_fd,51);
+			}
+		}
 		break;
 
 		// login-server alive packet
@@ -1774,6 +2030,21 @@ int parse_fromlogin(int fd)
 			if (RFIFOREST(fd) < 2)
 				return 0;
 			RFIFOSKIP(fd,2);
+		break;
+
+		case 0x271b:// receive session cookie
+			if (RFIFOREST(fd) < 4 || RFIFOREST(fd) < RFIFOW(fd,2))
+				return 0;
+			cookielen = RFIFOW(fd,2)-4;
+			memset(cookie, '\0', sizeof(cookie));
+			if( cookielen > sizeof(cookie) )
+			{
+				ShowError("parse_fromlogin(0x271b): cookielen is too long, discarding cookie. (%d > %d)\n", cookielen, sizeof(cookie));
+				cookielen = 0;
+			}
+			else
+				memcpy(cookie, RFIFOP(fd,4), cookielen);
+			RFIFOSKIP(fd,RFIFOW(fd,2));
 		break;
 
 		// changesex reply
@@ -2734,68 +3005,86 @@ int parse_frommap(int fd)
 			RFIFOSKIP(fd,2);
 		break;
 
-		case 0x2b26: // auth request from map-server
+		case 0x2b26: // load request from map-server
 			if (RFIFOREST(fd) < 19)
 				return 0;
 
 		{
 			int account_id;
 			int char_id;
-			int login_id1;
-			char sex;
-			uint32 ip;
-			struct auth_node* node;
+			uint8 what;
+			struct s_charlock* chlock;
 			struct mmo_charstatus* cd;
-			struct mmo_charstatus char_dat;
 
 			account_id = RFIFOL(fd,2);
 			char_id    = RFIFOL(fd,6);
-			login_id1  = RFIFOL(fd,10);
-			sex        = RFIFOB(fd,14);
-			ip         = ntohl(RFIFOL(fd,15));
-			RFIFOSKIP(fd,19);
+			what       = RFIFOB(fd,10);
+			RFIFOSKIP(fd,11);
 
-			node = (struct auth_node*)idb_get(auth_db, account_id);
-			cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
-			if( cd == NULL )
-			{	//Really shouldn't happen.
-				mmo_char_fromsql(char_id, &char_dat, true);
-				cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
-			}
-			if( node != NULL && cd != NULL &&
-				node->account_id == account_id &&
-				node->char_id == char_id &&
-				node->login_id1 == login_id1 &&
-				node->sex == sex &&
-				node->ip == ip )
-			{// auth ok
-				cd->sex = sex;
-
-				WFIFOHEAD(fd,24 + sizeof(struct mmo_charstatus));
-				WFIFOW(fd,0) = 0x2afd;
-				WFIFOW(fd,2) = 24 + sizeof(struct mmo_charstatus);
-				WFIFOL(fd,4) = account_id;
-				WFIFOL(fd,8) = node->login_id1;
-				WFIFOL(fd,12) = node->login_id2;
-				WFIFOL(fd,16) = (uint32)node->expiration_time; // FIXME: will wrap to negative after "19-Jan-2038, 03:14:07 AM GMT"
-				WFIFOL(fd,20) = node->gmlevel;
-				memcpy(WFIFOP(fd,24), cd, sizeof(struct mmo_charstatus));
-				WFIFOSET(fd, WFIFOW(fd,2));
-
-				// only use the auth once and mark user online
-				idb_remove(auth_db, account_id);
-				set_char_online(id, char_id, account_id);
-			}
-			else
-			{// auth failed
-				WFIFOHEAD(fd,19);
+			chlock = (struct s_charlock*)idb_get(charlock_db, account_id);
+			if( chlock == NULL || chlock->server_id != id || (char_id != -1 && chlock->char_id != char_id) )
+			{
+				WFIFOHEAD(fd,11);
 				WFIFOW(fd,0) = 0x2b27;
 				WFIFOL(fd,2) = account_id;
 				WFIFOL(fd,6) = char_id;
-				WFIFOL(fd,10) = login_id1;
-				WFIFOB(fd,14) = sex;
-				WFIFOL(fd,15) = htonl(ip);
-				WFIFOSET(fd,19);
+				WFIFOB(fd,6) = 0;// failed
+				WFIFOSET(fd,11);
+				break;
+			}
+
+			switch( what )
+			{
+			case 0:// account data
+				if( !session_isActive(login_fd) )
+				{
+					WFIFOHEAD(fd,11);
+					WFIFOW(fd,0) = 0x2b27;
+					WFIFOL(fd,2) = account_id;
+					WFIFOL(fd,6) = char_id;
+					WFIFOB(fd,6) = 0;// failed
+					WFIFOSET(fd,11);
+					break;
+				}
+				WFIFOHEAD(login_fd,6);
+				WFIFOW(login_fd,0) = 0x2716;
+				WFIFOL(login_fd,2) = account_id;
+				WFIFOSET(login_fd,6);
+				break;
+
+			case 1:// character data
+				cd = (struct mmo_charstatus*)idb_get(char_db_, char_id);
+				if( cd == NULL )
+				{// Really shouldn't happen.
+					struct mmo_charstatus char_dat;
+					mmo_char_fromsql(char_id, &char_dat, true);
+					cd = (struct mmo_charstatus*)uidb_get(char_db_,char_id);
+				}
+				if( cd == NULL )
+				{// failed
+					WFIFOHEAD(fd,11);
+					WFIFOW(fd,0) = 0x2b27;
+					WFIFOL(fd,2) = account_id;
+					WFIFOL(fd,6) = char_id;
+					WFIFOB(fd,6) = 1;// character not found
+					WFIFOSET(fd,11);
+					break;
+				}
+				WFIFOHEAD(fd,4+sizeof(struct mmo_charstatus));
+				WFIFOW(fd,0) = 0x2afd;
+				WFIFOW(fd,2) = 4+sizeof(struct mmo_charstatus);
+				memcpy(WFIFOP(fd,4), cd, sizeof(struct mmo_charstatus));
+				WFIFOSET(fd, WFIFOW(fd,2));
+				break;
+
+			default:
+				WFIFOHEAD(fd,11);
+				WFIFOW(fd,0) = 0x2b27;
+				WFIFOL(fd,2) = account_id;
+				WFIFOL(fd,6) = char_id;
+				WFIFOB(fd,6) = 0;// failed
+				WFIFOSET(fd,11);
+				break;
 			}
 		}
 		break;
@@ -3386,15 +3675,6 @@ int broadcast_user_count(int tid, unsigned int tick, int id, intptr data)
 		return 0;
 	prev_users = users;
 
-	if( login_fd > 0 && session[login_fd] )
-	{
-		// send number of user to login server
-		WFIFOHEAD(login_fd,6);
-		WFIFOW(login_fd,0) = 0x2714;
-		WFIFOL(login_fd,2) = users;
-		WFIFOSET(login_fd,6);
-	}
-
 	// send number of players to all map-servers
 	WBUFW(buf,0) = 0x2b00;
 	WBUFL(buf,2) = users;
@@ -3451,20 +3731,12 @@ int check_connect_login_server(int tid, unsigned int tick, int id, intptr data)
 	session[login_fd]->func_parse = parse_fromlogin;
 	session[login_fd]->flag.server = 1;
 	realloc_fifo(login_fd, FIFOSIZE_SERVERLINK, FIFOSIZE_SERVERLINK);
-	
-	WFIFOHEAD(login_fd,86);
-	WFIFOW(login_fd,0) = 0x2710;
-	memcpy(WFIFOP(login_fd,2), userid, 24);
-	memcpy(WFIFOP(login_fd,26), passwd, 24);
-	WFIFOL(login_fd,50) = 0;
-	WFIFOL(login_fd,54) = htonl(char_ip);
-	WFIFOL(login_fd,58) = htons(char_port);
-	memcpy(WFIFOP(login_fd,60), server_name, 20);
-	WFIFOW(login_fd,80) = 0;
-	WFIFOW(login_fd,82) = char_maintenance;
-	WFIFOW(login_fd,84) = char_new_display; //only display (New) if they want to [Kevin]
-	WFIFOSET(login_fd,86);
-	
+
+	if( cookielen )
+		char_request_reconnect();
+	else
+		char_request_connect();
+
 	return 1;
 }
 
@@ -3492,25 +3764,6 @@ static int chardb_waiting_disconnect(int tid, unsigned int tick, int id, intptr 
 		character->waiting_disconnect = -1;
 		set_char_offline(character->char_id, character->account_id);
 	}
-	return 0;
-}
-
-static int online_data_cleanup_sub(DBKey key, void *data, va_list ap)
-{
-	struct online_char_data *character= (struct online_char_data*)data;
-	if (character->fd != -1)
-		return 0; //Still connected
-	if (character->server == -2) //Unknown server.. set them offline
-		set_char_offline(character->char_id, character->account_id);
-	if (character->server < 0)
-		//Free data from players that have not been online for a while.
-		db_remove(online_char_db, key);
-	return 0;
-}
-
-static int online_data_cleanup(int tid, unsigned int tick, int id, intptr data)
-{
-	online_char_db->foreach(online_char_db, online_data_cleanup_sub);
 	return 0;
 }
 
@@ -3931,10 +4184,6 @@ int do_init(int argc, char **argv)
 
 	// ???
 	add_timer_func_list(chardb_waiting_disconnect, "chardb_waiting_disconnect");
-
-	// ???
-	add_timer_func_list(online_data_cleanup, "online_data_cleanup");
-	add_timer_interval(gettick() + 1000, online_data_cleanup, 0, 0, 600 * 1000);
 
 	if( console )
 	{
