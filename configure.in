@@ -2,6 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT(eAthena)
+AC_CONFIG_HEADER([src/common/config.h])
 AC_REVISION($Revision$)
 AC_PREREQ([2.59])
 AC_CONFIG_SRCDIR([src/common/cbasetypes.h])
@@ -444,18 +445,27 @@ AC_COMPILE_IFELSE(
 # Check for libraries and header files.
 #
 
+#
+# common system headers
+#
+AC_CHECK_HEADERS()
+
 
 #
 # setrlimit - used to set the socket limit
 #
-AC_CHECK_FUNC([setrlimit],[CFLAGS="$CFLAGS -DHAVE_SETRLIMIT"])
+AC_CHECK_FUNCS([setrlimit])
 
 
 #
 # strnlen - string length with upper scan bound
 #
-AC_CHECK_FUNC([strnlen],[CFLAGS="$CFLAGS -DHAVE_STRNLEN"])
+AC_CHECK_FUNCS([strnlen])
 
+#
+# more functions to check
+#
+AC_CHECK_FUNCS([getpid gettid])
 
 #
 # Memory manager
@@ -491,7 +501,7 @@ esac
 # Packetver
 #
 if test -n "$enable_packetver" ; then
-	CFLAGS="$CFLAGS -DPACKETVER=$enable_packetver"
+	AC_DEFINE_UNQUOTED([PACKETVER],[$enable_packetver],[Packet version.])
 fi
 
 

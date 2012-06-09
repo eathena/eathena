@@ -1,0 +1,26 @@
+
+#ifndef _CONFIG_H_
+#define _CONFIG_H_
+
+// headers
+#undef STDC_HEADERS
+#undef HAVE_SYS_TYPES_H
+#undef HAVE_SYS_STAT_H
+#undef HAVE_STDLIB_H
+#undef HAVE_STRING_H
+#undef HAVE_MEMORY_H
+#undef HAVE_STRINGS_H
+#undef HAVE_INTTYPES_H
+#undef HAVE_STDINT_H
+#undef HAVE_UNISTD_H
+
+// functions
+#undef HAVE_SETRLIMIT
+#undef HAVE_STRNLEN
+#undef HAVE_GETPID
+#undef HAVE_GETTID
+
+// other
+#undef PACKETVER
+
+#endif /* _CONFIG_H_ */
