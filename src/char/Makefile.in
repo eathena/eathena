@@ -44,7 +44,7 @@ obj_txt:
 	-mkdir obj_txt
 
 obj_txt/%.o: %.c $(CHAR_H) $(COMMON_H) $(MT19937AR_H)
-	@CC@ @CFLAGS@ $(MT19937AR_INCLUDE) -DTXT_ONLY @CPPFLAGS@ -c $(OUTPUT_OPTION) $<
+	@CC@ @DEFS@ @CFLAGS@ $(MT19937AR_INCLUDE) -DTXT_ONLY @CPPFLAGS@ -c $(OUTPUT_OPTION) $<
 
 # missing object files
 ../common/obj_all/%.o:
