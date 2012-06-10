@@ -1,5 +1,12 @@
 Date	Added
 
+2012/06/10
+	* Fixed wrong variable name preventing inline attributes from being detected (since r15131). [Ai4rei]
+	* Added detecting of supported inline directives. [Ai4rei]
+	* Fixed wrong define being checked for, for MSVC specific inline directive (since r5038). [Ai4rei]
+2012/06/09
+	* Added support for config.h generation to configure and makefiles (see r15125). [Ai4rei]
+	* Added svn:ignore on generated src/common/config.h (follow up to r15125).
 2012/05/19
 	* Merged instances of packet 0x8e (ZC_NOTIFY_PLAYERCHAT) into clif_notify_playerchat, except clif_displaymessage (takes fd rather than sd). [Ai4rei]
 	- Fixed a mistake in the length calculation in clif_notify_chat (since r15119).

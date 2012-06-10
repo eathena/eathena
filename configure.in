@@ -456,7 +456,7 @@ for ac_kw in inline __inline __inline__ __forceinline; do
 		[AC_DEFINE_UNQUOTED([`echo "HAVE_$ac_kw" | $as_tr_cpp`],[1])]
 	)
 done
-for inline_directive in noinline always_inline gnu_inline; do
+for ac_kw in noinline always_inline gnu_inline; do
 	AC_COMPILE_IFELSE(
 		[
 			typedef int foo_t;
