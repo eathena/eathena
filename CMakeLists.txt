@@ -14,7 +14,7 @@
 #   ENABLE_* : option to use an internal feature/code or not
 #   HAVE_*   : internal variable indicating if we have and are using something
 #
-# Maintainer: Fl·vio J. Saraiva (feel free to send complaints or suggestions)
+# Maintainer: Fl√°vio J. Saraiva (feel free to send complaints or suggestions)
 #   flaviojs @ eAthena forum/irc
 #   flaviojs2005 \A-T/ gmail <D.o,T> com
 #
@@ -93,7 +93,9 @@ foreach( _filename inttypes.h stdint.h )
 	set( _define HAVE_${_filename} )
 	string( TOUPPER "${_define}" _define )
 	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )
+	set( CMAKE_REQUIRED_INCLUDES ${GLOBAL_INCLUDE_DIRS} )
 	CHECK_INCLUDE_FILE( "${_filename}" ${_define} )
+	unset( CMAKE_REQUIRED_INCLUDES )
 	unset( _define )
 endforeach()
 
@@ -109,7 +111,9 @@ foreach( _function setrlimit strnlen getpid gettid )
 	set( _define HAVE_${_filename} )
 	string( TOUPPER "${_define}" _define )
 	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )
+	set( CMAKE_REQUIRED_INCLUDES ${GLOBAL_INCLUDE_DIRS} )
 	CHECK_FUNCTION_EXISTS( "${_function}" ${_define} )
+	unset( CMAKE_REQUIRED_INCLUDES )
 	unset( _define )
 endforeach()
 
