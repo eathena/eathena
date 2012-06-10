@@ -228,7 +228,9 @@ endif()
 #
 # Test for big endian
 #
+set( CMAKE_REQUIRED_INCLUDES ${GLOBAL_INCLUDE_DIRS} ) # needed to determine the type of a 16bit integer
 TEST_BIG_ENDIAN( BIG_ENDIAN )
+unset( CMAKE_REQUIRED_INCLUDES )
 if( NOT DEFINED BIG_ENDIAN )
 	message( WARNING "unable to determine endianess, only LITTLE ENDIAN is supported" )
 elseif( BIG_ENDIAN )
