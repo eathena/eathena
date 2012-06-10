@@ -2,6 +2,16 @@
 #ifndef _CONFIG_H_
 #define _CONFIG_H_
 
+// compiler keywords and attributes
+#undef inline
+#undef HAVE_INLINE
+#undef HAVE___INLINE__
+#undef HAVE___INLINE
+#undef HAVE___FORCEINLINE
+#undef HAVE_ATTRIBUTE_NOINLINE
+#undef HAVE_ATTRIBUTE_ALWAYS_INLINE
+#undef HAVE_ATTRIBUTE_GNU_INLINE
+
 // headers
 #undef STDC_HEADERS
 #undef HAVE_SYS_TYPES_H

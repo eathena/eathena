@@ -441,6 +441,34 @@ AC_COMPILE_IFELSE(
 )
 
 
+#
+# check how to inline functions
+#
+AC_C_INLINE()
+AC_MSG_CHECKING([for all available inline directives])
+for ac_kw in inline __inline __inline__ __forceinline; do
+	AC_COMPILE_IFELSE(
+		[
+			typedef int foo_t;
+			static $ac_kw foo_t static_foo(void){ return 0; }
+			$ac_kw foo_t foo(void){ return 0; }
+		],
+		[AC_DEFINE_UNQUOTED([`echo "HAVE_$ac_kw" | $as_tr_cpp`],[1])]
+	)
+done
+for inline_directive in noinline always_inline gnu_inline; do
+	AC_COMPILE_IFELSE(
+		[
+			typedef int foo_t;
+			static __attribute__(($ac_kw)) foo_t static_foo(void){ return 0; }
+			__attribute__(($ac_kw)) foo_t foo(void){ return 0; }
+		],
+		[AC_DEFINE_UNQUOTED([`echo "HAVE_ATTRIBUTE_$ac_kw" | $as_tr_cpp`],[1])]
+	)
+done
+AC_MSG_RESULT([done])
+
+
 ###############################################################################
 # Check for libraries and header files.
 #
