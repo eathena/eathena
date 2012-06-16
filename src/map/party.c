@@ -142,7 +142,9 @@ struct party_data* party_searchname(const char* str)
 	return p;
 }
 
-int party_create(struct map_session_data *sd,char *name,int item,int item2)
+/// Request the creation of a party.
+/// Returns true if the request was sent.
+bool party_create(struct map_session_data* sd, const char* name, int item, int item2)
 {
 	struct party_member leader;
 	char tname[NAME_LENGTH];
@@ -152,25 +154,24 @@ int party_create(struct map_session_data *sd,char *name,int item,int item2)
 
 	if( !tname[0] )
 	{// empty name
-		return 0;
+		return false;
 	}
 
 	if( sd->status.party_id > 0 || sd->party_joining || sd->party_creating )
 	{// already associated with a party
 		clif_party_created(sd,2);
-		return 0;
+		return false;
 	}
-
-	sd->party_creating = true;
 
 	party_fill_member(&leader, sd, 1);
 
-	intif_create_party(&leader,name,item,item2);
-	return 0;
+	sd->party_creating = intif_create_party(&leader,name,item,item2);
+	return sd->party_creating;
 }
 
 
-void party_created(int account_id,int char_id,int fail,int party_id,char *name)
+/// Party creation notification.
+void party_created(int account_id, int char_id, int fail, int party_id, const char* name)
 {
 	struct map_session_data *sd;
 	sd=map_id2sd(account_id);
