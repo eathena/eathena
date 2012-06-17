@@ -158,7 +158,7 @@ if( NOT DEFINED SVNVERSION )
 		set( SVNVERSION )# unversioned, keep empty
 	elseif( SVNVERSION STREQUAL "exported" )
 		# exported, nothing to do
-	else( Subversion_FOUND AND SVNVERSION )
+	elseif( Subversion_FOUND AND SVNVERSION )
 		Subversion_WC_INFO( ${PROJECT_SOURCE_DIR} eAthena )
 		if( eAthena_WC_URL )
 			string( REGEX MATCH "[^/]+$" BRANCH ${eAthena_WC_URL} )
