@@ -317,7 +317,7 @@ int party_recv_info(struct party* sp, int char_id)
 			continue;// not online
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
 		clif_party_member_info(p, member_id, PARTY);
-		clif_party_option(p,sd,0x100);
+		clif_party_option(p, member_id, SELF);
 		clif_party_info(p,NULL);
 		if( p->instance_id != 0 )
 			clif_instance_join(sd->fd, p->instance_id);
@@ -490,7 +490,7 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 	sd->status.party_id = party_id;
 
 	clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
-	clif_party_option(p,sd,0x100);
+	clif_party_option(p, party_getmemberid(p,sd), SELF);
 	clif_party_info(p,sd);
 
 	if( sd2 != NULL )
@@ -616,6 +616,8 @@ int party_broken(int party_id)
 	return 0;
 }
 
+
+/// Request the charserver to change party options.
 int party_changeoption(struct map_session_data *sd,int exp,int item)
 {
 	nullpo_ret(sd);
@@ -626,27 +628,29 @@ int party_changeoption(struct map_session_data *sd,int exp,int item)
 	return 0;
 }
 
-int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
+
+/// Reply from charserver about changed party options.
+/// flag bitfield:
+///     &0x01 - exp change denied
+///     &0x10 - item change denied
+void party_optionchanged(int party_id, int account_id, int exp, int item, int flag)
 {
 	struct party_data *p;
 	struct map_session_data *sd=map_id2sd(account_id);
 	if( (p=party_search(party_id))==NULL)
-		return 0;
+		return;
 
 	//Flag&1: Exp change denied. Flag&2: Item change denied.
 	if(!(flag&0x01) && p->party.exp != exp)
 		p->party.exp=exp;
-	if(!(flag&0x10) && p->party.item != item) {
+	if(!(flag&0x10) && p->party.item != item)
 		p->party.item=item;
-#if PACKETVER<20090603
-		//item changes aren't updated by clif_party_option for older clients.
-		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
-#endif
-	}
 
-	clif_party_option(p,sd,flag);
-	return 0;
+	if( (flag&0x01) )
+		clif_party_option_failexp(sd);
+	clif_party_option(p, party_getmemberid(p,sd), PARTY);
 }
+
 
 bool party_changeleader(struct map_session_data *sd, struct map_session_data *tsd)
 {
@@ -746,7 +750,7 @@ void party_send_movemap(struct map_session_data *sd)
 
 	if(sd->state.connect_new) {
 		//Note that this works because this function is invoked before connect_new is cleared.
-		clif_party_option(p,sd,0x100);
+		clif_party_option(p, party_getmemberid(p,sd), SELF);
 		clif_party_info(p,sd);
 		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
 	}
