@@ -51,7 +51,9 @@ extern int char_fd;		// inter serverのfdはchar_fdを使う
 //-----------------------------------------------------------------
 // inter serverへの送信
 
-int CheckForCharServer(void)
+
+/// Returns true if not connected to the char-server.
+bool CheckForCharServer(void)
 {
 	return ((char_fd <= 0) || session[char_fd] == NULL || session[char_fd]->wdata == NULL);
 }
@@ -364,22 +366,23 @@ int intif_send_guild_storage(int account_id,struct guild_storage *gstor)
 	return 0;
 }
 
-// パーティ作成要求
-int intif_create_party(struct party_member *member,char *name,int item,int item2)
+/// Create a party.
+/// Returns true if the request is sent.
+bool intif_create_party(struct party_member* member, const char* name, int item, int item2)
 {
 	if (CheckForCharServer())
-		return 0;
-	nullpo_ret(member);
+		return false;
+	nullpo_retr(false, member);
 
 	WFIFOHEAD(inter_fd,64);
 	WFIFOW(inter_fd,0) = 0x3020;
 	WFIFOW(inter_fd,2) = 30+sizeof(struct party_member);
 	memcpy(WFIFOP(inter_fd,4),name, NAME_LENGTH);
-	WFIFOB(inter_fd,28)= item;
-	WFIFOB(inter_fd,29)= item2;
+	WFIFOB(inter_fd,28) = item;
+	WFIFOB(inter_fd,29) = item2;
 	memcpy(WFIFOP(inter_fd,30), member, sizeof(struct party_member));
 	WFIFOSET(inter_fd,WFIFOW(inter_fd, 2));
-	return 0;
+	return true;
 }
 // パーティ情報要求
 int intif_request_partyinfo(int party_id, int char_id)
@@ -998,12 +1001,12 @@ int intif_parse_SaveGuildStorage(int fd)
 	return 0;
 }
 
-// パーティ作成可否
+/// Party creation notification.
 int intif_parse_PartyCreated(int fd)
 {
 	if(battle_config.etc_log)
 		ShowInfo("intif: party created by account %d\n\n", RFIFOL(fd,2));
-	party_created(RFIFOL(fd,2), RFIFOL(fd,6),RFIFOB(fd,10),RFIFOL(fd,11), (char *)RFIFOP(fd,15));
+	party_created(RFIFOL(fd,2), RFIFOL(fd,6), RFIFOB(fd,10), RFIFOL(fd,11), (const char *)RFIFOP(fd,15));
 	return 0;
 }
 // パーティ情報
