@@ -41,13 +41,14 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="../3rdparty/msinttypes/include"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 				DisableSpecificWarnings="4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -120,7 +121,7 @@
 				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="../3rdparty/msinttypes/include"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_USRDLL"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -128,6 +129,7 @@
 				WarningLevel="3"
 				DebugInformationFormat="3"
 				DisableSpecificWarnings="4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

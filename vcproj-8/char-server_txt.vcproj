@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -55,6 +55,7 @@
 				DebugInformationFormat="4"
 				CompileAs="1"
 				DisableSpecificWarnings="4800"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -132,7 +133,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;TXT_ONLY;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -142,6 +143,7 @@
 				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4800"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

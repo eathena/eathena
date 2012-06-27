@@ -1,5 +1,7 @@
 Date	Added
 
+2012/06/27
+	* Added static force-include src/common/config.vc.h to visual studio projects as counterpart to config.h from makefiles. [Ai4rei]
 2012/06/10
 	* Fixed wrong variable name preventing inline attributes from being detected (since r15131). [Ai4rei]
 	* Added detecting of supported inline directives. [Ai4rei]
