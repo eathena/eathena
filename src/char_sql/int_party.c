@@ -858,4 +858,34 @@ int inter_party_CharOffline(int char_id, int party_id) {
 		idb_remove(party_db_, party_id);
 	return 1;
 }
+
+
+/// Updates the party info related to the target character.
+/// Returns true on success.
+bool inter_party_update(struct mmo_charstatus* cd)
+{
+	struct party_data* p;
+	struct party_member* member;
+	int i;
+
+	if( cd == NULL || cd->party_id == 0 )
+		return false; // character not in a party
+	p = inter_party_fromsql(cd->party_id);
+	if( p == NULL )
+		return false; // invalid party
+	for( i = 0; i <= p->party.count; ++i )
+	{
+		member = &p->party.member[i];
+		if( member->account_id != cd->account_id || member->char_id != cd->char_id )
+			continue;
+		safestrncpy(member->name, cd->name, NAME_LENGTH);
+		member->class_ = cd->class_;
+		member->map = cd->last_point.map;
+		member->lv = cd->base_level;
+		mapif_party_info(-1, &p->party, cd->char_id); // send to all map servers
+		return true; // found and updated
+	}
+	return false; // not found
+}
+
 #endif //TXT_SQL_CONVERT
