@@ -494,7 +494,7 @@ void clif_movetoattack(struct map_session_data *sd,struct block_list *bl);
 
 // party
 void clif_party_created(struct map_session_data *sd,int result);
-void clif_party_member_info(struct party_data *p, struct map_session_data *sd);
+void clif_party_member_info(struct party_data *p, int member_id, send_target type);
 void clif_party_info(struct party_data* p, struct map_session_data *sd);
 void clif_party_invite(struct map_session_data *sd,struct map_session_data *tsd);
 void clif_party_inviteack(struct map_session_data* sd, const char* nick, int result);
