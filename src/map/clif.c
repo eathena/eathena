@@ -6245,18 +6245,17 @@ void clif_party_inviteack(struct map_session_data* sd, const char* nick, int res
 
 
 /// Updates party settings.
+/// Other behaviour:
+///     notifies the user about the current options
 /// 0101 <exp option>.L (ZC_GROUPINFO_CHANGE)
 /// 07d8 <exp option>.L <item pick rule>.B <item share rule>.B (ZC_REQ_GROUPINFO_CHANGE_V2)
 /// exp option:
 ///     0 = exp sharing disabled
 ///     1 = exp sharing enabled
 ///     2 = cannot change exp sharing
-///
-/// flag:
-///     0 = send to party
-///     1 = send to sd
-void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag)
+void clif_party_option(struct party_data* p, int member_id, send_target type)
 {
+	struct map_session_data* sd;
 	unsigned char buf[16];
 #if PACKETVER < 20090603
 	const int cmd = 0x101;
@@ -6266,23 +6265,44 @@ void clif_party_option(struct party_data *p,struct map_session_data *sd,int flag
 
 	nullpo_retv(p);
 
-	if(!sd && flag==0){
-		int i;
-		for(i=0;i<MAX_PARTY && !p->data[i].sd;i++);
-		if (i < MAX_PARTY)
-			sd = p->data[i].sd;
-	}
-	if(!sd) return;
+	if( member_id < 0 || member_id >= MAX_PARTY )
+		return;// out of range
+	sd = p->data[member_id].sd;
+	if( sd == NULL && type != SELF )
+		sd = party_getavailablesd(p);// can use any party member
+	if( sd == NULL )
+		return;// not online
+
 	WBUFW(buf,0)=cmd;
-	WBUFL(buf,2)=((flag&0x01)?2:p->party.exp);
+	WBUFL(buf,2)=p->party.exp;
 #if PACKETVER >= 20090603
 	WBUFB(buf,6)=(p->party.item&1)?1:0;
 	WBUFB(buf,7)=(p->party.item&2)?1:0;
+#else
+	// item changes are not notified in older clients
+	clif_party_member_info(p, member_id, type);
 #endif
-	if(flag==0)
-		clif_send(buf,packet_len(cmd),&sd->bl,PARTY);
-	else
-		clif_send(buf,packet_len(cmd),&sd->bl,SELF);
+	clif_send(buf,packet_len(cmd),&sd->bl,type);
+}
+
+
+/// Notify the user that it cannot change exp sharing.
+/// 0101 <exp option>.L (ZC_GROUPINFO_CHANGE)
+/// exp option:
+///     0 = exp sharing disabled
+///     1 = exp sharing enabled
+///     2 = cannot change exp sharing
+void clif_party_option_failexp(struct map_session_data* sd)
+{
+	unsigned char buf[16];
+
+	if( sd == NULL )
+		return;
+
+	WBUFW(buf,0) = 0x101;
+	WBUFL(buf,2) = 2;// cannot change exp sharing
+
+	clif_send(buf,packet_len(0x101),&sd->bl,SELF);
 }
 
 
