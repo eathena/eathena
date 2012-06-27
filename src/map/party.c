@@ -316,7 +316,7 @@ int party_recv_info(struct party* sp, int char_id)
 		if( sd == NULL )
 			continue;// not online
 		clif_charnameupdate(sd); //Update other people's display. [Skotlex]
-		clif_party_member_info(p,sd);
+		clif_party_member_info(p, member_id, PARTY);
 		clif_party_option(p,sd,0x100);
 		clif_party_info(p,NULL);
 		if( p->instance_id != 0 )
@@ -489,7 +489,7 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 
 	sd->status.party_id = party_id;
 
-	clif_party_member_info(p,sd);
+	clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
 	clif_party_option(p,sd,0x100);
 	clif_party_info(p,sd);
 
@@ -640,7 +640,7 @@ int party_optionchanged(int party_id,int account_id,int exp,int item,int flag)
 		p->party.item=item;
 #if PACKETVER<20090603
 		//item changes aren't updated by clif_party_option for older clients.
-		clif_party_member_info(p,sd);
+		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
 #endif
 	}
 
@@ -748,7 +748,7 @@ void party_send_movemap(struct map_session_data *sd)
 		//Note that this works because this function is invoked before connect_new is cleared.
 		clif_party_option(p,sd,0x100);
 		clif_party_info(p,sd);
-		clif_party_member_info(p,sd);
+		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
 	}
 
 	if (sd->fd) { // synchronize minimap positions with the rest of the party

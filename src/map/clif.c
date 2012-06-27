@@ -6070,6 +6070,10 @@ void clif_party_created(struct map_session_data *sd,int result)
 
 
 /// Adds new member to a party.
+/// Other behaviours:
+///     updates item share options without a message
+///     replaces member if the charname matches
+///     ignores position fields // TODO check on different clients [flaviojs]
 /// 0104 <account id>.L <role>.L <x>.W <y>.W <state>.B <party name>.24B <char name>.24B <map name>.16B (ZC_ADD_MEMBER_TO_GROUP)
 /// 01e9 <account id>.L <role>.L <x>.W <y>.W <state>.B <party name>.24B <char name>.24B <map name>.16B <item pickup rule>.B <item share rule>.B (ZC_ADD_MEMBER_TO_GROUP2)
 /// role:
@@ -6078,31 +6082,35 @@ void clif_party_created(struct map_session_data *sd,int result)
 /// state:
 ///     0 = connected
 ///     1 = disconnected
-void clif_party_member_info(struct party_data *p, struct map_session_data *sd)
+void clif_party_member_info(struct party_data *p, int member_id, send_target type)
 {
 	unsigned char buf[81];
-	int i;
+	struct map_session_data* sd;
+	struct party_member* m;
 
-	if (!sd) { //Pick any party member (this call is used when changing item share rules)
-		ARR_FIND( 0, MAX_PARTY, i, p->data[i].sd != 0 );
-	} else {
-		ARR_FIND( 0, MAX_PARTY, i, p->data[i].sd == sd );
-	}
-	if (i >= MAX_PARTY) return; //Should never happen...
-	sd = p->data[i].sd;
+	nullpo_retv(p);
+
+	if( member_id < 0 || member_id >= MAX_PARTY )
+		return;// out of range
+	m = &p->party.member[member_id];
+	sd = p->data[member_id].sd;
+	if( sd == NULL && type != SELF )
+		sd = party_getavailablesd(p);// can use any party member
+	if( sd == NULL )
+		return;// not online
 
 	WBUFW(buf, 0) = 0x1e9;
-	WBUFL(buf, 2) = sd->status.account_id;
-	WBUFL(buf, 6) = (p->party.member[i].leader)?0:1;
-	WBUFW(buf,10) = sd->bl.x;
-	WBUFW(buf,12) = sd->bl.y;
-	WBUFB(buf,14) = (p->party.member[i].online)?0:1;
+	WBUFL(buf, 2) = m->account_id;
+	WBUFL(buf, 6) = ( m->leader ) ? 0 : 1;// role: 0-leader 1-member
+	WBUFW(buf,10) = p->data[member_id].x;
+	WBUFW(buf,12) = p->data[member_id].y;
+	WBUFB(buf,14) = ( m->online ) ? 0 : 1;// state: 0-online 1-offline
 	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
-	memcpy(WBUFP(buf,39), sd->status.name, NAME_LENGTH);
-	mapindex_getmapname_ext(map[sd->bl.m].name, (char*)WBUFP(buf,63));
+	memcpy(WBUFP(buf,39), m->name, NAME_LENGTH);
+	mapindex_getmapname_ext(map[m->map].name, (char*)WBUFP(buf,63));
 	WBUFB(buf,79) = (p->party.item&1)?1:0;
 	WBUFB(buf,80) = (p->party.item&2)?1:0;
-	clif_send(buf,packet_len(0x1e9),&sd->bl,PARTY);
+	clif_send(buf,packet_len(0x1e9),&sd->bl,type);
 }
 
 
