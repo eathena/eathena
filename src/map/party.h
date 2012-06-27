@@ -68,7 +68,7 @@ int party_recv_noinfo(int party_id, int char_id);
 int party_recv_info(struct party* sp, int char_id);
 int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short map,int online,int lv);
 int party_broken(int party_id);
-int party_optionchanged(int party_id,int account_id,int exp,int item,int flag);
+void party_optionchanged(int party_id, int account_id, int exp, int item, int flag);
 int party_changeoption(struct map_session_data *sd,int exp,int item);
 bool party_changeleader(struct map_session_data *sd, struct map_session_data *t_sd);
 void party_send_movemap(struct map_session_data *sd);
