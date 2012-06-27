@@ -99,7 +99,7 @@ static void int_party_calc_state(struct party_data *p)
 
 	if (p->party.exp && !party_check_exp_share(p)) {
 		p->party.exp = 0; //Set off even share.
-		mapif_party_optionchanged(0, &p->party, 0, 0);
+		mapif_party_optionchanged(0, &p->party, 0, 0);// FIXME notifications should be handled outside since this can be called on parties that aren't available yet [flaviojs]
 	}
 	return;
 }
@@ -288,25 +288,18 @@ int party_check_empty(struct party *p) {
 //-------------------------------------------------------------------
 // map serverへの通信
 
-// パ?ティ作成可否
-int mapif_party_created(int fd,int account_id, int char_id, struct party *p)
+/// Party creation notification.
+/// @param result 0 on success, 1 on failure
+static void mapif_party_created(int fd, int account_id, int char_id, int result, int party_id, const char* name)
 {
 	WFIFOHEAD(fd, 39);
 	WFIFOW(fd,0) = 0x3820;
 	WFIFOL(fd,2) = account_id;
 	WFIFOL(fd,6) = char_id;
-	if (p != NULL) {
-		WFIFOB(fd,10) = 0;
-		WFIFOL(fd,11) = p->party_id;
-		memcpy(WFIFOP(fd,15), p->name, NAME_LENGTH);
-		ShowInfo("Created party (%d - %s)\n", p->party_id, p->name);
-	} else {
-		WFIFOB(fd,10) = 1;
-		WFIFOL(fd,11) = 0;
-		memset(WFIFOP(fd,15), 0, NAME_LENGTH);
-	}
+	WFIFOB(fd,10) = result;
+	WFIFOL(fd,11) = party_id;
+	safestrncpy((char*)WFIFOP(fd,15), name, NAME_LENGTH);
 	WFIFOSET(fd,39);
-	return 0;
 }
 
 // パ?ティ情報見つからず
@@ -422,8 +415,8 @@ int mapif_party_message(int party_id, int account_id, char *mes, int len, int sf
 // map serverからの通信
 
 
-// パ?ティ
-int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct party_member *leader)
+/// Create a party.
+void mapif_parse_CreateParty(int fd, char* name, int item, int item2, struct party_member* leader)
 {
 	struct party_data *p;
 	int i;
@@ -431,38 +424,36 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 	//FIXME: this should be removed once the savefiles can handle all symbols
 	for(i = 0; i < NAME_LENGTH && name[i]; i++) {
 		if (!(name[i] & 0xe0) || name[i] == 0x7f) {
-			ShowInfo("int_party: illegal party name [%s]\n", name);
-			mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
-			return 0;
+			mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+			return;
 		}
 	}
 
 	if ((p = search_partyname(name)) != NULL) {
-		ShowInfo("int_party: same name party exists [%s]\n", name);
-		mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
-		return 0;
+		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+		return;
 	}
 
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) == NULL) {
-				mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
-				return 0;
+				mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+				return;
 			}
 	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) != NULL) {
-				mapif_party_created(fd, leader->account_id, leader->char_id, NULL);
-				return 0;
+				mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+				return;
 			}
 	}
 
 	p = (struct party_data *) aCalloc(sizeof(struct party_data), 1);
 	if (p == NULL) {
 		ShowFatalError("int_party: out of memory !\n");
-		mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
-		return 0;
+		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+		return;
 	}
 	p->party.party_id = party_newid++;
 	memcpy(p->party.name, name, NAME_LENGTH);
@@ -474,9 +465,7 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 	idb_put(party_db, p->party.party_id, p);
 
 	mapif_party_info(fd, &p->party, 0);
-	mapif_party_created(fd, leader->account_id, leader->char_id, &p->party);
-
-	return 0;
+	mapif_party_created(fd, leader->account_id, leader->char_id, 0, p->party.party_id, p->party.name);
 }
 
 // パ?ティ情報要求
