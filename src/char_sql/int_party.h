@@ -19,6 +19,7 @@
 #define PS_BREAK 0x20
 
 struct party;
+struct mmo_charstatus;
 
 int inter_party_parse_frommap(int fd);
 int inter_party_sql_init(void);
@@ -26,6 +27,8 @@ void inter_party_sql_final(void);
 int inter_party_leave(int party_id,int account_id, int char_id);
 int inter_party_CharOnline(int char_id, int party_id);
 int inter_party_CharOffline(int char_id, int party_id);
+bool inter_party_update(struct mmo_charstatus* cd);
+
 //Required for the TXT->SQL converter
 int inter_party_tosql(struct party *p, int flag, int index);
 
