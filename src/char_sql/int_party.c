@@ -98,7 +98,7 @@ static void int_party_calc_state(struct party_data *p)
 
 	if (p->party.exp && !party_check_exp_share(p)) {
 		p->party.exp = 0; //Set off even share.
-		mapif_party_optionchanged(0, &p->party, 0, 0);
+		mapif_party_optionchanged(0, &p->party, 0, 0);// FIXME notifications should be handled outside since this can be called on parties that aren't available yet [flaviojs]
 	}
 	return;
 }
@@ -334,26 +334,18 @@ int party_check_empty(struct party_data *p)
 //-------------------------------------------------------------------
 // map serverへの通信
 
-// パーティ作成可否
-int mapif_party_created(int fd,int account_id,int char_id,struct party *p)
+/// Party creation notification.
+/// @param result 0 on success, 1 on failure
+static void mapif_party_created(int fd, int account_id, int char_id, int result, int party_id, const char* name)
 {
 	WFIFOHEAD(fd, 39);
-	WFIFOW(fd,0)=0x3820;
-	WFIFOL(fd,2)=account_id;
-	WFIFOL(fd,6)=char_id;
-	if(p!=NULL){
-		WFIFOB(fd,10)=0;
-		WFIFOL(fd,11)=p->party_id;
-		memcpy(WFIFOP(fd,15),p->name,NAME_LENGTH);
-		ShowInfo("int_party: Party created (%d - %s)\n",p->party_id,p->name);
-	}else{
-		WFIFOB(fd,10)=1;
-		WFIFOL(fd,11)=0;
-		memset(WFIFOP(fd,15),0,NAME_LENGTH);
-	}
+	WFIFOW(fd,0) = 0x3820;
+	WFIFOL(fd,2) = account_id;
+	WFIFOL(fd,6) = char_id;
+	WFIFOB(fd,10) = result;
+	WFIFOL(fd,11) = party_id;
+	safestrncpy((char*)WFIFOP(fd,15), name, NAME_LENGTH);
 	WFIFOSET(fd,39);
-
-	return 0;
 }
 
 // パーティ情報見つからず
@@ -467,27 +459,27 @@ int mapif_party_message(int party_id,int account_id,char *mes,int len, int sfd)
 // map serverからの通信
 
 
-// Create Party
-int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct party_member *leader)
+/// Create a party.
+static void mapif_parse_CreateParty(int fd, char* name, int item, int item2, struct party_member* leader)
 {
 	struct party_data *p;
 	int i;
 	if( (p=search_partyname(name))!=NULL){
-		mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
-		return 0;
+		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+		return;
 	}
 	// Check Authorised letters/symbols in the name of the character
 	if (char_name_option == 1) { // only letters/symbols in char_name_letters are authorised
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) == NULL) {
-				mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
-				return 0;
+				mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+				return;
 			}
 	} else if (char_name_option == 2) { // letters/symbols in char_name_letters are forbidden
 		for (i = 0; i < NAME_LENGTH && name[i]; i++)
 			if (strchr(char_name_letters, name[i]) != NULL) {
-				mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
-				return 0;
+				mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
+				return;
 			}
 	}
 
@@ -507,13 +499,11 @@ int mapif_parse_CreateParty(int fd, char *name, int item, int item2, struct part
 		int_party_calc_state(p);
 		idb_put(party_db_, p->party.party_id, p);
 		mapif_party_info(fd, &p->party, 0);
-		mapif_party_created(fd,leader->account_id,leader->char_id,&p->party);
+		mapif_party_created(fd, leader->account_id, leader->char_id, 0, p->party.party_id, p->party.name);
 	} else { //Failed to create party.
 		aFree(p);
-		mapif_party_created(fd,leader->account_id,leader->char_id,NULL);
+		mapif_party_created(fd, leader->account_id, leader->char_id, 1, 0, "");
 	}
-
-	return 0;
 }
 // パーティ情報要求
 static void mapif_parse_PartyInfo(int fd, int party_id, int char_id)

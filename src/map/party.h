@@ -54,8 +54,8 @@ struct party_data* party_searchname(const char* str);
 int party_getmemberid(struct party_data* p, struct map_session_data* sd);
 struct map_session_data* party_getavailablesd(struct party_data *p);
 
-int party_create(struct map_session_data *sd,char *name, int item, int item2);
-void party_created(int account_id,int char_id,int fail,int party_id,char *name);
+bool party_create(struct map_session_data* sd, const char* name, int item, int item2);
+void party_created(int account_id, int char_id, int fail, int party_id, const char* name);
 int party_request_info(int party_id, int char_id);
 int party_invite(struct map_session_data *sd,struct map_session_data *tsd);
 void party_member_joined(struct map_session_data *sd);
