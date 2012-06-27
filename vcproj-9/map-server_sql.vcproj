@@ -42,7 +42,7 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;FD_SETSIZE=4096"
 				GeneratePreprocessedFile="0"
 				ExceptionHandling="0"
@@ -55,6 +55,7 @@
 				DebugInformationFormat="4"
 				CompileAs="1"
 				DisableSpecificWarnings="4018;4100;4800;4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -136,7 +137,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;FD_SETSIZE=4096"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -146,6 +147,7 @@
 				DebugInformationFormat="3"
 				CompileAs="1"
 				DisableSpecificWarnings="4018;4100;4800;4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

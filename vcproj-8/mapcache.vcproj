@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\3rdparty\zlib\old\include;..\3rdparty\msinttypes\include"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\zlib\old\include;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;MINICORE"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="true"
@@ -53,6 +53,7 @@
 				WarningLevel="3"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -130,7 +131,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\3rdparty\zlib\old\include;..\3rdparty\msinttypes\include"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\zlib\old\include;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;MINICORE"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -140,6 +141,7 @@
 				WarningLevel="3"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

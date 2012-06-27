@@ -41,6 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\src\common"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;DBGHELPPLUG_EXPORTS"
 				StringPooling="false"
 				MinimalRebuild="true"
@@ -56,6 +57,7 @@
 				DebugInformationFormat="4"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -127,6 +129,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
+				AdditionalIncludeDirectories="..\src\common"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;DBGHELPPLUG_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="false"
@@ -143,6 +146,7 @@
 				DebugInformationFormat="0"
 				CompileAs="1"
 				DisableSpecificWarnings="4996"
+				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
