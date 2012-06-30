@@ -14,6 +14,10 @@
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	#include <netinet/in.h>
+
+	#ifdef HAVE_SYS_SELECT_H
+	#include <sys/select.h> // has FD_* and select, according to POSIX.1-2001
+	#endif
 #endif
 
 #include <time.h>

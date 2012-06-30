@@ -44,7 +44,7 @@ PLUGIN_EVENTS_TABLE = {
 
 //////////////////////////////////////
 
-#if !defined(CYGWIN)
+#ifdef HAVE_EXECINFO_H
 	#include <execinfo.h>
 #endif
 

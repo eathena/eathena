@@ -40,6 +40,8 @@
 #define HAVE_INTTYPES_H 1
 #define HAVE_STDINT_H 1
 /* #undef HAVE_UNISTD_H */
+/* #undef HAVE_SYS_SELECT_H */
+/* #undef HAVE_EXECINFO_H */
 
 // functions
 /* #undef HAVE_SETRLIMIT */
