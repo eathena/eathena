@@ -1,6 +1,7 @@
 Date	Added
 
 2012/06/30
+	* Added 'distclean' makefile target. [Ai4rei]
 	* Added checking for sys/select.h and execinfo.h to configure (follow up to r15144). [Ai4rei]
 2012/06/27
 	* Added static force-include src/common/config.vc.h to visual studio projects as counterpart to config.h from makefiles. [Ai4rei]
