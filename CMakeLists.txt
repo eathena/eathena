@@ -88,8 +88,10 @@ add_subdirectory( 3rdparty/msinttypes )# setup global variables
 # Test if include files exist:
 #   inttypes.h - see src/common/cbasetypes.h
 #   stdint.h - see src/common/cbasetypes.h
+#   sys/select.h - see src/common/socket.h
+#   execinfo.h - see src/common/sig.c
 #
-foreach( _filename inttypes.h stdint.h )
+foreach( _filename  inttypes.h stdint.h sys/select.h execinfo.h )
 	set( _define HAVE_${_filename} )
 	string( TOUPPER "${_define}" _define )
 	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )
