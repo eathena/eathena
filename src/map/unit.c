@@ -1934,6 +1934,7 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 
 		if( map[bl->m].users <= 0 || sd->state.debug_remove_map )
 		{// this is only place where map users is decreased, if the mobs were removed too soon then this function was executed too many times [FlavioJS]
+			// TODO branch bug1279-unit_remove_map
 			if( sd->debug_file == NULL || !(sd->state.debug_remove_map) )
 			{
 				sd->debug_file = "";
