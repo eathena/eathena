@@ -270,6 +270,10 @@ AC_LANG([C])
 CFLAGS="$CFLAGS -pipe -ffast-math -Wall -Wno-sign-compare"
 CPPFLAGS="$CPPFLAGS -I../common"
 
+# flags used for compiling shared objects
+SOFLAGS=""
+AC_SUBST([SOFLAGS])
+
 
 AC_C_BIGENDIAN(
 	[AC_MSG_ERROR([[bigendian is not supported... stopping]])],
@@ -376,12 +380,61 @@ CFLAGS="$OLD_CFLAGS"
 
 
 #
-# -shared needs position independent code; some platforms emit it
-# always, others need -fPIC
+# option for shared objects
+#
+AC_MSG_CHECKING([how to make shared objects])
+OLD_CFLAGS="$CFLAGS"
+compiler_shared_objects=""
+if test "$compiler_supports_pic" = "yes" ; then
+	my_shared_test_flags="$CFLAGS -fPIC"
+fi
+# default
+CFLAGS="$my_shared_test_flags -shared"
+AC_LINK_IFELSE(
+	[[
+		int bar = 0;
+
+		int foo(void)
+		{
+			return bar;
+		}
+	]],
+	[
+		compiler_shared_objects="-shared"
+	]
+)
+# BeOS specific
+CFLAGS="$my_shared_test_flags -nostart"
+AC_LINK_IFELSE(
+	[[
+		int bar = 0;
+
+		int foo(void)
+		{
+			return bar;
+		}
+	]],
+	[
+		compiler_shared_objects="-nostart"
+	]
+)
+my_shared_test_flags=""
+CFLAGS="$OLD_CFLAGS"
+if test "$compiler_supports_shared_objects" = "no" ; then
+	AC_MSG_RESULT([not supported])
+	AC_MSG_NOTICE([compiler is unable to generate shared objects, disabled plugins (optional)])
+	WITH_PLUGINS="no"
+else
+	AC_MSG_RESULT([$compiler_shared_objects])
+	SOFLAGS="$SOFLAGS $compiler_shared_objects"
+
+#
+# shared objects need position independent code; some platforms emit
+# it always, others need -fPIC
 #
 AC_MSG_CHECKING([whether $CC needs -fPIC for shared objects])
 OLD_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -shared"
+CFLAGS="$CFLAGS $SOFLAGS"
 WITH_PLUGINS="yes"
 AC_LINK_IFELSE(
 	[[
@@ -426,6 +479,8 @@ AC_LINK_IFELSE(
 		fi
 	]
 )
+
+fi
 AC_SUBST([WITH_PLUGINS])
 
 
