@@ -1,6 +1,7 @@
 Date	Added
 
 2012/07/14
+	* Made configure detect gcc option to use to build shared object, to support BeOS-specific -nostart. [Ai4rei]
 	* Fixed configure checking whether shared objects (.so) need -fPIC, not failing properly on certain x64 distributions such as Ubuntu, CentOS and Gentoo (topic:279093, topic:277021, follow up to r14708). [Ai4rei]
 2012/06/30
 	* Added 'distclean' makefile target. [Ai4rei]
