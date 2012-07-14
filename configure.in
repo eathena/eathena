@@ -384,12 +384,14 @@ OLD_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -shared"
 WITH_PLUGINS="yes"
 AC_LINK_IFELSE(
-	[
+	[[
+		int bar = 0;
+
 		int foo(void)
 		{
-			return 0;
+			return bar;
 		}
-	],
+	]],
 	[
 		AC_MSG_RESULT([no])
 		CFLAGS="$OLD_CFLAGS"
@@ -399,12 +401,14 @@ AC_LINK_IFELSE(
 			# Verify if -shared really fails due to lack of -fPIC or something else
 			CFLAGS="$CFLAGS -fPIC"
 			AC_LINK_IFELSE(
-				[
+				[[
+					int bar = 0;
+
 					int foo(void)
 					{
-						return 0;
+						return bar;
 					}
-				],
+				]],
 				[
 					AC_MSG_RESULT([yes])
 					CFLAGS="$OLD_CFLAGS -fPIC"
