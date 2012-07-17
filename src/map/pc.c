@@ -1153,8 +1153,7 @@ int pc_reg_received(struct map_session_data *sd)
 		return 0;
 	sd->state.active = 1;
 
-	if (sd->status.party_id)
-		party_member_joined(sd);
+	party_member_attach(sd);
 	if (sd->status.guild_id)
 		guild_member_joined(sd);
 	

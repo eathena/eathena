@@ -443,29 +443,41 @@ void party_reply_invite(struct map_session_data *sd,int party_id,int flag)
 	}
 }
 
-//Invoked when a player joins:
-//- Loads up party data if not in server
-//- Sets up the pointer to him
-//- Player must be authed/active and belong to a party before calling this method
-void party_member_joined(struct map_session_data *sd)
+
+/// Attaches the player to the party.
+/// Invoked when a player enters the server and is authenticated.
+void party_member_attach(struct map_session_data* sd)
 {
-	struct party_data* p = party_search(sd->status.party_id);
-	int i;
-	if (!p)
+	struct party_data* p;
+	int member_id;
+
+	if( sd == NULL || sd->status.party_id == 0 )
+		return; // not a player or not in a party
+
+	p = party_search(sd->status.party_id);
+	if( p == NULL )
 	{
-		party_request_info(sd->status.party_id, sd->status.char_id);
-		return;
+		ShowError("party_member_attach: party not found (party_id=%d, account_id=%d, character_id=%d)\n", sd->status.party_id, sd->status.account_id, sd->status.char_id);
+		intif_party_leave(sd->status.party_id, sd->status.account_id, sd->status.char_id); // auto-remove just in case
+		sd->status.party_id = 0;
+		return; // party not found (always sent before the player)
 	}
-	ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == sd->status.account_id && p->party.member[i].char_id == sd->status.char_id );
-	if (i < MAX_PARTY)
+
+	member_id = party_getmemberid(p, sd);
+	if( member_id == -1 )
 	{
-		p->data[i].sd = sd;
-		if( p->instance_id )
-			clif_instance_join(sd->fd,p->instance_id);
+		ShowError("party_member_attach: member not in party (party_id=%d, account_id=%d, character_id=%d)\n", sd->status.party_id, sd->status.account_id, sd->status.char_id);
+		intif_party_leave(sd->status.party_id, sd->status.account_id, sd->status.char_id); // auto-remove just in case
+		sd->status.party_id = 0;
+		return; // member not in party (bad party_id?)
 	}
-	else
-		sd->status.party_id = 0; //He does not belongs to the party really?
+
+	p->data[member_id].sd = sd;
+	// TODO update party member data [flaviojs]
+	if( p->instance_id != 0 )
+		clif_instance_join(sd->fd, p->instance_id);
 }
+
 
 /// Invoked (from char-server) when a new member is added to the party.
 /// flag: 0-success, 1-failure
