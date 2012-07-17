@@ -486,6 +486,7 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 	struct map_session_data *sd = map_id2sd(account_id),*sd2;
 	struct party_data *p = party_search(party_id);
 	int i;
+	int member_id;
 
 	if(sd == NULL || sd->status.char_id != char_id || !sd->party_joining ) {
 		if (!flag) //Char logged off before being accepted into party.
@@ -513,9 +514,10 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 	}
 
 	sd->status.party_id = party_id;
+	member_id = party_getmemberid(p, sd);
 
-	clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
-	clif_party_option(p, party_getmemberid(p,sd), SELF);
+	clif_party_member_info(p, member_id, PARTY);
+	clif_party_option(p, member_id, SELF);
 	clif_party_info(p,sd);
 
 	if( sd2 != NULL )
@@ -528,7 +530,7 @@ int party_member_added(int party_id,int account_id,int char_id, int flag)
 			clif_hpmeter_single(sd->fd, sd2->bl.id, sd2->battle_status.hp, sd2->battle_status.max_hp);
 	}
 	clif_party_hp(sd);
-	clif_party_xy(sd);
+	clif_party_xy(&p->data[member_id], NULL);
 	clif_charnameupdate(sd); //Update char name's display [Skotlex]
 
 	if( p->instance_id )
@@ -762,7 +764,7 @@ int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short m
 
 void party_send_movemap(struct map_session_data *sd)
 {
-	int i;
+	int member_id;
 	struct party_data *p;
 
 	if( sd->status.party_id==0 )
@@ -780,18 +782,18 @@ void party_send_movemap(struct map_session_data *sd)
 		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
 	}
 
-	if (sd->fd) { // synchronize minimap positions with the rest of the party
-		for(i=0; i < MAX_PARTY; i++) {
-			if (p->data[i].sd && 
-				p->data[i].sd != sd &&
-				p->data[i].sd->bl.m == sd->bl.m)
-			{
-				clif_party_xy_single(sd->fd, p->data[i].sd);
-				clif_party_xy_single(p->data[i].sd->fd, sd);
-			}
-		}
+	for( member_id = 0; member_id < MAX_PARTY; ++member_id ) // synchronize minimap positions
+	{
+		struct party_member_data* member = &p->data[member_id];
+
+		if( member->sd == NULL )
+			continue;
+
+		if( member->sd == sd )
+			clif_party_xy(member, NULL); // send myself to party
+		else
+			clif_party_xy(member, sd); // send party members to myself
 	}
-	return;
 }
 
 void party_send_levelup(struct map_session_data *sd)
@@ -911,9 +913,9 @@ int party_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 			if( p->data[i].x != sd->bl.x || p->data[i].y != sd->bl.y )
 			{// perform position update
-				clif_party_xy(sd);
 				p->data[i].x = sd->bl.x;
 				p->data[i].y = sd->bl.y;
+				clif_party_xy(&p->data[i], NULL);
 			}
 			if (battle_config.party_hp_mode && p->data[i].hp != sd->battle_status.hp)
 			{// perform hp update
