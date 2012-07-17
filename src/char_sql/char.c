@@ -3623,10 +3623,7 @@ int parse_char(int fd)
 			}
 
 			// Send party to map
-			if( cd->party_id != 0 && !inter_party_update(cd) )
-			{
-				// TODO something went wrong, auto remove from party?
-			}
+			inter_party_update(cd);
 
 			//Send player to map
 			WFIFOHEAD(fd,28);

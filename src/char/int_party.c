@@ -696,7 +696,7 @@ bool inter_party_update(struct mmo_charstatus* cd)
 	struct party_member* member;
 	int i;
 
-	if( cd == NULL || cd->party_id == 0 )
+	if( cd == NULL || cd->party_id == 0 ) // FIXME should get the party_id from the database using the account_id/char_id [flaviojs]
 		return false; // character not in a party
 	p = (struct party_data*)idb_get(party_db, cd->party_id);
 	if( p == NULL )
