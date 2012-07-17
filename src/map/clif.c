@@ -8986,6 +8986,8 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		return;
 	}
 
+	sd->state.warping = 0;
+
 	// look
 #if PACKETVER < 4
 	clif_changelook(&sd->bl,LOOK_WEAPON,sd->status.weapon);
