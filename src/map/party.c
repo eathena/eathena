@@ -775,13 +775,6 @@ void party_send_movemap(struct map_session_data *sd)
 	p=party_search(sd->status.party_id);
 	if (!p) return;
 
-	if(sd->state.connect_new) {
-		//Note that this works because this function is invoked before connect_new is cleared.
-		clif_party_option(p, party_getmemberid(p,sd), SELF);
-		clif_party_info(p,sd);
-		clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
-	}
-
 	for( member_id = 0; member_id < MAX_PARTY; ++member_id ) // synchronize minimap positions
 	{
 		struct party_member_data* member = &p->data[member_id];

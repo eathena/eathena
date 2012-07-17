@@ -9012,6 +9012,15 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// Party
 	// (needs to go after clif_spawn() to show hp bars correctly)
 	if(sd->status.party_id) {
+		struct party_data* p = party_search(sd->status.party_id);
+		if( p != NULL && sd->state.connect_new )
+		{
+			//Note that this works because this is invoked before connect_new is cleared.
+			clif_party_option(p, party_getmemberid(p,sd), SELF);
+			clif_party_info(p,sd);
+			clif_party_member_info(p, party_getmemberid(p,sd), PARTY);
+		}
+
 		party_send_movemap(sd);
 		clif_party_hp(sd); // Show hp after displacement [LuzZza]
 	}
