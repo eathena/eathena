@@ -1860,7 +1860,11 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 		status_change_end(bl, SC_CLOSECONFINE, INVALID_TIMER);
 		status_change_end(bl, SC_CLOSECONFINE2, INVALID_TIMER);
 		status_change_end(bl, SC_HIDING, INVALID_TIMER);
-		status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+		// If the bl is a PC, we'll handle the removal of cloaking later
+		if( bl->type != BL_PC )
+		{
+			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+		}
 		status_change_end(bl, SC_CHASEWALK, INVALID_TIMER);
 		if (sc->data[SC_GOSPEL] && sc->data[SC_GOSPEL]->val4 == BCT_SELF)
 			status_change_end(bl, SC_GOSPEL, INVALID_TIMER);
@@ -1900,8 +1904,14 @@ int unit_remove_map_(struct block_list *bl, clr_type clrtype, const char* file, 
 			guild_reply_reqalliance(sd,sd->guild_alliance_account,0);
 		if(sd->menuskill_id)
 			sd->menuskill_id = sd->menuskill_val = 0;
-		if( sd->touching_id )
+		if( sd->touching_id && !sd->state.warping ) // Only if the player isn't warping and there is a touching_id.
 			npc_touchnext_areanpc(sd,true);
+
+		// Check if warping and not changing the map.
+		if ( sd->state.warping && !sd->state.changemap )
+		{
+			status_change_end(bl, SC_CLOAKING, INVALID_TIMER);
+		}
 
 		sd->npc_shopid = 0;
 		sd->adopt_invite = 0;

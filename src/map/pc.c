@@ -4122,6 +4122,7 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 	}
 
 	sd->state.changemap = (sd->mapindex != mapindex);
+	sd->state.warping = 1;
 	if( sd->state.changemap )
 	{ // Misc map-changing settings
 		sd->state.pmap = sd->bl.m;
@@ -4232,6 +4233,12 @@ int pc_setpos(struct map_session_data* sd, unsigned short mapindex, int x, int y
 		sd->md->bl.x = sd->md->ud.to_x = x;
 		sd->md->bl.y = sd->md->ud.to_y = y;
 		sd->md->ud.dir = sd->ud.dir;
+	}
+
+	// If the player is changing maps, end cloaking.
+	if( sd->state.changemap && sd->sc.count )
+	{
+		status_change_end(&sd->bl, SC_CLOAKING, INVALID_TIMER);
 	}
 
 	return 0;
