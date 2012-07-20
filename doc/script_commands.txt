@@ -7260,6 +7260,36 @@ If the character does not have a mercenary, the command returns ""
 for name and 0 for all other types.
 
 ----------------------------------------
+*explode(<dest_array>,<string>,<delimiter>)
+
+	Breaks a string up into substrings based on the specified delimiter.
+	Substrings will be stored within the specified string array.
+	Only the 1st char of the delimiter parameter will be used.
+	If an empty string is passed as a delimiter, the string will be placed
+	in the array in it's original form.
+	
+	Example:
+	
+	explode(.@my_array$, "Explode:Test:1965:red:PIE", ":");
+	//.@my_array$ contents will be...
+	//.@my_array$[0]: "Explode"
+	//.@my_array$[1]: "Test"
+	//.@my_array$[2]: "1965"
+	//.@my_array$[3]: "red"
+	//.@my_array$[4]: "PIE"
+
+---------------------------------------
+
+*implode(<string_array>{,<glue>})
+
+	Combines all substrings within the specified string array into a single string.
+	If the glue parameter is specified, it will be inserted inbetween each substring.
+	
+	Example:
+	setarray .@my_array$[0], "This", "is", "a", "test";
+	implode(.@my_array$, " "); //returns "This is a test"
+
+---------------------------------------
 
 Whew.
 That's about all of them.

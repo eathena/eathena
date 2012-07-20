@@ -14993,6 +14993,178 @@ BUILDIN_FUNC(showdigit)
 	return 0;
 }
 
+//=======================================================
+// explode <dest_string_array>, <str>, <delimiter>
+// Note: delimiter is limited to 1 char
+//-------------------------------------------------------
+BUILDIN_FUNC(explode)
+{
+	struct script_data* data = script_getdata(st, 2);
+	const char *str = script_getstr(st,3);
+	const char delimiter = script_getstr(st, 4)[0];
+	int32 id;
+	size_t len = strlen(str);
+	int i = 0, j = 0;
+	int start;
+	
+
+	char *temp;
+	const char* name;
+
+	TBL_PC* sd = NULL;
+
+	temp = (char*)aMalloc(len + 1);
+
+	if( !data_isreference(data) )
+	{
+		ShowError("script:explode: not a variable\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// not a variable
+	}
+
+	id = reference_getid(data);
+	start = reference_getindex(data);
+	name = reference_getname(data);
+
+	if( not_array_variable(*name) )
+	{
+		ShowError("script:explode: illegal scope\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// not supported
+	}
+
+	if( !is_string_variable(name) )
+	{
+		ShowError("script:explode: not string array\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// data type mismatch
+	}
+
+	if( not_server_variable(*name) )
+	{
+		sd = script_rid2sd(st);
+		if( sd == NULL )
+			return 0;// no player attached
+	}
+
+	while(str[i] != '\0') {
+		if(str[i] == delimiter && start < 127) { //break at delimiter but ignore after reaching last array index
+			temp[j] = '\0';
+			set_reg(st, sd, reference_uid(id, start++), name, (void*)temp, reference_getref(data));
+			j = 0;
+			++i;
+		} else {
+			temp[j++] = str[i++];
+		}
+	}
+	//set last string
+	temp[j] = '\0';
+	set_reg(st, sd, reference_uid(id, start), name, (void*)temp, reference_getref(data));
+
+	aFree(temp);
+	return 0;
+}
+
+//=======================================================
+// implode <string_array>
+// implode <string_array>, <glue>
+//-------------------------------------------------------
+BUILDIN_FUNC(implode)
+{
+	struct script_data* data = script_getdata(st, 2);
+	const char *glue = NULL, *name, *temp;
+	int32 glue_len = 0, array_size, id;
+	size_t len = 0;
+	int i, k = 0;
+
+	TBL_PC* sd = NULL;
+
+	char *output;
+
+	if( !data_isreference(data) )
+	{
+		ShowError("script:implode: not a variable\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// not a variable
+	}
+
+	id = reference_getid(data);
+	name = reference_getname(data);
+
+	if( not_array_variable(*name) )
+	{
+		ShowError("script:implode: illegal scope\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// not supported
+	}
+
+	if( !is_string_variable(name) )
+	{
+		ShowError("script:implode: not string array\n");
+		script_reportdata(data);
+		st->state = END;
+		return 1;// data type mismatch
+	}
+
+	if( not_server_variable(*name) )
+	{
+		sd = script_rid2sd(st);
+		if( sd == NULL )
+			return 0;// no player attached
+	}
+
+	//count chars
+	array_size = getarraysize(st, id, reference_getindex(data), is_string_variable(name), reference_getref(data)) - 1;
+
+	if(array_size == -1) //empty array check (AmsTaff)
+    {
+        ShowWarning("script:implode: array length = 0\n");
+        output = (char*)aMalloc(sizeof(char)*5);
+        sprintf(output,"%s","NULL");
+	} else {
+		for(i = 0; i <= array_size; ++i) {
+			temp = (char*) get_val2(st, reference_uid(id, i), reference_getref(data));
+			len += strlen(temp);
+			script_removetop(st, -1, 0);
+		}
+
+		//allocate mem
+		if( script_hasdata(st,3) ) {
+			glue = script_getstr(st,3);
+			glue_len = strlen(glue);
+			len += glue_len * (array_size);
+		}
+		output = (char*)aMalloc(len + 1);
+
+		//build output
+		for(i = 0; i < array_size; ++i) {
+			temp = (char*) get_val2(st, reference_uid(id, i), reference_getref(data));
+			len = strlen(temp);
+			memcpy(&output[k], temp, len);
+			k += len;
+			if(glue_len != 0) {
+				memcpy(&output[k], glue, glue_len);
+				k += glue_len;
+			}
+			script_removetop(st, -1, 0);
+		}
+		temp = (char*) get_val2(st, reference_uid(id, array_size), reference_getref(data));
+		len = strlen(temp);
+		memcpy(&output[k], temp, len);
+		k += len;
+		script_removetop(st, -1, 0);
+
+		output[k] = '\0';
+	}
+
+	script_pushstr(st, output);
+	return 0;
+}
 
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
@@ -15276,6 +15448,8 @@ struct script_function buildin_func[] = {
 	BUILDIN_DEF(unequip,"i"), // unequip command [Spectre]
 	BUILDIN_DEF(getstrlen,"s"), //strlen [Valaris]
 	BUILDIN_DEF(charisalpha,"si"), //isalpha [Valaris]
+	BUILDIN_DEF(explode, "rss"),
+	BUILDIN_DEF(implode, "r?"),
 	BUILDIN_DEF(setnpcdisplay,"sv??"),
 	BUILDIN_DEF(compare,"ss"), // Lordalfa - To bring strstr to scripting Engine.
 	BUILDIN_DEF(getiteminfo,"ii"), //[Lupus] returns Items Buy / sell Price, etc info
