@@ -224,7 +224,7 @@ void chrif_setpasswd(char *pwd)
 void chrif_checkdefaultlogin(void)
 {
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
-		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
+		ShowWarning("SECURITY WARNING - Using the default user/password s1/p1 is not recommended.\n");
 #ifdef TXT_ONLY
 		ShowNotice("Please edit your save/account.txt file to create a proper inter-server user/password (gender 'S')\n");
 #else
