@@ -24,7 +24,7 @@ static bool mapreg_dirty = false;
 /// Looks up the value of an integer variable using its uid.
 int mapreg_readreg(int uid)
 {
-	return (int)idb_get(mapreg_db, uid);
+	return (int)(intptr_t)idb_get(mapreg_db, uid);
 }
 
 /// Looks up the value of a string variable using its uid.
@@ -37,7 +37,7 @@ char* mapreg_readregstr(int uid)
 bool mapreg_setreg(int uid, int val)
 {
 	if( val != 0 )
-		idb_put(mapreg_db,uid,(void*)val);
+		idb_put(mapreg_db,uid,(void*)(intptr_t)val);
 	else
 		idb_remove(mapreg_db,uid);
 
@@ -89,7 +89,7 @@ static void script_load_mapreg(void)
 		if( varname[strlen(varname)-1] == '$' )
 			idb_put(mapregstr_db, (i<<24)|s, aStrdup(value));
 		else
-			idb_put(mapreg_db, (i<<24)|s, (void*)atoi(value));
+			idb_put(mapreg_db, (i<<24)|s, (void*)(intptr_t)atoi(value));
 	}
 	fclose(fp);
 
@@ -123,9 +123,9 @@ static void script_save_mapreg(void)
 			continue;
 
 		if( i == 0 )
-			fprintf(fp, "%s\t%d\n", name, (int)data);
+			fprintf(fp, "%s\t%d\n", name, (int)(intptr_t)data);
 		else
-			fprintf(fp, "%s,%d\t%d\n", name, i, (int)data);
+			fprintf(fp, "%s,%d\t%d\n", name, i, (int)(intptr_t)data);
 	}
 	iter->destroy(iter);
 

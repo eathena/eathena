@@ -2259,9 +2259,9 @@ ACMD_FUNC(go)
 		inputlen = strlen(input);
 		for( i = 0; i < inputlen; ++i )
 			input[i] = TOLOWER(input[i]); // lowercase
-
-		town = atoi(input); // 0 if not a number
 	}
+
+	town = atoi(input); // 0 if not a number
 
 	if( inputlen == 0 || // no input
 		town < 0 || town >= ARRAYLENGTH(data) ) // invalid number
