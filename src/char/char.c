@@ -4687,7 +4687,7 @@ int do_init(int argc, char **argv)
 	char_lan_config_read((argc > 3) ? argv[3] : LAN_CONF_NAME);
 
 	if (strcmp(userid, "s1")==0 && strcmp(passwd, "p1")==0) {
-		ShowError("Using the default user/password s1/p1 is NOT RECOMMENDED.\n");
+		ShowWarning("SECURITY WARNING - Using the default user/password s1/p1 is not recommended.\n");
 		ShowNotice("Please edit your save/account.txt file to create a proper inter-server user/password (gender 'S')\n");
 		ShowNotice("And then change the user/password to use in conf/char_athena.conf (or conf/import/char_conf.txt)\n");
 	}
