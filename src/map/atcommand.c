@@ -2149,173 +2149,216 @@ ACMD_FUNC(hair_color)
 	return 0;
 }
 
+
 /*==========================================
- * @go [city_number or city_name] - Updated by Harbin
+ * @go [location_number or location_name] - Updated by Harbin
  *------------------------------------------*/
 ACMD_FUNC(go)
 {
 	int i;
 	int town;
-	char map_name[MAP_NAME_LENGTH];
-	int m;
- 
-	const struct {
-		char map[MAP_NAME_LENGTH];
+	int map_id;
+	char input[MAP_NAME_LENGTH];
+	size_t inputlen;
+	const char* mapname = NULL;
+
+	static const struct {
+		const char*const mapname;
 		int x, y;
+		const char*const displayname;
 	} data[] = {
-		{ MAP_PRONTERA,    156, 191 }, //  0=Prontera
-		{ MAP_MORROC,      156,  93 }, //  1=Morroc
-		{ MAP_GEFFEN,      119,  59 }, //  2=Geffen
-		{ MAP_PAYON,       162, 233 }, //  3=Payon
-		{ MAP_ALBERTA,     192, 147 }, //  4=Alberta
-		{ MAP_IZLUDE,      128, 114 }, //  5=Izlude
-		{ MAP_ALDEBARAN,   140, 131 }, //  6=Al de Baran
-		{ MAP_LUTIE,       147, 134 }, //  7=Lutie
-		{ MAP_COMODO,      209, 143 }, //  8=Comodo
-		{ MAP_YUNO,        157,  51 }, //  9=Yuno
-		{ MAP_AMATSU,      198,  84 }, // 10=Amatsu
-		{ MAP_GONRYUN,     160, 120 }, // 11=Gonryun
-		{ MAP_UMBALA,       89, 157 }, // 12=Umbala
-		{ MAP_NIFLHEIM,     21, 153 }, // 13=Niflheim
-		{ MAP_LOUYANG,     217,  40 }, // 14=Louyang
-		{ MAP_NOVICE,       53, 111 }, // 15=Training Grounds
-		{ MAP_JAIL,         23,  61 }, // 16=Prison
-		{ MAP_JAWAII,      249, 127 }, // 17=Jawaii
-		{ MAP_AYOTHAYA,    151, 117 }, // 18=Ayothaya
-		{ MAP_EINBROCH,     64, 200 }, // 19=Einbroch
-		{ MAP_LIGHTHALZEN, 158,  92 }, // 20=Lighthalzen
-		{ MAP_EINBECH,      70,  95 }, // 21=Einbech
-		{ MAP_HUGEL,        96, 145 }, // 22=Hugel
-		{ MAP_RACHEL,      130, 110 }, // 23=Rachel
-		{ MAP_VEINS,       216, 123 }, // 24=Veins
-		{ MAP_MOSCOVIA,    223, 184 }, // 25=Moscovia
+		{ MAP_PRONTERA,    156, 191, "Prontera" }, // 0
+		{ MAP_MORROC,      156,  93, "Morroc" }, // 1
+		{ MAP_GEFFEN,      119,  59, "Geffen" }, // 2
+		{ MAP_PAYON,       162, 233, "Payon" }, // 3
+		{ MAP_ALBERTA,     192, 147, "Alberta" }, // 4
+		{ MAP_IZLUDE,      128, 114, "Izlude" }, // 5
+		{ MAP_ALDEBARAN,   140, 131, "Al De Baran" }, // 6
+		{ MAP_LUTIE,       147, 134, "Lutie" }, // 7
+		{ MAP_COMODO,      209, 143, "Comodo" }, // 8
+		{ MAP_YUNO,        157,  51, "Yuno" }, // 9
+		{ MAP_AMATSU,      198,  84, "Amatsu" }, // 10
+		{ MAP_GONRYUN,     160, 120, "Gonryun" }, // 11
+		{ MAP_UMBALA,       89, 157, "Umbala" }, // 12
+		{ MAP_NIFLHEIM,     21, 153, "Niflheim" }, // 13
+		{ MAP_LOUYANG,     217,  40, "Louyang" }, // 14
+		{ MAP_NOVICE,       53, 111, "Novice Grounds" }, // 15
+		{ MAP_JAIL,         23,  61, "Prison" }, // 16
+		{ MAP_JAWAII,      249, 127, "Jawaii" }, // 17
+		{ MAP_AYOTHAYA,    151, 117, "Ayothaya" }, // 18
+		{ MAP_EINBROCH,     64, 200, "Einbroch" }, // 19
+		{ MAP_LIGHTHALZEN, 158,  92, "Lighthalzen" }, // 20
+		{ MAP_EINBECH,      70,  95, "Einbech" }, // 21
+		{ MAP_HUGEL,        96, 145, "Hugel" }, // 22
+		{ MAP_RACHEL,      130, 110, "Rachel" }, // 23
+		{ MAP_VEINS,       216, 123, "Veins" }, // 24
+		{ MAP_MOSCOVIA,    223, 184, "Moscovia" }, // 25
 	};
- 
+
+	static const struct {
+		const char*const mapname; // mapname that must exist in the previous array
+		const char*const input; // lowercase name to match against the input
+	} names[] = {
+		{ MAP_PRONTERA,    "prontera" },
+		{ MAP_MORROC,      "morocc" },
+		{ MAP_GEFFEN,      "geffen" },
+		{ MAP_PAYON,       "payon" },
+		{ MAP_PAYON,       "paion" },
+		{ MAP_ALBERTA,     "alberta",  },
+		{ MAP_IZLUDE,      "izlude" },
+		{ MAP_IZLUDE,      "islude" },
+		{ MAP_ALDEBARAN,   "aldebaran" },
+		{ MAP_ALDEBARAN,   "al" },
+		{ MAP_LUTIE,       "lutie" },
+		{ MAP_LUTIE,       "christmas" },
+		{ MAP_LUTIE,       "xmas"  },
+		{ MAP_LUTIE,       "x-mas" },
+		{ MAP_COMODO,      "comodo" },
+		{ MAP_YUNO ,       "yuno" },
+		{ MAP_AMATSU,      "amatsu" },
+		{ MAP_GONRYUN,     "gonryun" },
+		{ MAP_UMBALA,      "umbala" },
+		{ MAP_NIFLHEIM,    "niflheim" },
+		{ MAP_LOUYANG,     "louyang" },
+		{ MAP_NOVICE,      "new_1-1" },
+		{ MAP_NOVICE,      "startpoint" },
+		{ MAP_NOVICE,      "begining" },
+		{ MAP_JAIL,        "sec_pri" },
+		{ MAP_JAIL,        "prison" },
+		{ MAP_JAIL,        "jails" },
+		{ MAP_JAWAII,      "jawaii" },
+		{ MAP_JAWAII,      "jawai" },
+		{ MAP_AYOTHAYA,    "ayothaya" },
+		{ MAP_AYOTHAYA,    "ayotaya" },
+		{ MAP_EINBROCH,    "einbroch" },
+		{ MAP_EINBROCH,    "ainbroch" },
+		{ MAP_LIGHTHALZEN, "lighthalzen" },
+		{ MAP_EINBECH,     "einbech" },
+		{ MAP_HUGEL,       "hugel" },
+		{ MAP_RACHEL,      "rachel" },
+		{ MAP_VEINS,       "veins" },
+		{ MAP_MOSCOVIA,    "moscovia" },
+	};
+
 	nullpo_retr(-1, sd);
- 
-	if( map[sd->bl.m].flag.nogo && battle_config.any_warp_GM_min_level > pc_isGM(sd) ) {
+
+	if( map[sd->bl.m].flag.nogo && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
+	{
 		clif_displaymessage(sd->fd,"You can not use @go on this map.");
 		return 0;
 	}
- 
-	memset(map_name, '\0', sizeof(map_name));
+
 	memset(atcmd_output, '\0', sizeof(atcmd_output));
- 
-	// get the number
-	town = atoi(message);
- 
-	// if no value, display all value
-	if (!message || !*message || sscanf(message, "%11s", map_name) < 1 || town < 0 || town >= ARRAYLENGTH(data)) {
+	memset(input, '\0', sizeof(input));
+	inputlen = 0;
+
+	if( message != NULL )
+	{
+		sscanf(message, "%11s", input); // FIXME doesn't allow names with spaces
+		input[MAP_NAME_LENGTH-1] = '\0';
+		inputlen = strlen(input);
+		for( i = 0; i < inputlen; ++i )
+			input[i] = TOLOWER(input[i]); // lowercase
+
+		town = atoi(input); // 0 if not a number
+	}
+
+	if( inputlen == 0 || // no input
+		town < 0 || town >= ARRAYLENGTH(data) ) // invalid number
+	{
 		clif_displaymessage(fd, msg_txt(38)); // Invalid location number, or name.
 		clif_displaymessage(fd, msg_txt(82)); // Please provide a name or number from the list provided:
-		clif_displaymessage(fd, " 0=Prontera         1=Morroc       2=Geffen");
-		clif_displaymessage(fd, " 3=Payon            4=Alberta      5=Izlude");
-		clif_displaymessage(fd, " 6=Al De Baran      7=Lutie        8=Comodo");
-		clif_displaymessage(fd, " 9=Yuno             10=Amatsu      11=Gonryun");
-		clif_displaymessage(fd, " 12=Umbala          13=Niflheim    14=Louyang");
-		clif_displaymessage(fd, " 15=Novice Grounds  16=Prison      17=Jawaii");
-		clif_displaymessage(fd, " 18=Ayothaya        19=Einbroch    20=Lighthalzen");
-		clif_displaymessage(fd, " 21=Einbech         22=Hugel       23=Rachel");
-		clif_displaymessage(fd, " 24=Veins           25=Moscovia");
+		for( i = 0; i+2 < ARRAYLENGTH(data); i += 3 )
+		{ // show every 3 maps
+			sprintf(atcmd_output, " %2d=%-15s  %2d=%-15s  %2d=%-15s", i, data[i].displayname, i+1, data[i+1].displayname, i+2, data[i+2].displayname);
+			clif_displaymessage(fd, atcmd_output);
+		}
+
+		if( i+1 < ARRAYLENGTH(data) )
+		{ // show last 2 maps
+			sprintf(atcmd_output, " %2d=%-15s  %2d=%-15s", i, data[i].displayname, i+1, data[i+1].displayname);
+			clif_displaymessage(fd, atcmd_output);
+		}
+		else if( i < ARRAYLENGTH(data) )
+		{ // show last map
+			sprintf(atcmd_output, " %2d=%-15s", i, data[i].displayname);
+			clif_displaymessage(fd, atcmd_output);
+		}
+
 		return -1;
 	}
 
-	// get possible name of the city
-	map_name[MAP_NAME_LENGTH-1] = '\0';
-	for (i = 0; map_name[i]; i++)
-		map_name[i] = TOLOWER(map_name[i]);
-	// try to identify the map name
-	if (strncmp(map_name, "prontera", 3) == 0) {
-		town = 0;
-	} else if (strncmp(map_name, "morocc", 3) == 0) {
-		town = 1;
-	} else if (strncmp(map_name, "geffen", 3) == 0) {
-		town = 2;
-	} else if (strncmp(map_name, "payon", 3) == 0 ||
-	           strncmp(map_name, "paion", 3) == 0) {
-		town = 3;
-	} else if (strncmp(map_name, "alberta", 3) == 0) {
-		town = 4;
-	} else if (strncmp(map_name, "izlude", 3) == 0 ||
-	           strncmp(map_name, "islude", 3) == 0) {
-		town = 5;
-	} else if (strncmp(map_name, "aldebaran", 3) == 0 ||
-	           strcmp(map_name,  "al") == 0) {
-		town = 6;
-	} else if (strncmp(map_name, "lutie", 3) == 0 ||
-	           strcmp(map_name,  "christmas") == 0 ||
-	           strncmp(map_name, "xmas", 3) == 0 ||
-	           strncmp(map_name, "x-mas", 3) == 0) {
-		town = 7;
-	} else if (strncmp(map_name, "comodo", 3) == 0) {
-		town = 8;
-	} else if (strncmp(map_name, "yuno", 3) == 0) {
-		town = 9;
-	} else if (strncmp(map_name, "amatsu", 3) == 0) {
-		town = 10;
-	} else if (strncmp(map_name, "gonryun", 3) == 0) {
-		town = 11;
-	} else if (strncmp(map_name, "umbala", 3) == 0) {
-		town = 12;
-	} else if (strncmp(map_name, "niflheim", 3) == 0) {
-		town = 13;
-	} else if (strncmp(map_name, "louyang", 3) == 0) {
-		town = 14;
-	} else if (strncmp(map_name, "new_1-1", 3) == 0 ||
-	           strncmp(map_name, "startpoint", 3) == 0 ||
-	           strncmp(map_name, "begining", 3) == 0) {
-		town = 15;
-	} else if (strncmp(map_name, "sec_pri", 3) == 0 ||
-	           strncmp(map_name, "prison", 3) == 0 ||
-	           strncmp(map_name, "jails", 3) == 0) {
-		town = 16;
-	} else if (strncmp(map_name, "jawaii", 3) == 0 ||
-	           strncmp(map_name, "jawai", 3) == 0) {
-		town = 17;
-	} else if (strncmp(map_name, "ayothaya", 3) == 0 ||
-	           strncmp(map_name, "ayotaya", 3) == 0) {
-		town = 18;
-	} else if (strncmp(map_name, "einbroch", 5) == 0 ||
-	           strncmp(map_name, "ainbroch", 5) == 0) {
-		town = 19;
-	} else if (strncmp(map_name, "lighthalzen", 3) == 0) {
-		town = 20;
-	} else if (strncmp(map_name, "einbech", 3) == 0) {
-		town = 21;
-	} else if (strncmp(map_name, "hugel", 3) == 0) {
-		town = 22;
-	} else if (strncmp(map_name, "rachel", 3) == 0) {
-		town = 23;
-	} else if (strncmp(map_name, "veins", 3) == 0) {
-		town = 24;
-	} else if (strncmp(map_name, "moscovia", 3) == 0) {
-		town = 25;
+	if( !ISDIGIT(input[0]) )
+	{ // input is a name
+		int startswith_count = 0;
+		int startswith_arr[ARRAYLENGTH(names)];
+		memset(&startswith_arr, 0, sizeof(startswith_arr));
+
+		// try to match the input
+		for( i = 0; i < ARRAYLENGTH(names); ++i )
+		{
+			if( strncmp(names[i].input, input, inputlen) != 0 )
+				continue; // doesn't start with input
+
+			if( strcmp(input, names[i].input) == 0 )
+			{ // exact match
+				mapname = names[i].mapname;
+				break;
+			}
+
+			startswith_arr[startswith_count] = i;
+			++startswith_count;
+		}
+
+		for( i = 0; i < startswith_count; ++i )
+		{ // show matches
+			sprintf(atcmd_output, "Found match: %s", names[startswith_arr[i]].input);
+			clif_displaymessage(fd, atcmd_output);
+		}
+
+		if( mapname == NULL )
+		{
+			if( startswith_count != 1 )
+			{ // not a conclusive match
+				clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+				return -1;
+			}
+
+			mapname = names[startswith_arr[0]].mapname;
+		}
+
+		ARR_FIND(0, ARRAYLENGTH(data), town, strcmp(mapname, data[town].mapname) == 0);
+		if( town == ARRAYLENGTH(data) )
+		{
+			ShowError("atcommand_go: failed to get town (mapname='%s')\n", mapname);
+			clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+			return -1;
+		}
 	}
 
-	if (town >= 0 && town < ARRAYLENGTH(data))
+	map_id = map_mapname2mapid(data[town].mapname);
+	if( map_id >= 0 && map[map_id].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
 	{
-		m = map_mapname2mapid(data[town].map);
-		if (m >= 0 && map[m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_txt(247));
-			return -1;
-		}
-		if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-			clif_displaymessage(fd, msg_txt(248));
-			return -1;
-		}
-		if (pc_setpos(sd, mapindex_name2id(data[town].map), data[town].x, data[town].y, CLR_TELEPORT) == 0) {
-			clif_displaymessage(fd, msg_txt(0)); // Warped.
-		} else {
-			clif_displaymessage(fd, msg_txt(1)); // Map not found.
-			return -1;
-		}
-	} else { // if you arrive here, you have an error in town variable when reading of names
-		clif_displaymessage(fd, msg_txt(38)); // Invalid location number or name.
+		clif_displaymessage(fd, msg_txt(247)); // You are not authorized to warp to this map.
 		return -1;
 	}
- 
+
+	if( sd->bl.m >= 0 && map[sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
+	{
+		clif_displaymessage(fd, msg_txt(248)); // You are not authorized to warp from your current map.
+		return -1;
+	}
+
+	if( pc_setpos(sd, mapindex_name2id(data[town].mapname), data[town].x, data[town].y, CLR_TELEPORT) != 0 )
+	{
+		clif_displaymessage(fd, msg_txt(1)); // Map not found.
+		return -1;
+	}
+
+	clif_displaymessage(fd, msg_txt(0)); // Warped.
 	return 0;
 }
+
 
 /*==========================================
  *
