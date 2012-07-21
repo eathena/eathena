@@ -291,6 +291,9 @@ int inter_init_sql(const char *file)
 			Sql_ShowDebug(sql_handle);
 	}
 
+	ShowStatus("Connected to main database '%s'.\n", char_server_db);
+	Sql_PrintExtendedInfo(sql_handle);
+
 #ifndef TXT_SQL_CONVERT
 	wis_db = idb_alloc(DB_OPT_RELEASE_DATA);
 	inter_guild_sql_init();
