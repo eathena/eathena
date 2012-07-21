@@ -4,6 +4,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/db.h"
 #include "../common/malloc.h"
+#include "../common/showmsg.h"
 #include "../common/sql.h"
 #include "../common/socket.h"
 #include "../common/strlib.h"
@@ -82,6 +83,9 @@ void ipban_init(void)
 	}
 	if( codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, codepage) )
 		Sql_ShowDebug(sql_handle);
+
+	ShowStatus("Connected to ipban database '%s'.\n", database);
+	Sql_PrintExtendedInfo(sql_handle);
 
 	if( login_config.ipban_cleanup_interval > 0 )
 	{ // set up periodic cleanup of connection history and active bans

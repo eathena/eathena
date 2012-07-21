@@ -3,6 +3,7 @@
 
 #include "../common/cbasetypes.h"
 #include "../common/mmo.h"
+#include "../common/showmsg.h"
 #include "../common/socket.h"
 #include "../common/sql.h"
 #include "../common/strlib.h"
@@ -114,6 +115,9 @@ bool loginlog_init(void)
 
 	if( codepage[0] != '\0' && SQL_ERROR == Sql_SetEncoding(sql_handle, codepage) )
 		Sql_ShowDebug(sql_handle);
+
+	ShowStatus("Connected to loginlog database '%s'.\n", database);
+	Sql_PrintExtendedInfo(sql_handle);
 
 	enabled = true;
 

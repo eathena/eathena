@@ -73,6 +73,10 @@ int Sql_Connect(Sql* self, const char* user, const char* passwd, const char* hos
 
 
 
+/// Print extended information.
+void Sql_PrintExtendedInfo(Sql* self);
+
+
 
 /// Retrieves the timeout of the connection.
 ///
@@ -81,12 +85,10 @@ int Sql_GetTimeout(Sql* self, uint32* out_timeout);
 
 
 
-
 /// Retrieves the name of the columns of a table into out_buf, with the separator after each name.
 ///
 /// @return SQL_SUCCESS or SQL_ERROR
 int Sql_GetColumnNames(Sql* self, const char* table, char* out_buf, size_t buf_len, char sep);
-
 
 
 
