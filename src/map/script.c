@@ -15341,7 +15341,6 @@ BUILDIN_FUNC(showdigit)
 	return 0;
 }
 
-
 // declarations that were supposed to be exported from npc_chat.c
 #ifdef PCRE_SUPPORT
 BUILDIN_FUNC(defpattern);
