@@ -6595,6 +6595,119 @@ is a letter, 0 if it isn't a letter but a digit or a space.
 The first letter is position 0.
 
 ---------------------------------------
+*charat(<string>,<index>)
+
+	Returns char at specified index. If index is out of range, 
+	returns empty string.
+	
+	Example:
+	
+	charat("This is a string", 10); //returns "s"
+	
+---------------------------------------
+*setchar(<string>,<char>,<index>)
+
+	Returns the original string with the char at the specified
+	index set to the specified char. If index out of range, the
+	original string will be returned.
+	Only the 1st char in the <char> parameter will be used.
+	
+	Example:
+	
+	setchar("Cat", "B", 0); //returns "Bat"
+	
+---------------------------------------
+*insertchar(<string>,<char>,<index>)
+	
+	Returns the original string with the specified char inserted
+	at the specified index. If index is out of range, the char 
+	will be inserted on the end of the string that it is closest.
+	Only the 1st char in the <char> parameter will be used.
+	
+	Example:
+	
+	insertchar("laughter", "s", 0); //returns "slaughter"
+	
+---------------------------------------
+
+*delchar(<string>,<index>)
+
+	Returns the original string with the char at the specified index
+	removed. If index is out of range, original string will be returned.
+	
+	Example:
+	
+	delchar("Diet", 3); //returns "Die"
+	
+---------------------------------------
+
+*strtoupper(<string>)
+*strtolower(<string>)
+
+	Returns the specified string in it's uppercase/lowercase form.
+	All non-alpha characters will be preserved
+	
+	Example:
+	
+	strtoupper("The duck is blue!!"); //returns "THE DUCK IS BLUE!!"
+
+---------------------------------------
+
+*charisupper(<string>,<index>)
+*charislower(<string>,<index>)
+
+	Returns 1 if character at specified index of specified string is
+	uppercase/lowercase. Otherwise, 0. Characters not of the alphabelt
+	will return 0.
+
+	Example:
+	
+	charisupper("rAthena", 1); //returns 1
+	
+---------------------------------------
+
+*substr(<string>,<start_index>,<end_index>)
+	
+	Returns the sub-string of the specified string inclusively between
+	the set indexes.
+	If indexes are out of range, or the start index is after the end
+	index, an empty string will be returned.
+
+	Example:
+	
+	substr("foobar", 3, 5); //returns "bar"
+	
+---------------------------------------
+*explode(<dest_array>,<string>,<delimiter>)
+
+	Breaks a string up into substrings based on the specified delimiter.
+	Substrings will be stored within the specified string array.
+	Only the 1st char of the delimiter parameter will be used.
+	If an empty string is passed as a delimiter, the string will be placed
+	in the array in it's original form.
+	
+	Example:
+	
+	explode(.@my_array$, "Explode:Test:1965:red:PIE", ":");
+	//.@my_array$ contents will be...
+	//.@my_array$[0]: "Explode"
+	//.@my_array$[1]: "Test"
+	//.@my_array$[2]: "1965"
+	//.@my_array$[3]: "red"
+	//.@my_array$[4]: "PIE"
+
+---------------------------------------
+
+*implode(<string_array>{,<glue>})
+
+	Combines all substrings within the specified string array into a single string.
+	If the glue parameter is specified, it will be inserted inbetween each substring.
+	
+	Example:
+	setarray .@my_array$[0], "This", "is", "a", "test";
+	implode(.@my_array$, " "); //returns "This is a test"
+
+---------------------------------------
 
 *setfont <font>;
 
@@ -7260,6 +7373,7 @@ If the character does not have a mercenary, the command returns ""
 for name and 0 for all other types.
 
 ----------------------------------------
+
 
 Whew.
 That's about all of them.
