@@ -12532,7 +12532,7 @@ BUILDIN_FUNC(getstrlen)
 {
 
 	const char *str = script_getstr(st,2);
-	int len = (str) ? (int)strlen(str) : 0;
+	int len = (int)strlen(str);
 
 	script_pushint(st,len);
 	return 0;
@@ -12546,7 +12546,7 @@ BUILDIN_FUNC(charisalpha)
 	const char *str=script_getstr(st,2);
 	int pos=script_getnum(st,3);
 
-	int val = ( str && pos >= 0 && (unsigned int)pos < strlen(str) ) ? ISALPHA( str[pos] ) != 0 : 0;
+	int val = ( pos >= 0 && (unsigned int)pos < strlen(str) && ISALPHA(str[pos]) )? 1: 0;
 
 	script_pushint(st,val);
 	return 0;
@@ -12560,7 +12560,7 @@ BUILDIN_FUNC(charisupper)
 	const char *str = script_getstr(st,2);
 	int pos = script_getnum(st,3);
 
-	int val = ( str && pos >= 0 && (unsigned int)pos < strlen(str) ) ? ISUPPER( str[pos] ) : 0;
+	int val = ( pos >= 0 && (unsigned int)pos < strlen(str) && ISUPPER(str[pos]) )? 1: 0;
 
 	script_pushint(st,val);
 	return 0;
@@ -12574,7 +12574,7 @@ BUILDIN_FUNC(charislower)
 	const char *str = script_getstr(st,2);
 	int pos = script_getnum(st,3);
 
-	int val = ( str && pos >= 0 && (unsigned int)pos < strlen(str) ) ? ISLOWER( str[pos] ) : 0;
+	int val = ( pos >= 0 && (unsigned int)pos < strlen(str) && ISLOWER(str[pos]) )? 1: 0;
 
 	script_pushint(st,val);
 	return 0;
@@ -12586,15 +12586,19 @@ BUILDIN_FUNC(charat)
 {
 	const char *str = script_getstr(st,2);
 	int pos = script_getnum(st,3);
-	char *output;
 
-	output = (char*)aMalloc(2*sizeof(char));
-	output[0] = '\0';
+	if( pos >= 0 && (unsigned int)pos < strlen(str) )
+	{
+		char output[2];
+		output[0] = str[pos];
+		output[1] = '\0';
+		script_pushstrcopy(st, output);
+	}
+	else
+	{
+		script_pushconststr(st, "");
+	}
 
-	if(str && pos >= 0 && (unsigned int)pos < strlen(str))
-		sprintf(output, "%c", str[pos]);
-
-	script_pushstr(st, output);
 	return 0;
 }
 
@@ -12608,7 +12612,7 @@ BUILDIN_FUNC(setchar)
 	int index = script_getnum(st,4);
 	char *output = aStrdup(str);
 
-	if(index >= 0 && index < strlen(output))
+	if( index >= 0 && (unsigned int)index < strlen(output) )
 		output[index] = *c;
 
 	script_pushstr(st, output);
@@ -12652,10 +12656,9 @@ BUILDIN_FUNC(delchar)
 	char *output;
 	size_t len = strlen(str);
 
-	if(index < 0 || index > len) {
-		//return original
-		output = aStrdup(str);
-		script_pushstr(st, output);
+	if( index < 0 || index >= len )
+	{ // no change
+		script_pushstrcopy(st, str);
 		return 0;
 	}
 
@@ -12709,22 +12712,22 @@ BUILDIN_FUNC(strtolower)
 BUILDIN_FUNC(substr)
 {
 	const char *str = script_getstr(st,2);
-	char *output;
 	int start = script_getnum(st,3);
 	int end = script_getnum(st,4);
 
-	int len = 0;
-
-	if(start >= 0 && end < strlen(str) && start <= end) {
-		len = end - start + 1;
-		output = (char*)aMalloc(len + 1);
+	if( start >= 0 && start <= end && (unsigned int)end < strlen(str) )
+	{
+		int len = end + 1 - start;
+		char* output = (char*)aMalloc(len + 1);
 		memcpy(output, &str[start], len);
-	} else 
-		output = (char*)aMalloc(1);
+		output[len] = '\0';
+		script_pushstr(st, output);
+	}
+	else
+	{
+		script_pushconststr(st, "");
+	}
 
-	output[len] = '\0';
-
-	script_pushstr(st, output);
 	return 0;
 }
 
@@ -12740,15 +12743,12 @@ BUILDIN_FUNC(explode)
 	int32 id;
 	size_t len = strlen(str);
 	int i = 0, j = 0;
-	int start;
-	
+	int index;
 
 	char *temp;
 	const char* name;
 
 	TBL_PC* sd = NULL;
-
-	temp = (char*)aMalloc(len + 1);
 
 	if( !data_isreference(data) )
 	{
@@ -12759,7 +12759,7 @@ BUILDIN_FUNC(explode)
 	}
 
 	id = reference_getid(data);
-	start = reference_getindex(data);
+	index = reference_getindex(data);
 	name = reference_getname(data);
 
 	if( not_array_variable(*name) )
@@ -12785,19 +12785,26 @@ BUILDIN_FUNC(explode)
 			return 0;// no player attached
 	}
 
-	while(str[i] != '\0') {
-		if(str[i] == delimiter && start < 127) { //break at delimiter but ignore after reaching last array index
+	temp = (char*)aMalloc(len + 1);
+
+	for( i = 0, j = 0; i < len; ++i )
+	{
+		if( index < SCRIPT_MAX_ARRAYSIZE-1 && str[i] == delimiter )
+		{ // break string at delimiter while there is space in the array
 			temp[j] = '\0';
-			set_reg(st, sd, reference_uid(id, start++), name, (void*)temp, reference_getref(data));
+			set_reg(st, sd, reference_uid(id, index), name, (void*)temp, reference_getref(data));
+			++index;
 			j = 0;
-			++i;
-		} else {
-			temp[j++] = str[i++];
+		}
+		else
+		{
+			temp[j] = str[i];
+			++j;
 		}
 	}
 	//set last string
 	temp[j] = '\0';
-	set_reg(st, sd, reference_uid(id, start), name, (void*)temp, reference_getref(data));
+	set_reg(st, sd, reference_uid(id, index), name, (void*)temp, reference_getref(data));
 
 	aFree(temp);
 	return 0;
@@ -12809,14 +12816,10 @@ BUILDIN_FUNC(explode)
 BUILDIN_FUNC(implode)
 {
 	struct script_data* data = script_getdata(st, 2);
-	const char *glue = NULL, *name, *temp;
-	int32 glue_len = 0, array_size, id;
-	size_t len = 0;
-	int i, k = 0;
+	const char* name;
+	int32 array_size, id;
 
 	TBL_PC* sd = NULL;
-
-	char *output;
 
 	if( !data_isreference(data) )
 	{
@@ -12853,50 +12856,66 @@ BUILDIN_FUNC(implode)
 	}
 
 	//count chars
-	array_size = getarraysize(st, id, reference_getindex(data), is_string_variable(name), reference_getref(data)) - 1;
+	array_size = getarraysize(st, id, reference_getindex(data), is_string_variable(name), reference_getref(data));
 
-	if(array_size == -1) //empty array check (AmsTaff)
-    {
-        ShowWarning("script:implode: array length = 0\n");
-        output = (char*)aMalloc(sizeof(char)*5);
-        sprintf(output,"%s","NULL");
-	} else {
-		for(i = 0; i <= array_size; ++i) {
-			temp = (char*) get_val2(st, reference_uid(id, i), reference_getref(data));
-			len += strlen(temp);
-			script_removetop(st, -1, 0);
+	if( array_size < 0 || array_size >= SCRIPT_MAX_ARRAYSIZE )
+	{
+		ShowError("script:implode: invalid array length = %d\n", array_size);
+		script_reportdata(data);
+		st->state = END;
+		return -1;
+	}
+
+	if( array_size == 0 ) //empty array check (AmsTaff)
+	{
+		ShowWarning("script:implode: array length = 0\n");
+		script_reportdata(data);
+		script_reportsrc(st);
+		script_pushconststr(st, "NULL"); // XXX why return "NULL" for an empty array? [flaviojs]
+	}
+	else
+	{
+		const char* str[SCRIPT_MAX_ARRAYSIZE];
+		size_t len[SCRIPT_MAX_ARRAYSIZE];
+		size_t total_len = 0;
+		const char* glue = "";
+		size_t glue_len = 0;
+		char *output;
+		int i, k;
+
+		// parse data
+		for( i = 0; i < array_size; ++i )
+		{
+			str[i] = (const char*)get_val2(st, reference_uid(id, i), reference_getref(data)); // leave string data in the stack
+			len[i] = strlen(str[i]);
+			total_len += len[i];
 		}
 
-		//allocate mem
-		if( script_hasdata(st,3) ) {
+		if( script_hasdata(st,3) )
+		{
 			glue = script_getstr(st,3);
 			glue_len = strlen(glue);
-			len += glue_len * (array_size);
+			total_len += glue_len * (array_size - 1);
 		}
-		output = (char*)aMalloc(len + 1);
 
 		//build output
-		for(i = 0; i < array_size; ++i) {
-			temp = (char*) get_val2(st, reference_uid(id, i), reference_getref(data));
-			len = strlen(temp);
-			memcpy(&output[k], temp, len);
-			k += len;
-			if(glue_len != 0) {
+		output = (char*)aMalloc(total_len + 1);
+		for( i = 0, k = 0; i < array_size; ++i )
+		{
+			memcpy(&output[k], str[i], len[i]);
+			k += len[i];
+			if( glue_len > 0 && i < array_size - 1 )
+			{
 				memcpy(&output[k], glue, glue_len);
 				k += glue_len;
 			}
-			script_removetop(st, -1, 0);
 		}
-		temp = (char*) get_val2(st, reference_uid(id, array_size), reference_getref(data));
-		len = strlen(temp);
-		memcpy(&output[k], temp, len);
-		k += len;
-		script_removetop(st, -1, 0);
-
 		output[k] = '\0';
+		script_removetop(st, -array_size, 0); // clear string data in the stack
+
+		script_pushstr(st, output);
 	}
 
-	script_pushstr(st, output);
 	return 0;
 }
 
