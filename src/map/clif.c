@@ -10380,6 +10380,9 @@ void clif_parse_TradeRequest(int fd,struct map_session_data *sd)
 ///     4 = rejected
 void clif_parse_TradeAck(int fd,struct map_session_data *sd)
 {
+	if( !sd->state.can_tradeack )
+		return; // client isn't supposed to send this
+
 	trade_tradeack(sd,RFIFOB(fd,2));
 }
 
