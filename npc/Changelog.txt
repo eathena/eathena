@@ -1,5 +1,10 @@
 Date		Added
 ======
+2012/07/26
+	* Rev. 15160 Bug fixin' reports by Kirek. :D [L0ne_W0lf]
+	- Corrected quest log for Thor Volcano Base Quest (bugerport:5074)
+	- Alberta Boy quest no longer resets once completed. (bugreport:5075)
+	- Added a missing changequest in 'How the Airship Works.' (bugreport:5076)
 2011/08/10
 	* Updated the quests_brasilis ontouchNPC warp command to use unitwarp instead. [Skotlex]
 2011/08/09
