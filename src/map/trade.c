@@ -76,7 +76,20 @@ void trade_traderequest(struct map_session_data *sd, struct map_session_data *ta
 		clif_tradestart(sd, 0); // too far
 		return ;
 	}
-	
+
+	if( target_sd->weight > target_sd->max_weight || sd->weight > sd->max_weight )
+	{
+		clif_tradestart(sd, 2); // trade failed (overweight)
+		return;
+	}
+
+	if( sd->trade_partner != 0 )
+		trade_tradecancel(sd);
+
+	if( sd->state.vending || target_sd->state.vending )
+		return; // ignore request at the last minute (official)
+
+	target_sd->state.can_tradeack = 1;
 	target_sd->trade_partner = sd->status.account_id;
 	sd->trade_partner = target_sd->status.account_id;
 	clif_traderequest(target_sd, sd->status.name);
@@ -97,6 +110,8 @@ void trade_tradeack(struct map_session_data *sd, int type)
 {
 	struct map_session_data *tsd;
 	nullpo_retv(sd);
+
+	sd->state.can_tradeack = 0;
 
 	if (sd->state.trading || !sd->trade_partner)
 		return; //Already trading or no partner set.
@@ -457,9 +472,11 @@ void trade_tradecancel(struct map_session_data *sd)
 	if(!sd->state.trading)
 	{ // Not trade acepted
 		if( target_sd ) {
+			target_sd->state.can_tradeack = 0;
 			target_sd->trade_partner = 0;
 			clif_tradecancelled(target_sd);
 		}
+		sd->state.can_tradeack = 0;
 		sd->trade_partner = 0;
 		clif_tradecancelled(sd);
 		return;

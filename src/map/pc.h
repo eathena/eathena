@@ -115,6 +115,7 @@ struct map_session_data {
 		unsigned int mainchat :1; //[LuzZza]
 		unsigned int noask :1; // [LuzZza]
 		unsigned int trading :1; //[Skotlex] is 1 only after a trade has started.
+		unsigned int can_tradeack : 1; // client can send a tradeack
 		unsigned int deal_locked :2; //1: Clicked on OK. 2: Clicked on TRADE
 		unsigned int monster_ignore :1; // for monsters to ignore a character [Valaris] [zzo]
 		unsigned int size :2; // for tiny/large types
