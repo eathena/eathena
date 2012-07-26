@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 2.0
+//= 2.1
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -43,7 +43,8 @@
 //= 1.9 Added quest log entries for:
 //=     - Siblings Quest
 //=     - Thor Volcano Base Quest
-//= 2.0 Removed lvel requirement. (bugreport:4678) [L0ne_W0lf]
+//= 2.0 Removed level requirement. (bugreport:4678) [L0ne_W0lf]
+//= 2.1 Corrected quest log for Thor Volcano Base Quest (bugerport:5074) [L0ne_W0lf]
 //============================================================ 
 
 // Stone Quest
@@ -5997,7 +5998,7 @@ ve_in,233,116,3	script	Drunken Man#vol	901,{
 		mes "well done. Good work!";
 		mes "I expected nothing less";
 		mes "from my star pupil!";
-		changequest 60211,60212;
+		changequest 2129,2130;
 		set aru_vol,25;
 		delitem 7342,1; //File01
 		delitem 7704,1; //Broken_Thermometer
@@ -6125,7 +6126,7 @@ ve_in,281,214,3	script	Bookshelf#vol	111,{
 		mes "your eyes, and reach inside";
 		mes "Gio's purple box of goodies.^000000";
 		next;
-		changequest 60212,60213;
+		changequest 2130,2131;
 		set aru_vol,26;
 		set .@box_box,rand(1,20);
 		if (.@box_box < 7) {
@@ -6520,7 +6521,7 @@ thor_camp,250,104,3	script	Sahedi#vol	934,{
 		mes "Hopefully he'll have some";
 		mes "advice for what we can";
 		mes "do about this disaster...";
-		changequest 2128,60211;
+		changequest 2128,2129;
 		set aru_vol,24;
 		getitem 7342,1; //File01
 		close;

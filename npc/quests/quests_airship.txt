@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 // Samuray22
 //===== Current Version: ===================================== 
-//= 1.8
+//= 1.8a
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -27,6 +27,7 @@
 //= 1.8 Added quest log entries for:
 //=     - Airship Ticket Quest
 //=     - How the Airship Works
+//= 1.8a Added a missing changequest in 'How the Airship Works.' (bugreport:5076) [L0ne_W0lf]
 //============================================================ 
 
 //=======================================================================================================//
@@ -1547,6 +1548,7 @@ airplane_01,238,154,5	script	Airship Captain#01	873,{
 			}
 		} else if(lght_air == 4) {
 			set lght_air, 5;
+			changequest 8034,8035;
 			mes "[Tarlock]";
 			mes "Oh!";
 			mes "And he answer you? Really?!";

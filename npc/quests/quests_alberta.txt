@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= kobra_k88
 //===== Current Version: ===================================== 
-//= 2.4
+//= 2.5
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -33,6 +33,7 @@
 //= 2.2 Updated Gotan to be compliant with misc_quiest var. [L0ne_W0lf]
 //= 2.3 Updated heardgear Quest NPCs. [L0ne_W0lf]
 //= 2.4 Updated 'Doll Quest' to match AEGIS script. [Kisuka]
+//= 2.5 Alberta Boy quest no longer resets once completed. (bugreport:5075) [L0ne_W0lf]
 //============================================================ 
 
 
@@ -2840,7 +2841,7 @@ alberta_in,120,93,3	script	Iromo's Mother#ep3_2	53,{
 	mes "But, somehow...";
 	mes "he doesn't go out anymore.";
 	next;
-	if (BaseLevel > 40) {
+	if ((BaseLevel > 40) && (ep13_2_hiki < 1)) {
 		set ep13_2_hiki,1;
 		setquest 10079;
 	}
