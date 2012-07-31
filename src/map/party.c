@@ -38,15 +38,16 @@ int party_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data);
  * Fills the given party_member structure according to the sd provided. 
  * Used when creating/adding people to a party. [Skotlex]
  *------------------------------------------*/
-static void party_fill_member(struct party_member* member, struct map_session_data* sd, unsigned int leader)
+static void party_member_fill(struct party_member* member, struct map_session_data* sd, unsigned int leader)
 {
-  	member->account_id = sd->status.account_id;
+	memset(member, 0, sizeof(struct party_member));
+	member->account_id = sd->status.account_id;
 	member->char_id    = sd->status.char_id;
 	safestrncpy(member->name, sd->status.name, NAME_LENGTH);
 	member->class_     = sd->status.class_;
 	member->map        = sd->mapindex;
 	member->lv         = sd->status.base_level;
-	member->online     = 1;
+	member->online     = sd->state.active;
 	member->leader     = leader;
 }
 
@@ -176,7 +177,7 @@ bool party_create(struct map_session_data* sd, const char* name, int item, int i
 		return false;
 	}
 
-	party_fill_member(&leader, sd, 1);
+	party_member_fill(&leader, sd, 1);
 
 	sd->party_creating = intif_create_party(&leader,name,item,item2);
 	return sd->party_creating;
@@ -431,7 +432,7 @@ void party_reply_invite(struct map_session_data *sd,int party_id,int flag)
 	if( flag == 1 && !sd->party_creating && !sd->party_joining )
 	{// accepted and allowed
 		sd->party_joining = true;
-		party_fill_member(&member, sd, 0);
+		party_member_fill(&member, sd, 0);
 		intif_party_addmember(sd->party_invite, &member);
 	}
 	else
