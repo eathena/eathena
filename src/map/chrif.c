@@ -563,6 +563,9 @@ void chrif_authreq(struct map_session_data *sd)
 		return;
 	}
 
+	if( !chrif_isconnected() )
+		return;
+
 	WFIFOHEAD(char_fd,19);
 	WFIFOW(char_fd,0) = 0x2b26;
 	WFIFOL(char_fd,2) = sd->status.account_id;
