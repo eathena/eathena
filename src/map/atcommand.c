@@ -3982,38 +3982,42 @@ ACMD_FUNC(recallall)
 {
 	struct map_session_data* pl_sd;
 	struct s_mapiterator* iter;
-	int count;
+	int num_failed;
 	nullpo_retr(-1, sd);
 
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
-
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
+		clif_displaymessage(fd, "You are not authorised to warp players to your current map.");
 		return -1;
 	}
 
-	count = 0;
+	num_failed = 0;
 	iter = mapit_getallusers();
 	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
 	{
-		if (sd->status.account_id != pl_sd->status.account_id && pc_isGM(sd) >= pc_isGM(pl_sd))
+		if( pl_sd->status.account_id == sd->status.account_id )
+			continue; // no point in recalling self
+		if( pc_isGM(pl_sd) > pc_isGM(sd) )
+			continue; // skip more powerful GMs
+		if( pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
 		{
-			if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
-				count++;
-			else {
-				if (pc_isdead(pl_sd)) { //Wake them up
-					pc_setstand(pl_sd);
-					pc_setrestartvalue(pl_sd,1);
-				}
-				pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
-			}
+			++num_failed;
+			continue; // blocked by nowarp mapflag
 		}
+
+		if( pc_isdead(pl_sd) )
+		{// wake them up
+			pc_setstand(pl_sd);
+			pc_setrestartvalue(pl_sd,1);
+		}
+
+		pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
 	}
 	mapit_free(iter);
 
 	clif_displaymessage(fd, msg_txt(92)); // All characters recalled!
-	if (count) {
-		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+	if( num_failed != 0 )
+	{
+		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", num_failed);
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -4027,13 +4031,10 @@ ACMD_FUNC(guildrecall)
 {
 	struct map_session_data* pl_sd;
 	struct s_mapiterator* iter;
-	int count;
 	char guild_name[NAME_LENGTH];
-	struct guild *g;
+	struct guild* g;
+	int num_failed;
 	nullpo_retr(-1, sd);
-
-	memset(guild_name, '\0', sizeof(guild_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", guild_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a guild name/id (usage: @guildrecall <guild_name/id>).");
@@ -4041,7 +4042,7 @@ ACMD_FUNC(guildrecall)
 	}
 
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
+		clif_displaymessage(fd, "You are not authorised to warp players to your current map.");
 		return -1;
 	}
 
@@ -4052,27 +4053,31 @@ ACMD_FUNC(guildrecall)
 		return -1;
 	}
 
-	count = 0;
-
+	num_failed = 0;
 	iter = mapit_getallusers();
 	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
 	{
-		if (sd->status.account_id != pl_sd->status.account_id && pl_sd->status.guild_id == g->guild_id)
+		if( pl_sd->status.account_id == sd->status.account_id )
+			continue; // no point in recalling self
+		if( pl_sd->status.guild_id != g->guild_id )
+			continue; // not the right guild
+		if( pc_isGM(pl_sd) > pc_isGM(sd) )
+			continue; // skip more powerful GMs
+		if( pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
 		{
-			if (pc_isGM(pl_sd) > pc_isGM(sd))
-				continue; //Skip GMs greater than you.
-			if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
-				count++;
-			else
-				pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
+			++num_failed;
+			continue; // blocked by nowarp mapflag
 		}
+
+		pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
 	}
 	mapit_free(iter);
 
 	sprintf(atcmd_output, msg_txt(93), g->name); // All online characters of the %s guild have been recalled to your position.
 	clif_displaymessage(fd, atcmd_output);
-	if (count) {
-		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+	if( num_failed != 0 )
+	{
+		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", num_failed);
 		clif_displaymessage(fd, atcmd_output);
 	}
 
@@ -4087,12 +4092,9 @@ ACMD_FUNC(partyrecall)
 	struct map_session_data* pl_sd;
 	struct s_mapiterator* iter;
 	char party_name[NAME_LENGTH];
-	struct party_data *p;
-	int count;
+	struct party_data* p;
+	int num_failed;
 	nullpo_retr(-1, sd);
-
-	memset(party_name, '\0', sizeof(party_name));
-	memset(atcmd_output, '\0', sizeof(atcmd_output));
 
 	if (!message || !*message || sscanf(message, "%23[^\n]", party_name) < 1) {
 		clif_displaymessage(fd, "Please, enter a party name/id (usage: @partyrecall <party_name/id>).");
@@ -4100,7 +4102,7 @@ ACMD_FUNC(partyrecall)
 	}
 
 	if (sd->bl.m >= 0 && map[sd->bl.m].flag.nowarpto && battle_config.any_warp_GM_min_level > pc_isGM(sd)) {
-		clif_displaymessage(fd, "You are not authorised to warp somenone to your actual map.");
+		clif_displaymessage(fd, "You are not authorised to warp players to your current map.");
 		return -1;
 	}
 
@@ -4111,27 +4113,31 @@ ACMD_FUNC(partyrecall)
 		return -1;
 	}
 
-	count = 0;
-
+	num_failed = 0;
 	iter = mapit_getallusers();
 	for( pl_sd = (TBL_PC*)mapit_first(iter); mapit_exists(iter); pl_sd = (TBL_PC*)mapit_next(iter) )
 	{
-		if (sd->status.account_id != pl_sd->status.account_id && pl_sd->status.party_id == p->party.party_id)
+		if( pl_sd->status.account_id == sd->status.account_id )
+			continue; // no point in recalling self
+		if( pl_sd->status.party_id != p->party.party_id )
+			continue; // not the right party
+		if( pc_isGM(pl_sd) > pc_isGM(sd) )
+			continue; // skip more powerful GMs
+		if( pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd) )
 		{
-			if (pc_isGM(pl_sd) > pc_isGM(sd))
-				continue; //Skip GMs greater than you.
-			if (pl_sd->bl.m >= 0 && map[pl_sd->bl.m].flag.nowarp && battle_config.any_warp_GM_min_level > pc_isGM(sd))
-				count++;
-			else
-				pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
+			++num_failed;
+			continue; // blocked by nowarp mapflag
 		}
+
+		pc_setpos(pl_sd, sd->mapindex, sd->bl.x, sd->bl.y, CLR_RESPAWN);
 	}
 	mapit_free(iter);
 
 	sprintf(atcmd_output, msg_txt(95), p->party.name); // All online characters of the %s party have been recalled to your position.
 	clif_displaymessage(fd, atcmd_output);
-	if (count) {
-		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", count);
+	if( num_failed != 0 )
+	{
+		sprintf(atcmd_output, "Because you are not authorised to warp from some maps, %d player(s) have not been recalled.", num_failed);
 		clif_displaymessage(fd, atcmd_output);
 	}
 
