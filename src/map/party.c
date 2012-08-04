@@ -583,6 +583,33 @@ int party_leave(struct map_session_data *sd)
 	return 1;
 }
 
+
+/// Called whenever the data of the party member 'sd' was changed.
+/// It should be called when the following data is changed:
+/// - name // TODO is this supported by the client? [flaviojs]
+/// - class (job)
+/// - level
+/// - online status (active or not)
+void party_member_onchange(struct map_session_data* sd)
+{
+	struct party_data* p;
+	int member_id;
+	struct party_member m;
+
+	p = party_search(sd->status.party_id);
+	if( p == NULL )
+		return; // party not found
+
+	member_id = party_getmemberid(p, sd);
+	if( member_id == -1 )
+		return; // member not found
+
+	party_member_fill(&m, sd, p->party.member[member_id].leader);
+	if( memcmp(&m, &p->party.member[member_id], sizeof(m)) != 0 )
+		;// TODO send updated data to charserver (party will be updated on callback)
+}
+
+
 /// Invoked (from char-server) when a party member leaves the party.
 int party_member_withdraw(int party_id, int account_id, int char_id)
 {
