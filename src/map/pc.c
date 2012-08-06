@@ -391,7 +391,7 @@ void pc_onstatuschanged(struct map_session_data* sd, int type)
 	case SP_MAXHP:
 		if( battle_config.disp_hpmeter )
 			clif_hpmeter(sd);
-		if( !battle_config.party_hp_mode && sd->status.party_id )
+		if( battle_config.party_hp_mode == 0 && sd->status.party_id )
 			clif_party_hp(sd);
 		if( sd->bg_id )
 			clif_bg_hp(sd);

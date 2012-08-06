@@ -911,10 +911,11 @@ int party_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data)
 				p->data[i].y = sd->bl.y;
 				clif_party_xy(&p->data[i], NULL);
 			}
-			if (battle_config.party_hp_mode && p->data[i].hp != sd->battle_status.hp)
+			if( battle_config.party_hp_mode == 1 && (p->data[i].hp != sd->battle_status.hp || p->data[i].max_hp != sd->battle_status.max_hp) )
 			{// perform hp update
-				clif_party_hp(sd);
 				p->data[i].hp = sd->battle_status.hp;
+				p->data[i].max_hp = sd->battle_status.max_hp;
+				clif_party_hp(sd);
 			}
 		}
 	}

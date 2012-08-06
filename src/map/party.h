@@ -19,7 +19,7 @@ struct item;
 
 struct party_member_data {
 	struct map_session_data *sd;
-	unsigned int hp; //For HP,x,y refreshing.
+	unsigned int hp, max_hp; //For HP,x,y refreshing.
 	unsigned short x, y;
 };
 
