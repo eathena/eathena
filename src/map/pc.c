@@ -273,6 +273,133 @@ unsigned char pc_famerank(int char_id, int job)
 	return 0;
 }
 
+
+/// Called when a status changed in the player.
+/// Updates the client.
+/// @see enum _sp
+void pc_onstatuschanged(struct map_session_data* sd, int type)
+{
+	nullpo_retv(sd);
+
+	// update variables
+	if( type == SP_WEIGHT )
+		pc_updateweightstatus(sd);
+
+	// send status packet
+	switch( type )
+	{
+	// params
+	case SP_SPEED:
+	case SP_KARMA:
+	case SP_MANNER:
+	case SP_HP:
+	case SP_MAXHP:
+	case SP_SP:
+	case SP_MAXSP:
+	case SP_STATUSPOINT:
+	case SP_BASELEVEL:
+	case SP_SKILLPOINT:
+	case SP_WEIGHT:
+	case SP_MAXWEIGHT:
+	case SP_ATK1:
+	case SP_ATK2:
+	case SP_MATK1:
+	case SP_MATK2:
+	case SP_DEF1:
+	case SP_DEF2:
+	case SP_MDEF1:
+	case SP_HIT:
+	case SP_FLEE1:
+	case SP_ASPD:
+	case SP_36:
+	case SP_JOBLEVEL:
+		clif_updateparam(sd, type, pc_readparam(sd, type));
+	break;
+	case SP_MDEF2:
+	{
+		int value = pc_readparam(sd, type) - sd->battle_status.vit / 2;
+		if( value < 0 ) value = 0; // negative check (in case you have something like Berserk active)
+		clif_updateparam(sd, type, value);
+	}
+	break;
+	case SP_FLEE2:
+	case SP_CRITICAL:
+		clif_updateparam(sd, type, pc_readparam(sd, type) / 10);
+	break;
+
+	// long params
+	case SP_ZENY:
+	case SP_BASEEXP:
+	case SP_JOBEXP:
+	case SP_NEXTBASEEXP:
+	case SP_NEXTJOBEXP:
+		clif_updatelongparam(sd, type, pc_readparam(sd, type));
+	break;
+	
+	// stats
+	case SP_STR:
+		clif_updatestat(sd, type, sd->status.str, sd->battle_status.str - sd->status.str);
+	break;
+	case SP_AGI:
+		clif_updatestat(sd, type, sd->status.agi, sd->battle_status.agi - sd->status.agi);
+	break;
+	case SP_VIT:
+		clif_updatestat(sd, type, sd->status.vit, sd->battle_status.vit - sd->status.vit);
+	break;
+	case SP_INT:
+		clif_updatestat(sd, type, sd->status.int_, sd->battle_status.int_ - sd->status.int_);
+	break;
+	case SP_DEX:
+		clif_updatestat(sd, type, sd->status.dex, sd->battle_status.dex - sd->status.dex);
+	break;
+	case SP_LUK:
+		clif_updatestat(sd, type, sd->status.luk, sd->battle_status.luk - sd->status.luk);
+	break;
+
+	// status points needed
+	case SP_USTR:
+	case SP_UAGI:
+	case SP_UVIT:
+	case SP_UINT:
+	case SP_UDEX:
+	case SP_ULUK:
+		clif_updatestatuspointsneeded(sd, type, pc_readparam(sd, type));
+	break;
+
+	// cart info
+	case SP_CARTINFO:
+		clif_updatecartinfo(sd, sd->cart_num, MAX_CART, sd->cart_weight, battle_config.max_cart_weight);
+	break;
+
+	// attack range
+	case SP_ATTACKRANGE:
+		clif_updateattackrange(sd, sd->battle_status.rhw.range);
+	break;
+
+	default:
+		ShowWarning("pc_onstatuschanged: unexpected type (type=%d)\n", type);
+	break;
+	}
+
+	// trigger other stuff
+	switch( type )
+	{
+	case SP_MANNER:
+		clif_changestatus(sd, type, pc_readparam(sd, type));
+	break;
+	case SP_HP:
+	case SP_MAXHP:
+		if( battle_config.disp_hpmeter )
+			clif_hpmeter(sd);
+		if( !battle_config.party_hp_mode && sd->status.party_id )
+			clif_party_hp(sd);
+		if( sd->bg_id )
+			clif_bg_hp(sd);
+	break;
+	}
+}
+
+
 int pc_setrestartvalue(struct map_session_data *sd,int type)
 {
 	struct status_data *status, *b_status;
