@@ -811,9 +811,9 @@ bool pc_adoption(struct map_session_data *p1_sd, struct map_session_data *p2_sd,
 
 		// Restore progress
 		b_sd->status.job_level = joblevel;
-		clif_updatestatus(b_sd, SP_JOBLEVEL);
+		pc_onstatuschanged(b_sd, SP_JOBLEVEL);
 		b_sd->status.job_exp = jobexp;
-		clif_updatestatus(b_sd, SP_JOBEXP);
+		pc_onstatuschanged(b_sd, SP_JOBEXP);
 
 		// Baby Skills
 		pc_skill(b_sd, WE_BABY, 1, 0);
@@ -1550,7 +1550,7 @@ int pc_disguise(struct map_session_data *sd, int class_)
 		if (class_ == sd->status.class_ && pc_iscarton(sd))
 		{	//It seems the cart info is lost on undisguise.
 			clif_cartlist(sd);
-			clif_updatestatus(sd,SP_CARTINFO);
+			pc_onstatuschanged(sd,SP_CARTINFO);
 		}
 	}
 	return 1;
@@ -3344,7 +3344,7 @@ int pc_payzeny(struct map_session_data *sd,int zeny)
 		return 1; //Not enough.
 
 	sd->status.zeny -= zeny;
-	clif_updatestatus(sd,SP_ZENY);
+	pc_onstatuschanged(sd,SP_ZENY);
 
 	return 0;
 }
@@ -3453,7 +3453,7 @@ int pc_getzeny(struct map_session_data *sd,int zeny)
 		zeny = MAX_ZENY - sd->status.zeny;
 
 	sd->status.zeny += zeny;
-	clif_updatestatus(sd,SP_ZENY);
+	pc_onstatuschanged(sd,SP_ZENY);
 
 	if( zeny > 0 && sd->state.showzeny )
 	{
@@ -3533,7 +3533,7 @@ int pc_additem(struct map_session_data *sd,struct item *item_data,int amount)
 	}
 
 	sd->weight += w;
-	clif_updatestatus(sd,SP_WEIGHT);
+	pc_onstatuschanged(sd,SP_WEIGHT);
 	//Auto-equip
 	if(data->flag.autoequip) pc_equipitem(sd, i, data->equip);
 	return 0;
@@ -3560,7 +3560,7 @@ int pc_delitem(struct map_session_data *sd,int n,int amount,int type, short reas
 	if(!(type&1))
 		clif_delitem(sd,n,amount,reason);
 	if(!(type&2))
-		clif_updatestatus(sd,SP_WEIGHT);
+		pc_onstatuschanged(sd,SP_WEIGHT);
 
 	return 0;
 }
@@ -3979,7 +3979,7 @@ int pc_cart_additem(struct map_session_data *sd,struct item *item_data,int amoun
 	}
 
 	sd->cart_weight += w;
-	clif_updatestatus(sd,SP_CARTINFO);
+	pc_onstatuschanged(sd,SP_CARTINFO);
 
 	return 0;
 }
@@ -4003,7 +4003,7 @@ int pc_cart_delitem(struct map_session_data *sd,int n,int amount,int type)
 	}
 	if(!type) {
 		clif_cart_delitem(sd,n,amount);
-		clif_updatestatus(sd,SP_CARTINFO);
+		pc_onstatuschanged(sd,SP_CARTINFO);
 	}
 
 	return 0;
@@ -4978,10 +4978,10 @@ int pc_checkbaselevelup(struct map_session_data *sd)
 	if (battle_config.pet_lv_rate && sd->pd)	//<Skotlex> update pet's level
 		status_calc_pet(sd->pd,0);
 	
-	clif_updatestatus(sd,SP_STATUSPOINT);
-	clif_updatestatus(sd,SP_BASELEVEL);
-	clif_updatestatus(sd,SP_BASEEXP);
-	clif_updatestatus(sd,SP_NEXTBASEEXP);
+	pc_onstatuschanged(sd,SP_STATUSPOINT);
+	pc_onstatuschanged(sd,SP_BASELEVEL);
+	pc_onstatuschanged(sd,SP_BASEEXP);
+	pc_onstatuschanged(sd,SP_NEXTBASEEXP);
 	status_calc_pc(sd,0);
 	status_percent_heal(&sd->bl,100,100);
 
@@ -5027,10 +5027,10 @@ int pc_checkjoblevelup(struct map_session_data *sd)
 
 	} while ((next=pc_nextjobexp(sd)) > 0 && sd->status.job_exp >= next);
 
-	clif_updatestatus(sd,SP_JOBLEVEL);
-	clif_updatestatus(sd,SP_JOBEXP);
-	clif_updatestatus(sd,SP_NEXTJOBEXP);
-	clif_updatestatus(sd,SP_SKILLPOINT);
+	pc_onstatuschanged(sd,SP_JOBLEVEL);
+	pc_onstatuschanged(sd,SP_JOBEXP);
+	pc_onstatuschanged(sd,SP_NEXTJOBEXP);
+	pc_onstatuschanged(sd,SP_SKILLPOINT);
 	status_calc_pc(sd,0);
 	clif_misceffect(&sd->bl,1);
 	if (pc_checkskill(sd, SG_DEVIL) && !pc_nextjobexp(sd))
@@ -5121,7 +5121,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 		else
 			sd->status.base_exp += base_exp;
 		pc_checkbaselevelup(sd);
-		clif_updatestatus(sd,SP_BASEEXP);
+		pc_onstatuschanged(sd,SP_BASEEXP);
 	}
 
 	if (job_exp) {
@@ -5131,7 +5131,7 @@ int pc_gainexp(struct map_session_data *sd, struct block_list *src, unsigned int
 		else
 			sd->status.job_exp += job_exp;
 		pc_checkjoblevelup(sd);
-		clif_updatestatus(sd,SP_JOBEXP);
+		pc_onstatuschanged(sd,SP_JOBEXP);
 	}
 
 #if PACKETVER >= 20091027
@@ -5307,15 +5307,15 @@ int pc_statusup(struct map_session_data* sd, int type)
 
 	// update increase cost indicator
 	if( need != pc_need_status_point(sd,type,1) )
-		clif_updatestatus(sd, SP_USTR + type-SP_STR);
+		pc_onstatuschanged(sd, SP_USTR + type-SP_STR);
 
 	// update statpoint count
-	clif_updatestatus(sd,SP_STATUSPOINT);
+	pc_onstatuschanged(sd,SP_STATUSPOINT);
 
 	// update stat value
 	clif_statusupack(sd,type,1,val); // required
 	if( val > 255 )
-		clif_updatestatus(sd,type); // send after the 'ack' to override the truncated value
+		pc_onstatuschanged(sd,type); // send after the 'ack' to override the truncated value
 
 	return 0;
 }
@@ -5347,12 +5347,12 @@ int pc_statusup2(struct map_session_data* sd, int type, int val)
 
 	// update increase cost indicator
 	if( need != pc_need_status_point(sd,type,1) )
-		clif_updatestatus(sd, SP_USTR + type-SP_STR);
+		pc_onstatuschanged(sd, SP_USTR + type-SP_STR);
 
 	// update stat value
 	clif_statusupack(sd,type,1,val); // required
 	if( val > 255 )
-		clif_updatestatus(sd,type); // send after the 'ack' to override the truncated value
+		pc_onstatuschanged(sd,type); // send after the 'ack' to override the truncated value
 
 	return 0;
 }
@@ -5394,7 +5394,7 @@ int pc_skillup(struct map_session_data *sd,int skill_num)
 			pc_check_skilltree(sd, skill_num); // Check if a new skill can Lvlup
 
 		clif_skillup(sd,skill_num);
-		clif_updatestatus(sd,SP_SKILLPOINT);
+		pc_onstatuschanged(sd,SP_SKILLPOINT);
 		clif_skillinfoblock(sd);
 	}
 
@@ -5500,28 +5500,28 @@ int pc_resetlvl(struct map_session_data* sd,int type)
 		sd->status.job_exp=0;
 	}
 
-	clif_updatestatus(sd,SP_STATUSPOINT);
-	clif_updatestatus(sd,SP_STR);
-	clif_updatestatus(sd,SP_AGI);
-	clif_updatestatus(sd,SP_VIT);
-	clif_updatestatus(sd,SP_INT);
-	clif_updatestatus(sd,SP_DEX);
-	clif_updatestatus(sd,SP_LUK);
-	clif_updatestatus(sd,SP_BASELEVEL);
-	clif_updatestatus(sd,SP_JOBLEVEL);
-	clif_updatestatus(sd,SP_STATUSPOINT);
-	clif_updatestatus(sd,SP_BASEEXP);
-	clif_updatestatus(sd,SP_JOBEXP);
-	clif_updatestatus(sd,SP_NEXTBASEEXP);
-	clif_updatestatus(sd,SP_NEXTJOBEXP);
-	clif_updatestatus(sd,SP_SKILLPOINT);
+	pc_onstatuschanged(sd,SP_STATUSPOINT);
+	pc_onstatuschanged(sd,SP_STR);
+	pc_onstatuschanged(sd,SP_AGI);
+	pc_onstatuschanged(sd,SP_VIT);
+	pc_onstatuschanged(sd,SP_INT);
+	pc_onstatuschanged(sd,SP_DEX);
+	pc_onstatuschanged(sd,SP_LUK);
+	pc_onstatuschanged(sd,SP_BASELEVEL);
+	pc_onstatuschanged(sd,SP_JOBLEVEL);
+	pc_onstatuschanged(sd,SP_STATUSPOINT);
+	pc_onstatuschanged(sd,SP_BASEEXP);
+	pc_onstatuschanged(sd,SP_JOBEXP);
+	pc_onstatuschanged(sd,SP_NEXTBASEEXP);
+	pc_onstatuschanged(sd,SP_NEXTJOBEXP);
+	pc_onstatuschanged(sd,SP_SKILLPOINT);
 
-	clif_updatestatus(sd,SP_USTR);	// Updates needed stat points - Valaris
-	clif_updatestatus(sd,SP_UAGI);
-	clif_updatestatus(sd,SP_UVIT);
-	clif_updatestatus(sd,SP_UINT);
-	clif_updatestatus(sd,SP_UDEX);
-	clif_updatestatus(sd,SP_ULUK);	// End Addition
+	pc_onstatuschanged(sd,SP_USTR);	// Updates needed stat points - Valaris
+	pc_onstatuschanged(sd,SP_UAGI);
+	pc_onstatuschanged(sd,SP_UVIT);
+	pc_onstatuschanged(sd,SP_UINT);
+	pc_onstatuschanged(sd,SP_UDEX);
+	pc_onstatuschanged(sd,SP_ULUK);	// End Addition
 
 	for(i=0;i<EQI_MAX;i++) { // unequip items that can't be equipped by base 1 [Valaris]
 		if(sd->equip_index[i] >= 0)
@@ -5575,21 +5575,21 @@ int pc_resetstate(struct map_session_data* sd)
 	pc_setstat(sd, SP_DEX, 1);
 	pc_setstat(sd, SP_LUK, 1);
 
-	clif_updatestatus(sd,SP_STR);
-	clif_updatestatus(sd,SP_AGI);
-	clif_updatestatus(sd,SP_VIT);
-	clif_updatestatus(sd,SP_INT);
-	clif_updatestatus(sd,SP_DEX);
-	clif_updatestatus(sd,SP_LUK);
+	pc_onstatuschanged(sd,SP_STR);
+	pc_onstatuschanged(sd,SP_AGI);
+	pc_onstatuschanged(sd,SP_VIT);
+	pc_onstatuschanged(sd,SP_INT);
+	pc_onstatuschanged(sd,SP_DEX);
+	pc_onstatuschanged(sd,SP_LUK);
 
-	clif_updatestatus(sd,SP_USTR);	// Updates needed stat points - Valaris
-	clif_updatestatus(sd,SP_UAGI);
-	clif_updatestatus(sd,SP_UVIT);
-	clif_updatestatus(sd,SP_UINT);
-	clif_updatestatus(sd,SP_UDEX);
-	clif_updatestatus(sd,SP_ULUK);	// End Addition
+	pc_onstatuschanged(sd,SP_USTR);	// Updates needed stat points - Valaris
+	pc_onstatuschanged(sd,SP_UAGI);
+	pc_onstatuschanged(sd,SP_UVIT);
+	pc_onstatuschanged(sd,SP_UINT);
+	pc_onstatuschanged(sd,SP_UDEX);
+	pc_onstatuschanged(sd,SP_ULUK);	// End Addition
 	
-	clif_updatestatus(sd,SP_STATUSPOINT);
+	pc_onstatuschanged(sd,SP_STATUSPOINT);
 	status_calc_pc(sd,0);
 
 	return 1;
@@ -5677,7 +5677,7 @@ int pc_resetskill(struct map_session_data* sd, int flag)
 
 	if( flag&1 )
 	{
-		clif_updatestatus(sd,SP_SKILLPOINT);
+		pc_onstatuschanged(sd,SP_SKILLPOINT);
 		clif_skillinfoblock(sd);
 		status_calc_pc(sd,0);
 	}
@@ -5788,8 +5788,8 @@ static int pc_respawn_timer(int tid, unsigned int tick, int id, intptr_t data)
  *------------------------------------------*/
 void pc_damage(struct map_session_data *sd,struct block_list *src,unsigned int hp, unsigned int sp)
 {
-	if (sp) clif_updatestatus(sd,SP_SP);
-	if (hp) clif_updatestatus(sd,SP_HP);
+	if (sp) pc_onstatuschanged(sd,SP_SP);
+	if (hp) pc_onstatuschanged(sd,SP_HP);
 	else return;
 	
 	if( !src || src == &sd->bl )
@@ -5998,7 +5998,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			  	if (battle_config.pk_mode && src && src->type==BL_PC)
 					base_penalty*=2;
 				sd->status.base_exp -= min(sd->status.base_exp, base_penalty);
-				clif_updatestatus(sd,SP_BASEEXP);
+				pc_onstatuschanged(sd,SP_BASEEXP);
 			}
 		}
 		if(battle_config.death_penalty_job > 0)
@@ -6016,7 +6016,7 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 			  	if (battle_config.pk_mode && src && src->type==BL_PC)
 					base_penalty*=2;
 				sd->status.job_exp -= min(sd->status.job_exp, base_penalty);
-				clif_updatestatus(sd,SP_JOBEXP);
+				pc_onstatuschanged(sd,SP_JOBEXP);
 			}
 		}
 		if(battle_config.zeny_penalty > 0 && !map[sd->bl.m].flag.nozenypenalty)
@@ -6119,8 +6119,8 @@ int pc_dead(struct map_session_data *sd,struct block_list *src)
 
 void pc_revive(struct map_session_data *sd,unsigned int hp, unsigned int sp)
 {
-	if(hp) clif_updatestatus(sd,SP_HP);
-	if(sp) clif_updatestatus(sd,SP_SP);
+	if(hp) pc_onstatuschanged(sd,SP_HP);
+	if(sp) pc_onstatuschanged(sd,SP_SP);
 
 	pc_setstand(sd);
 	if(battle_config.pc_invincible_time > 0)
@@ -6216,10 +6216,10 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		}
 		sd->status.base_level = (unsigned int)val;
 		sd->status.base_exp = 0;
-		// clif_updatestatus(sd, SP_BASELEVEL);  // Gets updated at the bottom
-		clif_updatestatus(sd, SP_NEXTBASEEXP);
-		clif_updatestatus(sd, SP_STATUSPOINT);
-		clif_updatestatus(sd, SP_BASEEXP);
+		// pc_onstatuschanged(sd, SP_BASELEVEL);  // Gets updated at the bottom
+		pc_onstatuschanged(sd, SP_NEXTBASEEXP);
+		pc_onstatuschanged(sd, SP_STATUSPOINT);
+		pc_onstatuschanged(sd, SP_BASEEXP);
 		status_calc_pc(sd, 0);
 		if(sd->status.party_id)
 		{
@@ -6230,13 +6230,13 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		if ((unsigned int)val >= sd->status.job_level) {
 			if ((unsigned int)val > pc_maxjoblv(sd)) val = pc_maxjoblv(sd);
 			sd->status.skill_point += val - sd->status.job_level;
-			clif_updatestatus(sd, SP_SKILLPOINT);
+			pc_onstatuschanged(sd, SP_SKILLPOINT);
 		}
 		sd->status.job_level = (unsigned int)val;
 		sd->status.job_exp = 0;
-		// clif_updatestatus(sd, SP_JOBLEVEL);  // Gets updated at the bottom
-		clif_updatestatus(sd, SP_NEXTJOBEXP);
-		clif_updatestatus(sd, SP_JOBEXP);
+		// pc_onstatuschanged(sd, SP_JOBLEVEL);  // Gets updated at the bottom
+		pc_onstatuschanged(sd, SP_NEXTJOBEXP);
+		pc_onstatuschanged(sd, SP_JOBEXP);
 		status_calc_pc(sd, 0);
 		break;
 	case SP_SKILLPOINT:
@@ -6280,7 +6280,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		if( sd->battle_status.max_hp < sd->battle_status.hp )
 		{
 			sd->battle_status.hp = sd->battle_status.max_hp;
-			clif_updatestatus(sd, SP_HP);
+			pc_onstatuschanged(sd, SP_HP);
 		}
 		break;
 	case SP_SP:
@@ -6292,7 +6292,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		if( sd->battle_status.max_sp < sd->battle_status.sp )
 		{
 			sd->battle_status.sp = sd->battle_status.max_sp;
-			clif_updatestatus(sd, SP_SP);
+			pc_onstatuschanged(sd, SP_SP);
 		}
 		break;
 	case SP_STR:
@@ -6338,7 +6338,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 		ShowError("pc_setparam: Attempted to set unknown parameter '%d'.\n", type);
 		return 0;
 	}
-	clif_updatestatus(sd,type);
+	pc_onstatuschanged(sd,type);
 
 	return 1;
 }
@@ -6355,9 +6355,9 @@ void pc_heal(struct map_session_data *sd,unsigned int hp,unsigned int sp, int ty
 			clif_heal(sd->fd,SP_SP,sp);
 	} else {
 		if(hp)
-			clif_updatestatus(sd,SP_HP);
+			pc_onstatuschanged(sd,SP_HP);
 		if(sp)
-			clif_updatestatus(sd,SP_SP);
+			pc_onstatuschanged(sd,SP_SP);
 	}
 	return;
 }
@@ -6525,9 +6525,9 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 	sd->class_ = (unsigned short)b_class;
 	sd->status.job_level=1;
 	sd->status.job_exp=0;
-	clif_updatestatus(sd,SP_JOBLEVEL);
-	clif_updatestatus(sd,SP_JOBEXP);
-	clif_updatestatus(sd,SP_NEXTJOBEXP);
+	pc_onstatuschanged(sd,SP_JOBLEVEL);
+	pc_onstatuschanged(sd,SP_JOBEXP);
+	pc_onstatuschanged(sd,SP_NEXTJOBEXP);
 
 	for(i=0;i<EQI_MAX;i++) {
 		if(sd->equip_index[i] >= 0)
@@ -6699,7 +6699,7 @@ int pc_setoption(struct map_session_data *sd,int type)
 	if(type&OPTION_CART && !(p_type&OPTION_CART))
   	{ //Cart On
 		clif_cartlist(sd);
-		clif_updatestatus(sd, SP_CARTINFO);
+		pc_onstatuschanged(sd, SP_CARTINFO);
 		if(pc_checkskill(sd, MC_PUSHCART) < 10)
 			status_calc_pc(sd,0); //Apply speed penalty.
 	} else

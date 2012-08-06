@@ -2778,228 +2778,6 @@ void clif_updatestat(struct map_session_data* sd, int type, int value, int plusv
 }
 
 
-/// Notifies client of a character parameter change.
-/// 00b0 <var id>.W <value>.L (ZC_PAR_CHANGE)
-/// 00b1 <var id>.W <value>.L (ZC_LONGPAR_CHANGE)
-/// 00be <status id>.W <value>.B (ZC_STATUS_CHANGE)
-/// 0121 <current count>.W <max count>.W <current weight>.L <max weight>.L (ZC_NOTIFY_CARTITEM_COUNTINFO)
-/// 013a <atk range>.W (ZC_ATTACK_RANGE)
-/// 0141 <status id>.L <base status>.L <plus status>.L (ZC_COUPLESTATUS)
-/// TODO: Extract individual packets.
-/// FIXME: Packet lengths from packet_len(cmd)
-void clif_updatestatus(struct map_session_data *sd,int type)
-{
-	int fd,len=8;
-
-	nullpo_retv(sd);
-
-	fd=sd->fd;
-
-	if ( !session_isActive(fd) ) // Invalid pointer fix, by sasuke [Kevin]
-		return;
-
-	WFIFOHEAD(fd, 14);
-	WFIFOW(fd,0)=0xb0;
-	WFIFOW(fd,2)=type;
-	switch(type){
-		// 00b0
-	case SP_WEIGHT:
-		pc_updateweightstatus(sd);
-		WFIFOHEAD(fd,14);
-		WFIFOW(fd,0)=0xb0;	//Need to re-set as pc_updateweightstatus can alter the buffer. [Skotlex]
-		WFIFOW(fd,2)=type;
-		WFIFOL(fd,4)=sd->weight;
-		break;
-	case SP_MAXWEIGHT:
-		WFIFOL(fd,4)=sd->max_weight;
-		break;
-	case SP_SPEED:
-		WFIFOL(fd,4)=sd->battle_status.speed;
-		break;
-	case SP_BASELEVEL:
-		WFIFOL(fd,4)=sd->status.base_level;
-		break;
-	case SP_JOBLEVEL:
-		WFIFOL(fd,4)=sd->status.job_level;
-		break;
-	case SP_KARMA: // Adding this back, I wonder if the client intercepts this - [Lance]
-		WFIFOL(fd,4)=sd->status.karma;
-		break;
-	case SP_MANNER:
-		WFIFOL(fd,4)=sd->status.manner;
-		break;
-	case SP_STATUSPOINT:
-		WFIFOL(fd,4)=sd->status.status_point;
-		break;
-	case SP_SKILLPOINT:
-		WFIFOL(fd,4)=sd->status.skill_point;
-		break;
-	case SP_HIT:
-		WFIFOL(fd,4)=sd->battle_status.hit;
-		break;
-	case SP_FLEE1:
-		WFIFOL(fd,4)=sd->battle_status.flee;
-		break;
-	case SP_FLEE2:
-		WFIFOL(fd,4)=sd->battle_status.flee2/10;
-		break;
-	case SP_MAXHP:
-		WFIFOL(fd,4)=sd->battle_status.max_hp;
-		break;
-	case SP_MAXSP:
-		WFIFOL(fd,4)=sd->battle_status.max_sp;
-		break;
-	case SP_HP:
-		WFIFOL(fd,4)=sd->battle_status.hp;
-		// TODO: Won't these overwrite the current packet?
-		if( battle_config.disp_hpmeter )
-			clif_hpmeter(sd);
-		if( !battle_config.party_hp_mode && sd->status.party_id )
-			clif_party_hp(sd);
-		if( sd->bg_id )
-			clif_bg_hp(sd);
-		break;
-	case SP_SP:
-		WFIFOL(fd,4)=sd->battle_status.sp;
-		break;
-	case SP_ASPD:
-		WFIFOL(fd,4)=sd->battle_status.amotion;
-		break;
-	case SP_ATK1:
-		WFIFOL(fd,4)=sd->battle_status.batk +sd->battle_status.rhw.atk +sd->battle_status.lhw.atk;
-		break;
-	case SP_DEF1:
-		WFIFOL(fd,4)=sd->battle_status.def;
-		break;
-	case SP_MDEF1:
-		WFIFOL(fd,4)=sd->battle_status.mdef;
-		break;
-	case SP_ATK2:
-		WFIFOL(fd,4)=sd->battle_status.rhw.atk2 + sd->battle_status.lhw.atk2;
-		break;
-	case SP_DEF2:
-		WFIFOL(fd,4)=sd->battle_status.def2;
-		break;
-	case SP_MDEF2:
-	{
-		//negative check (in case you have something like Berserk active)
-		int mdef2 = sd->battle_status.mdef2 - (sd->battle_status.vit>>1);
-
-		WFIFOL(fd,4)= ( mdef2 < 0 ) ? 0 : mdef2;
-		break;
-	}
-	case SP_CRITICAL:
-		WFIFOL(fd,4)=sd->battle_status.cri/10;
-		break;
-	case SP_MATK1:
-		WFIFOL(fd,4)=sd->battle_status.matk_max;
-		break;
-	case SP_MATK2:
-		WFIFOL(fd,4)=sd->battle_status.matk_min;
-		break;
-
-
-	case SP_ZENY:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.zeny;
-		break;
-	case SP_BASEEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.base_exp;
-		break;
-	case SP_JOBEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=sd->status.job_exp;
-		break;
-	case SP_NEXTBASEEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=pc_nextbaseexp(sd);
-		break;
-	case SP_NEXTJOBEXP:
-		WFIFOW(fd,0)=0xb1;
-		WFIFOL(fd,4)=pc_nextjobexp(sd);
-		break;
-
-		// 00be I—¹
-	case SP_USTR:
-	case SP_UAGI:
-	case SP_UVIT:
-	case SP_UINT:
-	case SP_UDEX:
-	case SP_ULUK:
-		WFIFOW(fd,0)=0xbe;
-		WFIFOB(fd,4)=pc_need_status_point(sd,type-SP_USTR+SP_STR,1);
-		len=5;
-		break;
-
-		// 013a I—¹
-	case SP_ATTACKRANGE:
-		WFIFOW(fd,0)=0x13a;
-		WFIFOW(fd,2)=sd->battle_status.rhw.range;
-		len=4;
-		break;
-
-		// 0141 I—¹
-	case SP_STR:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.str;
-		WFIFOL(fd,10)=sd->battle_status.str - sd->status.str;
-		len=14;
-		break;
-	case SP_AGI:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.agi;
-		WFIFOL(fd,10)=sd->battle_status.agi - sd->status.agi;
-		len=14;
-		break;
-	case SP_VIT:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.vit;
-		WFIFOL(fd,10)=sd->battle_status.vit - sd->status.vit;
-		len=14;
-		break;
-	case SP_INT:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.int_;
-		WFIFOL(fd,10)=sd->battle_status.int_ - sd->status.int_;
-		len=14;
-		break;
-	case SP_DEX:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.dex;
-		WFIFOL(fd,10)=sd->battle_status.dex - sd->status.dex;
-		len=14;
-		break;
-	case SP_LUK:
-		WFIFOW(fd,0)=0x141;
-		WFIFOL(fd,2)=type;
-		WFIFOL(fd,6)=sd->status.luk;
-		WFIFOL(fd,10)=sd->battle_status.luk - sd->status.luk;
-		len=14;
-		break;
-
-	case SP_CARTINFO:
-		WFIFOW(fd,0)=0x121;
-		WFIFOW(fd,2)=sd->cart_num;
-		WFIFOW(fd,4)=MAX_CART;
-		WFIFOL(fd,6)=sd->cart_weight;
-		WFIFOL(fd,10)=battle_config.max_cart_weight;
-		len=14;
-		break;
-
-	default:
-		ShowError("clif_updatestatus : unrecognized type %d\n",type);
-		return;
-	}
-	WFIFOSET(fd,len);
-}
-
-
 /// Notifies client of a parameter change of an another player (ZC_PAR_CHANGE_USER).
 /// 01ab <account id>.L <var id>.W <value>.L
 void clif_changestatus(struct map_session_data* sd,int type,int val)
@@ -3239,15 +3017,15 @@ void clif_initialstatus(struct map_session_data *sd)
 
 	WFIFOSET(fd,packet_len(0xbd));
 
-	clif_updatestatus(sd,SP_STR);
-	clif_updatestatus(sd,SP_AGI);
-	clif_updatestatus(sd,SP_VIT);
-	clif_updatestatus(sd,SP_INT);
-	clif_updatestatus(sd,SP_DEX);
-	clif_updatestatus(sd,SP_LUK);
+	pc_onstatuschanged(sd,SP_STR);
+	pc_onstatuschanged(sd,SP_AGI);
+	pc_onstatuschanged(sd,SP_VIT);
+	pc_onstatuschanged(sd,SP_INT);
+	pc_onstatuschanged(sd,SP_DEX);
+	pc_onstatuschanged(sd,SP_LUK);
 
-	clif_updatestatus(sd,SP_ATTACKRANGE);
-	clif_updatestatus(sd,SP_ASPD);
+	pc_onstatuschanged(sd,SP_ATTACKRANGE);
+	pc_onstatuschanged(sd,SP_ASPD);
 }
 
 
@@ -8327,16 +8105,16 @@ void clif_refresh(struct map_session_data *sd)
 	clif_inventorylist(sd);
 	if(pc_iscarton(sd)) {
 		clif_cartlist(sd);
-		clif_updatestatus(sd,SP_CARTINFO);
+		pc_onstatuschanged(sd,SP_CARTINFO);
 	}
-	clif_updatestatus(sd,SP_WEIGHT);
-	clif_updatestatus(sd,SP_MAXWEIGHT);
-	clif_updatestatus(sd,SP_STR);
-	clif_updatestatus(sd,SP_AGI);
-	clif_updatestatus(sd,SP_VIT);
-	clif_updatestatus(sd,SP_INT);
-	clif_updatestatus(sd,SP_DEX);
-	clif_updatestatus(sd,SP_LUK);
+	pc_onstatuschanged(sd,SP_WEIGHT);
+	pc_onstatuschanged(sd,SP_MAXWEIGHT);
+	pc_onstatuschanged(sd,SP_STR);
+	pc_onstatuschanged(sd,SP_AGI);
+	pc_onstatuschanged(sd,SP_VIT);
+	pc_onstatuschanged(sd,SP_INT);
+	pc_onstatuschanged(sd,SP_DEX);
+	pc_onstatuschanged(sd,SP_LUK);
 	if (sd->spiritball)
 		clif_spiritball_single(sd->fd, sd);
 	if (sd->vd.cloth_color)
@@ -9200,12 +8978,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 	// cart
 	if(pc_iscarton(sd)) {
 		clif_cartlist(sd);
-		clif_updatestatus(sd,SP_CARTINFO);
+		pc_onstatuschanged(sd,SP_CARTINFO);
 	}
 
 	// weight
-	clif_updatestatus(sd,SP_WEIGHT);
-	clif_updatestatus(sd,SP_MAXWEIGHT);
+	pc_onstatuschanged(sd,SP_WEIGHT);
+	pc_onstatuschanged(sd,SP_MAXWEIGHT);
 
 	// guild
 	// (needs to go before clif_spawn() to show guild emblems correctly)
@@ -9312,11 +9090,11 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		sd->state.connect_new = 0;
 		clif_skillinfoblock(sd);
 		clif_hotkeys_send(sd);
-		clif_updatestatus(sd,SP_BASEEXP);
-		clif_updatestatus(sd,SP_NEXTBASEEXP);
-		clif_updatestatus(sd,SP_JOBEXP);
-		clif_updatestatus(sd,SP_NEXTJOBEXP);
-		clif_updatestatus(sd,SP_SKILLPOINT);
+		pc_onstatuschanged(sd,SP_BASEEXP);
+		pc_onstatuschanged(sd,SP_NEXTBASEEXP);
+		pc_onstatuschanged(sd,SP_JOBEXP);
+		pc_onstatuschanged(sd,SP_NEXTJOBEXP);
+		pc_onstatuschanged(sd,SP_SKILLPOINT);
 		clif_initialstatus(sd);
 
 		if (sd->sc.option&OPTION_FALCON)
@@ -9355,12 +9133,12 @@ void clif_parse_LoadEndAck(int fd,struct map_session_data *sd)
 		npc_script_event(sd, NPCE_LOGIN);
 	} else {
 		//For some reason the client "loses" these on warp/map-change.
-		clif_updatestatus(sd,SP_STR);
-		clif_updatestatus(sd,SP_AGI);
-		clif_updatestatus(sd,SP_VIT);
-		clif_updatestatus(sd,SP_INT);
-		clif_updatestatus(sd,SP_DEX);
-		clif_updatestatus(sd,SP_LUK);
+		pc_onstatuschanged(sd,SP_STR);
+		pc_onstatuschanged(sd,SP_AGI);
+		pc_onstatuschanged(sd,SP_VIT);
+		pc_onstatuschanged(sd,SP_INT);
+		pc_onstatuschanged(sd,SP_DEX);
+		pc_onstatuschanged(sd,SP_LUK);
 	
 		// abort currently running script
 		sd->state.using_fake_npc = 0;
