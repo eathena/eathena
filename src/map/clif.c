@@ -2582,6 +2582,202 @@ void clif_guild_xy_remove(struct map_session_data *sd)
 }
 
 
+/// Notifies client of a change in a parameter (ZC_PAR_CHANGE).
+/// 00b0 <var id>.W <value>.L
+void clif_updateparam(struct map_session_data* sd, short type, int value)
+{
+	int fd;
+
+	switch( type )
+	{
+	case SP_SPEED:
+	case SP_KARMA:
+	case SP_MANNER: // message about manner
+	case SP_HP: // if hp remains below 25%, 50% chance of pet talk+emotion 'danger'
+	case SP_MAXHP:
+	case SP_SP:
+	case SP_MAXSP:
+	case SP_STATUSPOINT:
+	case SP_BASELEVEL: // sound, visual effect, level up button (bottom right), pet talk+emotion 'levelup'
+	case SP_SKILLPOINT:
+	case SP_STR:
+	case SP_AGI:
+	case SP_VIT:
+	case SP_INT:
+	case SP_DEX:
+	case SP_LUK:
+	case SP_WEIGHT: // if maxweight != 0, message about overweight for some percent changes (<50 to >=50, <90 to >=90, >50 to <=50, >90 to <=90)
+	case SP_MAXWEIGHT: // if old_maxweight != 0, message about overweight for some percent changes (<50 to >=50, <90 to >=90)
+	case SP_ATK1:
+	case SP_ATK2:
+	case SP_MATK1:
+	case SP_MATK2:
+	case SP_DEF1:
+	case SP_DEF2:
+	case SP_MDEF1:
+	case SP_MDEF2:
+	case SP_HIT:
+	case SP_FLEE1:
+	case SP_FLEE2:
+	case SP_CRITICAL:
+	case SP_ASPD:
+	case SP_36:
+	case SP_JOBLEVEL: // visual effect, job level up button (bottom left)
+		// expected
+	break;
+	default:
+		ShowWarning("clif_updateparam: unexpected type (type=%d, value=%d)", type, value);
+	break;
+	}
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0xb0));
+	WFIFOW(fd,0) = 0xb0;
+	WFIFOW(fd,2) = type;
+	WFIFOL(fd,4) = value;
+	WFIFOSET(fd, packet_len(0xb0));
+}
+
+
+/// Notifies client of a change in a long parameter (ZC_LONGPAR_CHANGE).
+/// 00b1 <var id>.W <value>.L
+void clif_updatelongparam(struct map_session_data* sd, short type, int value)
+{
+	int fd;
+
+	switch( type )
+	{
+	case SP_BASEEXP:
+	case SP_JOBEXP:
+	case SP_ZENY: // cancel trade
+	case SP_NEXTBASEEXP:
+	case SP_NEXTJOBEXP:
+		// expected
+	break;
+	default:
+		ShowWarning("clif_updatelongparam: unexpected type (type=%d, value=%d)", type, value);
+	break;
+	}
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0xb1));
+	WFIFOW(fd,0) = 0xb1;
+	WFIFOW(fd,2) = type;
+	WFIFOL(fd,4) = value;
+	WFIFOSET(fd, packet_len(0xb1));
+}
+
+
+/// Notifies client of a change in the number of status points needed (ZC_STATUS_CHANGE).
+/// 00be <status id>.W <value>.B
+void clif_updatestatuspointsneeded(struct map_session_data* sd, short type, unsigned char value)
+{
+	int fd;
+
+	switch( type )
+	{
+	case SP_USTR:
+	case SP_UAGI:
+	case SP_UVIT:
+	case SP_UINT:
+	case SP_UDEX:
+	case SP_ULUK:
+		// expected
+	break;
+	default:
+		ShowWarning("clif_updatestatuspointsneeded: unexpected type (type=%d, value=%d)", type, value);
+	break;
+	}
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0xbe));
+	WFIFOW(fd,0) = 0xbe;
+	WFIFOW(fd,2) = type;
+	WFIFOB(fd,4) = value;
+	WFIFOSET(fd, packet_len(0xbe));
+}
+
+
+/// Notifies client of a change in the cart info (ZC_NOTIFY_CARTITEM_COUNTINFO).
+/// 0121 <current count>.W <max count>.W <current weight>.L <max weight>.L
+void clif_updatecartinfo(struct map_session_data* sd, short count, short maxcount, int weight, int maxweight)
+{
+	int fd;
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0x121));
+	WFIFOW(fd,0) = 0x121;
+	WFIFOW(fd,2) = count;
+	WFIFOW(fd,4) = maxcount;
+	WFIFOL(fd,6) = weight;
+	WFIFOL(fd,10) = maxweight;
+	WFIFOSET(fd, packet_len(0x121));
+}
+
+
+/// Notifies client of a change in the attack range (ZC_ATTACK_RANGE).
+/// 013a <atk range>.W
+void clif_updateattackrange(struct map_session_data* sd, short range)
+{
+	int fd;
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0x13a));
+	WFIFOW(fd,0) = 0x13a;
+	WFIFOW(fd,2) = range;
+	WFIFOSET(fd, packet_len(0x13a));
+}
+
+
+/// Notifies client of a change in a stat (ZC_COUPLESTATUS).
+/// 0141 <status id>.L <base status>.L <plus status>.L
+void clif_updatestat(struct map_session_data* sd, int type, int value, int plusvalue)
+{
+	int fd;
+
+	switch( type )
+	{
+	case SP_STR:
+	case SP_AGI:
+	case SP_VIT:
+	case SP_INT:
+	case SP_DEX:
+	case SP_LUK:
+		// expected
+	break;
+	default:
+		ShowWarning("clif_updatestat: unexpected type (type=%d, value=%d, plusvalue=%d)", type, value, plusvalue);
+	break;
+	}
+
+	if( sd == NULL || !session_isActive(sd->fd) )
+		return; // no client
+
+	fd = sd->fd;
+	WFIFOHEAD(fd, packet_len(0x141));
+	WFIFOW(fd,0) = 0x141;
+	WFIFOL(fd,2) = type;
+	WFIFOL(fd,6) = value;
+	WFIFOL(fd,10) = plusvalue;
+	WFIFOSET(fd, packet_len(0x141));
+}
+
+
 /// Notifies client of a character parameter change.
 /// 00b0 <var id>.W <value>.L (ZC_PAR_CHANGE)
 /// 00b1 <var id>.W <value>.L (ZC_LONGPAR_CHANGE)
