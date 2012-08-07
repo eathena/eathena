@@ -28,7 +28,7 @@ regardless of architecture.
  ///     0 = owner (menu)
  ///     1 = normal
 
-The first line contain a brief description of what the packet does,
+The first line contains a brief description of what the packet does,
 or what it is good for, followed by it's AEGIS name in parentheses;
 first two letters of the AEGIS name specify origin (first letter)
 and destination (second letter) of the packet. If the packet's name
@@ -61,7 +61,7 @@ values.
 
  B = 1 byte (byte)
  W = 2 bytes (word)
- L = 4 bytes (dword)
+ L = 4 bytes (long, dword)
  Q = 8 bytes (quad)
 
  nB = n bytes
