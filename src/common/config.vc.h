@@ -18,6 +18,7 @@
 // 1400 |  8.0 | Visual Studio 2005
 // 1500 |  9.0 | Visual Studio 2008
 // 1600 | 10.0 | Visual Studio 2010
+// 1700 | 11.0 | Visual Studio 2012
 
 // compiler keywords and attributes
 #define inline __inline
@@ -42,6 +43,7 @@
 /* #undef HAVE_UNISTD_H */
 /* #undef HAVE_SYS_SELECT_H */
 /* #undef HAVE_EXECINFO_H */
+/* #undef HAVE_NET_SOCKET_H */
 
 // functions
 /* #undef HAVE_SETRLIMIT */

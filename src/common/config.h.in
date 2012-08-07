@@ -25,6 +25,7 @@
 #undef HAVE_UNISTD_H
 #undef HAVE_SYS_SELECT_H
 #undef HAVE_EXECINFO_H
+#undef HAVE_NET_SOCKET_H
 
 // functions
 #undef HAVE_SETRLIMIT
