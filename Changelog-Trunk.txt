@@ -1,5 +1,7 @@
 Date	Added
 
+2012/08/07
+	* Added checking for net/socket.h (BeOS sockets) to configure and cmake. [Ai4rei]
 2012/07/20
 	* The atcommand go only considers names that start with the input. [flaviojs]
 2012/07/14

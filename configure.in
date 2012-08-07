@@ -535,7 +535,7 @@ AC_MSG_RESULT([done])
 #
 # common system headers
 #
-AC_CHECK_HEADERS([sys/select.h execinfo.h])
+AC_CHECK_HEADERS([sys/select.h execinfo.h net/socket.h])
 
 
 #

@@ -15,6 +15,7 @@
 #cmakedefine HAVE_STDINT_H
 #cmakedefine HAVE_SYS_SELECT_H
 #cmakedefine HAVE_EXECINFO_H
+#cmakedefine HAVE_NET_SOCKET_H
 
 // functions
 #cmakedefine HAVE_SETRLIMIT

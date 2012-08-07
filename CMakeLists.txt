@@ -90,8 +90,9 @@ add_subdirectory( 3rdparty/msinttypes )# setup global variables
 #   stdint.h - see src/common/cbasetypes.h
 #   sys/select.h - see src/common/socket.h
 #   execinfo.h - see src/common/sig.c
+#   net/socket.h - see src/common/socket.h
 #
-foreach( _filename  inttypes.h stdint.h sys/select.h execinfo.h )
+foreach( _filename  inttypes.h stdint.h sys/select.h execinfo.h net/socket.h )
 	set( _define HAVE_${_filename} )
 	string( TOUPPER "${_define}" _define )
 	string( REGEX REPLACE "[^A-Z]" "_" _define "${_define}" )

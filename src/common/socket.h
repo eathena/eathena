@@ -18,6 +18,10 @@
 	#ifdef HAVE_SYS_SELECT_H
 	#include <sys/select.h> // has FD_* and select, according to POSIX.1-2001
 	#endif
+
+	#ifdef HAVE_NET_SOCKET_H
+	#include <net/socket.h>  // BeOS
+	#endif
 #endif
 
 #include <time.h>
