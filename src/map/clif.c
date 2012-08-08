@@ -6105,7 +6105,7 @@ void clif_party_member_info(struct party_data *p, int member_id, send_target typ
 	WBUFB(buf,14) = ( m->online ) ? 0 : 1;// state: 0-online 1-offline
 	memcpy(WBUFP(buf,15), p->party.name, NAME_LENGTH);
 	memcpy(WBUFP(buf,39), m->name, NAME_LENGTH);
-	mapindex_getmapname_ext(map[m->map].name, (char*)WBUFP(buf,63));
+	mapindex_getmapname_ext(mapindex_id2name(m->map), (char*)WBUFP(buf,63));
 	WBUFB(buf,79) = (p->party.item&1)?1:0;
 	WBUFB(buf,80) = (p->party.item&2)?1:0;
 	clif_send(buf,packet_len(0x1e9),&sd->bl,type);
