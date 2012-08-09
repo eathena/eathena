@@ -134,6 +134,8 @@
 /// Returns if this a reference to a variable
 //##TODO confirm it's C_NAME [FlavioJS]
 #define reference_tovariable(data) ( str_data[reference_getid(data)].type == C_NAME )
+/// Returns if this a reference to nil (unused name, is probably supposed to be a variable)
+#define reference_tonil(data) ( str_data[reference_getid(data)].type == C_NOP )
 /// Returns the unique id of the reference (id and index)
 #define reference_getuid(data) ( (data)->u.num )
 /// Returns the id of the reference
@@ -13232,17 +13234,72 @@ BUILDIN_FUNC(escape_sql)
 
 BUILDIN_FUNC(getd)
 {
-	char varname[100];
-	const char *buffer;
-	int elem;
+	const char* p;
+	const char* name;
+	int namelen;
+	bool isarray;
+	long idx;
+	struct script_data* data;
 
-	buffer = script_getstr(st, 2);
+	p = script_getstr(st, 2);
+	p = skip_space(p);
 
-	if(sscanf(buffer, "%[^[][%d]", varname, &elem) < 2)
-		elem = 0;
+	// parse name
+	name = p; // not NUL terminated (not needed)
+	namelen = skip_word(p) - p;
+	p += namelen;
+	p = skip_space(p);
+	// parse index (optional)
+	isarray = false;
+	idx = 0;
+	if( p[0] == '[' )
+	{
+		char* end = NULL;
+		const char* p2 = skip_space(p + 1);
+		idx = strtol(p2, &end, 0);
+		p2 = skip_space(end);
+		if( p2 != NULL && p2 != end && p2[0] == ']' )
+		{ // has a numeric index
+			p = skip_space(p2 + 1);
+			isarray = true;
+		}
+	}
 
-	// Push the 'pointer' so it's more flexible [Lance]
-	push_val(st->stack, C_NAME, reference_uid(add_str(varname), elem));
+	// validate
+	if( p[0] != '\0' )
+	{
+		ShowError("script:getd: failed to parse '%s'\n", p);
+		script_reportdata(script_getdata(st, 2));
+		st->state = END;
+		return 1;
+	}
+	if( namelen == 0 )
+	{
+		ShowError("script:getd: variable name is empty\n");
+		script_reportdata(script_getdata(st, 2));
+		st->state = END;
+		return 1;
+	}
+	if( isarray && not_array_variable(name[0]) )
+	{
+		ShowError("script:getd: not an array variable\n");
+		script_reportdata(script_getdata(st, 2));
+		st->state = END;
+		return 1;
+	}
+	if( idx < 0 || idx >= SCRIPT_MAX_ARRAYSIZE )
+	{
+		ShowError("script:getd: index=%ld is invalid, must be a number from 0 to %d\n", idx, SCRIPT_MAX_ARRAYSIZE - 1);
+		script_reportdata(script_getdata(st, 2));
+		st->state = END;
+		return 1;
+	}
+
+	// generate reference
+	data = push_val(st->stack, C_NAME, reference_uid(add_word(name), idx));
+	if( reference_tonil(data) )
+		str_data[reference_getid(data)].type = C_NAME; // unused name, make it a reference to variable
+	//XXX references can point to other types of data, not just variables
 
 	return 0;
 }
