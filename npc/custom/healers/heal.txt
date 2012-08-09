@@ -1,51 +1,51 @@
 //===== eAthena Script =======================================
-//= Heal Npc
+//= Healer
 //===== By: ==================================================
-//= Lotsa People (1.x)
+//= Euphy
 //===== Current Version: =====================================
-//= 3.1
+//= 1.0
 //===== Compatible With: =====================================
-//= eAthena 0.1+;
+//= eAthena SVN
 //===== Description: =========================================
-//= Healer NPC Which Heals For Free
-//===== Additional Comments: =================================
-//= 2.0 Duplicates And Changed A Bit you can replace this script file by 
-//= heal_payment.txt if you want that players have to pay their healings. [Darkchild]
-//= 3.0 Changed and edited the script added other warp points of maps. [massdriller]
-//= 3.1 Optimized for the greater good. [Kisuka]
+//= Basic healer script.
 //============================================================
 
-prontera,150,184,5	script	Healer#h1-1::Healer	742,{
-	mes "[Healer]";
-	mes "I have amazing healing powers!!";
-	mes "You look like a person who needs them";
-	mes "Want some?";
-	next;
-	if (select("Heal:No thanks") == 2) {
-		mes "[Healer]";
-		mes "Allright, come back if you need a heal.";
-		close;
+-	script	Healer	-1,{
+	
+	set .@Price,0;	// Zeny required for heal
+	set .@Buffs,0;	// Also buff players? (1: yes / 0: no)
+	set .@Delay,0;	// Heal delay, in seconds
+
+	callfunc "F_ClearGarbage",0;
+	if (@HD > gettimetick(2)) end;
+	if (.@Price) {
+		message strcharinfo(0),"Healing costs "+.@Price+" Zeny.";
+		if (Zeny < .@Price) end;
+		if(select("^0055FFHeal^000000:^777777Cancel^000000")==2) close;
+		set Zeny, Zeny-.@Price;
 	}
-	percentheal 100,100;
-	mes "[Healer]";
-	mes "Wonderfull, You are now healed!.";
-	mes "Have fun adventuring!!";
+	specialeffect2 313; percentheal 100,100;
+	if (.@Buffs) {
+		specialeffect2 37; sc_start SC_INCREASEAGI,240000,10;
+		specialeffect2 42; sc_start SC_BLESSING,240000,10;
+	}
+	if (.@Delay) set @HD, gettimetick(2)+.@Delay;
 	close;
 }
 
-// --------- NPC Clones ---------
-morocc,159,96,5	duplicate(Healer)	Healer#h1-2	742
-ayothaya,155,111,5	duplicate(Healer)	Healer#h1-3	742
-geffen,121,61,5	duplicate(Healer)	Healer#h1-4	742
-umbala,94,162,5	duplicate(Healer)	Healer#h1-5	742
-payon,180,105,5	duplicate(Healer)	Healer#h1-6	742
-alberta,185,144,5	duplicate(Healer)	Healer#h1-7	742
-aldebaran,134,123,5	duplicate(Healer)	Healer#h1-8	742
-izlude,125,118,5	duplicate(Healer)	Healer#h1-9	742
-xmas,149,136,5	duplicate(Healer)	Healer#h1-10	742
-comodo,188,162,5	duplicate(Healer)	Healer#h1-11	742
-amatsu,200,80,5	duplicate(Healer)	Healer#h1-12	742
-gonryun,164,130,5	duplicate(Healer)	Healer#h1-13	742
-yuno,152,186,5	duplicate(Healer)	Healer#h1-14	742
-niflheim,188,180,5	duplicate(Healer)	Healer#h1-15	742
-louyang,225,103,5	duplicate(Healer)	Healer#h1-16	742
+alberta,185,144,5	duplicate(Healer)	Healer#alb	742
+aldebaran,134,123,5	duplicate(Healer)	Healer#alde	742
+amatsu,200,80,5	duplicate(Healer)	Healer#ama	742
+ayothaya,155,111,5	duplicate(Healer)	Healer#ayo	742
+comodo,188,162,5	duplicate(Healer)	Healer#com	742
+geffen,121,61,5	duplicate(Healer)	Healer#gef	742
+gonryun,164,130,5	duplicate(Healer)	Healer#gon	742
+izlude,125,118,5	duplicate(Healer)	Healer#izl	742
+louyang,225,103,5	duplicate(Healer)	Healer#lou	742
+morocc,159,96,5	duplicate(Healer)	Healer#mor	742
+niflheim,188,180,5	duplicate(Healer)	Healer#nif	742
+payon,180,105,5	duplicate(Healer)	Healer#pay	742
+prontera,150,184,5	duplicate(Healer)	Healer#pront	742
+umbala,94,162,5	duplicate(Healer)	Healer#umb	742
+xmas,149,136,5	duplicate(Healer)	Healer#xmas	742
+yuno,152,186,5	duplicate(Healer)	Healer#yuno	742
