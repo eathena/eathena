@@ -13257,11 +13257,14 @@ BUILDIN_FUNC(getd)
 		char* end = NULL;
 		const char* p2 = skip_space(p + 1);
 		idx = strtol(p2, &end, 0);
-		p2 = skip_space(end);
-		if( p2 != NULL && p2 != end && p2[0] == ']' )
+		if( p2 != NULL && p2 != end )
 		{ // has a numeric index
-			p = skip_space(p2 + 1);
-			isarray = true;
+			p2 = skip_space(end);
+			if( p2[0] == ']' )
+			{
+				p = skip_space(p2 + 1);
+				isarray = true;
+			}
 		}
 	}
 
