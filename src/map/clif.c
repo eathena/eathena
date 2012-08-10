@@ -6263,11 +6263,11 @@ void clif_party_option(struct party_data* p, int member_id, send_target type)
 
 	nullpo_retv(p);
 
+	if( member_id == PARTY_MEMBER_NOTFOUND && type != SELF )
+		member_id = party_getanymemberid(p);// can use any party member
 	if( member_id < 0 || member_id >= MAX_PARTY )
 		return;// out of range
 	sd = p->data[member_id].sd;
-	if( sd == NULL && type != SELF )
-		sd = party_getavailablesd(p);// can use any party member
 	if( sd == NULL )
 		return;// not online
 
