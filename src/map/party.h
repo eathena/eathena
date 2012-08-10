@@ -15,6 +15,8 @@ struct item;
 #define PARTY_BOOKING_JOBS 6
 #define PARTY_BOOKING_RESULTS 10
 
+#define PARTY_MEMBER_NOTFOUND -1
+
 struct party_member_data {
 	struct map_session_data *sd;
 	unsigned int hp; //For HP,x,y refreshing.
@@ -52,6 +54,7 @@ void do_final_party(void);
 struct party_data* party_search(int party_id);
 struct party_data* party_searchname(const char* str);
 int party_getmemberid(struct party_data* p, struct map_session_data* sd);
+int party_getanymemberid(struct party_data* p);
 struct map_session_data* party_getavailablesd(struct party_data *p);
 
 bool party_create(struct map_session_data* sd, const char* name, int item, int item2);
