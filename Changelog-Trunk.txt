@@ -1,6 +1,7 @@
 Date	Added
 
 2012/08/11
+	* Added missing svn:eol-style properties. [Ai4rei]
 	* Some touch-ups to the custom scripts. [Ai4rei]
 	- Changed *announce flag literals to respective constants.
 	- Removed certain *mapannounce flags (mask 0x0f), that are not used by the command.
