@@ -136,11 +136,11 @@ OnStart:
 OnTimer5000:
 	areapercentheal "bat_c03",50,123,58,131,100,100;
 	areapercentheal "bat_c03",141,52,149,60,100,100;
-	mapannounce "bat_c03","The Battle will start in 25 seconds!!",1,0xC0C0C0;
+	mapannounce "bat_c03","The Battle will start in 25 seconds!!",0,0xC0C0C0;
 	end;
 
 OnTimer26000:
-	mapannounce "bat_c03","The Battle will start in 4 seconds!!",1,0xC0C0C0;
+	mapannounce "bat_c03","The Battle will start in 4 seconds!!",0,0xC0C0C0;
 	end;
 
 OnTimer27000:
@@ -163,7 +163,7 @@ OnTimer30000:
 	{
 		set $@KvM03BG_Victory, 3;
 		set $@KvM03BG, 3;
-		mapannounce "bat_c03","There are not enough players to start the battle",1,0xC0C0C0;
+		mapannounce "bat_c03","There are not enough players to start the battle",0,0xC0C0C0;
 		stopnpctimer;
 		sleep 2000;
 		donpcevent "KvM03_BG::OnStop";
@@ -178,11 +178,11 @@ OnTimer30000:
 	end;
 
 OnTimer32000:
-	mapannounce "bat_c03","The Battle of Kreiger Von Midgard has begun!!",1,0xC0C0C0;
+	mapannounce "bat_c03","The Battle of Kreiger Von Midgard has begun!!",0,0xC0C0C0;
 	end;
 
 OnTimer300000:
-	mapannounce "bat_c03","The Battle will ends in 30 seconds!!",1,0xC0C0C0;
+	mapannounce "bat_c03","The Battle will ends in 30 seconds!!",0,0xC0C0C0;
 	end;
 
 OnTimer330000:
@@ -197,7 +197,7 @@ OnTimer330000:
 
 		stopnpctimer;
 		sleep 2000;
-		mapannounce "bat_c03","The time is out! This is a Tie...",1,0xC0C0C0;
+		mapannounce "bat_c03","The time is out! This is a Tie...",0,0xC0C0C0;
 		donpcevent "KvM03_BG::OnStop";
 	}
 	end;
@@ -208,7 +208,7 @@ OnGuillaumeWin:
 	
 	stopnpctimer;
 	sleep 2000;
-	mapannounce "bat_c03","The Guillaume Army has won the Battle of Kreiger Von Midgard",1,0x0000FF;
+	mapannounce "bat_c03","The Guillaume Army has won the Battle of Kreiger Von Midgard",0,0x0000FF;
 	donpcevent "KvM03_BG::OnStop";
 	end;
 
@@ -218,7 +218,7 @@ OnCroixWin:
 
 	stopnpctimer;
 	sleep 2000;
-	mapannounce "bat_c03","The Croix Army has won the Battle of Kreiger Von Midgard",1,0xFF0000;
+	mapannounce "bat_c03","The Croix Army has won the Battle of Kreiger Von Midgard",0,0xFF0000;
 	donpcevent "KvM03_BG::OnStop";
 	end;
 
@@ -266,13 +266,13 @@ OnBegin:
 	end;
 
 OnTimer3000:
-	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 1 minute!",1,0xC0C0C0;
+	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 1 minute!",0,0xC0C0C0;
 	end;
 OnTimer30000:
-	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 30 seconds!",1,0xC0C0C0;
+	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 30 seconds!",0,0xC0C0C0;
 	end;
 OnTimer50000:
-	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 10 seconds!",1,0xC0C0C0;
+	mapannounce "bat_c03","Battle of Kreiger Von Midgard will close in 10 seconds!",0,0xC0C0C0;
 	end;
 OnTimer60000:
 	donpcevent "KvM03_BG::OnReset";

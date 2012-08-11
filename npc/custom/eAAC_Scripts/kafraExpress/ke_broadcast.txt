@@ -171,9 +171,9 @@ function	SF_doBroadcast {
 
 		callfunc "F_keIntro", e_what, "Broadcasting...";
 		if (getarg(1)=="")
-			announce @msg$,16;
+			announce @msg$,bc_blue;
 		else
-			mapannounce getarg(1),@msg$,3;
+			mapannounce getarg(1),@msg$,bc_blue;
 		break;
 	default:
 		callfunc "F_keIntro", -1, "Ok...";

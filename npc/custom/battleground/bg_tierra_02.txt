@@ -91,9 +91,9 @@ OnReadyCheck:
 	bg_warp $@TierraBG2_id2,"bat_a02",353,52;
 	// Final Messages
 	sleep 6000;
-	mapannounce "bat_a02","Guillaume Vintenar Axl Rose : Let's attack to burn down Croix's food storage",1,0x0000FF;
+	mapannounce "bat_a02","Guillaume Vintenar Axl Rose : Let's attack to burn down Croix's food storage",0,0x0000FF;
 	sleep 2000;
-	mapannounce "bat_a02","Croix Vintenar Swandery : Master of Valhalla! Let us be gifted with unfailing faith and courage",1,0xFF0000;
+	mapannounce "bat_a02","Croix Vintenar Swandery : Master of Valhalla! Let us be gifted with unfailing faith and courage",0,0xFF0000;
 	
 	initnpctimer;
 	end;
@@ -101,13 +101,13 @@ OnReadyCheck:
 OnNeutralBreak:
 	if( getcharid(4) == $@TierraBG2_id1 )
 	{
-		mapannounce "bat_a02","Guillaume obtained a neurality banner, so they have an advantage.",1,0x0000FF;
+		mapannounce "bat_a02","Guillaume obtained a neurality banner, so they have an advantage.",0,0x0000FF;
 		bg_team_setxy $@TierraBG2_id2,42,16;
 		areawarp "bat_a02",52,208,61,217,"bat_a02",42,16;
 	}
 	else if( getcharid(4) == $@TierraBG2_id2 )
 	{
-		mapannounce "bat_a02","Croix obtained a neutrality banner, so they have an advantage.",1,0xFF0000;
+		mapannounce "bat_a02","Croix obtained a neutrality banner, so they have an advantage.",0,0xFF0000;
 		bg_team_setxy $@TierraBG2_id1,50,374;
 		areawarp "bat_a02",52,208,61,217,"bat_a02",50,374;
 	}
@@ -146,26 +146,26 @@ OnGuardian3: set .Guardian_3, 0; end;
 
 OnGuillaumeBreak:
 	set $@TierraBG2_Victory, 2;
-	mapannounce "bat_a02","Croix Vintenar Swandery: We destroyed Guillaume's food storehouse. We won that! Wow!",1,0xFF0000;
+	mapannounce "bat_a02","Croix Vintenar Swandery: We destroyed Guillaume's food storehouse. We won that! Wow!",0,0xFF0000;
 	donpcevent "Tierra_BG2::OnStop";
 	end;
 
 OnCroixBreak:
 	set $@TierraBG2_Victory, 1;
-	mapannounce "bat_a02","Guillaume Vintenar Axl Rose: We destroyed Croix's food storehouse. We won that! Wow!",1,0x0000FF;
+	mapannounce "bat_a02","Guillaume Vintenar Axl Rose: We destroyed Croix's food storehouse. We won that! Wow!",0,0x0000FF;
 	donpcevent "Tierra_BG2::OnStop";
 	end;
 
 OnTimer2400000:
-	mapannounce "bat_a02","Battle of Tierra Gorge will ends in 5 minutes",1,0xF4A460;
+	mapannounce "bat_a02","Battle of Tierra Gorge will ends in 5 minutes",0,0xF4A460;
 	end;
 OnTimer2640000:
-	mapannounce "bat_a02","Battle of Tierra Gorge will ends in 1 minute",1,0xF4A460;
+	mapannounce "bat_a02","Battle of Tierra Gorge will ends in 1 minute",0,0xF4A460;
 	end;
 
 OnTimer2700000:
 	set $@TierraBG2_Victory, 3; // Draw Game
-	mapannounce "bat_a02","Battle of Tierra Gorge is over. The time is out, this is a Tie",1,0xF4A460;
+	mapannounce "bat_a02","Battle of Tierra Gorge is over. The time is out, this is a Tie",0,0xF4A460;
 	donpcevent "Tierra_BG2::OnStop";
 	end;
 
@@ -189,17 +189,17 @@ OnStop:
 	bg_warp $@TierraBG2_id1,"bat_a02",50,374;
 	bg_warp $@TierraBG2_id2,"bat_a02",42,16;
 	sleep 3000;
-	mapannounce "bat_a02","Battle of Tierra Gorge will close in 1 minute!",1,0xF4A460;
+	mapannounce "bat_a02","Battle of Tierra Gorge will close in 1 minute!",0,0xF4A460;
 	initnpctimer;
 	end;
 
 OnTimer30000:
 	if( $@TierraBG2 == 2 )
-		mapannounce "bat_a02","Battle of Tierra Valley will close in 30 seconds!",1,0xF4A460;
+		mapannounce "bat_a02","Battle of Tierra Valley will close in 30 seconds!",0,0xF4A460;
 	end;
 OnTimer50000:
 	if( $@TierraBG2 == 2 )
-		mapannounce "bat_a02","Battle of Tierra Valley will close in 10 seconds!",1,0xF4A460;
+		mapannounce "bat_a02","Battle of Tierra Valley will close in 10 seconds!",0,0xF4A460;
 	end;
 
 OnTimer60000:
@@ -283,7 +283,7 @@ OnWall:
 	if( set(.MyMobCount,.MyMobCount - 1) < 1 )
 	{
 		delwall "bat_a02_g1";
-		mapannounce "bat_a02","South Gate : The Gate has been Destroy!!",1,0xF4A460;
+		mapannounce "bat_a02","South Gate : The Gate has been Destroy!!",0,0xF4A460;
 	}
 	end;
 }
@@ -309,7 +309,7 @@ OnWall:
 	if( set(.MyMobCount,.MyMobCount - 1) < 1 )
 	{
 		delwall "bat_a02_c1";
-		mapannounce "bat_a02","North Gate : A Gate has been Destroy!!",1,0xF4A460;
+		mapannounce "bat_a02","North Gate : A Gate has been Destroy!!",0,0xF4A460;
 	}
 	end;
 }

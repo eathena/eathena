@@ -564,154 +564,154 @@ close;
 gon_test,56,91,6	script	OnPoringKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+1;
-	announce "You killed a Poring - Gained 1 exp",19;
+	announce "You killed a Poring - Gained 1 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnFaberKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+2;
-	announce "You killed a Faber - Gained 2 exp",19;
+	announce "You killed a Faber - Gained 2 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnLunaticKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+4;
-	announce "You killed a Lunatic - Gained 4 exp",19;
+	announce "You killed a Lunatic - Gained 4 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnDropsKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+4;
-	announce "You killed a Drops - Gained 4 exp",19;
+	announce "You killed a Drops - Gained 4 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnPickyKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+4;
-	announce "You killed a Picky - Gained 4 exp",19;
+	announce "You killed a Picky - Gained 4 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnChonChonKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+8;
-	announce "You killed a ChonChon - Gained 8 exp",19;
+	announce "You killed a ChonChon - Gained 8 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnSPickyKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+8;
-	announce "You killed a Super Picky - Gained 8 exp",19;
+	announce "You killed a Super Picky - Gained 8 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnWillowKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+8;
-	announce "You killed a Willow - Gained 8 exp",19;
+	announce "You killed a Willow - Gained 8 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnRodaKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+16;
-	announce "You killed a Roda Frog - Gained 16 exp",19;
+	announce "You killed a Roda Frog - Gained 16 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnCondorKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+16;
-	announce "You killed a Condor - Gained 16 exp",19;
+	announce "You killed a Condor - Gained 16 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnThiefKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+32;
-	announce "You killed a Theif Bug Larva - Gained 32 exp",19;
+	announce "You killed a Theif Bug Larva - Gained 32 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnSavageKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+64;
-	announce "You killed a Savage Babe - Gained 64 exp",19;
+	announce "You killed a Savage Babe - Gained 64 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnFamiliarKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+128;
-	announce "You killed a Familiar - Gained 128 exp",19;
+	announce "You killed a Familiar - Gained 128 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnHornetKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+128;
-	announce "You killed a Hornet - Gained 128 exp",19;
+	announce "You killed a Hornet - Gained 128 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnPuppyKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+256;
-	announce "You killed a Desert Wolf Puppy - Gained 256 exp",19;
+	announce "You killed a Desert Wolf Puppy - Gained 256 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnRockerKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+256;
-	announce "You killed a Rocker - Gained 256 exp",19;
+	announce "You killed a Rocker - Gained 256 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnSporeKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+256;
-	announce "You killed a Spore - Gained 256 exp",19;
+	announce "You killed a Spore - Gained 256 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnSkeletonKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+512;
-	announce "You killed a Skeleton - Gained 512 exp",19;
+	announce "You killed a Skeleton - Gained 512 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnPlanktonKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+512;
-	announce "You killed a Plankton - Gained 512 exp",19;
+	announce "You killed a Plankton - Gained 512 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnAntonioKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+512;
-	announce "You killed an Antonio - Gained 512 exp",19;
+	announce "You killed an Antonio - Gained 512 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnThiefFemaleKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+512;
-	announce "You killed a Thief Bug Female - Gained 512 exp",19;
+	announce "You killed a Thief Bug Female - Gained 512 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
 gon_test,56,91,6	script	OnSpecialKilled	-1,{
 	if (@marena == 0) callfunc "illegalkill";
 	set #monpoints,#monpoints+512;
-	announce "You killed a Special Monster - Gained 1024 exp",19;
+	announce "You killed a Special Monster - Gained 1024 exp",bc_self|bc_blue;
 	callfunc "duelkill";
 }
 
@@ -719,7 +719,7 @@ function	script	duelkill	{
 if (strcharinfo(0) == $@duelist1$ || strcharinfo(0) == $@duelist2$) goto L_Heal;
 end;
 	L_Heal:
-	announce strcharinfo(0) + " won the Duel",1;
+	announce strcharinfo(0) + " won the Duel",bc_map;
 	set @fighting,0;
 	set #heal,0;
 	set @healing,0;
@@ -727,7 +727,7 @@ end;
 }
 
 function	script	illegalkill	{
-announce "Illegal Kill by " + strcharinfo(0) + " Detected",1;
+announce "Illegal Kill by " + strcharinfo(0) + " Detected",bc_map;
 percentheal -100,-100;
 end;
 }
@@ -740,7 +740,7 @@ set @fighting,0;
 set #heal,0;
 set @healing,0;
 specialeffect2 EF_VALLENTINE2;
-announce "Your monster has healed.",19;
+announce "Your monster has healed.",bc_self|bc_blue;
 end;
 
 	L_Heal:
@@ -749,7 +749,7 @@ end;
 	end;
 
 	L_NoHeal:
-	announce "Your monster does not need healing yet.",19;
+	announce "Your monster does not need healing yet.",bc_self|bc_blue;
 	end;
 }
 
@@ -802,7 +802,7 @@ if (#monster > 89 && #monster < 100) set $@monster1,9;
 if (#monster > 99 && #monster < 110) set $@monster1,10;
 set $@duelist1$,strcharinfo(0);
 set @battle,1;
-announce strcharinfo(0) + " [Monster Level: " + $@monster1 + "] is waiting for a duel",1;
+announce strcharinfo(0) + " [Monster Level: " + $@monster1 + "] is waiting for a duel",bc_map;
 atcommand strcharinfo(0) + "@option 64 0 64";
 warp "gon_test",49,5;
 close;
@@ -830,7 +830,7 @@ if (#monster > 89 && #monster < 100) set $@monster2,9;
 if (#monster > 99 && #monster < 110) set $@monster2,10;
 set $@duelist2$,strcharinfo(0);
 set @battle,1;
-announce strcharinfo(0) + " [Monster Level: " + $@monster2 + "] has joined the duel",1;
+announce strcharinfo(0) + " [Monster Level: " + $@monster2 + "] has joined the duel",bc_map;
 atcommand strcharinfo(0) + "@option 64 0 64";
 warp "gon_test",49,5;
 close;
@@ -886,14 +886,14 @@ close;
 		set $@duelist1$,$@duelist2$;
 		set $@monster1,$@monster2;
 		set $@duel,$@duel-1;
-		announce strcharinfo(0) + " stopped dueling",1;
+		announce strcharinfo(0) + " stopped dueling",bc_map;
 		goto L_Leave3;
 
 		L_Leave2:
 		set $@duelist2$,"";
 		set $@monster2,0;
 		set $@duel,$@duel-1;
-		announce strcharinfo(0) + " stopped dueling",1;
+		announce strcharinfo(0) + " stopped dueling",bc_map;
 		goto L_Leave3;
 }
 

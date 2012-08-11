@@ -78,27 +78,27 @@ close;
 		addtimer 2000, "Starter::OnCount2000";
 		addtimer 3000, "Starter::OnCount3000";
 		addtimer 4000, "Starter::OnCount4000";
-		announce strcharinfo(0) + "Started a countdown",1;
-		announce "Get ready to race!",1;
+		announce strcharinfo(0) + "Started a countdown",bc_map;
+		announce "Get ready to race!",bc_map;
 		close;
 
 
 	OnCount1000:
-		announce "[3]",1;
+		announce "[3]",bc_map;
 		end;
 
 	OnCount2000:
-		announce "[2]",1;
+		announce "[2]",bc_map;
 		end;
 
 	OnCount3000:
-		announce "[1]",1;
+		announce "[1]",bc_map;
 		end;
 
 	OnCount4000:
 		emotion 27;
 		specialeffect EF_CHIMTO;
-		announce "[GO!]",1;
+		announce "[GO!]",bc_map;
 		set $@race,1;
 		set $@position,0;
 		set $@counting,0;
@@ -144,7 +144,7 @@ end;
 OnTouch:
 if (@race != 1) goto L_Miss;
 set @race,2;
-announce "[" + strcharinfo(0) +"] has reached Checkpoint [1]",1;
+announce "[" + strcharinfo(0) +"] has reached Checkpoint [1]",bc_map;
 end;
 L_Miss:
 mes "You have missed a Checkpoint. Please go back.";
@@ -157,7 +157,7 @@ end;
 OnTouch:
 if (@race != 2) goto L_Miss;
 set @race,3;
-announce "[" + strcharinfo(0) +"] has reached Checkpoint [2]",1;
+announce "[" + strcharinfo(0) +"] has reached Checkpoint [2]",bc_map;
 end;
 L_Miss:
 mes "You have missed a Checkpoint. Please go back.";
@@ -170,7 +170,7 @@ end;
 OnTouch:
 if (@race != 3) goto L_Miss;
 set @race,4;
-announce "[" + strcharinfo(0) +"] has reached Checkpoint [3]",1;
+announce "[" + strcharinfo(0) +"] has reached Checkpoint [3]",bc_map;
 end;
 L_Miss:
 mes "You have missed a Checkpoint. Please go back.";
@@ -183,7 +183,7 @@ end;
 OnTouch:
 if (@race != 4) goto L_Miss;
 set @race,5;
-announce "[" + strcharinfo(0) +"] has reached Checkpoint [4]",1;
+announce "[" + strcharinfo(0) +"] has reached Checkpoint [4]",bc_map;
 end;
 L_Miss:
 mes "You have missed a Checkpoint. Please go back.";
@@ -198,7 +198,7 @@ if (@raceid != $@raceid) goto L_WrongRace;
 if (@race != 5) goto L_Miss;
 set @race,6;
 set $@position,$@position+1;
-announce "[" + strcharinfo(0) +"] has reached The Finish line! [Position: " + $@position + "]",1;
+announce "[" + strcharinfo(0) +"] has reached The Finish line! [Position: " + $@position + "]",bc_map;
 end;
 L_Miss:
 mes "You have missed a Checkpoint. Please go back.";

@@ -18,7 +18,7 @@ OnInit:
 	end;
 
 OnKilled:
-	MapAnnounce "mag_dun02","Dracula's curse has been lifted!",17;
+	MapAnnounce "mag_dun02","Dracula's curse has been lifted!",bc_blue;
 	set $dracula_event,0;
 	initnpctimer;
 	end;
@@ -36,7 +36,7 @@ mag_dun02,72,182,1	script	Dracula's Coffin::Dracula_Event	801,{
 	close;
 
 	set $dracula_event,1;
-	MapAnnounce "mag_dun02","Count Dracula : Who has awakened me from my slumber?",17;
+	MapAnnounce "mag_dun02","Count Dracula : Who has awakened me from my slumber?",bc_blue;
 	npcskilleffect 21,10,66,175;
 	initnpctimer;
 	end;

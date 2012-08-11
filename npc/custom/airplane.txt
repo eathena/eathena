@@ -434,6 +434,6 @@ setarray $locationn[getarg(0)],rand(0,getarraysize($locationsname$) - 1);
 if($alreadygoneto[$locationn[getarg(0)]]==1)goto sest;
 setarray $alreadygoneto[$locationn[getarg(0)]], 1;
 set $destination,$locationn[$@currenttime];
-announce "Pilot: The plane has arrived at "+$locationsname$[$locationn[getarg(1)]]+".  Departure to "+ $locationsname$[$locationn[getarg(2)]] + " is in 3 minutes.",16;
+announce "Pilot: The plane has arrived at "+$locationsname$[$locationn[getarg(1)]]+".  Departure to "+ $locationsname$[$locationn[getarg(2)]] + " is in 3 minutes.",bc_blue;
 end;
 }

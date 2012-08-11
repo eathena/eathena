@@ -12,7 +12,7 @@
 //===== Additional Comments: =================================
 //= 0.0000000000000002 Removed Duplicates [Silent]
 //============================================================
-p_track01,41,57,5	script	Lady#track1::P_track	845,{
+p_track01,41,57,5	script	Lady#track1	845,{
 end;
 }
 
@@ -40,4 +40,6 @@ p_track02,67,33,1	script	Blacksmith#track1	726,{
 end;
 }
 
-p_track02,41,57,5	duplicate(P_track)	Lady#track2	845
+p_track02,41,57,5	script	Lady#track2	845,{
+end;
+}

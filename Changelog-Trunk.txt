@@ -1,5 +1,10 @@
 Date	Added
 
+2012/08/11
+	* Some touch-ups to the custom scripts. [Ai4rei]
+	- Changed *announce flag literals to respective constants.
+	- Removed certain *mapannounce flags (mask 0x0f), that are not used by the command.
+	- Made duplicates, that span multiple maps, have a map-independent template.
 2012/08/07
 	* Fixed compile error for PACKETVER below 7 (bugreport:5078, since r14383). [Ai4rei]
 	* Added checking for net/socket.h (BeOS sockets) to configure and cmake. [Ai4rei]

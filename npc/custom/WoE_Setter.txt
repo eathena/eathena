@@ -174,14 +174,14 @@ L_StartLoop:
 // Stop WoE
 L_End:
 	if(!agitcheck()) end;
-	Announce "The War Of Emperium is over!",8;
+	Announce "The War Of Emperium is over!",bc_npc;
 	AgitEnd;
 	end;
 
 // Start WoE
 L_Start:
 	if(agitcheck()) end;
-	Announce "The War Of Emperium has begun!",8;
+	Announce "The War Of Emperium has begun!",bc_npc;
 	AgitStart;
 	end;
 }

@@ -312,7 +312,7 @@ function SF_swapJob {
 			set kej_prev_dye,getlook(7);
 	}
 	if ($@kejs_announce)
-		announce strcharinfo(0)+" has changed from "+@oldJob$+" to "+@newJob$+"...",16;
+		announce strcharinfo(0)+" has changed from "+@oldJob$+" to "+@newJob$+"...",bc_blue;
 		
 	if ($@kejs_resetDye)
 		setlook 7,0;
@@ -376,7 +376,7 @@ function SF_revertJob {
 	sc_end -1;
 
 	if ($@kejs_announce)
-		announce strcharinfo(0)+" has changed from "+jobname(@thisJobId)+" to "+@newjob$+"...",16;
+		announce strcharinfo(0)+" has changed from "+jobname(@thisJobId)+" to "+@newjob$+"...",bc_blue;
 	return 1;
 }	
 

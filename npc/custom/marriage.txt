@@ -261,7 +261,7 @@ function SF_RingsAccepted {
 	mes "Now that you both have accepted, the wedding will begin. Please come forth, you and your partner, to retrieve your rings.";
 	set $wed_bride_progress,3;
 	set $wed_groom_progress,3;
-	announce $wed_groom$+" and "+$wed_bride$+"'s wedding ceremony will be held at the church!",8;
+	announce $wed_groom$+" and "+$wed_bride$+"'s wedding ceremony will be held at the church!",bc_npc;
 	close2;
 	emotion e_lv;
 	npctalk "May the groom and bride please step forward and retrieve their rings?";
@@ -918,7 +918,7 @@ function SF_InProgress {
 		close;
 	}
 	set Zeny,Zeny-$@wed_divorce_fee;
-	announce $@divorcer$+" has just divorced "+strcharinfo(0)+"...", 8;
+	announce $@divorcer$+" has just divorced "+strcharinfo(0)+"...", bc_npc;
 	mes "["+@name$+"]";
 	mes "Your divorce has been filed. You are no longer wed.";
 	emotion e_sob;

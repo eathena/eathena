@@ -332,7 +332,7 @@ function SF_changeJob {
 			}
 			jobchange roclass(@newjob);
 			if ($@kejc_announce)
-				announce strcharinfo(0)+" has been promoted to "+@jobStr$+"!",8;
+				announce strcharinfo(0)+" has been promoted to "+@jobStr$+"!",bc_npc;
 			set Zeny,Zeny-@cost;
 			emotion e_grat;	
 			return 1;
