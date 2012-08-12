@@ -1,6 +1,7 @@
 Date	Added
 
 2012/08/12
+	* Updated @go coordinates for Izlude (follow up to r15176). [Ai4rei]
 	* Updated mapcache. [Ai4rei]
 	- Moved all Izlude NPCs, savepoints and warp destinations by 31 cells to north (except a few ones that needed fine-tuning) to accomodate changes in the Izlude map. This might not be the official placement.
 	- Disabled Izlude airport warps as they are no longer necessary.

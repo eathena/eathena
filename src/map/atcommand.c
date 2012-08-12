@@ -2172,7 +2172,7 @@ ACMD_FUNC(go)
 		{ MAP_GEFFEN,      119,  59, "Geffen" }, // 2
 		{ MAP_PAYON,       162, 233, "Payon" }, // 3
 		{ MAP_ALBERTA,     192, 147, "Alberta" }, // 4
-		{ MAP_IZLUDE,      128, 114, "Izlude" }, // 5
+		{ MAP_IZLUDE,      128, 145, "Izlude" }, // 5
 		{ MAP_ALDEBARAN,   140, 131, "Al De Baran" }, // 6
 		{ MAP_LUTIE,       147, 134, "Lutie" }, // 7
 		{ MAP_COMODO,      209, 143, "Comodo" }, // 8
