@@ -1619,7 +1619,7 @@ geffen_in,109,170,3	script	Blacksmith Guildsman#gef	726,{
 			close;
 		}
 		set zeny,zeny-600;
-		warp "izlude",94,103;
+		warp "izlude",94,134;
 		end;
 	case 3:
 		mes "[Blacksmith Guildsman]";

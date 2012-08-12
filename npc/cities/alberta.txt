@@ -216,7 +216,7 @@ alberta,189,151,5	script	Fisk	100,{
 				close;
 			}
 			set Zeny,Zeny - 500;
-			warp "izlude",176,182;
+			warp "izlude",176,213;
 			end;
 		case 3:
 			mes "[Fisk]";

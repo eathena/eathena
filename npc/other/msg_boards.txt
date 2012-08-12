@@ -239,13 +239,13 @@ aldebaran,217,222,1	script	Sign#Alde5	111,{
 
 // Izlude
 //============================================================
-izlude,54,139,1	script	Sign#Iz1	111,{
+izlude,54,170,1	script	Sign#Iz1	111,{
 	mes "^993300- The Sign Reads -^000000";
 	mes "Welcome to the Swordsman Academy.";
 	close;
 }
 
-izlude,144,148,1	script	Sign#Iz2	111,{
+izlude,144,179,1	script	Sign#Iz2	111,{
 	mes "^993300- The Sign Reads -^000000";
 	mes "Welcome.";
 	close;

@@ -992,7 +992,7 @@ if(tu_swordman == 20){
 	mes "wants to show you the ropes of Swordmanship.";
 	set tu_swordman, 21;
 	close2;
-	warp "izlude",35,78;
+	warp "izlude",35,109;
 	end;
 }
 
@@ -2155,7 +2155,7 @@ if(tu_swordman == 6){
 							mes "of yourself,";
 							mes "brave Swordman.";
 							next;
-							warp "izlude",35,78;
+							warp "izlude",35,109;
 							close;
 							break;
 					}

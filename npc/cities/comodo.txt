@@ -367,7 +367,7 @@ cmd_fild07,299,83,4	script	Zain#cmd	100,{
 			close;
 		}
 		set zeny,zeny-800;
-		warp "izlude",176,182;
+		warp "izlude",176,213;
 		end;
 	case 3:
 		mes "[Zain]";
@@ -409,7 +409,7 @@ cmd_fild07,94,134,4	script	Sarumane#cmd	100,{
 			close;
 		}
 		set zeny,zeny-800;
-		warp "izlude",176,182;
+		warp "izlude",176,213;
 		end;
 	case 3:
 		mes "[Sarumane]";

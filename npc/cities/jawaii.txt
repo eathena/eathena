@@ -58,7 +58,7 @@ jawaii,239,112,7	script	Mariner#toizu	100,{
 		mes "guide you to";
 		mes "Izlude.";
 		close2;
-		warp "izlude",176,182;
+		warp "izlude",176,213;
 		end;
 	}
 	mes "[Mariner]";
@@ -1396,7 +1396,7 @@ prt_in,170,14,0	script	Customer#Bachewcca	89,{
 
 // Izlude
 //============================================================
-izlude,171,185,3	script	Honeymoon Helper#Izlude	71,{
+izlude,171,216,3	script	Honeymoon Helper#Izlude	71,{
 	mes "[Helper]";
 	mes "Newlyweds and";
 	mes "long time couples...";

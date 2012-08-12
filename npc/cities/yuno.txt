@@ -367,7 +367,7 @@ yuno,142,183,5	script	Airship Representative	100,{
 	next;
 	switch(select("Prontera:Izlude:Geffen:Morroc:Payon:Alberta:Comodo:Cancel")) {
 	case 1: callsub S_Warp,"prontera",116,72;
-	case 2: callsub S_Warp,"izlude",94,103;
+	case 2: callsub S_Warp,"izlude",94,134;
 	case 3: callsub S_Warp,"geffen",120,39;
 	case 4: callsub S_Warp,"morocc",156,46;
 	case 5: callsub S_Warp,"payon",69,100;

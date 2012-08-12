@@ -1650,7 +1650,7 @@ L_OverWeight:
 }
 
 //=======================================================================================================================================================
-izlude,106,220,5	script	Kantryl	98,{
+izlude,106,251,5	script	Kantryl	98,{
 	
 if (countitem(1201) > 3) goto M_MaxItem;
 if (checkweight(1201,3) == 0 ) goto L_OverWeight;

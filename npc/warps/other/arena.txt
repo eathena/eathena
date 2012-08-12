@@ -14,8 +14,8 @@
 //= 1.2 Made some updates due to Izlude Battle Arena release. [SinSloth]
 //============================================================
 
-izlude,128,226,0	warp	welcome_arena	1,1,arena_room,100,30
-arena_room,99,24,0	warp	bye_arena	2,2,izlude,128,220
+izlude,128,257,0	warp	welcome_arena	1,1,arena_room,100,30
+arena_room,99,24,0	warp	bye_arena	2,2,izlude,128,251
 arena_room,84,103,0	warp	arn_room_11_1	1,1,arena_room,63,130
 arena_room,63,126,0	warp	arn_room_11_2	1,1,arena_room,87,100
 arena_room,76,87,0	warp	arn_room_9_1	1,1,arena_room,46,87

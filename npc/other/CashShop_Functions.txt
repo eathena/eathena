@@ -177,7 +177,7 @@ function	script	F_CashTele	{
 		case 2: warp "prontera",167,68; end;
 		case 3: warp "geffen",121,147; end;
 		case 4: warp "aldebaran",168,112; end;
-		case 5: warp "izlude",128,105; end;
+		case 5: warp "izlude",128,136; end;
 		}
 	case 2:
 		switch(select("Savepoint:Payon:Alberta:Morroc:Comodo")) {

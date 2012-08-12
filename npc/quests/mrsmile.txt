@@ -100,7 +100,7 @@ aldebaran,136,135,4	duplicate(SmileHelper)	Smile Assistance#alde	92
 geffen,119,107,4	duplicate(SmileHelper)	Smile Assistance#gef	92
 alberta,113,53,4	duplicate(SmileHelper)	Smile Assistance#alb	92
 payon,186,104,5	duplicate(SmileHelper)	Smile Assistance#pay	92
-izlude,129,118,4	duplicate(SmileHelper)	Smile Assistance#iz	92
+izlude,129,149,4	duplicate(SmileHelper)	Smile Assistance#iz	92
 
 //============================================================ 
 // Old changelog

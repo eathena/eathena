@@ -229,7 +229,7 @@ prontera,41,337,5	script	Mercenary Manager#Spear	105,{
 	}
 }
 
-izlude,47,139,5	script	Mercenary Manager#Sword	734,{
+izlude,47,170,5	script	Mercenary Manager#Sword	734,{
 	set .@faith_sword, mercenary_get_faith(SWORD_MERC_GUILD);
 	mes "[Mercenary Manager]";
 	mes "Welcome to the";
@@ -704,7 +704,7 @@ pay_arche,99,167,4	script	Mercenary Manager#Bow	732,{
 }
 
 prontera,30,337,4	duplicate(MercMerchant)	Mercenary Merchant#Spear	700
-izlude,56,139,4	duplicate(MercMerchant)	Mercenary Merchant#Sword	892
+izlude,56,170,4	duplicate(MercMerchant)	Mercenary Merchant#Sword	892
 pay_arche,102,167,5	duplicate(MercMerchant)	Mercenary Merchant#Bow	879
 
 // Function for selling items.

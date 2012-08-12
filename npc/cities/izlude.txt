@@ -33,7 +33,7 @@
 
 // Izlude
 //============================================================
-izlude,201,181,2	script	Sailor#izlude	100,{
+izlude,201,212,2	script	Sailor#izlude	100,{
 	mes "[Sailor]";
 	mes "Hey everybody!";
 	mes "Attention, attention!";
@@ -67,7 +67,7 @@ izlude,201,181,2	script	Sailor#izlude	100,{
 	}
 }
 
-izlude,55,74,2	script	Bonne#izlude	90,{
+izlude,55,105,2	script	Bonne#izlude	90,{
 	mes "[Bonne]";
 	mes "Greetings!";
 	mes "Izlude welcomes you.";
@@ -91,7 +91,7 @@ izlude,55,74,2	script	Bonne#izlude	90,{
 	close;
 }
 
-izlude,135,78,2	script	Charfri#izlude	91,{
+izlude,135,109,2	script	Charfri#izlude	91,{
 	mes "[Charfri]";
 	switch(rand(2)) {
 	case 1:
@@ -122,7 +122,7 @@ izlude,135,78,2	script	Charfri#izlude	91,{
 	}
 }
 
-izlude,119,121,2	script	Cuskoal#izlude	124,{
+izlude,119,152,2	script	Cuskoal#izlude	124,{
 	mes "[Cuskoal]";
 	switch(rand(2)) {
 	case 1:
@@ -146,7 +146,7 @@ izlude,119,121,2	script	Cuskoal#izlude	124,{
 	}
 }
 
-izlude,150,118,2	script	Dega#izlude	84,{
+izlude,150,149,2	script	Dega#izlude	84,{
 	mes "[Dega]";
 	switch(rand(3)) {
 	case 1:
@@ -222,7 +222,7 @@ izlude,150,118,2	script	Dega#izlude	84,{
 	}
 }
 
-izlude,150,143,2	script	Kylick#izlude	97,{
+izlude,150,174,2	script	Kylick#izlude	97,{
 	mes "[Kylick]";
 	switch(rand(2)) {
 	case 1:
@@ -254,7 +254,7 @@ izlude,150,143,2	script	Kylick#izlude	97,{
 	}
 }
 
-izlude,56,126,2	script	Red#izlude::RedCebalis	85,{
+izlude,56,157,2	script	Red#izlude::RedCebalis	85,{
 	mes "[Red]";
 	mes "The only skill that's needed for a Swordman is ^FF2400Bash^000000! Bash, Bash and ONLY ^FF2400Bash^000000! No need to waste time and effort for smaller skills! Everything else is for cowards and wusses!";
 	next;
@@ -324,7 +324,7 @@ izlude,56,126,2	script	Red#izlude::RedCebalis	85,{
 	close;
 }
 	
-izlude,58,126,2	script	Cebalis#izlude	98,{
+izlude,58,157,2	script	Cebalis#izlude	98,{
 	mes "[Red]";
 	mes "The only skill that's needed for a Swordman is ^FF2400Bash^000000! Bash, Bash and ONLY ^FF2400Bash^000000! No need to waste time and effort on smaller skills~~ Everything else is for cowards and wusses!";
 	next;
@@ -401,7 +401,7 @@ izlude,58,126,2	script	Cebalis#izlude	98,{
 	close;
 }
 
-izlude,124,178,2	script	Soldier#izlude	105,{
+izlude,124,209,2	script	Soldier#izlude	105,{
 	mes "[Soldier]";
 	mes "HeHeHeHe..HaHaHaHa ";
 	mes "Huh? Why am I so happy?";
@@ -508,7 +508,7 @@ izlu2dun,108,27,0	script	Sailor#2izlude	100,{
 	mes "head back?";
 	next;
 	if (select("Yeah, I'm tired to death.:Nope, I love this place!") == 1) {
-		warp "izlude",176,182;
+		warp "izlude",176,213;
 		end;
 	}
 	close;

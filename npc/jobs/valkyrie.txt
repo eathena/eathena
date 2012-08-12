@@ -172,7 +172,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			switch (ADVJOB) {
 			case 4008:
 			case 4015:
-				warp "izlude",94,103; break;
+				warp "izlude",94,134; break;
 			case 4009:
 			case 4016:
 				warp "prontera",273,354; break;
@@ -376,7 +376,7 @@ valkyrie,44,33,5	script	Teleporter	124,{
 		case 3: callsub S_Warpchar,"payon",69,100;
 		case 4: callsub S_Warpchar,"geffen",120,39;
 		case 5: callsub S_Warpchar,"alberta",117,56;
-		case 6: callsub S_Warpchar,"izlude",94,103;
+		case 6: callsub S_Warpchar,"izlude",94,134;
 		case 7: callsub S_Warpchar,"aldebaran",91,105;
 		case 8: callsub S_Warpchar,"comodo",209,143;
 		case 9: callsub S_Warpchar,"yuno",328,101;

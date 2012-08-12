@@ -63,7 +63,7 @@ prontera,34,212,0	duplicate(MailBox)	Mailbox#3prt	888
 
 // Izlude
 //============================================================
-izlude,136,94,0	duplicate(MailBox)	Mailbox#iz	888
+izlude,136,125,0	duplicate(MailBox)	Mailbox#iz	888
 
 // Morroc
 //============================================================

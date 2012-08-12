@@ -1063,7 +1063,7 @@ prontera,248,42,0	script	Kafra Employee#mer	116,{
 			set zeny,zeny-600;
 			set RESRVPTS, RESRVPTS + 37;
 			cutin "",255;
-			warp "izlude",94,103;
+			warp "izlude",94,134;
 			end;
 		}
 		close2;

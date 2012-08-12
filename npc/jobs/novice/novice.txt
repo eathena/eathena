@@ -138,8 +138,8 @@ new_1-2,100,29,4	script	Receptionist#nv1	86,{
 				warp "alberta",116,57;
 				break;
 			case 5:
-				savepoint "izlude",94,103;
-				warp "izlude",94,103;
+				savepoint "izlude",94,134;
+				warp "izlude",94,134;
 			}
 			end;
 		case 3:
@@ -3349,7 +3349,7 @@ new_1-4,100,29,1	script	Hanson#nv	46,{
 					set nov_3_magician,0;
 					set nov_3_acolyte,0;
 					set nov_3_merchant,0;
-					savepoint "izlude",93,104;
+					savepoint "izlude",93,135;
 					warp "izlude_in",74,167;
 					end;
 				case 2:
@@ -3759,7 +3759,7 @@ new_1-4,100,29,1	script	Hanson#nv	46,{
 				warp "pay_fild01",334,354;
 			}
 			else if ((.@startmap > 5) && (.@startmap < 7)) {
-				savepoint "izlude",93,104;
+				savepoint "izlude",93,135;
 				warp "prt_fild08",357,212;
 			}
 			end;
@@ -3810,7 +3810,7 @@ new_1-4,100,29,1	script	Hanson#nv	46,{
 			warp "pay_fild01",334,354;
 		}
 		else if ((.@startmap > 5) && (.@startmap < 7)) {
-			savepoint "izlude",93,104;
+			savepoint "izlude",93,135;
 			warp "prt_fild08",357,212;
 		}
 		end;
@@ -3937,7 +3937,7 @@ S_UserJobchoice:
 	set nov_3_acolyte,0;
 	set nov_3_merchant,0;
 	if(@menu == 1) {
-		savepoint "izlude",93,104;
+		savepoint "izlude",93,135;
 		warp "izlude_in",74,167;
 	}
 	else if (@menu == 2) {

@@ -18,7 +18,7 @@
 
 // Edgar's Offer
 //============================================================
-izlude,182,186,2	script	Edgar#izlude	49,{
+izlude,182,214,2	script	Edgar#izlude	49,{
 	if (MISC_QUEST & 16) {
 		mes "[Edgar]";
 		mes "So are you heading to Alberta again? Let me give you the same discount and only charge 250 Zeny, just like the last time.";

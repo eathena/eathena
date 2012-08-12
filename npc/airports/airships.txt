@@ -408,7 +408,7 @@ airplane,221,158,2	script	Pilot#airplane	852,{
 
 airplane_01,243,74,4	script	#AirshipWarp-3	45,2,2,{
 OnTouch:
-	if($@airplanelocation2 == 1)warp "izlude",202,56;
+	if($@airplanelocation2 == 1)warp "izlude",202,75;
 	if($@airplanelocation2 == 2)warp "yuno",20,265;
 	if($@airplanelocation2 == 3)warp "ra_fild12",292,204;
 	end;
@@ -423,7 +423,7 @@ OnUnhide:
 
 airplane_01,243,29,4	script	#AirshipWarp-4	45,2,2,{
 OnTouch:
-	if($@airplanelocation2 == 1)warp "izlude",202,56;
+	if($@airplanelocation2 == 1)warp "izlude",202,75;
 	if($@airplanelocation2 == 2)warp "yuno",20,265;
 	if($@airplanelocation2 == 3)warp "ra_fild12",292,204;
 	end;
@@ -1040,7 +1040,7 @@ airplane_01,71,31,2	script	Swordsman Shimizu#01	106,{
 //= The Izlude Airship Staff
 //============================================================
 
-izlude,201,54,3	script	Airship Staff#izl	91,{
+izlude,201,73,3	script	Airship Staff#izl	91,{
 	mes "[Airship Staff]";
 	mes "Welcome to the International Airship.";
 	mes "How may I help you?";

@@ -11461,7 +11461,7 @@ OnStop:
 	end;
 }
 
-izlude,186,57,5	script	Scamp	853,{
+izlude,186,76,5	script	Scamp	853,{
 
 	if(lhz_rekenber > 21)
 	{
