@@ -41,6 +41,7 @@
  60: 
  60:@guildspy <guild_name/id> - You will receive all messages of the guild channel (Chat logging must be enabled)
  60:@partyspy <party_name/id> - You will receive all messages of the party channel (Chat logging must be enabled)
+ 60:@mapflag <mapflag> <state:1|0> { <mapname> }
  99:@mapinfo [<0-3> [map]] - Give information about a map (general info +: 0: no more, 1: players, 2: NPC, 3: shops/chat).
   1: 
   1:--- CHANGE GM STATE CMD ---
