@@ -7784,7 +7784,7 @@ ACMD_FUNC(fakename)
 }
 
 /*==========================================
- * @mapflag [flag name] [1|0|on|off] [map name] by Hybrid
+ * @mapflag [flag name] [1|0] [map name] by Hybrid
  * Set flags
  *------------------------------------------*/
 ACMD_FUNC(mapflag)
