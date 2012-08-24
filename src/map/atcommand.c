@@ -7784,8 +7784,10 @@ ACMD_FUNC(fakename)
 }
 
 /*==========================================
- * @mapflag [flag name] [1|0] [map name] by Hybrid
+ * @mapflag [flag name] [1|0|zone] [map name] by Hybrid
  * Set flags
+ * TODO: restricted flag check, zone restrictions,
+ * help message display with supported flags
  *------------------------------------------*/
 ACMD_FUNC(mapflag)
 {
@@ -7798,8 +7800,8 @@ ACMD_FUNC(mapflag)
 	nullpo_retr(-1, sd);
 
 	
-	memset(map_name, '\\', sizeof(map_name));
-	memset(map_flag, '\\', sizeof(map_flag));
+	memset(map_name, '\0', sizeof(map_name));
+	memset(map_flag, '\0', sizeof(map_flag));
 	if (!message || !*message ||
 		(sscanf(message, "%99s %d %15s[^\n]", map_flag, &state, map_name) < 3 ) ) {
 			if ( sscanf(message, "%99s %d", map_flag, &state) < 2 ) {
