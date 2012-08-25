@@ -7802,7 +7802,7 @@ ACMD_FUNC(mapflag)
 	memset(map_name, '\0', sizeof(map_name));
 	memset(map_flag, '\0', sizeof(map_flag));
 	if (!message || !*message ||
-		(sscanf(message, "%99s %d %12s[^\n]", map_flag, &state, map_name) < 3 ) ) {
+		(sscanf(message, "%99s %d %11s", map_flag, &state, map_name) < 3 ) ) {
 			if ( sscanf(message, "%99s %d", map_flag, &state) < 2 ) {
 				clif_displaymessage(fd, "Usage: @mapflag <mapflag name> <state:1|0|zone> <map name>");
 				clif_displaymessage(fd, "Supported mapflags:");
