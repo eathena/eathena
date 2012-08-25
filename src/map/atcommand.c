@@ -7786,8 +7786,7 @@ ACMD_FUNC(fakename)
 /*==========================================
  * @mapflag [flag name] [1|0|zone] [map name] by Hybrid
  * Set flags
- * TODO: restricted flag check, zone restrictions,
- * help message display with supported flags
+ * TODO: N/A atm
  *------------------------------------------*/
 ACMD_FUNC(mapflag)
 {
