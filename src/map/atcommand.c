@@ -7792,7 +7792,7 @@ ACMD_FUNC(fakename)
 ACMD_FUNC(mapflag)
 {
 	char map_flag[100];
-	char map_name[MAP_NAME_LENGTH_EXT];
+	char map_name[MAP_NAME_LENGTH];
 	unsigned short mapindex;
 	int m = -1;
 	int state;
@@ -7806,13 +7806,36 @@ ACMD_FUNC(mapflag)
 		(sscanf(message, "%99s %d %15s[^\n]", map_flag, &state, map_name) < 3 ) ) {
 			if ( sscanf(message, "%99s %d", map_flag, &state) < 2 ) {
 				clif_displaymessage(fd, "Usage: @mapflag <mapflag name> <state:1|0|zone> <map name>");
+				clif_displaymessage(fd, "Supported mapflags:");
+				clif_displaymessage(fd, "nomemo		nowarp		nowarpto	noreturn	monster_noteleport");
+				clif_displaymessage(fd, "nobranch	nopenalty	pvp			gvg			noexppenalty");
+				clif_displaymessage(fd, "notrade	novending	nodrop		noskill		noicewall");
+				clif_displaymessage(fd, "snow		clouds		clouds2		fog			nozenypenalty");
+				clif_displaymessage(fd, "fireworks	sakura		leaves		rain		nightenabled");
+				clif_displaymessage(fd, "nogo		noexp		nobaseexp	nojobexp	noloot");
+				clif_displaymessage(fd, "nomvploot	restricted	loadevent	nochat		partylock");
+				clif_displaymessage(fd, "guildlock");
+				clif_displaymessage(fd, "");
+				clif_displaymessage(fd, "Restricted mapflag: use Zones (1-7) to set a zone, 0 to turn off all zones for the map");
 				return -1;
 			}
 			m = sd->bl.m;
 	}
 
-	if (m == -1)
-	{
+	if (state < 0) {
+		clif_displaymessage (fd, "Minimum value for state is 0 (off), auto-assumed 0");
+		state = 0;
+	}
+	if (state > 1 && !strcmp(map_flag, "restricted")) {
+		clif_displaymessage(fd, "Zone use is only applicable with the restricted mapflag");
+		return -1;
+	}
+	else if (state > 7) {
+		clif_displaymessage(fd, "Maximum zone value is 7");
+		return -1;
+	}
+
+	if (m == -1) {
 		mapindex = mapindex_name2id(map_name);
 		if (mapindex)
 			m = map_mapindex2mapid(mapindex);
