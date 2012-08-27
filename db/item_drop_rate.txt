@@ -1,0 +1,9 @@
+// Item Drop Rate Database
+//
+// This file overrides all other drop rate modifiers
+//
+// Structure: itemid, dummyname, droprate
+//
+// Example:
+//4001,Poring_Card,1000 // Sets Poring Card to 10% droprate
+// Note: This gets reloaded with @reloadmobdb
