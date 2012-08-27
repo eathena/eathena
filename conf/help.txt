@@ -41,6 +41,18 @@
  60: 
  60:@guildspy <guild_name/id> - You will receive all messages of the guild channel (Chat logging must be enabled)
  60:@partyspy <party_name/id> - You will receive all messages of the party channel (Chat logging must be enabled)
+ 99:@mapflag <mapflag> <state:1|0|zone> { <mapname> }
+ 99:Mapflag List:
+ 99:nomemo      nowarp          nowarpto        noreturn        monster_noteleport
+ 99:nobranch    nopenalty       pvp             gvg             noexppenalty
+ 99:notrade     novending       nodrop          noskill         noicewall
+ 99:snow        clouds          clouds2         fog             nozenypenalty
+ 99:fireworks   sakura          leaves          rain            nightenabled
+ 99:nogo        noexp           nobaseexp       nojobexp        noloot
+ 99:nomvploot   restricted      loadevent       nochat	        partylock
+ 99:guildlock
+ 99:
+ 99:Restricted mapflag: use Zones (1-7) to set a zone, 0 to turn off all zones for the map
  99:@mapinfo [<0-3> [map]] - Give information about a map (general info +: 0: no more, 1: players, 2: NPC, 3: shops/chat).
   1: 
   1:--- CHANGE GM STATE CMD ---

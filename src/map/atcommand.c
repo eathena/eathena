@@ -7784,13 +7784,261 @@ ACMD_FUNC(fakename)
 }
 
 /*==========================================
- * @mapflag [flag name] [1|0|on|off] [map name] by Lupus
- * => Shows information about the map flags [map name]
- * Also set flags
+ * @mapflag [flag name] [1|0|zone] [map name] by Hybrid
+ * Set flags
+ * TODO: N/A atm
  *------------------------------------------*/
 ACMD_FUNC(mapflag)
 {
-// WIP
+	char map_flag[100];
+	char map_name[MAP_NAME_LENGTH];
+	unsigned short mapindex;
+	int m = -1;
+	int state;
+	
+	nullpo_retr(-1, sd);
+
+	
+	memset(map_name, '\0', sizeof(map_name));
+	memset(map_flag, '\0', sizeof(map_flag));
+	if (!message || !*message ||
+		(sscanf(message, "%99s %d %11s", map_flag, &state, map_name) < 3 ) ) {
+			if ( sscanf(message, "%99s %d", map_flag, &state) < 2 ) {
+				clif_displaymessage(fd, "Usage: @mapflag <mapflag name> <state:1|0|zone> <map name>");
+				clif_displaymessage(fd, "Supported mapflags:");
+				clif_displaymessage(fd, "nomemo     nowarp      nowarpto    noreturn    monster_noteleport");
+				clif_displaymessage(fd, "nobranch   nopenalty   pvp         gvg         noexppenalty");
+				clif_displaymessage(fd, "notrade    novending   nodrop      noskill     noicewall");
+				clif_displaymessage(fd, "snow       clouds      clouds2     fog         nozenypenalty");
+				clif_displaymessage(fd, "fireworks  sakura      leaves      rain        nightenabled");
+				clif_displaymessage(fd, "nogo       noexp       nobaseexp   nojobexp    noloot");
+				clif_displaymessage(fd, "nomvploot  restricted  loadevent	nochat      partylock");
+				clif_displaymessage(fd, "guildlock");
+				clif_displaymessage(fd, "");
+				clif_displaymessage(fd, "Restricted mapflag: use Zones (1-7) to set a zone, 0 to turn off all zones for the map");
+				return -1;
+			}
+			m = sd->bl.m;
+	}
+
+	if (state < 0) {
+		clif_displaymessage (fd, "Minimum value for state is 0 (off), auto-assumed 0");
+		state = 0;
+	}
+	if (state > 1 && strcmp(map_flag, "restricted")) {
+		clif_displaymessage(fd, "Zone use is only applicable with the restricted mapflag");
+		clif_displaymessage(fd, "Setting flag value to 1");
+		state = 1;
+	}
+	else if (state > 7) {
+		clif_displaymessage(fd, "Maximum zone value is 7");
+		return -1;
+	}
+
+	if (m == -1) {
+		mapindex = mapindex_name2id(map_name);
+		if (mapindex)
+			m = map_mapindex2mapid(mapindex);
+		
+		if (!mapindex || m < 0) {
+			clif_displaymessage(fd, msg_txt(1)); // Map not found.
+			return -1;
+		}
+	}
+	
+	if (!strcmpi(map_flag,"nomemo")) {
+		map[m].flag.nomemo=state;
+	}
+	else if (!strcmpi(map_flag,"noteleport")) {
+		map[m].flag.noteleport=state;
+	}
+	else if (!strcmpi(map_flag,"nowarp")) {
+		map[m].flag.nowarp=state;
+	}
+	else if (!strcmpi(map_flag,"nowarpto")) {
+		map[m].flag.nowarpto=state;
+	}
+	else if (!strcmpi(map_flag,"noreturn")) {
+		map[m].flag.noreturn=state;
+	}
+	else if (!strcmpi(map_flag,"monster_noteleport")) {
+		map[m].flag.monster_noteleport=state;	
+	}
+	else if (!strcmpi(map_flag,"nobranch")) {
+		map[m].flag.nobranch=state;
+	}
+	else if (!strcmpi(map_flag,"nopenalty")) {
+		map[m].flag.noexppenalty=state;
+		map[m].flag.nozenypenalty=state;
+	}
+	else if (!strcmpi(map_flag,"pvp")) {
+		map[m].flag.pvp=state;
+		if (state) {
+			if (map[m].flag.gvg || map[m].flag.gvg_dungeon || map[m].flag.gvg_castle)
+				clif_displaymessage(fd, "You can't set PvP and GvG flags for the same map! Removing GvG flags.");
+			map[m].flag.gvg=0;
+			map[m].flag.gvg_dungeon=0;
+			map[m].flag.gvg_castle=0;
+			if (!battle_config.pk_mode)
+			{// display pvp circle and rank
+				clif_map_property_mapall(sd->bl.m, MAPPROPERTY_FREEPVPZONE);
+				map_foreachinmap(atcommand_pvpon_sub,sd->bl.m, BL_PC);
+			}
+		}
+		else {
+			map_foreachinmap(atcommand_pvpoff_sub,sd->bl.m, BL_PC);
+			map_foreachinmap(atcommand_stopattack,sd->bl.m, BL_CHAR, 0);
+		}
+	}
+
+	// TODO: Add support for the following mapflags [Hybrid]
+	/*
+	else if (!strcmpi(map_flag,"pvp_noparty")) {
+		map[m].flag.pvp_noparty=state;
+	}
+	else if (!strcmpi(map_flag,"pvp_noguild")) {
+		map[m].flag.pvp_noguild=state;
+	}
+	else if (!strcmpi(map_flag, "pvp_nightmaredrop")) {
+		map[m].flag.pvp_nightmaredrop=state;
+	}
+	else if (!strcmpi(map_flag,"pvp_nocalcrank")) {
+		map[m].flag.pvp_nocalcrank=state;
+	} */
+	else if (!strcmpi(map_flag,"gvg")) {
+		map[m].flag.gvg=state;
+		if (state) {
+			if (map[m].flag.pvp) {
+				clif_displaymessage(fd, "You can't set PvP and GvG flags for the same map! Removing PvP flags.");
+				map[m].flag.pvp=0;
+			}
+			clif_map_property_mapall(sd->bl.m, MAPPROPERTY_AGITZONE);
+		}
+		else {
+			clif_map_property_mapall(sd->bl.m, MAPPROPERTY_NOTHING);
+			map_foreachinmap(atcommand_stopattack,sd->bl.m, BL_CHAR, 0);
+		}
+	}
+
+	// TODO: Add support for the other GVG mapflags
+	/*else if (!strcmpi(map_flag,"gvg_noparty")) {
+		map[m].flag.gvg_noparty=state;
+	}
+	else if (!strcmpi(map_flag,"gvg_dungeon")) {
+		map[m].flag.gvg_dungeon=state;
+		if (map[m].flag.pvp)
+		{
+			clif_displaymessage(fd, "You can't set PvP and GvG flags for the same map! Removing PvP flags.");
+			map[m].flag.pvp=0;
+		}
+	}
+	else if (!strcmpi(map_flag,"gvg_castle")) {
+		map[m].flag.gvg_castle=state;
+		if (map[m].flag.pvp)
+		{
+			clif_displaymessage(fd, "You can't set PvP and GvG flags for the same map! Removing PvP flags.");
+			map[m].flag.pvp=0;
+		}
+	} */
+	else if (!strcmpi(map_flag,"noexppenalty")) {
+		map[m].flag.noexppenalty=state;
+	}
+	else if (!strcmpi(map_flag,"nozenypenalty")) {
+		map[m].flag.nozenypenalty=state;
+	}
+	else if (!strcmpi(map_flag,"notrade")) {
+		map[m].flag.notrade=state;
+	}
+	else if (!strcmpi(map_flag,"novending")) {
+		map[m].flag.novending=state;
+	}
+	else if (!strcmpi(map_flag,"nodrop")) {
+		map[m].flag.nodrop=state;
+	}
+	else if (!strcmpi(map_flag,"noskill")) {
+		map[m].flag.noskill=state;
+	}
+	else if (!strcmpi(map_flag,"noicewall")) {
+		map[m].flag.noicewall=state;
+	}
+	else if (!strcmpi(map_flag,"snow")) {
+		map[m].flag.snow=state;
+	}
+	else if (!strcmpi(map_flag,"clouds")) {
+		map[m].flag.clouds=state;
+	}
+	else if (!strcmpi(map_flag,"clouds2")) {
+		map[m].flag.clouds2=state;
+	}
+	else if (!strcmpi(map_flag,"fog")) {
+		map[m].flag.fog=state;
+	}
+	else if (!strcmpi(map_flag,"fireworks")) {
+		map[m].flag.fireworks=state;
+	}
+	else if (!strcmpi(map_flag,"sakura")) {
+		map[m].flag.sakura=state;
+	}
+	else if (!strcmpi(map_flag,"leaves")) {
+		map[m].flag.leaves=state;
+	}
+	else if (!strcmpi(map_flag,"rain")) {
+		map[m].flag.rain=state;
+	}
+	else if (!strcmpi(map_flag,"nightenabled")) {
+		map[m].flag.nightenabled=state;
+	}
+	else if (!strcmpi(map_flag,"nogo")) {
+		map[m].flag.nogo=state;
+	}
+	else if (!strcmpi(map_flag,"noexp")) {
+		map[m].flag.nobaseexp=state;
+		map[m].flag.nojobexp=state;
+	}
+	else if (!strcmpi(map_flag,"nobaseexp")) {
+		map[m].flag.nobaseexp=state;
+	}
+	else if (!strcmpi(map_flag,"nojobexp")) {
+		map[m].flag.nojobexp=state;
+	}
+	else if (!strcmpi(map_flag,"noloot")) {
+		map[m].flag.nomobloot=state;
+		map[m].flag.nomvploot=state;
+	}
+	else if (!strcmpi(map_flag,"nomobloot")) {
+		map[m].flag.nomobloot=state;
+	}
+	else if (!strcmpi(map_flag,"nomvploot")) {
+		map[m].flag.nomvploot=state;
+	}
+	else if (!strcmpi(map_flag,"restricted")) {
+		if (state) {
+			map[m].flag.restricted=1;
+			map[m].zone |= 1<<(state+1);
+		} else {
+			map[m].flag.restricted=0;
+			map[m].zone = 0;
+		}
+	}
+	else if (!strcmpi(map_flag,"loadevent")) {
+		map[m].flag.loadevent=state;
+	}
+	else if (!strcmpi(map_flag,"nochat")) {
+		map[m].flag.nochat=state;
+	}
+	else if (!strcmpi(map_flag,"partylock")) {
+		map[m].flag.partylock=state;
+	}
+	else if (!strcmpi(map_flag,"guildlock")) {
+		map[m].flag.guildlock=state;
+	}
+	else
+	{
+		clif_displaymessage(fd, "Invalid Mapflag");
+		return -1;
+	}
+	
+	clif_displaymessage(fd, "Mapflag updated.");
 	return 0;
 }
 
