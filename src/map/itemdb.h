@@ -85,6 +85,7 @@ struct item_data {
 		unsigned buyingstore : 1;
 	} flag;
 	short gm_lv_trade_override;	//GM-level to override trade_restriction
+	short fix_rate; // Fixed drop rate of an item [Hybrid]
 };
 
 struct item_group {
@@ -97,6 +98,7 @@ int itemdb_searchname_array(struct item_data** data, int size, const char *str);
 struct item_data* itemdb_load(int nameid);
 struct item_data* itemdb_search(int nameid);
 struct item_data* itemdb_exists(int nameid);
+#define item_fix_rate(n) itemdb_search(n)->fix_rate
 #define itemdb_name(n) itemdb_search(n)->name
 #define itemdb_jname(n) itemdb_search(n)->jname
 #define itemdb_type(n) itemdb_search(n)->type
