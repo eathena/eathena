@@ -2441,9 +2441,9 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	if(memcmp(b_skill,sd->status.skill,sizeof(sd->status.skill)))
 		clif_skillinfoblock(sd);
 	if(b_weight != sd->weight)
-		clif_updatestatus(sd,SP_WEIGHT);
+		pc_onstatuschanged(sd,SP_WEIGHT);
 	if(b_max_weight != sd->max_weight) {
-		clif_updatestatus(sd,SP_MAXWEIGHT);
+		pc_onstatuschanged(sd,SP_MAXWEIGHT);
 		pc_updateweightstatus(sd);
 	}
 
@@ -2967,7 +2967,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		if( status->hp > status->max_hp ) //FIXME: Should perhaps a status_zap should be issued?
 		{
 			status->hp = status->max_hp;
-			if( sd ) clif_updatestatus(sd,SP_HP);
+			if( sd ) pc_onstatuschanged(sd,SP_HP);
 		}
 	}
 
@@ -2990,7 +2990,7 @@ void status_calc_bl_main(struct block_list *bl, /*enum scb_flag*/int flag)
 		if( status->sp > status->max_sp )
 		{
 			status->sp = status->max_sp;
-			if( sd ) clif_updatestatus(sd,SP_SP);
+			if( sd ) pc_onstatuschanged(sd,SP_SP);
 		}
 	}
 
@@ -3137,55 +3137,55 @@ void status_calc_bl_(struct block_list* bl, enum scb_flag flag, bool first)
 	{
 		TBL_PC* sd = BL_CAST(BL_PC, bl);
 		if(b_status.str != status->str)
-			clif_updatestatus(sd,SP_STR);
+			pc_onstatuschanged(sd,SP_STR);
 		if(b_status.agi != status->agi)
-			clif_updatestatus(sd,SP_AGI);
+			pc_onstatuschanged(sd,SP_AGI);
 		if(b_status.vit != status->vit)
-			clif_updatestatus(sd,SP_VIT);
+			pc_onstatuschanged(sd,SP_VIT);
 		if(b_status.int_ != status->int_)
-			clif_updatestatus(sd,SP_INT);
+			pc_onstatuschanged(sd,SP_INT);
 		if(b_status.dex != status->dex)
-			clif_updatestatus(sd,SP_DEX);
+			pc_onstatuschanged(sd,SP_DEX);
 		if(b_status.luk != status->luk)
-			clif_updatestatus(sd,SP_LUK);
+			pc_onstatuschanged(sd,SP_LUK);
 		if(b_status.hit != status->hit)
-			clif_updatestatus(sd,SP_HIT);
+			pc_onstatuschanged(sd,SP_HIT);
 		if(b_status.flee != status->flee)
-			clif_updatestatus(sd,SP_FLEE1);
+			pc_onstatuschanged(sd,SP_FLEE1);
 		if(b_status.amotion != status->amotion)
-			clif_updatestatus(sd,SP_ASPD);
+			pc_onstatuschanged(sd,SP_ASPD);
 		if(b_status.speed != status->speed)
-			clif_updatestatus(sd,SP_SPEED);
+			pc_onstatuschanged(sd,SP_SPEED);
 		if(b_status.rhw.atk != status->rhw.atk || b_status.lhw.atk != status->lhw.atk || b_status.batk != status->batk)
-			clif_updatestatus(sd,SP_ATK1);
+			pc_onstatuschanged(sd,SP_ATK1);
 		if(b_status.def != status->def)
-			clif_updatestatus(sd,SP_DEF1);
+			pc_onstatuschanged(sd,SP_DEF1);
 		if(b_status.rhw.atk2 != status->rhw.atk2 || b_status.lhw.atk2 != status->lhw.atk2)
-			clif_updatestatus(sd,SP_ATK2);
+			pc_onstatuschanged(sd,SP_ATK2);
 		if(b_status.def2 != status->def2)
-			clif_updatestatus(sd,SP_DEF2);
+			pc_onstatuschanged(sd,SP_DEF2);
 		if(b_status.flee2 != status->flee2)
-			clif_updatestatus(sd,SP_FLEE2);
+			pc_onstatuschanged(sd,SP_FLEE2);
 		if(b_status.cri != status->cri)
-			clif_updatestatus(sd,SP_CRITICAL);
+			pc_onstatuschanged(sd,SP_CRITICAL);
 		if(b_status.matk_max != status->matk_max)
-			clif_updatestatus(sd,SP_MATK1);
+			pc_onstatuschanged(sd,SP_MATK1);
 		if(b_status.matk_min != status->matk_min)
-			clif_updatestatus(sd,SP_MATK2);
+			pc_onstatuschanged(sd,SP_MATK2);
 		if(b_status.mdef != status->mdef)
-			clif_updatestatus(sd,SP_MDEF1);
+			pc_onstatuschanged(sd,SP_MDEF1);
 		if(b_status.mdef2 != status->mdef2)
-			clif_updatestatus(sd,SP_MDEF2);
+			pc_onstatuschanged(sd,SP_MDEF2);
 		if(b_status.rhw.range != status->rhw.range)
-			clif_updatestatus(sd,SP_ATTACKRANGE);
+			pc_onstatuschanged(sd,SP_ATTACKRANGE);
 		if(b_status.max_hp != status->max_hp)
-			clif_updatestatus(sd,SP_MAXHP);
+			pc_onstatuschanged(sd,SP_MAXHP);
 		if(b_status.max_sp != status->max_sp)
-			clif_updatestatus(sd,SP_MAXSP);
+			pc_onstatuschanged(sd,SP_MAXSP);
 		if(b_status.hp != status->hp)
-			clif_updatestatus(sd,SP_HP);
+			pc_onstatuschanged(sd,SP_HP);
 		if(b_status.sp != status->sp)
-			clif_updatestatus(sd,SP_SP);
+			pc_onstatuschanged(sd,SP_SP);
 	}
 	else
 	if( bl->type == BL_HOM )
@@ -5459,8 +5459,7 @@ int status_change_start(struct block_list* bl,enum sc_type type,int rate,int val
 			val1 = battle_config.manner_system; //Mute filters.
 			if (sd)
 			{
-				clif_changestatus(sd,SP_MANNER,sd->status.manner);
-				clif_updatestatus(sd,SP_MANNER);
+				pc_onstatuschanged(sd,SP_MANNER);
 			}
 			break;
 
@@ -6668,8 +6667,7 @@ int status_change_end_(struct block_list* bl, enum sc_type type, int tid, const 
 				sd->status.manner = 0;
 			if (sd && tid == INVALID_TIMER)
 			{
-				clif_changestatus(sd,SP_MANNER,sd->status.manner);
-				clif_updatestatus(sd,SP_MANNER);
+				pc_onstatuschanged(sd,SP_MANNER);
 			}
 			break;
 		case SC_SPLASHER:	
@@ -7280,8 +7278,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 	case SC_NOCHAT:
 		if(sd){
 			sd->status.manner++;
-			clif_changestatus(sd,SP_MANNER,sd->status.manner);
-			clif_updatestatus(sd,SP_MANNER);
+			pc_onstatuschanged(sd,SP_MANNER);
 			if (sd->status.manner < 0)
 			{	//Every 60 seconds your manner goes up by 1 until it gets back to 0.
 				sc_timer_next(60000+tick, status_change_timer, bl->id, data);
