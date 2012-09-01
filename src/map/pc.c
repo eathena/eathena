@@ -6021,8 +6021,8 @@ int pc_readparam(struct map_session_data* sd,int type)
 	case SP_UPPER:       val = sd->class_&JOBL_UPPER?1:(sd->class_&JOBL_BABY?2:0); break;
 	case SP_BASECLASS:   val = pc_mapid2jobid(sd->class_&MAPID_BASEMASK, sd->status.sex); break; //Extract base class tree. [Skotlex]
 	case SP_SEX:         val = sd->status.sex; break;
-	case SP_WEIGHT:      val = sd->weight; break;
-	case SP_MAXWEIGHT:   val = sd->max_weight; break;
+	case SP_WEIGHT:      val = sd->weight; break; // client shows value/10
+	case SP_MAXWEIGHT:   val = sd->max_weight; break; // client shows value/10
 	case SP_BASEEXP:     val = sd->status.base_exp; break;
 	case SP_JOBEXP:      val = sd->status.job_exp; break;
 	case SP_NEXTBASEEXP: val = pc_nextbaseexp(sd); break;
@@ -6042,6 +6042,27 @@ int pc_readparam(struct map_session_data* sd,int type)
 	case SP_FAME:        val = sd->status.fame; break;
 	case SP_KILLERRID:   val = sd->killerrid; break;
 	case SP_KILLEDRID:   val = sd->killedrid; break;
+	case SP_SPEED:       val = sd->battle_status.speed; break;
+	case SP_HIT:         val = sd->battle_status.hit; break;
+	case SP_FLEE1:       val = sd->battle_status.flee; break;
+	case SP_FLEE2:       val = sd->battle_status.flee2; break; // client receives value/10
+	case SP_ASPD:        val = sd->battle_status.amotion; break;
+	case SP_ATK1:        val = sd->battle_status.batk + sd->battle_status.rhw.atk + sd->battle_status.lhw.atk; break;
+	case SP_DEF1:        val = sd->battle_status.def; break;
+	case SP_MDEF1:       val = sd->battle_status.mdef; break;
+	case SP_ATK2:        val = sd->battle_status.rhw.atk2 + sd->battle_status.lhw.atk2; break;
+	case SP_DEF2:        val = sd->battle_status.def2; break;
+	case SP_CRITICAL:    val = sd->battle_status.cri; break; // client receives value/10
+	case SP_MATK1:       val = sd->battle_status.matk_max; break;
+	case SP_MATK2:       val = sd->battle_status.matk_min; break;
+	case SP_ATTACKRANGE: val = sd->battle_status.rhw.range; break;
+	case SP_MDEF2:       val = sd->battle_status.mdef2; break; // client receives max(0,value-vit/2)
+	case SP_USTR:        val = pc_need_status_point(sd, SP_STR, 1); break;
+	case SP_UAGI:        val = pc_need_status_point(sd, SP_AGI, 1); break;
+	case SP_UVIT:        val = pc_need_status_point(sd, SP_VIT, 1); break;
+	case SP_UINT:        val = pc_need_status_point(sd, SP_INT, 1); break;
+	case SP_UDEX:        val = pc_need_status_point(sd, SP_DEX, 1); break;
+	case SP_ULUK:        val = pc_need_status_point(sd, SP_LUK, 1); break;
 	}
 
 	return val;
@@ -6114,19 +6135,19 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 			pc_checkjoblevelup(sd);
 		}
 		break;
-	case SP_SEX:
+	case SP_SEX: // FIXME this doesn't look safe...
 		sd->status.sex = val ? SEX_MALE : SEX_FEMALE;
 		break;
-	case SP_WEIGHT:
+	case SP_WEIGHT: // FIXME automatic value, is there a use case for this?
 		sd->weight = val;
 		break;
-	case SP_MAXWEIGHT:
+	case SP_MAXWEIGHT: // FIXME automatic value, is there a use case for this?
 		sd->max_weight = val;
 		break;
 	case SP_HP:
 		sd->battle_status.hp = cap_value(val, 1, (int)sd->battle_status.max_hp);
 		break;
-	case SP_MAXHP:
+	case SP_MAXHP: // FIXME automatic value, is there a use case for this?
 		sd->battle_status.max_hp = cap_value(val, 1, battle_config.max_hp);
 
 		if( sd->battle_status.max_hp < sd->battle_status.hp )
@@ -6138,7 +6159,7 @@ int pc_setparam(struct map_session_data *sd,int type,int val)
 	case SP_SP:
 		sd->battle_status.sp = cap_value(val, 0, (int)sd->battle_status.max_sp);
 		break;
-	case SP_MAXSP:
+	case SP_MAXSP: // FIXME automatic value, is there a use case for this?
 		sd->battle_status.max_sp = cap_value(val, 1, battle_config.max_sp);
 
 		if( sd->battle_status.max_sp < sd->battle_status.sp )
