@@ -891,7 +891,7 @@ int chrif_changedsex(int fd)
 					sd->status.skill[i].lv = 0;
 				}
 			}
-			clif_updatestatus(sd, SP_SKILLPOINT);
+			pc_onstatuschanged(sd, SP_SKILLPOINT);
 			// change job if necessary
 			if (sd->status.sex) //Changed from Dancer
 				sd->status.class_ -= 1;

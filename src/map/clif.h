@@ -346,7 +346,6 @@ void clif_updatestatuspointsneeded(struct map_session_data* sd, short type, unsi
 void clif_updatecartinfo(struct map_session_data* sd, short count, short maxcount, int weight, int maxweight);	//self
 void clif_updateattackrange(struct map_session_data* sd, short range);	//self
 void clif_updatestat(struct map_session_data* sd, int type, int value, int plusvalue); //self
-void clif_updatestatus(struct map_session_data *sd,int type);	//self
 void clif_changestatus(struct map_session_data* sd,int type,int val);	//area
 int clif_damage(struct block_list* src, struct block_list* dst, unsigned int tick, int sdelay, int ddelay, int damage, int div, int type, int damage2);	// area
 void clif_takeitem(struct block_list* src, struct block_list* dst);

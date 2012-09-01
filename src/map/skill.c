@@ -3230,8 +3230,8 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 			if (skill_area_temp[0] > 0 && !map[src->m].flag.noexppenalty) { //Apply penalty
 				sd->status.base_exp -= min(sd->status.base_exp, pc_nextbaseexp(sd) * skill_area_temp[0] * 2/1000); //0.2% penalty per each.
 				sd->status.job_exp -= min(sd->status.job_exp, pc_nextjobexp(sd) * skill_area_temp[0] * 2/1000);
-				clif_updatestatus(sd,SP_BASEEXP);
-				clif_updatestatus(sd,SP_JOBEXP);
+				pc_onstatuschanged(sd,SP_BASEEXP);
+				pc_onstatuschanged(sd,SP_JOBEXP);
 			}
 			status_set_hp(src, 1, 0);
 			status_set_sp(src, 0, 0);
