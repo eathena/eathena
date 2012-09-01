@@ -560,6 +560,8 @@ int pc_isGM(struct map_session_data *sd);
 int pc_getrefinebonus(int lv,int type);
 bool pc_can_give_items(int level);
 
+void pc_onstatuschanged(struct map_session_data* sd, int type);
+
 int pc_setrestartvalue(struct map_session_data *sd,int type);
 int pc_makesavestatus(struct map_session_data *);
 void pc_respawn(struct map_session_data* sd, clr_type clrtype);
