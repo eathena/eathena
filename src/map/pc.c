@@ -385,7 +385,7 @@ void pc_onstatuschanged(struct map_session_data* sd, int type)
 	switch( type )
 	{
 	case SP_MANNER:
-		clif_changestatus(sd, type, pc_readparam(sd, type));
+		clif_updateparam_area(sd, type, pc_readparam(sd, type));
 	break;
 	case SP_HP:
 	case SP_MAXHP:
@@ -6565,7 +6565,7 @@ int pc_jobchange(struct map_session_data *sd,int job, int upper)
 		merc_hom_vaporize(sd, 0);
 	
 	if(sd->status.manner < 0)
-		clif_changestatus(sd,SP_MANNER,sd->status.manner);
+		clif_updateparam_area(sd,SP_MANNER,sd->status.manner);
 
 	status_calc_pc(sd,0);
 	pc_checkallowskill(sd);

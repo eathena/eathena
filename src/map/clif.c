@@ -2778,27 +2778,28 @@ void clif_updatestat(struct map_session_data* sd, int type, int value, int plusv
 }
 
 
-/// Notifies client of a parameter change of an another player (ZC_PAR_CHANGE_USER).
+/// Notifies clients in the area of a change in a parameter of an another player (ZC_PAR_CHANGE_USER).
 /// 01ab <account id>.L <var id>.W <value>.L
-void clif_changestatus(struct map_session_data* sd,int type,int val)
+void clif_updateparam_area(struct map_session_data* sd, short type, int value)
 {
 	unsigned char buf[12];
 
 	nullpo_retv(sd);
 
-	WBUFW(buf,0)=0x1ab;
-	WBUFL(buf,2)=sd->bl.id;
-	WBUFW(buf,6)=type;
-
 	switch(type)
 	{
-		case SP_MANNER:
-			WBUFL(buf,8)=val;
-			break;
-		default:
-			ShowError("clif_changestatus : unrecognized type %d.\n",type);
-			return;
+	case SP_MANNER:
+		// expected
+	break;
+	default:
+		ShowWarning("clif_updateparam_area: unexpected type (type=%d, value=&d).\n", type, value);
+	break;
 	}
+
+	WBUFW(buf,0) = 0x1ab;
+	WBUFL(buf,2) = sd->bl.id;
+	WBUFW(buf,6) = type;
+	WBUFL(buf,8) = value;
 
 	clif_send(buf,packet_len(0x1ab),&sd->bl,AREA_WOS);
 }
