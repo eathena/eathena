@@ -112,19 +112,15 @@ endfunction()
 #
 # external_mysql
 #
-message( STATUS "Detecting external MYSQL" )
-find_package( MYSQL_SOURCE_MIRROR )
-if( MYSQL_SOURCE_MIRROR_FOUND )
-	set( HAVE_MYSQL_EXTERNAL ON
-		CACHE BOOL "mysql client is available as an external project" )
-	mark_as_advanced( HAVE_MYSQL_EXTERNAL )
-else()
-	unset( HAVE_MYSQL_EXTERNAL CACHE )
-endif()
-message( STATUS "Detecting external MYSQL - done" )
+set( HAVE_MYSQL_EXTERNAL ON
+	CACHE BOOL "mysql client is available as an external project" )
+mark_as_advanced( HAVE_MYSQL_EXTERNAL )
 
 function( CONFIGURE_WITH_MYSQL_EXTERNAL )
 	# external_mysql
+	message( STATUS "Detecting external MYSQL" )
+	find_package( MYSQL_SOURCE_MIRROR REQUIRED )
+	message( STATUS "Detecting external MYSQL - done" )
 	message( STATUS "Creating target external_mysql" )
 	set( _URL "${MYSQL_SOURCE_MIRROR_URL}" )
 	set( _URL_MD5 "${MYSQL_SOURCE_MIRROR_MD5}" )
