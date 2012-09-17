@@ -370,20 +370,18 @@ int mapif_party_withdraw(int party_id,int account_id, int char_id) {
 	return 0;
 }
 
-// パ?ティマップ更新通知
-int mapif_party_membermoved(struct party *p, int idx) {
-	unsigned char buf[20];
+
+/// Send updated party member info. (HZ)
+void mapif_party_memberinfo(int party_id, const struct party_member* m)
+{
+	unsigned char buf[6 + sizeof(struct party_member)];
 
 	WBUFW(buf,0) = 0x3825;
-	WBUFL(buf,2) = p->party_id;
-	WBUFL(buf,6) = p->member[idx].account_id;
-	WBUFL(buf,10) = p->member[idx].char_id;
-	WBUFW(buf,14) = p->member[idx].map;
-	WBUFB(buf,16) = p->member[idx].online;
-	WBUFW(buf,17) = p->member[idx].lv;
-	mapif_sendall(buf, 19);
-	return 0;
+	WBUFL(buf,2) = party_id;
+	memcpy(WBUFP(buf,6), m, sizeof(struct party_member));
+	mapif_sendall(buf, sizeof(buf));
 }
+
 
 // パ?ティ解散通知
 int mapif_party_broken(int party_id, int flag) {
@@ -603,7 +601,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 			int_party_check_lv(p);
 		}
 		//Send online/offline update.
-		mapif_party_membermoved(&p->party, i);
+		mapif_party_memberinfo(party_id, &p->party.member[i]);
 	}
 	if (p->party.member[i].lv != lv) {
 		if(p->party.member[i].lv == p->min_lv ||
@@ -618,7 +616,7 @@ int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id
 	}
 	if (p->party.member[i].map != map) {
 		p->party.member[i].map = map;
-		mapif_party_membermoved(&p->party, i);
+		mapif_party_memberinfo(party_id, &p->party.member[i]);
 	}
 	return 0;
 }

@@ -758,36 +758,36 @@ bool party_changeleader(struct map_session_data *sd, struct map_session_data *ts
 	return true;
 }
 
-/// Invoked (from char-server) when a party member
-/// - changes maps
-/// - logs in or out
-/// - gains a level (disabled)
-int party_recv_movemap(int party_id,int account_id,int char_id, unsigned short map,int online,int lv)
+/// Invoked (from char-server) when a party member data changes (name/class/map/level/online/leader)
+void party_recv_memberinfo(int party_id, const struct party_member* member)
 {
 	struct party_member* m;
 	struct party_data* p;
-	int i;
+	int member_id;
 
 	p = party_search(party_id);
 	if( p == NULL )
-		return 0;
-
-	ARR_FIND( 0, MAX_PARTY, i, p->party.member[i].account_id == account_id && p->party.member[i].char_id == char_id );
-	if( i == MAX_PARTY )
 	{
-		ShowError("party_recv_movemap: char %d/%d not found in party %s (id:%d)",account_id,char_id,p->party.name,party_id);
-		return 0;
+		ShowError("party_recv_memberinfo: party not found (party_id=%d)\n", party_id);
+		return; // party not found
 	}
 
-	m = &p->party.member[i];
-	m->map = map;
-	m->online = online;
-	m->lv = lv;
-	//Check if they still exist on this map server
-	p->data[i].sd = party_sd_check(party_id, account_id, char_id);
-	
-	clif_party_info(p,NULL);
-	return 0;
+	ARR_FIND( 0, MAX_PARTY, member_id, p->party.member[member_id].account_id == member->account_id && p->party.member[member_id].char_id == member->char_id );
+	if( member_id == MAX_PARTY )
+	{
+		ShowError("party_recv_memberinfo: party member not found (account_id=%d, char_id=%d, name=\"%s\", party_id=%d, party_name=\"%s\")",
+			member->account_id, member->char_id, member->name, party_id, p->party.name);
+		return; // party member not found
+	}
+
+	m = &p->party.member[member_id];
+	if( memcmp(m, member, sizeof(struct party_member)) == 0 )
+		return; // nothing changed
+
+	// FIXME client assumes character names never change
+	// FIXME client doesn't compare char_id when checking for leader (if we send another character that belongs to the same account and is a leader, the client will erroneously consider you the leader)
+	memcpy(m, member, sizeof(struct party_member));
+	clif_party_member_info(p, member_id, PARTY);
 }
 
 void party_send_movemap(struct map_session_data *sd)

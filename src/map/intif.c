@@ -1051,12 +1051,15 @@ int intif_parse_PartyBroken(int fd)
 	party_broken(RFIFOL(fd,2));
 	return 0;
 }
-// パーティ移動通知
-int intif_parse_PartyMove(int fd)
+
+
+/// Receive updated party member info. (HZ)
+void intif_parse_PartyMemberInfo(int fd)
 {
-	party_recv_movemap(RFIFOL(fd,2),RFIFOL(fd,6),RFIFOL(fd,10),RFIFOW(fd,14),RFIFOB(fd,16),RFIFOW(fd,17));
-	return 0;
+	party_recv_memberinfo(RFIFOL(fd,2),(const struct party_member*)RFIFOP(fd,6));
 }
+
+
 // パーティメッセージ
 int intif_parse_PartyMessage(int fd)
 {
@@ -2040,7 +2043,7 @@ int intif_parse(int fd)
 	case 0x3822:	intif_parse_PartyMemberAdded(fd); break;
 	case 0x3823:	intif_parse_PartyOptionChanged(fd); break;
 	case 0x3824:	intif_parse_PartyMemberWithdraw(fd); break;
-	case 0x3825:	intif_parse_PartyMove(fd); break;
+	case 0x3825:	intif_parse_PartyMemberInfo(fd); break;
 	case 0x3826:	intif_parse_PartyBroken(fd); break;
 	case 0x3827:	intif_parse_PartyMessage(fd); break;
 	case 0x3830:	intif_parse_GuildCreated(fd); break;
