@@ -279,7 +279,7 @@ packet_ver: 5
 0x0152,-1
 0x0153,-1,guildchangeemblem,2:4
 0x0154,-1
-0x0155,-1,guildchangememberposition,2
+0x0155,-1,guildchangememberposition,2:4
 0x0156,-1
 0x0157,6
 0x0158,-1
@@ -291,7 +291,7 @@ packet_ver: 5
 0x015e,6
 0x015f,42
 0x0160,-1
-0x0161,-1,guildchangepositioninfo,2
+0x0161,-1,guildchangepositioninfo,2:4
 0x0162,-1
 0x0163,-1
 0x0164,-1

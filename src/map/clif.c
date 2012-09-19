@@ -11773,13 +11773,29 @@ void clif_parse_GuildRequestInfo(int fd, struct map_session_data *sd)
 /// 0161 <packet len>.W { <position id>.L <mode>.L <ranking>.L <pay rate>.L <name>.24B }*
 void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd)
 {
-	int i;
+	const unsigned int blocksize = 40;
+	unsigned int packet_len, count, i;
+	char name[NAME_LENGTH];
+	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
 
-	if(!sd->state.gmaster_flag)
+	if( !sd->state.gmaster_flag )
 		return;
 
-	for(i = 4; i < RFIFOW(fd,2); i += 40 ){
-		guild_change_position(sd->status.guild_id, RFIFOL(fd,i), RFIFOL(fd,i+4), RFIFOL(fd,i+12), (char*)RFIFOP(fd,i+16));
+	packet_len = RFIFOW(fd,info->pos[0]);
+	packet_len-= info->pos[0];
+
+	if( packet_len%blocksize )
+	{
+		ShowError("clif_parse_GuildChangePositionInfo: Unexpected position list size %u (account_id=%d, block size=%u)\n", packet_len, sd->bl.id, blocksize);
+		return;
+	}
+	count = packet_len/blocksize;
+
+	for( i = 0; i < count; i++ )
+	{// FIXME: The list should be sent as a whole (see clif_guild_positionchanged)
+		safestrncpy(name, (const char*)RFIFOP(fd,info->pos[1]+i*blocksize+16), sizeof(name));
+
+		guild_change_position(sd->status.guild_id, RFIFOL(fd,info->pos[1]+i*blocksize), RFIFOL(fd,info->pos[1]+i*blocksize+4), RFIFOL(fd,info->pos[1]+i*blocksize+12), name);
 	}
 }
 
@@ -11788,14 +11804,26 @@ void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd)
 /// 0155 <packet len>.W { <account id>.L <char id>.L <position id>.L }*
 void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd)
 {
-	int i;
-	
-	if(!sd->state.gmaster_flag)
+	const unsigned int blocksize = 12;
+	unsigned int packet_len, count, i;
+	struct s_packet_db* info = &packet_db[sd->packet_ver][RFIFOW(fd,0)];
+
+	if( !sd->state.gmaster_flag )
 		return;
 
-	for(i=4;i<RFIFOW(fd,2);i+=12){
-		guild_change_memberposition(sd->status.guild_id,
-			RFIFOL(fd,i),RFIFOL(fd,i+4),RFIFOL(fd,i+8));
+	packet_len = RFIFOW(fd,info->pos[0]);
+	packet_len-= info->pos[0];
+
+	if( packet_len%blocksize )
+	{
+		ShowError("clif_parse_GuildChangeMemberPosition: Unexpected position list size %u (account_id=%d, block size=%u)\n", packet_len, sd->bl.id, blocksize);
+		return;
+	}
+	count = packet_len/blocksize;
+
+	for( i = 0; i < count; i++ )
+	{// FIXME: The list should be sent as a whole (see clif_guild_memberpositionchanged)
+		guild_change_memberposition(sd->status.guild_id, RFIFOL(fd,info->pos[1]+i*blocksize), RFIFOL(fd,info->pos[1]+i*blocksize+4), RFIFOL(fd,info->pos[1]+i*blocksize+8));
 	}
 }
 
