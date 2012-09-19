@@ -3,7 +3,7 @@
 //===== By ================================================
 //= Valaris, Spira, Au{R}oN, Tharis, HiddenDragon
 //===== Version ===========================================
-//= 2.2
+//= 2.3
 //=========================================================
 //= 1.0 - Formatted to the standard
 //= 1.1 - New Effects, up to 2007/05/07 Sakexe. [Au{R}oN]
@@ -18,6 +18,7 @@
 //= 2.0 - New Effects, up to 2008/07/15 Sakexe. [Au{R}oN]
 //= 2.1 - New Effects, up to 2008/08/06a Sakexe. [Au{R}oN]
 //= 2.2 - New Effects, up to 2009/01/21a Sakexe. [Au{R}oN]
+//= 2.3 - New Effects, up to 2010/08/04b RagexeRE. [Ai4rei]
 //===== Description =======================================
 //= A list of client-side effects sorted by their ID
 //=========================================================
@@ -750,16 +751,131 @@ number	description
 717.	Something like Angelus (Probably something related Arch Bishop)
 718.	Judex (Visual Effect)
 719.	Light Infiltration from the Sky (Probably something related Warlock)
-720.	Some sound and effect of Soul Destroyer but Yellow (Probably something related Warlock)
-721.	Big Lightning from the SKy (Probably something related Warlock)
-722.	Bug Fire Explosion (Probably something related Warlock)
-723.	Noise Sound (Probably something related Warlock)
-724.	Client Crash :P
-725.	Status Recovery Sound and Wind movement on the ground (Probably something related Arch Bishop)
-726.	Big Blue Vapor Area (Probably something related Warlock)
-727.	A Comet from the SKy (Probably something related Warlock)
-728.	A Little Flare that Remain on the Player for some second (Probably something related Warlock)
-729.	Effect like Close Confine (Probably something related Warlock)
-730.	Little Explosion (Probably something related Warlock)
-731.	An effect like Mob's Skill Scream (Probably something related a 3th classes)
-732+.	No More Effects From 2009/01/21a Sakexe.
+720.	Some sound and effect of Soul Destroyer but Yellow (Probably related Rune Knight)
+721.	Adoramus (Visual Effect)
+722.	Ignition Break (Visual Effect)
+723.	Hundred Spear (Sound Effect)
+724.	Like Green Detect
+725.	Oratio (Cast)
+726.	Frost Misty
+727.	Crimson Rock
+728.	Hell Inferno
+729.	Marsh Of Abyss
+730.	Soul Expansion
+731.	Dragon Howling (Visual Effect)
+732.	Like large Earth Spike (Earth Stain?)
+733.	Some sound and effect of Soul Destroyer but White (Probably something related Rune Knight)
+734.	Chain Lightning
+735.	(Nothing)
+736.	(Nothing)
+737.	(Nothing)
+738.	(Nothing)
+739.	Old Magenta Trap
+740.	Old Cobald Trap
+741.	Old Maize Trap
+742.	Old Verdure Trap
+743.	White Ranger Trap
+744.	Camouflage
+745.	Aimed Bolt
+746.	Arrow Storm
+747.	White shining and falling feathers
+748.	Same as 747, just in blue
+749.	Millennium Shield
+750.	Like Improve Concentration with shortly vanishing character sprite
+751.	Releasing summoned warlock spheres
+752.	Like Energy Coat, just not that dark
+753.	Clearance
+754.	Old Epiclesis Effect
+755.	Oratio (Sprite Effect)
+756.	Enchant Blade
+757.	Third Class Aura (Middle)
+758.	Rolling Cutter - Spin Count 1
+759.	Rolling Cutter - Spin Count 2
+760.	Rolling Cutter - Spin Count 3
+761.	Rolling Cutter - Spin Count 4
+762.	Rolling Cutter - Spin Count 5
+763.	Rolling Cutter - Spin Count 6
+764.	Rolling Cutter - Spin Count 7
+765.	Rolling Cutter - Spin Count 8
+766.	Rolling Cutter - Spin Count 9
+767.	Rolling Cutter - Spin Count 10
+768.	Character sprite flashing effect for Guillotine Cross skills
+769.	Flying knifes with Esma sound effect (Guillotine Cross skill)
+770.	Like Full Strip sound effect
+771.	Like Enchant Poison sound effect
+772.	Rising poison bubbles
+773.	Expanding poison ring on ground
+774.	Like Throw Tomahawk, but with Battle Axe
+775.	Spinning character sprite
+776.	Like Desperado sound effect
+777.	Like Increase Agi with flashing character sprite
+778.	Like Clearance
+779.	Like Increase Agi with Soul Change
+780.	Like red Clearance with sound of Darkcross
+781.	Eight magenta wires wandering out of character sprite
+782.	Like Preserve with different effect flying around the character sprite
+783.	Yellow spinning pipe
+784.	Like 783, just smaller
+785.	A lot of small flying wrench
+786.	
+787.	
+788.	
+789.	Freezing Status Effect
+790.	Burning Status Effect
+791.	Spheres flying from character with ice explosion sound effect
+792.	
+793.	
+794.	
+795.	Like Hammer Fall, just with Axe
+796.	
+797.	Sienna Execrate
+...
+839.	Client Error ()
+...
+883.	Epiclesis
+...
+915.	Green ??? attacking the character (11x11 area).
+916.	Orange-red Ifrits spinning around the character (5x5 area).
+917.	Pink-red Ifrits spinning around the character (5x5 area).
+918.	Ifrits spinning around the character (5x5 area).
+919.	Attacking flower unit.
+920.	Red firewall-like unit.
+921.	Tornado on the character.
+922.	Blue rocks exploding around the character.
+923.	Exploding poison smoke clouds.
+924.	Poison balls rising.
+925.	Black character.
+926.	Large lightning ball on the character.
+927.	Mandragora tentacles on ground (9x9 area).
+928.	Ice balls flying out of the character, turning it blue and white for a moment (Warlock?).
+929.	Burning ground (7x7 area).
+930.	Random enlarged spear weapon falling onto the character.
+931.	(Nothing)
+932.	Fireflies vanishing from character feet.
+933.	Client Crash (sprite\¿Ã∆—∆Æ\chareffect.spr)
+934.	Land protector aura.
+935.	White comet flying out of the character.
+936.	Four copies of the character flying away with a red aura.
+937.	Four copies of the character flying away with a orange aura.
+938.	Four copies of the character flying away with a red aura.
+939.	Deluge aura.
+940.	Snow Flake above the character.
+941.	(Nothing)
+942.	Splash of water.
+943.	Visual effect of Soul Destroyer but green.
+944.	Shower of red rocks with sound of Magic Crasher.
+945.	(Nothing)
+946.	Fireflies?
+947.	Lightning ball above the character head.
+948.	Two lightning balls, one on either side of the character head.
+949.	Spinning ice crystal on character body.
+950.	Bunch of brown balls spinning around the character.
+951.	Three lightning balls around the character head.
+952.	Two ice balls, one on either side of the character and one ice crystal on the character.
+953.	Four brown balls, two of them on each side of the character, one on either side spinning.
+954.	Two ice balls, one on either side of the character.
+955.	Three spinning flame balls on the character body.
+956.	Burn mark on the character body.
+957.	Three brown balls on face of the character, the one in the middle spinning.
+958.	Two small flames, one on either side of the character.
+959+.	No More Effects From 2010/08/04b RagexeRE.
