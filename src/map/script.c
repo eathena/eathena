@@ -13969,6 +13969,7 @@ BUILDIN_FUNC(unitattack)
 	switch( unit_bl->type )
 	{
 	case BL_PC:
+		// FIXME: Leeching off a parse function
 		clif_parse_ActionRequest_sub(((TBL_PC *)unit_bl), actiontype > 0 ? 0x07 : 0x00, target_bl->id, gettick());
 		script_pushint(st, 1);
 		return 0;

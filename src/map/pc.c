@@ -59,7 +59,7 @@ struct fame_list smith_fame_list[MAX_FAME_LIST];
 struct fame_list chemist_fame_list[MAX_FAME_LIST];
 struct fame_list taekwon_fame_list[MAX_FAME_LIST];
 
-static unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_AMMO};
+static const unsigned short equip_pos[EQI_MAX]={EQP_ACC_L,EQP_ACC_R,EQP_SHOES,EQP_GARMENT,EQP_HEAD_LOW,EQP_HEAD_MID,EQP_HEAD_TOP,EQP_ARMOR,EQP_HAND_L,EQP_HAND_R,EQP_AMMO};
 
 #define MOTD_LINE_SIZE 128
 static char motd_text[MOTD_LINE_SIZE][CHAT_SIZE_MAX]; // Message of the day buffer [Valaris]
@@ -2356,7 +2356,7 @@ int pc_bonus(struct map_session_data *sd,int type,int val)
 		break;
 	case SP_CLASSCHANGE: // [Valaris]
 		if(sd->state.lr_flag !=2)
-			sd->classchange=val;
+			sd->classchange=val;  // FIXME: unpredictable result when stacking
 		break;
 	case SP_LONG_ATK_RATE:
 		if(sd->state.lr_flag != 2)	//[Lupus] it should stack, too. As any other cards rate bonuses
@@ -2714,7 +2714,7 @@ int pc_bonus2(struct map_session_data *sd,int type,int type2,int val)
 		break;
 	case SP_RANDOM_ATTACK_INCREASE:	// [Valaris]
 		if(sd->state.lr_flag !=2){
-			sd->random_attack_increase_add = type2;
+			sd->random_attack_increase_add = type2;  // FIXME: unpredictable result when stacking
 			sd->random_attack_increase_per += val;
 		}
 		break;

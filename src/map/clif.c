@@ -10079,6 +10079,7 @@ void clif_parse_UnequipItem(int fd,struct map_session_data *sd)
 		return;
 	}
 
+	// TODO: Won't this allow you to do actions, that would be otherwise prohibited? [Ai4rei]
 	if (sd->state.storage_flag)
 		; //You can equip/unequip stuff while storage is open.
 	else if (pc_cant_act(sd))
@@ -10477,6 +10478,8 @@ void clif_parse_SkillUp(int fd,struct map_session_data *sd)
 	pc_skillup(sd,RFIFOW(fd,2));
 }
 
+
+// TODO: Move clif_parse_UseSkillTo* helper functions to unit.c
 static void clif_parse_UseSkillToId_homun(struct homun_data *hd, struct map_session_data *sd, unsigned int tick, short skillnum, short skilllv, int target_id)
 {
 	int lv;
