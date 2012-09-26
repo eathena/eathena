@@ -1,5 +1,7 @@
 Date	Added
 
+2012/09/26
+	* Fixed an offset mistake in clif_parse_GuildChangeMemberPosition and clif_parse_GuildChangePositionInfo (bugreport:5096, since r15189). [Ai4rei]
 2012/09/19
 	* Fixed clif_parse_GuildChangeMemberPosition (0x155, CZ_REQ_CHANGE_MEMBERPOS) and clif_parse_GuildChangePositionInfo (0x161, CZ_REG_CHANGE_GUILD_POSITIONINFO) making assumptions about the length of the packet (since ever). [Ai4rei]
 2012/08/12

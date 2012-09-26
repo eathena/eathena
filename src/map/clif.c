@@ -11782,7 +11782,7 @@ void clif_parse_GuildChangePositionInfo(int fd, struct map_session_data *sd)
 		return;
 
 	packet_len = RFIFOW(fd,info->pos[0]);
-	packet_len-= info->pos[0];
+	packet_len-= info->pos[1];
 
 	if( packet_len%blocksize )
 	{
@@ -11812,7 +11812,7 @@ void clif_parse_GuildChangeMemberPosition(int fd, struct map_session_data *sd)
 		return;
 
 	packet_len = RFIFOW(fd,info->pos[0]);
-	packet_len-= info->pos[0];
+	packet_len-= info->pos[1];
 
 	if( packet_len%blocksize )
 	{
