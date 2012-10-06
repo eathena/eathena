@@ -542,7 +542,8 @@ int mapif_parse_PartyChangeOption(int fd, int party_id, int account_id, int exp,
 int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 {
 	struct party_data *p;
-	int i,lv;
+	unsigned int lv;
+	int i;
 
 	p = (struct party_data*)idb_get(party_db, party_id);
 	if (!p) return 0;
@@ -569,7 +570,7 @@ int mapif_parse_PartyLeave(int fd, int party_id, int account_id, int char_id)
 	return 0;
 }
 
-int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id, unsigned short map, int online, unsigned int lv)
+int mapif_parse_PartyChangeMap(int fd, int party_id, int account_id, int char_id, unsigned short map, unsigned int online, unsigned int lv)
 {
 	struct party_data *p;
 	int i;
