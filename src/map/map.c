@@ -5,6 +5,7 @@
 #include "../common/core.h"
 #include "../common/timer.h"
 #include "../common/grfio.h"
+#include "../common/luaengine.h"
 #include "../common/malloc.h"
 #include "../common/socket.h" // WFIFO*()
 #include "../common/showmsg.h"
@@ -3474,6 +3475,9 @@ void do_final(void)
 #ifndef TXT_ONLY
     map_sql_close();
 #endif /* not TXT_ONLY */
+
+	do_final_luaengine();
+
 	ShowStatus("Finished.\n");
 }
 
@@ -3590,6 +3594,8 @@ static bool map_arg_next_value(const char* option, int i, int argc)
 int do_init(int argc, char *argv[])
 {
 	int i;
+
+	do_init_luaengine(NULL);
 
 #ifdef GCOLLECT
 	GC_enable_incremental();

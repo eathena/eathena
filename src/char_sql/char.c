@@ -4,6 +4,7 @@
 #include "../common/cbasetypes.h"
 #include "../common/core.h"
 #include "../common/db.h"
+#include "../common/luaengine.h"
 #include "../common/malloc.h"
 #include "../common/mapindex.h"
 #include "../common/mmo.h"
@@ -4456,6 +4457,8 @@ void do_final(void)
 	Sql_Free(sql_handle);
 	mapindex_final();
 
+	do_final_luaengine();
+
 	ShowStatus("Finished.\n");
 }
 
@@ -4493,6 +4496,8 @@ void do_shutdown(void)
 
 int do_init(int argc, char **argv)
 {
+	do_init_luaengine(NULL);
+
 	//Read map indexes
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");

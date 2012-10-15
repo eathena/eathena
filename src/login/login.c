@@ -3,6 +3,7 @@
 
 #include "../common/core.h"
 #include "../common/db.h"
+#include "../common/luaengine.h"
 #include "../common/malloc.h"
 #include "../common/md5calc.h"
 #include "../common/showmsg.h"
@@ -1699,6 +1700,8 @@ void do_final(void)
 		login_fd = -1;
 	}
 
+	do_final_luaengine();
+
 	ShowStatus("Finished.\n");
 }
 
@@ -1739,6 +1742,8 @@ void do_shutdown(void)
 int do_init(int argc, char** argv)
 {
 	int i;
+
+	do_init_luaengine(NULL);
 
 	// intialize engines (to accept config settings)
 	for( i = 0; account_engines[i].constructor; ++i )

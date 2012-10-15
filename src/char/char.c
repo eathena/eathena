@@ -5,6 +5,7 @@
 #include "../common/core.h"
 #include "../common/db.h"
 #include "../common/lock.h"
+#include "../common/luaengine.h"
 #include "../common/malloc.h"
 #include "../common/mapindex.h"
 #include "../common/mmo.h"
@@ -4641,6 +4642,8 @@ void do_final(void)
 	inter_final();
 	mapindex_final();
 
+	do_final_luaengine();
+
 	char_log("----End of char-server (normal end with closing of all files).\n");
 	ShowStatus("Finished.\n");
 }
@@ -4679,6 +4682,8 @@ void do_shutdown(void)
 
 int do_init(int argc, char **argv)
 {
+	do_init_luaengine(NULL);
+
 	//Read map indexes
 	mapindex_init();
 	start_point.map = mapindex_name2id("new_zone01");
