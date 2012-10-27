@@ -106,6 +106,7 @@ struct map_session_data {
 		unsigned int storage_flag : 2; //0: closed, 1: Normal Storage open, 2: guild storage open [Skotlex]
 		unsigned int snovice_dead_flag : 1; //Explosion spirits on death: 0 off, 1 used.
 		unsigned int abra_flag : 1; // Abracadabra bugfix by Aru
+		unsigned int gmaster_flag : 1; // is guildmaster? (caches sd->status.name == g->master)
 		unsigned int autocast : 1; // Autospell flag [Inkfish]
 		unsigned int autotrade : 1;	//By Fantik
 		unsigned int reg_dirty : 3; //By Skotlex (marks whether registry variables have been saved or not yet)
@@ -137,7 +138,6 @@ struct map_session_data {
 		unsigned short autoloot;
 		unsigned short autolootid; // [Zephyrus]
 		unsigned short autobonus; //flag to indicate if an autobonus is activated. [Inkfish]
-		struct guild *gmaster_flag;
 		unsigned int warping : 1;//states whether you're in the middle of a warp processing
 	} state;
 	struct {

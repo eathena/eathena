@@ -5445,13 +5445,12 @@ int skill_castend_nodamage_id (struct block_list *src, struct block_list *bl, in
 		break;
 	case GD_EMERGENCYCALL:
 		{
+			// i don't know if it actually summons in a circle, but oh well. ;P
 			int dx[9]={-1, 1, 0, 0,-1, 1,-1, 1, 0};
 			int dy[9]={ 0, 0, 1,-1, 1,-1,-1, 1, 0};
 			int j = 0;
-			struct guild *g = NULL;
-			// i don't know if it actually summons in a circle, but oh well. ;P
-			g = sd?sd->state.gmaster_flag:guild_search(status_get_guild_id(src));
-			if (!g)
+			struct guild* g = guild_search(status_get_guild_id(src));
+			if( g == NULL )
 				break;
 			clif_skill_nodamage(src,bl,skillid,skilllv,1);
 			for(i = 0; i < g->max_member; i++, j++) {

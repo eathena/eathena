@@ -499,8 +499,7 @@ int guild_recv_info(struct guild *sg)
 			if( battle_config.guild_skill_relog_delay )
 				guild_block_skill(sd, 300000);
 
-			//Also set the guild master flag.
-			sd->state.gmaster_flag = g;
+			sd->state.gmaster_flag = true;
 			clif_charnameupdate(sd); // [LuzZza]
 			clif_guild_masterormember(sd);
 		}
@@ -687,7 +686,7 @@ void guild_member_joined(struct map_session_data *sd)
 	}
 	if (strcmp(sd->status.name,g->master) == 0)
 	{	// set the Guild Master flag
-		sd->state.gmaster_flag = g;
+		sd->state.gmaster_flag = true;
 		// prevent Guild Skills from being used directly after relog
 		if( battle_config.guild_skill_relog_delay )
 			guild_block_skill(sd, 300000);
@@ -1629,13 +1628,13 @@ int guild_gm_changed(int guild_id, int account_id, int char_id)
 	if (g->member[pos].sd && g->member[pos].sd->fd)
 	{
 		clif_displaymessage(g->member[pos].sd->fd, "You no longer are the Guild Master.");
-		g->member[pos].sd->state.gmaster_flag = 0;
+		g->member[pos].sd->state.gmaster_flag = false;
 	}
 	
 	if (g->member[0].sd && g->member[0].sd->fd)
 	{
 		clif_displaymessage(g->member[0].sd->fd, "You have become the Guild Master!");
-		g->member[0].sd->state.gmaster_flag = g;
+		g->member[0].sd->state.gmaster_flag = true;
 		//Block his skills for 5 minutes to prevent abuse.
 		guild_block_skill(g->member[0].sd, 300000);
 	}

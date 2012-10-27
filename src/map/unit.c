@@ -181,7 +181,7 @@ static int unit_walktoxy_timer(int tid, unsigned int tick, int id, intptr_t data
 			(battle_config.guild_aura&(map_flag_gvg2(bl->m)?8:4))
 		)
 		{ //Guild Aura: Likely needs to be recoded, this method seems inefficient.
-			struct guild *g = sd->state.gmaster_flag;
+			struct guild* g = guild_search(sd->status.guild_id);
 			int skill, strvit= 0, agidex = 0;
 			if ((skill = guild_checkskill(g, GD_LEADERSHIP)) > 0) strvit |= (skill&0xFFFF)<<16;
 			if ((skill = guild_checkskill(g, GD_GLORYWOUNDS)) > 0) strvit |= (skill&0xFFFF);

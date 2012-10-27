@@ -6946,7 +6946,7 @@ void clif_guild_belonginfo(struct map_session_data *sd, struct guild *g)
 	WFIFOL(fd,2)=g->guild_id;
 	WFIFOL(fd,6)=g->emblem_id;
 	WFIFOL(fd,10)=g->position[ps].mode;
-	WFIFOB(fd,14)=(bool)(sd->state.gmaster_flag==g);
+	WFIFOB(fd,14)=( sd->status.guild_id == g->guild_id ) ? 1 : 0;
 	WFIFOL(fd,15)=0;  // InterSID (unknown purpose)
 	memcpy(WFIFOP(fd,19),g->name,NAME_LENGTH);
 	WFIFOSET(fd,packet_len(0x16c));
@@ -10644,7 +10644,13 @@ void clif_parse_UseSkillToId(int fd, struct map_session_data *sd)
 	if( skillnum >= GD_SKILLBASE )
 	{
 		if( sd->state.gmaster_flag )
-			skilllv = guild_checkskill(sd->state.gmaster_flag, skillnum);
+		{
+			struct guild* g = guild_search(sd->status.guild_id);
+			if( g != NULL )
+				skilllv = guild_checkskill(g, skillnum);
+			else
+				skilllv = 0;
+		}
 		else
 			skilllv = 0;
 	}
