@@ -211,6 +211,18 @@
 				RelativePath="..\src\map\guild.h">
 			</File>
 			<File
+				RelativePath="..\src\map\guild_castle.c">
+			</File>
+			<File
+				RelativePath="..\src\map\guild_castle.h">
+			</File>
+			<File
+				RelativePath="..\src\map\guild_expcache.c">
+			</File>
+			<File
+				RelativePath="..\src\map\guild_expcache.h">
+			</File>
+			<File
 				RelativePath="..\src\map\intif.c">
 			</File>
 			<File

@@ -337,6 +337,22 @@ SOURCE=..\src\map\guild.h
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\map\guild_castle.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\guild_castle.h
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\guild_expcache.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\map\guild_expcache.h
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\map\homunculus.c
 # End Source File
 # Begin Source File

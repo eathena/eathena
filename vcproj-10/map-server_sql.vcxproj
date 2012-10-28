@@ -160,6 +160,8 @@
     <ClInclude Include="..\src\map\date.h" />
     <ClInclude Include="..\src\map\duel.h" />
     <ClInclude Include="..\src\map\guild.h" />
+    <ClInclude Include="..\src\map\guild_castle.h" />
+    <ClInclude Include="..\src\map\guild_expcache.h" />
     <ClInclude Include="..\src\map\intif.h" />
     <ClInclude Include="..\src\map\itemdb.h" />
     <ClInclude Include="..\src\map\log.h" />
@@ -214,6 +216,8 @@
     <ClCompile Include="..\src\map\date.c" />
     <ClCompile Include="..\src\map\duel.c" />
     <ClCompile Include="..\src\map\guild.c" />
+    <ClCompile Include="..\src\map\guild_castle.c" />
+    <ClCompile Include="..\src\map\guild_expcache.c" />
     <ClCompile Include="..\src\map\intif.c" />
     <ClCompile Include="..\src\map\itemdb.c" />
     <ClCompile Include="..\src\map\log.c" />
