@@ -41,17 +41,17 @@ struct eventlist {
 	struct eventlist *next;
 };
 
-// ギルドのEXPキャッシュのフラッシュに関連する定数
-#define GUILD_SEND_XY_INVERVAL	5000	// 座標やＨＰ送信の間隔
-#define GUILD_PAYEXP_INVERVAL 10000	// 間隔(キャッシュの最大生存時間、ミリ秒)
-#define GUILD_PAYEXP_LIST 8192	// キャッシュの最大数
+#define GUILD_SEND_XY_INVERVAL	5000
+#define GUILD_PAYEXP_INVERVAL 10000
 
-// ギルドのEXPキャッシュ
-struct guild_expcache {
-	int guild_id, account_id, char_id;
+struct guild_expcache
+{
+	int guild_id;
+	int account_id;
+	int char_id;
 	uint64 exp;
 };
-static struct eri *expcache_ers; //For handling of guild exp payment.
+static struct eri *expcache_ers; // for handling of guild exp updates
 
 #define MAX_GUILD_SKILL_REQUIRE 5
 struct{
@@ -63,7 +63,6 @@ struct{
 	}need[MAX_GUILD_SKILL_REQUIRE];
 } guild_skill_tree[MAX_GUILDSKILL];
 
-int guild_payexp_timer(int tid, unsigned int tick, int id, intptr_t data);
 static int guild_send_xy_timer(int tid, unsigned int tick, int id, intptr_t data);
 
 /*==========================================
@@ -280,7 +279,6 @@ void guild_makemember(struct guild_member *m,struct map_session_data *sd)
 	return;
 }
 
-// ギルドのEXPキャッシュをinter鯖にフラッシュする
 int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
 {
 	int i;
@@ -981,8 +979,7 @@ int guild_memberposition_changed(struct guild *g,int idx,int pos)
 	return 0;
 }
 // ギルド役職変更
-int guild_change_position(int guild_id,int idx,
-	int mode,int exp_mode,const char *name)
+int guild_change_position(int guild_id,int idx,int mode,int exp_mode,const char *name)
 {
 	struct guild_position p;
 
@@ -1054,53 +1051,73 @@ int guild_change_emblem(struct map_session_data *sd,int len,const char *data)
 // ギルドエンブレム変更通知
 int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 {
+	TBL_MOB* md;
 	int i;
-	struct map_session_data *sd;
-	struct guild *g=guild_search(guild_id);
-	if(g==NULL)
+
+	struct guild* g = guild_search(guild_id);
+	if( g == NULL )
 		return 0;
 
-	memcpy(g->emblem_data,data,len);
-	g->emblem_len=len;
-	g->emblem_id=emblem_id;
+	memcpy(g->emblem_data, data, len);
+	g->emblem_len = len;
+	g->emblem_id = emblem_id;
 
-	for(i=0;i<g->max_member;i++){
-		if((sd=g->member[i].sd)!=NULL){
-			sd->guild_emblem_id=emblem_id;
-			clif_guild_belonginfo(sd,g);
-			clif_guild_emblem(sd,g);
-			clif_guild_emblem_area(&sd->bl);
-		}
+	// update members
+	for( i = 0; i < g->max_member; ++i )
+	{
+		struct map_session_data* sd = g->member[i].sd;
+		if( sd == NULL )
+			continue;
+
+		sd->guild_emblem_id = emblem_id;
+		clif_guild_belonginfo(sd,g);
+		clif_guild_emblem(sd,g);
+		clif_guild_emblem_area(&sd->bl);
 	}
-	{// update guardians (mobs)
+
+	// update guardians (mobs)
+	{
 		DBIterator* iter = db_iterator(castle_db);
 		struct guild_castle* gc;
-		for( gc = (struct guild_castle*)dbi_first(iter) ; dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) )
+		for( gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) )
 		{
 			if( gc->guild_id != guild_id )
 				continue;
+
 			// update permanent guardians
 			for( i = 0; i < ARRAYLENGTH(gc->guardian); ++i )
 			{
-				TBL_MOB* md = (gc->guardian[i].id ? map_id2md(gc->guardian[i].id) : NULL);
+				if( gc->guardian[i].id == 0 )
+					continue;
+
+				md = map_id2md(gc->guardian[i].id);
 				if( md == NULL || md->guardian_data == NULL )
 					continue;
+
 				md->guardian_data->emblem_id = emblem_id;
 				clif_guild_emblem_area(&md->bl);
 			}
+
 			// update temporary guardians
 			for( i = 0; i < gc->temp_guardians_max; ++i )
 			{
-				TBL_MOB* md = (gc->temp_guardians[i] ? map_id2md(gc->temp_guardians[i]) : NULL);
+				if( gc->temp_guardians[i] == 0 )
+					continue;
+
+				md = map_id2md(gc->temp_guardians[i]);
 				if( md == NULL || md->guardian_data == NULL )
 					continue;
+
 				md->guardian_data->emblem_id = emblem_id;
 				clif_guild_emblem_area(&md->bl);
 			}
 		}
+
 		dbi_destroy(iter);
 	}
-	{// update npcs (flags or other npcs that used flagemblem to attach to this guild)
+
+	// update npcs (flags or other npcs that used flagemblem to attach to this guild)
+	{
 		// TODO this is not efficient [FlavioJS]
 		struct s_mapiterator* iter = mapit_geteachnpc();
 		TBL_NPC* nd;
@@ -1112,6 +1129,7 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 		}
 		mapit_free(iter);
 	}
+
 	return 0;
 }
 
@@ -1128,27 +1146,35 @@ static void* create_expcache(DBKey key, va_list args)
 	return c;
 }
 
-// ギルドのEXP上納
-unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
+unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp)
 {
-	struct guild *g;
-	struct guild_expcache *c;
+	struct guild* g;
+	struct guild_expcache* c;
+	int pos;
 	int per;
 	
 	nullpo_ret(sd);
 
-	if (!exp) return 0;
-	
-	if (sd->status.guild_id == 0 ||
-		(g = guild_search(sd->status.guild_id)) == NULL ||
-		(per = guild_getposition(g,sd)) < 0 ||
-		(per = g->position[per].exp_mode) < 1)
+	if( exp == 0 )
 		return 0;
 	
+	if( sd->status.guild_id == 0 )
+		return 0;
+	
+	g = guild_search(sd->status.guild_id);
+	if( g == NULL )
+		return 0;
+	
+	pos = guild_getposition(g, sd);
+	if( pos < 0 )
+		return 0;
 
-	if (per < 100)
+	per = g->position[pos].exp_mode;
+	if( per <= 0 )
+		return 0;
+	
+	if( per != 100 )
 		exp = exp * per / 100;
-	//Otherwise tax everything.
 	
 	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(sd->status.char_id), create_expcache, sd);
 
@@ -1160,20 +1186,27 @@ unsigned int guild_payexp(struct map_session_data *sd,unsigned int exp)
 	return exp;
 }
 
-// Celest
 int guild_getexp(struct map_session_data *sd,int exp)
 {
-	struct guild_expcache *c;
+	struct guild* g;
+	struct guild_expcache* c;
+
 	nullpo_ret(sd);
 
-	if (sd->status.guild_id == 0 || guild_search(sd->status.guild_id) == NULL)
+	if( sd->status.guild_id == 0 )
+		return 0;
+	
+	g = guild_search(sd->status.guild_id);
+	if( g == NULL )
 		return 0;
 
 	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(sd->status.char_id), create_expcache, sd);
+
 	if (c->exp > UINT64_MAX - exp)
 		c->exp = UINT64_MAX;
 	else
 		c->exp += exp;
+
 	return exp;
 }
 
@@ -1539,36 +1572,44 @@ int castle_guild_broken_sub(DBKey key,void *data,va_list ap)
 }
 
 //Innvoked on /breakguild "Guild name"
-int guild_broken(int guild_id,int flag)
+int guild_broken(int guild_id, int flag)
 {
-	struct guild *g=guild_search(guild_id);
-	struct guild_castle *gc=NULL;
-	struct map_session_data *sd;
+	struct guild* g = guild_search(guild_id);
 	int i;
-	char name[EVENT_NAME_LENGTH];
 
-	if(flag!=0 || g==NULL)
+	if( g == NULL )
 		return 0;
 
-	//we call castle_event::OnGuildBreak of all castlesof the guild
+	if( flag != 0 )
+		return 0;
+
+	//we call castle_event::OnGuildBreak of all castles of the guild
 	//you can set all castle_events in the castle_db.txt
-	for(i=0;i<MAX_GUILDCASTLE;i++){
-		if( (gc=guild_castle_search(i)) != NULL ){
-			if(gc->guild_id == guild_id){
-				safestrncpy(name, gc->castle_event, 50);
-				npc_event_do(strcat(name,"::OnGuildBreak"));
-			}
-		}
+	for( i = 0; i < MAX_GUILDCASTLE; ++i )
+	{
+		char name[EVENT_NAME_LENGTH];
+
+		struct guild_castle* gc = guild_castle_search(i);
+		if( gc == NULL || gc->guild_id != guild_id )
+			continue;
+
+		safestrncpy(name, gc->castle_event, ARRAYLENGTH(name));
+		npc_event_do(strcat(name,"::OnGuildBreak"));
 	}
 
-	for(i=0;i<g->max_member;i++){	// ギルド解散を通知
-		if((sd=g->member[i].sd)!=NULL){
-			if(sd->state.storage_flag == 2)
-				storage_guild_storage_quit(sd,1);
-			sd->status.guild_id=0;
-			clif_guild_broken(g->member[i].sd,0);
-			clif_charnameupdate(sd); // [LuzZza]
-		}
+	// update members
+	for( i = 0; i < g->max_member; ++i )
+	{
+		struct map_session_data* sd = g->member[i].sd;
+		if( sd == NULL )
+			continue;
+
+		if( sd->state.storage_flag == 2 )
+			storage_guild_storage_quit(sd,1);
+
+		sd->status.guild_id = 0;
+		clif_guild_broken(g->member[i].sd,0);
+		clif_charnameupdate(sd);
 	}
 
 	guild_db->foreach(guild_db,guild_broken_sub,guild_id);
@@ -1682,16 +1723,15 @@ int guild_break(struct map_session_data *sd,char *name)
 	return 0;
 }
 
-// ギルド城データ要求
 int guild_castledataload(int castle_id,int index)
 {
 	return intif_guild_castle_dataload(castle_id,index);
 }
-// ギルド城情報所得時イベント追加
+
 int guild_addcastleinfoevent(int castle_id,int index,const char *name)
 {
-	struct eventlist *ev;
-	int code=castle_id|(index<<16);
+	struct eventlist* ev;
+	int code = castle_id | (index<<16);
 
 	if( name==NULL || *name==0 )
 		return 0;
@@ -1703,16 +1743,15 @@ int guild_addcastleinfoevent(int castle_id,int index,const char *name)
 	return 0;
 }
 
-// ギルド城データ要求返信
 int guild_castledataloadack(int castle_id,int index,int value)
 {
-	struct guild_castle *gc=guild_castle_search(castle_id);
-	int code=castle_id|(index<<16);
-	struct eventlist *ev,*ev2;
+	int code = castle_id | (index<<16);
+	struct eventlist* ev;
 
-	if(gc==NULL){
+	struct guild_castle* gc = guild_castle_search(castle_id);
+	if( gc == NULL )
 		return 0;
-	}
+
 	switch(index){
 	case 1:
 		gc->guild_id = value;
@@ -1741,18 +1780,18 @@ int guild_castledataloadack(int castle_id,int index,int value)
 		return 0;
 	}
 
-	if( (ev = (struct eventlist *)idb_remove(guild_castleinfoevent_db,code))!=NULL )
+	ev = (struct eventlist *)idb_remove(guild_castleinfoevent_db, code);
+	while( ev != NULL )
 	{
-		while(ev){
-			npc_event_do(ev->name);
-			ev2=ev->next;
-			aFree(ev);
-			ev=ev2;
-		}
+		struct eventlist* next = ev->next;
+		npc_event_do(ev->name);
+		aFree(ev);
+		ev = next;
 	}
+
 	return 1;
 }
-// ギルド城データ変更要求
+
 int guild_castledatasave(int castle_id,int index,int value)
 {
 	if( index == 1 )
@@ -1780,7 +1819,6 @@ int guild_castledatasave(int castle_id,int index,int value)
 	return intif_guild_castle_datasave(castle_id,index,value);
 }
 
-// ギルド城データ変更通知
 int guild_castledatasaveack(int castle_id,int index,int value)
 {
 	struct guild_castle *gc=guild_castle_search(castle_id);
@@ -1813,7 +1851,7 @@ int guild_castledatasaveack(int castle_id,int index,int value)
 	return 1;
 }
 
-// ギルドデータ一括受信（初期化時）
+/// Receive data of all castles at once (initialization).
 int guild_castlealldataload(int len,struct guild_castle *gc)
 {
 	int i;
