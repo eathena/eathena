@@ -2,6 +2,8 @@ Date	Added
 
 2012/10/28
 	* Split off two new mapserver source files, guild_castle.c and guild_expcache.c [ultramage]
+2012/10/27
+	* Fixed a rare crash involving /breakguild and gmaster_flag (see r15193, bugreport:5100) [ultramage]
 2012/09/26
 	* Fixed an offset mistake in clif_parse_GuildChangeMemberPosition and clif_parse_GuildChangePositionInfo (bugreport:5096, since r15189). [Ai4rei]
 2012/09/19
