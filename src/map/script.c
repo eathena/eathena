@@ -7873,19 +7873,13 @@ BUILDIN_FUNC(getexp)
  *------------------------------------------*/
 BUILDIN_FUNC(guildgetexp)
 {
-	TBL_PC* sd;
-	int exp;
+	TBL_PC* sd = script_rid2sd(st);
+	int exp = script_getnum(st,2);
 
-	sd = script_rid2sd(st);
-	if( sd == NULL )
+	if( exp < 0 || sd == NULL || sd->status.guild_id == 0 )
 		return 0;
 
-	exp = script_getnum(st,2);
-	if(exp < 0)
-		return 0;
-	if(sd && sd->status.guild_id > 0)
-		guild_getexp (sd, exp);
-
+	guild_addexp(sd->status.guild_id, sd->status.account_id, sd->status.char_id, exp);
 	return 0;
 }
 

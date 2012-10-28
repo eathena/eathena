@@ -1135,36 +1135,42 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 
 static void* create_expcache(DBKey key, va_list args)
 {
-	struct guild_expcache *c;
-	struct map_session_data *sd = va_arg(args, struct map_session_data*);
+	int guild_id = va_arg(args, int);
+	int account_id = va_arg(args, int);
+	int char_id = va_arg(args, int);
 
-	c = ers_alloc(expcache_ers, struct guild_expcache);
-	c->guild_id = sd->status.guild_id;
-	c->account_id = sd->status.account_id;
-	c->char_id = sd->status.char_id;
+	struct guild_expcache* c = ers_alloc(expcache_ers, struct guild_expcache);
+	c->guild_id = guild_id;
+	c->account_id = account_id;
+	c->char_id = char_id;
 	c->exp = 0;
 	return c;
+}
+
+static int guild_expcache_db_final(DBKey key, void* data, va_list args)
+{
+	ers_free(expcache_ers, data);
+	return 0;
 }
 
 unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp)
 {
 	struct guild* g;
-	struct guild_expcache* c;
 	int pos;
 	int per;
-	
+
 	nullpo_ret(sd);
 
 	if( exp == 0 )
 		return 0;
-	
+
 	if( sd->status.guild_id == 0 )
 		return 0;
-	
+
 	g = guild_search(sd->status.guild_id);
 	if( g == NULL )
 		return 0;
-	
+
 	pos = guild_getposition(g, sd);
 	if( pos < 0 )
 		return 0;
@@ -1172,37 +1178,20 @@ unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp)
 	per = g->position[pos].exp_mode;
 	if( per <= 0 )
 		return 0;
-	
+
 	if( per != 100 )
 		exp = exp * per / 100;
-	
-	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(sd->status.char_id), create_expcache, sd);
 
-	if (c->exp > UINT64_MAX - exp)
-		c->exp = UINT64_MAX;
-	else
-		c->exp += exp;
-	
+	guild_addexp(sd->status.guild_id, sd->status.account_id, sd->status.char_id, exp);
 	return exp;
 }
 
-int guild_getexp(struct map_session_data *sd,int exp)
+/// Increase this player's exp contribution to his guild.
+unsigned int guild_addexp(int guild_id, int account_id, int char_id, unsigned int exp)
 {
-	struct guild* g;
-	struct guild_expcache* c;
+	struct guild_expcache* c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(char_id), create_expcache, guild_id, account_id, char_id);
 
-	nullpo_ret(sd);
-
-	if( sd->status.guild_id == 0 )
-		return 0;
-	
-	g = guild_search(sd->status.guild_id);
-	if( g == NULL )
-		return 0;
-
-	c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(sd->status.char_id), create_expcache, sd);
-
-	if (c->exp > UINT64_MAX - exp)
+	if( c->exp > UINT64_MAX - exp )
 		c->exp = UINT64_MAX;
 	else
 		c->exp += exp;
@@ -1955,12 +1944,6 @@ bool guild_isallied(int guild_id, int guild_id2)
 static int guild_infoevent_db_final(DBKey key,void *data,va_list ap)
 {
 	aFree(data);
-	return 0;
-}
-
-static int guild_expcache_db_final(DBKey key,void *data,va_list ap)
-{
-	ers_free(expcache_ers, data);
 	return 0;
 }
 
