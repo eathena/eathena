@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/db.h"
 #include "../common/timer.h"
 #include "../common/nullpo.h"
 #include "../common/malloc.h"
@@ -1883,19 +1884,23 @@ int guild_agit2_end(void)
 	return 0;
 }
 
-// How many castles does this guild have?
-int guild_checkcastles(struct guild *g)
+/// Counts the number of castles belonging to this guild.
+int guild_castle_count(int guild_id)
 {
-	int i, nb_cas = 0;
-	struct guild_castle* gc;
+	DBIterator* iter = db_iterator(castle_db);
+	int count = 0;
 
-	for(i = 0; i < MAX_GUILDCASTLE; i++) {
-		gc = guild_castle_search(i);
-		if(gc && gc->guild_id == g->guild_id)
-			nb_cas++;
+	struct guild_castle* gc;
+	for( gc = (struct guild_castle*)dbi_first(iter) ; dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) )
+	{
+		if( gc->guild_id != guild_id )
+			continue;
+
+		++count;
 	}
 
-	return nb_cas;
+	dbi_destroy(iter);
+	return count;
 }
 
 // Are these two guilds allied?

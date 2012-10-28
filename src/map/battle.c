@@ -649,7 +649,7 @@ int battle_calc_gvg_damage(struct block_list *src,struct block_list *bl,int dama
 			if (!g) return 0;
 			if (class_ == MOBID_EMPERIUM && guild_checkskill(g,GD_APPROVAL) <= 0)
 				return 0;
-			if (battle_config.guild_max_castles && guild_checkcastles(g)>=battle_config.guild_max_castles)
+			if (battle_config.guild_max_castles && guild_castle_count(g->guild_id)>=battle_config.guild_max_castles)
 				return 0; // [MouseJstr]
 		}
 	}
