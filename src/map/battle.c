@@ -22,6 +22,7 @@
 #include "clif.h"
 #include "pet.h"
 #include "guild.h"
+#include "guild_castle.h"
 #include "party.h"
 #include "battle.h"
 #include "battleground.h"

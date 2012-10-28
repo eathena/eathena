@@ -18,6 +18,7 @@
 #include "mob.h"
 #include "clif.h"
 #include "guild.h"
+#include "guild_castle.h"
 #include "skill.h"
 #include "itemdb.h"
 #include "battle.h"

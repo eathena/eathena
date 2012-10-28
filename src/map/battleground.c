@@ -12,6 +12,7 @@
 #include "battleground.h"
 #include "battle.h"
 #include "clif.h"
+#include "guild.h" // guild_send_dot_remove()
 #include "map.h"
 #include "npc.h"
 #include "pc.h"

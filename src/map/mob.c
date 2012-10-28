@@ -23,6 +23,7 @@
 #include "homunculus.h"
 #include "mercenary.h"
 #include "guild.h"
+#include "guild_castle.h"
 #include "itemdb.h"
 #include "skill.h"
 #include "battle.h"

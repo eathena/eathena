@@ -40,6 +40,8 @@
 #include "battleground.h"
 #include "party.h"
 #include "guild.h"
+#include "guild_castle.h"
+#include "guild_expcache.h"
 #include "atcommand.h"
 #include "log.h"
 #include "unit.h"

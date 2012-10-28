@@ -31,6 +31,7 @@
 #include "party.h"
 #include "unit.h"
 #include "guild.h"
+#include "guild_castle.h"
 #include "vending.h"
 #include "pet.h"
 #include "homunculus.h"

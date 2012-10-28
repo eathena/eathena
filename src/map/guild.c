@@ -14,6 +14,8 @@
 
 #include "map.h"
 #include "guild.h"
+#include "guild_castle.h"
+#include "guild_expcache.h"
 #include "storage.h"
 #include "battle.h"
 #include "npc.h"

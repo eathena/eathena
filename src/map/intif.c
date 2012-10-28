@@ -17,6 +17,7 @@
 #include "storage.h"
 #include "party.h"
 #include "guild.h"
+#include "guild_castle.h"
 #include "pet.h"
 #include "atcommand.h"
 #include "mercenary.h"

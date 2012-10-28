@@ -32,6 +32,7 @@
 #include "pet.h" // pet_unlocktarget()
 #include "party.h" // party_search()
 #include "guild.h" // guild_search(), guild_request_info()
+#include "guild_castle.h" // guild_mapindex2gc()
 #include "script.h" // script_config
 #include "skill.h"
 #include "status.h" // struct status_data
