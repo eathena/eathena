@@ -4,45 +4,26 @@
 #ifndef _GUILD_H_
 #define _GUILD_H_
 
-//#include "../common/mmo.h"
-struct guild;
-struct guild_member;
-struct guild_position;
-struct guild_castle;
-#include "map.h" // NAME_LENGTH
+#include "guild_castle.h"
+#include "guild_expcache.h"
+#include "../common/cbasetypes.h" // bool
+#include "../common/mmo.h" // struct guild, struct guild_position
 struct map_session_data;
-struct mob_data;
-
-//For quick linking to a guardian's info. [Skotlex]
-struct guardian_data {
-	int number; //0-MAX_GUARDIANS-1 = Guardians. MAX_GUARDIANS = Emperium.
-	int guild_id;
-	int emblem_id;
-	int guardup_lv; //Level of GD_GUARDUP skill.
-	char guild_name[NAME_LENGTH];
-	struct guild_castle* castle;
-};
 
 int guild_skill_get_max(int id);
 
 int guild_checkskill(struct guild *g,int id);
 int guild_check_skill_require(struct guild *g,int id); // [Komurka]
-int guild_castle_count(int guild_id);
 bool guild_isallied(int guild_id, int guild_id2); //Checks alliance based on guild Ids. [Skotlex]
 
 void do_init_guild(void);
 struct guild *guild_search(int guild_id);
 struct guild *guild_searchname(char *str);
-struct guild_castle *guild_castle_search(int gcid);
-
-struct guild_castle* guild_mapname2gc(const char* mapname);
-struct guild_castle* guild_mapindex2gc(short mapindex);
 
 struct map_session_data *guild_getavailablesd(struct guild *g);
 int guild_getindex(struct guild *g,int account_id,int char_id);
 int guild_getposition(struct guild *g, struct map_session_data *sd);
 unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp);
-unsigned int guild_addexp(int guild_id, int account_id, int char_id, unsigned int exp);
 
 int guild_create(struct map_session_data *sd, const char *name);
 int guild_created(int account_id,int guild_id);
@@ -89,13 +70,6 @@ int guild_break(struct map_session_data *sd,char *name);
 int guild_broken(int guild_id,int flag);
 int guild_gm_change(int guild_id, struct map_session_data *sd);
 int guild_gm_changed(int guild_id, int account_id, int char_id);
-
-int guild_addcastleinfoevent(int castle_id,int index,const char *name);
-int guild_castledataload(int castle_id,int index);
-int guild_castledataloadack(int castle_id,int index,int value);
-int guild_castledatasave(int castle_id,int index,int value);
-int guild_castledatasaveack(int castle_id,int index,int value);
-int guild_castlealldataload(int len,struct guild_castle *gc);
 
 int guild_agit_start(void);
 int guild_agit_end(void);

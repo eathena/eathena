@@ -4,8 +4,7 @@
 #ifndef _BATTLEGROUND_H_
 #define _BATTLEGROUND_H_
 
-#include "../common/mmo.h" // struct party
-#include "guild.h"
+#include "map.h" // EVENT_NAME_LENGTH
 
 #define MAX_BG_MEMBERS 30
 

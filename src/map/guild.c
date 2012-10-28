@@ -31,10 +31,7 @@
 
 
 static DBMap* guild_db; // int guild_id -> struct guild*
-static DBMap* castle_db; // int castle_id -> struct guild_castle*
-static DBMap* guild_expcache_db; // int char_id -> struct guild_expcache*
 static DBMap* guild_infoevent_db; // int guild_id -> struct eventlist*
-static DBMap* guild_castleinfoevent_db; // int castle_id_index -> struct eventlist*
 
 struct eventlist {
 	char name[EVENT_NAME_LENGTH];
@@ -42,16 +39,7 @@ struct eventlist {
 };
 
 #define GUILD_SEND_XY_INVERVAL	5000
-#define GUILD_PAYEXP_INVERVAL 10000
 
-struct guild_expcache
-{
-	int guild_id;
-	int account_id;
-	int char_id;
-	uint64 exp;
-};
-static struct eri *expcache_ers; // for handling of guild exp updates
 
 #define MAX_GUILD_SKILL_REQUIRE 5
 struct{
@@ -157,23 +145,6 @@ int guild_check_skill_require(struct guild *g,int id)
 	return 1;
 }
 
-static bool guild_read_castledb(char* str[], int columns, int current)
-{// <castle id>,<map name>,<castle name>,<castle event>[,<reserved/unused switch flag>]
-	struct guild_castle *gc;
-
-	CREATE(gc, struct guild_castle, 1);
-	gc->castle_id = atoi(str[0]);
-	gc->mapindex = mapindex_name2id(str[1]);
-	safestrncpy(gc->castle_name, str[2], sizeof(gc->castle_name));
-	safestrncpy(gc->castle_event, str[3], sizeof(gc->castle_event));
-
-	idb_put(castle_db,gc->castle_id,gc);
-
-	//intif_guild_castle_info(gc->castle_id);
-
-	return true;
-}
-
 /// lookup: guild id -> guild*
 struct guild* guild_search(int guild_id)
 {
@@ -196,33 +167,6 @@ struct guild* guild_searchname(char* str)
 	return g;
 }
 
-/// lookup: castle id -> castle*
-struct guild_castle* guild_castle_search(int gcid)
-{
-	return (struct guild_castle*)idb_get(castle_db,gcid);
-}
-
-/// lookup: map index -> castle*
-struct guild_castle* guild_mapindex2gc(short mapindex)
-{
-	struct guild_castle* gc;
-
-	DBIterator* iter = castle_db->iterator(castle_db);
-	for( gc = (struct guild_castle*)iter->first(iter,NULL); iter->exists(iter); gc = (struct guild_castle*)iter->next(iter,NULL) )
-	{
-		if( gc->mapindex == mapindex )
-			break;
-	}
-	iter->destroy(iter);
-
-	return gc;
-}
-
-/// lookup: map name -> castle*
-struct guild_castle* guild_mapname2gc(const char* mapname)
-{
-	return guild_mapindex2gc(mapindex_name2id(mapname));
-}
 
 struct map_session_data* guild_getavailablesd(struct guild* g)
 {
@@ -279,40 +223,7 @@ void guild_makemember(struct guild_member *m,struct map_session_data *sd)
 	return;
 }
 
-int guild_payexp_timer_sub(DBKey dataid, void *data, va_list ap)
-{
-	int i;
-	struct guild_expcache *c;
-	struct guild *g;
 
-	c = (struct guild_expcache *)data;
-	
-	if (
-		(g = guild_search(c->guild_id)) == NULL ||
-		(i = guild_getindex(g, c->account_id, c->char_id)) < 0
-	) {
-		ers_free(expcache_ers, data);
-		return 0;
-	}
-
-	if (g->member[i].exp > UINT64_MAX - c->exp)
-		g->member[i].exp = UINT64_MAX;
-	else
-		g->member[i].exp+= c->exp;
-
-	intif_guild_change_memberinfo(g->guild_id,c->account_id,c->char_id,
-		GMI_EXP,&g->member[i].exp,sizeof(g->member[i].exp));
-	c->exp=0;
-
-	ers_free(expcache_ers, data);
-	return 0;
-}
-
-int guild_payexp_timer(int tid, unsigned int tick, int id, intptr_t data)
-{
-	guild_expcache_db->clear(guild_expcache_db,guild_payexp_timer_sub);
-	return 0;
-}
 
 //Taken from party_send_xy_timer_sub. [Skotlex]
 int guild_send_xy_timer_sub(DBKey key,void *data,va_list ap)
@@ -1051,7 +962,6 @@ int guild_change_emblem(struct map_session_data *sd,int len,const char *data)
 // ギルドエンブレム変更通知
 int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 {
-	TBL_MOB* md;
 	int i;
 
 	struct guild* g = guild_search(guild_id);
@@ -1076,45 +986,7 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 	}
 
 	// update guardians (mobs)
-	{
-		DBIterator* iter = db_iterator(castle_db);
-		struct guild_castle* gc;
-		for( gc = (struct guild_castle*)dbi_first(iter); dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) )
-		{
-			if( gc->guild_id != guild_id )
-				continue;
-
-			// update permanent guardians
-			for( i = 0; i < ARRAYLENGTH(gc->guardian); ++i )
-			{
-				if( gc->guardian[i].id == 0 )
-					continue;
-
-				md = map_id2md(gc->guardian[i].id);
-				if( md == NULL || md->guardian_data == NULL )
-					continue;
-
-				md->guardian_data->emblem_id = emblem_id;
-				clif_guild_emblem_area(&md->bl);
-			}
-
-			// update temporary guardians
-			for( i = 0; i < gc->temp_guardians_max; ++i )
-			{
-				if( gc->temp_guardians[i] == 0 )
-					continue;
-
-				md = map_id2md(gc->temp_guardians[i]);
-				if( md == NULL || md->guardian_data == NULL )
-					continue;
-
-				md->guardian_data->emblem_id = emblem_id;
-				clif_guild_emblem_area(&md->bl);
-			}
-		}
-
-		dbi_destroy(iter);
-	}
+	guild_castle_guardian_updateemblem(guild_id, emblem_id);
 
 	// update npcs (flags or other npcs that used flagemblem to attach to this guild)
 	{
@@ -1133,25 +1005,6 @@ int guild_emblem_changed(int len,int guild_id,int emblem_id,const char *data)
 	return 0;
 }
 
-static void* create_expcache(DBKey key, va_list args)
-{
-	int guild_id = va_arg(args, int);
-	int account_id = va_arg(args, int);
-	int char_id = va_arg(args, int);
-
-	struct guild_expcache* c = ers_alloc(expcache_ers, struct guild_expcache);
-	c->guild_id = guild_id;
-	c->account_id = account_id;
-	c->char_id = char_id;
-	c->exp = 0;
-	return c;
-}
-
-static int guild_expcache_db_final(DBKey key, void* data, va_list args)
-{
-	ers_free(expcache_ers, data);
-	return 0;
-}
 
 unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp)
 {
@@ -1186,18 +1039,6 @@ unsigned int guild_payexp(struct map_session_data* sd, unsigned int exp)
 	return exp;
 }
 
-/// Increase this player's exp contribution to his guild.
-unsigned int guild_addexp(int guild_id, int account_id, int char_id, unsigned int exp)
-{
-	struct guild_expcache* c = (struct guild_expcache*)guild_expcache_db->ensure(guild_expcache_db, db_i2key(char_id), create_expcache, guild_id, account_id, char_id);
-
-	if( c->exp > UINT64_MAX - exp )
-		c->exp = UINT64_MAX;
-	else
-		c->exp += exp;
-
-	return exp;
-}
 
 // スキルポイント割り振り
 int guild_skillup(TBL_PC* sd, int skill_num)
@@ -1544,21 +1385,6 @@ int guild_broken_sub(DBKey key,void *data,va_list ap)
 	return 0;
 }
 
-//Invoked on Castles when a guild is broken. [Skotlex]
-int castle_guild_broken_sub(DBKey key,void *data,va_list ap)
-{
-	struct guild_castle *gc=(struct guild_castle *)data;
-	int guild_id=va_arg(ap,int);
-
-	nullpo_ret(gc);
-
-	if (gc->guild_id == guild_id)
-	{	//Save the new 'owner', this should invoke guardian clean up and other such things.
-		gc->guild_id = 0;
-		guild_castledatasave(gc->castle_id, 1, 0);
-	}
-	return 0;
-}
 
 //Innvoked on /breakguild "Guild name"
 int guild_broken(int guild_id, int flag)
@@ -1602,7 +1428,7 @@ int guild_broken(int guild_id, int flag)
 	}
 
 	guild_db->foreach(guild_db,guild_broken_sub,guild_id);
-	castle_db->foreach(castle_db,castle_guild_broken_sub,guild_id);
+	guild_castle_onguildbreak(guild_id);
 	guild_storage_delete(guild_id);
 	idb_remove(guild_db,guild_id);
 	return 0;
@@ -1712,176 +1538,6 @@ int guild_break(struct map_session_data *sd,char *name)
 	return 0;
 }
 
-int guild_castledataload(int castle_id,int index)
-{
-	return intif_guild_castle_dataload(castle_id,index);
-}
-
-int guild_addcastleinfoevent(int castle_id,int index,const char *name)
-{
-	struct eventlist* ev;
-	int code = castle_id | (index<<16);
-
-	if( name==NULL || *name==0 )
-		return 0;
-
-	ev = (struct eventlist *)aMalloc(sizeof(struct eventlist));
-	strncpy(ev->name,name,ARRAYLENGTH(ev->name));
-	//The next event becomes whatever was currently stored.
-	ev->next = (struct eventlist *)idb_put(guild_castleinfoevent_db,code,ev);
-	return 0;
-}
-
-int guild_castledataloadack(int castle_id,int index,int value)
-{
-	int code = castle_id | (index<<16);
-	struct eventlist* ev;
-
-	struct guild_castle* gc = guild_castle_search(castle_id);
-	if( gc == NULL )
-		return 0;
-
-	switch(index){
-	case 1:
-		gc->guild_id = value;
-		if (gc->guild_id && guild_search(gc->guild_id)==NULL) //Request guild data which will be required for spawned guardians. [Skotlex]
-			guild_request_info(gc->guild_id);
-		break;
-	case 2: gc->economy = value; break;
-	case 3: gc->defense = value; break;
-	case 4: gc->triggerE = value; break;
-	case 5: gc->triggerD = value; break;
-	case 6: gc->nextTime = value; break;
-	case 7: gc->payTime = value; break;
-	case 8: gc->createTime = value; break;
-	case 9: gc->visibleC = value; break;
-	case 10:
-	case 11:
-	case 12:
-	case 13:
-	case 14:
-	case 15:
-	case 16:
-	case 17:
-		gc->guardian[index-10].visible = value; break;
-	default:
-		ShowError("guild_castledataloadack ERROR!! (Not found castle_id=%d index=%d)\n", castle_id, index);
-		return 0;
-	}
-
-	ev = (struct eventlist *)idb_remove(guild_castleinfoevent_db, code);
-	while( ev != NULL )
-	{
-		struct eventlist* next = ev->next;
-		npc_event_do(ev->name);
-		aFree(ev);
-		ev = next;
-	}
-
-	return 1;
-}
-
-int guild_castledatasave(int castle_id,int index,int value)
-{
-	if( index == 1 )
-	{	//The castle's owner has changed? Update Guardian ownership, too. [Skotlex]
-		struct guild_castle *gc = guild_castle_search(castle_id);
-		int m = -1;
-		if (gc) m = map_mapindex2mapid(gc->mapindex);
-		if (m != -1)
-			map_foreachinmap(mob_guardian_guildchange, m, BL_MOB); //FIXME: why not iterate over gc->guardian[i].id ?
-	}
-	else
-	if( index == 3 )
-	{	// defense invest change -> recalculate guardian hp
-		struct guild_castle* gc = guild_castle_search(castle_id);
-		if( gc )
-		{
-			int i;
-			struct mob_data* gd;
-			for( i = 0; i < MAX_GUARDIANS; i++ )
-				if( gc->guardian[i].visible && (gd = map_id2md(gc->guardian[i].id)) != NULL )
-						status_calc_mob(gd,0);
-		}
-	}
-
-	return intif_guild_castle_datasave(castle_id,index,value);
-}
-
-int guild_castledatasaveack(int castle_id,int index,int value)
-{
-	struct guild_castle *gc=guild_castle_search(castle_id);
-	if(gc==NULL){
-		return 0;
-	}
-	switch(index){
-	case 1: gc->guild_id = value; break;
-	case 2: gc->economy = value; break;
-	case 3: gc->defense = value; break;
-	case 4: gc->triggerE = value; break;
-	case 5: gc->triggerD = value; break;
-	case 6: gc->nextTime = value; break;
-	case 7: gc->payTime = value; break;
-	case 8: gc->createTime = value; break;
-	case 9: gc->visibleC = value; break;
-	case 10:
-	case 11:
-	case 12:
-	case 13:
-	case 14:
-	case 15:
-	case 16:
-	case 17:
-		gc->guardian[index-10].visible = value; break;
-	default:
-		ShowError("guild_castledatasaveack ERROR!! (Not found index=%d)\n", index);
-		return 0;
-	}
-	return 1;
-}
-
-/// Receive data of all castles at once (initialization).
-int guild_castlealldataload(int len,struct guild_castle *gc)
-{
-	int i;
-	int n = (len-4) / sizeof(struct guild_castle);
-	int ev;
-
-	nullpo_ret(gc);
-
-	//Last owned castle in the list invokes ::OnAgitinit
-	for( i = n-1; i >= 0 && !(gc[i].guild_id); --i );
-	ev = i; // offset of castle or -1
-
-	if( ev < 0 ) { //No castles owned, invoke OnAgitInit as it is.
-		npc_event_doall("OnAgitInit");
-		npc_event_doall("OnAgitInit2");
-	}
-	else // load received castles into memory, one by one
-	for( i = 0; i < n; i++, gc++ )
-	{
-		struct guild_castle *c = guild_castle_search(gc->castle_id);
-		if (!c) {
-			ShowError("guild_castlealldataload Castle id=%d not found.\n", gc->castle_id);
-			continue;
-		}
-
-		// update mapserver castle data with new info
-		memcpy(&c->guild_id, &gc->guild_id, sizeof(struct guild_castle) - ((uintptr_t)&c->guild_id - (uintptr_t)c));
-
-		if( c->guild_id )
-		{
-			if( i != ev )
-				guild_request_info(c->guild_id);
-			else { // last owned one
-				guild_npc_request_info(c->guild_id, "::OnAgitInit");
-				guild_npc_request_info(c->guild_id, "::OnAgitInit2");
-			}
-		}
-	}
-
-	return 0;
-}
 
 int guild_agit_start(void)
 {	// Run All NPC_Event[OnAgitStart]
@@ -1911,25 +1567,6 @@ int guild_agit2_end(void)
 	return 0;
 }
 
-/// Counts the number of castles belonging to this guild.
-int guild_castle_count(int guild_id)
-{
-	DBIterator* iter = db_iterator(castle_db);
-	int count = 0;
-
-	struct guild_castle* gc;
-	for( gc = (struct guild_castle*)dbi_first(iter) ; dbi_exists(iter); gc = (struct guild_castle*)dbi_next(iter) )
-	{
-		if( gc->guild_id != guild_id )
-			continue;
-
-		++count;
-	}
-
-	dbi_destroy(iter);
-	return count;
-}
-
 // Are these two guilds allied?
 bool guild_isallied(int guild_id, int guild_id2)
 {
@@ -1947,41 +1584,27 @@ static int guild_infoevent_db_final(DBKey key,void *data,va_list ap)
 	return 0;
 }
 
-static int guild_castle_db_final(DBKey key, void* data,va_list ap)
-{
-	struct guild_castle* gc = (struct guild_castle*)data;
-	if( gc->temp_guardians )
-		aFree(gc->temp_guardians);
-	aFree(data);
-	return 0;
-}
 
 void do_init_guild(void)
 {
 	guild_db=idb_alloc(DB_OPT_RELEASE_DATA);
-	castle_db=idb_alloc(DB_OPT_BASE);
-	guild_expcache_db=idb_alloc(DB_OPT_BASE);
 	guild_infoevent_db=idb_alloc(DB_OPT_BASE);
-	expcache_ers = ers_new(sizeof(struct guild_expcache)); 
-	guild_castleinfoevent_db=idb_alloc(DB_OPT_BASE);
-
-	sv_readdb(db_path, "castle_db.txt", ',', 4, 5, -1, &guild_read_castledb);
 
 	memset(guild_skill_tree,0,sizeof(guild_skill_tree));
 	sv_readdb(db_path, "guild_skill_tree.txt", ',', 2+MAX_GUILD_SKILL_REQUIRE*2, 2+MAX_GUILD_SKILL_REQUIRE*2, -1, &guild_read_guildskill_tree_db); //guild skill tree [Komurka]
 
-	add_timer_func_list(guild_payexp_timer,"guild_payexp_timer");
 	add_timer_func_list(guild_send_xy_timer, "guild_send_xy_timer");
-	add_timer_interval(gettick()+GUILD_PAYEXP_INVERVAL,guild_payexp_timer,0,0,GUILD_PAYEXP_INVERVAL);
 	add_timer_interval(gettick()+GUILD_SEND_XY_INVERVAL,guild_send_xy_timer,0,0,GUILD_SEND_XY_INVERVAL);
+
+	do_init_guild_castle();
+	do_init_guild_expcache();
 }
 
 void do_final_guild(void)
 {
 	guild_db->destroy(guild_db,NULL);
-	castle_db->destroy(castle_db,guild_castle_db_final);
-	guild_expcache_db->destroy(guild_expcache_db,guild_expcache_db_final);
 	guild_infoevent_db->destroy(guild_infoevent_db,guild_infoevent_db_final);
-	guild_castleinfoevent_db->destroy(guild_castleinfoevent_db,guild_infoevent_db_final);
-	ers_destroy(expcache_ers);
+
+	do_final_guild_castle();
+	do_final_guild_expcache();
 }
