@@ -1808,10 +1808,7 @@ int do_init(int argc, char** argv)
 	login_fd = make_listen_bind(login_config.login_ip, login_config.login_port);
 	
 	if( runflag != CORE_ST_STOP )
-	{
-		shutdown_callback = do_shutdown;
 		runflag = LOGINSERVER_ST_RUNNING;
-	}
 
 	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %u).\n\n", login_config.login_port);
 	login_log(0, "login server", 100, "login server started");

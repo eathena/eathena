@@ -4581,10 +4581,7 @@ int do_init(int argc, char **argv)
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 	
 	if( runflag != CORE_ST_STOP )
-	{
-		shutdown_callback = do_shutdown;
 		runflag = CHARSERVER_ST_RUNNING;
-	}
 
 	return 0;
 }
