@@ -28,11 +28,6 @@
 // Enable memory manager logging by default
 #define LOG_MEMMGR
 
-// no logging for minicore
-#if defined(MINICORE) && defined(LOG_MEMMGR)
-#undef LOG_MEMMGR
-#endif
-
 #	define aMalloc(n)		_mmalloc(n,ALC_MARK)
 #	define aCalloc(m,n)		_mcalloc(m,n,ALC_MARK)
 #	define aRealloc(p,n)	_mrealloc(p,n,ALC_MARK)

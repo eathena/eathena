@@ -6,12 +6,10 @@
 #include "../common/showmsg.h"
 #include "../common/malloc.h"
 #include "core.h"
-#ifndef MINICORE
 #include "../common/db.h"
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/plugins.h"
-#endif
 #ifndef _WIN32
 #include "svnversion.h"
 #endif
@@ -32,7 +30,7 @@ char **arg_v = NULL;
 char *SERVER_NAME = NULL;
 char SERVER_TYPE = ATHENA_SERVER_NONE;
 
-#ifndef MINICORE	// minimalist Core
+
 // Added by Gabuzomeu
 //
 // This is an implementation of signal() using sigaction() for portability.
@@ -114,7 +112,6 @@ void signals_init (void)
 	compat_signal(SIGTRAP, SIG_DFL);
 #endif
 }
-#endif
 
 #ifdef SVNVERSION
 	const char *get_svn_revision(void)
@@ -276,19 +273,12 @@ int main (int argc, char **argv)
 
 	malloc_init();// needed for Show* in display_title() [FlavioJS]
 
-#ifdef MINICORE // minimalist Core
-	display_title();
-	usercheck();
-	do_init(argc,argv);
-	do_final();
-#else// not MINICORE
 	set_server_type();
 	display_title();
 	usercheck();
 
 	db_init();
 	signals_init();
-
 	timer_init();
 	socket_init();
 	plugins_init();
@@ -311,8 +301,6 @@ int main (int argc, char **argv)
 	plugins_final();
 	socket_final();
 	db_final();
-#endif
-
 	malloc_final();
 
 	return 0;

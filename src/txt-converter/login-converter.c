@@ -107,3 +107,7 @@ void do_final(void)
 	txtdb->destroy(txtdb);
 	sqldb->destroy(sqldb);	
 }
+
+int parse_console(const char* buf) { return 0; }
+void set_server_type(void) { }
+void do_abort(void) { }

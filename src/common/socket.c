@@ -226,10 +226,8 @@ uint32 send_shortlist_set[(FD_SETSIZE+31)/32];// to know if specific fd's are al
 
 static int create_session(int fd, RecvFunc func_recv, SendFunc func_send, ParseFunc func_parse);
 
-#ifndef MINICORE
-	int ip_rules = 1;
-	static int connect_check(uint32 ip);
-#endif
+int ip_rules = 1;
+static int connect_check(uint32 ip);
 
 
 /*======================================
@@ -411,12 +409,10 @@ int connect_client(int listen_fd)
 	setsocketopts(fd);
 	set_nonblocking(fd, 1);
 
-#ifndef MINICORE
 	if( ip_rules && !connect_check(ntohl(client_address.sin_addr.s_addr)) ) {
 		do_close(fd);
 		return -1;
 	}
-#endif
 
 	if( fd_max <= fd ) fd_max = fd + 1;
 	sFD_SET(fd,&readfds);
@@ -795,8 +791,6 @@ int do_sockets(int next)
 }
 
 //////////////////////////////
-#ifndef MINICORE
-//////////////////////////////
 // IP rules and DDoS protection
 
 typedef struct _connect_history {
@@ -1029,8 +1023,6 @@ int access_ipmask(const char* str, AccessControl* acc)
 	return 1;
 }
 //////////////////////////////
-#endif
-//////////////////////////////
 
 int socket_config_read(const char* cfgName)
 {
@@ -1052,7 +1044,6 @@ int socket_config_read(const char* cfgName)
 
 		if (!strcmpi(w1, "stall_time"))
 			stall_time = atoi(w2);
-#ifndef MINICORE
 		else if (!strcmpi(w1, "enable_ip_rules")) {
 			ip_rules = config_switch(w2);
 		} else if (!strcmpi(w1, "order")) {
@@ -1085,7 +1076,6 @@ int socket_config_read(const char* cfgName)
 			access_debug = config_switch(w2);
 		else if (!strcmpi(w1,"socket_max_client_packet"))
 			socket_max_client_packet = strtoul(w2, NULL, 0);
-#endif
 		else if (!strcmpi(w1, "import"))
 			socket_config_read(w2);
 	}
@@ -1098,7 +1088,6 @@ int socket_config_read(const char* cfgName)
 void socket_final(void)
 {
 	int i;
-#ifndef MINICORE
 	ConnectHistory* hist;
 	ConnectHistory* next_hist;
 
@@ -1114,7 +1103,6 @@ void socket_final(void)
 		aFree(access_allow);
 	if( access_deny )
 		aFree(access_deny);
-#endif
 
 	for( i = 1; i < fd_max; i++ )
 		if(session[i])
@@ -1298,12 +1286,10 @@ void socket_init(void)
 	// should hold enough buffer (it is a vacuum so to speak) as it is never flushed. [Skotlex]
 	create_session(0, null_recv, null_send, null_parse);
 
-#ifndef MINICORE
 	// Delete old connection history every 5 minutes
 	memset(connect_history, 0, sizeof(connect_history));
 	add_timer_func_list(connect_check_clear, "connect_check_clear");
 	add_timer_interval(gettick()+1000, connect_check_clear, 0, 0, 5*60*1000);
-#endif
 
 	ShowInfo("Server supports up to '"CL_WHITE"%u"CL_RESET"' concurrent connections.\n", rlim_cur);
 }
