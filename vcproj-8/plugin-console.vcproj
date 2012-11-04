@@ -2,8 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="console"
+	Name="plugin-console"
 	ProjectGUID="{73E1101A-310C-4453-8F45-FD2795ABEF15}"
+	RootNamespace="plugin-console"
 	>
 	<Platforms>
 		<Platform
@@ -15,12 +16,9 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\Debug/console"
-			IntermediateDirectory=".\Debug/console"
+			OutputDirectory="..\plugins"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -37,28 +35,18 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				GenerateStublessProxies="true"
-				TypeLibraryName=".\Debug/console/console.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
-				MinimalRebuild="true"
+				PreprocessorDefinitions="_DEBUG;WIN32;_WINDOWS;_USRDLL"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile=".\Debug/console/console.pch"
-				AssemblerListingLocation=".\Debug/console/"
-				ObjectFile=".\Debug/console/"
-				ProgramDataBaseFileName=".\Debug/console/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
-				DebugInformationFormat="4"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4996"
 				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
@@ -74,13 +62,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../plugins/console.dll"
-				LinkIncremental="2"
-				SuppressStartupBanner="true"
+				OutputFile="$(OutDir)\console.dll"
+				LinkIncremental="1"
 				ModuleDefinitionFile="..\src\plugins\console.def"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile="../plugins/console.pdb"
-				ImportLibrary=".\Debug/console/console.lib"
+				ProgramDatabaseFile="$(IntDir)\$(TargetName).pdb"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -94,8 +81,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Debug/console/console.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -109,12 +94,9 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release/console"
-			IntermediateDirectory=".\Release/console"
+			OutputDirectory="..\plugins"
+			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="2"
-			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC60.vsprops"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="false"
 			CharacterSet="2"
 			>
 			<Tool
@@ -131,28 +113,20 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				SuppressStartupBanner="true"
-				TargetEnvironment="1"
-				GenerateStublessProxies="true"
-				TypeLibraryName=".\Release/console/console.tlb"
-				HeaderFileName=""
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
+				AdditionalOptions="/MP"
 				Optimization="2"
 				InlineFunctionExpansion="1"
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE"
+				PreprocessorDefinitions="NDEBUG;WIN32;_WINDOWS;_USRDLL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="true"
-				PrecompiledHeaderFile=".\Release/console/console.pch"
-				AssemblerListingLocation=".\Release/console/"
-				ObjectFile=".\Release/console/"
-				ProgramDataBaseFileName=".\Release/console/"
 				WarningLevel="3"
-				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
+				DisableSpecificWarnings="4996"
 				ForcedIncludeFiles="config.vc.h"
 			/>
 			<Tool
@@ -168,12 +142,12 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				OutputFile="../plugins/console.dll"
+				OutputFile="$(OutDir)\console.dll"
 				LinkIncremental="1"
-				SuppressStartupBanner="true"
 				ModuleDefinitionFile="..\src\plugins\console.def"
-				ProgramDatabaseFile="../plugins/console.pdb"
-				ImportLibrary=".\Release/console/console.lib"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile="$(IntDir)\$(TargetName).pdb"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -187,8 +161,6 @@
 			/>
 			<Tool
 				Name="VCBscMakeTool"
-				SuppressStartupBanner="true"
-				OutputFile=".\Release/console/console.bsc"
 			/>
 			<Tool
 				Name="VCFxCopTool"
@@ -207,24 +179,6 @@
 		<File
 			RelativePath="..\src\plugins\console.c"
 			>
-			<FileConfiguration
-				Name="Debug|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
-			<FileConfiguration
-				Name="Release|Win32"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-					AdditionalIncludeDirectories=""
-					PreprocessorDefinitions=""
-				/>
-			</FileConfiguration>
 		</File>
 		<File
 			RelativePath="..\src\plugins\console.def"
