@@ -1,6 +1,6 @@
 
 COMMON_OBJ = ../common/obj_all/showmsg.o ../common/obj_all/utils.o ../common/obj_all/strlib.o \
-	../common/obj_all/minimalloc.o
+	../common/obj_all/malloc.o
 COMMON_H = ../common/plugin.h ../common/cbasetypes.h \
 	../common/showmsg.h ../common/utils.h ../common/strlib.h \
 	../common/malloc.h

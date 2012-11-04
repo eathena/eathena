@@ -2,12 +2,14 @@ LOGIN_CONVERTER_OBJ = \
 	obj_login/login-converter.o \
 	../login/obj_txt/account_txt.o \
 	../login/obj_sql/account_sql.o \
-	../common/obj_all/minicore.o \
+	../common/obj_all/core.o \
 	../common/obj_all/db.o \
 	../common/obj_all/ers.o \
 	../common/obj_all/lock.o \
 	../common/obj_all/malloc.o \
+	../common/obj_all/plugins.o \
 	../common/obj_all/showmsg.o \
+	../common/obj_all/socket.o \
 	../common/obj_all/strlib.o \
 	../common/obj_all/timer.o \
 	../common/obj_all/utils.o \
@@ -21,7 +23,9 @@ LOGIN_CONVERTER_H = \
 	../common/ers.h \
 	../common/lock.h \
 	../common/malloc.h \
+	../common/plugins.h \
 	../common/showmsg.h \
+	../common/socket.h \
 	../common/strlib.h \
 	../common/timer.h \
 	../common/utils.h \
@@ -42,8 +46,11 @@ CHAR_CONVERTER_OBJ = \
 	obj_char/sql-int_party.o \
 	obj_char/sql-int_guild.o \
 	obj_char/sql-int_mercenary.o \
-	../common/obj_all/minicore.o \
+	../common/obj_all/core.o \
+	../common/obj_all/db.o \
 	../common/obj_all/malloc.o \
+	../common/obj_all/plugins.o \
+	../common/obj_all/socket.o \
 	../common/obj_all/strlib.o \
 	../common/obj_all/showmsg.o \
 	../common/obj_all/utils.o \
@@ -69,7 +76,10 @@ CHAR_CONVERTER_H = \
 	../common/cbasetypes.h \
 	../common/mmo.h \
 	../common/core.h \
+	../common/db.h \
 	../common/malloc.h \
+	../common/plugins.h \
+	../common/socket.h \
 	../common/strlib.h \
 	../common/showmsg.h \
 	../common/timer.h \

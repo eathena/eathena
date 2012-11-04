@@ -35,21 +35,6 @@ set( COMMON_ALL_HEADERS
 	"${COMMON_SOURCE_DIR}/version.h"
 	)
 
-set( COMMON_MINI_HEADERS
-	${COMMON_ALL_HEADERS}
-	"${COMMON_SOURCE_DIR}/core.h"
-	"${COMMON_SOURCE_DIR}/malloc.h"
-	"${COMMON_SOURCE_DIR}/showmsg.h"
-	"${COMMON_SOURCE_DIR}/strlib.h"
-	CACHE INTERNAL "" )
-set( COMMON_MINI_SOURCES
-	"${COMMON_SOURCE_DIR}/core.c"
-	"${COMMON_SOURCE_DIR}/malloc.c"
-	"${COMMON_SOURCE_DIR}/showmsg.c"
-	"${COMMON_SOURCE_DIR}/strlib.c"
-	CACHE INTERNAL "" )
-set( COMMON_MINI_DEFINITIONS "-DMINICORE" CACHE INTERNAL "" )
-
 
 #
 # common_base
