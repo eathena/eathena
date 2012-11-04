@@ -199,42 +199,38 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="login_txt"
+		<File
+			RelativePath="..\src\login\account.h"
 			>
-			<File
-				RelativePath="..\src\login\account.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\account_txt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\ipban.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\ipban_txt.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\login.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\login.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog_txt.c"
-				>
-			</File>
-		</Filter>
+		</File>
+		<File
+			RelativePath="..\src\login\account_txt.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\ipban.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\ipban_txt.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\login.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\login.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog_txt.c"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

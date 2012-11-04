@@ -204,42 +204,38 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="login_sql"
+		<File
+			RelativePath="..\src\login\account.h"
 			>
-			<File
-				RelativePath="..\src\login\account.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\account_sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\ipban.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\ipban_sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\login.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\login.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog_sql.c"
-				>
-			</File>
-		</Filter>
+		</File>
+		<File
+			RelativePath="..\src\login\account_sql.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\ipban.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\ipban_sql.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\login.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\login.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog_sql.c"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
