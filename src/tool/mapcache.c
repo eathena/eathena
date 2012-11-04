@@ -342,4 +342,5 @@ int do_init(int argc, char** argv)
 void do_final(void) { }
 int parse_console(const char* buf) { return 0; }
 void set_server_type(void) { }
+void do_shutdown(void) { }
 void do_abort(void) { }
