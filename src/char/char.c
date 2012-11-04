@@ -2088,9 +2088,9 @@ void loginif_reset(void)
 /// If all the conditions are met, it stops the core loop.
 void loginif_check_shutdown(void)
 {
-	if( runflag != CHARSERVER_ST_SHUTDOWN )
+	if( runflag != SERVER_STATE_SHUTDOWN )
 		return;
-	runflag = CORE_ST_STOP;
+	runflag = SERVER_STATE_STOP;
 }
 
 
@@ -2933,7 +2933,7 @@ int parse_frommap(int fd)
 			uint32 ip = RFIFOL(fd,14);
 			RFIFOSKIP(fd,18);
 
-			if( runflag != CHARSERVER_ST_RUNNING )
+			if( runflag != SERVER_STATE_RUN )
 			{
 				WFIFOHEAD(fd,7);
 				WFIFOW(fd,0) = 0x2b03;
@@ -2981,7 +2981,7 @@ int parse_frommap(int fd)
 
 			char_data = search_character(RFIFOL(fd,2), RFIFOL(fd,14));
 
-			if( runflag == CHARSERVER_ST_RUNNING &&
+			if( runflag == SERVER_STATE_RUN &&
 				session_isActive(map_fd) &&
 				char_data )
 			{	//Send the map server the auth of this player.
@@ -3284,7 +3284,7 @@ int parse_frommap(int fd)
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
 			cd = search_character(account_id, char_id);
-			if( runflag == CHARSERVER_ST_RUNNING &&
+			if( runflag == SERVER_STATE_RUN &&
 				cd != NULL &&
 				node != NULL &&
 				node->account_id == account_id &&
@@ -3686,7 +3686,7 @@ int parse_char(int fd)
 			WFIFOL(fd,0) = account_id;
 			WFIFOSET(fd,4);
 
-			if( runflag != CHARSERVER_ST_RUNNING )
+			if( runflag != SERVER_STATE_RUN )
 			{
 				WFIFOHEAD(fd,3);
 				WFIFOW(fd,0) = 0x6c;
@@ -4103,7 +4103,7 @@ int parse_char(int fd)
 			l_user[23] = '\0';
 			l_pass[23] = '\0';
 			ARR_FIND( 0, ARRAYLENGTH(server), i, server[i].fd <= 0 );
-			if( runflag != CHARSERVER_ST_RUNNING ||
+			if( runflag != SERVER_STATE_RUN ||
 				i == ARRAYLENGTH(server) ||
 				strcmp(l_user, userid) != 0 ||
 				strcmp(l_pass, passwd) != 0 )
@@ -4151,7 +4151,7 @@ int parse_console(const char* command)
 	ShowNotice("Console command: %s\n", command);
 
 	if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 || strcmpi("end", command) == 0 )
-		runflag = 0;
+		runflag = SERVER_STATE_STOP;
 	else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
 		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
 	else if( strcmpi("help", command) == 0 )
@@ -4662,17 +4662,17 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != CHARSERVER_ST_SHUTDOWN )
+	if( runflag != SERVER_STATE_SHUTDOWN )
 	{
 		int id;
-		runflag = CHARSERVER_ST_SHUTDOWN;
+		runflag = SERVER_STATE_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
 		// TODO proper shutdown procedure; wait for acks?, kick all characters, ... [FlavoJS]
 		for( id = 0; id < ARRAYLENGTH(server); ++id )
 			mapif_server_reset(id);
 		loginif_check_shutdown();
 		flush_fifos();
-		runflag = CORE_ST_STOP;
+		runflag = SERVER_STATE_STOP;
 	}
 }
 
@@ -4756,9 +4756,6 @@ int do_init(int argc, char **argv)
 	char_log("The char-server is ready (Server is listening on the port %d).\n", char_port);
 	ShowStatus("The char-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %d).\n\n", char_port);
 	
-	if( runflag != CORE_ST_STOP )
-		runflag = CHARSERVER_ST_RUNNING;
-
 	return 0;
 }
 

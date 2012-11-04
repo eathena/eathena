@@ -127,11 +127,11 @@ void chrif_reset(void)
 /// If all the conditions are met, it stops the core loop.
 void chrif_check_shutdown(void)
 {
-	if( runflag != MAPSERVER_ST_SHUTDOWN )
+	if( runflag != SERVER_STATE_SHUTDOWN )
 		return;
 	if( auth_db->size(auth_db) > 0 )
 		return;
-	runflag = CORE_ST_STOP;
+	runflag = SERVER_STATE_STOP;
 }
 
 
@@ -630,7 +630,7 @@ void chrif_authok(int fd)
 	}
 
 	sd = node->sd;
-	if( runflag == MAPSERVER_ST_RUNNING &&
+	if( runflag == SERVER_STATE_RUN &&
 		node->char_dat == NULL &&
 		node->account_id == account_id &&
 		node->char_id == char_id &&

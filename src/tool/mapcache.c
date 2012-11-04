@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/core.h"
 #include "../common/grfio.h"
 #include "../common/malloc.h"
 #include "../common/mmo.h"
@@ -334,6 +335,7 @@ int do_init(int argc, char** argv)
 
 	ShowInfo("%d maps now in cache\n", header.map_count);
 
+	runflag = SERVER_STATE_STOP; // MINICORE
 	return 0;
 }
 

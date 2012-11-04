@@ -4,10 +4,15 @@
 #ifndef	_CORE_H_
 #define	_CORE_H_
 
+enum SERVER_STATE
+{
+	SERVER_STATE_STOP,
+	SERVER_STATE_RUN,
+	SERVER_STATE_SHUTDOWN,
+};
+
 extern int arg_c;
 extern char **arg_v;
-
-/// @see E_CORE_ST
 extern int runflag;
 extern char *SERVER_NAME;
 extern char SERVER_TYPE;
@@ -19,13 +24,5 @@ extern void set_server_type(void);
 extern void do_shutdown(void);
 extern void do_abort(void);
 extern void do_final(void);
-
-/// The main loop continues until runflag is CORE_ST_STOP
-enum E_CORE_ST
-{
-	CORE_ST_STOP = 0,
-	CORE_ST_RUN,
-	CORE_ST_LAST
-};
 
 #endif /* _CORE_H_ */

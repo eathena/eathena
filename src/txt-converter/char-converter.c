@@ -297,6 +297,7 @@ int do_init(int argc, char** argv)
 	convert_init();
 	ShowStatus("Everything's been converted!\n");
 	mapindex_final();
+	runflag = SERVER_STATE_STOP; // MINICORE
 	return 0;
 }
 

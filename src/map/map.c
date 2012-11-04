@@ -3048,7 +3048,7 @@ int parse_console(const char* buf)
 	{
 		if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 )
 		{
-			runflag = 0;
+			runflag = SERVER_STATE_STOP;
 		}
 	}
 	else if( strcmpi("help", type) == 0 )
@@ -3560,9 +3560,9 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != MAPSERVER_ST_SHUTDOWN )
+	if( runflag != SERVER_STATE_SHUTDOWN )
 	{
-		runflag = MAPSERVER_ST_SHUTDOWN;
+		runflag = SERVER_STATE_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
 		{
 			struct map_session_data* sd;
@@ -3671,7 +3671,7 @@ int do_init(int argc, char *argv[])
 			}
 			else if( strcmp(arg, "run-once") == 0 ) // close the map-server as soon as its done.. for testing [Celest]
 			{
-				runflag = CORE_ST_STOP;
+				runflag = SERVER_STATE_STOP;
 			}
 			else
 			{
@@ -3785,9 +3785,6 @@ int do_init(int argc, char *argv[])
 		ShowNotice("Server is running on '"CL_WHITE"PK Mode"CL_RESET"'.\n");
 
 	ShowStatus("Server is '"CL_GREEN"ready"CL_RESET"' and listening on port '"CL_WHITE"%d"CL_RESET"'.\n\n", map_port);
-	
-	if( runflag != CORE_ST_STOP )
-		runflag = MAPSERVER_ST_RUNNING;
 
 	return 0;
 }

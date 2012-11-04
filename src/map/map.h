@@ -15,13 +15,6 @@
 struct npc_data;
 struct item_data;
 
-enum E_MAPSERVER_ST
-{
-	MAPSERVER_ST_RUNNING = CORE_ST_LAST,
-	MAPSERVER_ST_SHUTDOWN,
-	MAPSERVER_ST_LAST
-};
-
 //Uncomment to enable the Cell Stack Limit mod.
 //It's only config is the battle_config cell_stack_limit.
 //Only chars affected are those defined in BL_CHAR (mobs and players currently)

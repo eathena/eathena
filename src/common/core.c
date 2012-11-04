@@ -25,7 +25,7 @@
 #endif
 
 
-int runflag = CORE_ST_RUN;
+int runflag = SERVER_STATE_RUN;
 int arg_c = 0;
 char **arg_v = NULL;
 
@@ -298,7 +298,7 @@ int main (int argc, char **argv)
 
 	{// Main runtime cycle
 		int next;
-		while (runflag != CORE_ST_STOP) {
+		while (runflag != SERVER_STATE_STOP) {
 			next = do_timer(gettick_nocache());
 			do_sockets(next);
 		}

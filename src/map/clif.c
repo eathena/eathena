@@ -8884,7 +8884,7 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 		return;
 	}
 
-	if( runflag != MAPSERVER_ST_RUNNING )
+	if( runflag != SERVER_STATE_RUN )
 	{// not allowed
 		clif_authfail_fd(fd,1);// server closed
 		return;

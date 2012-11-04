@@ -364,7 +364,7 @@ int parse_console(const char* command)
 	ShowNotice("Console command: %s\n", command);
 
 	if( strcmpi("shutdown", command) == 0 || strcmpi("exit", command) == 0 || strcmpi("quit", command) == 0 || strcmpi("end", command) == 0 )
-		runflag = 0;
+		runflag = SERVER_STATE_STOP;
 	else if( strcmpi("alive", command) == 0 || strcmpi("status", command) == 0 )
 		ShowInfo(CL_CYAN"Console: "CL_BOLD"I'm Alive."CL_RESET"\n");
 	else if( strcmpi("help", command) == 0 )
@@ -459,7 +459,7 @@ int parse_fromchar(int fd)
 			RFIFOSKIP(fd,23);
 
 			node = (struct auth_node*)idb_get(auth_db, account_id);
-			if( runflag == LOGINSERVER_ST_RUNNING &&
+			if( runflag == SERVER_STATE_RUN &&
 				node != NULL &&
 				node->account_id == account_id &&
 				node->login_id1  == login_id1 &&
@@ -1095,7 +1095,7 @@ void login_auth_ok(struct login_session_data* sd)
 	struct auth_node* node;
 	int i;
 
-	if( runflag != LOGINSERVER_ST_RUNNING )
+	if( runflag != SERVER_STATE_RUN )
 	{
 		// players can only login while running
 		WFIFOHEAD(fd,3);
@@ -1475,7 +1475,7 @@ int parse_login(int fd)
 			login_log(session[fd]->client_addr, sd->userid, 100, message);
 
 			result = mmo_auth(sd);
-			if( runflag == LOGINSERVER_ST_RUNNING &&
+			if( runflag == SERVER_STATE_RUN &&
 				result == -1 &&
 				sd->sex == 'S' &&
 				sd->account_id >= 0 && sd->account_id < ARRAYLENGTH(server) &&
@@ -1719,16 +1719,16 @@ void set_server_type(void)
 /// Called when a terminate signal is received.
 void do_shutdown(void)
 {
-	if( runflag != LOGINSERVER_ST_SHUTDOWN )
+	if( runflag != SERVER_STATE_SHUTDOWN )
 	{
 		int id;
-		runflag = LOGINSERVER_ST_SHUTDOWN;
+		runflag = SERVER_STATE_SHUTDOWN;
 		ShowStatus("Shutting down...\n");
 		// TODO proper shutdown procedure; kick all characters, wait for acks, ...  [FlavioJS]
 		for( id = 0; id < ARRAYLENGTH(server); ++id )
 			chrif_server_reset(id);
 		flush_fifos();
-		runflag = CORE_ST_STOP;
+		runflag = SERVER_STATE_STOP;
 	}
 }
 
@@ -1807,9 +1807,6 @@ int do_init(int argc, char** argv)
 	// server port open & binding
 	login_fd = make_listen_bind(login_config.login_ip, login_config.login_port);
 	
-	if( runflag != CORE_ST_STOP )
-		runflag = LOGINSERVER_ST_RUNNING;
-
 	ShowStatus("The login-server is "CL_GREEN"ready"CL_RESET" (Server is listening on the port %u).\n\n", login_config.login_port);
 	login_log(0, "login server", 100, "login server started");
 

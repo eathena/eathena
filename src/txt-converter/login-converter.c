@@ -98,6 +98,7 @@ int do_init(int argc, char** argv)
 	if(input == 'y' || input == 'Y')
 		convert_login();
 
+	runflag = SERVER_STATE_STOP; // MINICORE
 	return 0;
 }
 
