@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="windows-1250"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="mapcache"
-	ProjectGUID="{D356871D-58E1-450B-967A-E7E9646175AF}"
-	RootNamespace="mapcache"
+	Name="common_sql"
+	ProjectGUID="{BDE2D833-0F23-4C00-80B5-E60917551A24}"
+	RootNamespace="common_sql"
 	Keyword="Win32Proj"
 	>
 	<Platforms>
@@ -17,10 +17,10 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".."
+			OutputDirectory="$(IntDir)"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2"
+			ConfigurationType="4"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -39,19 +39,15 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="WIN32;_DEBUG"
-				ExceptionHandling="0"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mysql\win32\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;FD_SETSIZE=4096"
+				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				EnableFunctionLevelLinking="true"
-				DefaultCharIsUnsigned="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				DebugInformationFormat="4"
-				CompileAs="1"
+				DebugInformationFormat="3"
 				DisableSpecificWarnings="4996"
 				ForcedIncludeFiles="config.vc.h"
 			/>
@@ -65,23 +61,12 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalOptions="/FIXED:NO"
-				AdditionalDependencies="libcmtd.lib oldnames.lib"
-				OutputFile="$(OutDir)\mapcache.exe"
-				LinkIncremental="2"
-				AdditionalLibraryDirectories=""
-				IgnoreAllDefaultLibraries="true"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
-				SubSystem="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				AdditionalDependencies="libmysql.lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -93,18 +78,15 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".."
+			OutputDirectory="$(IntDir)"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
-			ConfigurationType="1"
-			CharacterSet="2"
+			ConfigurationType="4"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -124,24 +106,14 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/MP"
 				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="WIN32;NDEBUG"
-				StringPooling="true"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mysql\win32\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FD_SETSIZE=4096"
 				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="false"
-				DefaultCharIsUnsigned="false"
+				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				CompileAs="1"
 				DisableSpecificWarnings="4996"
 				ForcedIncludeFiles="config.vc.h"
 			/>
@@ -155,25 +127,12 @@
 				Name="VCPreLinkEventTool"
 			/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib"
-				OutputFile="$(OutDir)\mapcache.exe"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories=""
-				IgnoreAllDefaultLibraries="true"
-				GenerateDebugInformation="true"
-				ProgramDatabaseFile="$(OutDir)\$(ProjectName).pdb"
-				SubSystem="1"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
-				TargetMachine="1"
+				Name="VCLibrarianTool"
+				AdditionalDependencies="libmysql.lib"
+				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
 			/>
 			<Tool
 				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -185,9 +144,6 @@
 				Name="VCFxCopTool"
 			/>
 			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
 				Name="VCPostBuildEventTool"
 			/>
 		</Configuration>
@@ -196,7 +152,11 @@
 	</References>
 	<Files>
 		<File
-			RelativePath="..\src\tool\mapcache.c"
+			RelativePath="..\src\common\sql.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\common\sql.h"
 			>
 		</File>
 	</Files>

@@ -42,9 +42,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096"
-				GeneratePreprocessedFile="0"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_DEBUG"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -135,8 +134,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;NDEBUG"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
@@ -158,10 +157,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -198,250 +197,94 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="3rdparty"
+		<File
+			RelativePath="..\src\char_sql\char.c"
 			>
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.c"
-				>
-			</File>
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="common"
+		</File>
+		<File
+			RelativePath="..\src\char_sql\char.h"
 			>
-			<File
-				RelativePath="..\src\common\cbasetypes.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\core.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\core.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\mmo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugin.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\random.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\random.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\socket.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\socket.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\version.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="char_sql"
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_auction.c"
 			>
-			<File
-				RelativePath="..\src\char_sql\char.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\char.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_auction.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_auction.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_guild.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_guild.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_homun.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_homun.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_mail.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_mail.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_mercenary.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_mercenary.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_party.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_party.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_pet.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_pet.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_quest.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_quest.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\int_storage.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\char_sql\inter.h"
-				>
-			</File>
-		</Filter>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_auction.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_guild.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_guild.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_homun.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_homun.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mail.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mail.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mercenary.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_mercenary.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_party.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_party.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_pet.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_pet.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_quest.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_quest.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_storage.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\int_storage.h"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\inter.c"
+			>
+		</File>
+		<File
+			RelativePath="..\src\char_sql\inter.h"
+			>
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

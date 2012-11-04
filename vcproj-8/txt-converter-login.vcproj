@@ -42,9 +42,8 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/MP"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096;MINICORE;WITH_TXT;WITH_SQL"
-				GeneratePreprocessedFile="0"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;WITH_TXT;WITH_SQL"
 				ExceptionHandling="0"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -68,10 +67,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmtd.lib oldnames.lib ws2_32.lib libmysql.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib"
 				OutputFile="$(OutDir)\login-converter.exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -135,8 +134,8 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\msinttypes\include"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096;MINICORE;WITH_TXT;WITH_SQL"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;WITH_TXT;WITH_SQL"
 				StringPooling="true"
 				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="false"
@@ -160,10 +159,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="libcmt.lib oldnames.lib ws2_32.lib libmysql.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib"
 				OutputFile="$(OutDir)\login-converter.exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
+				AdditionalLibraryDirectories=""
 				IgnoreAllDefaultLibraries="true"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="true"
@@ -200,90 +199,6 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="common"
-			>
-			<File
-				RelativePath="..\src\common\core.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\core.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\db.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\ers.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\sql.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\timer.h"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.c"
-				>
-			</File>
-			<File
-				RelativePath="..\src\common\utils.h"
-				>
-			</File>
-		</Filter>
 		<File
 			RelativePath="..\src\login\account.h"
 			>
