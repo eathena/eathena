@@ -42,7 +42,7 @@ RSC=rc.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /Zi /O2 /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\zlib\old\include" /FI"config.vc.h" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /FD /GF /c
+# ADD CPP /nologo /W3 /Zi /O2 /I "..\src\common" /I "..\3rdparty\msinttypes\include" /FI"config.vc.h" /D "WIN32" /D "NDEBUG" /FR /FD /GF /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 kernel32.lib zdll.lib /nologo /subsystem:console /debug /machine:I386 /libpath:"..\3rdparty\zlib\old\lib"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386
 
 !ELSEIF  "$(CFG)" == "mapcache - Win32 Debug"
 
@@ -67,7 +67,7 @@ LINK32=link.exe
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\zlib\old\include" /FI"config.vc.h" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\src\common" /I "..\3rdparty\msinttypes\include" /FI"config.vc.h" /D "WIN32" /D "_DEBUG" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -76,7 +76,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo /o"mapcache.bsc"
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib zdll.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\3rdparty\zlib\old\lib"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -84,85 +84,9 @@ LINK32=link.exe
 
 # Name "mapcache - Win32 Release"
 # Name "mapcache - Win32 Debug"
-# Begin Group "common"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\src\common\cbasetypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\core.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\core.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\des.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\des.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\grfio.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\grfio.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\malloc.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\malloc.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\mmo.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\showmsg.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\showmsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\strlib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\strlib.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\utils.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\utils.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\version.h
-# End Source File
-# End Group
-# Begin Group "mapcache"
-
-# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE=..\src\tool\mapcache.c
 # End Source File
-# End Group
 # End Target
 # End Project

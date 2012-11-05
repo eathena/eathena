@@ -37,12 +37,12 @@ RSC=rc.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 0
-# PROP Output_Dir ".."
+# PROP Output_Dir "..\tools"
 # PROP Intermediate_Dir "tmp\txt_converter_login\Release"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-# ADD CPP /nologo /W3 /O2 /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\win32\include" /FI"config.vc.h" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /D "TXT_SQL_CONVERT" /D "WITH_SQL" /D "WITH_TXT" /FD /c
+# ADD CPP /nologo /W3 /Zi /O2 /I "..\src\common" /I "..\3rdparty\msinttypes\include" /FI"config.vc.h" /D "WIN32" /D "NDEBUG" /D "WITH_TXT" /D "WITH_SQL" /FR /FD /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "NDEBUG"
 # ADD RSC /l 0x409 /d "NDEBUG"
@@ -51,7 +51,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /machine:I386
-# ADD LINK32 kernel32.lib libmysql.lib /nologo /subsystem:console /machine:I386 /libpath:"..\3rdparty\mysql\win32\lib"
+# ADD LINK32 /nologo /subsystem:console /machine:I386
 
 !ELSEIF  "$(CFG)" == "txt_converter_login - Win32 Debug"
 
@@ -62,12 +62,12 @@ LINK32=link.exe
 # PROP BASE Target_Dir ""
 # PROP Use_MFC 0
 # PROP Use_Debug_Libraries 1
-# PROP Output_Dir ".."
+# PROP Output_Dir "..\tools"
 # PROP Intermediate_Dir "tmp\txt_converter_login\Debug"
 # PROP Ignore_Export_Lib 0
 # PROP Target_Dir ""
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
-# ADD CPP /nologo /W3 /Gm /ZI /Od /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\mysql\win32\include" /FI"config.vc.h" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /D "TXT_SQL_CONVERT" /D "WITH_SQL" /D "WITH_TXT" /FR /FD /GZ /c
+# ADD CPP /nologo /W3 /Gm /ZI /Od /I "..\src\common" /I "..\3rdparty\msinttypes\include" /D "WIN32" /D "_DEBUG" /D "WITH_TXT" /D "WITH_SQL" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
 # ADD BASE RSC /l 0x409 /d "_DEBUG"
 # ADD RSC /l 0x409 /d "_DEBUG"
@@ -76,7 +76,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo /o"txt-converter-login.bsc"
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib libmysql.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept /libpath:"..\3rdparty\mysql\win32\lib"
+# ADD LINK32 /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
 
 !ENDIF 
 
@@ -84,94 +84,6 @@ LINK32=link.exe
 
 # Name "txt_converter_login - Win32 Release"
 # Name "txt_converter_login - Win32 Debug"
-# Begin Group "common"
-
-# PROP Default_Filter ""
-# Begin Source File
-
-SOURCE=..\src\common\cbasetypes.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\core.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\core.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\db.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\db.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\ers.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\ers.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\lock.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\lock.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\malloc.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\malloc.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\mmo.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\showmsg.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\showmsg.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\sql.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\sql.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\strlib.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\timer.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\timer.h
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\utils.c
-# End Source File
-# Begin Source File
-
-SOURCE=..\src\common\version.h
-# End Source File
-# End Group
 # Begin Group "login"
 
 # PROP Default_Filter ""
@@ -188,13 +100,9 @@ SOURCE=..\src\login\account_sql.c
 SOURCE=..\src\login\account_txt.c
 # End Source File
 # End Group
-# Begin Group "converter"
-
-# PROP Default_Filter ""
 # Begin Source File
 
 SOURCE="..\src\txt-converter\login-converter.c"
 # End Source File
-# End Group
 # End Target
 # End Project
