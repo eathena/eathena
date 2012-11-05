@@ -44,8 +44,8 @@ RSC=rc.exe
 # ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
 # ADD CPP /nologo /W3 /Zi /O2 /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\zlib\old\include" /FI"config.vc.h" /D "NDEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /FD /GF /c
 # SUBTRACT CPP /YX
-# ADD BASE RSC /l 0x405 /d "NDEBUG"
-# ADD RSC /l 0x417 /d "NDEBUG"
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -69,8 +69,8 @@ LINK32=link.exe
 # ADD BASE CPP /nologo /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /GZ /c
 # ADD CPP /nologo /W3 /Gm /Gi /ZI /Od /I "..\src\common" /I "..\3rdparty\msinttypes\include" /I "..\3rdparty\zlib\old\include" /FI"config.vc.h" /D "_DEBUG" /D "WIN32" /D "_CONSOLE" /D "_MBCS" /D "_WIN32" /D "__WIN32" /D "MINICORE" /FR /FD /GZ /c
 # SUBTRACT CPP /YX
-# ADD BASE RSC /l 0x405 /d "_DEBUG"
-# ADD RSC /l 0x417 /d "_DEBUG"
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo /o"mapcache.bsc"

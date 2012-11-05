@@ -48,8 +48,8 @@ RSC=rc.exe
 # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "NDEBUG" /Oicf /win32
 # SUBTRACT MTL /mktyplib203
-# ADD BASE RSC /l 0x405 /d "NDEBUG"
-# ADD RSC /l 0x417 /d "NDEBUG"
+# ADD BASE RSC /l 0x409 /d "NDEBUG"
+# ADD RSC /l 0x409 /d "NDEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo
@@ -76,8 +76,8 @@ LINK32=link.exe
 # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /win32
 # ADD MTL /nologo /D "_DEBUG" /Oicf /win32
 # SUBTRACT MTL /mktyplib203
-# ADD BASE RSC /l 0x405 /d "_DEBUG"
-# ADD RSC /l 0x417 /d "_DEBUG"
+# ADD BASE RSC /l 0x409 /d "_DEBUG"
+# ADD RSC /l 0x409 /d "_DEBUG"
 BSC32=bscmake.exe
 # ADD BASE BSC32 /nologo
 # ADD BSC32 /nologo /o"plugin-pid.bsc"
