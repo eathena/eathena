@@ -16,7 +16,7 @@
 			OutputDirectory="$(IntDir)"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1">
+			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
@@ -61,7 +61,7 @@
 			OutputDirectory="$(IntDir)"
 			IntermediateDirectory="$(ProjectName)\$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="1"
+			CharacterSet="2"
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
