@@ -4,6 +4,7 @@
 	Version="7.10"
 	Name="login-server_txt"
 	ProjectGUID="{D356871D-58E1-450B-967A-E2E9646175AF}"
+	RootNamespace="login-server_txt"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -19,32 +20,24 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;FD_SETSIZE=4096;WITH_TXT"
-				GeneratePreprocessedFile="0"
-				MinimalRebuild="TRUE"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;WITH_TXT"
 				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="TRUE"
-				DisableLanguageExtensions="FALSE"
 				DefaultCharIsUnsigned="FALSE"
-				TreatWChar_tAsBuiltInType="FALSE"
-				ForceConformanceInForLoopScope="FALSE"
-				RuntimeTypeInfo="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				WarnAsError="FALSE"
-				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib"
+				AdditionalDependencies="libcmtd.lib oldnames.lib"
 				ShowProgress="0"
 				OutputFile="$(OutDir)\login-server.exe"
 				LinkIncremental="2"
@@ -85,31 +78,28 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
-				ImproveFloatingPointConsistency="TRUE"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="TRUE"
 				EnableFiberSafeOptimizations="TRUE"
-				OptimizeForProcessor="2"
-				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;FD_SETSIZE=4096;WITH_TXT"
+				WholeProgramOptimization="TRUE"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;WITH_TXT"
 				StringPooling="TRUE"
-				RuntimeLibrary="3"
+				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				DisableSpecificWarnings="4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib"
+				AdditionalDependencies="libcmt.lib oldnames.lib"
 				OutputFile="$(OutDir)\login-server.exe"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories=""
@@ -119,7 +109,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
+				LinkTimeCodeGeneration="TRUE"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -146,144 +136,30 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="login_txt"
-			Filter="">
-			<File
-				RelativePath="..\src\login\account.h">
-			</File>
-			<File
-				RelativePath="..\src\login\account_txt.c">
-			</File>
-			<File
-				RelativePath="..\src\login\ipban.h">
-			</File>
-			<File
-				RelativePath="..\src\login\ipban_txt.c">
-			</File>
-			<File
-				RelativePath="..\src\login\login.c">
-			</File>
-			<File
-				RelativePath="..\src\login\login.h">
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog.h">
-			</File>
-			<File
-				RelativePath="..\src\login\loginlog_txt.c">
-			</File>
-		</Filter>
-		<Filter
-			Name="common"
-			Filter="">
-			<File
-				RelativePath="..\src\common\cbasetypes.h">
-			</File>
-			<File
-				RelativePath="..\src\common\core.c">
-			</File>
-			<File
-				RelativePath="..\src\common\core.h">
-			</File>
-			<File
-				RelativePath="..\src\common\db.c">
-			</File>
-			<File
-				RelativePath="..\src\common\db.h">
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c">
-			</File>
-			<File
-				RelativePath="..\src\common\ers.h">
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c">
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h">
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.c">
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.h">
-			</File>
-			<File
-				RelativePath="..\src\common\md5calc.c">
-			</File>
-			<File
-				RelativePath="..\src\common\md5calc.h">
-			</File>
-			<File
-				RelativePath="..\src\common\mmo.h">
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.c">
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.h">
-			</File>
-			<File
-				RelativePath="..\src\common\plugin.h">
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.c">
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.h">
-			</File>
-			<File
-				RelativePath="..\src\common\random.c">
-			</File>
-			<File
-				RelativePath="..\src\common\random.h">
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.c">
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.h">
-			</File>
-			<File
-				RelativePath="..\src\common\socket.c">
-			</File>
-			<File
-				RelativePath="..\src\common\socket.h">
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.c">
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.h">
-			</File>
-			<File
-				RelativePath="..\src\common\timer.c">
-			</File>
-			<File
-				RelativePath="..\src\common\timer.h">
-			</File>
-			<File
-				RelativePath="..\src\common\utils.c">
-			</File>
-			<File
-				RelativePath="..\src\common\utils.h">
-			</File>
-			<File
-				RelativePath="..\src\common\version.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="3rdparty"
-			Filter="">
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.c">
-			</File>
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.h">
-			</File>
-		</Filter>
+		<File
+			RelativePath="..\src\login\account.h">
+		</File>
+		<File
+			RelativePath="..\src\login\account_txt.c">
+		</File>
+		<File
+			RelativePath="..\src\login\ipban.h">
+		</File>
+		<File
+			RelativePath="..\src\login\ipban_txt.c">
+		</File>
+		<File
+			RelativePath="..\src\login\login.c">
+		</File>
+		<File
+			RelativePath="..\src\login\login.h">
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog.h">
+		</File>
+		<File
+			RelativePath="..\src\login\loginlog_txt.c">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>

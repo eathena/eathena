@@ -4,6 +4,7 @@
 	Version="7.10"
 	Name="map-server_sql"
 	ProjectGUID="{D356871D-58E1-450B-967A-E6E9646175AF}"
+	RootNamespace="map-server_sql"
 	Keyword="Win32Proj">
 	<Platforms>
 		<Platform
@@ -18,34 +19,28 @@
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018
-/wd4100"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;FD_SETSIZE=4096"
-				GeneratePreprocessedFile="0"
-				MinimalRebuild="TRUE"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\pcre\old\include"
+				PreprocessorDefinitions="WIN32;_DEBUG;PCRE_SUPPORT"
 				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="3"
-				BufferSecurityCheck="TRUE"
+				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="TRUE"
 				DefaultCharIsUnsigned="FALSE"
-				ForceConformanceInForLoopScope="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="4"
 				CompileAs="1"
+				DisableSpecificWarnings="4018;4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrtd.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
-				OutputFile="$(OutDir)\map-server_sql.exe"
+				AdditionalDependencies="libcmtd.lib oldnames.lib pcre.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib;..\3rdparty\zlib\old\lib;..\3rdparty\pcre\old\lib"
+				AdditionalLibraryDirectories="..\3rdparty\pcre\old\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
@@ -82,37 +77,32 @@
 			WholeProgramOptimization="TRUE">
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalOptions="/wd4018
-/wd4100"
 				Optimization="2"
-				GlobalOptimizations="TRUE"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="TRUE"
-				ImproveFloatingPointConsistency="TRUE"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="TRUE"
 				EnableFiberSafeOptimizations="TRUE"
-				OptimizeForProcessor="2"
-				OptimizeForWindowsApplication="TRUE"
-				AdditionalIncludeDirectories="..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar"
-				PreprocessorDefinitions="WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;FD_SETSIZE=4096"
+				WholeProgramOptimization="TRUE"
+				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\pcre\old\include"
+				PreprocessorDefinitions="WIN32;NDEBUG;PCRE_SUPPORT"
 				StringPooling="TRUE"
-				RuntimeLibrary="3"
+				RuntimeLibrary="0"
 				DefaultCharIsUnsigned="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
-				Detect64BitPortabilityProblems="FALSE"
 				DebugInformationFormat="3"
 				CompileAs="1"
+				DisableSpecificWarnings="4018;4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="msvcrt.lib oldnames.lib ws2_32.lib libmysql.lib zdll.lib pcre.lib"
-				OutputFile="$(OutDir)\map-server_sql.exe"
+				AdditionalDependencies="libcmt.lib oldnames.lib pcre.lib"
+				OutputFile="$(OutDir)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib;..\3rdparty\zlib\old\lib;..\3rdparty\pcre\old\lib"
+				AdditionalLibraryDirectories="..\3rdparty\pcre\old\lib"
 				IgnoreAllDefaultLibraries="TRUE"
 				IgnoreDefaultLibraryNames=""
 				GenerateDebugInformation="TRUE"
@@ -120,7 +110,7 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				OptimizeForWindows98="1"
+				LinkTimeCodeGeneration="TRUE"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
@@ -147,363 +137,225 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="map_sql"
-			Filter="">
-			<File
-				RelativePath="..\src\map\atcommand.c">
-			</File>
-			<File
-				RelativePath="..\src\map\atcommand.h">
-			</File>
-			<File
-				RelativePath="..\src\map\battle.c">
-			</File>
-			<File
-				RelativePath="..\src\map\battle.h">
-			</File>
-			<File
-				RelativePath="..\src\map\battleground.c">
-			</File>
-			<File
-				RelativePath="..\src\map\battleground.h">
-			</File>
-			<File
-				RelativePath="..\src\map\buyingstore.c">
-			</File>
-			<File
-				RelativePath="..\src\map\buyingstore.h">
-			</File>
-			<File
-				RelativePath="..\src\map\chat.c">
-			</File>
-			<File
-				RelativePath="..\src\map\chat.h">
-			</File>
-			<File
-				RelativePath="..\src\map\chrif.c">
-			</File>
-			<File
-				RelativePath="..\src\map\chrif.h">
-			</File>
-			<File
-				RelativePath="..\src\map\clif.c">
-			</File>
-			<File
-				RelativePath="..\src\map\clif.h">
-			</File>
-			<File
-				RelativePath="..\src\map\date.c">
-			</File>
-			<File
-				RelativePath="..\src\map\date.h">
-			</File>
-			<File
-				RelativePath="..\src\map\duel.c">
-			</File>
-			<File
-				RelativePath="..\src\map\duel.h">
-			</File>
-			<File
-				RelativePath="..\src\map\guild.c">
-			</File>
-			<File
-				RelativePath="..\src\map\guild.h">
-			</File>
-			<File
-				RelativePath="..\src\map\guild_castle.c">
-			</File>
-			<File
-				RelativePath="..\src\map\guild_castle.h">
-			</File>
-			<File
-				RelativePath="..\src\map\guild_expcache.c">
-			</File>
-			<File
-				RelativePath="..\src\map\guild_expcache.h">
-			</File>
-			<File
-				RelativePath="..\src\map\intif.c">
-			</File>
-			<File
-				RelativePath="..\src\map\intif.h">
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.c">
-			</File>
-			<File
-				RelativePath="..\src\map\itemdb.h">
-			</File>
-			<File
-				RelativePath="..\src\map\log.c">
-			</File>
-			<File
-				RelativePath="..\src\map\log.h">
-			</File>
-			<File
-				RelativePath="..\src\map\mail.c">
-			</File>
-			<File
-				RelativePath="..\src\map\mail.h">
-			</File>
-			<File
-				RelativePath="..\src\map\map.c">
-			</File>
-			<File
-				RelativePath="..\src\map\map.h">
-			</File>
-			<File
-				RelativePath="..\src\map\mapreg.h">
-			</File>
-			<File
-				RelativePath="..\src\map\mapreg_sql.c">
-			</File>
-			<File
-				RelativePath="..\src\map\homunculus.c">
-			</File>
-			<File
-				RelativePath="..\src\map\homunculus.h">
-			</File>
-			<File
-				RelativePath="..\src\map\instance.c">
-			</File>
-			<File
-				RelativePath="..\src\map\instance.h">
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.c">
-			</File>
-			<File
-				RelativePath="..\src\map\mercenary.h">
-			</File>
-			<File
-				RelativePath="..\src\map\mob.c">
-			</File>
-			<File
-				RelativePath="..\src\map\mob.h">
-			</File>
-			<File
-				RelativePath="..\src\map\npc.c">
-			</File>
-			<File
-				RelativePath="..\src\map\npc.h">
-			</File>
-			<File
-				RelativePath="..\src\map\npc_chat.c">
-			</File>
-			<File
-				RelativePath="..\src\map\party.c">
-			</File>
-			<File
-				RelativePath="..\src\map\party.h">
-			</File>
-			<File
-				RelativePath="..\src\map\path.c">
-			</File>
-			<File
-				RelativePath="..\src\map\path.h">
-			</File>
-			<File
-				RelativePath="..\src\map\pc.c">
-			</File>
-			<File
-				RelativePath="..\src\map\pc.h">
-			</File>
-			<File
-				RelativePath="..\src\map\pet.c">
-			</File>
-			<File
-				RelativePath="..\src\map\pet.h">
-			</File>
-			<File
-				RelativePath="..\src\map\quest.c">
-			</File>
-			<File
-				RelativePath="..\src\map\quest.h">
-			</File>
-			<File
-				RelativePath="..\src\map\script.c">
-			</File>
-			<File
-				RelativePath="..\src\map\script.h">
-			</File>
-			<File
-				RelativePath="..\src\map\searchstore.c">
-			</File>
-			<File
-				RelativePath="..\src\map\searchstore.h">
-			</File>
-			<File
-				RelativePath="..\src\map\skill.c">
-			</File>
-			<File
-				RelativePath="..\src\map\skill.h">
-			</File>
-			<File
-				RelativePath="..\src\map\status.c">
-			</File>
-			<File
-				RelativePath="..\src\map\status.h">
-			</File>
-			<File
-				RelativePath="..\src\map\storage.c">
-			</File>
-			<File
-				RelativePath="..\src\map\storage.h">
-			</File>
-			<File
-				RelativePath="..\src\map\trade.c">
-			</File>
-			<File
-				RelativePath="..\src\map\trade.h">
-			</File>
-			<File
-				RelativePath="..\src\map\unit.c">
-			</File>
-			<File
-				RelativePath="..\src\map\unit.h">
-			</File>
-			<File
-				RelativePath="..\src\map\vending.c">
-			</File>
-			<File
-				RelativePath="..\src\map\vending.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="common"
-			Filter="">
-			<File
-				RelativePath="..\src\common\cbasetypes.h">
-			</File>
-			<File
-				RelativePath="..\src\common\core.c">
-			</File>
-			<File
-				RelativePath="..\src\common\core.h">
-			</File>
-			<File
-				RelativePath="..\src\common\db.c">
-			</File>
-			<File
-				RelativePath="..\src\common\db.h">
-			</File>
-			<File
-				RelativePath="..\src\common\des.c">
-			</File>
-			<File
-				RelativePath="..\src\common\des.h">
-			</File>
-			<File
-				RelativePath="..\src\common\ers.c">
-			</File>
-			<File
-				RelativePath="..\src\common\ers.h">
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.c">
-			</File>
-			<File
-				RelativePath="..\src\common\grfio.h">
-			</File>
-			<File
-				RelativePath="..\src\common\lock.c">
-			</File>
-			<File
-				RelativePath="..\src\common\lock.h">
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.c">
-			</File>
-			<File
-				RelativePath="..\src\common\malloc.h">
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.c">
-			</File>
-			<File
-				RelativePath="..\src\common\mapindex.h">
-			</File>
-			<File
-				RelativePath="..\src\common\md5calc.c">
-			</File>
-			<File
-				RelativePath="..\src\common\md5calc.h">
-			</File>
-			<File
-				RelativePath="..\src\common\mmo.h">
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.c">
-			</File>
-			<File
-				RelativePath="..\src\common\nullpo.h">
-			</File>
-			<File
-				RelativePath="..\src\common\plugin.h">
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.c">
-			</File>
-			<File
-				RelativePath="..\src\common\plugins.h">
-			</File>
-			<File
-				RelativePath="..\src\common\random.c">
-			</File>
-			<File
-				RelativePath="..\src\common\random.h">
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.c">
-			</File>
-			<File
-				RelativePath="..\src\common\showmsg.h">
-			</File>
-			<File
-				RelativePath="..\src\common\socket.c">
-			</File>
-			<File
-				RelativePath="..\src\common\socket.h">
-			</File>
-			<File
-				RelativePath="..\src\common\sql.c">
-			</File>
-			<File
-				RelativePath="..\src\common\sql.h">
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.c">
-			</File>
-			<File
-				RelativePath="..\src\common\strlib.h">
-			</File>
-			<File
-				RelativePath="..\src\common\timer.c">
-			</File>
-			<File
-				RelativePath="..\src\common\timer.h">
-			</File>
-			<File
-				RelativePath="..\src\common\utils.c">
-			</File>
-			<File
-				RelativePath="..\src\common\utils.h">
-			</File>
-			<File
-				RelativePath="..\src\common\version.h">
-			</File>
-		</Filter>
-		<Filter
-			Name="3rdparty"
-			Filter="">
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.c">
-			</File>
-			<File
-				RelativePath="..\3rdparty\mt19937ar\mt19937ar.h">
-			</File>
-		</Filter>
+		<File
+			RelativePath="..\src\map\atcommand.c">
+		</File>
+		<File
+			RelativePath="..\src\map\atcommand.h">
+		</File>
+		<File
+			RelativePath="..\src\map\battle.c">
+		</File>
+		<File
+			RelativePath="..\src\map\battle.h">
+		</File>
+		<File
+			RelativePath="..\src\map\battleground.c">
+		</File>
+		<File
+			RelativePath="..\src\map\battleground.h">
+		</File>
+		<File
+			RelativePath="..\src\map\buyingstore.c">
+		</File>
+		<File
+			RelativePath="..\src\map\buyingstore.h">
+		</File>
+		<File
+			RelativePath="..\src\map\chat.c">
+		</File>
+		<File
+			RelativePath="..\src\map\chat.h">
+		</File>
+		<File
+			RelativePath="..\src\map\chrif.c">
+		</File>
+		<File
+			RelativePath="..\src\map\chrif.h">
+		</File>
+		<File
+			RelativePath="..\src\map\clif.c">
+		</File>
+		<File
+			RelativePath="..\src\map\clif.h">
+		</File>
+		<File
+			RelativePath="..\src\map\date.c">
+		</File>
+		<File
+			RelativePath="..\src\map\date.h">
+		</File>
+		<File
+			RelativePath="..\src\map\duel.c">
+		</File>
+		<File
+			RelativePath="..\src\map\duel.h">
+		</File>
+		<File
+			RelativePath="..\src\map\guild.c">
+		</File>
+		<File
+			RelativePath="..\src\map\guild.h">
+		</File>
+		<File
+			RelativePath="..\src\map\guild_castle.c">
+		</File>
+		<File
+			RelativePath="..\src\map\guild_castle.h">
+		</File>
+		<File
+			RelativePath="..\src\map\guild_expcache.c">
+		</File>
+		<File
+			RelativePath="..\src\map\guild_expcache.h">
+		</File>
+		<File
+			RelativePath="..\src\map\homunculus.c">
+		</File>
+		<File
+			RelativePath="..\src\map\homunculus.h">
+		</File>
+		<File
+			RelativePath="..\src\map\instance.c">
+		</File>
+		<File
+			RelativePath="..\src\map\instance.h">
+		</File>
+		<File
+			RelativePath="..\src\map\intif.c">
+		</File>
+		<File
+			RelativePath="..\src\map\intif.h">
+		</File>
+		<File
+			RelativePath="..\src\map\itemdb.c">
+		</File>
+		<File
+			RelativePath="..\src\map\itemdb.h">
+		</File>
+		<File
+			RelativePath="..\src\map\log.c">
+		</File>
+		<File
+			RelativePath="..\src\map\log.h">
+		</File>
+		<File
+			RelativePath="..\src\map\mail.c">
+		</File>
+		<File
+			RelativePath="..\src\map\mail.h">
+		</File>
+		<File
+			RelativePath="..\src\map\map.c">
+		</File>
+		<File
+			RelativePath="..\src\map\map.h">
+		</File>
+		<File
+			RelativePath="..\src\map\mapreg.h">
+		</File>
+		<File
+			RelativePath="..\src\map\mapreg_sql.c">
+		</File>
+		<File
+			RelativePath="..\src\map\mercenary.c">
+		</File>
+		<File
+			RelativePath="..\src\map\mercenary.h">
+		</File>
+		<File
+			RelativePath="..\src\map\mob.c">
+		</File>
+		<File
+			RelativePath="..\src\map\mob.h">
+		</File>
+		<File
+			RelativePath="..\src\map\npc.c">
+		</File>
+		<File
+			RelativePath="..\src\map\npc.h">
+		</File>
+		<File
+			RelativePath="..\src\map\npc_chat.c">
+		</File>
+		<File
+			RelativePath="..\src\map\party.c">
+		</File>
+		<File
+			RelativePath="..\src\map\party.h">
+		</File>
+		<File
+			RelativePath="..\src\map\path.c">
+		</File>
+		<File
+			RelativePath="..\src\map\path.h">
+		</File>
+		<File
+			RelativePath="..\src\map\pc.c">
+		</File>
+		<File
+			RelativePath="..\src\map\pc.h">
+		</File>
+		<File
+			RelativePath="..\src\map\pet.c">
+		</File>
+		<File
+			RelativePath="..\src\map\pet.h">
+		</File>
+		<File
+			RelativePath="..\src\map\quest.c">
+		</File>
+		<File
+			RelativePath="..\src\map\quest.h">
+		</File>
+		<File
+			RelativePath="..\src\map\script.c">
+		</File>
+		<File
+			RelativePath="..\src\map\script.h">
+		</File>
+		<File
+			RelativePath="..\src\map\searchstore.c">
+		</File>
+		<File
+			RelativePath="..\src\map\searchstore.h">
+		</File>
+		<File
+			RelativePath="..\src\map\skill.c">
+		</File>
+		<File
+			RelativePath="..\src\map\skill.h">
+		</File>
+		<File
+			RelativePath="..\src\map\status.c">
+		</File>
+		<File
+			RelativePath="..\src\map\status.h">
+		</File>
+		<File
+			RelativePath="..\src\map\storage.c">
+		</File>
+		<File
+			RelativePath="..\src\map\storage.h">
+		</File>
+		<File
+			RelativePath="..\src\map\trade.c">
+		</File>
+		<File
+			RelativePath="..\src\map\trade.h">
+		</File>
+		<File
+			RelativePath="..\src\map\unit.c">
+		</File>
+		<File
+			RelativePath="..\src\map\unit.h">
+		</File>
+		<File
+			RelativePath="..\src\map\vending.c">
+		</File>
+		<File
+			RelativePath="..\src\map\vending.h">
+		</File>
 	</Files>
 	<Globals>
 	</Globals>
