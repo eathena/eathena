@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 ws2_32.lib /nologo
+# ADD LIB32 ws2_32.lib zdll.lib /nologo /libpath:"..\3rdparty\zlib\old\lib"
 
 !ELSEIF  "$(CFG)" == "common - Win32 Debug"
 
