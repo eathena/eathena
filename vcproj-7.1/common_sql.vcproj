@@ -22,9 +22,9 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mysql\win32\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;FD_SETSIZE=4096"
-				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
+				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -35,8 +35,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				AdditionalDependencies="libmysql.lib"
-				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"
-				IgnoreAllDefaultLibraries="TRUE"/>
+				AdditionalLibraryDirectories="..\3rdparty\mysql\win32\lib"/>
 			<Tool
 				Name="VCMIDLTool"/>
 			<Tool
@@ -69,7 +68,6 @@
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\mysql\win32\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;FD_SETSIZE=4096"
 				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"

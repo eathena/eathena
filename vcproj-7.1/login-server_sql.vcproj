@@ -22,15 +22,12 @@
 				Optimization="0"
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;WITH_SQL"
-				ExceptionHandling="FALSE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				EnableFunctionLevelLinking="TRUE"
-				DefaultCharIsUnsigned="FALSE"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="4"
-				CompileAs="1"
 				DisableSpecificWarnings="4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
@@ -78,23 +75,14 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="TRUE"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="TRUE"
-				EnableFiberSafeOptimizations="TRUE"
-				WholeProgramOptimization="TRUE"
 				AdditionalIncludeDirectories="..\src\common;..\3rdparty\msinttypes\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;WITH_SQL"
-				StringPooling="TRUE"
 				RuntimeLibrary="0"
-				DefaultCharIsUnsigned="FALSE"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough=""
 				PrecompiledHeaderFile=""
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				CompileAs="1"
 				DisableSpecificWarnings="4100;4800;4996"
 				ForcedIncludeFiles="config.vc.h"/>
 			<Tool
@@ -112,7 +100,6 @@
 				SubSystem="1"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="TRUE"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"/>
