@@ -37,82 +37,59 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">..\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">..\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectName)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">map-server_sql</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">map-server_sql</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;__WIN32;_DEBUG;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessToFile>false</PreprocessToFile>
-      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
-      <ExceptionHandling>
-      </ExceptionHandling>
+      <AdditionalIncludeDirectories>..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\pcre\old\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;PCRE_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <AdditionalOptions>
-      </AdditionalOptions>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <CompileAs>CompileAsC</CompileAs>
-      <DisableSpecificWarnings>4018;4100;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4100;4800;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>config.vc.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <ForcedIncludeFiles>config.vc.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcmtd.lib;oldnames.lib;ws2_32.lib;libmysql.lib;zdll.lib;pcre.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>..\3rdparty\mysql\win32\lib;..\3rdparty\zlib\old\lib;..\3rdparty\pcre\old\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcmtd.lib;oldnames.lib;pcre.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\3rdparty\pcre\old\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)$(ProjectName).pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
-      <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalIncludeDirectories>..\src\common;..\3rdparty\mysql\win32\include;..\3rdparty\zlib\old\include;..\3rdparty\pcre\old\include;..\3rdparty\msinttypes\include;..\3rdparty\mt19937ar;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN32;__WIN32;NDEBUG;PCRE_SUPPORT;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;FD_SETSIZE=4096;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <StringPooling>true</StringPooling>
+      <AdditionalIncludeDirectories>..\src\common;..\3rdparty\msinttypes\include;..\3rdparty\pcre\old\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;PCRE_SUPPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalOptions>
-      </AdditionalOptions>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAs>CompileAsC</CompileAs>
-      <DisableSpecificWarnings>4018;4100;4800;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4018;4100;4800;4996;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ForcedIncludeFiles>config.vc.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <ForcedIncludeFiles>config.vc.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>libcmt.lib;oldnames.lib;ws2_32.lib;libmysql.lib;zdll.lib;pcre.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>$(OutDir)$(ProjectName).exe</OutputFile>
-      <AdditionalLibraryDirectories>..\3rdparty\mysql\win32\lib;..\3rdparty\zlib\old\lib;..\3rdparty\pcre\old\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcmt.lib;oldnames.lib;pcre.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\3rdparty\pcre\old\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -122,90 +99,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
-      <DataExecutionPrevention>
-      </DataExecutionPrevention>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\3rdparty\mt19937ar\mt19937ar.h" />
-    <ClInclude Include="..\src\common\cbasetypes.h" />
-    <ClInclude Include="..\src\common\core.h" />
-    <ClInclude Include="..\src\common\db.h" />
-    <ClInclude Include="..\src\common\des.h" />
-    <ClInclude Include="..\src\common\ers.h" />
-    <ClInclude Include="..\src\common\grfio.h" />
-    <ClInclude Include="..\src\common\malloc.h" />
-    <ClInclude Include="..\src\common\mapindex.h" />
-    <ClInclude Include="..\src\common\md5calc.h" />
-    <ClInclude Include="..\src\common\mmo.h" />
-    <ClInclude Include="..\src\common\nullpo.h" />
-    <ClInclude Include="..\src\common\plugin.h" />
-    <ClInclude Include="..\src\common\plugins.h" />
-    <ClInclude Include="..\src\common\random.h" />
-    <ClInclude Include="..\src\common\showmsg.h" />
-    <ClInclude Include="..\src\common\socket.h" />
-    <ClInclude Include="..\src\common\sql.h" />
-    <ClInclude Include="..\src\common\strlib.h" />
-    <ClInclude Include="..\src\common\timer.h" />
-    <ClInclude Include="..\src\common\utils.h" />
-    <ClInclude Include="..\src\common\version.h" />
-    <ClInclude Include="..\src\map\atcommand.h" />
-    <ClInclude Include="..\src\map\battle.h" />
-    <ClInclude Include="..\src\map\battleground.h" />
-    <ClInclude Include="..\src\map\buyingstore.h" />
-    <ClInclude Include="..\src\map\chat.h" />
-    <ClInclude Include="..\src\map\chrif.h" />
-    <ClInclude Include="..\src\map\clif.h" />
-    <ClInclude Include="..\src\map\date.h" />
-    <ClInclude Include="..\src\map\duel.h" />
-    <ClInclude Include="..\src\map\guild.h" />
-    <ClInclude Include="..\src\map\guild_castle.h" />
-    <ClInclude Include="..\src\map\guild_expcache.h" />
-    <ClInclude Include="..\src\map\intif.h" />
-    <ClInclude Include="..\src\map\itemdb.h" />
-    <ClInclude Include="..\src\map\log.h" />
-    <ClInclude Include="..\src\map\mail.h" />
-    <ClInclude Include="..\src\map\map.h" />
-    <ClInclude Include="..\src\map\mapreg.h" />
-    <ClInclude Include="..\src\map\homunculus.h" />
-    <ClInclude Include="..\src\map\instance.h" />
-    <ClInclude Include="..\src\map\mercenary.h" />
-    <ClInclude Include="..\src\map\mob.h" />
-    <ClInclude Include="..\src\map\npc.h" />
-    <ClInclude Include="..\src\map\party.h" />
-    <ClInclude Include="..\src\map\path.h" />
-    <ClInclude Include="..\src\map\pc.h" />
-    <ClInclude Include="..\src\map\pet.h" />
-    <ClInclude Include="..\src\map\quest.h" />
-    <ClInclude Include="..\src\map\script.h" />
-    <ClInclude Include="..\src\map\searchstore.h" />
-    <ClInclude Include="..\src\map\skill.h" />
-    <ClInclude Include="..\src\map\status.h" />
-    <ClInclude Include="..\src\map\storage.h" />
-    <ClInclude Include="..\src\map\trade.h" />
-    <ClInclude Include="..\src\map\unit.h" />
-    <ClInclude Include="..\src\map\vending.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\3rdparty\mt19937ar\mt19937ar.c" />
-    <ClCompile Include="..\src\common\core.c" />
-    <ClCompile Include="..\src\common\db.c" />
-    <ClCompile Include="..\src\common\des.c" />
-    <ClCompile Include="..\src\common\ers.c" />
-    <ClCompile Include="..\src\common\grfio.c" />
-    <ClCompile Include="..\src\common\malloc.c" />
-    <ClCompile Include="..\src\common\mapindex.c" />
-    <ClCompile Include="..\src\common\md5calc.c" />
-    <ClCompile Include="..\src\common\nullpo.c" />
-    <ClCompile Include="..\src\common\plugins.c" />
-    <ClCompile Include="..\src\common\random.c" />
-    <ClCompile Include="..\src\common\showmsg.c" />
-    <ClCompile Include="..\src\common\socket.c" />
-    <ClCompile Include="..\src\common\sql.c" />
-    <ClCompile Include="..\src\common\strlib.c" />
-    <ClCompile Include="..\src\common\timer.c" />
-    <ClCompile Include="..\src\common\utils.c" />
     <ClCompile Include="..\src\map\atcommand.c" />
     <ClCompile Include="..\src\map\battle.c" />
     <ClCompile Include="..\src\map\battleground.c" />
@@ -218,14 +115,14 @@
     <ClCompile Include="..\src\map\guild.c" />
     <ClCompile Include="..\src\map\guild_castle.c" />
     <ClCompile Include="..\src\map\guild_expcache.c" />
+    <ClCompile Include="..\src\map\homunculus.c" />
+    <ClCompile Include="..\src\map\instance.c" />
     <ClCompile Include="..\src\map\intif.c" />
     <ClCompile Include="..\src\map\itemdb.c" />
     <ClCompile Include="..\src\map\log.c" />
     <ClCompile Include="..\src\map\mail.c" />
     <ClCompile Include="..\src\map\map.c" />
     <ClCompile Include="..\src\map\mapreg_sql.c" />
-    <ClCompile Include="..\src\map\homunculus.c" />
-    <ClCompile Include="..\src\map\instance.c" />
     <ClCompile Include="..\src\map\mercenary.c" />
     <ClCompile Include="..\src\map\mob.c" />
     <ClCompile Include="..\src\map\npc.c" />
@@ -243,6 +140,44 @@
     <ClCompile Include="..\src\map\trade.c" />
     <ClCompile Include="..\src\map\unit.c" />
     <ClCompile Include="..\src\map\vending.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\map\atcommand.h" />
+    <ClInclude Include="..\src\map\battle.h" />
+    <ClInclude Include="..\src\map\battleground.h" />
+    <ClInclude Include="..\src\map\buyingstore.h" />
+    <ClInclude Include="..\src\map\chat.h" />
+    <ClInclude Include="..\src\map\chrif.h" />
+    <ClInclude Include="..\src\map\clif.h" />
+    <ClInclude Include="..\src\map\date.h" />
+    <ClInclude Include="..\src\map\duel.h" />
+    <ClInclude Include="..\src\map\guild.h" />
+    <ClInclude Include="..\src\map\guild_castle.h" />
+    <ClInclude Include="..\src\map\guild_expcache.h" />
+    <ClInclude Include="..\src\map\homunculus.h" />
+    <ClInclude Include="..\src\map\instance.h" />
+    <ClInclude Include="..\src\map\intif.h" />
+    <ClInclude Include="..\src\map\itemdb.h" />
+    <ClInclude Include="..\src\map\log.h" />
+    <ClInclude Include="..\src\map\mail.h" />
+    <ClInclude Include="..\src\map\map.h" />
+    <ClInclude Include="..\src\map\mapreg.h" />
+    <ClInclude Include="..\src\map\mercenary.h" />
+    <ClInclude Include="..\src\map\mob.h" />
+    <ClInclude Include="..\src\map\npc.h" />
+    <ClInclude Include="..\src\map\party.h" />
+    <ClInclude Include="..\src\map\path.h" />
+    <ClInclude Include="..\src\map\pc.h" />
+    <ClInclude Include="..\src\map\pet.h" />
+    <ClInclude Include="..\src\map\quest.h" />
+    <ClInclude Include="..\src\map\script.h" />
+    <ClInclude Include="..\src\map\searchstore.h" />
+    <ClInclude Include="..\src\map\skill.h" />
+    <ClInclude Include="..\src\map\status.h" />
+    <ClInclude Include="..\src\map\storage.h" />
+    <ClInclude Include="..\src\map\trade.h" />
+    <ClInclude Include="..\src\map\unit.h" />
+    <ClInclude Include="..\src\map\vending.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
