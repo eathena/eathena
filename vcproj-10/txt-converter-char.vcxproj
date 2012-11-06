@@ -159,6 +159,17 @@
     <ClInclude Include="..\src\char_sql\int_storage.h" />
     <ClInclude Include="..\src\char_sql\inter.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="char-server_sql.vcxproj">
+      <Project>{d356871d-58e1-450b-967a-e4e9646175af}</Project>
+    </ProjectReference>
+    <ProjectReference Include="char-server_txt.vcxproj">
+      <Project>{d356871d-58e1-450b-967a-e3e9646175af}</Project>
+    </ProjectReference>
+    <ProjectReference Include="common_sql.vcxproj">
+      <Project>{bde2d833-0f23-4c00-80b5-e60917551a24}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

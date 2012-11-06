@@ -130,6 +130,11 @@
     <ClInclude Include="..\src\char_sql\int_storage.h" />
     <ClInclude Include="..\src\char_sql\inter.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="common_sql.vcxproj">
+      <Project>{bde2d833-0f23-4c00-80b5-e60917551a24}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

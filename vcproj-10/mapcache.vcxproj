@@ -104,6 +104,11 @@
   <ItemGroup>
     <ClCompile Include="..\src\tool\mapcache.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="common.vcxproj">
+      <Project>{413af196-4a87-48f0-a459-36397cfe3a6c}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
