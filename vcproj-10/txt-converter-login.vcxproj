@@ -119,12 +119,6 @@
     <ProjectReference Include="common_sql.vcxproj">
       <Project>{bde2d833-0f23-4c00-80b5-e60917551a24}</Project>
     </ProjectReference>
-    <ProjectReference Include="login-server_sql.vcxproj">
-      <Project>{d356871d-58e1-450b-967a-e5e9646175af}</Project>
-    </ProjectReference>
-    <ProjectReference Include="login-server_txt.vcxproj">
-      <Project>{d356871d-58e1-450b-967a-e2e9646175af}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
