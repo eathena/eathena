@@ -2,6 +2,7 @@
 // For more information, see LICENCE in the main folder
 
 #include "../common/cbasetypes.h"
+#include "../common/db.h"
 #include "../common/des.h"
 #include "../common/malloc.h"
 #include "../common/showmsg.h"
@@ -23,7 +24,6 @@ typedef struct _FILELIST {
 	int		srclen_aligned;
 	int		declen;				// original size
 	int		srcpos;				// position of entry in grf
-	int		next;				// index of next filelist entry with same hash (-1: end of entry chain)
 	char	type;
 	char	fn[128-4*5];		// file name
 	char*	fnd;				// if the file was cloned, contains name of original file
@@ -31,8 +31,8 @@ typedef struct _FILELIST {
 } FILELIST;
 
 #define FILELIST_TYPE_FILE           0x01 // entry is a file
-#define FILELIST_TYPE_ENCRYPT_HEADER 0x04 // encryption mode 1 (header DES only)
-#define FILELIST_TYPE_ENCRYPT_MIXED  0x02 // encryption mode 0 (header DES + periodic DES/shuffle)
+#define FILELIST_TYPE_ENCRYPT_HEADER 0x04 // data is encoded (header DES only)
+#define FILELIST_TYPE_ENCRYPT_MIXED  0x02 // data is encoded (header DES + periodic DES/shuffle)
 
 //gentry ... > 0  : data read from a grf file (gentry_table[gentry-1])
 //gentry ... 0    : data read from a local file (data directory)
@@ -45,9 +45,7 @@ typedef struct _FILELIST {
 
 
 // stores info about every loaded file
-FILELIST* filelist		= NULL;
-int filelist_entrys		= 0;
-int filelist_maxentry	= 0;
+DBMap* filelist = NULL;
 
 // stores grf file names
 char** gentry_table		= NULL;
@@ -260,100 +258,47 @@ int encode_zip(void* dest, unsigned long* destLen, const void* source, unsigned 
 /***********************************************************
  ***                File List Subroutines                ***
  ***********************************************************/
-// file list hash table
-int filelist_hash[256];
 
-// initializes the table that holds the first elements of all hash chains
-static void hashinit(void)
-{
-	int i;
-	for (i = 0; i < 256; i++)
-		filelist_hash[i] = -1;
-}
-
-// hashes a filename string into a number from {0..255}
-static int filehash(const char* fname)
-{
-	unsigned int hash = 0;
-	while(*fname) {
-		hash = (hash<<1) + (hash>>7)*9 + TOLOWER(*fname);
-		fname++;
-	}
-	return hash & 255;
-}
 
 // finds a FILELIST entry with the specified file name
 static FILELIST* filelist_find(const char* fname)
 {
-	int hash, index;
-
-	if (!filelist)
-		return NULL;
-
-	hash = filelist_hash[filehash(fname)];
-	for (index = hash; index != -1; index = filelist[index].next)
-		if(!strcmpi(filelist[index].fn, fname))
-			break;
-
-	return (index >= 0) ? &filelist[index] : NULL;
+	return (FILELIST*)strdb_get(filelist, fname);
 }
+
+
+// adds a new FILELIST entry or overwrites an existing one
+static void filelist_modify(FILELIST* entry)
+{
+	FILELIST* fentry = filelist_find(entry->fn);
+	if( fentry != NULL )
+	{
+		memcpy(fentry, entry, sizeof(FILELIST));
+	}
+	else
+	{
+		fentry = (FILELIST*)aMalloc(sizeof(FILELIST));
+		memcpy(fentry, entry, sizeof(FILELIST));
+		strdb_put(filelist, fentry->fn, fentry);
+	}
+}
+
+
+static int filelist_final_sub(DBKey key, void* data, va_list args)
+{
+	FILELIST* fentry = (FILELIST*)data;
+	if( fentry && fentry->fnd != NULL )
+		aFree(fentry->fnd);
+	return 0;
+}
+
 
 // returns the original file name
 char* grfio_find_file(const char* fname)
 {
-	FILELIST *filelist = filelist_find(fname);
-	if (!filelist) return NULL;
-	return (!filelist->fnd ? filelist->fn : filelist->fnd);
-}
-
-// adds a FILELIST entry into the list of loaded files
-static FILELIST* filelist_add(FILELIST* entry)
-{
-	int hash;
-
-	#define	FILELIST_ADDS	1024	// number increment of file lists `
-
-	if (filelist_entrys >= filelist_maxentry) {
-		filelist = (FILELIST *)aRealloc(filelist, (filelist_maxentry + FILELIST_ADDS) * sizeof(FILELIST));
-		memset(filelist + filelist_maxentry, '\0', FILELIST_ADDS * sizeof(FILELIST));
-		filelist_maxentry += FILELIST_ADDS;
-	}
-
-	memcpy (&filelist[filelist_entrys], entry, sizeof(FILELIST));
-
-	hash = filehash(entry->fn);
-	filelist[filelist_entrys].next = filelist_hash[hash];
-	filelist_hash[hash] = filelist_entrys;
-
-	filelist_entrys++;
-
-	return &filelist[filelist_entrys - 1];
-}
-
-// adds a new FILELIST entry or overwrites an existing one
-static FILELIST* filelist_modify(FILELIST* entry)
-{
-	FILELIST* fentry = filelist_find(entry->fn);
-	if (fentry != NULL) {
-		int tmp = fentry->next;
-		memcpy(fentry, entry, sizeof(FILELIST));
-		fentry->next = tmp;
-	} else {
-		fentry = filelist_add(entry);
-	}
-	return fentry;
-}
-
-// shrinks the file list array if too long
-static void filelist_compact(void)
-{
-	if (filelist == NULL)
-		return;
-	
-	if (filelist_entrys < filelist_maxentry) {
-		filelist = (FILELIST *)aRealloc(filelist, filelist_entrys * sizeof(FILELIST));
-		filelist_maxentry = filelist_entrys;
-	}
+	FILELIST* fentry = filelist_find(fname);
+	if( fentry == NULL ) return NULL;
+	return ( fentry->fnd == NULL ) ? fentry->fn : fentry->fnd;
 }
 
 
@@ -655,8 +600,6 @@ static int grfio_entryread(const char* grfname, int gentry)
 		return 4;
 	}
 
-	filelist_compact();	// Unnecessary area release of filelist
-
 	return 0;	// 0:no error
 }
 
@@ -681,7 +624,7 @@ static bool grfio_parse_restable_row(const char* row)
 	if( entry != NULL )
 	{// alias for GRF resource
 		FILELIST fentry;
-		memcpy(&fentry, entry, sizeof(FILELIST));
+		memcpy(&fentry, entry, sizeof(fentry));
 		safestrncpy(fentry.fn, src, sizeof(fentry.fn));
 		fentry.fnd = aStrdup(dst);
 		filelist_modify(&fentry);
@@ -774,16 +717,8 @@ static int grfio_add(const char* fname)
 /// Finalizes grfio.
 void grfio_final(void)
 {
-	if (filelist != NULL) {
-		int i;
-		for (i = 0; i < filelist_entrys; i++)
-			if (filelist[i].fnd != NULL)
-				aFree(filelist[i].fnd);
-
-		aFree(filelist);
-		filelist = NULL;
-	}
-	filelist_entrys = filelist_maxentry = 0;
+	filelist->destroy(filelist, filelist_final_sub);
+	filelist = NULL;
 
 	if (gentry_table != NULL) {
 		int i;
@@ -804,7 +739,7 @@ void grfio_init(const char* fname)
 	FILE* data_conf;
 	int grf_num = 0;
 
-	hashinit();	// hash table initialization
+	filelist = stridb_alloc(DB_OPT_RELEASE_DATA, 0);
 
 	data_conf = fopen(fname, "r");
 	if( data_conf != NULL )
@@ -839,9 +774,6 @@ void grfio_init(const char* fname)
 
 	if( grf_num == 0 )
 		ShowInfo("No GRF loaded, using default data directory\n");
-
-	// Unneccessary area release of filelist
-	filelist_compact();
 
 	// Resource check
 	grfio_resourcecheck();
