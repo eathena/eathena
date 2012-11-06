@@ -10,6 +10,7 @@
 #include "../common/socket.h"
 #include "../common/timer.h"
 #include "../common/plugins.h"
+#include "../common/utils.h" // filesize()
 #ifndef _WIN32
 #include "svnversion.h"
 #endif
@@ -146,10 +147,8 @@ const char* get_svn_revision(void)
 		char* buffer;
 
 		// read file to buffer
-		fseek(fp, 0, SEEK_END);
-		len = ftell(fp);
+		len = filesize(fp);
 		buffer = (char*)aMalloc(len + 1);
-		fseek(fp, 0, SEEK_SET);
 		len = fread(buffer, 1, len, fp);
 		buffer[len] = '\0';
 		fclose(fp);

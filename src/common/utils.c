@@ -219,6 +219,19 @@ bool exists(const char* filename)
 	return !access(filename, F_OK);
 }
 
+size_t filesize(FILE* fp)
+{
+	size_t result;
+	long prev = ftell(fp); // backup
+
+	fseek(fp, 0, SEEK_END);
+	result = ftell(fp);
+
+	fseek(fp, prev, SEEK_SET); // restore
+	return result;
+}
+
+
 uint8 GetByte(uint32 val, int idx)
 {
 	switch( idx )

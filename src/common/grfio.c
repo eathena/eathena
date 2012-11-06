@@ -348,9 +348,7 @@ void* grfio_reads(const char* fname, int* size)
 		in = fopen(lfname, "rb");
 		if( in != NULL )
 		{
-			fseek(in,0,SEEK_END);
-			declen = ftell(in);
-			fseek(in,0,SEEK_SET);
+			declen = filesize(in);
 			buf2 = (unsigned char *)aMallocA(declen+1);  // +1 for resnametable zero-termination
 			fread(buf2, 1, declen, in);
 			fclose(in);
@@ -462,10 +460,8 @@ static int grfio_entryread(const char* grfname, int gentry)
 	else
 		ShowInfo("GRF data file found: '%s'\n",grfname);
 
-	fseek(fp,0,SEEK_END);
-	grf_size = ftell(fp);
-	fseek(fp,0,SEEK_SET);
-
+	grf_size = filesize(fp);
+	
 	fread(grf_header,1,0x2e,fp);
 	if( strcmp((const char*)grf_header,"Master of Magic") != 0 ||
 		fseek(fp,getlong(grf_header+0x1e),SEEK_CUR) != 0 )

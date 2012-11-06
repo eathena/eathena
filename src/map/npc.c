@@ -3137,10 +3137,8 @@ void npc_parsesrcfile(const char* filepath)
 		ShowError("npc_parsesrcfile: File not found '%s'.\n", filepath);
 		return;
 	}
-	fseek(fp, 0, SEEK_END);
-	len = ftell(fp);
+	len = filesize(fp);
 	buffer = (char*)aMalloc(len+1);
-	fseek(fp, 0, SEEK_SET);
 	len = fread(buffer, sizeof(char), len, fp);
 	buffer[len] = '\0';
 	if( ferror(fp) )

@@ -2654,9 +2654,7 @@ static char *map_init_mapcache(FILE *fp)
 	nullpo_ret(fp);
 
 	// Get file size
-	fseek(fp, 0, SEEK_END);
-	size = ftell(fp);
-	fseek(fp, 0, SEEK_SET);
+	size = filesize(fp);
 
 	// Allocate enough space
 	CREATE(buffer, char, size);
