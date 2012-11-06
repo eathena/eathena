@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h> // floor()
+#include <sys/stat.h> // stat()
 
 #ifdef WIN32
 	#include <io.h>
@@ -221,14 +222,10 @@ bool exists(const char* filename)
 
 size_t filesize(FILE* fp)
 {
-	size_t result;
-	long prev = ftell(fp); // backup
-
-	fseek(fp, 0, SEEK_END);
-	result = ftell(fp);
-
-	fseek(fp, prev, SEEK_SET); // restore
-	return result;
+	struct stat st;
+	if( fstat(fileno(fp), &st) != 0 )
+		return -1;
+	return st.st_size;
 }
 
 
