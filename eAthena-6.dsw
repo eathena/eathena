@@ -33,7 +33,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "common"=".\VCPROJ-6\common.dsp" - Package Owner=<4>
+Project: "common"=".\vcproj-6\common.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
@@ -45,7 +45,7 @@ Package=<4>
 
 ###############################################################################
 
-Project: "common_sql"=".\VCPROJ-6\common_sql.dsp" - Package Owner=<4>
+Project: "common_sql"=".\vcproj-6\common_sql.dsp" - Package Owner=<4>
 
 Package=<5>
 {{{
