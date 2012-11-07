@@ -16,9 +16,7 @@
 #include <sys/stat.h>
 #include <zlib.h>
 
-//----------------------------
-//	file entry table struct
-//----------------------------
+
 typedef struct _FILELIST {
 	int		srclen;				// compressed size
 	int		srclen_aligned;
@@ -27,22 +25,17 @@ typedef struct _FILELIST {
 	char	type;
 	char	fn[128-4*5];		// file name
 	char*	fnd;				// if the file was cloned, contains name of original file
-	char	gentry;				// read grf file select
+	char	gentry;				// owner of this file (0 = data dir, 1+ = gentry_table[gentry-1])
+	bool    checklocal;         // local file check (true = check data dir before checking grf)
 } FILELIST;
 
 #define FILELIST_TYPE_FILE           0x01 // entry is a file
 #define FILELIST_TYPE_ENCRYPT_HEADER 0x04 // data is encoded (header DES only)
 #define FILELIST_TYPE_ENCRYPT_MIXED  0x02 // data is encoded (header DES + periodic DES/shuffle)
 
-//gentry ... > 0  : data read from a grf file (gentry_table[gentry-1])
-//gentry ... 0    : data read from a local file (data directory)
-//gentry ... < 0  : entry "-(gentry)" is marked for a local file check
-//                  - if local file exists, gentry will be set to 0 (thus using the local file)
-//                  - if local file doesn't exist, sign is inverted (thus using the original file inside a grf)
-//                  (NOTE: this case is only used once (during startup) and only if GRFIO_LOCAL is enabled)
-//                  (NOTE: probably meant to be used to override grf contents by files in the data directory)
+/// If enabled, existing files in data dir take priority over files in grf.
+/// @see FILELIST::checklocal
 //#define GRFIO_LOCAL
-
 
 // stores info about every loaded file
 DBMap* filelist = NULL;
@@ -51,6 +44,7 @@ DBMap* filelist = NULL;
 char** gentry_table		= NULL;
 int gentry_entrys		= 0;
 int gentry_maxentry		= 0;
+#define GENTRY_DATADIR 0
 
 // the path to the data directory
 char data_dir[1024] = "";
@@ -337,7 +331,7 @@ void* grfio_reads(const char* fname, int* size)
 	unsigned char* buf2 = NULL;
 
 	FILELIST* entry = filelist_find(fname);
-	if( entry == NULL || entry->gentry <= 0 )
+	if( entry == NULL || entry->gentry == GENTRY_DATADIR || entry->checklocal )
 	{// LocalFileCheck
 		char lfname[256];
 		int declen;
@@ -358,8 +352,8 @@ void* grfio_reads(const char* fname, int* size)
 		}
 		else
 		{
-			if (entry != NULL && entry->gentry < 0) {
-				entry->gentry = -entry->gentry;	// local file checked
+			if (entry != NULL && entry->checklocal) {
+				entry->checklocal = false; // local file not present, use grf
 			} else {
 				ShowError("grfio_reads: %s not found (local file: %s)\n", fname, lfname);
 				return NULL;
@@ -367,7 +361,7 @@ void* grfio_reads(const char* fname, int* size)
 		}
 	}
 
-	if( entry != NULL && entry->gentry > 0 )
+	if( entry != NULL && entry->gentry != GENTRY_DATADIR )
 	{// Archive[GRF] File Read
 		char* grfname = gentry_table[entry->gentry - 1];
 		FILE* in = fopen(grfname, "rb");
@@ -510,10 +504,11 @@ static int grfio_entryread(const char* grfname, int gentry)
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
+				aentry.gentry         = gentry+1;
 #ifdef	GRFIO_LOCAL
-				aentry.gentry         = -(gentry+1);	// As Flag for making it a negative number carrying out the first time LocalFileCheck
+				aentry.checklocal = true;
 #else
-				aentry.gentry         = gentry+1;		// With no first time LocalFileCheck
+				aentry.checklocal = false;
 #endif
 				filelist_modify(&aentry);
 			}
@@ -576,10 +571,11 @@ static int grfio_entryread(const char* grfname, int gentry)
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
+				aentry.gentry         = gentry+1;
 #ifdef	GRFIO_LOCAL
-				aentry.gentry         = -(gentry+1);	// As Flag for making it a negative number carrying out the first time LocalFileCheck
+				aentry.checklocal = true;
 #else
-				aentry.gentry         = gentry+1;		// With no first time LocalFileCheck
+				aentry.checklocal = false;
 #endif
 				filelist_modify(&aentry);
 			}
