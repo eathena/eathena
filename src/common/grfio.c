@@ -25,7 +25,7 @@ typedef struct _FILELIST {
 	char	type;
 	char	fn[128-4*5];		// file name
 	char*	fnd;				// if the file was cloned, contains name of original file
-	char	gentry;				// owner of this file (0 = data dir, 1+ = gentry_table[gentry-1])
+	char	gentry;				// owner of this file (-1 = data dir, otherwise gentry_table[gentry])
 	bool    checklocal;         // local file check (true = check data dir before checking grf)
 } FILELIST;
 
@@ -44,7 +44,7 @@ DBMap* filelist = NULL;
 char** gentry_table		= NULL;
 int gentry_entrys		= 0;
 int gentry_maxentry		= 0;
-#define GENTRY_DATADIR 0
+#define GENTRY_DATADIR -1
 
 // the path to the data directory
 char data_dir[1024] = "";
@@ -363,7 +363,7 @@ void* grfio_reads(const char* fname, int* size)
 
 	if( entry != NULL && entry->gentry != GENTRY_DATADIR )
 	{// Archive[GRF] File Read
-		char* grfname = gentry_table[entry->gentry - 1];
+		char* grfname = gentry_table[entry->gentry];
 		FILE* in = fopen(grfname, "rb");
 		if( in != NULL )
 		{
@@ -504,7 +504,7 @@ static int grfio_entryread(const char* grfname, int gentry)
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
-				aentry.gentry         = gentry+1;
+				aentry.gentry         = gentry;
 #ifdef	GRFIO_LOCAL
 				aentry.checklocal = true;
 #else
@@ -571,7 +571,7 @@ static int grfio_entryread(const char* grfname, int gentry)
 				aentry.type           = type;
 				safestrncpy(aentry.fn, fname, sizeof(aentry.fn));
 				aentry.fnd			  = NULL;
-				aentry.gentry         = gentry+1;
+				aentry.gentry         = gentry;
 #ifdef	GRFIO_LOCAL
 				aentry.checklocal = true;
 #else
