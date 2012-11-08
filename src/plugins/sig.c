@@ -7,8 +7,6 @@
 #include <string.h>
 #include <time.h>
 #include "../common/plugin.h"
-#include "../common/version.h"
-#include "../common/showmsg.h"
 
 PLUGIN_INFO = {
 	"Signals",
@@ -29,14 +27,14 @@ PLUGIN_EVENTS_TABLE = {
 #if defined(_WIN32) || defined(MINGW)
 	int sig_init()
 	{
-		ShowError("sig: This plugin is not supported - Enable 'exchndl' instead!\n");
+		printf("sig: This plugin is not supported - Enable 'exchndl' instead!\n");
 		return 0;
 	}
 	int sig_final() { return 0; }
 #elif defined (__NETBSD__) || defined (__FREEBSD__)
 	int sig_init()
 	{
-		ShowError("sig: This plugin is not supported!\n");
+		printf("sig: This plugin is not supported!\n");
 		return 0;
 	}
 	int sig_final() { return 0; }
@@ -112,23 +110,20 @@ void sig_dump(int sn)
 
 	if ((fp = FOPEN_(file, "w", stderr)) != NULL) {
 		const char *revision;
-	#ifndef CYGWIN
+#ifndef CYGWIN
 		void* array[20];
 		char **stack;
 		size_t size;
-	#endif
+#endif
 
-		ShowNotice ("Dumping stack to '"CL_WHITE"%s"CL_RESET"'...\n", file);
-		if ((revision = getrevision()) != NULL)
-			fprintf(fp, "Version: svn%s \n", revision);
-		else
-			fprintf(fp, "Version: %2d.%02d.%02d mod%02d \n", ATHENA_MAJOR_VERSION, ATHENA_MINOR_VERSION, ATHENA_REVISION, ATHENA_MOD_VERSION);
+		printf("sig: Dumping stack to '%s'...\n", file);
+		fprintf(fp, "Version: SVN %s \n", getrevision());
 		fprintf(fp, "Exception: %s \n", strsignal(sn));
 		fflush (fp);
 
-	#ifdef CYGWIN
+#ifdef CYGWIN
 		cygwin_stackdump ();
-	#else
+#else
 		fprintf(fp, "Stack trace:\n");
 		size = backtrace (array, 20);
 		stack = backtrace_symbols (array, size);
@@ -137,9 +132,9 @@ void sig_dump(int sn)
 		}
 		fprintf(fp,"End of stack trace\n");
 		free(stack);
-	#endif
+#endif
 
-		ShowNotice("%s Saved.\n", file);
+		printf("sig: %s Saved.\n", file);
 		fflush(stdout);
 		fclose(fp);
 	}
