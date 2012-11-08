@@ -528,6 +528,16 @@ done
 AC_MSG_RESULT([done])
 
 
+#
+# archiver tool
+#
+AC_CHECK_TOOL([[AR]],[[ar]],[[:]])
+if test "$AR" = ":" ; then
+	AC_MSG_ERROR([No archiver tool found, stopping])
+fi
+AC_SUBST([AR])
+
+
 ###############################################################################
 # Check for libraries and header files.
 #
