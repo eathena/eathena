@@ -511,6 +511,7 @@ set( RUNTIME_DIRECTORIES
 	"db"
 	"doc"
 	"log"
+	"lua"
 	"npc"
 	"plugins"
 	"readme"

@@ -50,7 +50,11 @@ function( CONFIGURE_WITH_LUA_EXTERNAL )
 	message( STATUS "Creating target external_lua" )
 	set( _URL "${CMAKE_CURRENT_SOURCE_DIR}/lua-5.2.1-59da638" )
 	set( _INSTALL_DIR "${CMAKE_BINARY_DIR}/external/lua" )
-	set( _CMAKE_ARGS "-DCMAKE_INSTALL_PREFIX=${_INSTALL_DIR}" "-DINSTALL_BIN=${_INSTALL_DIR}" "-DINSTALL_LIB=${_INSTALL_DIR}" )
+	set( _CMAKE_ARGS
+		"-DCMAKE_INSTALL_PREFIX=${_INSTALL_DIR}"
+		"-DINSTALL_BIN=."
+		"-DINSTALL_LIB=."
+		"-DINSTALL_LMOD=lua" )
 	set( _SHARED_LIBRARY "${_INSTALL_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}lua${CMAKE_SHARED_LIBRARY_SUFFIX}" )
 	set( _LINK_LIBRARY   "${_INSTALL_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}lua${CMAKE_LINK_LIBRARY_SUFFIX}" )
 	if( "${CMAKE_LINK_LIBRARY_SUFFIX}" STREQUAL "" )
@@ -66,7 +70,9 @@ function( CONFIGURE_WITH_LUA_EXTERNAL )
 	ExternalProject_Add( external_lua
 		URL "${_URL}"
 		CMAKE_ARGS "${_CMAKE_ARGS}"
+		SOURCE_DIR "${_INSTALL_DIR}"
 		BUILD_IN_SOURCE 1
+		INSTALL_DIR "${_INSTALL_DIR}"
 	)
 	set_target_properties( external_lua PROPERTIES EXCLUDE_FROM_ALL "TRUE" )
 	set( TARGET_LIST ${TARGET_LIST} external_lua  CACHE INTERNAL "" )
@@ -82,10 +88,11 @@ function( CONFIGURE_WITH_LUA_EXTERNAL )
 	mark_as_advanced( LUA_LIBRARIES_EXTERNAL )
 	mark_as_advanced( LUA_INCLUDE_DIRS_EXTERNAL )
 	mark_as_advanced( LUA_DEFINITIONS_EXTERNAL )
+	set_property( CACHE GLOBAL_INCLUDE_DIRS  PROPERTY VALUE ${GLOBAL_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS_EXTERNAL} )
 	message( STATUS "Creating target external_lua - done" )
 	if( INSTALL_COMPONENT_RUNTIME )
 		# install the shared library (dll) next to the executables
-		install( FILES ${SHARED_LIBRARY}
+		install( FILES ${_SHARED_LIBRARY}
 			DESTINATION "."
 			COMPONENT Runtime_base )
 		# install the link library

@@ -39,7 +39,7 @@ set( COMMON_ALL_HEADERS
 #
 # common_base
 #
-if( WITH_ZLIB )
+if( WITH_ZLIB AND WITH_LUA )
 message( STATUS "Creating target common_base" )
 set( COMMON_BASE_HEADERS
 	${COMMON_ALL_HEADERS}
@@ -49,6 +49,7 @@ set( COMMON_BASE_HEADERS
 	"${COMMON_SOURCE_DIR}/ers.h"
 	"${COMMON_SOURCE_DIR}/grfio.h"
 	"${COMMON_SOURCE_DIR}/lock.h"
+	"${COMMON_SOURCE_DIR}/luaengine.h"
 	"${COMMON_SOURCE_DIR}/malloc.h"
 	"${COMMON_SOURCE_DIR}/mapindex.h"
 	"${COMMON_SOURCE_DIR}/md5calc.h"
@@ -68,6 +69,7 @@ set( COMMON_BASE_SOURCES
 	"${COMMON_SOURCE_DIR}/ers.c"
 	"${COMMON_SOURCE_DIR}/grfio.c"
 	"${COMMON_SOURCE_DIR}/lock.c"
+	"${COMMON_SOURCE_DIR}/luaengine.c"
 	"${COMMON_SOURCE_DIR}/malloc.c"
 	"${COMMON_SOURCE_DIR}/mapindex.c"
 	"${COMMON_SOURCE_DIR}/md5calc.c"
@@ -80,10 +82,10 @@ set( COMMON_BASE_SOURCES
 	"${COMMON_SOURCE_DIR}/timer.c"
 	"${COMMON_SOURCE_DIR}/utils.c"
 	CACHE INTERNAL "common_base sources" )
-set( DEPENDENCIES ${ZLIB_DEPENDENCIES} )
-set( LIBRARIES ${GLOBAL_LIBRARIES} ${ZLIB_LIBRARIES} )
-set( INCLUDE_DIRS ${GLOBAL_INCLUDE_DIRS} ${MT19937AR_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} )
-set( DEFINITIONS "${GLOBAL_DEFINITIONS} ${ZLIB_DEFINITIONS}" )
+set( DEPENDENCIES ${ZLIB_DEPENDENCIES} ${LUA_DEPENDENCIES} )
+set( LIBRARIES ${GLOBAL_LIBRARIES} ${ZLIB_LIBRARIES} ${LUA_LIBRARIES} )
+set( INCLUDE_DIRS ${GLOBAL_INCLUDE_DIRS} ${MT19937AR_INCLUDE_DIRS} ${ZLIB_INCLUDE_DIRS} ${LUA_INCLUDE_DIRS} )
+set( DEFINITIONS "${GLOBAL_DEFINITIONS} ${ZLIB_DEFINITIONS} ${LUA_DEFINITIONS}" )
 set( SOURCE_FILES ${MT19937AR_HEADERS} ${MT19937AR_SOURCES} ${COMMON_BASE_HEADERS} ${COMMON_BASE_SOURCES} )
 source_group( mt19937ar FILES ${MT19937AR_HEADERS} ${MT19937AR_SOURCES} )
 source_group( common FILES ${COMMON_BASE_HEADERS} ${COMMON_BASE_SOURCES} )
@@ -98,7 +100,7 @@ set( HAVE_common_base ON  CACHE INTERNAL "" )
 set( TARGET_LIST ${TARGET_LIST} common_base  CACHE INTERNAL "" )
 message( STATUS "Creating target common_base - done" )
 else()
-message( STATUS "Skipping target common_base (requires ZLIB)" )
+message( STATUS "Skipping target common_base (requires ZLIB and LUA)" )
 unset( HAVE_common_base CACHE )
 endif()
 
