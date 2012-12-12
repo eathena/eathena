@@ -1424,6 +1424,7 @@ int guild_broken(int guild_id, int flag)
 		if( sd->state.storage_flag == 2 )
 			storage_guild_storage_quit(sd,1);
 
+		sd->state.gmaster_flag = false;
 		sd->status.guild_id = 0;
 		clif_guild_broken(g->member[i].sd,0);
 		clif_charnameupdate(sd);
