@@ -50,7 +50,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 libmysql.lib /nologo /libpath:"..\3rdparty\mysql\win32\lib"
+# ADD LIB32 /nologo
 
 !ELSEIF  "$(CFG)" == "common_sql - Win32 Debug"
 
@@ -74,7 +74,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo /o"common_sql.bsc"
 LIB32=link.exe -lib
 # ADD BASE LIB32 /nologo
-# ADD LIB32 libmysql.lib /nologo /libpath:"..\3rdparty\mysql\win32\lib"
+# ADD LIB32 /nologo
 
 !ENDIF 
 
