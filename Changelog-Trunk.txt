@@ -1,6 +1,7 @@
 Date	Added
 
 2013/02/01
+	* Added support for 2012-07-02aRagexeRE. [Ai4rei]
 	* Various insignificant tweaks. [Ai4rei]
 	* Fixed libmysql.dll lacking mime-type for binaries (since r15108, related r15156). [Ai4rei]
 2012/12/12
