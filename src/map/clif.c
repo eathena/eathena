@@ -5112,6 +5112,9 @@ int clif_status_load(struct block_list *bl,int type, int flag)
 /// Notifies clients of a status change.
 /// 0196 <index>.W <id>.L <state>.B (ZC_MSG_STATE_CHANGE)
 /// 043f <index>.W <id>.L <state>.B <remain msec>.L { <val>.L }*3 (ZC_MSG_STATE_CHANGE2)
+/// 08ff <id>.L <index>.W <remain msec>.L { <val>.L }*3  (PACKETVER >= 20111108)
+/// 0983 <index>.W <id>.L <state>.B <total msec>.L <remain msec>.L { <val>.L }*3 (PACKETVER >= 20120618)
+/// 0984 <id>.L <index>.W <total msec>.L <remain msec>.L { <val>.L }*3 (PACKETVER >= 20120618)
 void clif_status_change(struct block_list *bl,int type,int flag,unsigned int tick)
 {
 	unsigned char buf[32];
@@ -16529,7 +16532,6 @@ int do_init_clif(void)
 	clif_config.packet_db_ver = -1; // the main packet version of the DB
 	memset(clif_config.connect_cmd, 0, sizeof(clif_config.connect_cmd)); //The default connect command will be determined after reading the packet_db [Skotlex]
 
-	memset(packet_db,0,sizeof(packet_db));
 	//Using the packet_db file is the only way to set up packets now [Skotlex]
 	packetdb_readdb();
 

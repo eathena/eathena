@@ -1,6 +1,7 @@
 Date	Added
 
 2013/02/01
+	* Various insignificant tweaks. [Ai4rei]
 	* Fixed libmysql.dll lacking mime-type for binaries (since r15108, related r15156). [Ai4rei]
 2012/12/12
 	* Fixed sd->state.gmaster_flag not getting unset on guild break (since r1192, related r3387), causing crashes when walking after guild break (bugreport:5106, since r15193). [Ai4rei]
