@@ -3734,7 +3734,7 @@ ACMD_FUNC(questskill)
 		clif_displaymessage(fd, "Please, enter a quest skill number (usage: @questskill <#:0+>).");
 		return -1;
 	}
-	if (skill_id < 0 && skill_id >= MAX_SKILL_DB) {
+	if (skill_id < 0 || skill_id >= MAX_SKILL_DB) {
 		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
 		return -1;
 	}
@@ -3765,7 +3765,7 @@ ACMD_FUNC(lostskill)
 		clif_displaymessage(fd, "Please, enter a quest skill number (usage: @lostskill <#:0+>).");
 		return -1;
 	}
-	if (skill_id < 0 && skill_id >= MAX_SKILL) {
+	if (skill_id < 0 || skill_id >= MAX_SKILL) {
 		clif_displaymessage(fd, msg_txt(198)); // This skill number doesn't exist.
 		return -1;
 	}

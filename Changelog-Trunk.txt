@@ -1,5 +1,7 @@
 Date	Added
 
+2013/02/16
+	* Fixed impossible condition check in @questskill and @lostskill (bugreport:5114, since r11222). [Ai4rei]
 2013/02/01
 	* Added support for 2012-07-02aRagexeRE. [Ai4rei]
 	* Various insignificant tweaks. [Ai4rei]
