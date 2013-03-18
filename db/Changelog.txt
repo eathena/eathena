@@ -9,6 +9,11 @@
 	13005 Angelic Wing Dagger:	NEED INFO.
 =======================
 
+2013/03/18
+	* Rev. 15235 many, many, many renewal updates. 
+	* Updated mob and mob skill, and mob chat databases. Still a WIP.
+	* Added missing items to item database. Still lots of bonuses to add.
+	* Added new mercenaries to the mercenary database. No skills as of yet.
 2011/10/26
 	* Rev. 14984 Added Rune Knight skill updates, and supporting information for r14983. [L0ne_W0lf]
 	* Updated Emperium to be plant-mode.

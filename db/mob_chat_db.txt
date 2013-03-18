@@ -36,4 +36,10 @@
 32,0xFF0000,Suffer in Hell!
 33,0xFF0000,Mwahahaha! Taste the anger of the earth!!!
 34,0xFF0000,No... I won't accept this as defeat!
-
+// Custom Translations.
+35,0xFF0000,Without my memories... will I always... be alone?
+36,0xFF0000,What would become of you, locked away from the world for thousands of years?
+37,0xFF0000,I can't betray the Yggdrassil... I am the guardian of the Yggdrassil...
+38,0xFF0000,You don't belong here... dissapear!
+39,0xFF0000,Isn't it comforting? To remain isolated from everything?
+40,0xFF0000,I've been here so long. How I long to break free!!
