@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= eAthena dev team
 //===== Current Version: ===================================== 
-//= 1.9
+//= 2.0
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -21,6 +21,7 @@
 //= 1.7 Rescripted to Aegis 10.3 standards. [L0ne_W0lf]
 //= 1.8 Fixed a small bug. (close -> close2) [L0ne_W0lf]
 //= 1.9 Added a missing Kafra NPC. [L0ne_W0lf]
+//= 2.0 Updated warp coordinates for Izlude.
 //============================================================
 
 // Inside Comodo
@@ -367,7 +368,7 @@ cmd_fild07,299,83,4	script	Zain#cmd	100,{
 			close;
 		}
 		set zeny,zeny-800;
-		warp "izlude",176,182;
+		warp "izlude",176,212;
 		end;
 	case 3:
 		mes "[Zain]";
@@ -409,7 +410,7 @@ cmd_fild07,94,134,4	script	Sarumane#cmd	100,{
 			close;
 		}
 		set zeny,zeny-800;
-		warp "izlude",176,182;
+		warp "izlude",176,212;
 		end;
 	case 3:
 		mes "[Sarumane]";

@@ -5,7 +5,7 @@
 //= Darlskies, Darkchild, Syrus22, Lupus, kobra_k88 (2.0)
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 6.3
+//= 6.4
 //===== Compatible With: ===================================== 
 //= eAthena 1.0
 //===== Description: =========================================
@@ -58,6 +58,7 @@
 //= 6.1 Added menu for Turbo Track Kafra Staff. [L0ne_W0lf]
 //= 6.2 Updated/Fixed warp cords. [Kisuka]
 //= 6.3 #kafra_code is now stored as is. [brianluau]
+//= 6.4 Updated warp coordinates for Izlude.
 //============================================================ 
 
 
@@ -402,7 +403,7 @@ function	script	F_KafTele	{
 		if (@wrpD$[@num] == "Al De Baran") warp "aldebaran",168,112;
 		if (@wrpD$[@num] == "Aldebaran") warp "aldebaran",168,112;
 		if (@wrpD$[@num] == "Comodo") warp "comodo", 209, 143;
-		if (@wrpD$[@num] == "Izlude") warp "izlude", 91, 105;
+		if (@wrpD$[@num] == "Izlude") warp "izlude", 91, 135;
 		if (@wrpD$[@num] == "Geffen") warp "geffen", 120, 39;
 		if (@wrpD$[@num] == "Morroc") warp "morocc", 156, 46;
 		if (@wrpD$[@num] == "Payon") warp "payon", 161, 58;

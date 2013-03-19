@@ -3,7 +3,7 @@
 //===== By: ================================================== 
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 1.8
+//= 1.9
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -36,6 +36,7 @@
 //= 1.7 Moved the close in Cat Hand Service Warps. (bugreport:4079) [L0ne_W0lf]
 //= 1.8 Added 13.2 Additions to Report from the New World NPCs
 //=     Upped success rates for Report from the New World drops.
+//= 1.9 Updated npc position and warp coordinates for Izlude.
 //============================================================ 
 
 // Onward to the New World
@@ -674,7 +675,7 @@ geffen,90,67,3	script	Promotional Staff#gef	100,{
 	}
 }
 
-izlude,99,136,5	script	Promotional Staff#iz	100,{
+izlude,99,166,5	script	Promotional Staff#iz	100,{
 	if (ep13_ryu > 8) {
 		mes "[Promotional Staff]";
 		mes "I bless you for your future! May it be full of happiness!";
@@ -9016,7 +9017,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9052,7 +9053,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9098,7 +9099,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9154,7 +9155,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9220,7 +9221,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9356,7 +9357,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9432,7 +9433,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4170) {
 						set zeny,zeny-4170;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9518,7 +9519,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 4025) {
 						set zeny,zeny-4025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";
@@ -9614,7 +9615,7 @@ mid_camp,62,125,4	script	Cat Hand Agent	421,{
 				case 3:
 					if (Zeny >= 3970) {
 						set zeny,zeny-3970;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 					}
 					else {
 						mes "[Cat Hand Agent]";

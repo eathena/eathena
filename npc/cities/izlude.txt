@@ -29,11 +29,13 @@
 //= 1.9 Fixed a small problem with Dega. (Ne default case) [L0ne_W0lf]
 //=	Re-added NPC dialog for Cebalis. The dialog differs
 //=	(even if slightly,) after the five or so lines.
+//= 2.0 Added Undersea Tunnel 6th floor warper.
+//= Updated NPC positions for new Izlude layout.
 //============================================================
 
 // Izlude
 //============================================================
-izlude,201,181,2	script	Sailor#izlude	100,{
+izlude,201,211,2	script	Sailor#izlude	100,{
 	mes "[Sailor]";
 	mes "Hey everybody!";
 	mes "Attention, attention!";
@@ -67,7 +69,7 @@ izlude,201,181,2	script	Sailor#izlude	100,{
 	}
 }
 
-izlude,55,74,2	script	Bonne#izlude	90,{
+izlude,55,104,2	script	Bonne#izlude	90,{
 	mes "[Bonne]";
 	mes "Greetings!";
 	mes "Izlude welcomes you.";
@@ -91,7 +93,7 @@ izlude,55,74,2	script	Bonne#izlude	90,{
 	close;
 }
 
-izlude,135,78,2	script	Charfri#izlude	91,{
+izlude,135,108,2	script	Charfri#izlude	91,{
 	mes "[Charfri]";
 	switch(rand(2)) {
 	case 1:
@@ -122,7 +124,7 @@ izlude,135,78,2	script	Charfri#izlude	91,{
 	}
 }
 
-izlude,119,121,2	script	Cuskoal#izlude	124,{
+izlude,119,151,2	script	Cuskoal#izlude	124,{
 	mes "[Cuskoal]";
 	switch(rand(2)) {
 	case 1:
@@ -146,7 +148,7 @@ izlude,119,121,2	script	Cuskoal#izlude	124,{
 	}
 }
 
-izlude,150,118,2	script	Dega#izlude	84,{
+izlude,150,148,2	script	Dega#izlude	84,{
 	mes "[Dega]";
 	switch(rand(3)) {
 	case 1:
@@ -222,7 +224,7 @@ izlude,150,118,2	script	Dega#izlude	84,{
 	}
 }
 
-izlude,150,143,2	script	Kylick#izlude	97,{
+izlude,150,173,2	script	Kylick#izlude	97,{
 	mes "[Kylick]";
 	switch(rand(2)) {
 	case 1:
@@ -254,7 +256,7 @@ izlude,150,143,2	script	Kylick#izlude	97,{
 	}
 }
 
-izlude,56,126,2	script	Red#izlude::RedCebalis	85,{
+izlude,56,156,2	script	Red#izlude::RedCebalis	85,{
 	mes "[Red]";
 	mes "The only skill that's needed for a Swordman is ^FF2400Bash^000000! Bash, Bash and ONLY ^FF2400Bash^000000! No need to waste time and effort for smaller skills! Everything else is for cowards and wusses!";
 	next;
@@ -323,8 +325,8 @@ izlude,56,126,2	script	Red#izlude::RedCebalis	85,{
 	mes "Right?! ^EE0000Magnum Break^000000 is THE BEST!!! You know what you're talking about, eh? I don't know why this jerkface is being sooooo stubborn.";
 	close;
 }
-	
-izlude,58,126,2	script	Cebalis#izlude	98,{
+
+izlude,58,156,2	script	Cebalis#izlude	98,{
 	mes "[Red]";
 	mes "The only skill that's needed for a Swordman is ^FF2400Bash^000000! Bash, Bash and ONLY ^FF2400Bash^000000! No need to waste time and effort on smaller skills~~ Everything else is for cowards and wusses!";
 	next;
@@ -401,7 +403,7 @@ izlude,58,126,2	script	Cebalis#izlude	98,{
 	close;
 }
 
-izlude,124,178,2	script	Soldier#izlude	105,{
+izlude,121,210,6	script	Soldier#izlude	105,{
 	mes "[Soldier]";
 	mes "HeHeHeHe..HaHaHaHa ";
 	mes "Huh? Why am I so happy?";
@@ -458,7 +460,7 @@ izlude,124,178,2	script	Soldier#izlude	105,{
 	close;
 }
 
-// Inside Izlude	
+// Inside Izlude
 //============================================================
 izlude_in,125,164,2	script	Aaron#izlude	65,{
 	mes "[Aaron]";
@@ -508,8 +510,56 @@ izlu2dun,108,27,0	script	Sailor#2izlude	100,{
 	mes "head back?";
 	next;
 	if (select("Yeah, I'm tired to death.:Nope, I love this place!") == 1) {
-		warp "izlude",176,182;
+		warp "izlude",176,212;
 		end;
 	}
 	close;
+}
+
+// Undersea Tunnel warper.
+//============================================================
+iz_dun04,130,234,5	script	Gatekeeper#iz_dun	413,{
+	mes "[Gatekeeper]";
+	mes "Halt!";
+	mes "What brings you here Adventurer?";
+	mes "We've discovered a new floor of this underwater city.";
+	next;
+	mes "[Gatekeeper]";
+	mes "Do you think you're up to the challenge?";
+	mes "The monsters here are between levels 110 and 124.";
+	mes "And you must beware of the Kraken!";
+	next;
+	switch(select("Release the Kraken!:I'll stay here.")) {
+	case 1:
+		mes "[Gatekeeper]";
+		mes "Be cautious and good luck.";
+		mes "If you see the Kraken be sure you have your friends to help or do what we do and run.";
+		close2;
+		warp "iz_dun05",141,187;
+		end;
+	case 2:
+		mes "[Gatekeeper]";
+		mes "It's always best to be prepared before exploring a new area.";
+		mes "Come back when you're ready to go.";
+		close;
+	}
+}
+
+iz_dun05,142,190,5	script	Guard#iz_dun	413,{
+	mes "[Gatekeeper]";
+	mes "So I guess you want to go back to the fifth floor?";
+	next;
+	switch(select("Yes!:No, I'll stay.")) {
+	case 1:
+		mes "[Gatekeeper]";
+		mes "Be safe adventurer.";
+		close2;
+		warp "iz_dun04",129,232	;
+		end;
+	case 2:
+		mes "[Gatekeeper]";
+		mes "You're not going?";
+		mes "You're braver than I thought.";
+		close;
+	}
 }

@@ -1,5 +1,9 @@
 Date		Added
 ======
+2013/03/19
+	* Rev 15236 Updates and such, mostly for the new Izlude map.
+	- Updated NPC locations and warp coordinates for Izlude. Most NPCs shifted north 30 cells. Not official positions.
+	- Added Merchants for Dewata, Dicastes and Malaya.
 2011/10/26
 	* Rev. 14984 Added Rune Knight job quest, and mount rental NPC. [L0ne_W0lf]
 2011/08/26

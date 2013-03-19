@@ -7,7 +7,7 @@
 //= Optimized and further edited by kobra_k88.
 //= Further bugfixed and tested by Lupus
 //===== Current Version: =====================================
-//= 2.8
+//= 2.9
 //===== Compatible With: =====================================
 //= eAthena  SVN
 //===== Description: =========================================
@@ -31,7 +31,7 @@
 //= 2.3 Rescripted to Aegis 10.3 standards. [L0ne_W0lf]
 //= 2.4 Several bugfixes with the help of Barron-Monster. [L0ne_W0lf]
 //= 2.4a Changed a BaseJob to baseclass. [L0ne_W0lf]
-//= 2.4b Further bug fixes with teh hel of Barron-Monster. [L0ne_W0lf]
+//= 2.4b Further bug fixes with the help of Barron-Monster. [L0ne_W0lf]
 //= 2.4c More fixes courtosy of Micktu. [L0ne_W0lf]
 //= 2.4d Fixed an incorrect answer in the quiz. (Trojal) [L0ne_W0lf]
 //= 2.4e Touched up a few issues as pointed out by Ultramage. [L0ne_W0lf]
@@ -40,6 +40,7 @@
 //= 2.6a Typo fix [Yommy]
 //= 2.7 Added Quest Log commands. [Kisuka]
 //= 2.8 Removed the need for use of 'goto.' [L0ne_W0lf]
+//= 2.9 Updted warp coordinates for Izlude.
 //==============================================================
 
 ein_in01,18,28,4	script	Guildsman#BLS	731,{
@@ -1619,7 +1620,7 @@ geffen_in,109,170,3	script	Blacksmith Guildsman#gef	726,{
 			close;
 		}
 		set zeny,zeny-600;
-		warp "izlude",94,103;
+		warp "izlude",94,133;
 		end;
 	case 3:
 		mes "[Blacksmith Guildsman]";

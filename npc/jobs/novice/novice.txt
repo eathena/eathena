@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= Kisuka
 //===== Current Version: =====================================
-//= 1.1
+//= 1.2
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -12,6 +12,7 @@
 //===== Additional Comments: =================================
 //= 1.0 First version. [Kisuka]
 //= 1.1 Updated warps, savepoints, NPC locations. [Kisuka]
+//= 1.2 Updated warp coordinates for Izlude.
 //============================================================
 
 //============================================================================
@@ -1105,7 +1106,7 @@ new_5-3,96,30,4	duplicate(NvBrade)	Brade#nv5	733
 			if(countitem(2822) > 0) delitem 2822,1;	// Archer_Manual
 			if(countitem(2823) > 0) delitem 2823,1;	// Merchant_Manual
 			if(countitem(2824) > 0) delitem 2824,1;	// Mage_Manual
-			savepoint "izlude",94,103;
+			savepoint "izlude",94,133;
 			warp "izlude_in",74,167;
 			end;
 		}

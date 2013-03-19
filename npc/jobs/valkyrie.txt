@@ -5,7 +5,7 @@
 //= finished, optimized and tested by Lupus
 //= L0ne_W0lf
 //===== Current Version: ===================================== 
-//= 3.0
+//= 3.1
 //===== Compatible With: ===================================== 
 //= eAthena SVN
 //===== Description: ========================================= 
@@ -31,12 +31,13 @@
 //=	Removed all functions as they are no longer required.
 //=	Correct job level requirements for 1-1 -> 2-x.
 //= 2.7a Added Function "F_BlockHigh" back in until rewriteing of the 2-x [L0ne_W0lf]
-//=	scripts are comepleted.
+//=	scripts are completed.
 //= 2.7b Removed function "F_BlockHigh" as it's no longer used. [L0ne_W0lf]
 //= 2.8 Corrected NPC names to fall within proper restrictions. [L0ne_W0lf]
-//= 2.9 Corrected Valkyrie case spicifying where to warp after rebirthing. [L0ne_W0lf]
+//= 2.9 Corrected Valkyrie case specifying where to warp after rebirthing. [L0ne_W0lf]
 //= 2.9b Fixed Verdandi typo, fixed resetting vars [Lupus]
 //= 3.0 Added quest log commands. [L0ne_W0lf]
+//= 3.1 Updated warp coordinates for Izlude
 //============================================================ 
 
 valkyrie,48,86,4	script	Valkyrie#	811,{
@@ -172,7 +173,7 @@ valkyrie,48,86,4	script	Valkyrie#	811,{
 			switch (ADVJOB) {
 			case 4008:
 			case 4015:
-				warp "izlude",94,103; break;
+				warp "izlude",91,135; break;
 			case 4009:
 			case 4016:
 				warp "prontera",273,354; break;
@@ -376,7 +377,7 @@ valkyrie,44,33,5	script	Teleporter	124,{
 		case 3: callsub S_Warpchar,"payon",69,100;
 		case 4: callsub S_Warpchar,"geffen",120,39;
 		case 5: callsub S_Warpchar,"alberta",117,56;
-		case 6: callsub S_Warpchar,"izlude",94,103;
+		case 6: callsub S_Warpchar,"izlude",91,135;
 		case 7: callsub S_Warpchar,"aldebaran",91,105;
 		case 8: callsub S_Warpchar,"comodo",209,143;
 		case 9: callsub S_Warpchar,"yuno",328,101;

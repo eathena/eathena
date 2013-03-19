@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= L0ne_W0lf
 //===== Current Version: =====================================
-//= 2.2
+//= 2.3
 //===== Compatible With: =====================================
 //= eAthena SVN
 //===== Description: =========================================
@@ -40,6 +40,7 @@
 //=     line. [Gepard]
 //= 2.1 Fixed Myterious Rock 31, and Cart Hand Agents.
 //= 2.2 Added a missing close. (bugreport:4520) [L0ne_W0lf]
+//= 2.3 Updated warp coordinates for Izlude.
 //============================================================ 
 
 // Cat Hand Addition.
@@ -236,7 +237,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -275,7 +276,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -325,7 +326,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -386,7 +387,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -458,7 +459,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -598,7 +599,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -681,7 +682,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4170) {
 						set zeny,zeny-4170;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -776,7 +777,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 4025) {
 						set zeny,zeny-4025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -882,7 +883,7 @@ spl_fild02,25,211,4	script	Cat Hand Agent#spl	421,{
 				case 3:
 					if (Zeny >= 3970) {
 						set zeny,zeny-3970;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1213,7 +1214,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1252,7 +1253,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 5025) {
 						set zeny,zeny-5025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1302,7 +1303,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1363,7 +1364,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4765) {
 						set zeny,zeny-4765;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1435,7 +1436,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1575,7 +1576,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4590) {
 						set zeny,zeny-4590;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1658,7 +1659,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4170) {
 						set zeny,zeny-4170;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1753,7 +1754,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 4025) {
 						set zeny,zeny-4025;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {
@@ -1859,7 +1860,7 @@ man_fild02,132,47,4	script	Cat Hand Agent#man	421,{
 				case 3:
 					if (Zeny >= 3970) {
 						set zeny,zeny-3970;
-						warp "izlude",91,105;
+						warp "izlude",91,135;
 						close;
 					}
 					else {

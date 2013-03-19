@@ -3,7 +3,7 @@
 //===== By: ==================================================
 //= MasterOfMuppets
 //===== Current Version: =====================================
-//= 1.7
+//= 1.8
 //===== Compatible With: =====================================
 //= Any Athena Version
 //===== Additional Comments: =================================
@@ -19,6 +19,7 @@
 //= 1.5b Fixed another small screw up with the color codes in the Glastheim BB [Kayla]
 //= 1.6 Removed Duplicates [Silent]
 //= 1.7 Updated MOrroc NPCs to reflect episode 12.1 changes. [L0ne_W0lf]
+//= 1.8 updated position of Izlude NPC.
 //============================================================
 
 alberta,111,59,5	script	Bulletin Board#1	837,{
@@ -93,7 +94,7 @@ izlu2dun,104,92,5	script	Bulletin Board#4	837,{
 	close;
 }
 	
-izlude,131,116,4	script	Bulletin Board#5	837,{
+izlude,131,146,4	script	Bulletin Board#5	837,{
 	mes "[Izlude: The Satellite City]";
 	mes "Welcome to Izlude, the satellite of Prontera. Izlude was built to support Prontera's defense and to accommodate its burgeoning population";
 	next;

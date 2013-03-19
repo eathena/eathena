@@ -3773,7 +3773,7 @@ job3_rune01,92,62,3	script	Kafra Employee#rk	114,{
 					set RESRVPTS,RESRVPTS+60;
 				}
 				cutin "kafra_04",255;
-				warp "izlude",91,105;
+				warp "izlude",91,135;
 				end;
 			}
 			else {
