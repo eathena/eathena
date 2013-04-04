@@ -9,6 +9,12 @@
 	13005 Angelic Wing Dagger:	NEED INFO.
 =======================
 
+2013/04/03
+	* Rev. 15237 Updated some of the Dicastes monster names.
+	* Updated custom mob chat entries for Nidhogg's Memory.
+	* Updated modes for Malaya monsters. (Custom.)
+	* Added quests for Dicastes and Dewata, and Malaya.
+	* Added 5 minute timer for quest 9006 (rune knight job change)
 2013/03/18
 	* Rev. 15235 many, many, many renewal updates. 
 	* Updated mob and mob skill, and mob chat databases. Still a WIP.

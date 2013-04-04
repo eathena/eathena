@@ -36,10 +36,9 @@
 32,0xFF0000,Suffer in Hell!
 33,0xFF0000,Mwahahaha! Taste the anger of the earth!!!
 34,0xFF0000,No... I won't accept this as defeat!
-// Custom Translations.
-35,0xFF0000,Without my memories... will I always... be alone?
-36,0xFF0000,What would become of you, locked away from the world for thousands of years?
-37,0xFF0000,I can't betray the Yggdrassil... I am the guardian of the Yggdrassil...
-38,0xFF0000,You don't belong here... dissapear!
-39,0xFF0000,Isn't it comforting? To remain isolated from everything?
-40,0xFF0000,I've been here so long. How I long to break free!!
+35,0xFF0000,Will it ease your loneliness to hit me?  Why don't you stay here with me forever, human?
+36,0xFF0000,You will forgot the meaning of time.  I wonder how long can you last in here...
+37,0xFF0000,Is there anyone waiting for you outside of here?  Throw them all away, you are mine now...
+38,0xFF0000,Discard your life and stay confined here.  You will yearn for freedom in captivity !!
+39,0xFF0000,How much will the outside world change if you stay here in solitude for one thousand years?
+40,0xFF0000,Yes! Yearn for your freedom from this confined place, your captivity here will be permanent !!
