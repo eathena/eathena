@@ -264,6 +264,10 @@ turbo_e_16	mapflag	nobranch
 p_track01	mapflag	nobranch
 p_track02	mapflag	nobranch
 
+// Poring War ==================
+poring_w01	mapflag	nobranch
+poring_w02	mapflag	nobranch
+
 // Vision of Okolnir ===========
 que_qsch01	mapflag	nobranch
 que_qsch02	mapflag	nobranch
@@ -335,8 +339,49 @@ jupe_core2	mapflag	nobranch
 brasilis	mapflag	nobranch
 bra_in01	mapflag	nobranch
 
+// 13.3 El Discastes
+ dicastes01	mapflag	nobranch
+ dicastes02	mapflag	nobranch
+ dic_in01	mapflag	nobranch
+ job3_gen01	mapflag	nobranch
+ job3_sha01	mapflag	nobranch
+
 //evt_zombie	mapflag	nobranch
 
-// Poring War ==================
-poring_w01	mapflag	nobranch
-poring_w02	mapflag	nobranch
+// 14.1 Bifrost
+ mora	mapflag	nobranch
+
+// Dewata Maps
+ dewata	mapflag	nobranch
+ dew_in01	mapflag	nobranch
+
+// Malangdo Maps
+ malangdo	mapflag	nobranch
+ mal_in01	mapflag	nobranch
+ mal_in02	mapflag	nobranch
+
+// Lighthalzen Dungeon F4, Wolfchev's Laboratory
+ que_lhz	mapflag	nobranch
+
+// Port Malaya
+ malaya	mapflag	nobranch
+ job_ko	mapflag	nobranch
+ ma_in01	mapflag	nobranch
+ ma_zif01	mapflag	nobranch
+ ma_zif02	mapflag	nobranch
+ ma_zif03	mapflag	nobranch
+ ma_zif04	mapflag	nobranch
+ ma_zif05	mapflag	nobranch
+ ma_zif06	mapflag	nobranch
+ ma_zif07	mapflag	nobranch
+ ma_zif08	mapflag	nobranch
+ ma_zif09	mapflag	nobranch
+
+// 14.2 Eclage
+ eclage	mapflag	nobranch
+ que_avan01	mapflag	nobranch
+ ecl_in01	mapflag	nobranch
+ ecl_in02	mapflag	nobranch
+ ecl_in03	mapflag	nobranch
+ ecl_in04	mapflag	nobranch
+ ecl_hub01	mapflag	nobranch

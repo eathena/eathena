@@ -75,6 +75,10 @@ prt_are_in	mapflag	nowarpto
 p_track01	mapflag	nowarpto
 p_track02	mapflag	nowarpto
 
+// Poring War ====================
+poring_w01	mapflag	nowarpto
+poring_w02	mapflag	nowarpto
+
 //Vision of Okolnir ============
 que_qsch01	mapflag	nowarpto
 que_qsch02	mapflag	nowarpto
@@ -140,6 +144,89 @@ spl_in01	mapflag	nowarpto
 1@nyd	mapflag	nowarpto
 2@nyd	mapflag	nowarpto
 
-// Poring War ====================
-poring_w01	mapflag	nowarpto
-poring_w02	mapflag	nowarpto
+// 13.3 El Discastes
+dicastes01	mapflag	nowarpto
+dicastes02	mapflag	nowarpto
+dic_in01	mapflag	nowarpto
+dic_fild01	mapflag	nowarpto
+dic_fild02	mapflag	nowarpto
+dic_dun01	mapflag	nowarpto
+dic_dun02	mapflag	nowarpto
+job3_gen01	mapflag	nowarpto
+job3_sha01	mapflag	nowarpto
+
+// 14.1 Bifrost
+mora	mapflag	nowarpto
+bif_fild01	mapflag	nowarpto
+bif_fild02	mapflag	nowarpto
+1@mist	mapflag	nowarpto
+
+que_house_s	mapflag	nowarpto
+
+// Malangdo Maps
+1@pump	mapflag	nowarpto
+2@pump	mapflag	nowarpto
+1@cash	mapflag	nowarpto
+
+// Undersea Tunnel Expansion
+iz_dun05	mapflag	nowarpto
+
+dic_dun03	mapflag	nowarpto
+
+// Lighthalzen Dungeon F4, Wolfchev's Laboratory
+1@lhz	mapflag	nowarpto
+lhz_dun04	mapflag	nowarpto
+que_lhz	mapflag	nowarpto
+
+// Port Malaya
+job_ko	mapflag	nowarpto
+ma_scene01	mapflag	nowarpto
+1@ma_b	mapflag	nowarpto
+1@ma_c	mapflag	nowarpto
+1@ma_h	mapflag	nowarpto
+ma_zif01	mapflag	nowarpto
+ma_zif02	mapflag	nowarpto
+ma_zif03	mapflag	nowarpto
+ma_zif04	mapflag	nowarpto
+ma_zif05	mapflag	nowarpto
+ma_zif06	mapflag	nowarpto
+ma_zif07	mapflag	nowarpto
+ma_zif08	mapflag	nowarpto
+ma_zif09	mapflag	nowarpto
+
+// 14.2 Eclage
+eclage	mapflag	nowarpto
+ecl_fild01	mapflag	nowarpto
+ecl_tdun01	mapflag	nowarpto
+ecl_tdun02	mapflag	nowarpto
+ecl_tdun03	mapflag	nowarpto
+ecl_tdun04	mapflag	nowarpto
+que_avan01	mapflag	nowarpto
+1@ecl	mapflag	nowarpto
+ecl_in01	mapflag	nowarpto
+ecl_in02	mapflag	nowarpto
+ecl_in03	mapflag	nowarpto
+ecl_in04	mapflag	nowarpto
+ecl_hub01	mapflag	nowarpto
+
+// Pyramids Basement Nightmare Mode
+moc_prydn1	mapflag	nowarpto
+moc_prydn2	mapflag	nowarpto
+
+// Glast Heim Memorial Dungeon / Nightmare Mode
+1@gl_k	mapflag	nowarpto
+2@gl_k	mapflag	nowarpto
+gl_chyard_	mapflag	nowarpto
+gl_cas02_	mapflag	nowarpto
+
+// Wave Mode Memorial Dungeon
+1@def01	mapflag	nowarpto
+1@def02	mapflag	nowarpto
+1@def03	mapflag	nowarpto
+
+// Heroes' Trails - Part 1
+1@gef	mapflag	nowarpto
+1@face	mapflag	nowarpto
+1@sara	mapflag	nowarpto
+1@gef_in	mapflag	nowarpto
+dali	mapflag	nowarpto

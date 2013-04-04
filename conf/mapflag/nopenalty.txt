@@ -228,6 +228,9 @@ turbo_e_16	mapflag	nopenalty
 p_track01	mapflag	nopenalty
 p_track02	mapflag	nopenalty
 
+// Poring War ==================
+poring_w02	mapflag	nopenalty
+
 //Vision of Okolnir =============
 que_qsch01	mapflag	nopenalty
 que_qsch02	mapflag	nopenalty
@@ -250,7 +253,45 @@ bat_b02	mapflag	nopenalty
 bat_a01	mapflag	nopenalty
 bat_a02	mapflag	nopenalty
 
+// 13.3 El Discastes
+dicastes01	mapflag	nopenalty
+dicastes02	mapflag	nopenalty
+dic_in01	mapflag	nopenalty
+
 //evt_zombie	mapflag	nopenalty
 
-// Poring War ==================
-poring_w02	mapflag	nopenalty
+// 14.1 Bifrost
+mora	mapflag	nopenalty
+
+// Dewata Maps
+dewata	mapflag	nopenalty
+dew_in01	mapflag	nopenalty
+
+// Malangdo Maps
+malangdo	mapflag	nopenalty
+mal_in01	mapflag	nopenalty
+mal_in02	mapflag	nopenalty
+
+// Port Malaya
+malaya	mapflag	nopenalty
+job_ko	mapflag	nopenalty
+ma_scene01	mapflag	nopenalty
+ma_in01	mapflag	nopenalty
+ma_zif01	mapflag	nopenalty
+ma_zif02	mapflag	nopenalty
+ma_zif03	mapflag	nopenalty
+ma_zif04	mapflag	nopenalty
+ma_zif05	mapflag	nopenalty
+ma_zif06	mapflag	nopenalty
+ma_zif07	mapflag	nopenalty
+ma_zif08	mapflag	nopenalty
+ma_zif09	mapflag	nopenalty
+
+// 14.2 Eclage
+eclage	mapflag	nopenalty
+que_avan01	mapflag	nopenalty
+ecl_in01	mapflag	nopenalty
+ecl_in02	mapflag	nopenalty
+ecl_in03	mapflag	nopenalty
+ecl_in04	mapflag	nopenalty
+ecl_hub01	mapflag	nopenalty

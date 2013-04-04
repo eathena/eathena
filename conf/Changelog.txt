@@ -1,5 +1,7 @@
 Date	Added
 
+2013/04/04
+	* Rev. 15238 Added map flags for some newer maps. [L0ne_W0lf]
 2011/08/21
 	* Rev. 14938 Added setting 'client_limit_unit_lv' to control the unit types which are affected by 'max_lv' and 'aura_lv' settings. [Ai4rei]
 2011/08/10
