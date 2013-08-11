@@ -78,10 +78,9 @@ enum actor_classes
 	INVISIBLE_CLASS = 32767,
 };
 
-#define MAX_NPC_CLASS 1000
 //Checks if a given id is a valid npc id. [Skotlex]
-//Since new npcs are added all the time, the max valid value is the one before the first mob (Scorpion = 1001)
-#define npcdb_checkid(id) ( ( (id) >= 46 && (id) <= 125) || (id) == HIDDEN_WARP_CLASS || ( (id) > 400 && (id) < MAX_NPC_CLASS ) || (id) == INVISIBLE_CLASS )
+//Since new npcs are added all the time, the max valid value is assumed 11000 for now, and bumped as necessary.
+#define npcdb_checkid(id) ( ( (id) > WARP_CLASS && (id) <= 125) || (id) == HIDDEN_WARP_CLASS || ( (id) > 400 && (id) < 1000 ) || (id) == INVISIBLE_CLASS || ( (id) > 10000 && (id) < 11000 ) )
 
 #ifdef PCRE_SUPPORT
 void npc_chat_finalize(struct npc_data* nd);

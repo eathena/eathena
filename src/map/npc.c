@@ -85,7 +85,7 @@ struct event_data {
 static struct eri *timer_event_ers; //For the npc timer data. [Skotlex]
 
 //For holding the view data of npc classes. [Skotlex]
-static struct view_data npc_viewdb[MAX_NPC_CLASS];
+static DBMap* npcview_db;  // int class_ -> struct view_data*
 
 static struct script_event_s
 {	//Holds pointers to the commonly executed scripts for speedup. [Skotlex]
@@ -94,12 +94,24 @@ static struct script_event_s
 	uint8 event_count;
 } script_event[NPCE_MAX];
 
+static void* npc_create_viewdata(DBKey key, va_list args)
+{
+	struct view_data* vd = aCalloc(1, sizeof(struct view_data));
+
+	vd->class_ = key.i;
+
+	return vd;
+}
+
+// Returns the viewdata for normal npc classes.
+// FIXME: class_ should be signed short
 struct view_data* npc_get_viewdata(int class_)
-{	//Returns the viewdata for normal npc classes.
-	if( class_ == INVISIBLE_CLASS )
-		return &npc_viewdb[0];
-	if (npcdb_checkid(class_) || class_ == WARP_CLASS)
-		return &npc_viewdb[class_];
+{
+	if( npcdb_checkid(class_) || class_ == WARP_CLASS )
+	{// Allocate valid entries as needed.
+		return idb_ensure(npcview_db, class_, &npc_create_viewdata);
+	}
+
 	return NULL;
 }
 
@@ -3451,6 +3463,7 @@ int do_final_npc(void)
 	//There is no free function for npcname_db because at this point there shouldn't be any npcs left!
 	//So if there is anything remaining, let the memory manager catch it and report it.
 	npcname_db->destroy(npcname_db, NULL);
+	npcview_db->destroy(npcview_db, NULL);
 	ers_destroy(timer_event_ers);
 	npc_clearsrcfile();
 
@@ -3497,16 +3510,10 @@ static void npc_debug_warps(void)
 int do_init_npc(void)
 {
 	struct npc_src_list *file;
-	int i;
-
-	//Stock view data for normal npcs.
-	memset(&npc_viewdb, 0, sizeof(npc_viewdb));
-	npc_viewdb[0].class_ = INVISIBLE_CLASS; //Invisible class is stored here.
-	for( i = 1; i < MAX_NPC_CLASS; i++ ) 
-		npc_viewdb[i].class_ = i;
 
 	ev_db = strdb_alloc((DBOptions)(DB_OPT_DUP_KEY|DB_OPT_RELEASE_DATA),2*NAME_LENGTH+2+1);
 	npcname_db = strdb_alloc(DB_OPT_BASE,NAME_LENGTH);
+	npcview_db = idb_alloc(DB_OPT_RELEASE_DATA);
 
 	timer_event_ers = ers_new(sizeof(struct timer_event_data));
 
