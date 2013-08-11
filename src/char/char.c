@@ -3408,15 +3408,17 @@ int lan_subnetcheck(uint32 ip)
 }
 
 
-/// @param result
-/// 0 (0x718): An unknown error has occurred.
-/// 1: none/success
-/// 3 (0x719): A database error occurred.
-/// 4 (0x71a): To delete a character you must withdraw from the guild.
-/// 5 (0x71b): To delete a character you must withdraw from the party.
-/// Any (0x718): An unknown error has occurred.
+/// Notification about the result of a timed character delete request (HC_DELETE_CHAR3_RESERVED).
+/// 0828 <char id>.L <result:0-5>.L <deleteDate>.L
+/// result:
+///     0 = (0x718) An unknown error has occurred.
+///     1 = none/success
+///     3 = (0x719) A database error occurred.
+///     4 = (0x71a) To delete a character you must withdraw from the guild.
+///     5 = (0x71b) To delete a character you must withdraw from the party.
+///     ? = (0x718) An unknown error has occurred.
 void char_delete2_ack(int fd, int char_id, uint32 result, time_t delete_date)
-{// HC: <0828>.W <char id>.L <Msg:0-5>.L <deleteDate>.L
+{
 	WFIFOHEAD(fd,14);
 	WFIFOW(fd,0) = 0x828;
 	WFIFOL(fd,2) = char_id;
@@ -3426,16 +3428,18 @@ void char_delete2_ack(int fd, int char_id, uint32 result, time_t delete_date)
 }
 
 
-/// @param result
-/// 0 (0x718): An unknown error has occurred.
-/// 1: none/success
-/// 2 (0x71c): Due to system settings can not be deleted.
-/// 3 (0x719): A database error occurred.
-/// 4 (0x71d): Deleting not yet possible time.
-/// 5 (0x71e): Date of birth do not match.
-/// Any (0x718): An unknown error has occurred.
+/// Notification about the result of a character delete confirmation (HC_DELETE_CHAR3).
+/// 082a <char id>.L <result:0-5>.L
+/// result:
+///     0 = (0x718) An unknown error has occurred.
+///     1 = none/success
+///     2 = (0x71c) Due to system settings can not be deleted.
+///     3 = (0x719) A database error occurred.
+///     4 = (0x71d) Deleting not yet possible time.
+///     5 = (0x71e) Date of birth do not match.
+///     ? = (0x718) An unknown error has occurred.
 void char_delete2_accept_ack(int fd, int char_id, uint32 result)
-{// HC: <082a>.W <char id>.L <Msg:0-5>.L
+{
 	WFIFOHEAD(fd,10);
 	WFIFOW(fd,0) = 0x82a;
 	WFIFOL(fd,2) = char_id;
@@ -3444,12 +3448,14 @@ void char_delete2_accept_ack(int fd, int char_id, uint32 result)
 }
 
 
-/// @param result
-/// 1 (0x718): none/success, (if char id not in deletion process): An unknown error has occurred.
-/// 2 (0x719): A database error occurred.
-/// Any (0x718): An unknown error has occurred.
+/// Notification about the result of a character delete timer cancelation request (HC_DELETE_CHAR3_CANCEL).
+/// 082c <char id>.L <result:1-2>.L
+/// result:
+///     1 = (0x718) none/success, (if char id not in deletion process): An unknown error has occurred.
+///     2 = (0x719) A database error occurred.
+///     ? = (0x718) An unknown error has occurred.
 void char_delete2_cancel_ack(int fd, int char_id, uint32 result)
-{// HC: <082c>.W <char id>.L <Msg:1-2>.L
+{
 	WFIFOHEAD(fd,10);
 	WFIFOW(fd,0) = 0x82c;
 	WFIFOL(fd,2) = char_id;
@@ -3458,8 +3464,10 @@ void char_delete2_cancel_ack(int fd, int char_id, uint32 result)
 }
 
 
+/// Requests a timed deletion of a character (CH_DELETE_CHAR3_RESERVED).
+/// 0827 <char id>.L
 static void char_delete2_req(int fd, struct char_session_data* sd)
-{// CH: <0827>.W <char id>.L
+{
 	int char_id;
 	struct mmo_charstatus* cs;
 
@@ -3501,8 +3509,10 @@ static void char_delete2_req(int fd, struct char_session_data* sd)
 }
 
 
+/// Confirms the deletion of a character whose timer has run out (CH_DELETE_CHAR3).
+/// 0829 <char id>.L <birth date:YYMMDD>.6B
 static void char_delete2_accept(int fd, struct char_session_data* sd)
-{// CH: <0829>.W <char id>.L <birth date:YYMMDD>.6B
+{
 	char birthdate[8+1];
 	int char_id, i;
 	struct mmo_charstatus* cs;
@@ -3590,8 +3600,10 @@ static void char_delete2_accept(int fd, struct char_session_data* sd)
 }
 
 
+/// Cancels a running deletion timer on a character (CH_DELETE_CHAR3_CANCEL).
+/// 082b <char id>.L
 static void char_delete2_cancel(int fd, struct char_session_data* sd)
-{// CH: <082b>.W <char id>.L
+{
 	int char_id;
 	struct mmo_charstatus* cs;
 
@@ -3650,8 +3662,9 @@ int parse_char(int fd)
 		switch( cmd )
 		{
 
-		// request to connect
-		// 0065 <account id>.L <login id1>.L <login id2>.L <???>.W <sex>.B
+		// request to connect (CH_ENTER).
+		// 0065 <account id>.L <login id1>.L <login id2>.L <client type>.W <sex>.B
+		// NOTE: in official packets <login id1> and <login id2> are <AuthCode> and <userLevel> respectively.
 		case 0x65:
 			if( RFIFOREST(fd) < 17 )
 				return 0;
@@ -3728,7 +3741,8 @@ int parse_char(int fd)
 		}
 		break;
 
-		// char select
+		// char select (CH_SELECT_CHAR).
+		// 0066 <slot>.B
 		case 0x66:
 			FIFOSD_CHECK(3);
 		{
@@ -3855,8 +3869,8 @@ int parse_char(int fd)
 		}
 		break;
 
-		// create new char
-		// S 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <slot>.B <hair color>.W <hair style>.W
+		// create new char (CH_MAKE_CHAR).
+		// 0067 <name>.24B <str>.B <agi>.B <vit>.B <int>.B <dex>.B <luk>.B <slot>.B <hair color>.W <hair style>.W
 		case 0x67:
 			FIFOSD_CHECK(37);
 
@@ -3896,9 +3910,11 @@ int parse_char(int fd)
 			RFIFOSKIP(fd,37);
 		break;
 
-		// delete char
+		// delete char (CH_DELETE_CHAR).
+		// 0068 <char id>.L <email>.40B
 		case 0x68:
-		// 2004-04-19aSakexe+ langtype 12 char deletion packet
+		// 2004-04-19aSakexe+ langtype 12 char deletion packet (CH_DELETE_CHAR2).
+		// 01fb <char id>.L <email>.50B
 		case 0x1fb:
 			if (cmd == 0x68) FIFOSD_CHECK(46);
 			if (cmd == 0x1fb) FIFOSD_CHECK(56);
@@ -4019,15 +4035,15 @@ int parse_char(int fd)
 		break;
 
 		// client keep-alive packet (every 12 seconds)
-		// R 0187 <account ID>.l
+		// 0187 <account id>.L
 		case 0x187:
 			if (RFIFOREST(fd) < 6)
 				return 0;
 			RFIFOSKIP(fd,6);
 		break;
 
-		// char rename request
-		// R 028d <account ID>.l <char ID>.l <new name>.24B
+		// char rename request (CH_REQ_IS_VALID_CHARNAME).
+		// 028d <account id>.L <char id>.L <new name>.24B
 		case 0x28d:
 			FIFOSD_CHECK(34);
 			{
@@ -4035,8 +4051,8 @@ int parse_char(int fd)
 				RFIFOSKIP(fd,34);
 			}
 			break;
-		//Confirm change name.
-		// 0x28f <char_id>.L
+		//Confirm change name (CH_REQ_CHANGE_CHARNAME).
+		// 028f <char id>.L
 		case 0x28f:
 			// 0: Sucessfull
 			// 1: This character's name has already been changed. You cannot change a character's name more than once.
@@ -4050,8 +4066,8 @@ int parse_char(int fd)
 			}
 			break;
 
-		// captcha code request (not implemented)
-		// R 07e5 <?>.w <aid>.l
+		// captcha code request (CH_ENTER_CHECKBOT). (not implemented)
+		// 07e5 <packet len>.W <account id>.L <?>.?
 		case 0x7e5:
 			WFIFOHEAD(fd,5);
 			WFIFOW(fd,0) = 0x7e9;
@@ -4061,8 +4077,8 @@ int parse_char(int fd)
 			RFIFOSKIP(fd,8);
 			break;
 
-		// captcha code check (not implemented)
-		// R 07e7 <len>.w <aid>.l <code>.b10 <?>.b14
+		// captcha code check (CH_CHECKBOT). (not implemented)
+		// 07e7 <packet len>.W <account id>.L <string info?>.24B <?>.?
 		case 0x7e7:
 			WFIFOHEAD(fd,5);
 			WFIFOW(fd,0) = 0x7e9;
