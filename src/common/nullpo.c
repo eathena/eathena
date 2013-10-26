@@ -8,37 +8,24 @@
 #include <stdarg.h>
 #include <string.h>
 
-static void nullpo_info_core(const char *file, int line, const char *func);
-
-/*======================================
- * Checks for and reports NULL pointers
- *--------------------------------------*/
-int nullpo_chk(const char *file, int line, const char *func, const void *target)
+/// Checks for and reports NULL pointers.
+/// Used by nullpo_ret* macros.
+int nullpo_chk(const char* file, int line, const char* func, const void* target, const char* targetname)
 {
-	if (target != NULL)
+	if( target )
+	{
 		return 0;
+	}
 
-	nullpo_info_core(file, line, func);
-	return 1;
-}
-
-/*======================================
- * nullpo information output (Main)
- *--------------------------------------*/
-static void nullpo_info_core(const char *file, int line, const char *func)
-{
-	if (file == NULL)
-		file = "??";
+	file =
+		( file == NULL ) ? "??" : file;
 
 	func =
-		func == NULL    ? "unknown":
-		func[0] == '\0' ? "unknown":
-		                  func;
+		( func == NULL ) ? "unknown" :
+		( func[0] == 0 ) ? "unknown" : func;
 
-	ShowMessage("--- nullpo info --------------------------------------------\n");
-	ShowMessage("%s:%d: in func `%s'\n", file, line, func);
-	ShowMessage("--- end nullpo info ----------------------------------------\n");
-
-	// ここらでnullpoログをファイルに書き出せたら
-	// まとめて提出できるなと思っていたり。
+	ShowDebug("--- nullpo info --------------------------------------------\n");
+	ShowDebug("%s:%d: target '%s' in func '%s'\n", file, line, targetname, func);
+	ShowDebug("--- end nullpo info ----------------------------------------\n");
+	return 1;
 }
