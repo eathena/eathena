@@ -979,11 +979,9 @@ static struct Damage battle_calc_weapon_attack(struct block_list *src,struct blo
 	memset(&wd,0,sizeof(wd));
 	memset(&flag,0,sizeof(flag));
 
-	if(src==NULL || target==NULL)
-	{
-		nullpo_info(NLP_MARK);
-		return wd;
-	}
+	nullpo_retr(wd, src);
+	nullpo_retr(wd, target);
+
 	//Initial flag
 	flag.rh=1;
 	flag.weapon=1;
@@ -2332,11 +2330,9 @@ struct Damage battle_calc_magic_attack(struct block_list *src,struct block_list 
 	memset(&ad,0,sizeof(ad));
 	memset(&flag,0,sizeof(flag));
 
-	if(src==NULL || target==NULL)
-	{
-		nullpo_info(NLP_MARK);
-		return ad;
-	}
+	nullpo_retr(ad, src);
+	nullpo_retr(ad, target);
+
 	//Initial Values
 	ad.damage = 1;
 	ad.div_=skill_get_num(skill_num,skill_lv);
@@ -2682,10 +2678,8 @@ struct Damage battle_calc_misc_attack(struct block_list *src,struct block_list *
 
 	memset(&md,0,sizeof(md));
 
-	if( src == NULL || target == NULL ){
-		nullpo_info(NLP_MARK);
-		return md;
-	}
+	nullpo_retr(md, src);
+	nullpo_retr(md, target);
 
 	//Some initial values
 	md.amotion=skill_get_inf(skill_num)&INF_GROUND_SKILL?0:sstatus->amotion;

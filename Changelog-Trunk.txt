@@ -1,6 +1,9 @@
 Date	Added
 
 2013/10/26
+	* Cleaned up nullpo. [Ai4rei]
+	- Removed unused and non-portable nullpo checks with formatted message.
+	- Removed stand-alone nullpo reporting, any in-place error message will do a better job.
 	* Cleaned up mapindex. [Ai4rei]
 	- Name2id queries are now backed by a dbmap.
 	- Simplyfied handling of the error value 0, as there is no need to explicitely store an index for it.
