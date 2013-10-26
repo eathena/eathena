@@ -129,6 +129,10 @@
 //For item names, which tend to have much longer names.
 #define ITEM_NAME_LENGTH 50
 //For Map Names, which the client considers to be 16 in length including the .gat extension
+// FIXME: These are used wrong, they are supposed to be character strings of lengths 12/16,
+//        where only lengths of 11/15 and lower are zero-terminated, not always zero-
+//        terminated character strings of lengths 11+1/15+1! This is why mjolnir_04_1 cannot
+//        be used on eAthena. [Ai4rei]
 #define MAP_NAME_LENGTH (11 + 1)
 #define MAP_NAME_LENGTH_EXT (MAP_NAME_LENGTH + 4)
 

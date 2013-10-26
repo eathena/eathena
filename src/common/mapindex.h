@@ -40,11 +40,11 @@ extern char mapindex_cfgfile[80];
 const char* mapindex_getmapname(const char* string, char* output);
 const char* mapindex_getmapname_ext(const char* string, char* output);
 unsigned short mapindex_name2id(const char*);
-const char* mapindex_id2name(unsigned short);
+const char* mapindex_id2name(unsigned short index);
 void mapindex_init(void);
 void mapindex_final(void);
 
-int mapindex_addmap(int index, const char* name);
-int mapindex_removemap(int index);
+unsigned short mapindex_addmap(unsigned short index, const char* name);
+void mapindex_removemap(unsigned short index);
 
 #endif /* _MAPINDEX_H_ */

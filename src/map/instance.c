@@ -133,7 +133,7 @@ int instance_add_map(const char *name, int instance_id, bool usebasename)
 
 	memcpy( &map[im], &map[m], sizeof(struct map_data) ); // Copy source map
 	snprintf(map[im].name, MAP_NAME_LENGTH, (usebasename ? "%.3d#%s" : "%.3d%s"), instance_id, name); // Generate Name for Instance Map
-	map[im].index = mapindex_addmap(-1, map[im].name); // Add map index
+	map[im].index = mapindex_addmap(0, map[im].name); // Add map index
 
 	if( !map[im].index )
 	{

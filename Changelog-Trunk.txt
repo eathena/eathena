@@ -1,5 +1,14 @@
 Date	Added
 
+2013/10/26
+	* Cleaned up mapindex. [Ai4rei]
+	- Name2id queries are now backed by a dbmap.
+	- Simplyfied handling of the error value 0, as there is no need to explicitely store an index for it.
+	- The "generate map index" feature in mapindex_addmap has been changed to use the reserved error value 0 instead of -1, so that the types can be properly unsigned.
+	- Fixed a no-op in mapindex_getmapname_ext where a strncpy was fed aliased source as destination buffer when a temporary buffer was used as destination.
+	- Updated errors/warnings to contain more usable information.
+	- Fixed mapindex_getmapname_ext spending to much effort on making crippled mapnames (too long ones) look even more crippled (cut-off extension+extension).
+	- Generated temporary map indexes are now stored after the last permanent map index, gap search is no longer performed on the permanent index range.
 2013/08/11
 	* Added support for NPC IDs over 10000 for 2012-08-08aRagexeRE or newer; other clients show Porings or crash depending on age for that range. [Ai4rei]
 	- This also cuts down on the amount (1000 -> ~400) of NPC view data held in memory as it is now allocated on demand.
