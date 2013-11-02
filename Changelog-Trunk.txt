@@ -1,5 +1,7 @@
 Date	Added
 
+2013/11/02
+	* Fixed dead characters would be immune to SC_NOCHAT, that is, GM mute in all of it's forms (thread:12, since r4308, related r1142 and r5348). [Ai4rei]
 2013/10/26
 	* Moved conf/mapflag to npc/mapflag, as mapflags are scripts (related ra:17347). [Ai4rei]
 	* Cleaned up nullpo. [Ai4rei]
