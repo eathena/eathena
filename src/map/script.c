@@ -12740,7 +12740,7 @@ BUILDIN_FUNC(explode)
 	const char delimiter = script_getstr(st, 4)[0];
 	int32 id;
 	size_t len = strlen(str);
-	int i = 0, j = 0;
+	size_t i = 0, j = 0;
 	int index;
 
 	char *temp;
@@ -12785,7 +12785,7 @@ BUILDIN_FUNC(explode)
 
 	temp = (char*)aMalloc(len + 1);
 
-	for( i = 0, j = 0; i < len; ++i )
+	for( i = 0; i < len; ++i )
 	{
 		if( index < SCRIPT_MAX_ARRAYSIZE-1 && str[i] == delimiter )
 		{ // break string at delimiter while there is space in the array

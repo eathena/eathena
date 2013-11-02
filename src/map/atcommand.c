@@ -1729,7 +1729,8 @@ ACMD_FUNC(itemreset)
  *------------------------------------------*/
 ACMD_FUNC(baselevelup)
 {
-	int level=0, i=0, status_point=0;
+	int level=0, i=0;
+	unsigned int status_point=0;
 	nullpo_retr(-1, sd);
 	level = atoi(message);
 
@@ -1817,9 +1818,9 @@ ACMD_FUNC(joblevelup)
 		if ((unsigned int)level >= sd->status.job_level) // fix negativ overflow
 			level = sd->status.job_level-1;
 		sd->status.job_level -= (unsigned int)level;
-		if (sd->status.skill_point < level)
+		if (sd->status.skill_point < (unsigned int)level)
 			pc_resetskill(sd,0);	//Reset skills since we need to substract more points.
-		if (sd->status.skill_point < level)
+		if (sd->status.skill_point < (unsigned int)level)
 			sd->status.skill_point = 0;
 		else
 			sd->status.skill_point -= level;
@@ -2257,7 +2258,7 @@ ACMD_FUNC(go)
 		sscanf(message, "%11s", input); // FIXME doesn't allow names with spaces
 		input[MAP_NAME_LENGTH-1] = '\0';
 		inputlen = strlen(input);
-		for( i = 0; i < inputlen; ++i )
+		for( i = 0; input[i]; ++i )
 			input[i] = TOLOWER(input[i]); // lowercase
 	}
 

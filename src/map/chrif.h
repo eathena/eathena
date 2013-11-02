@@ -10,7 +10,9 @@
 enum sd_state { ST_LOGIN, ST_LOGOUT, ST_MAPCHANGE };
 struct auth_node {
 	int account_id, char_id;
-	int login_id1, login_id2, sex, fd;
+	uint32 login_id1, login_id2;
+	uint8 sex;
+	int fd;
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	struct map_session_data *sd;	//Data from logged on char.
 	struct mmo_charstatus *char_dat;	//Data from char server.

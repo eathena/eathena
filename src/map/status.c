@@ -1694,7 +1694,7 @@ int status_calc_pc_(struct map_session_data* sd, bool first)
 	struct status_data *status; // pointer to the player's base status
 	const struct status_change *sc = &sd->sc;
 	struct s_skill b_skill[MAX_SKILL]; // previous skill tree
-	int b_weight, b_max_weight; // previous weight
+	unsigned int b_weight, b_max_weight; // previous weight
 	int i,index;
 	int skill,refinedef=0;
 
@@ -7135,7 +7135,7 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 		break;
 
 	case SC_POISON:
-		if(status->hp <= max(status->max_hp>>2, sce->val4)) //Stop damaging after 25% HP left.
+		if(status->hp <= max(status->max_hp>>2, (unsigned int)sce->val4)) //Stop damaging after 25% HP left.
 			break;
 	case SC_DPOISON:
 		if (--(sce->val3) > 0) {
@@ -7172,9 +7172,10 @@ int status_change_timer(int tid, unsigned int tick, int id, intptr_t data)
 
 	case SC_BLEEDING:
 		if (--(sce->val4) >= 0) {
-			int flag, hp =  rand()%600 + 200;
+			int flag;
+			unsigned int hp =  rand()%600 + 200;
 			map_freeblock_lock();
-			status_fix_damage(NULL, bl, sd||hp<status->hp?hp:status->hp-1, 0);
+			status_fix_damage(NULL, bl, ( sd || hp < status->hp ) ? hp : status->hp-1, 0);
 			flag = !sc->data[type];
 			map_freeblock_unlock();
 			if( !flag ) {

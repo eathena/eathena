@@ -424,7 +424,7 @@ int chrif_changemapserver(struct map_session_data* sd, uint32 ip, uint16 port)
 
 /// map-server change request acknowledgement (positive or negative)
 /// R 2b06 <account_id>.L <login_id1>.L <login_id2>.L <char_id>.L <map_index>.W <x>.W <y>.W <ip>.L <port>.W
-int chrif_changemapserverack(int account_id, int login_id1, int login_id2, int char_id, short map_index, short x, short y, uint32 ip, uint16 port)
+int chrif_changemapserverack(int account_id, uint32 login_id1, uint32 login_id2, int char_id, short map_index, short x, short y, uint32 ip, uint16 port)
 {
 	struct auth_node *node;
 	if (!(node=chrif_auth_check(account_id, char_id, ST_MAPCHANGE)))

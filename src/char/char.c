@@ -100,7 +100,9 @@ int subnet_count = 0;
 
 struct char_session_data {
 	bool auth; // whether the session is authed or not
-	int account_id, login_id1, login_id2, sex;
+	int account_id;
+	uint32 login_id1, login_id2;
+	uint8 sex;
 	int found_char[MAX_CHARS]; // ids of chars on this account
 	char email[40]; // e-mail (default: a@a.com) by [Yor]
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
@@ -156,7 +158,7 @@ struct auth_node {
 	uint32 login_id1;
 	uint32 login_id2;
 	uint32 ip;
-	int sex;
+	uint8 sex;
 	time_t expiration_time; // # of seconds 1/1/1970 (timestamp): Validity limit of the account (0 = unlimited)
 	int gmlevel;
 };
@@ -2210,7 +2212,7 @@ int parse_fromlogin(int fd)
 				return 0;
 
 			// find the authenticated session with this account id
-			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == RFIFOL(fd,2) );
+			ARR_FIND( 0, fd_max, i, session[i] && (sd = (struct char_session_data*)session[i]->session_data) && sd->auth && sd->account_id == (int)RFIFOL(fd,2) );
 			if( i < fd_max )
 			{
 				memcpy(sd->email, RFIFOP(fd,6), 40);
@@ -3269,8 +3271,8 @@ int parse_frommap(int fd)
 		{
 			int account_id;
 			int char_id;
-			int login_id1;
-			char sex;
+			uint32 login_id1;
+			uint8 sex;
 			uint32 ip;
 			struct auth_node* node;
 			struct mmo_charstatus* cd;

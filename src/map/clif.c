@@ -8855,7 +8855,9 @@ void clif_parse_WantToConnection(int fd, TBL_PC* sd)
 {
 	struct block_list* bl;
 	struct auth_node* node;
-	int cmd, account_id, char_id, login_id1, sex;
+	int cmd, account_id, char_id;
+	uint32 login_id1;
+	uint8 sex;
 	unsigned int client_tick; //The client tick is a tick, therefore it needs be unsigned. [Skotlex]
 	int packet_ver;	// 5: old, 6: 7july04, 7: 13july04, 8: 26july04, 9: 9aug04/16aug04/17aug04, 10: 6sept04, 11: 21sept04, 12: 18oct04, 13: 25oct04 (by [Yor])
 

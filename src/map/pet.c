@@ -436,7 +436,7 @@ int pet_recv_petdata(int account_id,struct s_pet *p,int flag)
 		//Delete egg from inventory. [Skotlex]
 		for (i = 0; i < MAX_INVENTORY; i++) {
 			if(sd->status.inventory[i].card[0] == CARD0_PET &&
-				p->pet_id == MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]))
+				p->pet_id == (int)MakeDWord(sd->status.inventory[i].card[1], sd->status.inventory[i].card[2]))
 				break;
 		}
 		if(i >= MAX_INVENTORY) {

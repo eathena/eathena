@@ -1272,7 +1272,7 @@ int intif_parse_ChangeNameOk(int fd)
 {
 	struct map_session_data *sd = NULL;
 	if((sd=map_id2sd(RFIFOL(fd,2)))==NULL ||
-		sd->status.char_id != RFIFOL(fd,6))
+		sd->status.char_id != (int)RFIFOL(fd,6))
 		return 0;
 
 	switch (RFIFOB(fd,10)) {

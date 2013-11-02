@@ -2829,7 +2829,7 @@ static struct block_list *mob_getfriendhprate(struct mob_data *md,int min_rate,i
 /*==========================================
  * Check hp rate of its master
  *------------------------------------------*/
-struct block_list *mob_getmasterhpltmaxrate(struct mob_data *md,int rate)
+struct block_list* mob_getmasterhpltmaxrate(struct mob_data *md, unsigned int rate)
 {
 	if( md && md->master_id > 0 )
 	{

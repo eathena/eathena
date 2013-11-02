@@ -1817,7 +1817,7 @@ int skill_attack (int attack_type, struct block_list* src, struct block_list *ds
 	if(damage > 0 && dmg.flag&BF_SKILL && tsd
 		&& pc_checkskill(tsd,RG_PLAGIARISM)
 	  	&& (!sc || !sc->data[SC_PRESERVE])
-		&& damage < tsd->battle_status.hp)
+		&& (unsigned int)damage < tsd->battle_status.hp)
 	{	//Updated to not be able to copy skills if the blow will kill you. [Skotlex]
 		if ((tsd->status.skill[skillid].id == 0 || tsd->status.skill[skillid].flag == SKILL_FLAG_PLAGIARIZED) &&
 			can_copy(tsd,skillid,bl))	// Split all the check into their own function [Aru]
@@ -8556,7 +8556,7 @@ int skill_check_condition_castbegin(struct map_session_data* sd, short skill, sh
 		return 0;
 	}
 
-	if(require.mhp > 0 && get_percentage(status->hp, status->max_hp) > require.mhp) {
+	if(require.mhp > 0 && get_percentage(status->hp, status->max_hp) > (unsigned int)require.mhp) {
 		//mhp is the max-hp-requirement, that is,
 		//you must have this % or less of HP to cast it.
 		clif_skill_fail(sd,skill,USESKILL_FAIL_HP_INSUFFICIENT,0);

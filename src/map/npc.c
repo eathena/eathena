@@ -1191,7 +1191,7 @@ static int npc_buylist_sub(struct map_session_data* sd, int n, unsigned short* i
 /*==========================================
  * Cash Shop Buy
  *------------------------------------------*/
-int npc_cashshop_buy(struct map_session_data *sd, int nameid, int amount, int points)
+int npc_cashshop_buy(struct map_session_data* sd, unsigned int nameid, int amount, int points)
 {
 	struct npc_data *nd = (struct npc_data *)map_id2bl(sd->npc_shopid);
 	struct item_data *item;
