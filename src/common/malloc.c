@@ -301,12 +301,11 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 	short size_hash = size2hash( size );
 	struct unit_head *head;
 
-	if( (long)size < 0 )
-	{
-		ShowError("_mmalloc: %d\n", size);
-		return NULL;
+	if( size >= 0x8000000 )
+	{// 2GB
+		ShowWarning("_mmalloc: Possible ill-allocation (%u bytes at %s:%d).\n", size, file, line);
 	}
-	
+
 	if( size == 0 )
 	{
 		return NULL;
@@ -433,8 +432,11 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 
 void* _mcalloc(size_t num, size_t size, const char* file, int line, const char* func)
 {
-	void* p = _mmalloc(num * size, file, line, func);
+	void* p;
 
+	memmgr_assert( SIZE_MAX/num > size );
+
+	p = _mmalloc(num * size, file, line, func);
 	memset(p, 0, num * size);
 
 	return p;
