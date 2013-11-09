@@ -255,14 +255,14 @@ static inline long* memmgr_unit_tail(struct unit_head* head)
 
 static inline struct unit_head_large* memmgr_memblock2unit_head_large(char* ptr)
 {
-	struct unit_head_large* large = NULL;  // dummy for offset calculation that takes padding into account
+	struct unit_head_large* large = NULL;  // dummy for offset calculation that takes alignment into account
 
 	return (struct unit_head_large*)( ptr - ( (uintptr_t)&large->unit_head.checksum - (uintptr_t)large ) );
 }
 
 static inline struct unit_head* memmgr_memblock2unit_head(char* ptr)
 {
-	struct unit_head* head = NULL;  // dummy for offset calculation that takes padding into account
+	struct unit_head* head = NULL;  // dummy for offset calculation that takes alignment into account
 
 	return (struct unit_head*)( ptr - ( (uintptr_t)&head->checksum - (uintptr_t)head ) );
 }
@@ -279,7 +279,7 @@ static unsigned short size2hash( size_t size )
 	}
 	else
 	{
-		return 0xffff;	// ブロック長を超える場合は hash にしない
+		return 0xffff;  // too large chunk of memory to fit a block
 	}
 }
 
@@ -347,7 +347,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 		}
 		else
 		{
-			ShowFatalError("Memory manager::memmgr_alloc failed (allocating %d+%d bytes at %s:%d).\n", sizeof(struct unit_head_large), size, file, line);
+			ShowFatalError("Memory manager::memmgr_alloc failed (allocating %u+%u bytes at %s:%d).\n", sizeof(struct unit_head_large), size, file, line);
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -458,12 +458,13 @@ void* _mrealloc(void* memblock, size_t size, const char* file, int line, const c
 
 	if( old_size > size )
 	{
-		// サイズ縮小 -> そのまま返す（手抜き）
+		// smaller -> keep unchanged (lazy)
+		// TODO: This improves performance, but may waste memory. [Ai4rei]
 		return memblock;
 	}
 	else
 	{
-		// サイズ拡大
+		// grow
 		void* p = _mmalloc(size, file, line, func);
 
 		if( p != NULL )
