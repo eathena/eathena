@@ -454,7 +454,6 @@ int check_ttl_wisdata(void) {
 // broadcast sending
 int mapif_parse_broadcast(int fd)
 {
-	RFIFOHEAD(fd);
 	mapif_broadcast(RFIFOP(fd,16), RFIFOW(fd,2), RFIFOL(fd,4), RFIFOW(fd,8), RFIFOW(fd,10), RFIFOW(fd,12), RFIFOW(fd,14), fd);
 	return 0;
 }
@@ -525,7 +524,7 @@ int mapif_parse_WisRequest(int fd)
 int mapif_parse_WisReply(int fd) {
 	int id, flag;
 	struct WisData *wd;
-	RFIFOHEAD(fd);
+
 	id = RFIFOL(fd,2);
 	flag = RFIFOB(fd,6);
 	wd = (struct WisData*)idb_get(wis_db, id);
@@ -564,7 +563,6 @@ static void* create_accreg(DBKey key, va_list args) {
 int mapif_parse_Registry(int fd) {
 	int j, p, len;
 	struct accreg *reg;
-	RFIFOHEAD(fd);
 
 	switch (RFIFOB(fd,12)) {
 		case 3: //Character registry
@@ -595,7 +593,6 @@ int mapif_parse_Registry(int fd) {
 // Request the value of all registries.
 int mapif_parse_RegistryRequest(int fd)
 {	
-	RFIFOHEAD(fd);
 	//Load Char Registry
 	if (RFIFOB(fd,12))
 		char_account_reg_reply(fd,RFIFOL(fd,2),RFIFOL(fd,6));
@@ -625,7 +622,6 @@ int mapif_parse_NameChangeRequest(int fd)
 	char* name;
 	int i;
 
-	RFIFOHEAD(fd);
 	account_id = RFIFOL(fd, 2);
 	char_id = RFIFOL(fd, 6);
 	type = RFIFOB(fd, 10);
@@ -680,7 +676,7 @@ int inter_check_length(int fd, int length)
 // パケット長が足りなければ2をかえさなければならない
 int inter_parse_frommap(int fd) {
 	int cmd, len;
-	RFIFOHEAD(fd);
+
 	cmd = RFIFOW(fd,0);
 	len = 0;
 

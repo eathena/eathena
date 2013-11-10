@@ -4,7 +4,7 @@
 #ifndef	_SOCKET_H_
 #define _SOCKET_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 
 #ifdef WIN32
 	#define WIN32_LEAN_AND_MEAN  // otherwise winsock2.h includes full windows.h
@@ -29,7 +29,6 @@
 #define FIFOSIZE_SERVERLINK 256*1024
 
 // socket I/O macros
-#define RFIFOHEAD(fd)
 #define WFIFOHEAD(fd, size) do{ if((fd) && session[fd]->wdata_size + (size) > session[fd]->max_wdata ) realloc_writefifo(fd, size); }while(0)
 #define RFIFOP(fd,pos) (session[fd]->rdata + session[fd]->rdata_pos + (pos))
 #define WFIFOP(fd,pos) (session[fd]->wdata + session[fd]->wdata_size + (pos))
@@ -83,8 +82,8 @@ typedef int (*ParseFunc)(int fd);
 struct socket_data
 {
 	struct {
-		unsigned char eof : 1;
-		unsigned char server : 1;
+		unsigned int eof : 1;
+		unsigned int server : 1;
 	} flag;
 
 	uint32 client_addr; // remote client address

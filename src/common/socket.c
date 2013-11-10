@@ -145,18 +145,18 @@ int sSocket(int af, int type, int protocol)
 	return sock2newfd(s);
 }
 
-#define sBind(fd,name,namelen) bind(fd2sock(fd),name,namelen)
-#define sConnect(fd,name,namelen) connect(fd2sock(fd),name,namelen)
-#define sIoctl(fd,cmd,argp) ioctlsocket(fd2sock(fd),cmd,argp)
-#define sListen(fd,backlog) listen(fd2sock(fd),backlog)
-#define sRecv(fd,buf,len,flags) recv(fd2sock(fd),buf,len,flags)
+#define sBind(fd,name,namelen) bind(fd2sock(fd),(name),(namelen))
+#define sConnect(fd,name,namelen) connect(fd2sock(fd),(name),(namelen))
+#define sIoctl(fd,cmd,argp) ioctlsocket(fd2sock(fd),(cmd),(argp))
+#define sListen(fd,backlog) listen(fd2sock(fd),(backlog))
+#define sRecv(fd,buf,len,flags) recv(fd2sock(fd),(buf),(len),(flags))
 #define sSelect select
-#define sSend(fd,buf,len,flags) send(fd2sock(fd),buf,len,flags)
-#define sSetsockopt(fd,level,optname,optval,optlen) setsockopt(fd2sock(fd),level,optname,optval,optlen)
-#define sShutdown(fd,how) shutdown(fd2sock(fd),how)
-#define sFD_SET(fd,set) FD_SET(fd2sock(fd),set)
-#define sFD_CLR(fd,set) FD_CLR(fd2sock(fd),set)
-#define sFD_ISSET(fd,set) FD_ISSET(fd2sock(fd),set)
+#define sSend(fd,buf,len,flags) send(fd2sock(fd),(buf),(len),(flags))
+#define sSetsockopt(fd,level,optname,optval,optlen) setsockopt(fd2sock(fd),(level),(optname),(optval),(optlen))
+#define sShutdown(fd,how) shutdown(fd2sock(fd),(how))
+#define sFD_SET(fd,set) FD_SET(fd2sock(fd),(set))
+#define sFD_CLR(fd,set) FD_CLR(fd2sock(fd),(set))
+#define sFD_ISSET(fd,set) FD_ISSET(fd2sock(fd),(set))
 #define sFD_ZERO FD_ZERO
 
 /////////////////////////////////////////////////////////////////////
@@ -253,7 +253,7 @@ void set_nonblocking(int fd, unsigned long yes)
 	// FIONBIO Use with a nonzero argp parameter to enable the nonblocking mode of socket s. 
 	// The argp parameter is zero if nonblocking is to be disabled. 
 	if( sIoctl(fd, FIONBIO, &yes) != 0 )
-		ShowError("set_nonblocking: Failed to set socket #%d to non-blocking mode (code %d) - Please report this!!!\n", fd, sErrno);
+		ShowError("set_nonblocking: Failed to set socket #%d to %sblocking mode (code %d) - Please report this!!!\n", fd, yes ? "non-" : "", sErrno);
 }
 
 void setsocketopts(int fd)

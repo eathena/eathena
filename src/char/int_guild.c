@@ -1539,7 +1539,6 @@ int mapif_parse_GuildMasterChange(int fd, int guild_id, const char* name, int le
 // ・エラーなら0(false)、そうでないなら1(true)をかえさなければならない
 int inter_guild_parse_frommap(int fd)
 {
-	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)) {
 	case 0x3030: mapif_parse_CreateGuild(fd, RFIFOL(fd,4), (char*)RFIFOP(fd,8), (struct guild_member *)RFIFOP(fd,32)); break;
 	case 0x3031: mapif_parse_GuildInfo(fd, RFIFOL(fd,2)); break;

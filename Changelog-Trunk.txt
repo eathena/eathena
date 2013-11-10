@@ -1,6 +1,8 @@
 Date	Added
 
 2013/11/10
+	* Removed RFIFOHEAD leftover (follow up to r10599). [Ai4rei]
+	- Minor socket code cleaning.
 	* Updates to sql. [Ai4rei]
 	- Added Sql_AffectedRows and SqlStmt_AffectedRows for retrieving amount of affected rows.
 	- Made Sql_P_Keepalive register the name of it's timer function.

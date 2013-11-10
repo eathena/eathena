@@ -201,7 +201,6 @@ int mapif_save_guild_storage_ack(int fd,int account_id,int guild_id,int fail)
 
 int mapif_parse_LoadGuildStorage(int fd)
 {
-	RFIFOHEAD(fd);
 	mapif_load_guild_storage(fd,RFIFOL(fd,2),RFIFOL(fd,6));
 	return 0;
 }
@@ -211,7 +210,6 @@ int mapif_parse_SaveGuildStorage(int fd)
 	int guild_id;
 	int len;
 
-	RFIFOHEAD(fd);
 	guild_id = RFIFOL(fd,8);
 	len = RFIFOW(fd,2);
 
@@ -239,7 +237,6 @@ int mapif_parse_SaveGuildStorage(int fd)
 
 int inter_storage_parse_frommap(int fd)
 {
-	RFIFOHEAD(fd);
 	switch(RFIFOW(fd,0)){
 	case 0x3018: mapif_parse_LoadGuildStorage(fd); break;
 	case 0x3019: mapif_parse_SaveGuildStorage(fd); break;

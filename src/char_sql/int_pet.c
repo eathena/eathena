@@ -242,7 +242,7 @@ int mapif_load_pet(int fd, int account_id, int char_id, int pet_id){
 int mapif_save_pet(int fd, int account_id, struct s_pet *data) {
 	//here process pet save request.
 	int len;
-	RFIFOHEAD(fd);
+
 	len=RFIFOW(fd, 2);
 	if(sizeof(struct s_pet)!=len-8) {
 		ShowError("inter pet: data size error %d %d\n", sizeof(struct s_pet), len-8);
@@ -271,32 +271,27 @@ int mapif_delete_pet(int fd, int pet_id){
 }
 
 int mapif_parse_CreatePet(int fd){
-	RFIFOHEAD(fd);
 	mapif_create_pet(fd, RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOW(fd, 10), RFIFOW(fd, 12), RFIFOW(fd, 14), RFIFOW(fd, 16), RFIFOW(fd, 18),
 		RFIFOW(fd, 20), RFIFOB(fd, 22), RFIFOB(fd, 23), (char*)RFIFOP(fd, 24));
 	return 0;
 }
 
 int mapif_parse_LoadPet(int fd){
-	RFIFOHEAD(fd);
 	mapif_load_pet(fd, RFIFOL(fd, 2), RFIFOL(fd, 6), RFIFOL(fd, 10));
 	return 0;
 }
 
 int mapif_parse_SavePet(int fd){
-	RFIFOHEAD(fd);
 	mapif_save_pet(fd, RFIFOL(fd, 4), (struct s_pet *) RFIFOP(fd, 8));
 	return 0;
 }
 
 int mapif_parse_DeletePet(int fd){
-	RFIFOHEAD(fd);
 	mapif_delete_pet(fd, RFIFOL(fd, 2));
 	return 0;
 }
 
 int inter_pet_parse_frommap(int fd){
-	RFIFOHEAD(fd);
 	switch(RFIFOW(fd, 0)){
 	case 0x3080: mapif_parse_CreatePet(fd); break;
 	case 0x3081: mapif_parse_LoadPet(fd); break;
