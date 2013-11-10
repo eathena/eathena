@@ -4,14 +4,14 @@
 #ifndef _STRLIB_H_
 #define _STRLIB_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 #include <stdarg.h>
 
 #define __USE_GNU  // required to enable strnlen on some platforms
 #include <string.h>
 #undef __USE_GNU
 
-char* jstrescape (char* pt);
+char* jstrescape(char* str);
 char* jstrescapecpy (char* pt, const char* spt);
 int jmemescapecpy (char* pt, const char* spt, int size);
 

@@ -1,6 +1,9 @@
 Date	Added
 
 2013/11/10
+	* Updates to strlib. [Ai4rei]
+	- Removed duplicate code from jstrescape and made it allocate only as much memory as necessary (instead of 64K).
+	- Minor cleaning.
 	* Updates to db. [Ai4rei]
 	- Iterators now use ERS, as they have a great share on alloc/free spam on map-server.
 	- Minor cleaning.

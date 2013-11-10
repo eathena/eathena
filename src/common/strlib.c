@@ -1,9 +1,9 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include "../common/cbasetypes.h"
-#include "../common/malloc.h"
-#include "../common/showmsg.h"
+#include "cbasetypes.h"
+#include "malloc.h"
+#include "showmsg.h"
 #include "strlib.h"
 
 #include <stdio.h>
@@ -11,39 +11,19 @@
 #include <errno.h>
 
 
-#define J_MAX_MALLOC_SIZE 65535
-
 // escapes a string in-place (' -> \' , \ -> \\ , % -> _)
-char* jstrescape (char* pt)
+char* jstrescape(char* str)
 {
 	//copy from here
-	char *ptr;
-	int i = 0, j = 0;
+	char* tmp;
 
 	//copy string to temporary
-	CREATE(ptr, char, J_MAX_MALLOC_SIZE);
-	strcpy(ptr,pt);
+	tmp = aStrdup(str);
 
-	while (ptr[i] != '\0') {
-		switch (ptr[i]) {
-			case '\'':
-				pt[j++] = '\\';
-				pt[j++] = ptr[i++];
-				break;
-			case '\\':
-				pt[j++] = '\\';
-				pt[j++] = ptr[i++];
-				break;
-			case '%':
-				pt[j++] = '_'; i++;
-				break;
-			default:
-				pt[j++] = ptr[i++];
-		}
-	}
-	pt[j++] = '\0';
-	aFree(ptr);
-	return pt;
+	jstrescapecpy(str, tmp);
+
+	aFree(tmp);
+	return str;
 }
 
 // escapes a string into a provided buffer
@@ -216,7 +196,7 @@ const char* stristr(const char* haystack, const char* needle)
 			}
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 #ifdef __WIN32
@@ -425,7 +405,7 @@ int strline(const char* str, size_t pos)
 /// @param count Number of bytes to convert
 bool bin2hex(char* output, unsigned char* input, size_t count)
 {
-	char toHex[] = "0123456789abcdef";
+	const char toHex[] = "0123456789abcdef";
 	size_t i;
 
 	for( i = 0; i < count; ++i )
@@ -974,7 +954,7 @@ bool sv_readdb(const char* directory, const char* filename, char delim, int minc
 	fp = fopen(path, "r");
 	if( fp == NULL )
 	{
-		ShowError("sv_readdb: can't read %s\n", path);
+		ShowError("sv_readdb: Cannot read file '"CL_WHITE"%s"CL_RESET"'.\n", path);
 		return false;
 	}
 
