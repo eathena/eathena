@@ -1,17 +1,17 @@
 // Copyright (c) Athena Dev Teams - Licensed under GNU GPL
 // For more information, see LICENCE in the main folder
 
-#include "../common/cbasetypes.h"
-#include "../common/malloc.h"
-#include "../common/showmsg.h"
-#include "../common/strlib.h"
-#include "../common/timer.h"
+#include "cbasetypes.h"
+#include "malloc.h"
+#include "showmsg.h"
+#include "strlib.h"
+#include "timer.h"
 #include "sql.h"
 
 #ifdef WIN32
 #include <winsock2.h>
 #endif
-#include "mysql.h"
+#include <mysql.h>
 #include <string.h>// strlen/strnlen/memcpy/memset
 #include <stdlib.h>// strtoul
 
@@ -209,6 +209,7 @@ static int Sql_P_KeepaliveTimer(int tid, unsigned int tick, int id, intptr_t dat
 /// @private
 static int Sql_P_Keepalive(Sql* self)
 {
+	static bool once = true;
 	uint32 timeout, ping_interval;
 
 	// set a default value first
@@ -222,7 +223,13 @@ static int Sql_P_Keepalive(Sql* self)
 
 	// establish keepalive
 	ping_interval = timeout - 30; // 30-second reserve
-	//add_timer_func_list(Sql_P_KeepaliveTimer, "Sql_P_KeepaliveTimer");
+
+	if( once )
+	{
+		once = false;
+		add_timer_func_list(Sql_P_KeepaliveTimer, "Sql_P_KeepaliveTimer");
+	}
+
 	return add_timer_interval(gettick() + ping_interval*1000, Sql_P_KeepaliveTimer, 0, (intptr_t)self, ping_interval*1000);
 }
 
@@ -342,6 +349,27 @@ uint64 Sql_NumRows(Sql* self)
 	if( self && self->result )
 		return (uint64)mysql_num_rows(self->result);
 	return 0;
+}
+
+
+
+/// Returns the number of affected rows of the last query.
+uint64 Sql_AffectedRows(Sql* self)
+{
+	uint64 rows;
+
+	if( self )
+	{
+		rows = mysql_affected_rows(&self->handle);
+		if( rows == (uint64)(~0) )
+		{
+			ShowSQL("DB error - %s\n", mysql_error(&self->handle));
+			rows = 0;
+		}
+		return rows;
+	}
+	else
+		return 0;
 }
 
 
@@ -692,7 +720,7 @@ size_t SqlStmt_NumParams(SqlStmt* self)
 
 
 /// Binds a parameter to a buffer.
-int SqlStmt_BindParam(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, void* buffer, size_t buffer_len)
+int SqlStmt_BindParam(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, const void* buffer, size_t buffer_len)
 {
 	if( self == NULL )
 		return SQL_ERROR;
@@ -714,7 +742,7 @@ int SqlStmt_BindParam(SqlStmt* self, size_t idx, enum SqlDataType buffer_type, v
 		self->bind_params = true;
 	}
 	if( idx < self->max_params )
-		return Sql_P_BindSqlDataType(self->params+idx, buffer_type, buffer, buffer_len, NULL, NULL);
+		return Sql_P_BindSqlDataType(self->params+idx, buffer_type, (void*)buffer, buffer_len, NULL, NULL);
 	else
 		return SQL_SUCCESS;// out of range - ignore
 }
@@ -819,6 +847,27 @@ uint64 SqlStmt_NumRows(SqlStmt* self)
 {
 	if( self )
 		return (uint64)mysql_stmt_num_rows(self->stmt);
+	else
+		return 0;
+}
+
+
+
+/// Returns the number of affected rows of the last statement.
+uint64 SqlStmt_AffectedRows(SqlStmt* self)
+{
+	uint64 rows;
+
+	if( self )
+	{
+		rows = mysql_stmt_affected_rows(self->stmt);
+		if( rows == (uint64)(~0) )
+		{
+			ShowSQL("DB error - %s\n", mysql_stmt_error(self->stmt));
+			rows = 0;
+		}
+		return rows;
+	}
 	else
 		return 0;
 }

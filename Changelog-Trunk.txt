@@ -1,5 +1,10 @@
 Date	Added
 
+2013/11/10
+	* Updates to sql. [Ai4rei]
+	- Added Sql_AffectedRows and SqlStmt_AffectedRows for retrieving amount of affected rows.
+	- Made Sql_P_Keepalive register the name of it's timer function.
+	- Minor cleaning.
 2013/11/02
 	* Deobfuscated malloc's pointer arithmetic. [Ai4rei]
 	- Fixed hash_unfill would be initialized in memmgr_init after potential memory use, rather than before (since r12200).

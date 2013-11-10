@@ -4,13 +4,13 @@
 #ifndef _COMMON_SQL_H_
 #define _COMMON_SQL_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 #include <stdarg.h>// va_list
 
 
 
 // Return codes
-#define SQL_ERROR -1
+#define SQL_ERROR (-1)
 #define SQL_SUCCESS 0
 #define SQL_NO_DATA 100
 
@@ -170,6 +170,13 @@ uint64 Sql_NumRows(Sql* self);
 
 
 
+/// Returns the number of affected rows of the last query.
+///
+/// @return Number of rows
+uint64 Sql_AffectedRows(Sql* self);
+
+
+
 /// Fetches the next row.
 /// The data of the previous row is no longer valid.
 ///
@@ -192,9 +199,9 @@ void Sql_FreeResult(Sql* self);
 
 
 #if defined(SQL_REMOVE_SHOWDEBUG)
-#define Sql_ShowDebug(self) (void)0
+#define Sql_ShowDebug(self)
 #else
-#define Sql_ShowDebug(self) Sql_ShowDebug_(self, __FILE__, __LINE__)
+#define Sql_ShowDebug(self) Sql_ShowDebug_((self), __FILE__, __LINE__)
 #endif
 /// Shows debug information (last query).
 void Sql_ShowDebug_(Sql* self, const char* debug_file, const unsigned long debug_line);
@@ -269,7 +276,7 @@ size_t SqlStmt_NumParams(SqlStmt* self);
 /// All parameters should have bindings.
 ///
 /// @return SQL_SUCCESS or SQL_ERROR
-int SqlStmt_BindParam(SqlStmt* self, size_t idx, SqlDataType buffer_type, void* buffer, size_t buffer_len);
+int SqlStmt_BindParam(SqlStmt* self, size_t idx, SqlDataType buffer_type, const void* buffer, size_t buffer_len);
 
 
 
@@ -312,6 +319,13 @@ uint64 SqlStmt_NumRows(SqlStmt* self);
 
 
 
+/// Returns the number of affected rows of the last statement.
+///
+/// @return Number of rows
+uint64 SqlStmt_AffectedRows(SqlStmt* self);
+
+
+
 /// Fetches the next row.
 /// All column bindings will be filled with data.
 ///
@@ -326,9 +340,9 @@ void SqlStmt_FreeResult(SqlStmt* self);
 
 
 #if defined(SQL_REMOVE_SHOWDEBUG)
-#define SqlStmt_ShowDebug(self) (void)0
+#define SqlStmt_ShowDebug(self)
 #else
-#define SqlStmt_ShowDebug(self) SqlStmt_ShowDebug_(self, __FILE__, __LINE__)
+#define SqlStmt_ShowDebug(self) SqlStmt_ShowDebug_((self), __FILE__, __LINE__)
 #endif
 /// Shows debug information (with statement).
 void SqlStmt_ShowDebug_(SqlStmt* self, const char* debug_file, const unsigned long debug_line);
