@@ -1,6 +1,7 @@
 Date	Added
 
 2013/11/10
+	* Fixed wrong parentheses in status_calc_regen_rate, causing an impossible condition ( C4806: no value of type 'bool' promoted to type 'int' can equal the given constant ), which in turn causes SP regen to continue while under SC_EXTREMITYFIST/SC_EXPLOSIONSPIRITS statuses (since r14929). [Ai4rei]
 	* Removed RFIFOHEAD leftover (follow up to r10599). [Ai4rei]
 	- Minor socket code cleaning.
 	* Updates to sql. [Ai4rei]
