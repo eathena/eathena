@@ -96,8 +96,9 @@ static struct script_event_s
 
 static void* npc_create_viewdata(DBKey key, va_list args)
 {
-	struct view_data* vd = aCalloc(1, sizeof(struct view_data));
+	struct view_data* vd;
 
+	CREATE(vd, struct view_data, 1);
 	vd->class_ = key.i;
 
 	return vd;
@@ -109,7 +110,7 @@ struct view_data* npc_get_viewdata(int class_)
 {
 	if( npcdb_checkid(class_) || class_ == WARP_CLASS )
 	{// Allocate valid entries as needed.
-		return idb_ensure(npcview_db, class_, &npc_create_viewdata);
+		return (struct view_data*)idb_ensure(npcview_db, class_, &npc_create_viewdata);
 	}
 
 	return NULL;

@@ -253,18 +253,18 @@ static inline long* memmgr_unit_tail(struct unit_head* head)
 	return (long*)(((char*)&head->checksum) + head->size);
 }
 
-static inline struct unit_head_large* memmgr_memblock2unit_head_large(char* ptr)
+static inline struct unit_head_large* memmgr_memblock2unit_head_large(void* ptr)
 {
 	struct unit_head_large* large = NULL;  // dummy for offset calculation that takes alignment into account
 
-	return (struct unit_head_large*)( ptr - ( (uintptr_t)&large->unit_head.checksum - (uintptr_t)large ) );
+	return (struct unit_head_large*)( (char*)ptr - ( (uintptr_t)&large->unit_head.checksum - (uintptr_t)large ) );
 }
 
-static inline struct unit_head* memmgr_memblock2unit_head(char* ptr)
+static inline struct unit_head* memmgr_memblock2unit_head(void* ptr)
 {
 	struct unit_head* head = NULL;  // dummy for offset calculation that takes alignment into account
 
-	return (struct unit_head*)( ptr - ( (uintptr_t)&head->checksum - (uintptr_t)head ) );
+	return (struct unit_head*)( (char*)ptr - ( (uintptr_t)&head->checksum - (uintptr_t)head ) );
 }
 
 static unsigned short size2hash( size_t size )

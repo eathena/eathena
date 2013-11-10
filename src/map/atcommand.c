@@ -2164,9 +2164,9 @@ ACMD_FUNC(go)
 	const char* mapname = NULL;
 
 	static const struct {
-		const char*const mapname;
+		const char* mapname;
 		int x, y;
-		const char*const displayname;
+		const char* displayname;
 	} data[] = {
 		{ MAP_PRONTERA,    156, 191, "Prontera" }, // 0
 		{ MAP_MORROC,      156,  93, "Morroc" }, // 1
@@ -2197,8 +2197,8 @@ ACMD_FUNC(go)
 	};
 
 	static const struct {
-		const char*const mapname; // mapname that must exist in the previous array
-		const char*const input; // lowercase name to match against the input
+		const char* mapname; // mapname that must exist in the previous array
+		const char* input; // lowercase name to match against the input
 	} names[] = {
 		{ MAP_PRONTERA,    "prontera" },
 		{ MAP_MORROC,      "morocc" },

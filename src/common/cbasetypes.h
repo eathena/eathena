@@ -366,6 +366,9 @@ void SET_FUNCPOINTER(T1& var, T2 p)
 	union{ T1 out; T2 in; } tmp;// /!\ WARNING casting a pointer to a function pointer is against the C++ standard
 	tmp.in = p;
 	var = tmp.out;
+
+	// unused variable
+	(void)ASSERT_POINTERSIZE;
 }
 #else
 #define SET_POINTER(var,p) (var) = (p)
