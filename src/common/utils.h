@@ -4,7 +4,7 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 #include <stdio.h> // FILE*
 
 // generate a hex dump of the first 'length' bytes of 'buffer'
@@ -16,7 +16,7 @@ bool exists(const char* filename);
 size_t filesize(FILE* fp);
 
 //Caps values to min/max
-#define cap_value(a, min, max) ((a >= max) ? max : (a <= min) ? min : a)
+#define cap_value(a, min, max) ( ( (a) >= (max) ) ? (max) : ( ( (a) <= (min) ) ? (min) : (a) ) )
 
 /// calculates the value of A / B, in percent (rounded down)
 unsigned int get_percentage(const unsigned int A, const unsigned int B);

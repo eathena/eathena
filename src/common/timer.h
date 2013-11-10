@@ -4,11 +4,11 @@
 #ifndef	_TIMER_H_
 #define	_TIMER_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 
 #define DIFF_TICK(a,b) ((int)((a)-(b)))
 
-#define INVALID_TIMER -1
+#define INVALID_TIMER (-1)
 
 // timer flags
 #define TIMER_ONCE_AUTODEL 0x01

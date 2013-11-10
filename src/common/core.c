@@ -43,7 +43,7 @@ char SERVER_TYPE = ATHENA_SERVER_NONE;
 #endif
 
 #ifndef POSIX
-#define compat_signal(signo, func) signal(signo, func)
+#define compat_signal(signo, func) signal((signo), (func))
 #else
 sigfunc *compat_signal(int signo, sigfunc *func)
 {
