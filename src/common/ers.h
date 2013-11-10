@@ -40,7 +40,7 @@
 #ifndef _ERS_H_
 #define _ERS_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 
 /*****************************************************************************\
  *  (1) All public parts of the Entry Reusage System.                        *
@@ -158,7 +158,7 @@ void ers_report(void);
  * The system is left as if no instances or entries had ever been allocated.
  * All previous entries and instances of the managers become invalid.
  * The use of this is NOT recommended.
- * It should only be used in extreme situations to make shure all the memory 
+ * It should only be used in extreme situations to make sure all the memory 
  * allocated by this system is released.
  */
 void ers_force_destroy_all(void);

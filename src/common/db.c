@@ -69,11 +69,11 @@
 #include <stdlib.h>
 
 #include "db.h"
-#include "../common/mmo.h"
-#include "../common/malloc.h"
-#include "../common/showmsg.h"
-#include "../common/ers.h"
-#include "../common/strlib.h"
+#include "ers.h"
+#include "malloc.h"
+#include "mmo.h"
+#include "showmsg.h"
+#include "strlib.h"
 
 /*****************************************************************************\
  *  (1) Private typedefs, enums, structures, defines and global variables of *
@@ -188,6 +188,7 @@ typedef struct DBMap_impl {
 	unsigned int free_lock;
 	// Other
 	ERS nodes;
+	ERS iters;
 	DBComparator cmp;
 	DBHasher hash;
 	DBReleaser release;
@@ -484,7 +485,7 @@ static void db_rebalance_erase(DBNode node, DBNode *root)
 	}
 
 	// Remove the node from the tree
-	if (y != node) { // both childs existed
+	if (y != node) { // both children existed
 		// put the left of 'node' in the left of 'y'
 		node->left->parent = y;
 		y->left = node->left;
@@ -1350,12 +1351,13 @@ void* dbit_obj_remove(DBIterator* self)
 void dbit_obj_destroy(DBIterator* self)
 {
 	DBIterator_impl* it = (DBIterator_impl*)self;
+	DBMap_impl* db = it->db;
 
 	DB_COUNTSTAT(dbit_destroy);
 	// unlock the database
 	db_free_unlock(it->db);
 	// free iterator
-	aFree(self);
+	ers_free(db->iters, self);
 }
 
 /**
@@ -1373,7 +1375,7 @@ static DBIterator* db_obj_iterator(DBMap* self)
 	DBIterator_impl* it;
 
 	DB_COUNTSTAT(db_iterator);
-	CREATE(it, struct DBIterator_impl, 1);
+	it = ers_alloc(db->iters, DBIterator_impl);
 	/* Interface of the iterator **/
 	it->vtable.first   = dbit_obj_first;
 	it->vtable.last    = dbit_obj_last;
@@ -2109,6 +2111,7 @@ static int db_obj_vdestroy(DBMap* self, DBApply func, va_list args)
 	aFree(db->free_list);
 	db->free_list = NULL;
 	db->free_max = 0;
+	ers_destroy(db->iters);
 	ers_destroy(db->nodes);
 	db_free_unlock(db);
 	aFree(db);
@@ -2419,6 +2422,7 @@ DBMap* db_alloc(const char *file, int line, DBType type, DBOptions options, unsi
 	db->free_lock = 0;
 	/* Other */
 	db->nodes = ers_new(sizeof(struct dbn));
+	db->iters = ers_new(sizeof(DBIterator_impl));
 	db->cmp = db_default_cmp(type);
 	db->hash = db_default_hash(type);
 	db->release = db_default_release(type, options);
@@ -2581,7 +2585,7 @@ void db_final(void)
 void linkdb_insert( struct linkdb_node** head, void *key, void* data)
 {
 	struct linkdb_node *node;
-	if( head == NULL ) return ;
+	if( head == NULL ) return;
 	node = (struct linkdb_node*)aMalloc( sizeof(struct linkdb_node) );
 	if( *head == NULL ) {
 		// first node

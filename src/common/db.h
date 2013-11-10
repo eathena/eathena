@@ -41,7 +41,7 @@
 #ifndef _DB_H_
 #define _DB_H_
 
-#include "../common/cbasetypes.h"
+#include "cbasetypes.h"
 #include <stdarg.h>
 
 /*****************************************************************************\
@@ -1317,7 +1317,7 @@ void  linkdb_foreach( struct linkdb_node** head, LinkDBFunc func, ...  );
 			_i_ = _parent_; \
 		} \
 		while( _i_ < VECTOR_LENGTH(__heap) ) \
-		{ /* restore heap property in childs */ \
+		{ /* restore heap property in children */ \
 			size_t _lchild_ = _i_*2 + 1; \
 			size_t _rchild_ = _i_*2 + 2; \
 			if( (_lchild_ >= VECTOR_LENGTH(__heap) || __topcmp(VECTOR_INDEX(__heap,_i_),VECTOR_INDEX(__heap,_lchild_)) <= 0) && \
