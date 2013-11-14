@@ -11848,17 +11848,54 @@ void clif_parse_GuildRequestEmblem(int fd,struct map_session_data *sd)
 /// Validates data of a guild emblem (compressed bitmap)
 static bool clif_validate_emblem(const uint8* emblem, unsigned long emblem_len)
 {
+	enum e_bitmapconst
+	{
+		RGBTRIPLE_SIZE = 3,          // sizeof(RGBTRIPLE)
+		RGBQUAD_SIZE = 4,            // sizeof(RGBQUAD)
+		BITMAPFILEHEADER_SIZE = 14,  // sizeof(BITMAPFILEHEADER)
+		BITMAPINFOHEADER_SIZE = 40,  // sizeof(BITMAPINFOHEADER)
+		BITMAP_WIDTH = 24,
+		BITMAP_HEIGHT = 24,
+	};
 	bool success;
 	uint8 buf[1800];  // no well-formed emblem bitmap is larger than 1782 (24 bit) / 1654 (8 bit) bytes
 	unsigned long buf_len = sizeof(buf);
 
-	success = ( decode_zip(buf, &buf_len, emblem, emblem_len) == 0 && buf_len >= 18 )  // sizeof(BITMAPFILEHEADER) + sizeof(biSize) of the following info header struct
-			&& RBUFW(buf,0) == 0x4d42   // BITMAPFILEHEADER.bfType (signature)
-			&& RBUFL(buf,2) == buf_len  // BITMAPFILEHEADER.bfSize (file size)
-			&& RBUFL(buf,10) < buf_len  // BITMAPFILEHEADER.bfOffBits (offset to bitmap bits)
+	success = ( decode_zip(buf, &buf_len, emblem, emblem_len) == 0 && buf_len >= BITMAPFILEHEADER_SIZE + BITMAPINFOHEADER_SIZE )
+			&& RBUFW(buf,0) == 0x4d42                   // BITMAPFILEHEADER.bfType (signature)
+			&& RBUFL(buf,2) == buf_len                  // BITMAPFILEHEADER.bfSize (file size)
+			&& RBUFL(buf,14) == BITMAPINFOHEADER_SIZE   // BITMAPINFOHEADER.biSize (other headers are not supported)
+			&& RBUFL(buf,18) == BITMAP_WIDTH            // BITMAPINFOHEADER.biWidth
+			&& RBUFL(buf,22) == BITMAP_HEIGHT           // BITMAPINFOHEADER.biHeight (top-down bitmaps (-24) are not supported)
+			&& RBUFL(buf,30) == 0                       // BITMAPINFOHEADER.biCompression == BI_RGB (compression not supported)
 			;
 
-	return success;
+	if( success )
+	{
+		uint32 header = 0, bitmap = 0, offbits = RBUFL(buf,10);  // BITMAPFILEHEADER.bfOffBits (offset to bitmap bits)
+
+		switch( RBUFW(buf,28) )  // BITMAPINFOHEADER.biBitCount
+		{
+			case 8:
+				header = BITMAPFILEHEADER_SIZE + BITMAPINFOHEADER_SIZE + RGBQUAD_SIZE * 256;  // headers + palette
+				bitmap = BITMAP_WIDTH * BITMAP_HEIGHT;
+				break;
+			case 24:
+				header = BITMAPFILEHEADER_SIZE + BITMAPINFOHEADER_SIZE;
+				bitmap = BITMAP_WIDTH * BITMAP_HEIGHT * RGBTRIPLE_SIZE;
+				break;
+		}
+
+		// NOTE: This check gives a little freedom for bitmap-producing implementations,
+		//       that align the start of bitmap data, which is harmless but unnecessary.
+		//       If you want it paranoidly strict, change the first condition from >= to ==.
+		if( offbits >= header && buf_len > bitmap && offbits == buf_len - bitmap )
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
