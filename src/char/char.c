@@ -2551,7 +2551,14 @@ void char_read_fame_list(void)
 {
 	int i, j, k;
 	struct fame_list fame_item;
-	CREATE_BUFFER(id, int, char_num);
+	int* id;
+
+	if( char_num == 0 )
+	{// nothing to do
+		return;
+	}
+
+	id = (int*)aCalloc(sizeof(int), char_num);
 
 	for(i = 0; i < char_num; i++) {
 		id[i] = i;
@@ -2614,7 +2621,8 @@ void char_read_fame_list(void)
 			j++;
 		}
 	}
-	DELETE_BUFFER(id);
+
+	aFree(id);
 }
 
 // Send map-servers the fame ranking lists

@@ -1,5 +1,7 @@
 Date	Added
 
+2014/01/20
+	* Fixed char-server (txt only) would attempt to allocate zero-sized memory block when there are no characters in the database (bugreport:5138, related r15254). [Ai4rei]
 2013/11/14
 	* Expanded guild emblem validation (clif_validate_emblem) to protect clients from crashes due to memory exhaustion and out-of-bounds access (bugreport:5133, follow up to r14937). [Ai4rei]
 2013/11/10
