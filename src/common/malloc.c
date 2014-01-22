@@ -308,6 +308,7 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 
 	if( size == 0 )
 	{
+		ShowError("Memory manager: Attempted to allocate zero-sized buffer (%s:%d in %s).\n", file, line, func);
 		return NULL;
 	}
 
@@ -434,7 +435,7 @@ void* _mcalloc(size_t num, size_t size, const char* file, int line, const char* 
 {
 	void* p;
 
-	memmgr_assert( SIZE_MAX/num > size );
+	memmgr_assert( num && SIZE_MAX/num > size );
 
 	p = _mmalloc(num * size, file, line, func);
 	memset(p, 0, num * size);

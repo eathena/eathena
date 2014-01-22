@@ -1,5 +1,9 @@
 Date	Added
 
+2014/01/21
+	* Fixed char-server (txt only) would still attempt to allocate zero-sized memory block when there are no characters in the database (bugreport:5138, follow up to r15264). [Ai4rei]
+	- Modified the alloc functions to print an error zero-sized allocation attempts.
+	- Fixed assert in aCalloc to not crash on DIV/0.
 2014/01/20
 	* Fixed char-server (txt only) would attempt to allocate zero-sized memory block when there are no characters in the database (bugreport:5138, related r15254). [Ai4rei]
 2013/11/14

@@ -1171,7 +1171,14 @@ void mmo_char_sync(void)
 	int i, j, k;
 	int lock;
 	FILE *fp,*f_fp;
-	CREATE_BUFFER(id, int, char_num);
+	int* id;
+
+	if( char_num == 0 )
+	{// nothing to do
+		return;
+	}
+
+	id = (int*)aCalloc(sizeof(int), char_num);
 
 	// Sorting before save (by [Yor])
 	for(i = 0; i < char_num; i++) {
@@ -1223,9 +1230,7 @@ void mmo_char_sync(void)
 	lock_fclose(f_fp, hotkeys_txt, &lock);
 #endif
 
-	DELETE_BUFFER(id);
-
-	return;
+	aFree(id);
 }
 
 //----------------------------------------------------
