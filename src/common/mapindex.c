@@ -43,7 +43,7 @@ const char* mapindex_getmapname(const char* string, char* output)
 			len = MAP_NAME_LENGTH_EXT-1;  // cripple the name so it fits the buffer
 		}
 
-		safestrncpy(dest, string, len-4+1);  // strip .gat extension
+		len -= 4;  // strip .gat extension
 	}
 	else
 	{// already without extension
@@ -52,9 +52,9 @@ const char* mapindex_getmapname(const char* string, char* output)
 			ShowWarning("mapindex_getmapname: Map name '%s' is too long (len=%u, max=%u)!\n", string, len, MAP_NAME_LENGTH-1);
 			len = MAP_NAME_LENGTH-1;  // cripple the name so it fits the buffer
 		}
-
-		safestrncpy(dest, string, len+1);
 	}
+
+	safestrncpy(dest, string, len+1);
 
 	// wipe the remaining buffer to prevent stale data from leaking
 	memset(&dest[len], 0, MAP_NAME_LENGTH-len);

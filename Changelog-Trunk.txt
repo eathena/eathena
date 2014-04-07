@@ -1,5 +1,7 @@
 Date	Added
 
+2014/04/07
+	* Fixed stack corruption in mapindex_getmapname for input map names longer than 12 characters (since r15243, bugreport:5139). [Ai4rei]
 2014/01/21
 	* Fixed char-server (txt only) would still attempt to allocate zero-sized memory block when there are no characters in the database (bugreport:5138, follow up to r15264). [Ai4rei]
 	- Modified the alloc functions to print an error zero-sized allocation attempts.
