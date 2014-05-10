@@ -1646,5 +1646,25 @@ packet_ver: 28
 0x0953,5,walktoxy,2
 0x0960,5,changedir,2:4
 
+//2013-12-23cRagexe
+packet_ver: 29
+0x022d,19,wanttoconnection,2:6:10:14:18
+0x0202,5,changedir,2:4
+0x035f,6,ticksend,2
+0x0362,6,dropitem,2:4
+0x0364,8,movefromkafra,2:4
+0x0366,90,useskilltoposinfo,2:4:6:8:10
+0x0368,6,solvecharname,2
+0x0369,7,actionrequest,2:6
+0x0437,5,walktoxy,2
+0x0438,10,useskilltopos,2:4:6:8
+0x07e4,6,takeitem,2
+0x07ec,8,movetokafra,2:4
+0x083c,10,useskilltoid,2:4:6
+0x0844,2	// cashshop button onclick
+0x08c9,2	// ???
+0x096a,6,getcharnamerequest,2
+0x09ab,6	// bank button onclick
+
 //Add new packets here
-//packet_ver: 29
+//packet_ver: 30

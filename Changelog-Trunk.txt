@@ -1,5 +1,7 @@
 Date	Added
 
+2014/05/10
+	* Added support for 2013-12-23cRagexe. [Ai4rei]
 2014/04/07
 	* Fixed stack corruption in mapindex_getmapname for input map names longer than 12 characters (since r15243, bugreport:5139). [Ai4rei]
 2014/01/21
