@@ -1,5 +1,7 @@
 Date	Added
 
+2014/06/20
+	* Fixed wrong range for 'packet_ver_flag' battle config (follow up to r15267). [Ai4rei]
 2014/05/10
 	* Added support for 2013-12-23cRagexe. [Ai4rei]
 2014/04/07
