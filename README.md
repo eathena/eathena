@@ -11,6 +11,7 @@ via SVN & GIT. eAthena currently runs on most common Operating Systems currently
 ---------
 
 * Hardware Requirements
+
 eAthena requires the following resources from the machine in order to function without problems or the common "lag":
   * 1.5 GHz or faster CPU, either Intel or AMD is acceptable. Some members have reported that they have gotten eAthena to run on other processors.
   * 512 MB of RAM, MINIMUM. The map server in an idle state consumes about 150-200MB of RAM, depending on how many maps and NPC's are loaded.
@@ -19,6 +20,7 @@ eAthena requires the following resources from the machine in order to function w
   * 250MB of Hard Drive space or better, up-to 1GB depending on how big the database may get.
   
 * Software Requirements
+
 eAthena, depending on what you plan to do with it and what platform you run it on, will require, at a minimum, the following:
   * GCC compatible compiler
   * zlib
