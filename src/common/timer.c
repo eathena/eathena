@@ -85,7 +85,7 @@ int add_timer_func_list(TimerFunc func, char* name)
 }
 
 /// Returns the name of the timer function.
-char* search_timer_func_list(TimerFunc func)
+const char* search_timer_func_list(TimerFunc func)
 {
 	struct timer_func_list* tfl;
 
@@ -226,10 +226,7 @@ static int acquire_timer(void)
 	if (tid >= timer_data_num && tid >= timer_data_max)
 	{// expand timer array
 		timer_data_max += 256;
-		if( timer_data )
-			RECREATE(timer_data, struct TimerData, timer_data_max);
-		else
-			CREATE(timer_data, struct TimerData, timer_data_max);
+		RECREATE(timer_data, struct TimerData, timer_data_max);
 		memset(timer_data + (timer_data_max - 256), 0, sizeof(struct TimerData)*256);
 	}
 
@@ -364,11 +361,8 @@ int do_timer(unsigned int tick)
 
 		if( timer_data[tid].func )
 		{
-			if( diff < -1000 )
-				// timer was delayed for more than 1 second, use current tick instead
-				timer_data[tid].func(tid, tick, timer_data[tid].id, timer_data[tid].data);
-			else
-				timer_data[tid].func(tid, timer_data[tid].tick, timer_data[tid].id, timer_data[tid].data);
+			// timer was delayed for more than 1 second, use current tick instead
+			timer_data[tid].func(tid, ( diff < -1000 ) ? tick : timer_data[tid].tick, timer_data[tid].id, timer_data[tid].data);
 		}
 
 		// in the case the function didn't change anything...

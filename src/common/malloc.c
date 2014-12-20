@@ -169,7 +169,7 @@ void aFree_(void* p, const char* file, int line, const char* func)
 #define BLOCK_DATA_COUNT1	128
 #define BLOCK_DATA_COUNT2	608
 
-/* ブロックの大きさ: 16*128 + 64*576 = 40KB */
+/* ブロックの大きさ: 16*128 + 64*608 = 40KB */
 #define BLOCK_DATA_SIZE1	( BLOCK_ALIGNMENT1 * BLOCK_DATA_COUNT1 )
 #define BLOCK_DATA_SIZE2	( BLOCK_ALIGNMENT2 * BLOCK_DATA_COUNT2 )
 #define BLOCK_DATA_SIZE		( BLOCK_DATA_SIZE1 + BLOCK_DATA_SIZE2 )
@@ -340,6 +340,10 @@ void* _mmalloc(size_t size, const char *file, int line, const char *func )
 			}
 
 			unit_head_large_first = p;
+
+#ifdef DEBUG_MEMMGR
+			memset(&p->unit_head.checksum, 0xcd, size);
+#endif
 
 			memmgr_unit_tail_large(p)[0] = TAILCHECK_VALUE;
 
@@ -703,8 +707,10 @@ size_t memmgr_usage(void)
 static char memmer_logfile[128];
 static FILE *log_fp;
 
-static void memmgr_log(char *buf)
+static void memmgr_log(const char* buf, ...)
 {
+	va_list args;
+
 	if( !log_fp )
 	{
 		time_t raw;
@@ -720,7 +726,9 @@ static void memmgr_log(char *buf)
 		fprintf(log_fp, "\nMemory manager: Memory leaks found at %d/%02d/%02d %02dh%02dm%02ds (Revision %s).\n", t->tm_year+1900, t->tm_mon+1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, get_svn_revision());
 	}
 
-	fprintf(log_fp, "%s", buf);
+	va_start(args, buf);
+	vfprintf(log_fp, buf, args);
+	va_end(args);
 }
 #endif /* LOG_MEMMGR */
 
@@ -773,7 +781,6 @@ bool memmgr_verify(void* ptr)
 static void memmgr_final(void)
 {
 	struct block *block = block_first;
-	struct unit_head_large *large = unit_head_large_first;
 
 #ifdef LOG_MEMMGR
 	int count = 0;
@@ -793,9 +800,7 @@ static void memmgr_final(void)
 				{
 					void* ptr = &head->checksum;
 #ifdef LOG_MEMMGR
-					char buf[1024];
-					sprintf(buf, "%04d : %s line %d size %lu address 0x%p\n", ++count, head->file, head->line, (unsigned long)head->size, ptr);
-					memmgr_log(buf);
+					memmgr_log("%04d : %s line %d size %lu address 0x%p\n", ++count, head->file, head->line, (unsigned long)head->size, ptr);
 #endif /* LOG_MEMMGR */
 					// get block pointer and free it [celest]
 					_mfree(ptr, ALC_MARK);
@@ -805,17 +810,15 @@ static void memmgr_final(void)
 		block = block->block_next;
 	}
 
-	while( large )
+	while( unit_head_large_first )
 	{
-		struct unit_head_large* large2;
+		struct unit_head_large* large = unit_head_large_first;
+
 #ifdef LOG_MEMMGR
-		char buf[1024];
-		sprintf(buf, "%04d : %s line %d size %lu address 0x%p\n", ++count, large->unit_head.file, large->unit_head.line, (unsigned long)large->size, &large->unit_head.checksum);
-		memmgr_log(buf);
+		memmgr_log("%04d : %s line %d size %lu address 0x%p\n", ++count, large->unit_head.file, large->unit_head.line, (unsigned long)large->size, &large->unit_head.checksum);
 #endif /* LOG_MEMMGR */
-		large2 = large->next;
-		FREE(large,file,line,func);
-		large = large2;
+
+		_mfree(large, ALC_MARK);
 	}
 
 #ifdef LOG_MEMMGR

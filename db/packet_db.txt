@@ -1629,6 +1629,14 @@ packet_ver: 26
 0x0858,-1
 0x0859,-1
 
+//2011-10-05aRagexeRE
+packet_ver: 27
+0x0436,19,wanttoconnection,2:6:10:14:18
+0x0367,6,ticksend,2
+0x0437,5,walktoxy,2
+0x07ec,7,actionrequest,2:6
+0x0887,6
+
 //2012-07-02aRagexeRE
 packet_ver: 28
 0x0363,19,wanttoconnection,2:6:10:14:18
@@ -1646,7 +1654,7 @@ packet_ver: 28
 0x0953,5,walktoxy,2
 0x0960,5,changedir,2:4
 
-//2013-12-23cRagexe
+//2013-12-23cRagexe~2014-04-16aRagexe
 packet_ver: 29
 0x022d,19,wanttoconnection,2:6:10:14:18
 0x0202,5,changedir,2:4
