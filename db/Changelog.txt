@@ -9,6 +9,8 @@
 	13005 Angelic Wing Dagger:	NEED INFO.
 =======================
 
+2012/08/29
+	* Rev. 15179 Implemented db/item_drop_rate.txt (see file for more info) [Hybrid]
 2012/08/12
 	* Rev. 15176 Updated mapcache up to 2012-08-08. Adds WoE TE, Malaya, Eclage, Hall of Abyss and Izlude Novice Tutorial maps. [Ai4rei]
 2011/11/03

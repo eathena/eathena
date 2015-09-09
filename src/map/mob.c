@@ -3571,6 +3571,10 @@ static bool mob_parse_dbrow(char** str)
 			db->dropitem[i].p = 0; //No drop.
 			continue;
 		}
+		if ( item_fix_rate(db->dropitem[i].nameid) > 0 ) {
+			 db->dropitem[i].p = item_fix_rate (db->dropitem[i].nameid);
+			 continue;
+		}
 		type = itemdb_type(db->dropitem[i].nameid);
 		rate = atoi(str[k+1]);
 		if( (class_ >= 1324 && class_ <= 1363) || (class_ >= 1938 && class_ <= 1946) )
@@ -4273,8 +4277,31 @@ static bool mob_readdb_race2(char* fields[], int columns, int current)
 	return true;
 }
 
+// Reads items' fixed drop rates [Hybrid]
+static bool item_read_drop_rate (char* fields[], int columns, int current) {
+	int nameid, rate;
+	struct item_data* id;
+
+	nameid = atoi(fields[0]);
+
+	if( ( id = itemdb_exists(nameid) ) == NULL ) {
+		ShowWarning("item_read_drop_rate: Invalid item id %d.\n", nameid);
+		return false;
+	}
+	rate = atoi (fields[2]);
+	
+	if ( rate < 1 || rate > 10000 ) { // Rate of 0 is reserved as default value [Hybrid]
+		ShowWarning("item_read_drop_rate: Invalid rate %r. \n", rate);
+	}
+	id->flag.fix_rate = rate;
+
+	return true;
+}
+
 static void mob_load(void)
 {
+	// Read in fixed rates before evaluating anything
+	sv_readdb(db_path, "item_drop_rate.txt", ',', 3, 3, -1,           &item_read_drop_rate);
 #ifndef TXT_ONLY
 	if(db_use_sqldbs)
 		mob_read_sqldb();
