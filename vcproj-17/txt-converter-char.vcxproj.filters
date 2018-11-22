@@ -1,0 +1,94 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="char">
+      <UniqueIdentifier>{ea8f6314-29e4-4ae9-9991-a7204cf9b180}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="char_sql">
+      <UniqueIdentifier>{a0fa801a-7182-40c0-94dc-1d68703cd61f}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\char\char.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char\int_guild.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char\int_party.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char\int_pet.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char\int_storage.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char\inter.c">
+      <Filter>char</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\char.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\int_guild.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\int_mercenary.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\int_party.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\int_pet.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\int_storage.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\char_sql\inter.c">
+      <Filter>char_sql</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\txt-converter\char-converter.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\char\char.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char\int_guild.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char\int_party.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char\int_pet.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char\int_storage.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char\inter.h">
+      <Filter>char</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\char.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\int_guild.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\int_mercenary.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\int_party.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\int_pet.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\int_storage.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\char_sql\inter.h">
+      <Filter>char_sql</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
