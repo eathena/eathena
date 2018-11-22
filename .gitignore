@@ -14,3 +14,7 @@ desktop.ini
 /pcre8.dll
 /zlib.dll
 /zlib1.dll
+
+*.suo
+*.opendb
+*.db
