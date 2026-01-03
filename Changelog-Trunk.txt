@@ -1,5 +1,8 @@
 Date	Added
 
+2025/01/03
+	- Modernize the autoconf files to build in modern systems. [asakeron]
+
 2014/12/20
 	* Some remaining uncommitted changes. [Ai4rei]
 	- Added packet db stub for 2011-10-05aRagexe (packet ver 27).

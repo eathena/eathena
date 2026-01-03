@@ -1,11 +1,11 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT(eAthena)
-AC_CONFIG_HEADER([src/common/config.h])
-AC_REVISION($Revision$)
-AC_PREREQ([2.59])
+AC_PREREQ([2.72])
+AC_INIT([eathena], [1.0])
 AC_CONFIG_SRCDIR([src/common/cbasetypes.h])
+AC_CONFIG_HEADERS([src/common/config.h])
+AC_REVISION($Revision$)
 AC_CONFIG_FILES([Makefile src/common/Makefile])
 AC_CONFIG_FILES([3rdparty/mt19937ar/Makefile])
 AC_CONFIG_FILES([src/char/Makefile src/login/Makefile])
@@ -18,10 +18,8 @@ AC_CONFIG_FILES([src/map/Makefile src/plugins/Makefile src/tool/Makefile])
 #
 AC_ARG_ENABLE(
 	[manager],
-	AC_HELP_STRING(
-		[--enable-manager=ARG],
-		[memory managers: no, builtin, memwatch, dmalloc, gcollect, bcheck (defaults to builtin)]
-	),
+	AS_HELP_STRING([--enable-manager=ARG],[memory managers: no, builtin, memwatch, dmalloc, gcollect, bcheck (defaults to builtin)
+	]),
 	[
 		enable_manager="$enableval"
 		case $enableval in
@@ -43,37 +41,10 @@ AC_ARG_ENABLE(
 #
 AC_ARG_ENABLE(
 	[packetver],
-	AC_HELP_STRING(
-		[--enable-packetver=ARG],
-		[Sets the PACKETVER define of the map-server. (see src/map/clif.h)]
-	),
+	AS_HELP_STRING([--enable-packetver=ARG],[Sets the PACKETVER define of the map-server. (see src/map/clif.h)
+	]),
 	[enable_packetver="$enableval"],
 	[enable_packetver=""]
-)
-
-
-#
-# debug
-#
-AC_ARG_ENABLE(
-	[debug],
-	AC_HELP_STRING(
-		[--enable-debug@<:@=ARG@:>@],
-		[
-			Compiles extra debug code. (disabled by default)
-			(available options: yes, no, gdb)
-		]
-	),
-	[
-		enable_debug="$enableval"
-		case $enableval in
-			"no");;
-			"yes");;
-			"gdb");;
-			*) AC_MSG_ERROR([[invalid argument --enable-debug=$enableval... stopping]]);;
-		esac
-	],
-	[enable_debug="no"]
 )
 
 #
@@ -81,9 +52,7 @@ AC_ARG_ENABLE(
 #
 AC_ARG_ENABLE(
 	[rdtsc],
-	AC_HELP_STRING(
-		[--enable-rdtsc],
-		[
+	AS_HELP_STRING([--enable-rdtsc],[
 			Uses rdtsc as timing source (disabled by default)
 			Enable it when you've timing issues.
 
@@ -93,8 +62,8 @@ AC_ARG_ENABLE(
 				Please ensure that you've disabled dynamic CPU-Frequencys, such as power saving options.
 				(On the most modern Dedicated Servers cpufreq is preconfigured, see your distribution's manual
 				 how to disable it)
-		]
-	),
+		
+	]),
 	[
 		enable_rdtsc=1
 	],
@@ -102,38 +71,15 @@ AC_ARG_ENABLE(
 )
 
 #
-# Profiler
-#
-AC_ARG_ENABLE(
-	[profiler],
-	AC_HELP_STRING(
-		[--enable-profiler=ARG],
-		[Profilers: no, gprof (disabled by default)]
-	),
-	[
-		enable_profiler="$enableval"
-		case $enableval in
-			"no");;
-			"gprof");;
-			*) AC_MSG_ERROR([[invalid argument --enable-profiler=$enableval... stopping]]);;
-		esac
-	],
-	[enable_profiler="no"]
-)
-
-
-#
 # 64bit
 #
 AC_ARG_ENABLE(
 	[64bit],
-	AC_HELP_STRING(
-		[--enable-64bit],
-		[
-			Don't force 32 bit. (disabled by default)
+	AS_HELP_STRING([--enable-64bit],[
+			Don't force 32 bit. (enabled by default)
 			64bit support is still being tested, not recommended for production servers.
-		]
-	),
+		
+	]),
 	[
 		enable_64bit="$enableval"
 		case $enableval in
@@ -142,7 +88,7 @@ AC_ARG_ENABLE(
 			*) AC_MSG_ERROR([[invalid argument --enable-64bit=$enableval... stopping]]);;
 		esac
 	],
-	[enable_64bit="no"]
+	[enable_64bit="yes"]
 )
 
 
@@ -151,10 +97,8 @@ AC_ARG_ENABLE(
 #
 AC_ARG_WITH(
 	[mysql],
-	AC_HELP_STRING(
-		[--with-mysql@<:@=ARG@:>@],
-		[use MySQL client library, optionally specify the path to the mysql_config executable (by default mysql is used if found)]
-	),
+	AS_HELP_STRING([--with-mysql@<:@=ARG@:>@],[use MySQL client library, optionally specify the path to the mysql_config executable (by default mysql is used if found)
+	]),
 	[
 		if test "$withval" = "no" ; then
 			want_mysql="no"
@@ -178,10 +122,8 @@ AC_ARG_WITH(
 #
 AC_ARG_WITH(
 	[MYSQL_CFLAGS],
-	AC_HELP_STRING(
-		[--with-MYSQL_CFLAGS=ARG],
-		[specify MYSQL_CFLAGS manually (instead of using "mysql_config --include")]
-	),
+	AS_HELP_STRING([--with-MYSQL_CFLAGS=ARG],[specify MYSQL_CFLAGS manually (instead of using "mysql_config --include")
+	]),
 	[
 		manual_MYSQL_CFLAGS="yes"
 		MYSQL_CFLAGS="$withval"
@@ -195,10 +137,8 @@ AC_ARG_WITH(
 #
 AC_ARG_WITH(
 	[MYSQL_LIBS],
-	AC_HELP_STRING(
-		[--with-MYSQL_LIBS=ARG],
-		[specify MYSQL_LIBS manually (instead of using "mysql_config --libs")]
-	),
+	AS_HELP_STRING([--with-MYSQL_LIBS=ARG],[specify MYSQL_LIBS manually (instead of using "mysql_config --libs")
+	]),
 	[
 		manual_MYSQL_LIBS="yes"
 		MYSQL_LIBS="$withval"
@@ -212,10 +152,8 @@ AC_ARG_WITH(
 #
 AC_ARG_WITH(
 	[pcre],
-	AC_HELP_STRING(
-		[--with-pcre@<:@=ARG@:>@],
-		[use PCRE library, optionally specify the full path of pcre installation directory (by default pcre is used if found)]
-	),
+	AS_HELP_STRING([--with-pcre@<:@=ARG@:>@],[use PCRE library, optionally specify the full path of pcre installation directory (by default pcre is used if found)
+	]),
 	[
 		if test "$withval" = "no" ; then
 			want_pcre="no"
@@ -239,11 +177,9 @@ AC_ARG_WITH(
 #
 AC_ARG_WITH(
 	[zlib],
-	AC_HELP_STRING(
-		[--with-zlib=DIR],
-		[root directory path of zlib installation (defaults to /usr/local or /usr if not found in /usr/local).
-		 Assumes that the header files are in DIR/include and the library files are in DIR/lib]
-	),
+	AS_HELP_STRING([--with-zlib=DIR],[root directory path of zlib installation (defaults to /usr/local or /usr if not found in /usr/local).
+		 Assumes that the header files are in DIR/include and the library files are in DIR/lib
+	]),
 	[
 		test -n "$withval" && ZLIB_HOME="$withval"
 	],
@@ -267,7 +203,7 @@ AC_PROG_CPP
 AC_LANG([C])
 
 
-CFLAGS="$CFLAGS -pipe -ffast-math -Wall -Wno-sign-compare"
+CFLAGS="$CFLAGS -pipe -ffast-math -Wall"
 CPPFLAGS="$CPPFLAGS -I../common"
 
 # flags used for compiling shared objects
@@ -305,68 +241,11 @@ if test "$enable_64bit" = "no" ; then
 	fi
 fi
 
-
-AC_MSG_CHECKING([whether $CC supports -Wno-unused-parameter])
-OLD_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wno-unused-parameter"
-AC_COMPILE_IFELSE(
-	[int foo;],
-	[AC_MSG_RESULT([yes])],
-	[
-		AC_MSG_RESULT([no])
-		CFLAGS="$OLD_CFLAGS"
-	]
-)
-
-
-AC_MSG_CHECKING([whether $CC supports -Wno-pointer-sign])
-OLD_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wno-pointer-sign"
-AC_COMPILE_IFELSE(
-	[int foo;],
-	[
-		AC_MSG_RESULT([yes])
-		AC_MSG_CHECKING([whether $CC can actually use -Wno-pointer-sign])
-		# This option causes warnings in C++ mode
-		# Note: -Werror must be before -Wno-pointer-sign, otherwise it does not do anything
-		CFLAGS="$OLD_CFLAGS -Werror -Wno-pointer-sign"
-		AC_COMPILE_IFELSE(
-			[int foo;],
-			[
-				AC_MSG_RESULT([yes])
-				CFLAGS="$OLD_CFLAGS -Wno-pointer-sign"
-			],
-			[
-				AC_MSG_RESULT([no])
-				CFLAGS="$OLD_CFLAGS"
-			]
-		)
-	],
-	[
-		AC_MSG_RESULT([no])
-		CFLAGS="$OLD_CFLAGS"
-	]
-)
-
-
-AC_MSG_CHECKING([whether $CC supports -Wno-switch])
-OLD_CFLAGS="$CFLAGS"
-CFLAGS="$CFLAGS -Wno-switch"
-AC_COMPILE_IFELSE(
-	[int foo;],
-	[AC_MSG_RESULT([yes])],
-	[
-		AC_MSG_RESULT([no])
-		CFLAGS="$OLD_CFLAGS"
-	]
-)
-
-
 AC_MSG_CHECKING([whether $CC supports -fPIC])
 OLD_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -fPIC"
 AC_COMPILE_IFELSE(
-	[int foo;],
+	[AC_LANG_SOURCE([[int foo;]])],
 	[
 		AC_MSG_RESULT([yes])
 		compiler_supports_pic="yes"
@@ -391,14 +270,14 @@ fi
 # default
 CFLAGS="$my_shared_test_flags -shared"
 AC_LINK_IFELSE(
-	[[
+	[AC_LANG_SOURCE([[
 		int bar = 0;
 
 		int foo(void)
 		{
 			return bar;
 		}
-	]],
+	]])],
 	[
 		compiler_shared_objects="-shared"
 	]
@@ -406,14 +285,14 @@ AC_LINK_IFELSE(
 # BeOS specific
 CFLAGS="$my_shared_test_flags -nostart"
 AC_LINK_IFELSE(
-	[[
+	[AC_LANG_SOURCE([[
 		int bar = 0;
 
 		int foo(void)
 		{
 			return bar;
 		}
-	]],
+	]])],
 	[
 		compiler_shared_objects="-nostart"
 	]
@@ -437,14 +316,14 @@ OLD_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS $SOFLAGS"
 WITH_PLUGINS="yes"
 AC_LINK_IFELSE(
-	[[
+	[AC_LANG_SOURCE([[
 		int bar = 0;
 
 		int foo(void)
 		{
 			return bar;
 		}
-	]],
+	]])],
 	[
 		AC_MSG_RESULT([no])
 		CFLAGS="$OLD_CFLAGS"
@@ -454,14 +333,14 @@ AC_LINK_IFELSE(
 			# Verify if -shared really fails due to lack of -fPIC or something else
 			CFLAGS="$CFLAGS -fPIC"
 			AC_LINK_IFELSE(
-				[[
+				[AC_LANG_SOURCE([[
 					int bar = 0;
 
 					int foo(void)
 					{
 						return bar;
 					}
-				]],
+				]])],
 				[
 					AC_MSG_RESULT([yes])
 					CFLAGS="$OLD_CFLAGS -fPIC"
@@ -491,7 +370,7 @@ AC_MSG_CHECKING([whether $CC supports -fno-strict-aliasing])
 OLD_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -fno-strict-aliasing"
 AC_COMPILE_IFELSE(
-	[int foo;],
+	[AC_LANG_SOURCE([[int foo;]])],
 	[AC_MSG_RESULT([yes])],
 	[
 		AC_MSG_RESULT([no])
@@ -507,21 +386,21 @@ AC_C_INLINE()
 AC_MSG_CHECKING([for all available inline directives])
 for ac_kw in inline __inline __inline__ __forceinline; do
 	AC_COMPILE_IFELSE(
-		[
+		[AC_LANG_SOURCE([[
 			typedef int foo_t;
 			static $ac_kw foo_t static_foo(void){ return 0; }
 			$ac_kw foo_t foo(void){ return 0; }
-		],
+		]])],
 		[AC_DEFINE_UNQUOTED([`echo "HAVE_$ac_kw" | $as_tr_cpp`],[1])]
 	)
 done
 for ac_kw in noinline always_inline gnu_inline; do
 	AC_COMPILE_IFELSE(
-		[
+		[AC_LANG_SOURCE([[
 			typedef int foo_t;
 			static __attribute__(($ac_kw)) foo_t static_foo(void){ return 0; }
 			__attribute__(($ac_kw)) foo_t foo(void){ return 0; }
-		],
+		]])],
 		[AC_DEFINE_UNQUOTED([`echo "HAVE_ATTRIBUTE_$ac_kw" | $as_tr_cpp`],[1])]
 	)
 done
@@ -531,7 +410,7 @@ AC_MSG_RESULT([done])
 #
 # archiver tool
 #
-AC_CHECK_TOOL([[AR]],[[ar]],[[:]])
+AC_CHECK_TOOL([AR],[ar],[:])
 if test "$AR" = ":" ; then
 	AC_MSG_ERROR([No archiver tool found, stopping])
 fi
@@ -603,23 +482,6 @@ fi
 
 
 #
-# Debug
-#
-case $enable_debug in
-	"no")
-		# default value
-		CFLAGS="$CFLAGS -Wno-unused -Wno-parentheses"
-		;;
-	"yes")
-		CFLAGS="$CFLAGS -g -DDEBUG"
-		;;
-	"gdb")
-		CFLAGS="$CFLAGS -ggdb -DDEBUG"
-		;;
-esac
-
-
-#
 # RDTSC
 #
 case $enable_rdtsc in
@@ -630,21 +492,6 @@ case $enable_rdtsc in
 		CFLAGS="$CFLAGS -DENABLE_RDTSC"
 		;;
 esac
-
-
-#
-# Profiler
-#
-case $enable_profiler in
-	"no")
-		# default value
-		;;
-	"gprof")
-		CFLAGS="$CFLAGS -pg"
-		LDFLAGS="$LDFLAGS -pg"
-		;;
-esac
-
 
 #
 # zlib library (required)
@@ -680,7 +527,7 @@ AC_SEARCH_LIBS([clock_gettime], [rt])
 if test "$ac_cv_search_clock_gettime" != "no" ; then
 	AC_MSG_CHECKING([whether CLOCK_MONOTONIC is supported and works])
 	AC_RUN_IFELSE(
-		[
+		[AC_LANG_SOURCE([[
 			#include <sys/time.h>
 			#include <time.h>
 			#include <unistd.h>
@@ -690,7 +537,7 @@ if test "$ac_cv_search_clock_gettime" != "no" ; then
 				struct timespec tval;
 				return clock_gettime(CLOCK_MONOTONIC, &tval);
 			}
-		],
+		]])],
 		[
 			AC_MSG_RESULT([yes])
 			CFLAGS="$CFLAGS -DHAVE_MONOTONIC_CLOCK"
